@@ -1983,7 +1983,7 @@ Per maintainer ruling OD-9 (`specs/done_017-share-link-expiry/OPEN-DECISIONS.md`
 **Export method & validation:** JSON via `Get(id, {depth: 12–14})` for all four nodes, zero elision markers; validated with `python3 -m json.tool`. Screenshots via `export_nodes` at 2x scale: `atqRh.png` 1088×732, `tr6cE.png` 1088×772, `oPF1n.png` 1088×892, `xCJlu.png` 2880×1800, all non-empty RGBA. Content checks: `"This link works until you revoke it"` found only in `tr6cE.json`; `"Long-lived link"` found only in `oPF1n.json`; `"content":"Never"` found in `xCJlu.json`. Read back all edited/created nodes via `Get` after each edit and via screenshot before export.
 
 No `.pen` file was Read/Grep/cat/sed — all access via Pencil MCP `get_app_state`/`execute`/`get_screenshot`/`export_nodes`. The `.pen` file itself was **not** saved (per the task's explicit instruction — the maintainer saves via the GUI). No git add/commit was performed by this pass.
-## 010-easy-module-building: BuildModuleDialog modal wizard frames (commits 391e1960, fa5a4370)
+## done_010-easy-module-building: BuildModuleDialog modal wizard frames (commits 391e1960, fa5a4370)
 
 Three modal wizard frames for the Web Dashboard Module Builder (US5) were designed and initially exported in prior commits and merged to master:
 - `IdbiB`: `Screen/Dialog/Build Module — Step 1 (Preset & Metadata)` (800x700, archetype selector cards, DNS-1123 name validation, display metadata, category chips).
@@ -1992,7 +1992,7 @@ Three modal wizard frames for the Web Dashboard Module Builder (US5) were design
 
 **Initial exports:** commit `391e1960` (2026-09-15) first exported `IdbiB`, `O5kaV`, `hmPL7` at full length (~700+ lines each, dark theme applied). Commit `fa5a4370` (2026-09-16) made minor follow-up changes to these same three frames (2-3 line diffs each, documented in those commits). Both commits are already on master and reached this feature branch through a merge. Commit `12b4d449` (2026-09-12) contributed only the manifest narrative entry (11 lines added to MANIFEST.md); the actual frame exports are entirely from commits 391e1960/fa5a4370.
 
-## Export correction 2026-09-21 — 010-easy-module-building: O5kaV container image reference
+## Export correction 2026-09-21 — done_010-easy-module-building: O5kaV container image reference
 
 Fixed the sample container image reference in `O5kaV` (Screen/Dialog/Build Module — Step 2, Container & Ports) to match the existing `ARCHETYPE_PRESETS.steamcmd.defaultImage` in `web/src/components/modules/BuildModuleDialog.tsx`, which was already correct.
 
@@ -2013,7 +2013,7 @@ Fixed the sample container image reference in `O5kaV` (Screen/Dialog/Build Modul
 - No git add/commit performed (task instructions: export and manifest correction only).
 
 
-## Design/code reconciliation — 010-easy-module-building: module-builder screens (2026-09-21)
+## Design/code reconciliation — done_010-easy-module-building: module-builder screens (2026-09-21)
 
 Per the design/code reconciliation pass, four module-builder screen frames were brought into line with the already-shipped React implementation (`web/src/routes/Modules.tsx`, `web/src/components/modules/BuildModuleDialog.tsx`). Code was the source of truth; design was updated to match.
 
@@ -2046,7 +2046,7 @@ Per the design/code reconciliation pass, four module-builder screen frames were 
 - **No `.pen` file was Read/Grep/cat/sed** — all access via Pencil MCP `execute`/`export_nodes`, per Rule 2.
 - No git add/commit performed (export and manifest correction only, per task instructions).
 
-## 010-easy-module-building — archetype truth, console states, capture copy (2026-09-21)
+## done_010-easy-module-building — archetype truth, console states, capture copy (2026-09-21)
 
 Five frames exported. Four were edited to match shipped code; `O5kaV` was corrected
 against the canonical archetype definitions after the web wizard stopped using its
