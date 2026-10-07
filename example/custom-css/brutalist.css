@@ -1,6 +1,252 @@
 /*
- * Gameplane — brutalist (example Custom CSS overlay)
+ * Gameplane — Brutalist Theme (example Custom CSS overlay)
+ * ========================================================
+ * What this does
+ * --------------
+ * A shape-and-stroke theme — neo-brutalism for the dashboard. It does
+ * NOT touch accent or surface colors: whatever preset (pink or legacy)
+ * or Custom Colors palette is active keeps painting the fills, and this
+ * theme redraws the structure around them:
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   1. Square corners — 2px on every component family: buttons (all
+ *      variants, including the .rounded-full pill CTAs like "Sign in"),
+ *      chips, cards, dialogs, popovers, tab lists, and fields. The
+ *      shape tokens (--radius, --field-radius, --radius-md,
+ *      --radius-lg) are rebound too, so any not-yet-pinned consumer
+ *      stays square as well.
+ *   2. Thick borders — 2px solid var(--border) on the nine component
+ *      families that frame content: cards, buttons, inputs, select
+ *      triggers, chips, dialogs, popovers, tab lists, and tables.
+ *   3. Hard offset shadows — box-shadow: 4px 4px 0 <ink>, zero blur,
+ *      on cards, dialogs, popovers, and primary buttons. Solid black
+ *      in light mode; white for surfaces and accent-tinted for primary
+ *      buttons in dark mode (on near-black, black ink would vanish).
+ *   4. Stronger structure tokens — --border and --separator move
+ *      further from the background in both modes so the 2px strokes
+ *      actually read (same idea as the high-contrast-focus example),
+ *      restated for the legacy preset variants.
+ *   5. Button voice — uppercase with 0.05em letter-spacing for the
+ *      classic brutalist poster feel.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ *   - Token blocks (sections 1-2) use `!important` so they outrank the
+ *     app's own preset token blocks (including the higher-specificity
+ *     legacy-preset variants) and the Custom Colors injection, which is
+ *     never `!important`. Since this theme sets no color tokens, a
+ *     Custom Colors pick still wins every accent and surface; only
+ *     --border and --separator are claimed here.
+ *   - Component overrides target HeroUI's stable semantic classes
+ *     (.button, .chip, .card, ...) and aria/testid hooks only — never
+ *     Tailwind utility classes. The overlay <style> is appended last
+ *     in <head> and is unlayered, so it beats the app's @layer
+ *     utilities/components rules at equal specificity. Section 3 still
+ *     carries `!important` because a few app radius pins use a more
+ *     specific selector than the overlay can match from one class
+ *     (.modal__dialog .input, .card[data-danger-zone]).
+ *   - Composability: accent, surface, and foreground tokens are
+ *     untouched, so this composes with both base presets and with
+ *     Custom Colors picks.
+ *   - Offset shadows need room: they extend 4px to the right and 4px
+ *     below the element box, so anything sitting flush against a
+ *     viewport edge or inside an overflow-hidden container can clip
+ *     them. Dialogs are centered and page grids keep their default
+ *     gaps, so the shipped layouts have the slack they need.
+ *   - Reduced motion: nothing here animates, transitions, or glows —
+ *     the shadows are static paint — so prefers-reduced-motion users
+ *     get the full theme and no @media (prefers-reduced-motion) block
+ *     is required.
+ *   - Danger cards (.card[data-danger-zone]) keep their semantic red
+ *     stroke (that rule is more specific and is deliberately left
+ *     alone) but are squared off like everything else.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Stronger structure tokens — border & separator, both modes     */
+/* ---------------------------------------------------------------- */
+
+/* Only the two structure tokens are touched. Values are picked against
+   the app backgrounds (light #FFFFFF, dark #121114) to clear the 3:1
+   WCAG non-text contrast floor for component boundaries with room to
+   spare — ratios noted per line. `!important` is required because these
+   blocks must outrank the app's own preset token blocks, the
+   higher-specificity legacy-preset variants restated below, and the
+   never-`!important` Custom Colors injection. */
+:root,
+.light {
+  --border: #374151 !important;    /* gray-700 — ~10.5:1 on white */
+  --separator: #6b7280 !important; /* gray-500 — ~4.8:1 on white */
+}
+.dark {
+  --border: #d1d5db !important;    /* gray-300 — ~11:1 on #121114 */
+  --separator: #6b7280 !important; /* gray-500 — ~3.9:1 on #121114 */
+}
+
+/* Legacy preset variants redeclare these tokens with an extra attribute
+   selector that outranks the plain class selectors above — restate the
+   same values so the overlay wins there too (same pattern as the
+   high-contrast-focus example). */
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --border: #374151 !important;
+  --separator: #6b7280 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --border: #d1d5db !important;
+  --separator: #6b7280 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Shape tokens — rebind the whole radius scale to 2px            */
+/* ---------------------------------------------------------------- */
+
+/* The app pins per-family radii at the component selector (6px buttons,
+   12px cards/dialogs, 999px tab pills), so rebinding --radius alone
+   does nothing for those families — section 3 repins them. But every
+   other consumer of the scale (and any component added later) should
+   stay square too, so the whole scale drops to 2px here. */
+:root,
+.light,
+.dark {
+  --radius: 2px !important;
+  --field-radius: 2px !important;
+  --radius-md: 2px !important;
+  --radius-lg: 2px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Square corners — repinned per component family                 */
+/* ---------------------------------------------------------------- */
+
+/* Repin every family the app rounds: .button:not(.rounded-full),
+   .tabs__tab/.tabs__indicator/.menu-item/.list-box-item/.select__trigger
+   (6px), .chip (4px), .card/.modal__dialog (12px), .dropdown__popover
+   (8px), .tabs__list (999px), .table-root--primary (12px). The
+   `!important` is needed because some pins carry a more specific
+   selector than a single class can match (.modal__dialog .input at
+   0,2,0, .card[data-danger-zone] at 0,2,0) — an !important declaration
+   beats any non-important one regardless of specificity — and so the
+   .rounded-full pill CTAs ("Sign in", "Create server") square off
+   against HeroUI's pill styles outright. */
+.button:not(.rounded-full),
+.button.rounded-full, /* the pill CTAs go square too — no pills here */
+.chip:not(.rounded-full),
+.chip.rounded-full,
+.card,
+.card[data-danger-zone], /* keeps its red stroke, loses its 6px corners */
+.modal__dialog,
+.alert-dialog__dialog, /* confirm dialogs share the dialog family */
+.dropdown__popover,
+.tabs__list,
+.tabs__tab,
+.tabs__indicator,
+.menu-item,
+.list-box-item,
+.input, /* also covers .modal__dialog .input via !important */
+.select__trigger,
+.table-root--primary {
+  border-radius: 2px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Thick 2px borders on every component family                    */
+/* ---------------------------------------------------------------- */
+
+/* No `!important` needed here: the app's own border declarations live
+   at component selectors with the same or lower specificity and are
+   unlayered like this overlay, so being appended last in <head> wins
+   the tie; HeroUI's defaults sit inside @layer components and lose to
+   any unlayered rule. Note the color switches from --field-border to
+   --border — fields join the same heavy-stroke system as everything
+   else. Danger cards keep their semantic red stroke (a more specific
+   rule, deliberately left alone). */
+.card,
+.button, /* every variant: primary, secondary, outline, ghost, ... */
+.input,
+.select__trigger,
+.chip,
+.modal__dialog,
+.alert-dialog__dialog,
+.dropdown__popover,
+.tabs__list,
+.table-root--primary {
+  border: 2px solid var(--border);
+}
+
+/* Dialogs normally draw their stroke as a 1px inner outline (outline
+   with -1px offset, per globals.css, so content does not move and
+   HeroUI's elevation shadow is untouched). With a real 2px border that
+   inner line would double the stroke — restate it at 2px/-2px so it
+   lands exactly on the new border and keeps the no-layout-shift trick. */
+.modal__dialog,
+.alert-dialog__dialog {
+  outline: 2px solid var(--border);
+  outline-offset: -2px;
+}
+
+/* ---------------------------------------------------------------- */
+/* 5. Hard offset shadows — light mode (solid black ink)             */
+/* ---------------------------------------------------------------- */
+
+/* box-shadow with ZERO blur: 4px right, 4px down — the classic
+   print/poster offset. These replace HeroUI's soft elevation shadows
+   (layered component styles, so unlayered rules win the tie). Light
+   mode is the app's default state, so these are unscoped; dark mode
+   overrides them in section 6. WARNING: offset shadows extend 4px
+   right and 4px below the element box — content flush against a
+   viewport edge or inside an overflow-hidden container will clip them.
+   Static paint: no animation, so prefers-reduced-motion loses nothing. */
+.card,
+.modal__dialog,
+.alert-dialog__dialog,
+.dropdown__popover,
+.button[data-variant="primary"] {
+  box-shadow: 4px 4px 0 #000000;
+}
+
+/* ---------------------------------------------------------------- */
+/* 6. Hard offset shadows — dark mode (white / accent-tinted ink)    */
+/* ---------------------------------------------------------------- */
+
+/* On the near-black dark background (#121114) a black shadow would be
+   invisible, so the ink flips to white for the surface components.
+   Primary buttons get the accent color instead: it is whatever the
+   active preset or Custom Colors pick says (untouched by this theme),
+   so the button shadow stays in-palette. With a very light accent the
+   primary shadow reads as a color halo rather than a cast shadow —
+   that is intentional. */
+.dark .card,
+.dark .modal__dialog,
+.dark .alert-dialog__dialog,
+.dark .dropdown__popover {
+  box-shadow: 4px 4px 0 #ffffff;
+}
+.dark .button[data-variant="primary"] {
+  box-shadow: 4px 4px 0 var(--accent);
+}
+
+/* ---------------------------------------------------------------- */
+/* 7. Button voice — uppercase, tracked out                          */
+/* ---------------------------------------------------------------- */
+
+/* The brutalist poster look: every button label goes uppercase with a
+   slight tracking increase. Scoped to .button (HeroUI's stable class,
+   which also covers router <Link>s styled via buttonVariants) so table
+   headers, chips, and nav labels are unaffected. */
+.button {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

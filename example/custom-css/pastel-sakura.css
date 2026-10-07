@@ -1,6 +1,293 @@
 /*
- * Gameplane — pastel-sakura (example Custom CSS overlay)
+ * Gameplane — Pastel Sakura Theme (example Custom CSS overlay)
+ * ============================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme: a soft pastel cherry-blossom palette of
+ * rose pinks and deep plum ink, in both modes. No layout, spacing,
+ * shape, or typography changes — tokens only, so this is a "just
+ * recolor the app" overlay in the same spirit as solarized.css.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ * Light mode is "blush paper": a near-white pink page with deeper
+ * petal surfaces, deep plum ink for text, and a rose accent:
+ *
+ *   - Accent:   rose #db2777, white text on it (~4.6:1, AA)
+ *   - Links:    deeper rose #be185d (~5.5:1 on the page)
+ *   - Success:  softened emerald #059669 (status/icon hue; readable
+ *               text rides on --success-soft instead)
+ *   - Warning:  amber #b45309 (~4.6:1)
+ *   - Danger:   crimson rose #be123c (~5.8:1)
+ *   - Stat icons / sleep: lavender #8b5cf6
+ *
+ * Dark mode is "plum night": a very dark, low-saturation plum page
+ * (#1f1018) with wine surfaces, pale blossom text (#f5d0e0), and a
+ * pastel pink accent (#f9a8d4) carrying dark plum text. Status hues
+ * are pastel-brightened for the dark background but re-checked for
+ * AA (annotations inline, section 2).
+ *
+ * Contrast approach: surfaces stay deliberately pastel-soft, so
+ * text contrast comes from the plum ink (light mode, ~13:1 on the
+ * page) and the pale blossom text (dark mode, ~13:1), never from
+ * darkening the pastels. --muted in light mode sits right at the
+ * 4.5:1 AA floor for normal text — fine for secondary text, which
+ * is all --muted is used for.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks use `!important` so they outrank the app's own
+ * preset token blocks — including the higher-specificity
+ * legacy-preset variants (`.light[data-theme-preset="legacy"]` /
+ * `.dark[data-theme-preset="legacy"]`), which are restated in
+ * section 3 — and the never-`!important` Custom Colors injection,
+ * so this overlay wins over a Custom Colors pick for every token
+ * it sets. The legacy `--gp-*` HSL triplets in section 4 are the
+ * exception: plain selectors, no `!important`, because they only
+ * feed not-yet-rebuilt screens and must stay overridable. Nothing
+ * here animates, so no reduced-motion guard is needed.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Sakura palette — light mode ("blush paper")                    */
+/* ---------------------------------------------------------------- */
+
+:root,
+.light {
+  /* Page + petal surfaces: all low-saturation pastels. Contrast is
+     carried by the plum ink below, not by darkening these. */
+  --background: #fdf2f8 !important; /* pink-50, blush paper */
+  --surface: #fce7f3 !important; /* pink-100, petal card fill */
+  --surface-secondary: #f9d9e8 !important; /* deeper petal */
+  --surface-tertiary: #f5c2da !important; /* deepest petal pastel */
+  --overlay: #fdf6fa !important; /* dialogs float a touch lighter */
+
+  /* Rose accent. White on rose is ~4.6:1 — past AA's 4.5:1 floor
+     for normal text, the lightest foreground the palette rose
+     supports. */
+  --accent: #db2777 !important; /* rose */
+  --accent-foreground: #ffffff !important; /* ~4.6:1 on the rose */
+  --accent-soft: #fce7f3 !important; /* pink-100 wash */
+  --accent-soft-foreground: #9d174d !important; /* pink-800, ~6.7:1 on accent-soft */
+
+  /* Neutral buttons tinted with the same petal family so they sit
+     quietly next to the accent instead of going gray. */
+  --default: #fce7f3 !important;
+  --default-foreground: #500f2d !important; /* deep plum, ~13:1 on background */
+  --default-soft: #f9d9e8 !important;
+  --default-soft-foreground: #500f2d !important; /* ~11:1 on default-soft */
+
+  --muted: #9d5c7d !important; /* ~4.5:1 on background — AA floor, secondary text only */
+  --border: #fbcfe8 !important; /* pink-200, intentionally subtle hairline */
+  --separator: #fcd9ea !important; /* even softer divider */
+
+  /* Fields: a near-white pink fill with a border stepped one shade
+     deeper than --border so inputs stay findable on it. */
+  --field-background: #fdf6fa !important;
+  --field-border: #f0a8c8 !important; /* mid-rose, visible on the field fill */
+  --field-foreground: #500f2d !important; /* ~12:1 on field-background */
+  --field-placeholder: #b9839c !important; /* ~2.9:1, placeholder text */
+
+  --segment: #fce7f3 !important;
+  --segment-foreground: #500f2d !important;
+  --focus: #db2777 !important; /* focus ring matches the accent */
+  --link: #be185d !important; /* pink-700, ~5.5:1 on background */
+  --chart-stat: #8b5cf6 !important; /* lavender; ~3.9:1, icon/graphic hue */
+  --sleep: #8b5cf6 !important;
+
+  /* Status hues kept at their palette values; where one falls
+     under 4.5:1 on the page (success does, at ~3.5:1), it is used
+     only for icons/borders and the readable text moves onto the
+     -soft surface with a deep foreground below. */
+  --success: #059669 !important; /* softened emerald */
+  --success-soft: #d9f2e6 !important; /* mint pastel */
+  --success-soft-foreground: #065f46 !important; /* emerald-800, ~6.5:1 on success-soft */
+  --warning: #b45309 !important; /* amber, ~4.6:1 */
+  --warning-soft: #faecd0 !important; /* cream pastel */
+  --warning-soft-foreground: #92400e !important; /* amber-800, ~6.1:1 on warning-soft */
+  --danger: #be123c !important; /* crimson rose, ~5.8:1 */
+  --danger-soft: #fbdce3 !important; /* blush pastel */
+  --danger-soft-foreground: #9f1239 !important; /* rose-800, ~6.3:1 on danger-soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Sakura palette — dark mode ("plum night")                      */
+/* ---------------------------------------------------------------- */
+
+.dark {
+  /* Low-saturation plum night: dark enough for the pale blossom
+     text to hit ~13:1, muted enough to keep the pastel feel. */
+  --background: #1f1018 !important; /* muted plum night */
+  --surface: #2b1a24 !important; /* wine surface */
+  --surface-secondary: #241219 !important;
+  --surface-tertiary: #1a0d13 !important;
+  --overlay: #2b1a24 !important;
+
+  /* Pastel pink accent with dark plum text — the inverted twin of
+     the light mode's rose-on-white. */
+  --accent: #f9a8d4 !important; /* pink-300 pastel */
+  --accent-foreground: #4a0e29 !important; /* dark plum on pink, ~8.4:1 */
+  --accent-soft: #4a2438 !important; /* deep rose-plum wash */
+  --accent-soft-foreground: #fbcfe8 !important; /* ~9.5:1 on accent-soft */
+
+  --default: #3a2230 !important;
+  --default-foreground: #f5d0e0 !important; /* blossom text */
+  --default-soft: #432338 !important;
+  --default-soft-foreground: #f5d0e0 !important; /* ~9.7:1 on default-soft */
+
+  --muted: #b08ca0 !important; /* ~6.2:1 on background */
+  --border: #4a2c3c !important; /* wine hairline */
+  --separator: #3a2230 !important;
+
+  --field-background: #241219 !important;
+  --field-border: #57324a !important;
+  --field-foreground: #fbe4ee !important; /* a half-step lighter than --foreground */
+  --field-placeholder: #9d7a8d !important; /* ~4.8:1 on field-background */
+
+  --segment: #2b1a24 !important;
+  --segment-foreground: #f5d0e0 !important;
+  --focus: #f9a8d4 !important;
+  --link: #f472b6 !important; /* pink-400, ~7.0:1 on background */
+  --chart-stat: #a78bfa !important; /* pastel lavender, ~6.8:1 */
+  --sleep: #a78bfa !important;
+
+  /* Status hues pastel-brightened for the dark page; all clear AA
+     even at full strength, so no text needs to move to the -soft
+     surfaces the way light-mode success does. */
+  --success: #34d399 !important; /* pastel emerald, ~9.5:1 */
+  --success-soft: #0f2e23 !important;
+  --success-soft-foreground: #6ee7b7 !important; /* ~9.6:1 on success-soft */
+  --warning: #fbbf24 !important; /* pastel amber, ~11:1 */
+  --warning-soft: #3a2a10 !important;
+  --warning-soft-foreground: #fcd34d !important; /* ~9.6:1 on warning-soft */
+  --danger: #fb7185 !important; /* pastel rose, ~6.8:1 */
+  --danger-soft: #3d1220 !important;
+  --danger-soft-foreground: #fda4af !important; /* ~8.5:1 on danger-soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy preset variants (restate both modes)                    */
+/* ---------------------------------------------------------------- */
+
+/* The legacy preset adds a [data-theme-preset="legacy"] attribute
+   to the same root classes, so its token blocks beat the plain
+   .light/.dark selectors above on specificity no matter where this
+   overlay sits in <head>. Restate every token for both legacy
+   variants — same values, same !important — so the sakura palette
+   holds whether or not the legacy preset is active underneath. */
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #fdf2f8 !important;
+  --surface: #fce7f3 !important;
+  --surface-secondary: #f9d9e8 !important;
+  --surface-tertiary: #f5c2da !important;
+  --overlay: #fdf6fa !important;
+  --accent: #db2777 !important;
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #fce7f3 !important;
+  --accent-soft-foreground: #9d174d !important;
+  --default: #fce7f3 !important;
+  --default-foreground: #500f2d !important;
+  --default-soft: #f9d9e8 !important;
+  --default-soft-foreground: #500f2d !important;
+  --muted: #9d5c7d !important;
+  --border: #fbcfe8 !important;
+  --separator: #fcd9ea !important;
+  --field-background: #fdf6fa !important;
+  --field-border: #f0a8c8 !important;
+  --field-foreground: #500f2d !important;
+  --field-placeholder: #b9839c !important;
+  --segment: #fce7f3 !important;
+  --segment-foreground: #500f2d !important;
+  --focus: #db2777 !important;
+  --link: #be185d !important;
+  --chart-stat: #8b5cf6 !important;
+  --sleep: #8b5cf6 !important;
+  --success: #059669 !important;
+  --success-soft: #d9f2e6 !important;
+  --success-soft-foreground: #065f46 !important;
+  --warning: #b45309 !important;
+  --warning-soft: #faecd0 !important;
+  --warning-soft-foreground: #92400e !important;
+  --danger: #be123c !important;
+  --danger-soft: #fbdce3 !important;
+  --danger-soft-foreground: #9f1239 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #1f1018 !important;
+  --surface: #2b1a24 !important;
+  --surface-secondary: #241219 !important;
+  --surface-tertiary: #1a0d13 !important;
+  --overlay: #2b1a24 !important;
+  --accent: #f9a8d4 !important;
+  --accent-foreground: #4a0e29 !important;
+  --accent-soft: #4a2438 !important;
+  --accent-soft-foreground: #fbcfe8 !important;
+  --default: #3a2230 !important;
+  --default-foreground: #f5d0e0 !important;
+  --default-soft: #432338 !important;
+  --default-soft-foreground: #f5d0e0 !important;
+  --muted: #b08ca0 !important;
+  --border: #4a2c3c !important;
+  --separator: #3a2230 !important;
+  --field-background: #241219 !important;
+  --field-border: #57324a !important;
+  --field-foreground: #fbe4ee !important;
+  --field-placeholder: #9d7a8d !important;
+  --segment: #2b1a24 !important;
+  --segment-foreground: #f5d0e0 !important;
+  --focus: #f9a8d4 !important;
+  --link: #f472b6 !important;
+  --chart-stat: #a78bfa !important;
+  --sleep: #a78bfa !important;
+  --success: #34d399 !important;
+  --success-soft: #0f2e23 !important;
+  --success-soft-foreground: #6ee7b7 !important;
+  --warning: #fbbf24 !important;
+  --warning-soft: #3a2a10 !important;
+  --warning-soft-foreground: #fcd34d !important;
+  --danger: #fb7185 !important;
+  --danger-soft: #3d1220 !important;
+  --danger-soft-foreground: #fda4af !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets (old screens)                        */
+/* ---------------------------------------------------------------- */
+
+/* Legacy HSL triplets for any not-yet-rebuilt screen still reading
+   the --gp-* variables. Same hues as the token blocks above,
+   expressed as bare HSL triplets. Deliberately plain .light/.dark
+   selectors with NO !important: these are compatibility hints and
+   must stay overridable by anything newer. */
+.light {
+  --gp-bg: 327 73% 97%;
+  --gp-surface: 326 78% 95%;
+  --gp-card: 326 78% 98%;
+  --gp-border: 326 85% 90%;
+  --gp-muted: 330 26% 49%;
+  --gp-fg: 332 68% 19%;
+  --gp-primary: 333 71% 51%;
+  --gp-primary-fg: 0 0% 100%;
+}
+.dark {
+  --gp-bg: 328 32% 9%;
+  --gp-surface: 325 25% 14%;
+  --gp-card: 325 25% 14%;
+  --gp-border: 328 25% 23%;
+  --gp-muted: 327 19% 62%;
+  --gp-fg: 334 65% 89%;
+  --gp-primary: 327 87% 82%;
+  --gp-primary-fg: 332 68% 17%;
+}

@@ -1,6 +1,182 @@
 /*
- * Gameplane — rounded-playful (example Custom CSS overlay)
+ * Gameplane — Rounded Playful Theme (example Custom CSS overlay)
+ * ==============================================================
+ * What this does
+ * --------------
+ * A shape-only theme: no color changes at all — every screen keeps
+ * whatever preset or Custom Colors palette is active — but the whole
+ * UI is pushed to maximum roundness with a gentle, springy hover:
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   1. Fully-round controls — buttons (including the .rounded-full
+ *      pill CTAs), chips and the tab segmented control become 999px
+ *      pills.
+ *   2. Soft surfaces — cards and dialogs go to 20px, dropdown
+ *      popovers and data tables to 16px, text fields and select
+ *      triggers to 12px, menu and listbox rows to 10px.
+ *   3. Root radius scale rebound — --radius / --radius-md /
+ *      --radius-lg / --field-radius are raised too, so any component
+ *      WITHOUT a per-family pin still picks up the softer geometry.
+ *   4. Spring-feel hover lift — buttons scale up 2% over 150ms with
+ *      a slight overshoot curve, a subtle "pop" that makes the UI
+ *      feel bouncy instead of rigid. Switched off entirely for users
+ *      who prefer reduced motion.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Notes
+ * -----
+ *   - Nothing here touches color tokens, so this composes with any
+ *     base preset (pink or legacy, light or dark) and with Custom
+ *     Colors picks. There are no legacy-preset restatements to make:
+ *     these shape rules do not compete with any token block.
+ *   - The app pins per-family radii at the component selector in
+ *     globals.css (6px buttons/menu rows/select triggers, 4px chips,
+ *     12px cards/dialogs, 8px popovers and vertical tab lists) using
+ *     selectors like .button:not(.rounded-full) whose :not() argument
+ *     outranks this overlay's plain classes on specificity — so every
+ *     family is repinned below with !important. Rebinding --radius
+ *     alone would do nothing for the pinned families.
+ *   - The overlay <style> element is appended last in <head> and is
+ *     unlayered, so at equal specificity it wins ties against the
+ *     app's @layer utilities; the !important flags below are only
+ *     needed where an app pin carries higher specificity.
+ *   - The hover lift animates transform only (compositor-friendly, no
+ *     layout cost) and is disabled under prefers-reduced-motion.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Root radius scale — softer defaults for unpinned parts          */
+/* ---------------------------------------------------------------- */
+/* --radius (10px) and --field-radius (6px) live in the app's preset
+   token blocks (:root/.light and .dark); --radius-md (6px) and
+   --radius-lg (10px) come from its @theme block. Rebinding all four
+   here covers anything that reads a token WITHOUT its own pin
+   (badges, code chips, future components). The !important keeps the
+   rebind ahead of those preset blocks wherever they tie on
+   specificity, the same trick the color-token examples use — and the
+   pinned families are repinned one by one in the sections below,
+   because a bare --radius rebind cannot reach them. */
+:root,
+.light,
+.dark {
+  --radius: 20px !important;
+  --radius-md: 20px !important;
+  --radius-lg: 24px !important;
+  --field-radius: 12px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Fully-round controls — buttons, pills, chips, tabs (999px)      */
+/* ---------------------------------------------------------------- */
+/* globals.css pins .button:not(.rounded-full) to 6px, .chip to 4px
+   and .tabs__tab/.tabs__indicator to 6px — the :not() argument raises
+   those selectors to (0,2,0), which beats this overlay's plain
+   classes no matter how late the overlay is appended, hence
+   !important. This also turns the vertical Settings submenu tab list
+   (pinned to 8px via [data-orientation="vertical"]) into a pill —
+   deliberate: this theme is playful everywhere, not just on the
+   horizontal segmented controls. */
+.button,
+.chip,
+.tabs__list,
+.tabs__tab,
+.tabs__indicator {
+  border-radius: 999px !important;
+}
+
+/* Pill CTAs ("Sign in", "Create server") opt in via .rounded-full and
+   have NO app pin of their own — they inherit HeroUI's default pill.
+   Pin them explicitly so the pill shape is guaranteed by this theme
+   even if that upstream default ever changes. */
+.button.rounded-full {
+  border-radius: 999px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Soft surfaces — cards and dialogs (20px)                        */
+/* ---------------------------------------------------------------- */
+/* The app pins .card:not([data-danger-zone]) and .modal__dialog to
+   12px; the plain .card rules below carry !important so they also
+   reach the 6px danger-zone pin (a (0,2,0) selector that would
+   otherwise win). The danger-zone card keeps its red stroke — only
+   its corners join the round look, so the warning still reads. */
+.card,
+.modal__dialog {
+  border-radius: 20px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Popovers and data tables (16px)                                 */
+/* ---------------------------------------------------------------- */
+/* .dropdown__popover is pinned to 8px and .table-root--primary rides
+   the app's standard surface radius; both move to 16px so a menu
+   opening over a table reads as the same softness as the surface
+   underneath it. */
+.dropdown__popover,
+.table-root--primary {
+  border-radius: 16px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 5. Fields — inputs and select triggers (12px)                      */
+/* ---------------------------------------------------------------- */
+/* .select__trigger carries the 6px app pin while .input derives from
+   --field-radius (also 6px). Repinning both to 12px matches the
+   app's own dialog-field rule and the --field-radius rebind in
+   section 1, so fields look identical inside and outside dialogs. */
+.input,
+.select__trigger {
+  border-radius: 12px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 6. Menu and listbox rows (10px)                                    */
+/* ---------------------------------------------------------------- */
+/* Pinned to 6px by the app. Full 999px pills would waste horizontal
+   space in a dropdown and make the selection highlight look like a
+   capsule floating off the text rows, so these get 10px — clearly
+   softer than the default, still recognizably row-shaped. */
+.menu-item,
+.list-box-item {
+  border-radius: 10px !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 7. Spring-feel hover lift on buttons                               */
+/* ---------------------------------------------------------------- */
+/* transform is one of the two CSS properties that animate entirely
+   on the compositor (the other is opacity), so the lift costs no
+   layout. The timing curve is a gentle ease-out-back: it rises
+   quickly, overshoots the 1.02 target by a hair, then settles — that
+   tiny overshoot is what reads as "springy" rather than a linear
+   glide. The color properties ride along so existing hover tints do
+   not pop instantly while the transform animates. Scale is only 2%:
+   big enough to feel alive, small enough to leave surrounding layout
+   untouched. */
+.button {
+  transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.button:hover {
+  transform: scale(1.02);
+}
+
+/* Motion effects must be opt-out: users who ask for reduced motion
+   get the same shapes with no lift and no transition. */
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button:hover {
+    transition: none;
+    transform: none;
+  }
+}

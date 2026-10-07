@@ -1,6 +1,149 @@
 /*
- * Gameplane — sidebar-right (example Custom CSS overlay)
+ * Gameplane — Right Sidebar Theme (example Custom CSS overlay)
+ * ============================================================
+ * What this does
+ * --------------
+ * 1. Moves the desktop sidebar from the LEFT edge of the screen to the
+ *    RIGHT edge, using the flex `order` property on the AppShell root's
+ *    two children (sidebar wrapper last, content column first). Content
+ *    keeps the full remaining width; the sidebar keeps its fixed 260px
+ *    width, full height, and internal column layout — only its position
+ *    in the row changes.
+ * 2. Swaps the sidebar's edge separator: `border-right` becomes
+ *    `border-left`, so the divider line sits between the content and
+ *    the sidebar instead of floating on the screen's right edge.
+ * 3. Sets NO color tokens — see Notes below. This is a pure layout
+ *    theme: it only re-flows and re-borders what is already there.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Selectors below prefer ARIA landmarks and data-testid hooks over
+ * Tailwind's generated utility classes, since utility class names are
+ * an implementation detail that changes far more often than the
+ * accessible markup:
+ *   - [data-testid="app-shell-sidebar"]  the desktop sidebar's shell
+ *     wrapper (web/src/components/ui/AppShell.tsx)
+ *   - aside[aria-label="Sidebar"]        the sidebar landmark itself
+ *     (web/src/components/ui/Sidebar.tsx)
+ *   - nav[aria-label="Primary"]          the desktop nav list inside
+ *     the sidebar (the mobile drawer's nav is aria-label="Mobile
+ *     navigation" and is intentionally left untouched below)
+ *
+ * Why :has(): the AppShell root is a plain <div class="flex ..."> with
+ * no testid or landmark of its own, so the only way to select it from
+ * the sidebar hook is the parent combinator `div:has(> [data-testid=
+ * "app-shell-sidebar"])` — "a div whose direct child is the sidebar
+ * wrapper". This requires browser support for :has() (every modern
+ * browser since ~2023). If the sidebar stops moving to the right after
+ * an app update, re-check these against the current sources:
+ *   - AppShell.tsx still renders the sidebar wrapper as a DIRECT child
+ *     of the root flex row (an intervening element breaks the :has()
+ *     selector and every order rule below stops matching), and
+ *   - the data-testid="app-shell-sidebar" hook still exists, and
+ *   - the root is still display: flex with row direction.
+ *
+ * Scope: all layout overrides are gated behind a min-width: 1024px
+ * media query (Tailwind's "lg" breakpoint), matching the breakpoint
+ * at which the app itself switches from the mobile drawer to the
+ * fixed desktop sidebar. The mobile drawer reuses the same aside
+ * markup (aside[aria-label="Sidebar"], [aria-label="Sidebar footer"])
+ * but renders outside AppShell's sidebar wrapper, so every layout
+ * rule below is scoped under [data-testid="app-shell-sidebar"] and
+ * never matches it — it is unaffected by this overlay.
+ *
+ * Notes
+ * -----
+ *   - Nothing here touches color tokens, so this composes with any
+ *     base preset (pink or legacy) and with Custom Colors picks. It
+ *     also changes no radii or type, so the app's per-component radius
+ *     pinning is irrelevant to this file.
+ *   - No colors also means no contrast impact: every text/background
+ *     pair keeps whatever ratio the active palette already had.
+ *   - No animation or glow effects are added, so there is nothing to
+ *     gate behind prefers-reduced-motion.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Move the desktop sidebar to the right edge (>= 1024px)        */
+/* ---------------------------------------------------------------- */
+
+@media (min-width: 1024px) {
+  /* The AppShell root (web/src/components/ui/AppShell.tsx) is already a
+     row flexbox, so `order` alone re-sequences its two children. It is
+     pinned here defensively: the move below only makes sense on the
+     horizontal axis, and pinning makes the intent obvious. No
+     !important is needed — unlayered overlay rules already outrank the
+     app's layered utilities on ties, and this declaration matches the
+     app default rather than fighting it. */
+  div:has(> [data-testid="app-shell-sidebar"]) {
+    flex-direction: row;
+  }
+
+  /* The sidebar wrapper goes LAST in visual order, which on a row
+     flexbox places it at the right edge. `order` is used instead of
+     flipping the root to row-reverse because order only re-sequences
+     the items — row-reverse would also mirror the inline axis (start/
+     end alignment and auto margins swap sides), which can shift
+     content in ways this theme does not intend. Width, height, and the
+     internal column layout are deliberately left untouched: the app
+     pins lg:w-[260px] on this wrapper and h-full on the aside inside
+     it, and neither depends on which edge the sidebar sits on. */
+  [data-testid="app-shell-sidebar"] {
+    order: 2;
+  }
+
+  /* The content column (header + page content) goes FIRST. It is the
+     wrapper's adjacent sibling in AppShell, so the `+` combinator is
+     enough — no :has() needed here. Both orders are set explicitly
+     rather than relying on the 0 default so the visual left-to-right
+     contract is stated in one place. Note that flex `order` changes
+     VISUAL order only: DOM order, tab order, and the accessibility
+     tree are unaffected, so the nav landmark still reads first to
+     keyboard and screen-reader users even though it now renders on
+     the right. */
+  [data-testid="app-shell-sidebar"] + div {
+    order: 1;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Swap the sidebar's edge separator to its new inner side       */
+/* ---------------------------------------------------------------- */
+
+@media (min-width: 1024px) {
+  /* The aside pins its separator with the Tailwind utilities
+     border-r border-border (web/src/components/ui/Sidebar.tsx). On
+     the right edge that line would sit against the screen's right
+     border, so drop it and draw the separator on the side that now
+     faces the content. The !important on border-right mirrors the
+     defensive style of the layout examples: it beats the utility even
+     if specificity ever stops being enough on its own. The color
+     comes from the --border token, so it stays consistent with
+     whatever palette is active. */
+  [data-testid="app-shell-sidebar"] > aside[aria-label="Sidebar"] {
+    border-right: none !important;
+    border-left: 1px solid var(--border);
+  }
+
+  /* The logo/cluster-name header block (first child of the aside) has
+     a border-BOTTOM and the footer block has a border-TOP. Both stay
+     exactly where they are: unlike the top-nav-blue.css example,
+     which turned the sidebar into a horizontal bar and had to swap
+     those horizontal borders for vertical ones, this theme keeps the
+     sidebar a vertical column — only its position in the row changes.
+     Horizontal separators remain correct between stacked blocks, and
+     the mobile drawer (which shares this markup but renders outside
+     the wrapper scoped above) is still untouched. */
+}

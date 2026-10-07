@@ -1,6 +1,240 @@
 /*
- * Gameplane — sepia-paper (example Custom CSS overlay)
+ * Gameplane — Sepia Paper Theme (example Custom CSS overlay)
+ * ============================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme with an e-reader "warm paper" feel: every
+ * color token is remapped and nothing else moves — no layout, spacing,
+ * shape, or typography rules. It is the same "minimum viable custom
+ * theme" shape as solarized.css (tokens only), tuned for long reading
+ * sessions instead of terminal nostalgia. Pairs well with the
+ * elegant-serif.css example (typography-only serif overlay) for a full
+ * reading-mode feel: this file brings the paper palette,
+ * elegant-serif.css brings the book type.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   - Light mode is the star: warm cream paper (#f5efe0), espresso
+ *     text, ruled notebook borders (#d5c9a8), and a warm saddle-brown
+ *     accent (#8b5e34) with cream text. Low-blue light with real
+ *     contrast: text sits at 10.4:1, muted at 4.6:1, cream on the
+ *     accent at 4.9:1 — all WCAG AA or better.
+ *   - Dark mode is warm charcoal (#1c1813), not blue-gray: parchment
+ *     text, a lamplight-tan accent (#d4a26a) with dark text at 7.7:1,
+ *     so late-night reading stays as warm as the light theme.
+ *   - The full status palette is mapped, not just the accent: burnt
+ *     sienna links (#9a3412), olive success (#6b7f2a), ochre warning
+ *     (#a16207), brick-red danger (#a83a2a), and dusty violet
+ *     (#7e6a9e) for stat icons and sleep badges — so status colors
+ *     stay legible and harmonious on paper instead of clashing.
+ *   - Legacy --gp-* HSL triplets are included for any screen still
+ *     reading the old variables, so the whole app recolors, not just
+ *     the rebuilt parts.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks use `!important` so they outrank the app's own preset
+ * token blocks (including the higher-specificity legacy-preset
+ * variants) and the never-`!important` Custom Colors injection — this
+ * overlay wins over a Custom Colors pick for every token it sets, and
+ * since it sets the whole color inventory, a Custom Colors pick is
+ * fully overridden while the overlay is on. This file is palette-only:
+ * there are no component, layout, sidebar, or motion selectors at all,
+ * so it composes with either base preset underneath and touches nothing
+ * that isn't a color token. The --gp-* triplet blocks stay plain (no
+ * `!important`): the app's own --gp-* defaults are also plain
+ * declarations, and this overlay is appended last in <head>, so source
+ * order wins the tie. Note on the status hues: --success and --warning
+ * land at 3.9:1 / 4.3:1 on the paper background — fine for icons, dots
+ * and large text (the 3:1 non-text threshold), while the small text
+ * that rides on status tints uses the *-soft-foreground tokens, all
+ * verified at 5.5:1 or better.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Light mode: warm paper (the e-reader star)                     */
+/* ---------------------------------------------------------------- */
+
+:root,
+.light {
+  --background: #f5efe0 !important; /* warm cream "paper" */
+  --foreground: #433422 !important; /* espresso brown ink, 10.4:1 on paper */
+  --surface: #efe7d3 !important; /* card fill, a touch deeper than paper */
+  --surface-secondary: #e7dcc3 !important; /* sunken wells, stripes */
+  --surface-tertiary: #ddd0b0 !important; /* deepest warm step (hover) */
+  --overlay: #efe7d3 !important; /* dialogs stay on the paper */
+  --accent: #8b5e34 !important; /* warm saddle brown */
+  --accent-foreground: #f7efdc !important; /* cream text, 4.9:1 on accent */
+  --accent-soft: #ece1c6 !important; /* tinted chips / soft banners */
+  --accent-soft-foreground: #6b4a26 !important; /* 6.1:1 on accent-soft */
+  --default: #e7dcc3 !important; /* neutral buttons stay papery */
+  --default-foreground: #433422 !important; /* 8.8:1 on default */
+  --default-soft: #ece1c6 !important;
+  --default-soft-foreground: #6b4a26 !important;
+  --muted: #7a6a52 !important; /* faded ink, 4.6:1 on paper (AA) */
+  --border: #d5c9a8 !important; /* ruled notebook lines */
+  --separator: #e0d5ba !important; /* fainter rules between sections */
+  --field-background: #efe7d3 !important; /* inputs match card fill */
+  --field-border: #d5c9a8 !important;
+  --field-foreground: #433422 !important; /* 9.7:1 on field bg */
+  --field-placeholder: #8f7e5f !important; /* faint by design (3.2:1) */
+  --segment: #efe7d3 !important;
+  --segment-foreground: #433422 !important; /* 9.7:1 on segment */
+  --focus: #8b5e34 !important; /* focus ring follows the accent */
+  --link: #9a3412 !important; /* burnt sienna, 6.4:1 on paper */
+  --chart-stat: #7e6a9e !important; /* dusty violet, 4.1:1 (icons, 3:1+) */
+  --sleep: #7e6a9e !important; /* asleep servers get the same violet */
+  --success: #6b7f2a !important; /* olive, 3.9:1 — icons/large text */
+  --success-soft: #edf0d2 !important; /* pale olive tint */
+  --success-soft-foreground: #4c5c14 !important; /* 6.3:1 on success-soft */
+  --warning: #a16207 !important; /* ochre, 4.3:1 — icons/large text */
+  --warning-soft: #f5e7c4 !important;
+  --warning-soft-foreground: #7a5410 !important; /* 5.5:1 on warning-soft */
+  --danger: #a83a2a !important; /* brick red, 5.5:1 on paper */
+  --danger-soft: #f2ddd5 !important;
+  --danger-soft-foreground: #8c2f1f !important; /* 6.3:1 on danger-soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Dark mode: warm charcoal (evening by lamplight)                */
+/* ---------------------------------------------------------------- */
+
+.dark {
+  --background: #1c1813 !important; /* warm charcoal, deliberately not blue-gray */
+  --foreground: #e8dcc4 !important; /* aged parchment, 13.0:1 on charcoal */
+  --surface: #282219 !important; /* card fill, one step off the charcoal */
+  --surface-secondary: #231d15 !important; /* sunken wells go deeper */
+  --surface-tertiary: #191510 !important; /* deepest warm step (hover) */
+  --overlay: #2e2820 !important; /* dialogs rise slightly above cards */
+  --accent: #d4a26a !important; /* lamplight tan */
+  --accent-foreground: #1c1813 !important; /* dark text, 7.7:1 on accent */
+  --accent-soft: #3a2e1e !important; /* dimmed lamplight tint */
+  --accent-soft-foreground: #e8c493 !important; /* 8.0:1 on accent-soft */
+  --default: #33291d !important; /* neutral buttons stay woody */
+  --default-foreground: #e8dcc4 !important; /* 10.5:1 on default */
+  --default-soft: #3a2e1e !important;
+  --default-soft-foreground: #e8c493 !important;
+  --muted: #a3937a !important; /* faded parchment, 5.9:1 on charcoal */
+  --border: #4a4136 !important; /* ember-lit edges */
+  --separator: #3a332a !important; /* fainter rules between sections */
+  --field-background: #282219 !important; /* inputs match card fill */
+  --field-border: #4a4136 !important;
+  --field-foreground: #e8dcc4 !important; /* 11.6:1 on field bg */
+  --field-placeholder: #8a7a63 !important; /* faint by design (3.8:1) */
+  --segment: #282219 !important;
+  --segment-foreground: #e8dcc4 !important; /* 11.6:1 on segment */
+  --focus: #d4a26a !important; /* focus ring follows the accent */
+  --link: #e0a877 !important; /* warmed-up link, 8.4:1 on charcoal */
+  --chart-stat: #9d8bc0 !important; /* dusty violet, 5.8:1 */
+  --sleep: #9d8bc0 !important;
+  --success: #a3b95e !important; /* olive in lamplight, 8.1:1 */
+  --success-soft: #2c2a15 !important; /* deep olive tint */
+  --success-soft-foreground: #b9c878 !important; /* 8.0:1 on success-soft */
+  --warning: #d9a648 !important; /* warm ochre, 8.0:1 */
+  --warning-soft: #33290f !important;
+  --warning-soft-foreground: #ddb35c !important; /* 7.3:1 on warning-soft */
+  --danger: #d97a68 !important; /* ember red, 5.8:1 */
+  --danger-soft: #38201a !important;
+  --danger-soft-foreground: #e89a88 !important; /* 6.8:1 on danger-soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy-preset variants (higher specificity)                    */
+/* ---------------------------------------------------------------- */
+
+/* Legacy preset variants carry an extra attribute selector that beats
+   the plain class selectors above on specificity — restate the tokens
+   for them so the overlay still wins if the legacy preset is active. */
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #f5efe0 !important;
+  --foreground: #433422 !important;
+  --surface: #efe7d3 !important;
+  --surface-secondary: #e7dcc3 !important;
+  --surface-tertiary: #ddd0b0 !important;
+  --overlay: #efe7d3 !important;
+  --accent: #8b5e34 !important;
+  --accent-foreground: #f7efdc !important;
+  --accent-soft: #ece1c6 !important;
+  --accent-soft-foreground: #6b4a26 !important;
+  --default: #e7dcc3 !important;
+  --default-foreground: #433422 !important;
+  --muted: #7a6a52 !important;
+  --border: #d5c9a8 !important;
+  --separator: #e0d5ba !important;
+  --field-background: #efe7d3 !important;
+  --field-border: #d5c9a8 !important;
+  --field-foreground: #433422 !important;
+  --field-placeholder: #8f7e5f !important;
+  --segment: #efe7d3 !important;
+  --segment-foreground: #433422 !important;
+  --focus: #8b5e34 !important;
+  --link: #9a3412 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #1c1813 !important;
+  --foreground: #e8dcc4 !important;
+  --surface: #282219 !important;
+  --surface-secondary: #231d15 !important;
+  --surface-tertiary: #191510 !important;
+  --overlay: #2e2820 !important;
+  --accent: #d4a26a !important;
+  --accent-foreground: #1c1813 !important;
+  --accent-soft: #3a2e1e !important;
+  --accent-soft-foreground: #e8c493 !important;
+  --default: #33291d !important;
+  --default-foreground: #e8dcc4 !important;
+  --muted: #a3937a !important;
+  --border: #4a4136 !important;
+  --separator: #3a332a !important;
+  --field-background: #282219 !important;
+  --field-border: #4a4136 !important;
+  --field-foreground: #e8dcc4 !important;
+  --field-placeholder: #8a7a63 !important;
+  --segment: #282219 !important;
+  --segment-foreground: #e8dcc4 !important;
+  --focus: #d4a26a !important;
+  --link: #e0a877 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets (plain, no !important)              */
+/* ---------------------------------------------------------------- */
+
+/* Legacy HSL triplets, for any not-yet-rebuilt screen still reading
+   the --gp-* variables. Deliberately plain (no !important): the app's
+   own --gp-* defaults are also plain declarations, and this overlay is
+   appended last in <head>, so source order alone wins the tie — the
+   teaching point is that only token blocks fighting higher-specificity
+   rivals need the !important hammer. */
+.light {
+  --gp-bg: 43 51% 92%; /* #f5efe0 */
+  --gp-surface: 43 47% 88%; /* #efe7d3 */
+  --gp-card: 42 43% 84%; /* #e7dcc3 */
+  --gp-border: 44 35% 75%; /* #d5c9a8 */
+  --gp-muted: 36 20% 40%; /* #7a6a52 */
+  --gp-fg: 33 33% 20%; /* #433422 */
+  --gp-primary: 29 46% 37%; /* #8b5e34 */
+  --gp-primary-fg: 42 63% 92%; /* #f7efdc */
+}
+.dark {
+  --gp-bg: 33 19% 9%; /* #1c1813 */
+  --gp-surface: 36 23% 13%; /* #282219 */
+  --gp-card: 34 18% 15%; /* #2e2820 */
+  --gp-border: 33 16% 25%; /* #4a4136 */
+  --gp-muted: 37 18% 56%; /* #a3937a */
+  --gp-fg: 40 44% 84%; /* #e8dcc4 */
+  --gp-primary: 32 55% 62%; /* #d4a26a */
+  --gp-primary-fg: 33 19% 9%; /* #1c1813 */
+}

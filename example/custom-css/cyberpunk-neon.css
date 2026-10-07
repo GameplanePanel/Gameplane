@@ -1,6 +1,310 @@
 /*
- * Gameplane — cyberpunk-neon (example Custom CSS overlay)
+ * Gameplane — Cyberpunk Neon Theme (example Custom CSS overlay)
+ * =============================================================
+ * What this does
+ * --------------
+ * A full visual overhaul with restrained neon effects. Dark mode is
+ * the star ("neon night"); light mode is a toned-down "day city"
+ * variant of the same hues, darkened until they pass WCAG AA.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   1. Neon-night dark palette — near-black blue-violet background
+ *      (#0a0a12), surfaces one step up (#12121f), a neon magenta
+ *      accent (#ff2a6d) carrying near-black text, electric cyan links
+ *      and focus (#05d9e8), neon-green success, acid-yellow warning,
+ *      red-line danger, and a violet chart-stat/sleep (#b967ff).
+ *   2. Day-city light palette — the same hues darkened for AA on a
+ *      cool white (magenta -> deep pink #c2185b, cyan -> teal
+ *      #057180, violet -> purple #7e22ce), so both modes clearly read
+ *      as one identity.
+ *   3. Neon effects, dark mode only — a magenta halo on primary
+ *      buttons, a cyan aura around focused inputs, and a faint
+ *      two-tone (cyan + violet) aura on cards. All are static
+ *      box-shadows (no animation) and every one of them switches off
+ *      under prefers-reduced-motion.
+ *   4. No shape changes — all radii stay at the app defaults. We
+ *      deliberately do NOT rebind --radius or repin any component
+ *      family, so this theme leaves the app's own radius pins alone.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks carry `!important` for the same reason as the
+ * phosphor-terminal and solarized examples: they must outrank the
+ * app's own preset token blocks (including the higher-specificity
+ * legacy-preset variants, restated below) and the never-`!important`
+ * Custom Colors injection, so the overlay wins over a Custom Colors
+ * pick for every token it sets. The glow effects are plain unlayered
+ * rules against HeroUI's stable semantic classes (.button, .input,
+ * .card) and need no `!important`: the overlay <style> is appended
+ * last in <head>, so it wins ties at equal specificity. Each effect
+ * is a box-shadow (never an outline, border, or fill override), is
+ * scoped under .dark so the light "day city" mode stays flat, and is
+ * disabled under prefers-reduced-motion. Links are recolored through
+ * the --link token only — there is deliberately no blanket
+ * `a { color }` rule, because HeroUI buttons render as <a> elements.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Cyberpunk palette — light mode ("day city")                   */
+/* ---------------------------------------------------------------- */
+
+:root,
+.light {
+  --background: #f6f6fa !important; /* cool off-white, keeps the blue-violet cast */
+  --foreground: #1a1a2e !important; /* near-black indigo, 15.7:1 on background */
+  --surface: #ffffff !important;
+  --surface-secondary: #efeff6 !important;
+  --surface-tertiary: #e6e5f0 !important;
+  --overlay: #ffffff !important;
+  --accent: #c2185b !important; /* neon magenta darkened to deep pink: 5.9:1 with white text */
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #fce4ef !important;
+  --accent-soft-foreground: #9d174d !important; /* 6.6:1 on accent-soft */
+  --default: #e6e5f0 !important;
+  --default-foreground: #1a1a2e !important;
+  --default-soft: #fce4ef !important;
+  --default-soft-foreground: #9d174d !important;
+  --muted: #4a4a60 !important; /* 7.9:1 on background */
+  --border: #d5d3e6 !important;
+  --separator: #e3e1ef !important;
+  --field-background: #ffffff !important;
+  --field-border: #c9c7dd !important;
+  --field-foreground: #1a1a2e !important;
+  --field-placeholder: #6d6d85 !important; /* 5.0:1 on white */
+  --segment: #ffffff !important;
+  --segment-foreground: #1a1a2e !important;
+  --focus: #057180 !important; /* electric cyan darkened to teal, 5.3:1 */
+  --link: #057180 !important; /* 5.3:1 on background */
+  --chart-stat: #7e22ce !important; /* neon violet darkened to purple, 7.0:1 */
+  --sleep: #7e22ce !important;
+  --success: #15803d !important; /* neon green darkened, 5.0:1 */
+  --success-soft: #e2f4e8 !important;
+  --success-soft-foreground: #14532d !important; /* 6.9:1 on success-soft */
+  --warning: #8a6d03 !important; /* acid yellow darkened, 4.9:1 */
+  --warning-soft: #f5edcb !important;
+  --warning-soft-foreground: #6d5603 !important; /* 6.0:1 on warning-soft */
+  --danger: #c81e1e !important; /* red line darkened, 5.7:1 */
+  --danger-soft: #fce5e5 !important;
+  --danger-soft-foreground: #a11212 !important; /* 6.7:1 on danger-soft */
+  /* No --radius / --field-radius overrides on purpose: shape stays
+     at the app defaults. */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Cyberpunk palette — dark mode (neon night)                    */
+/* ---------------------------------------------------------------- */
+
+.dark {
+  --background: #0a0a12 !important; /* near-black blue-violet */
+  --foreground: #e6e6f2 !important; /* 15.9:1 on background */
+  --surface: #12121f !important;
+  --surface-secondary: #0e0e19 !important;
+  --surface-tertiary: #08080f !important;
+  --overlay: #181828 !important;
+  --accent: #ff2a6d !important; /* neon magenta */
+  --accent-foreground: #0f0008 !important; /* near-black, 5.7:1 on the accent */
+  --accent-soft: #33101f !important;
+  --accent-soft-foreground: #ff8ac4 !important; /* 7.9:1 on accent-soft */
+  --default: #1c1c2e !important;
+  --default-foreground: #e6e6f2 !important;
+  --default-soft: #20203a !important;
+  --default-soft-foreground: #b8b8d9 !important;
+  --muted: #9a9ac0 !important; /* 7.3:1 on background */
+  --border: #2e2e4a !important;
+  --separator: #1e1e33 !important;
+  --field-background: #0e0e19 !important;
+  --field-border: #2e2e4a !important;
+  --field-foreground: #f0f0fa !important;
+  --field-placeholder: #6f6f95 !important; /* 4.0:1 on field bg — placeholder text is supplemental */
+  --segment: #161624 !important;
+  --segment-foreground: #e6e6f2 !important;
+  --focus: #05d9e8 !important; /* electric cyan */
+  --link: #05d9e8 !important; /* 11.3:1 on background */
+  --chart-stat: #b967ff !important; /* neon violet, 6.0:1 */
+  --sleep: #b967ff !important;
+  --success: #39ff14 !important; /* neon green, 14.5:1 on background */
+  --success-soft: #0e2a0a !important;
+  --success-soft-foreground: #7dff6a !important; /* 12.1:1 on success-soft */
+  --warning: #f9f002 !important; /* acid yellow, 16.3:1 on background */
+  --warning-soft: #2e2c04 !important;
+  --warning-soft-foreground: #f5e96a !important; /* 11.3:1 on warning-soft */
+  --danger: #ff3131 !important; /* red line, 5.5:1 on background */
+  --danger-soft: #33101a !important;
+  --danger-soft-foreground: #ff8a8a !important; /* 7.5:1 on danger-soft */
+}
+
+/* Legacy preset variants carry an extra attribute selector that beats
+   the plain class selectors above on specificity — restate the tokens
+   for them so the overlay still wins if the legacy preset is active. */
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #f6f6fa !important;
+  --foreground: #1a1a2e !important;
+  --surface: #ffffff !important;
+  --surface-secondary: #efeff6 !important;
+  --surface-tertiary: #e6e5f0 !important;
+  --overlay: #ffffff !important;
+  --accent: #c2185b !important;
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #fce4ef !important;
+  --accent-soft-foreground: #9d174d !important;
+  --default: #e6e5f0 !important;
+  --default-foreground: #1a1a2e !important;
+  --default-soft: #fce4ef !important;
+  --default-soft-foreground: #9d174d !important;
+  --muted: #4a4a60 !important;
+  --border: #d5d3e6 !important;
+  --separator: #e3e1ef !important;
+  --field-background: #ffffff !important;
+  --field-border: #c9c7dd !important;
+  --field-foreground: #1a1a2e !important;
+  --field-placeholder: #6d6d85 !important;
+  --segment: #ffffff !important;
+  --segment-foreground: #1a1a2e !important;
+  --focus: #057180 !important;
+  --link: #057180 !important;
+  --chart-stat: #7e22ce !important;
+  --sleep: #7e22ce !important;
+  --success: #15803d !important;
+  --success-soft: #e2f4e8 !important;
+  --success-soft-foreground: #14532d !important;
+  --warning: #8a6d03 !important;
+  --warning-soft: #f5edcb !important;
+  --warning-soft-foreground: #6d5603 !important;
+  --danger: #c81e1e !important;
+  --danger-soft: #fce5e5 !important;
+  --danger-soft-foreground: #a11212 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #0a0a12 !important;
+  --foreground: #e6e6f2 !important;
+  --surface: #12121f !important;
+  --surface-secondary: #0e0e19 !important;
+  --surface-tertiary: #08080f !important;
+  --overlay: #181828 !important;
+  --accent: #ff2a6d !important;
+  --accent-foreground: #0f0008 !important;
+  --accent-soft: #33101f !important;
+  --accent-soft-foreground: #ff8ac4 !important;
+  --default: #1c1c2e !important;
+  --default-foreground: #e6e6f2 !important;
+  --default-soft: #20203a !important;
+  --default-soft-foreground: #b8b8d9 !important;
+  --muted: #9a9ac0 !important;
+  --border: #2e2e4a !important;
+  --separator: #1e1e33 !important;
+  --field-background: #0e0e19 !important;
+  --field-border: #2e2e4a !important;
+  --field-foreground: #f0f0fa !important;
+  --field-placeholder: #6f6f95 !important;
+  --segment: #161624 !important;
+  --segment-foreground: #e6e6f2 !important;
+  --focus: #05d9e8 !important;
+  --link: #05d9e8 !important;
+  --chart-stat: #b967ff !important;
+  --sleep: #b967ff !important;
+  --success: #39ff14 !important;
+  --success-soft: #0e2a0a !important;
+  --success-soft-foreground: #7dff6a !important;
+  --warning: #f9f002 !important;
+  --warning-soft: #2e2c04 !important;
+  --warning-soft-foreground: #f5e96a !important;
+  --danger: #ff3131 !important;
+  --danger-soft: #33101a !important;
+  --danger-soft-foreground: #ff8a8a !important;
+}
+
+/* Legacy HSL triplets, for any not-yet-rebuilt screen still reading
+   the --gp-* variables. Plain .light/.dark, deliberately NO
+   !important — these mirror the token blocks above. */
+.light {
+  --gp-bg: 240 29% 97%;
+  --gp-surface: 0 0% 100%;
+  --gp-card: 0 0% 100%;
+  --gp-border: 246 28% 87%;
+  --gp-muted: 240 13% 33%;
+  --gp-fg: 240 11% 14%;
+  --gp-primary: 336 78% 43%;
+  --gp-primary-fg: 0 0% 100%;
+}
+.dark {
+  --gp-bg: 240 29% 5%;
+  --gp-surface: 240 27% 10%;
+  --gp-card: 240 27% 10%;
+  --gp-border: 240 21% 24%;
+  --gp-muted: 240 23% 68%;
+  --gp-fg: 240 31% 93%;
+  --gp-primary: 341 100% 58%;
+  --gp-primary-fg: 341 6% 3%;
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Neon halo — primary buttons (dark mode only)                  */
+/* ---------------------------------------------------------------- */
+/* A static magenta halo around the primary action. Implemented as a
+   box-shadow: the app paints button focus rings with outline, so
+   nothing here is overridden and no !important is needed (this
+   overlay <style> is appended last in <head> and wins ties). Scoped
+   to .dark — a magenta halo reads as neon against the near-black
+   background but as a smudge on the light "day city" palette. The
+   alpha stays around 0.3: a glow you notice, not a light source. */
+.dark .button[data-variant="primary"] {
+  box-shadow:
+    0 0 12px rgba(255, 42, 109, 0.3),
+    0 0 3px rgba(255, 42, 109, 0.3);
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Cyan focus aura — inputs (dark mode only)                     */
+/* ---------------------------------------------------------------- */
+/* The app's input focus ring is `outline: 2px solid var(--accent)`
+   (globals.css), i.e. magenta under this palette. We leave that ring
+   untouched and add a soft cyan aura behind it via box-shadow, which
+   is possible precisely because the ring is outline-based and not a
+   shadow — the aura can sit underneath without clobbering it. The
+   result is a deliberate two-tone magenta-ring / cyan-glow focus. */
+.dark .input:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(5, 217, 232, 0.2),
+    0 0 12px rgba(5, 217, 232, 0.25);
+}
+
+/* ---------------------------------------------------------------- */
+/* 5. Two-tone card aura (dark mode only)                           */
+/* ---------------------------------------------------------------- */
+/* A faint cyan hairline plus a wider violet halo — magenta, cyan and
+   violet are this theme's three notes. A glow was chosen over a
+   literal gradient border: border-image ignores the card's 12px
+   radius, and the background-clip padding-box trick would have to
+   re-declare the card fill, fighting the token-driven background.
+   Note this rule takes over the element's box-shadow (HeroUI's card
+   elevation), trading elevation for the aura; the card keeps its
+   default radius. */
+.dark .card {
+  box-shadow:
+    0 0 0 1px rgba(5, 217, 232, 0.15),
+    0 0 18px rgba(185, 103, 255, 0.15);
+}
+
+/* Respect users who ask for reduced motion/effects: every aura above
+   switches off. (The card goes fully flat too — this overlay also
+   took over HeroUI's elevation shadow in dark mode.) */
+@media (prefers-reduced-motion: reduce) {
+  .dark .button[data-variant="primary"],
+  .dark .input:focus-visible,
+  .dark .card {
+    box-shadow: none;
+  }
+}

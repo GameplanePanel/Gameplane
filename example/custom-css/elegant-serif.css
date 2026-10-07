@@ -1,6 +1,138 @@
 /*
- * Gameplane — elegant-serif (example Custom CSS overlay)
+ * Gameplane — Elegant Serif Theme (example Custom CSS overlay)
+ * ============================================================
+ * What this does
+ * --------------
+ * A typography-only theme: no color tokens are touched, so every
+ * screen keeps whatever preset (pink or legacy) or Custom Colors
+ * palette is active. Only how text looks changes:
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   1. The UI font switches from Geist to a classic serif stack
+ *      (Georgia first — it ships with every OS, so no webfont
+ *      download, then Times New Roman, then the generic ui-serif).
+ *      Rebinding --font-sans redirects EVERY consumer at once, because
+ *      the app declares the token once in the @theme block of
+ *      web/src/styles/globals.css and every component reads it through
+ *      the font-sans utility.
+ *   2. Body copy gets book-grade polish: line-height raised to 1.6
+ *      (prose is more comfortable to read than the app-default tight
+ *      leading) and standard ligatures (fi, fl, ffi, ...) enabled via
+ *      font-feature-settings — meaningful for serif faces, where
+ *      unligated f+i collisions actually show.
+ *   3. Muted helper text — but only where a stable hook exists — is
+ *      set in italic, the classic "this is a hint" typographic signal.
+ *   4. h1/h2 headings get a touch of positive letter-spacing. Sans
+ *      headings need none, but large serif shapes read as more
+ *      deliberate with a whisper of tracking.
+ *
+ * Pairs especially well with the sepia-paper.css example palette:
+ * serif book typography + paper tones is a complete "reading
+ * edition" look, with each file doing exactly one job.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Notes
+ * -----
+ *   - This theme sets NO color tokens, so it composes with any base
+ *     preset (pink or legacy) and with Custom Colors picks — nothing
+ *     here competes with the palette for a single property. That also
+ *     means no !important legacy-preset restatements are needed
+ *     (those exist only to outrank preset token blocks, and there are
+ *     no token blocks here).
+ *   - --font-mono is deliberately left alone: console output, logs,
+ *     and server addresses stay in JetBrains Mono so aligned/tabular
+ *     content (timestamps, player lists, file listings) never reflows
+ *     into a proportional serif face.
+ *   - The italic-helper rule is scoped to HeroUI's stable
+ *     [data-slot="description"] hook (the component used for form
+ *     helper text). The many ad-hoc muted paragraphs written with the
+ *     generated text-muted utility have no stable class to target —
+ *     per the overlay rules we never select Tailwind utility classes —
+ *     so those stay upright. Italic is applied as font-style only;
+ *     no size or color changes, so contrast is untouched.
+ *   - Contrast is unchanged by definition: this file alters no color,
+ *     so every WCAG ratio the app already meets is preserved as-is.
+ *   - No animations, glows, or motion effects are added, so there is
+ *     nothing to gate behind prefers-reduced-motion here.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Serif rebinding — redirect every --font-sans consumer          */
+/* ---------------------------------------------------------------- */
+/* --font-sans is declared inside the app's @theme block
+   (web/src/styles/globals.css), which the Tailwind v4 compiler turns
+   into the font-sans utility used by the body and components.
+   Rebinding the custom property on :root/.light/.dark — a later,
+   equal-specificity declaration — redirects every consumer without a
+   single component rule. The !important matches the phosphor-terminal
+   example: token rebinds must outrank the app's own @theme emission
+   regardless of source order, and stay effective if a future preset
+   ever re-pins the token. Georgia leads because it is a system serif
+   (zero download, hinted for screen), Times New Roman is the
+   fallback, ui-serif lets tuned platforms (e.g. SF/Charter on Apple)
+   offer a better face, and generic serif is the last resort. */
+:root,
+.light,
+.dark {
+  --font-sans: Georgia, "Times New Roman", ui-serif, serif !important;
+}
+
+/* --font-mono stays exactly as the app ships it (JetBrains Mono):
+   console, logs, and any tabular monospace output must keep fixed
+   glyph widths so columns align. */
+
+/* ---------------------------------------------------------------- */
+/* 2. Body polish — comfortable leading + real ligatures             */
+/* ---------------------------------------------------------------- */
+/* line-height on body only reaches text that does not set its own
+   leading; components with explicit leading utilities keep their
+   designed metrics, so this mainly relaxes paragraphs, descriptions,
+   and table cells. 1.6 is a common book-prose value; the app's
+   default inherits Tailwind's tighter 1.5-ish rhythm, which feels
+   cramped once serifs replace the geometric sans. Neither property
+   needs !important: the overlay <style> is appended last in <head>
+   and is unlayered, while the app rules these tie with (Tailwind
+   preflight) live in @layer base — unlayered wins. */
+body {
+  line-height: 1.6;
+  font-feature-settings: "liga" 1;
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Italic helper text — stable HeroUI hook only                   */
+/* ---------------------------------------------------------------- */
+/* The one safe, version-stable selector for "muted helper text" is
+   HeroUI's Description component, which renders with
+   data-slot="description" and is used for form field hints. We do
+   NOT target the generated text-muted utility class (house rule:
+   never Tailwind utilities — they are hashed build artifacts).
+   Consequence, stated honestly: only Description-based hints go
+   italic; ad-hoc muted paragraphs elsewhere keep their upright
+   style. font-style alone is changed — size and color (and therefore
+   contrast ratios) are untouched. */
+[data-slot="description"] {
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Display headings — a whisper of tracking                       */
+/* ---------------------------------------------------------------- */
+/* Large serif glyphs benefit from slightly open tracking; 0.015em is
+   roughly a quarter of a pixel at a 24px heading — felt, not seen.
+   Element selectors are the most stable hooks in the app (no classes
+   involved), and headings are not used inside console/log surfaces,
+   so nothing monospace is affected. */
+h1,
+h2 {
+  letter-spacing: 0.015em;
+}

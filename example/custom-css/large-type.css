@@ -1,6 +1,80 @@
 /*
- * Gameplane — large-type (example Custom CSS overlay)
+ * Gameplane — Large Type Theme (example Custom CSS overlay)
+ * =========================================================
+ * What this does
+ * --------------
+ * A density-only theme: no color changes at all — every screen keeps
+ * whatever preset or Custom Colors palette is active — but the whole
+ * UI scales UP for readability:
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   1. Root font size rises from 16px to 18px. The app is built on
+ *      Tailwind v4, whose spacing utilities (p-4, gap-3, text-sm, ...)
+ *      are all rem-based, so enlarging the root font size scales
+ *      padding, gaps, and type together, proportionally, from this one
+ *      lever.
+ *   2. The few places the app pins spacing in raw px instead of rem
+ *      (modal dialog padding/gaps in web/src/styles/globals.css) are
+ *      re-pinned to larger values by hand.
+ *
+ * This is the "I sit far from the screen" theme — aimed at readability
+ * and accessibility, and at TVs at couch distance where the default
+ * 16px scale renders everything too small to read comfortably.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Notes
+ * -----
+ *   - Nothing here touches color tokens, so this composes with any
+ *     base preset (pink or legacy) and with Custom Colors picks.
+ *   - html font-size is the one "global lever" in CSS that rem-based
+ *     design systems expose; elements sized in px (a few focus rings,
+ *     1px borders, the modal geometry pinned in globals.css) do not
+ *     scale, which is why the modal rules below exist.
+ *   - 18px is a 12.5% increase. Going beyond ~20px starts breaking
+ *     dense tables (server lists, player tables) — rows wrap and
+ *     horizontal scroll appears — so treat 20px as the ceiling.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Global scale — enlarge every rem-based utility at once         */
+/* ---------------------------------------------------------------- */
+
+html {
+  font-size: 18px; /* default is 16px; 18/16 = 1.125x everywhere */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Px-pinned geometry that does not follow the root font size     */
+/* ---------------------------------------------------------------- */
+
+/* Modal dialog geometry (pinned to 20px padding / 16px gaps in
+   globals.css for the design scale) — re-pin proportionally larger. */
+.modal__dialog {
+  padding: 22px;
+}
+.modal__body {
+  gap: 18px;
+  padding: 14px 0 0;
+}
+.modal__footer {
+  padding: 18px 0 0;
+  gap: 8px;
+}
+
+/* Dialog field controls are pinned to 36px tall in globals.css for the
+   design scale — raise them to 40px to match the roomier dialogs (and
+   to stay a comfortable touch/click target at the larger scale). */
+.modal__dialog .input,
+.modal__dialog .select__trigger {
+  height: 40px;
+}

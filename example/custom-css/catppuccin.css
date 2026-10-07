@@ -1,6 +1,281 @@
 /*
- * Gameplane — catppuccin (example Custom CSS overlay)
+ * Gameplane — Catppuccin Theme (example Custom CSS overlay)
+ * =========================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme: the Catppuccin palette in both modes —
+ * Latte on the light side, Mocha on the dark side. No layout, spacing,
+ * shape, or typography changes: tokens only, the "just recolor the
+ * app" template (same shape as solarized.css).
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   - Accent:   Catppuccin mauve — #8839ef (Latte) with white text,
+ *               #cba6f9 (Mocha) with near-black crust text
+ *   - Links:    Catppuccin blue — #1e66f5 (Latte), #89b4fa (Mocha)
+ *   - Success:  green  (#40a02b Latte / #a6e3a1 Mocha)
+ *   - Warning:  yellow (#df8e1d Latte / #f9e2af Mocha)
+ *   - Danger:   red    (#d20f39 Latte / #f38ba8 Mocha)
+ *   - Stat icons / sleep: Catppuccin pink — #ea76cb (Latte),
+ *     #f5c2e7 (Mocha)
+ *
+ * Why the "-soft" foregrounds are not always the raw pastels: the
+ * canonical Catppuccin status hues are too light for small text on
+ * light backgrounds, so each light-mode soft foreground keeps the hue
+ * but is darkened until the pairing clears WCAG AA 4.5:1 — ratios are
+ * annotated inline. Dark mode uses the palette's own bright text hues
+ * on hue-tinted dark surfaces, which all clear AA with headroom.
+ *
+ * The full token list is also restated under the legacy-preset
+ * attribute selectors, and the legacy --gp-* HSL triplets are
+ * re-derived, so the theme holds no matter which preset is active
+ * underneath.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks carry `!important` so they outrank the app's own preset
+ * token blocks (`.light`/`.dark`), the higher-specificity legacy-preset
+ * variants (restated below for safety), and the never-`!important`
+ * Custom Colors injection — for every token this file sets, the overlay
+ * wins over a Custom Colors pick; tokens it leaves alone (radii, fonts)
+ * stay under Custom Colors control.
+ *
+ * No component selectors appear: a palette-only theme changes no
+ * layout or shape, and every component color derives from these
+ * tokens. Radii are deliberately untouched — the app pins per-family
+ * border radii at component selectors, and Catppuccin doesn't change
+ * shape, so there is nothing to repin.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Catppuccin Latte — light mode                                  */
+/* ---------------------------------------------------------------- */
+
+/* Latte is the light flavor: a warm off-white base with cool gray
+ * surfaces and near-black text. Mauve is Latte's darkest accent, so it
+ * keeps white text at ~5.4:1 (AA). Cards pop pure white above the base
+ * tint; fields and segments use the mantle/crust grays. Muted text is
+ * the palette's own subtext0 — ~4.9:1 on white cards (4.4:1 on the
+ * base tint; kept canonical, and muted text renders on cards). */
+
+:root,
+.light {
+  --background: #eff1f5 !important; /* base */
+  --foreground: #4c4f69 !important; /* text, ~7:1 on base */
+  --surface: #ffffff !important; /* cards, brighter than the base tint */
+  --surface-secondary: #e6e9ef !important; /* mantle */
+  --surface-tertiary: #dce0e8 !important; /* crust */
+  --overlay: #ffffff !important;
+  --accent: #8839ef !important; /* mauve */
+  --accent-foreground: #ffffff !important; /* ~5.4:1 on mauve */
+  --accent-soft: #eee6fa !important; /* mauve-tinted base */
+  --accent-soft-foreground: #6d28c9 !important; /* mauve, darkened, ~6.2:1 */
+  --default: #e6e9ef !important; /* mantle */
+  --default-foreground: #4c4f69 !important; /* ~6.5:1 */
+  --default-soft: #dce0e8 !important; /* crust */
+  --default-soft-foreground: #5c5f77 !important; /* subtext1, ~4.7:1 */
+  --muted: #6c6f85 !important; /* subtext0, ~4.9:1 on cards */
+  --border: #ccd0da !important; /* surface0 */
+  --separator: #dce0e8 !important; /* crust */
+  --field-background: #ffffff !important;
+  --field-border: #bcc0cc !important; /* surface1 */
+  --field-foreground: #4c4f69 !important;
+  --field-placeholder: #9ca0b0 !important; /* overlay2 */
+  --segment: #e6e9ef !important; /* mantle */
+  --segment-foreground: #4c4f69 !important;
+  --focus: #8839ef !important;
+  --link: #1e66f5 !important; /* blue, ~4.9:1 on cards */
+  --chart-stat: #ea76cb !important; /* pink */
+  --sleep: #ea76cb !important;
+  --success: #40a02b !important; /* green */
+  --success-soft: #e0f0d9 !important; /* green-tinted base */
+  --success-soft-foreground: #33721d !important; /* green, darkened, ~5:1 */
+  --warning: #df8e1d !important; /* yellow */
+  --warning-soft: #faebcd !important; /* yellow-tinted base */
+  --warning-soft-foreground: #8a5a0c !important; /* yellow, darkened, ~5:1 */
+  --danger: #d20f39 !important; /* red */
+  --danger-soft: #f9dce3 !important; /* red-tinted base */
+  --danger-soft-foreground: #a30f31 !important; /* red, darkened, ~6.1:1 */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Catppuccin Mocha — dark mode                                   */
+/* ---------------------------------------------------------------- */
+
+/* Mocha is the dark flavor: a deep blue-black base, gray-violet
+ * surfaces, and soft text. The palette's own pairings clear AA with
+ * headroom — crust on mauve ~9:1, text on base ~11:1, subtext0 on
+ * base ~7:1 — so dark mode keeps the canonical hues verbatim and only
+ * tints the soft surfaces toward each status hue. */
+
+.dark {
+  --background: #1e1e2e !important; /* base */
+  --foreground: #cdd6f4 !important; /* text, ~11:1 on base */
+  --surface: #313244 !important; /* surface0 */
+  --surface-secondary: #181825 !important; /* mantle */
+  --surface-tertiary: #11111b !important; /* crust */
+  --overlay: #313244 !important; /* surface0 */
+  --accent: #cba6f9 !important; /* mauve */
+  --accent-foreground: #11111b !important; /* crust, ~9:1 on mauve */
+  --accent-soft: #322f49 !important; /* mauve-tinted surface */
+  --accent-soft-foreground: #cba6f9 !important; /* ~6.4:1 on the tint */
+  --default: #45475a !important; /* surface1 */
+  --default-foreground: #cdd6f4 !important; /* ~6.4:1 */
+  --default-soft: #313244 !important; /* surface0 */
+  --default-soft-foreground: #bac2de !important; /* subtext1, ~7.1:1 */
+  --muted: #a6adc8 !important; /* subtext0, ~7.2:1 on base */
+  --border: #45475a !important; /* surface1 */
+  --separator: #313244 !important; /* surface0 */
+  --field-background: #313244 !important; /* surface0 */
+  --field-border: #585b70 !important; /* surface2 */
+  --field-foreground: #cdd6f4 !important;
+  --field-placeholder: #9399b2 !important; /* overlay1, ~4.5:1 */
+  --segment: #313244 !important; /* surface0 */
+  --segment-foreground: #cdd6f4 !important;
+  --focus: #cba6f9 !important;
+  --link: #89b4fa !important; /* blue, ~7.7:1 on base */
+  --chart-stat: #f5c2e7 !important; /* pink */
+  --sleep: #f5c2e7 !important;
+  --success: #a6e3a1 !important; /* green */
+  --success-soft: #22302a !important; /* green-tinted surface */
+  --success-soft-foreground: #a6e3a1 !important; /* ~9:1 */
+  --warning: #f9e2af !important; /* yellow */
+  --warning-soft: #2e2a1f !important; /* yellow-tinted surface */
+  --warning-soft-foreground: #f9e2af !important; /* ~11:1 */
+  --danger: #f38ba8 !important; /* red */
+  --danger-soft: #34232a !important; /* red-tinted surface */
+  --danger-soft-foreground: #f38ba8 !important; /* ~6.4:1 */
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy preset variants                                         */
+/* ---------------------------------------------------------------- */
+
+/* The legacy preset pins its own copies of the token blocks under
+ * attribute selectors — .light[data-theme-preset="legacy"] and
+ * [data-theme="light"][data-theme-preset="legacy"] — that beat the
+ * plain class selectors above on specificity regardless of source
+ * order. Restate the FULL token list under those selectors (not just
+ * accent and link) so none of the preset's own colors leak through
+ * when the legacy preset is active. */
+
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #eff1f5 !important;
+  --foreground: #4c4f69 !important;
+  --surface: #ffffff !important;
+  --surface-secondary: #e6e9ef !important;
+  --surface-tertiary: #dce0e8 !important;
+  --overlay: #ffffff !important;
+  --accent: #8839ef !important;
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #eee6fa !important;
+  --accent-soft-foreground: #6d28c9 !important;
+  --default: #e6e9ef !important;
+  --default-foreground: #4c4f69 !important;
+  --default-soft: #dce0e8 !important;
+  --default-soft-foreground: #5c5f77 !important;
+  --muted: #6c6f85 !important;
+  --border: #ccd0da !important;
+  --separator: #dce0e8 !important;
+  --field-background: #ffffff !important;
+  --field-border: #bcc0cc !important;
+  --field-foreground: #4c4f69 !important;
+  --field-placeholder: #9ca0b0 !important;
+  --segment: #e6e9ef !important;
+  --segment-foreground: #4c4f69 !important;
+  --focus: #8839ef !important;
+  --link: #1e66f5 !important;
+  --chart-stat: #ea76cb !important;
+  --sleep: #ea76cb !important;
+  --success: #40a02b !important;
+  --success-soft: #e0f0d9 !important;
+  --success-soft-foreground: #33721d !important;
+  --warning: #df8e1d !important;
+  --warning-soft: #faebcd !important;
+  --warning-soft-foreground: #8a5a0c !important;
+  --danger: #d20f39 !important;
+  --danger-soft: #f9dce3 !important;
+  --danger-soft-foreground: #a30f31 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #1e1e2e !important;
+  --foreground: #cdd6f4 !important;
+  --surface: #313244 !important;
+  --surface-secondary: #181825 !important;
+  --surface-tertiary: #11111b !important;
+  --overlay: #313244 !important;
+  --accent: #cba6f9 !important;
+  --accent-foreground: #11111b !important;
+  --accent-soft: #322f49 !important;
+  --accent-soft-foreground: #cba6f9 !important;
+  --default: #45475a !important;
+  --default-foreground: #cdd6f4 !important;
+  --default-soft: #313244 !important;
+  --default-soft-foreground: #bac2de !important;
+  --muted: #a6adc8 !important;
+  --border: #45475a !important;
+  --separator: #313244 !important;
+  --field-background: #313244 !important;
+  --field-border: #585b70 !important;
+  --field-foreground: #cdd6f4 !important;
+  --field-placeholder: #9399b2 !important;
+  --segment: #313244 !important;
+  --segment-foreground: #cdd6f4 !important;
+  --focus: #cba6f9 !important;
+  --link: #89b4fa !important;
+  --chart-stat: #f5c2e7 !important;
+  --sleep: #f5c2e7 !important;
+  --success: #a6e3a1 !important;
+  --success-soft: #22302a !important;
+  --success-soft-foreground: #a6e3a1 !important;
+  --warning: #f9e2af !important;
+  --warning-soft: #2e2a1f !important;
+  --warning-soft-foreground: #f9e2af !important;
+  --danger: #f38ba8 !important;
+  --danger-soft: #34232a !important;
+  --danger-soft-foreground: #f38ba8 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets                                     */
+/* ---------------------------------------------------------------- */
+
+/* Legacy HSL triplets, for any not-yet-rebuilt screen still reading
+ * the --gp-* variables. Plain class selectors and no !important, like
+ * the app's own legacy blocks: nothing else writes these anymore, so
+ * simple late source order is enough. Values are the HSL equivalents
+ * of the hex tokens above (base/mantle/surface grays, subtext0 muted,
+ * mauve primary). */
+
+.light {
+  --gp-bg: 220 23% 95%; /* base */
+  --gp-surface: 220 22% 92%; /* mantle */
+  --gp-card: 0 0% 100%; /* cards, like --surface */
+  --gp-border: 223 16% 83%; /* surface0 */
+  --gp-muted: 233 10% 47%; /* subtext0 */
+  --gp-fg: 234 16% 35%; /* text */
+  --gp-primary: 266 85% 58%; /* mauve */
+  --gp-primary-fg: 0 0% 100%;
+}
+.dark {
+  --gp-bg: 240 21% 15%; /* base */
+  --gp-surface: 240 21% 12%; /* mantle */
+  --gp-card: 237 16% 23%; /* surface0 */
+  --gp-border: 234 13% 31%; /* surface1 */
+  --gp-muted: 228 24% 72%; /* subtext0 */
+  --gp-fg: 226 64% 88%; /* text */
+  --gp-primary: 267 87% 81%; /* mauve */
+  --gp-primary-fg: 240 23% 9%; /* crust */
+}

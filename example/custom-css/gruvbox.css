@@ -1,6 +1,248 @@
 /*
- * Gameplane — gruvbox (example Custom CSS overlay)
+ * Gameplane — Gruvbox Theme (example Custom CSS overlay)
+ * ======================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme: the warm retro Gruvbox palette
+ * (morhetz/gruvbox) in both modes, with Gruvbox Dark on the dark
+ * side and Gruvbox Light on the light side. No layout, spacing,
+ * shape, or typography changes — this is the "minimum viable custom
+ * theme" shape: tokens only.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   - Accent:   gruvbox orange (#fe8019 dark / #d65d0e light)
+ *   - Links:    gruvbox aqua (#83a598 dark / #076678 light)
+ *   - Success:  gruvbox green (#b8bb26 dark / #79740e light)
+ *   - Warning:  gruvbox yellow (#fabd2f dark / #b57614 light)
+ *   - Danger:   gruvbox red (#fb4934 dark / #9d0006 light)
+ *   - Stat icons / sleep: gruvbox purple (#d3869b)
+ *
+ * Contrast, measured against each mode's --background (WCAG AA):
+ * dark mode passes comfortably (foreground ~11.1:1, muted ~5.3:1,
+ * dark text on the orange accent ~5.8:1). Light mode passes on
+ * foreground (~10.2:1) and links (~5.8:1); the canonical gruvbox
+ * muted gray lands at ~4.3:1 and white on the light-mode orange at
+ * ~3.9:1 (the best any foreground manages on that accent). Both are
+ * annotated at the token, with sturdier alternatives noted.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks use `!important` so they outrank the app's own preset
+ * token blocks (including the higher-specificity legacy-preset
+ * variants, restated in section 3) and the never-`!important` Custom
+ * Colors injection — this overlay wins over a Custom Colors pick for
+ * every token it sets. Only color tokens are set, so nothing here
+ * repins radii, fonts, spacing, or motion; the theme composes with
+ * any theme preset and with Custom Colors.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Gruvbox Light (gruvbox light mode: warm cream paper)          */
+/* ---------------------------------------------------------------- */
+
+:root,
+.light {
+  /* Canvas ramp: bg0 canvas -> soft card fill -> bg1 -> bg2 wells, so
+     cards lift off the canvas instead of sinking the way they do in
+     the dark ramp below. */
+  --background: #fbf1c7 !important; /* bg0 */
+  --foreground: #3c3836 !important; /* fg1, ~10.2:1 on bg0 */
+  --surface: #f2e5bc !important; /* bg0_soft-ish card fill */
+  --surface-secondary: #ebdbb2 !important; /* bg1 */
+  --surface-tertiary: #d5c4a1 !important; /* bg2 wells */
+  --overlay: #f2e5bc !important;
+  /* Orange accent. White on this orange is ~3.9:1 — the best any
+     foreground manages against #d65d0e (dark gruvbox text is ~3.0:1),
+     and button labels are bold enough for the AA 3:1 large-text
+     threshold. A strict 4.5:1 pairing would need a darker orange than
+     the palette ships. */
+  --accent: #d65d0e !important;
+  --accent-foreground: #ffffff !important; /* ~3.9:1, best on this orange */
+  --accent-soft: #f5dcae !important; /* orange tint wash */
+  --accent-soft-foreground: #8a3c05 !important; /* ~5.8:1 on accent-soft */
+  --default: #ebdbb2 !important;
+  --default-foreground: #3c3836 !important;
+  --default-soft: #f5dcae !important; /* matches --accent-soft, mirroring the app's own default preset */
+  --default-soft-foreground: #8a3c05 !important;
+  /* Canonical gruvbox fg4 gray, ~4.3:1 on bg0 — a hair under the 4.5:1
+     AA floor for small text. No lighter gruvbox gray passes either;
+     fg3 (#665c54) would, at ~5.7:1 — swap it in here if the stricter
+     floor matters. --muted renders secondary labels and hints. */
+  --muted: #7c6f64 !important;
+  --border: #d5c4a1 !important; /* bg2 stroke */
+  --separator: #ebdbb2 !important; /* bg1 hairline */
+  --field-background: #fbf1c7 !important; /* fields inset like the canvas */
+  --field-border: #d5c4a1 !important;
+  --field-foreground: #3c3836 !important;
+  --field-placeholder: #928374 !important; /* shared gray, ~3.2:1 */
+  --segment: #fbf1c7 !important;
+  --segment-foreground: #3c3836 !important;
+  --focus: #d65d0e !important;
+  --link: #076678 !important; /* aqua, ~5.8:1 on bg0 */
+  /* Purple for stat icons / sleep dots. At ~2.4:1 on bg0 it is a
+     decorative icon color only, same as the app's own pastel stat
+     accents — never status text. */
+  --chart-stat: #d3869b !important;
+  --sleep: #d3869b !important;
+  /* Status hues straight from the palette. Bare --success (~4.3:1) and
+     --warning (~3.3:1) on bg0 are borderline for small text, so they
+     are reserved for icons and borders; status text sits on the
+     *-soft washes below, all >= 5.0:1. */
+  --success: #79740e !important;
+  --success-soft: #e3e2b0 !important;
+  --success-soft-foreground: #4a4a06 !important; /* ~6.9:1 */
+  --warning: #b57614 !important;
+  --warning-soft: #f0dd9f !important;
+  --warning-soft-foreground: #6b4c06 !important; /* ~5.0:1 */
+  --danger: #9d0006 !important; /* ~7.6:1 on bg0 */
+  --danger-soft: #f2cfc7 !important;
+  --danger-soft-foreground: #8a1f14 !important; /* ~6.4:1 */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Gruvbox Dark (gruvbox dark mode: warm charcoal)               */
+/* ---------------------------------------------------------------- */
+
+.dark {
+  /* Canvas ramp inverted vs light mode: bg0 canvas -> bg1 card ->
+     bg2 raised -> bg0_hard wells. Warm, low-chroma browns keep the
+     retro feel without the blue cast of most dark themes. */
+  --background: #282828 !important; /* bg0 */
+  --foreground: #ebdbb2 !important; /* fg0, ~11.1:1 on bg0 */
+  --surface: #3c3836 !important; /* bg1 */
+  --surface-secondary: #504945 !important; /* bg2 */
+  --surface-tertiary: #1d2021 !important; /* bg0_hard wells */
+  --overlay: #3c3836 !important;
+  /* Bright orange. Dark bg0 text on it is ~5.8:1 — a clean AA pass,
+     so primary buttons stay readable at any size. */
+  --accent: #fe8019 !important;
+  --accent-foreground: #282828 !important; /* ~5.8:1 on accent */
+  --accent-soft: #4a320f !important; /* orange ember wash */
+  --accent-soft-foreground: #febc7a !important; /* ~7.2:1 on accent-soft */
+  --default: #504945 !important;
+  --default-foreground: #ebdbb2 !important; /* ~6.6:1 on default */
+  --default-soft: #4a320f !important; /* matches --accent-soft, mirroring the app's own default preset */
+  --default-soft-foreground: #febc7a !important;
+  --muted: #a89984 !important; /* fg3, ~5.3:1 on bg0 */
+  --border: #504945 !important; /* bg2 stroke */
+  --separator: #3c3836 !important; /* bg1 hairline */
+  --field-background: #282828 !important; /* fields inset like the canvas */
+  --field-border: #504945 !important;
+  --field-foreground: #ebdbb2 !important;
+  --field-placeholder: #928374 !important; /* shared gray, ~4.0:1 */
+  --segment: #3c3836 !important;
+  --segment-foreground: #ebdbb2 !important;
+  --focus: #fe8019 !important;
+  --link: #83a598 !important; /* aqua, ~5.5:1 on bg0 */
+  --chart-stat: #d3869b !important; /* purple, ~5.4:1 on bg0 */
+  --sleep: #d3869b !important;
+  --success: #b8bb26 !important; /* ~7.1:1 on bg0 */
+  --success-soft: #3a3d0d !important;
+  --success-soft-foreground: #c6c96a !important; /* ~6.5:1 */
+  --warning: #fabd2f !important; /* ~8.7:1 on bg0 */
+  --warning-soft: #453608 !important;
+  --warning-soft-foreground: #e6c258 !important; /* ~6.9:1 */
+  --danger: #fb4934 !important; /* ~4.3:1 on bg0; text uses danger-soft */
+  --danger-soft: #4a2420 !important;
+  --danger-soft-foreground: #f79689 !important; /* ~6.2:1 */
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy preset variants                                         */
+/* ---------------------------------------------------------------- */
+
+/* Legacy preset variants carry an extra attribute selector that beats
+   the plain class selectors above on specificity — restate the tokens
+   for them so the overlay still wins if the legacy preset is active.
+   Subset: the tokens the legacy preset itself redefines. */
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #fbf1c7 !important;
+  --foreground: #3c3836 !important;
+  --surface: #f2e5bc !important;
+  --surface-secondary: #ebdbb2 !important;
+  --surface-tertiary: #d5c4a1 !important;
+  --overlay: #f2e5bc !important;
+  --accent: #d65d0e !important;
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #f5dcae !important;
+  --accent-soft-foreground: #8a3c05 !important;
+  --default: #ebdbb2 !important;
+  --default-foreground: #3c3836 !important;
+  --muted: #7c6f64 !important;
+  --border: #d5c4a1 !important;
+  --separator: #ebdbb2 !important;
+  --field-background: #fbf1c7 !important;
+  --field-border: #d5c4a1 !important;
+  --field-foreground: #3c3836 !important;
+  --field-placeholder: #928374 !important;
+  --segment: #fbf1c7 !important;
+  --segment-foreground: #3c3836 !important;
+  --focus: #d65d0e !important;
+  --link: #076678 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #282828 !important;
+  --foreground: #ebdbb2 !important;
+  --surface: #3c3836 !important;
+  --surface-secondary: #504945 !important;
+  --surface-tertiary: #1d2021 !important;
+  --overlay: #3c3836 !important;
+  --accent: #fe8019 !important;
+  --accent-foreground: #282828 !important;
+  --accent-soft: #4a320f !important;
+  --accent-soft-foreground: #febc7a !important;
+  --default: #504945 !important;
+  --default-foreground: #ebdbb2 !important;
+  --muted: #a89984 !important;
+  --border: #504945 !important;
+  --separator: #3c3836 !important;
+  --field-background: #282828 !important;
+  --field-border: #504945 !important;
+  --field-foreground: #ebdbb2 !important;
+  --field-placeholder: #928374 !important;
+  --segment: #3c3836 !important;
+  --segment-foreground: #ebdbb2 !important;
+  --focus: #fe8019 !important;
+  --link: #83a598 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets                                     */
+/* ---------------------------------------------------------------- */
+
+/* Legacy HSL triplets, for any not-yet-rebuilt screen still reading
+   the --gp-* variables. They mirror the token values above and are
+   deliberately plain (no !important): they only fill a fallback. */
+.light {
+  --gp-bg: 48 87% 88%; /* #fbf1c7 */
+  --gp-surface: 46 68% 84%; /* #f2e5bc */
+  --gp-card: 46 68% 84%; /* #f2e5bc */
+  --gp-border: 40 44% 73%; /* #d5c4a1 */
+  --gp-muted: 27 11% 44%; /* #7c6f64 */
+  --gp-fg: 20 5% 22%; /* #3c3836 */
+  --gp-primary: 24 88% 45%; /* #d65d0e */
+  --gp-primary-fg: 0 0% 100%; /* white */
+}
+.dark {
+  --gp-bg: 0 0% 16%; /* #282828 */
+  --gp-surface: 20 5% 22%; /* #3c3836 */
+  --gp-card: 20 5% 22%; /* #3c3836 */
+  --gp-border: 22 10% 29%; /* #504945 */
+  --gp-muted: 35 17% 59%; /* #a89984 */
+  --gp-fg: 43 59% 81%; /* #ebdbb2 */
+  --gp-primary: 27 99% 55%; /* #fe8019 */
+  --gp-primary-fg: 0 0% 16%; /* #282828 */
+}

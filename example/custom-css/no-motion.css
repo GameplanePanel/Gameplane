@@ -1,6 +1,74 @@
 /*
- * Gameplane — no-motion (example Custom CSS overlay)
+ * Gameplane — No-Motion Theme (example Custom CSS overlay)
+ * =========================================================
+ * What this does
+ * --------------
+ * A motion-only theme: no color, spacing, shape, or typography
+ * changes at all — just a single universal rule that forces every
+ * transition and animation across the app (modals, toasts, tabs,
+ * skeletons, spinners, hover states, the lot) to complete in 0.01ms,
+ * plus instant instead of smooth scrolling.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ * Why 0.01ms and not 0: a transition or animation with a truly zero
+ * duration never fires its transitionend / animationend event, and
+ * JavaScript that waits for those events would hang forever. 0.01ms
+ * is short enough to be invisible but still lets the events fire, so
+ * the app behaves identically — just without the visuals.
+ *
+ * Why !important: durations are declared by HeroUI's component
+ * stylesheets and sometimes inline, not only by Tailwind utilities,
+ * so the overlay needs the top author-origin priority to win.
+ *
+ * This is a blunt instrument, and deliberately so. The app already
+ * honors the OS prefers-reduced-motion setting, which is the right
+ * way to reduce motion for accessibility — prefer that. This overlay
+ * is for cases the OS setting can't reach: screen-recordings and
+ * docs/screenshots where any animation is noise, remote-desktop or
+ * nested-compositor setups where the OS flag isn't picked up, or
+ * quickly checking how the app feels with motion off.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Notes
+ * -----
+ *   - Sets no color tokens and uses no app-component selectors beyond
+ *     the universal rule, so it composes with every base preset
+ *     (pink or legacy) and with Custom Colors picks.
+ *   - `scroll-behavior` is repeated on html explicitly (the universal
+ *     selector does match the root element, but the explicit rule
+ *     documents intent and survives copy-paste of either half).
+ *   - `animation-iteration-count: 1` matters as much as the duration:
+ *     without it, looping animations (spinners, pulsing indicators)
+ *     would still loop — just 100,000 times per second.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Near-zero every transition and animation, app-wide             */
+/* ---------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important; /* stop loops, not just slow them */
+  scroll-behavior: auto !important; /* also covers inner scroll containers */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Instant anchor / history scrolling                             */
+/* ---------------------------------------------------------------- */
+
+html {
+  scroll-behavior: auto;
+}

@@ -1,6 +1,244 @@
 /*
- * Gameplane — ocean-deep (example Custom CSS overlay)
+ * Gameplane — Ocean Deep Theme (example Custom CSS overlay)
+ * =========================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme, designed dark-first: an abyssal deep-sea
+ * navy for dark mode with bioluminescent cyan accents, and a pale
+ * sea-foam daylight scheme for light mode. No layout, spacing, shape,
+ * motion, or typography changes — only color tokens, so it composes
+ * with any theme preset and only overrides colors.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   1. Dark mode — abyssal navy background (#0a1628), surfaces like
+ *      sunlit water getting darker with depth (#0f1e33 / #14273f),
+ *      and cyan (#22d3ee) as the accent with very dark navy text on
+ *      it (~8.4:1). Links are sky blue (#38bdf8), chart-stat and
+ *      sleeping-server icons use indigo (#818cf8) so they read as
+ *      "instrument glow" instead of merging with the cyan accent.
+ *      Status hues stay bright on the dark water so badges pop.
+ *   2. Light mode — pale sea-foam background (#f0f9ff) with a deep
+ *      teal accent (#0e7490, white text ~5.4:1). Every bright status
+ *      hue from the dark palette is darkened for AA on the near-white
+ *      background (links #0369a1, success #047857, warning #92400e,
+ *      danger #dc2626), mirroring how the app's own light preset
+ *      darkens status hues.
+ *   3. Legacy --gp-* HSL triplets for any screen not yet rebuilt onto
+ *      the new tokens.
+ *
+ * Contrast (WCAG, computed against each mode's background):
+ * foreground ~14.9:1 dark / ~13.3:1 light, muted ~6.4:1 / ~5.3:1,
+ * accent-foreground on accent ~8.4:1 / white on accent ~5.4:1,
+ * links ~8.5:1 / ~5.6:1. All AA or better.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks use `!important` so they outrank the app's own preset
+ * token blocks — including the higher-specificity legacy-preset
+ * variants (.light[data-theme-preset="legacy"] and friends) — and the
+ * Custom Colors injection (the gameplane-custom-theme-vars style
+ * element), which is never `!important`: this overlay wins over a
+ * Custom Colors pick for every token it sets. The overlay <style> is
+ * appended last in <head> and unlayered, so it also wins ties against
+ * the app's @layer utilities. Because this theme is palette-only it
+ * composes with any preset; the legacy-preset restatement in section 3
+ * exists only because those selectors carry an extra attribute and
+ * would otherwise beat the plain-class blocks. The --gp-* triplets in
+ * section 4 deliberately omit `!important` on plain .light/.dark so
+ * they follow the app's normal cascade for those legacy variables.
+ * No component selectors are needed — every surface in the app reads
+ * these tokens — so this file never touches Tailwind utility classes.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Abyssal palette — dark mode (the primary look)                */
+/* ---------------------------------------------------------------- */
+/* Dark-first: this is the mode the palette is designed around. */
+
+.dark {
+  --background: #0a1628 !important; /* abyssal navy */
+  --foreground: #dbeafe !important; /* blue-100, ~14.9:1 on background */
+  --surface: #0f1e33 !important; /* raised cards */
+  --surface-secondary: #14273f !important; /* wells, sidebars */
+  --surface-tertiary: #1a3350 !important; /* hover / pressed highlight */
+  --overlay: #0f1e33 !important; /* dialogs sit one depth up */
+  --accent: #22d3ee !important; /* bioluminescent cyan */
+  --accent-foreground: #06283f !important; /* very dark navy, ~8.4:1 on accent */
+  --accent-soft: #0d3542 !important;
+  --accent-soft-foreground: #67e8f9 !important; /* cyan-300, ~9:1 on accent-soft */
+  --default: #14273f !important;
+  --default-foreground: #dbeafe !important;
+  --default-soft: #112a44 !important;
+  --default-soft-foreground: #bfdbfe !important; /* blue-200 */
+  --muted: #7b9cc4 !important; /* ~6.4:1 on background */
+  --border: #1e3a5f !important; /* deep-water line */
+  --separator: #17293f !important;
+  --field-background: #0d1c30 !important;
+  --field-border: #1e3a5f !important;
+  --field-foreground: #e0f2fe !important;
+  --field-placeholder: #6d8cb2 !important; /* ~4.9:1 on field-background */
+  --segment: #0f1e33 !important;
+  --segment-foreground: #dbeafe !important;
+  --focus: #22d3ee !important;
+  --link: #38bdf8 !important; /* sky-400, ~8.5:1 on background */
+  --chart-stat: #818cf8 !important; /* indigo-400, instrument glow */
+  --sleep: #818cf8 !important;
+  --success: #34d399 !important; /* emerald-400, ~9.4:1 on background */
+  --success-soft: #0c3328 !important;
+  --success-soft-foreground: #6ee7b7 !important;
+  --warning: #fbbf24 !important; /* amber-400, ~10.8:1 on background */
+  --warning-soft: #3a2c07 !important;
+  --warning-soft-foreground: #fcd34d !important;
+  --danger: #f87171 !important; /* red-400, ~6.6:1 on background */
+  --danger-soft: #3a1d20 !important;
+  --danger-soft-foreground: #fca5a5 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Sea-foam palette — light mode                                 */
+/* ---------------------------------------------------------------- */
+/* The same sea, seen from the surface: bright, low-contrast fills
+   with darkened text and status hues so everything stays AA. */
+
+:root,
+.light {
+  --background: #f0f9ff !important; /* pale sea-foam (sky-50) */
+  --foreground: #0c2d48 !important; /* deep sea ink, ~13.3:1 */
+  --surface: #e0f2fe !important; /* sky-100 */
+  --surface-secondary: #cbe6fd !important;
+  --surface-tertiary: #b9dcfb !important;
+  --overlay: #e0f2fe !important;
+  --accent: #0e7490 !important; /* deep teal (cyan-700) */
+  --accent-foreground: #ffffff !important; /* ~5.4:1 on accent */
+  --accent-soft: #cffafe !important; /* cyan-100 */
+  --accent-soft-foreground: #155e75 !important; /* ~6.5:1 on accent-soft */
+  --default: #cbe6fd !important;
+  --default-foreground: #0c2d48 !important;
+  --default-soft: #dbeefd !important;
+  --default-soft-foreground: #0c2d48 !important;
+  --muted: #4a6b8a !important; /* ~5.3:1 on background */
+  --border: #b4d7f3 !important;
+  --separator: #c9e3f9 !important;
+  --field-background: #fbfdff !important;
+  --field-border: #b4d7f3 !important;
+  --field-foreground: #0c2d48 !important;
+  --field-placeholder: #6b8aa8 !important; /* placeholder text only, ~3.5:1 */
+  --segment: #e0f2fe !important;
+  --segment-foreground: #0c2d48 !important;
+  --focus: #0e7490 !important;
+  --link: #0369a1 !important; /* darkened from #38bdf8 for AA, ~5.6:1 */
+  --chart-stat: #4f46e5 !important; /* indigo-600, darkened for AA */
+  --sleep: #4f46e5 !important;
+  --success: #047857 !important; /* emerald-700, ~5.2:1 */
+  --success-soft: #d1fae5 !important;
+  --success-soft-foreground: #065f46 !important;
+  --warning: #92400e !important; /* amber-800, ~6.7:1 */
+  --warning-soft: #fef3c7 !important;
+  --warning-soft-foreground: #92400e !important;
+  --danger: #dc2626 !important; /* red-600, ~4.6:1 */
+  --danger-soft: #fee2e2 !important;
+  --danger-soft-foreground: #b91c1c !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy preset variants (restate the core tokens)              */
+/* ---------------------------------------------------------------- */
+/* Legacy preset variants carry an extra attribute selector that beats
+   the plain class selectors above on specificity — restate the core
+   tokens (the ones the app's own legacy-preset blocks define) so the
+   overlay still wins if the legacy preset is active. Status hues are
+   omitted here because the legacy preset never redefines them. */
+
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #f0f9ff !important;
+  --foreground: #0c2d48 !important;
+  --surface: #e0f2fe !important;
+  --surface-secondary: #cbe6fd !important;
+  --surface-tertiary: #b9dcfb !important;
+  --overlay: #e0f2fe !important;
+  --accent: #0e7490 !important;
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #cffafe !important;
+  --accent-soft-foreground: #155e75 !important;
+  --default: #cbe6fd !important;
+  --default-foreground: #0c2d48 !important;
+  --muted: #4a6b8a !important;
+  --border: #b4d7f3 !important;
+  --separator: #c9e3f9 !important;
+  --field-background: #fbfdff !important;
+  --field-border: #b4d7f3 !important;
+  --field-foreground: #0c2d48 !important;
+  --field-placeholder: #6b8aa8 !important;
+  --segment: #e0f2fe !important;
+  --segment-foreground: #0c2d48 !important;
+  --focus: #0e7490 !important;
+  --link: #0369a1 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #0a1628 !important;
+  --foreground: #dbeafe !important;
+  --surface: #0f1e33 !important;
+  --surface-secondary: #14273f !important;
+  --surface-tertiary: #1a3350 !important;
+  --overlay: #0f1e33 !important;
+  --accent: #22d3ee !important;
+  --accent-foreground: #06283f !important;
+  --accent-soft: #0d3542 !important;
+  --accent-soft-foreground: #67e8f9 !important;
+  --default: #14273f !important;
+  --default-foreground: #dbeafe !important;
+  --muted: #7b9cc4 !important;
+  --border: #1e3a5f !important;
+  --separator: #17293f !important;
+  --field-background: #0d1c30 !important;
+  --field-border: #1e3a5f !important;
+  --field-foreground: #e0f2fe !important;
+  --field-placeholder: #6d8cb2 !important;
+  --segment: #0f1e33 !important;
+  --segment-foreground: #dbeafe !important;
+  --focus: #22d3ee !important;
+  --link: #38bdf8 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets (unrebuilt screens)                */
+/* ---------------------------------------------------------------- */
+/* Legacy HSL triplets, for any not-yet-rebuilt screen still reading
+   the --gp-* variables. Deliberately no `!important`: these follow
+   the app's normal cascade for the legacy variables. Values are bare
+   HSL triplets (no hsl() wrapper), matching how the app declares
+   them. */
+
+.light {
+  --gp-bg: 204 100% 97%;
+  --gp-surface: 204 94% 94%;
+  --gp-card: 203 100% 96%;
+  --gp-border: 207 72% 83%;
+  --gp-muted: 209 30% 42%;
+  --gp-fg: 207 71% 16%;
+  --gp-primary: 188 86% 33%;
+  --gp-primary-fg: 0 0% 100%;
+}
+.dark {
+  --gp-bg: 216 60% 10%;
+  --gp-surface: 215 55% 13%;
+  --gp-card: 215 55% 13%;
+  --gp-border: 214 50% 25%;
+  --gp-muted: 213 38% 63%;
+  --gp-fg: 214 95% 93%;
+  --gp-primary: 187 92% 53%;
+  --gp-primary-fg: 204 83% 14%;
+}

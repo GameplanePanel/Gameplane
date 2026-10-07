@@ -1,6 +1,257 @@
 /*
- * Gameplane — dracula (example Custom CSS overlay)
+ * Gameplane — Dracula Theme (example Custom CSS overlay)
+ * ======================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme, same shape as solarized.css: the Dracula
+ * palette (draculatheme.com) mapped onto every semantic color token,
+ * with no layout, spacing, typography, or shape changes — tokens only.
+ * Dark mode is the canonical Dracula look; light mode is a faithful
+ * lightened Dracula ("paper") variant, not a simple inversion.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   - Accent:   Dracula purple (#bd93f9) with dark text in dark mode;
+ *     deepened to #7b5fc7 with white text in light mode so the pair
+ *     keeps WCAG AA (4.9:1).
+ *   - Links:    Dracula cyan (#8be9fd dark, ~10.3:1), darkened to
+ *     #0a6a83 in light mode for AA on the paper background.
+ *   - Status:   green #50fa7b, orange #ffb86c, red #ff5555 straight
+ *     from the spec in dark mode (all >= 4.5:1 on the background);
+ *     each hue darkened in light mode (#0f6b36 / #8f4c00 / #c21f1f)
+ *     because the saturated originals fail AA on near-white paper.
+ *   - Stat icons / sleep: Dracula pink #ff79c6 (dark) / #b32772 (light).
+ *   - Muted:    Dracula "comment" #6272a4 is below AA as body text on
+ *     both backgrounds, so it is brightened to #8a93c6 in dark mode
+ *     (~4.8:1) and darkened to #4a5480 in light mode (~6.9:1). The
+ *     canonical hue stays recognizable in both.
+ *   - Soft variants: dark translucent mixes of each hue over the
+ *     surface (e.g. purple #403b55), with a lightened hue as the text
+ *     color; light mode mirrors this with pale tints (e.g. #efecf8)
+ *     and a darkened hue for the text.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks use `!important` so they outrank the app's own preset
+ * token blocks (including the higher-specificity legacy-preset
+ * variants) and the never-`!important` Custom Colors injection — this
+ * overlay wins over a Custom Colors pick for every token it sets.
+ * Because it only touches color tokens, it composes with any preset
+ * underneath and with layout/density examples (compact-density.css,
+ * sidebar-right.css, ...), but not with another palette overlay or
+ * with Custom Colors for the tokens it redefines. No shape, motion, or
+ * typography rules means there is nothing here to gate behind
+ * prefers-reduced-motion.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Dracula Dark (canonical)                                       */
+/* ---------------------------------------------------------------- */
+
+.dark {
+  --background: #282a36 !important; /* Dracula background */
+  --foreground: #f8f8f2 !important; /* 13.4:1 on background */
+  --surface: #1e1f29 !important; /* darker than background, per spec */
+  --surface-secondary: #191a23 !important;
+  --surface-tertiary: #14151d !important;
+  --overlay: #44475a !important; /* current line */
+  --accent: #bd93f9 !important; /* purple */
+  --accent-foreground: #282a36 !important; /* 5.9:1 on accent */
+  --accent-soft: #403b55 !important; /* translucent purple on dark */
+  --accent-soft-foreground: #ccb9f9 !important; /* 6.0:1 on accent-soft */
+  --default: #393a45 !important;
+  --default-foreground: #f8f8f2 !important; /* 10.6:1 on default */
+  --default-soft: #3b384f !important;
+  --default-soft-foreground: #ccb9f9 !important; /* 6.4:1 on default-soft */
+  --muted: #8a93c6 !important; /* comment #6272a4 brightened, 4.8:1 */
+  --border: #373a4a !important; /* current line, dimmed */
+  --separator: #323443 !important;
+  --field-background: #1e1f29 !important;
+  --field-border: #44475a !important; /* current line */
+  --field-foreground: #f8f8f2 !important;
+  --field-placeholder: #7c86b8 !important; /* 4.6:1 on field bg */
+  --segment: #1e1f29 !important;
+  --segment-foreground: #f8f8f2 !important;
+  --focus: #bd93f9 !important;
+  --link: #8be9fd !important; /* cyan, 10.3:1 on background */
+  --chart-stat: #ff79c6 !important; /* pink, 6.0:1 */
+  --sleep: #ff79c6 !important;
+  --success: #50fa7b !important; /* green, 10.4:1 on background */
+  --success-soft: #2e4740 !important;
+  --success-soft-foreground: #8df0ab !important; /* 7.3:1 on soft */
+  --warning: #ffb86c !important; /* orange, 8.4:1 on background */
+  --warning-soft: #463e3e !important;
+  --warning-soft-foreground: #ffca96 !important; /* 7.0:1 on soft */
+  --danger: #ff5555 !important; /* red, 4.5:1 on background (AA) */
+  --danger-soft: #48303b !important;
+  --danger-soft-foreground: #ff9d9d !important; /* 6.0:1 on soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Dracula Light (daylight paper)                                 */
+/* ---------------------------------------------------------------- */
+
+:root,
+.light {
+  --background: #f8f8f2 !important; /* Dracula foreground as paper */
+  --foreground: #282a36 !important; /* 13.4:1 on background */
+  --surface: #e6e6e6 !important;
+  --surface-secondary: #dcdcdc !important;
+  --surface-tertiary: #d2d2d2 !important;
+  --overlay: #e6e6e6 !important; /* current line, lightened */
+  --accent: #7b5fc7 !important; /* purple deepened for paper */
+  --accent-foreground: #ffffff !important; /* 4.9:1 on accent */
+  --accent-soft: #efecf8 !important; /* pale purple tint */
+  --accent-soft-foreground: #5a3fa8 !important; /* 6.7:1 on accent-soft */
+  --default: #e6e6e6 !important;
+  --default-foreground: #282a36 !important; /* 11.4:1 on default */
+  --default-soft: #efecf8 !important;
+  --default-soft-foreground: #5a3fa8 !important;
+  --muted: #4a5480 !important; /* comment #6272a4 darkened, 6.9:1 */
+  --border: #bebfc5 !important;
+  --separator: #d6d7db !important;
+  --field-background: #ffffff !important;
+  --field-border: #bebfc5 !important;
+  --field-foreground: #282a36 !important;
+  --field-placeholder: #6b7392 !important; /* 4.7:1 on white */
+  --segment: #e6e6e6 !important;
+  --segment-foreground: #282a36 !important;
+  --focus: #7b5fc7 !important;
+  --link: #0a6a83 !important; /* cyan darkened, 5.8:1 on background */
+  --chart-stat: #b32772 !important; /* pink darkened, 5.7:1 */
+  --sleep: #b32772 !important;
+  --success: #0f6b36 !important; /* green darkened, 6.2:1 on background */
+  --success-soft: #e7f0eb !important;
+  --success-soft-foreground: #0f6b36 !important; /* 5.7:1 on soft */
+  --warning: #8f4c00 !important; /* orange darkened, 6.2:1 on background */
+  --warning-soft: #f4ede6 !important;
+  --warning-soft-foreground: #8f4c00 !important; /* 5.7:1 on soft */
+  --danger: #c21f1f !important; /* red darkened, 5.6:1 on background */
+  --danger-soft: #fbeded !important;
+  --danger-soft-foreground: #8f1414 !important; /* 8.1:1 on soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy preset variants                                         */
+/* ---------------------------------------------------------------- */
+/* Legacy preset variants carry an extra attribute selector that beats
+ * the plain class selectors above on specificity — restate the tokens
+ * for them so the overlay still wins if the legacy preset is active. */
+
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #f8f8f2 !important;
+  --foreground: #282a36 !important;
+  --surface: #e6e6e6 !important;
+  --surface-secondary: #dcdcdc !important;
+  --surface-tertiary: #d2d2d2 !important;
+  --overlay: #e6e6e6 !important;
+  --accent: #7b5fc7 !important;
+  --accent-foreground: #ffffff !important;
+  --accent-soft: #efecf8 !important;
+  --accent-soft-foreground: #5a3fa8 !important;
+  --default: #e6e6e6 !important;
+  --default-foreground: #282a36 !important;
+  --default-soft: #efecf8 !important;
+  --default-soft-foreground: #5a3fa8 !important;
+  --muted: #4a5480 !important;
+  --border: #bebfc5 !important;
+  --separator: #d6d7db !important;
+  --field-background: #ffffff !important;
+  --field-border: #bebfc5 !important;
+  --field-foreground: #282a36 !important;
+  --field-placeholder: #6b7392 !important;
+  --segment: #e6e6e6 !important;
+  --segment-foreground: #282a36 !important;
+  --focus: #7b5fc7 !important;
+  --link: #0a6a83 !important;
+  --chart-stat: #b32772 !important;
+  --sleep: #b32772 !important;
+  --success: #0f6b36 !important;
+  --success-soft: #e7f0eb !important;
+  --success-soft-foreground: #0f6b36 !important;
+  --warning: #8f4c00 !important;
+  --warning-soft: #f4ede6 !important;
+  --warning-soft-foreground: #8f4c00 !important;
+  --danger: #c21f1f !important;
+  --danger-soft: #fbeded !important;
+  --danger-soft-foreground: #8f1414 !important;
+}
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #282a36 !important;
+  --foreground: #f8f8f2 !important;
+  --surface: #1e1f29 !important;
+  --surface-secondary: #191a23 !important;
+  --surface-tertiary: #14151d !important;
+  --overlay: #44475a !important;
+  --accent: #bd93f9 !important;
+  --accent-foreground: #282a36 !important;
+  --accent-soft: #403b55 !important;
+  --accent-soft-foreground: #ccb9f9 !important;
+  --default: #393a45 !important;
+  --default-foreground: #f8f8f2 !important;
+  --default-soft: #3b384f !important;
+  --default-soft-foreground: #ccb9f9 !important;
+  --muted: #8a93c6 !important;
+  --border: #373a4a !important;
+  --separator: #323443 !important;
+  --field-background: #1e1f29 !important;
+  --field-border: #44475a !important;
+  --field-foreground: #f8f8f2 !important;
+  --field-placeholder: #7c86b8 !important;
+  --segment: #1e1f29 !important;
+  --segment-foreground: #f8f8f2 !important;
+  --focus: #bd93f9 !important;
+  --link: #8be9fd !important;
+  --chart-stat: #ff79c6 !important;
+  --sleep: #ff79c6 !important;
+  --success: #50fa7b !important;
+  --success-soft: #2e4740 !important;
+  --success-soft-foreground: #8df0ab !important;
+  --warning: #ffb86c !important;
+  --warning-soft: #463e3e !important;
+  --warning-soft-foreground: #ffca96 !important;
+  --danger: #ff5555 !important;
+  --danger-soft: #48303b !important;
+  --danger-soft-foreground: #ff9d9d !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets                                     */
+/* ---------------------------------------------------------------- */
+/* Legacy HSL triplets, for any not-yet-rebuilt screen still reading
+ * the --gp-* variables. Plain .light/.dark, deliberately WITHOUT
+ * !important: these are a compatibility fallback, so a user's Custom
+ * Colors pick (also never !important, at higher specificity) can still
+ * override them. */
+.light {
+  --gp-bg: 60 30% 96%;
+  --gp-surface: 0 0% 90%;
+  --gp-card: 0 0% 90%;
+  --gp-border: 231 6% 76%;
+  --gp-muted: 229 27% 44%;
+  --gp-fg: 231 15% 18%;
+  --gp-primary: 256 48% 58%;
+  --gp-primary-fg: 0 0% 100%;
+}
+.dark {
+  --gp-bg: 231 15% 18%;
+  --gp-surface: 235 15% 14%;
+  --gp-card: 235 15% 14%;
+  --gp-border: 231 15% 25%;
+  --gp-muted: 231 34% 66%;
+  --gp-fg: 60 30% 96%;
+  --gp-primary: 265 89% 78%;
+  --gp-primary-fg: 231 15% 18%;
+}

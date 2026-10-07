@@ -1,6 +1,263 @@
 /*
- * Gameplane — nord (example Custom CSS overlay)
+ * Gameplane — Nord Theme (example Custom CSS overlay)
+ * ===================================================
+ * What this does
+ * --------------
+ * A pure palette re-theme: the Nord palette (nordtheme.com) with the
+ * Snow Storm side on light mode and the Polar Night side on dark mode.
+ * No layout, spacing, shape, or typography changes — tokens only, so
+ * this composes with every preset and any density/overlay example that
+ * does not itself set color tokens.
  *
- * WORK IN PROGRESS — this file reserves the theme name; the full
- * stylesheet lands in a follow-up commit on this branch.
+ *   - Accent:   frost #88c0d0 (nord8) with dark Polar Night text on it
+ *   - Links:    frost #81a1c1 (nord9); focus ring matches the accent
+ *   - Success:  aurora green #a3be8c (nord14)
+ *   - Warning:  aurora yellow #ebcb8b (nord13)
+ *   - Danger:   aurora red #bf616a (nord11)
+ *   - Stat icons / sleep: aurora purple #b48ead (nord15)
+ *
+ * Contrast ratios are annotated inline next to the pairs they describe.
+ * Two honest caveats: in light mode the #81a1c1 link color measures
+ * ~2.3:1 against the Snow Storm background, so links rely on their
+ * underlines (SC 1.4.1 non-color cue) — on Polar Night dark mode the
+ * same value is ~4.6:1. And #bf616a danger text on the dark background
+ * is ~3:1, which is why danger body text is expected to sit on
+ * --danger-soft (~5.9:1) rather than directly on the page.
+ *
+ * How to apply
+ * ------------
+ *   Settings -> Theme -> Custom CSS overlay -> paste this file's
+ *   contents -> enable the overlay -> Save.
+ *
+ * How to revert / recover
+ * -----------------------
+ *   - Turn the overlay off and Save again from Settings -> Theme, or
+ *   - Append ?safe-mode=1 to any app URL (suspends the overlay only,
+ *     the stored text is not deleted), or
+ *   - Press Ctrl+Shift+Alt+T while the app is open.
+ *
+ * Selector notes
+ * --------------
+ * Token blocks use `!important` so they outrank the app's own preset
+ * token blocks — including the higher-specificity legacy-preset
+ * variants (.light[data-theme-preset="legacy"] /
+ * .dark[data-theme-preset="legacy"], which beat a plain :root/.light/.dark
+ * block on specificity) — and the never-`!important` Custom Colors
+ * injection. Every token set here therefore wins over a Custom Colors
+ * pick; tokens this file does not set (radius, fonts) fall through to
+ * the preset or Custom Colors as usual. The legacy --gp-* triplet blocks
+ * at the bottom deliberately use NO !important and plain .light/.dark
+ * selectors: they only feed not-yet-rebuilt screens still reading the
+ * old variables, and must stay easy for a later preset to override.
  */
+
+/* ---------------------------------------------------------------- */
+/* 1. Nord Light — Snow Storm                                        */
+/* ---------------------------------------------------------------- */
+
+:root,
+.light {
+  --background: #eceff4 !important; /* nord6 */
+  --foreground: #2e3440 !important; /* nord0, ~10.8:1 on background */
+  --surface: #e5e9f0 !important; /* nord5 */
+  --surface-secondary: #d8dee9 !important; /* nord4 */
+  --surface-tertiary: #ccd5e1 !important; /* pressed/well, one step below nord4 */
+  --overlay: #e5e9f0 !important;
+  --accent: #88c0d0 !important; /* nord8, frost */
+  --accent-foreground: #2e3440 !important; /* ~6.2:1 on accent */
+  --accent-soft: #d8e6ee !important;
+  --accent-soft-foreground: #3b6b7d !important; /* ~4.6:1 on accent-soft */
+  --default: #d8dee9 !important; /* nord4 */
+  --default-foreground: #2e3440 !important;
+  --default-soft: #dde3ee !important;
+  --default-soft-foreground: #3b4252 !important; /* nord1, ~7.6:1 on default-soft */
+  --muted: #4c566a !important; /* nord3, ~6.4:1 on background */
+  --border: #d8dee9 !important; /* nord4 */
+  --separator: #dfe4ec !important; /* hairline, a touch lighter than border */
+  --field-background: #eceff4 !important;
+  --field-border: #c3cddd !important; /* darker than border so inputs read as inputs */
+  --field-foreground: #2e3440 !important;
+  --field-placeholder: #7b8496 !important; /* ~3.3:1 on field bg; placeholder text is exempt from the 4.5:1 rule */
+  --segment: #e5e9f0 !important;
+  --segment-foreground: #2e3440 !important;
+  --focus: #88c0d0 !important; /* matches accent */
+  /* ~2.3:1 on background — below the 4.5:1 text rule; links stay
+     underlined (SC 1.4.1) so they remain distinguishable. */
+  --link: #81a1c1 !important; /* nord9, frost */
+  --chart-stat: #b48ead !important; /* nord15; icon/illustrative, not text */
+  --sleep: #b48ead !important; /* nord15 */
+  --success: #a3be8c !important; /* nord14, aurora */
+  --success-soft: #e0e8d3 !important;
+  --success-soft-foreground: #4c6639 !important; /* ~5.1:1 on success-soft */
+  --warning: #ebcb8b !important; /* nord13, aurora */
+  --warning-soft: #f2e4c4 !important;
+  --warning-soft-foreground: #7a5b1e !important; /* ~4.9:1 on warning-soft */
+  --danger: #bf616a !important; /* nord11, aurora */
+  --danger-soft: #eed4d7 !important;
+  --danger-soft-foreground: #8c3f47 !important; /* ~5.2:1 on danger-soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 2. Nord Dark — Polar Night                                        */
+/* ---------------------------------------------------------------- */
+
+.dark {
+  --background: #2e3440 !important; /* nord0 */
+  --foreground: #d8dee9 !important; /* nord4, ~9.2:1 on background */
+  --surface: #3b4252 !important; /* nord1 */
+  --surface-secondary: #434c5e !important; /* nord2 */
+  --surface-tertiary: #333a47 !important; /* pressed/well, one step below nord0 */
+  --overlay: #3b4252 !important;
+  --accent: #88c0d0 !important; /* nord8, frost */
+  --accent-foreground: #2e3440 !important; /* ~6.2:1 on accent */
+  --accent-soft: #3d5462 !important;
+  --accent-soft-foreground: #a8d3e0 !important; /* ~4.9:1 on accent-soft */
+  --default: #434c5e !important; /* nord2 */
+  --default-foreground: #d8dee9 !important; /* ~6.2:1 on default */
+  --default-soft: #3a4356 !important;
+  --default-soft-foreground: #c3cadb !important; /* ~6.0:1 on default-soft */
+  /* A lightened Polar Night grey rather than nord3 itself: nord3
+     (#4c566a) is only ~3:1 here, this value is ~4.8:1 on background. */
+  --muted: #9aa2b4 !important;
+  --border: #434c5e !important; /* nord2 */
+  --separator: #3b4252 !important; /* hairline, matches surface */
+  --field-background: #2e3440 !important; /* inset against the nord1 card */
+  --field-border: #4c566a !important; /* nord3 */
+  --field-foreground: #eceff4 !important; /* nord6, ~10.7:1 on field bg */
+  --field-placeholder: #7b8496 !important; /* ~3.3:1 on field bg; placeholder text is exempt from the 4.5:1 rule */
+  --segment: #3b4252 !important;
+  --segment-foreground: #d8dee9 !important;
+  --focus: #88c0d0 !important; /* matches accent */
+  --link: #81a1c1 !important; /* nord9, ~4.6:1 on background */
+  --chart-stat: #b48ead !important; /* nord15; ~4.4:1 on background, icon/illustrative */
+  --sleep: #b48ead !important; /* nord15 */
+  --success: #a3be8c !important; /* nord14, aurora, ~6.1:1 on background */
+  --success-soft: #37473b !important;
+  --success-soft-foreground: #b5d29e !important; /* ~5.9:1 on success-soft */
+  --warning: #ebcb8b !important; /* nord13, aurora, ~8:1 on background */
+  --warning-soft: #4a4030 !important;
+  --warning-soft-foreground: #e8cd8f !important; /* ~6.5:1 on warning-soft */
+  /* ~3:1 on background — fine for icons and large text; body danger
+     text is expected on --danger-soft (~5.9:1). */
+  --danger: #bf616a !important; /* nord11, aurora */
+  --danger-soft: #46323a !important;
+  --danger-soft-foreground: #e3aab0 !important; /* ~5.9:1 on danger-soft */
+}
+
+/* ---------------------------------------------------------------- */
+/* 3. Legacy preset restatements                                     */
+/* ---------------------------------------------------------------- */
+/* Legacy preset variants carry an extra attribute selector that beats
+   the plain class selectors above on specificity — restate every token
+   for them so the overlay still wins if the legacy preset is active. */
+
+.light[data-theme-preset="legacy"],
+[data-theme="light"][data-theme-preset="legacy"] {
+  --background: #eceff4 !important;
+  --foreground: #2e3440 !important;
+  --surface: #e5e9f0 !important;
+  --surface-secondary: #d8dee9 !important;
+  --surface-tertiary: #ccd5e1 !important;
+  --overlay: #e5e9f0 !important;
+  --accent: #88c0d0 !important;
+  --accent-foreground: #2e3440 !important;
+  --accent-soft: #d8e6ee !important;
+  --accent-soft-foreground: #3b6b7d !important;
+  --default: #d8dee9 !important;
+  --default-foreground: #2e3440 !important;
+  --default-soft: #dde3ee !important;
+  --default-soft-foreground: #3b4252 !important;
+  --muted: #4c566a !important;
+  --border: #d8dee9 !important;
+  --separator: #dfe4ec !important;
+  --field-background: #eceff4 !important;
+  --field-border: #c3cddd !important;
+  --field-foreground: #2e3440 !important;
+  --field-placeholder: #7b8496 !important;
+  --segment: #e5e9f0 !important;
+  --segment-foreground: #2e3440 !important;
+  --focus: #88c0d0 !important;
+  --link: #81a1c1 !important;
+  --chart-stat: #b48ead !important;
+  --sleep: #b48ead !important;
+  --success: #a3be8c !important;
+  --success-soft: #e0e8d3 !important;
+  --success-soft-foreground: #4c6639 !important;
+  --warning: #ebcb8b !important;
+  --warning-soft: #f2e4c4 !important;
+  --warning-soft-foreground: #7a5b1e !important;
+  --danger: #bf616a !important;
+  --danger-soft: #eed4d7 !important;
+  --danger-soft-foreground: #8c3f47 !important;
+}
+
+.dark[data-theme-preset="legacy"],
+[data-theme="dark"][data-theme-preset="legacy"] {
+  --background: #2e3440 !important;
+  --foreground: #d8dee9 !important;
+  --surface: #3b4252 !important;
+  --surface-secondary: #434c5e !important;
+  --surface-tertiary: #333a47 !important;
+  --overlay: #3b4252 !important;
+  --accent: #88c0d0 !important;
+  --accent-foreground: #2e3440 !important;
+  --accent-soft: #3d5462 !important;
+  --accent-soft-foreground: #a8d3e0 !important;
+  --default: #434c5e !important;
+  --default-foreground: #d8dee9 !important;
+  --default-soft: #3a4356 !important;
+  --default-soft-foreground: #c3cadb !important;
+  --muted: #9aa2b4 !important;
+  --border: #434c5e !important;
+  --separator: #3b4252 !important;
+  --field-background: #2e3440 !important;
+  --field-border: #4c566a !important;
+  --field-foreground: #eceff4 !important;
+  --field-placeholder: #7b8496 !important;
+  --segment: #3b4252 !important;
+  --segment-foreground: #d8dee9 !important;
+  --focus: #88c0d0 !important;
+  --link: #81a1c1 !important;
+  --chart-stat: #b48ead !important;
+  --sleep: #b48ead !important;
+  --success: #a3be8c !important;
+  --success-soft: #37473b !important;
+  --success-soft-foreground: #b5d29e !important;
+  --warning: #ebcb8b !important;
+  --warning-soft: #4a4030 !important;
+  --warning-soft-foreground: #e8cd8f !important;
+  --danger: #bf616a !important;
+  --danger-soft: #46323a !important;
+  --danger-soft-foreground: #e3aab0 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. Legacy --gp-* HSL triplets                                     */
+/* ---------------------------------------------------------------- */
+/* Bare HSL triplets (no hsl() wrapper, NO !important) for any
+   not-yet-rebuilt screen still reading the legacy --gp-* variables.
+   Plain .light/.dark selectors on purpose: these feed old screens only
+   and must stay easy for a later preset to override, mirroring how the
+   app's own legacy blocks declare them. */
+
+.light {
+  --gp-bg: 218 27% 94%;
+  --gp-surface: 218 27% 92%;
+  --gp-card: 218 30% 95%;
+  --gp-border: 219 28% 88%;
+  --gp-muted: 222 16% 36%;
+  --gp-fg: 222 16% 22%;
+  --gp-primary: 193 43% 67%;
+  --gp-primary-fg: 222 16% 22%;
+}
+
+.dark {
+  --gp-bg: 222 16% 22%;
+  --gp-surface: 222 16% 28%;
+  --gp-card: 222 16% 28%;
+  --gp-border: 222 17% 32%;
+  --gp-muted: 222 15% 65%;
+  --gp-fg: 219 28% 88%;
+  --gp-primary: 193 43% 67%;
+  --gp-primary-fg: 222 16% 22%;
+}
