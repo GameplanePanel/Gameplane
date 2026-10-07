@@ -12,7 +12,7 @@ test.describe("@screenshots dashboard gallery", () => {
     viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 1,
     timezoneId: "UTC",
-    colorScheme: "light",
+    colorScheme: "dark",
   });
 
   // Helper to capture screenshot at 1920×1080 JPEG

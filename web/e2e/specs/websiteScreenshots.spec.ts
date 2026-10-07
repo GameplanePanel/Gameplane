@@ -12,7 +12,7 @@ test.describe("@screenshots website gallery", () => {
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
     timezoneId: "UTC",
-    colorScheme: "light",
+    colorScheme: "dark",
   });
 
   // Helper to capture screenshot at 1440×900 (scaled to 2880×1800) PNG
