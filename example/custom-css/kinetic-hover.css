@@ -1,0 +1,44 @@
+/* Kinetic Hover — makes interactive surfaces respond to pointer and keyboard.
+   All transitions are action-triggered, short, and disabled on reduced motion. */
+a,
+button,
+[role="button"],
+main .card {
+  transition: transform 150ms cubic-bezier(.2, .8, .2, 1), box-shadow 150ms ease;
+}
+
+a:hover,
+button:hover,
+[role="button"]:hover {
+  transform: translateY(-2px);
+}
+
+main .card:hover {
+  transform: translateY(-3px) scale(1.006);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+a:active,
+button:active,
+[role="button"]:active {
+  transform: translateY(1px) scale(.99);
+}
+
+:is(a, button, [role="button"]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  [role="button"],
+  main .card { transition: none; }
+  a:hover,
+  button:hover,
+  [role="button"]:hover,
+  main .card:hover,
+  a:active,
+  button:active,
+  [role="button"]:active { transform: none; }
+}

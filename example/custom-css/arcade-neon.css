@@ -1,0 +1,57 @@
+/* Arcade Neon — electric violet, hot pink, and cyan. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #100b1d;
+  --foreground: #f6edff;
+  --surface: #1b1030;
+  --surface-secondary: #160d27;
+  --surface-tertiary: #24143a;
+  --overlay: #281740;
+  --accent: #e879f9;
+  --accent-foreground: #21072b;
+  --accent-soft: #3a1550;
+  --accent-soft-foreground: #f0abfc;
+  --default: #291b3b;
+  --default-foreground: #f6edff;
+  --border: #4b2862;
+  --separator: #352047;
+  --muted: #b8a3cb;
+  --field-background: #160d27;
+  --field-border: #59316f;
+  --field-foreground: #fff7ff;
+  --field-placeholder: #a68bbd;
+  --focus: #22d3ee;
+  --link: #67e8f9;
+  --radius: 12px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 8px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #faf5ff;
+  --foreground: #271033;
+  --surface: #fffaff;
+  --surface-secondary: #f5eafd;
+  --surface-tertiary: #eeddf8;
+  --overlay: #fffaff;
+  --accent: #a21caf;
+  --accent-foreground: #fff;
+  --accent-soft: #f5d0fe;
+  --accent-soft-foreground: #701a75;
+  --default: #f1e5f7;
+  --default-foreground: #341143;
+  --border: #ddc4eb;
+  --separator: #e9d9f1;
+  --muted: #70567c;
+  --field-background: #fffaff;
+  --field-border: #d5b5e3;
+  --field-foreground: #271033;
+  --field-placeholder: #80678b;
+  --focus: #a21caf;
+  --link: #86198f;
+}
+
+/* Cyan focus gives the neon accent a second, arcade-like signal. */
+html.dark[data-theme][data-theme-preset][data-theme-type] :focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 2px;
+}

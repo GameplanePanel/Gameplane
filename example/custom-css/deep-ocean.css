@@ -1,0 +1,51 @@
+/* Deep Ocean — midnight blue with sea-glass controls. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #07131f;
+  --foreground: #e6f6ff;
+  --surface: #0d1d2b;
+  --surface-secondary: #0a1825;
+  --surface-tertiary: #122637;
+  --overlay: #173044;
+  --accent: #45d6c5;
+  --accent-foreground: #05221f;
+  --accent-soft: #103b3a;
+  --accent-soft-foreground: #86f0df;
+  --default: #172b3b;
+  --default-foreground: #e6f6ff;
+  --border: #244355;
+  --separator: #192f40;
+  --muted: #9ab5c4;
+  --field-background: #0a1825;
+  --field-border: #315365;
+  --field-foreground: #f0fbff;
+  --field-placeholder: #7f9bab;
+  --focus: #45d6c5;
+  --link: #70d9ff;
+  --radius: 16px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 10px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #f1f8fb;
+  --foreground: #102b3b;
+  --surface: #fbfeff;
+  --surface-secondary: #e8f2f6;
+  --surface-tertiary: #d9e8ee;
+  --overlay: #fbfeff;
+  --accent: #087f78;
+  --accent-foreground: #fff;
+  --accent-soft: #c8f2ec;
+  --accent-soft-foreground: #075c58;
+  --default: #e3eef3;
+  --default-foreground: #153548;
+  --border: #bfd4de;
+  --separator: #d5e4ea;
+  --muted: #526d7b;
+  --field-background: #fff;
+  --field-border: #b7ced9;
+  --field-foreground: #102b3b;
+  --field-placeholder: #617c89;
+  --focus: #087f78;
+  --link: #096b9b;
+}

@@ -1,0 +1,40 @@
+/* Soft 3D Controls — tactile bevels, inset fields, and a pressed state.
+   Keeps the active theme palette and demonstrates component-level treatment. */
+main .card {
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, var(--surface)) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    7px 7px 18px color-mix(in srgb, var(--foreground) 11%, transparent),
+    -5px -5px 16px color-mix(in srgb, var(--surface) 85%, var(--foreground)) !important;
+}
+
+button,
+input,
+textarea,
+select,
+[role="combobox"] {
+  border-radius: 12px !important;
+}
+
+button {
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--foreground) 18%, transparent),
+    0 7px 14px color-mix(in srgb, var(--foreground) 10%, transparent);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+input,
+textarea,
+select,
+[role="combobox"] {
+  box-shadow: inset 2px 2px 5px color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+}

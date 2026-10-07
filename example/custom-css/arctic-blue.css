@@ -1,0 +1,51 @@
+/* Arctic Blue — crisp slate surfaces and glacial blue highlights. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #101821;
+  --foreground: #edf5fc;
+  --surface: #182430;
+  --surface-secondary: #131e29;
+  --surface-tertiary: #202e3c;
+  --overlay: #293b4b;
+  --accent: #7dc8ff;
+  --accent-foreground: #09243a;
+  --accent-soft: #203d54;
+  --accent-soft-foreground: #a6dcff;
+  --default: #263543;
+  --default-foreground: #edf5fc;
+  --border: #3a5062;
+  --separator: #2a3b4a;
+  --muted: #adbfcd;
+  --field-background: #131e29;
+  --field-border: #425a6d;
+  --field-foreground: #f6fbff;
+  --field-placeholder: #879cab;
+  --focus: #8bd4ff;
+  --link: #91d5ff;
+  --radius: 10px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 5px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #f1f6fa;
+  --foreground: #1d3040;
+  --surface: #fbfdff;
+  --surface-secondary: #eaf1f6;
+  --surface-tertiary: #dce7ef;
+  --overlay: #fbfdff;
+  --accent: #176ba0;
+  --accent-foreground: #fff;
+  --accent-soft: #d2ecfb;
+  --accent-soft-foreground: #15557d;
+  --default: #e5edf3;
+  --default-foreground: #23394a;
+  --border: #c4d4df;
+  --separator: #d8e3eb;
+  --muted: #5b7180;
+  --field-background: #fff;
+  --field-border: #bfd0dc;
+  --field-foreground: #1d3040;
+  --field-placeholder: #687f8e;
+  --focus: #176ba0;
+  --link: #155e8e;
+}

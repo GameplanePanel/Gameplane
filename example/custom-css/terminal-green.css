@@ -1,0 +1,53 @@
+/* Terminal Green — phosphor green, compact geometry, and technical type. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #080f0c;
+  --foreground: #ddfbe8;
+  --surface: #0e1913;
+  --surface-secondary: #0a130f;
+  --surface-tertiary: #14231a;
+  --overlay: #1b2d21;
+  --accent: #55e68b;
+  --accent-foreground: #062111;
+  --accent-soft: #143622;
+  --accent-soft-foreground: #8af2ae;
+  --default: #19271e;
+  --default-foreground: #ddfbe8;
+  --border: #2b4935;
+  --separator: #1d3425;
+  --muted: #9db9a5;
+  --field-background: #0a130f;
+  --field-border: #365841;
+  --field-foreground: #e9fff0;
+  --field-placeholder: #779680;
+  --focus: #55e68b;
+  --link: #7cf2a6;
+  --radius: 2px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 2px;
+  --font-sans: "IBM Plex Mono", "Cascadia Code", ui-monospace, monospace;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #eff7f0;
+  --foreground: #183522;
+  --surface: #f9fff9;
+  --surface-secondary: #e6f2e8;
+  --surface-tertiary: #d8e9dc;
+  --overlay: #f9fff9;
+  --accent: #19713a;
+  --accent-foreground: #fff;
+  --accent-soft: #d0f0d8;
+  --accent-soft-foreground: #14572e;
+  --default: #e0eee2;
+  --default-foreground: #1d3a26;
+  --border: #bfd8c4;
+  --separator: #d2e4d5;
+  --muted: #54705a;
+  --field-background: #fff;
+  --field-border: #b6d2bc;
+  --field-foreground: #183522;
+  --field-placeholder: #617d67;
+  --focus: #19713a;
+  --link: #176436;
+  --font-sans: "IBM Plex Mono", "Cascadia Code", ui-monospace, monospace;
+}

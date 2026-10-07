@@ -1,0 +1,33 @@
+/* Glass Observatory — translucent panels over a soft atmospheric wash.
+   This demonstrates material, depth, and blur; it leaves theme tokens alone. */
+main {
+  background-image:
+    radial-gradient(ellipse at 12% 8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 34rem),
+    radial-gradient(ellipse at 88% 68%, color-mix(in srgb, var(--link) 10%, transparent), transparent 38rem) !important;
+  background-attachment: fixed;
+}
+
+main .card,
+[data-testid="app-shell-sidebar"] > aside[aria-label="Sidebar"],
+header {
+  background-color: color-mix(in srgb, var(--surface) 78%, transparent) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+  border-color: color-mix(in srgb, var(--border) 72%, transparent) !important;
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--foreground) 9%, transparent);
+}
+
+main .card {
+  border-radius: 20px !important;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+main .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 48px color-mix(in srgb, var(--foreground) 13%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main .card { transition: none; }
+  main .card:hover { transform: none; }
+}

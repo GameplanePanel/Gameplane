@@ -1,0 +1,51 @@
+/* Forest Camp — pine shadows, fern green, and natural warmth. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #101710;
+  --foreground: #edf4e8;
+  --surface: #19221a;
+  --surface-secondary: #141c15;
+  --surface-tertiary: #202b20;
+  --overlay: #29372a;
+  --accent: #a3d977;
+  --accent-foreground: #1a2a10;
+  --accent-soft: #293c23;
+  --accent-soft-foreground: #c5ed9f;
+  --default: #273127;
+  --default-foreground: #edf4e8;
+  --border: #3a4b39;
+  --separator: #2a382b;
+  --muted: #b0bea9;
+  --field-background: #141c15;
+  --field-border: #465944;
+  --field-foreground: #f4f8ef;
+  --field-placeholder: #8f9f89;
+  --focus: #b8e986;
+  --link: #b5e7a0;
+  --radius: 9px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 6px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #f4f6ed;
+  --foreground: #1d2c1d;
+  --surface: #fbfcf6;
+  --surface-secondary: #edf1e4;
+  --surface-tertiary: #e0e8d6;
+  --overlay: #fbfcf6;
+  --accent: #477c2c;
+  --accent-foreground: #fff;
+  --accent-soft: #dceecb;
+  --accent-soft-foreground: #345c23;
+  --default: #e7ecdf;
+  --default-foreground: #243624;
+  --border: #cbd7bf;
+  --separator: #dce5d3;
+  --muted: #5c6d58;
+  --field-background: #fff;
+  --field-border: #c4d1b8;
+  --field-foreground: #1d2c1d;
+  --field-placeholder: #687762;
+  --focus: #477c2c;
+  --link: #356b27;
+}

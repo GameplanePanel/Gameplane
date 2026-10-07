@@ -1,0 +1,25 @@
+/* Blueprint Board — a fine drafting grid and technical panel framing.
+   Uses the current theme's own colors, so it composes with any palette. */
+main {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border) 19%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 19%, transparent) 1px, transparent 1px) !important;
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+
+main .card {
+  border-radius: 3px !important;
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+main .card h2,
+main .card h3 {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px dashed var(--border);
+}
+
+main :is(button, a):focus-visible {
+  outline: 2px dashed var(--focus);
+  outline-offset: 3px;
+}

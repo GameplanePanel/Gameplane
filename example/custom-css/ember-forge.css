@@ -1,0 +1,51 @@
+/* Ember Forge — dark iron, kiln orange, and angular controls. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #171311;
+  --foreground: #f7eee8;
+  --surface: #211b17;
+  --surface-secondary: #1b1613;
+  --surface-tertiary: #2b211b;
+  --overlay: #35271f;
+  --accent: #ff8a3d;
+  --accent-foreground: #301306;
+  --accent-soft: #482719;
+  --accent-soft-foreground: #ffb47e;
+  --default: #30251e;
+  --default-foreground: #f7eee8;
+  --border: #554031;
+  --separator: #3a2d24;
+  --muted: #c2ada0;
+  --field-background: #1b1613;
+  --field-border: #634733;
+  --field-foreground: #fff8f3;
+  --field-placeholder: #9c8374;
+  --focus: #ff8a3d;
+  --link: #ffad70;
+  --radius: 3px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 2px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #faf5f1;
+  --foreground: #302117;
+  --surface: #fffdfa;
+  --surface-secondary: #f3e9e0;
+  --surface-tertiary: #ead9ca;
+  --overlay: #fffdfa;
+  --accent: #bd4e12;
+  --accent-foreground: #fff;
+  --accent-soft: #ffe0c7;
+  --accent-soft-foreground: #87370e;
+  --default: #f0e3d7;
+  --default-foreground: #38261a;
+  --border: #ddc5b1;
+  --separator: #ead9c9;
+  --muted: #715845;
+  --field-background: #fffdfa;
+  --field-border: #d7bda7;
+  --field-foreground: #302117;
+  --field-placeholder: #836b57;
+  --focus: #bd4e12;
+  --link: #9d3c0c;
+}

@@ -1,0 +1,51 @@
+/* Lavender Dream — airy lilac surfaces with saturated violet accents. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #171321;
+  --foreground: #f4efff;
+  --surface: #211b30;
+  --surface-secondary: #1b1728;
+  --surface-tertiary: #29223a;
+  --overlay: #332a49;
+  --accent: #c4a7ff;
+  --accent-foreground: #241440;
+  --accent-soft: #382c51;
+  --accent-soft-foreground: #dcc8ff;
+  --default: #2d263b;
+  --default-foreground: #f4efff;
+  --border: #49405e;
+  --separator: #393148;
+  --muted: #b6abc9;
+  --field-background: #1b1728;
+  --field-border: #504468;
+  --field-foreground: #fbf8ff;
+  --field-placeholder: #9f91b8;
+  --focus: #d4bcff;
+  --link: #d0bdff;
+  --radius: 18px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 12px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #f8f5ff;
+  --foreground: #302348;
+  --surface: #fefcff;
+  --surface-secondary: #f0eaff;
+  --surface-tertiary: #e6dcfa;
+  --overlay: #fefcff;
+  --accent: #7043c2;
+  --accent-foreground: #fff;
+  --accent-soft: #e6d9ff;
+  --accent-soft-foreground: #50318b;
+  --default: #eee6fa;
+  --default-foreground: #382950;
+  --border: #d5c8eb;
+  --separator: #e5dcf1;
+  --muted: #6e6082;
+  --field-background: #fff;
+  --field-border: #d1c3e8;
+  --field-foreground: #302348;
+  --field-placeholder: #7a6b8e;
+  --focus: #7043c2;
+  --link: #6035ae;
+}

@@ -1,0 +1,51 @@
+/* Paper Map — parchment surfaces and dark ink, inspired by a game atlas. */
+html.dark[data-theme][data-theme-preset][data-theme-type] {
+  --background: #211c16;
+  --foreground: #f3e8d0;
+  --surface: #2c251c;
+  --surface-secondary: #251f18;
+  --surface-tertiary: #382f23;
+  --overlay: #443827;
+  --accent: #e4b45e;
+  --accent-foreground: #33240b;
+  --accent-soft: #4a3920;
+  --accent-soft-foreground: #f0cd88;
+  --default: #3b3124;
+  --default-foreground: #f3e8d0;
+  --border: #5c4e38;
+  --separator: #473b2a;
+  --muted: #c7b99b;
+  --field-background: #251f18;
+  --field-border: #65543a;
+  --field-foreground: #fff8e9;
+  --field-placeholder: #a8997a;
+  --focus: #efc66f;
+  --link: #f0c978;
+  --radius: 5px;
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --field-radius: 4px;
+}
+html.light[data-theme][data-theme-preset][data-theme-type] {
+  --background: #f4eedf;
+  --foreground: #33291b;
+  --surface: #fbf7eb;
+  --surface-secondary: #f0e7d2;
+  --surface-tertiary: #e7dac0;
+  --overlay: #fffaf0;
+  --accent: #8b5b18;
+  --accent-foreground: #fffaf0;
+  --accent-soft: #f1dfb8;
+  --accent-soft-foreground: #65400f;
+  --default: #e9dfca;
+  --default-foreground: #392e1e;
+  --border: #d5c6a7;
+  --separator: #e2d6bd;
+  --muted: #75654a;
+  --field-background: #fffaf0;
+  --field-border: #d2c09d;
+  --field-foreground: #33291b;
+  --field-placeholder: #867455;
+  --focus: #8b5b18;
+  --link: #755016;
+}

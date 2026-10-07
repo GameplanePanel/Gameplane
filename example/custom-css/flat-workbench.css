@@ -1,0 +1,22 @@
+/* Flat Workbench — strips away card boxes and lets dividers organize content.
+   A structural change that keeps all original theme colors and type. */
+main .card {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+main .card h2,
+main .card h3 {
+  letter-spacing: -0.025em;
+}
+
+main .card > * + * {
+  border-color: var(--separator);
+}
+
+main .card:hover {
+  box-shadow: none !important;
+}
