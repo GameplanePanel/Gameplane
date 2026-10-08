@@ -4,8 +4,8 @@ import { test, expect, type Page } from "@playwright/test";
 // Server Detail core tabs. Screenshot verification tests for the HeroUI
 // rebuild, capturing the design frames listed in
 // specs/done_014-heroui-web-rebuild/contracts/component-map.md /
-// design-export/MANIFEST.md's "Incremental export — Slice 2a" section at
-// 1440px, for comparison against design-export/screenshots/<id>.png per
+// assets/design-export/MANIFEST.md's "Incremental export — Slice 2a" section at
+// 1440px, for comparison against assets/design-export/screenshots/<id>.png per
 // contracts/screen-verification.md.
 //
 // Mirrors slice1.spec.ts's structure (viewport, capture() helper, id-named

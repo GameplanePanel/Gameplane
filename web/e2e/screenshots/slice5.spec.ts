@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { captureLocator } from "./capture";
 
 // T191 (specs/done_014-heroui-web-rebuild/tasks.md): Slice 5 — Share links screen
-// captures, for comparison against design-export/screenshots/<id>.png per
+// captures, for comparison against assets/design-export/screenshots/<id>.png per
 // contracts/screen-verification.md. Mirrors slice2a.spec.ts's structure
 // (viewport, capture() helper, id-named PNGs, dark @screenshots-tagged
 // describe block) and is selected the same way — only when
@@ -26,7 +26,7 @@ import { captureLocator } from "./capture";
 // all-screens.spec.ts; their stubs below stay skipped only as pointers.
 // The three dialog frames (atqRh create, VM7ro created, S7SCDc revoke) are
 // captured here with captureLocator() (see ./capture), because each
-// design-export/screenshots/<id>.png is a tight modal crop, not a
+// assets/design-export/screenshots/<id>.png is a tight modal crop, not a
 // full-page frame. This mirrors slice4.spec.ts's Kp48V and slice-3.spec.ts's
 // DMnEi. Their reference PNGs are light theme and carry Pencil's drop-shadow
 // bleed. See REFERENCE_CROP_ALLOWLIST in web/scripts/compare-screenshots.mjs.

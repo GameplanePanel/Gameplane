@@ -11,7 +11,7 @@ Generated via the `pencil` MCP server against `/home/valgul/project/kubernetes-g
 - **Total objects:** 341 (84 screens + 257 components) plus a handful of standalone reference/state frames (e.g. `z6RDco`/`WSAsQ`/`UaEjg`/`D76lH`/`m1hP1j`, documented further down this file by their own incremental-export entries) that are neither top-level screens nor reusable components.
 - **JSON files written:** 163 / 163 (100%) — `ls json/ | wc -l` = 163. (Re-measured directly from disk; includes new files from recent design waves.)
 - **PNG files written:** 168 / 168 (100%) — `ls screenshots/ | wc -l` = 168.
-- **Total files in design-export/:** 332 (163 JSON + 168 PNG + this MANIFEST.md)
+- **Total files in assets/design-export/:** 332 (163 JSON + 168 PNG + this MANIFEST.md)
 - **Failed exports:** none.
 
 Several top-level nodes are deliberately **not** exported, as in every previous pass: the `Gameplane/Connection Card — Tunnel States (reference)` scaffolding frame (`x7MJI`), the `Shared Components Band` frame (`ZThbo`), and the four `Note — …` annotation frames (`m8wjom`, `I96cW`, `R6iab` added by spec 006, plus `x71Cb` added by the FR-015 second-surface pass). They are neither screens nor reusable components, so they are outside the counted object set.
@@ -104,7 +104,7 @@ All 8 objects were re-exported from scratch:
 
 **Lesson for future exports of this kind:** a keyword check that matches a frame's *name* (e.g. every one of these screens is named `...Capture...`) proves nothing about whether the frame's *content* came through — it will pass even on a file elided down to a handful of top-level nodes. Always grep for a string that is unique to the screen's own text content and could not appear in any frame/component name, and when in doubt about depth, fetch at a depth generous enough that no `"..."` elision marker appears in the response at all (depth 12 was sufficient for every object in this feature) rather than guessing a depth per screen's apparent complexity.
 
-All 8 objects (7 screens + 1 component) have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-08-23 (second pass).
+All 8 objects (7 screens + 1 component) have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-08-23 (second pass).
 
 ## Incremental export 2026-08-26 — Install-time configuration (spec 006)
 
@@ -235,7 +235,7 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) requires 
 
 - **JSON:** `Get("LtgNm", {depth: 10..12, includePathGeometry: true})` via the Pencil `execute` tool, with all 236 direct children collected and assembled into a single JSON object with the structure `{id, name, type, children: [...]}`. Because the full depth-13+ export at once exceeded output size limits, direct children were iterated and collected at depth 10–12; this depth proved sufficient for all 236 children without truncation at the individual-child level. Final serialized JSON: 136,867 bytes.
 - **Validation of truncation markers:** Two instances of the literal string `"..."` were found in the JSON structure, both confirmed as **actual component content**, not Pencil elision markers: (1) `Pagination/Ellipsis` component (`i18Al2`), whose `content` field contains `"..."` — this is the designed ellipsis symbol that renders in pagination UI; (2) `tableEx` component (`Q0ilUf`), which includes `"..."` within a nested table cell's content. Programmatic validation confirmed zero `"..."` as Pencil truncation markers (which would appear as `"children": "..."` or similar structural elisions). `json.loads` validation passed.
-- **Screenshots:** `export_nodes` PNG export of `LtgNm` at 2× scale to `/design-export/screenshots/LtgNm.png`, dimensions 6232 × 7176 px (2× of frame bounds), file size 3.0 MB. Screenshot visually verified: all labeled sections render legibly, all component definitions visible without clipping.
+- **Screenshots:** `export_nodes` PNG export of `LtgNm` at 2× scale to `/assets/design-export/screenshots/LtgNm.png`, dimensions 6232 × 7176 px (2× of frame bounds), file size 3.0 MB. Screenshot visually verified: all labeled sections render legibly, all component definitions visible without clipping.
 - **Confidence:** High — enumeration is exhaustive (all 236 children via iteration), no sampling, no gaps. Component names and visual inspection of screenshot confirm the full library is present (all Accordion / Alert / Avatar / Button / Input / Select / Card / Menu / Pagination / Dropdown / Tooltip families accounted for).
 
 **Import rule (FR-007):**
@@ -288,9 +288,9 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) required 
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` via the Pencil `execute` tool for each of the 25 components (button components at depth 12; `LtgNm` iterated at depth 10–12 per child, per the section above). All exports executed at depth ≥ 12 (`LtgNm` 10–12) to ensure no `"..."` elision markers appear in structural fields.
 - **Validation of truncation markers:** Programmatic check of all 25 JSON files (`python3 json.load()` + a `"..."` scan) confirmed zero `"..."` as Pencil truncation markers in structural fields (`"children": "..."`, `"geometry": "..."`, etc.), and top-level `"id"` matches the filename in every file. `LtgNm` contains two instances of `"..."` as actual component content — the `Pagination/Ellipsis` (`i18Al2`) symbol and `tableEx` (`Q0ilUf`) cell text — confirmed by path (`.content` fields on leaf nodes `EHTqO`, `DpNvd`), not a structural elision. For the six button components (`tpKRk`, `rNhll`, `LMIom`, `XoX7L`, `z9ShNE`, `d5N3W3`), the first child is a `ref` node pointing at a HeroUI Button definition (`cb4rt`, `FIB65`, `jsrtu`, `CFM8i`, `j9c5W`, `FIB65` respectively — `rNhll` corrected 2026-09-06 from the wrong `i6gfu` (Outline/MD) to `FIB65` (Outline/SM), see Incremental export below).
-- **Screenshots:** `export_nodes` PNG export of each component at 2× scale to `/design-export/screenshots/<id>.png`. All 25 PNG files present, verified non-empty and valid PNG via `file`.
-- **File inventory:** All 25 components have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-04 (git status confirms all 25 ids' json+png as modified).
-- **Verification command:** `for id in LtgNm tpKRk rNhll LMIom XoX7L z9ShNE d5N3W3 J09iP IU7OG D0cDM qvQPg Lmaf1 AT7ya hl7R3 rh2QH k38Uta ZWcwn xCDF7 x3beP WwNlX BPEpm FyV6E w4ntSc zzx8f igj2U; do grep -c "$id" design-export/MANIFEST.md; done` — each id appears exactly once in this section (grep returns 1).
+- **Screenshots:** `export_nodes` PNG export of each component at 2× scale to `/assets/design-export/screenshots/<id>.png`. All 25 PNG files present, verified non-empty and valid PNG via `file`.
+- **File inventory:** All 25 components have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-04 (git status confirms all 25 ids' json+png as modified).
+- **Verification command:** `for id in LtgNm tpKRk rNhll LMIom XoX7L z9ShNE d5N3W3 J09iP IU7OG D0cDM qvQPg Lmaf1 AT7ya hl7R3 rh2QH k38Uta ZWcwn xCDF7 x3beP WwNlX BPEpm FyV6E w4ntSc zzx8f igj2U; do grep -c "$id" assets/design-export/MANIFEST.md; done` — each id appears exactly once in this section (grep returns 1).
 
 **Context:**
 
@@ -352,8 +352,8 @@ Slice 1 (Shell + login, P1 priority per spec.md) delivers User Story 1: authenti
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 13 objects via the Pencil `execute` tool. All 13 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. All 13 PNG files present and valid.
-- **File inventory:** All 13 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-05 (git status confirms all 13 ids' json+png as modified). Three interim light-preview files (jOo7y, Qqi8Q, vvxCn) with their json/png pairs deleted.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. All 13 PNG files present and valid.
+- **File inventory:** All 13 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-05 (git status confirms all 13 ids' json+png as modified). Three interim light-preview files (jOo7y, Qqi8Q, vvxCn) with their json/png pairs deleted.
 - **Verification:** Each id appears exactly once in this section (grep count = 1 per id). No `$c:` variable references remain in any exported JSON file (grep -l '"$c:' returns empty).
 - **Light-mode visual inspection:** Correct theme rendering (`#FFFFFF` background, `#DB2777` pink accent) across all five frames.
 
@@ -373,8 +373,8 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) Slice 2a 
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 3 objects via the Pencil `execute` tool. All 3 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. All 3 PNG files present and valid.
-- **File inventory:** All 3 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-05.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. All 3 PNG files present and valid.
+- **File inventory:** All 3 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-05.
 - **Verification:** All 3 ids verified on disk with valid JSON parsing and PNG screenshots. No truncation markers in any JSON file.
 
 **Context:**
@@ -407,8 +407,8 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) Slice 5 (
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 10 objects via the Pencil `execute` tool. All 10 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. All 10 PNG files present and valid.
-- **File inventory:** All 10 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-05 (git status confirms all 10 ids' json+png as modified).
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. All 10 PNG files present and valid.
+- **File inventory:** All 10 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-05 (git status confirms all 10 ids' json+png as modified).
 - **Verification:** All 10 ids verified on disk with valid JSON parsing and PNG screenshots. No truncation markers in any JSON file. Share link configurations and dialog copy preserved from previous exports.
 
 **Context:**
@@ -459,8 +459,8 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) Slice 2b 
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 26 objects via the Pencil `execute` tool. All 26 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. All 26 PNG files present and valid.
-- **File inventory:** All 26 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-05. Total JSON files: 26; total PNG files: 26. Combined size: ~3.4 MB JSON + ~7.8 MB PNG.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. All 26 PNG files present and valid.
+- **File inventory:** All 26 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-05. Total JSON files: 26; total PNG files: 26. Combined size: ~3.4 MB JSON + ~7.8 MB PNG.
 - **Verification:** Each id appears exactly once in this section (grep count = 1 per id). All JSON files verified to parse successfully. No truncation markers in any JSON file. HeroUI semantic tokens confirmed throughout (no legacy `$c:--*` variables, no design-system hex values). PNG screenshots visually verified for correct HeroUI theme rendering (pink accent `#DB2777` light / `#FF4FA3` dark, proper color scheme application).
 - **Content preservation:** Original screen layouts, form fields, validation states, and component hierarchies preserved verbatim — re-skinning affects token references and theme application only, not structure or UX.
 
@@ -492,13 +492,13 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) Slice 3 (
 |---|---|---|
 | `zhLZN` | Gameplane/Dialog/Restore Backup — Detail Drawer | Re-skinned on HeroUI primitives; modal drawer for detailed backup and restore information. JSON: 9,257 bytes, valid. PNG: 125 KB at 1008×1648 (2×scale). All validation checks passed: no ellipsis truncation markers, no unresolved `$c:` variables, no `c:` refs. |
 | `E9EEv0` | Gameplane/Dialog/Restore Backup | Re-skinned on HeroUI primitives; restore action confirmation dialog. JSON: 2,302 bytes, valid, no truncation/unresolved refs. PNG: 94 KB. All validation checks passed. |
-| `DMnEi` | Gameplane/Dialog/Add Module Source | Relabeled 2026-09-14 (issue #376): this row previously misnamed the node "Gameplane/Backup List Item"; the node at (-17205,28535) is the reusable Add Module Source dialog, matching what design-export/screenshots/DMnEi.png has shown all along. slice-3.spec.ts's DMnEi test now captures the SourceDialog accordingly. |
+| `DMnEi` | Gameplane/Dialog/Add Module Source | Relabeled 2026-09-14 (issue #376): this row previously misnamed the node "Gameplane/Backup List Item"; the node at (-17205,28535) is the reusable Add Module Source dialog, matching what assets/design-export/screenshots/DMnEi.png has shown all along. slice-3.spec.ts's DMnEi test now captures the SourceDialog accordingly. |
 
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 12 objects via the Pencil `execute` tool. All 12 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2×scale to `design-export/screenshots/<id>.png`. All 12 PNG files present and valid.
-- **File inventory:** All 12 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-05. Combined size: ~273 KB JSON + ~5.3 MB PNG.
+- **Screenshots:** `export_nodes` PNG export at 2×scale to `assets/design-export/screenshots/<id>.png`. All 12 PNG files present and valid.
+- **File inventory:** All 12 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-05. Combined size: ~273 KB JSON + ~5.3 MB PNG.
 - **Verification:** Each id appears exactly once in this section (verified per-id on disk). All JSON files verified to parse successfully. No truncation markers in any JSON file. HeroUI semantic tokens confirmed throughout (no legacy `$c:--*` variables). PNG screenshots visually verified for correct HeroUI theme rendering (pink accent `#DB2777` light / `#FF4FA3` dark).
 - **Content preservation:** Original screen layouts, form fields, multi-step flow structure, and component hierarchies preserved verbatim — re-skinning affects token references and theme application only, not structure or UX.
 
@@ -558,9 +558,9 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) Slice 4 (
 
 **Export method & validation:**
 
-- **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 31 objects via the Pencil `execute` tool. All 31 JSON files present in `design-export/json/`.
-- **Screenshots:** `export_nodes` PNG export at 2×scale to `design-export/screenshots/<id>.png`. All 31 PNG files present and valid.
-- **File inventory:** All 31 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-06.
+- **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 31 objects via the Pencil `execute` tool. All 31 JSON files present in `assets/design-export/json/`.
+- **Screenshots:** `export_nodes` PNG export at 2×scale to `assets/design-export/screenshots/<id>.png`. All 31 PNG files present and valid.
+- **File inventory:** All 31 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-06.
 - **Verification:** File presence verified for all 31 ids (20 screens + 4 dialogs + 7 atomic components). Metadata (name, type) extracted from JSON files successfully.
 
 **Context:**
@@ -609,8 +609,8 @@ Feature 014 (HeroUI Web Rebuild, `specs/done_014-heroui-web-rebuild/`) Slice 2a 
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: ≥12, includePathGeometry: true})` for each of the 19 objects via the Pencil `execute` tool. All 19 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2×scale to `design-export/screenshots/<id>.png`. All 19 PNG files present and valid.
-- **File inventory:** All 19 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-06. Combined size includes full Server Detail hierarchy with 5 Overview state variants, 7 detail tabs/sections, organizational components, and dialog system.
+- **Screenshots:** `export_nodes` PNG export at 2×scale to `assets/design-export/screenshots/<id>.png`. All 19 PNG files present and valid.
+- **File inventory:** All 19 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-06. Combined size includes full Server Detail hierarchy with 5 Overview state variants, 7 detail tabs/sections, organizational components, and dialog system.
 - **Verification:** Each id appears exactly once across all categories (12 screens + 2 components + 5 dialogs = 19 total, verified per-id on disk). All JSON files verified to parse successfully. HeroUI semantic tokens confirmed throughout. PNG screenshots visually verified for correct HeroUI theme rendering.
 - **Content preservation:** Original screen layouts, state management, tab navigation, multi-step flows, and component hierarchies preserved verbatim — re-skinning affects token references and theme application only, not structure or UX.
 
@@ -638,8 +638,8 @@ Component `Llzos` (Alert/Warning callout frame) and related instances on screens
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 30, includePathGeometry: true})` for the component and screens via the Pencil `execute` tool. All 3 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. All 3 PNG files present and valid.
-- **File inventory:** All 3 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-06.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. All 3 PNG files present and valid.
+- **File inventory:** All 3 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-06.
 - **Verification:** `Llzos.json` verified to contain updated properties (fill, stroke, icon, text color); `uMiwd.json` and `zqzr4.json` verified to contain instances of the updated component. All files parse successfully with zero truncation markers. Screenshots visually confirmed warning styling applied correctly.
 
 **Context:**
@@ -659,7 +659,7 @@ Screen `DxKOh` (Screen/Audit Log) inlined its shell as a bare frame (`w2Nho`) in
 **Export method & validation:**
 
 - **JSON:** `Get("DxKOh", {depth: 20})` via the Pencil `execute` tool, zero `"..."` elision markers. Passes `python3 -m json.tool` validation.
-- **Screenshot:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/DxKOh.png` (2880×1800, valid PNG).
+- **Screenshot:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/DxKOh.png` (2880×1800, valid PNG).
 - **Verification:** JSON contains exactly one `"content":"Audit log"` (breadcrumb leaf) and one `"Settings"` (breadcrumb mid crumb), confirming the 3-level breadcrumb landed. Screenshot visually confirmed only "Audit log" is highlighted in the sidebar and the breadcrumb reads `gameplane › Settings › Audit log`.
 
 **Context:**
@@ -690,7 +690,7 @@ Screen `vUqMl` (Screen/Create Server — Step 3 Configure) was missing the borde
 **Export method & validation:**
 
 - **JSON:** `Get("DxKOh", {depth: 20})` via the Pencil `execute` tool, zero `"..."` elision markers. Passes `python3 -m json.tool` validation.
-- **Screenshot:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/DxKOh.png` (2880×1800, valid PNG).
+- **Screenshot:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/DxKOh.png` (2880×1800, valid PNG).
 - **Residue check:** `Get("DxKOh", n => (n.ref||"").startsWith("c:") && ..., {depth: 30})` (with a `ctx.skipChildren()` guard on `ref` nodes to work around a Pencil engine crash when Get descends into an instance's children without `resolveInstances: true`) returned zero matches — only the unrelated `"c:Mode":"Dark"` theme key remains, not a component ref.
 - **Verification:** JSON contains exactly one `"content":"Page size 100. Older events load on demand."` (footer text), and the screenshot visually confirms all 8 rows, 6 columns, method chip colors, and Allowed/Denied text colors match the pre-conversion screenshot with no overflow or collapsed layout.
 
@@ -699,7 +699,7 @@ Screen `vUqMl` (Screen/Create Server — Step 3 Configure) was missing the borde
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 12, resolveInstances: true})` via the Pencil `execute` tool for both fields, zero `"..."` elision markers. Both pass `python3 -m json.tool` validation.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/JZrLu.png` and `design-export/screenshots/DxsT3.png` (640×202 each, valid PNG).
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/JZrLu.png` and `assets/design-export/screenshots/DxsT3.png` (640×202 each, valid PNG).
 - **Verification:** `JZrLu.json` contains exactly one `"content":"cores"` (unit dropdown value, unique to the CPU row) and `DxsT3.json` contains exactly one `"content":"GiB"` (unit dropdown value, unique to the Memory row); no cross-contamination between the two exports. Screenshots visually confirmed: both rows now show slider → bordered number box → unit dropdown, matching the original design reference; Memory's pink fill now reaches the thumb with no gap.
 
 **Context:**
@@ -721,7 +721,7 @@ Three Share Link screens' status chips (`DF2tD`/`g8yT5` "Asleep", `I6B4F` "Onlin
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 20})` via the Pencil `execute` tool for all three screens, zero `"..."` elision markers. All three pass `python3 -m json.tool` validation.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/{q31B6w,qFLfB,C2LQE4}.png` (2880×1800 each, valid PNGs).
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/{q31B6w,qFLfB,C2LQE4}.png` (2880×1800 each, valid PNGs).
 - **Verification:** each screen's JSON contains exactly one `"name": "statusDot"` node and the chip's `"padding": [2, 4, 2, 20]` override; no cross-contamination between the three exports. Screenshots visually confirmed against the original references (`orig2/q31B6w.png`, `orig2/qFLfB.png`, `orig2/C2LQE4.png`): the dot now renders before the label inside each pill (e.g. "● Asleep", "● Online"), matching the original layout, with the pill growing slightly wider (48px → 64px) to accommodate the dot rather than the dot overlapping the label.
 
 **Context:**
@@ -751,7 +751,7 @@ This is a blind, scoped edit — only the three named chip instances and their i
 **Export method & validation:**
 
 - **JSON:** `Print(Get(id, {depth: 4}))` via the Pencil `execute` tool for all four ids, zero `"..."` elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/{HKEl2,q31B6w,qFLfB,C2LQE4}.png`.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/{HKEl2,q31B6w,qFLfB,C2LQE4}.png`.
 - **Verification:** screenshots visually confirmed against the reference (`refs/q31B6w.png`) — icon, wordmark, and subtitle now stack vertically and sit centered above "mc-survival", matching the reference composition; `qFLfB` and `C2LQE4` (checked via `get_screenshot`, which shared the same old inline header) now show the identical stacked/centered treatment since they resolve the same `HKEl2` component.
 
 **Context:**
@@ -767,7 +767,7 @@ Screen `TE2jI` (Screen/Server Detail — Overview (Asleep)) still had 9 leftover
 **Export method & validation:**
 
 - **JSON:** `Get("TE2jI", {depth: 30, includePathGeometry: true})` via the Pencil `execute` tool, zero `"..."` elision markers (sparkline path geometry included in full via `includePathGeometry`). Passes `python3 -m json.tool` validation.
-- **Screenshot:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/TE2jI.png`.
+- **Screenshot:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/TE2jI.png`.
 - **Verification:** residue check `Get("TE2jI", n => ((n.ref||"").startsWith("c:") || JSON.stringify(n,(k,v)=>k==="children"?undefined:v).includes('"$c:')) && Print(...), {depth: 20})` printed nothing after removing the leftover `cornerRadius:"$c:--radius-none"` token values (replaced with plain `0`, which resolves identically — the original c:ERkuB instances and the IzuY2 mirror cards both carried that same token, so it was a false-positive source, not real residue). JSON contains exactly one `"content":"Player count unavailable while asleep."` (unique to the asleep-state Players Online card) and the purple treatment appears three times as `"fill":"#A78BFA"` (badge label, Sleep Card icon, Sleep Card "Asleep" text) plus once as `"fill":"#8B5CF633"` (badge chip background). Screenshot visually confirmed against `orig2/TE2jI.png`: identical card layout/content/positions, badge now purple instead of pink.
 
 **Context:**
@@ -805,7 +805,7 @@ Checked the footer instances `CghXi` (Btn Delete, ref `IU7OG`, icon `trash-2`, l
 **Export method & validation:**
 
 - **JSON:** `Get("zhLZN", {depth: 20})` via the Pencil `execute` tool, zero `"..."` elision markers. Passes `python3 -m json.tool` validation. Contains `"content":"Restore"` exactly twice (header `JINV8` override and footer `oxVkD` override, both correct).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/zhLZN.png`, 1008x1648, valid PNG.
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/zhLZN.png`, 1008x1648, valid PNG.
 - **Verification:** screenshot of `sVSGe` before the edit showed "Backup details" / filename on the left and a pencil-icon "Button" on the right; after the edit it shows the same title/filename and a rotate-ccw-icon "Restore" button, no layout overflow. Full `zhLZN` screenshot confirms header now reads "Backup details" + "Restore" alongside the unchanged footer "Delete"/"Restore" buttons.
 
 **Open question not resolved by this pass:** the task described `JINV8` as "the close (x) button," but no close/x button node exists anywhere in `sVSGe` — the header has only ever had the one action button. Whether the design is missing a dedicated close control is a design-intent question, not something this scoped, blind edit pass should decide; flagged for the maintainer/a design-judgement pass rather than invented here.
@@ -829,7 +829,7 @@ Per the no-variant fallback: hid the leading icon on the instance only via `Upda
 **Export method & validation:**
 
 - **JSON:** `Get("UMJli", {depth: 30})` via the Pencil `execute` tool, zero `"..."` elision markers. Passes `python3 -m json.tool` validation. Contains `"content":"Create server"` once (footer `Bn9BX` override) and the `y91nX` override `"opacity":0,"width":0` once.
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/UMJli.png`, 2880×1800, valid PNG.
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/UMJli.png`, 2880×1800, valid PNG.
 - **Verification:** screenshot of `Bn9BX` before the edit showed a leading check icon then "Create server"; after the edit it shows "Create server" alone, centered, no broken/overflowing layout. Full `UMJli` screenshot confirms the rest of the review screen (template/version/configuration/network sections, YAML preview, footer Back button) is unchanged.
 
 **Open question not resolved by this pass:** no `Button/Primary` variant in the component library supports a trailing icon, so the original design's "label then arrow/check icon" treatment cannot be reproduced without either a new component variant or a definition edit — both out of scope for a blind, scoped fix. Flagged for a design-judgement pass to decide whether to add a `Button/Primary/Trailing` variant.
@@ -852,8 +852,8 @@ Three icon-correctness fixes across three screens, found via filtered `Get` swee
 
 **Export method & validation:**
 
-- **JSON:** component-level `Get(id, {depth: 10[, resolveInstances: true]})` for each of the six touched nodes (`x8cjS`, `zg6cG`, `B89TO`, `znLuB`, `q1zaXx`, `MLrud` — `zg6cG` exported instead of bare `H4Cgu5` to keep the callout's full context), zero `"..."` elision markers, written to `design-export/json/<id>.json`. All six pass `python3 -m json.tool`. Full-screen `DxKOh.json`/`QgW58.json`/`J5pjJ3.json` were left as their existing (pre-existing, shallow sidebar-only) exports since the touched sub-nodes are not represented in that shallow depth and are now covered by their own component-level files.
-- **Screenshots:** `export_nodes` PNG export at 2x scale for all six touched node ids to `design-export/screenshots/<id>.png`; all non-empty with real pixel dimensions. Also took full-screen screenshots of `DxKOh`, `QgW58`, `J5pjJ3` via `get_screenshot` to confirm no layout regression.
+- **JSON:** component-level `Get(id, {depth: 10[, resolveInstances: true]})` for each of the six touched nodes (`x8cjS`, `zg6cG`, `B89TO`, `znLuB`, `q1zaXx`, `MLrud` — `zg6cG` exported instead of bare `H4Cgu5` to keep the callout's full context), zero `"..."` elision markers, written to `assets/design-export/json/<id>.json`. All six pass `python3 -m json.tool`. Full-screen `DxKOh.json`/`QgW58.json`/`J5pjJ3.json` were left as their existing (pre-existing, shallow sidebar-only) exports since the touched sub-nodes are not represented in that shallow depth and are now covered by their own component-level files.
+- **Screenshots:** `export_nodes` PNG export at 2x scale for all six touched node ids to `assets/design-export/screenshots/<id>.png`; all non-empty with real pixel dimensions. Also took full-screen screenshots of `DxKOh`, `QgW58`, `J5pjJ3` via `get_screenshot` to confirm no layout regression.
 - **Verification:** each component screenshot visually confirms the corrected icon — `x8cjS` shows a `+` before "Button"; `zg6cG`/`znLuB`/`q1zaXx`/`MLrud` all show the megaphone glyph before their respective warning titles; `B89TO` shows a red circle-alert glyph before "Request failed (409): a server with that name already exists.". Full-screen screenshots show no overflow/collapse anywhere on the three screens.
 
 **Context:**
@@ -873,7 +873,7 @@ Compared the two action rows at `{depth: 1}`: `xCAZJ` (reference, correct) had `
 **Export method & validation:**
 
 - **JSON:** `Get("zqzr4", {depth: 40, resolveInstances: true})` via the Pencil `execute` tool (output exceeded the tool's inline token limit and was saved to a harness tool-results file; extracted the `Print output` JSON line and validated with `python3 -m json.tool`). Zero elision — file is 337,452 bytes. Contains `"Save role mappings"` exactly once (the bottom row label).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/zqzr4.png`, 2880x4672, valid PNG.
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/zqzr4.png`, 2880x4672, valid PNG.
 - **Verification:** full-screen screenshot confirms "Save changes" is now right-aligned under the "Add identity provider" panel, all cards fit inside the 2336px frame, and the "Role mapping overrides" panel with its "Save role mappings" row is fully visible at the bottom — no overflow.
 
 **Context:**
@@ -894,8 +894,8 @@ New node ids: `XVJA4` (Tailscale card, was `GN3ni`) with children `QhZSW` (Card 
 
 **Export method & validation:**
 
-- **JSON:** `Get("x7MJI", {depth: 12})` via `execute`, zero `"..."` elision markers, written to `design-export/json/x7MJI.json`. Passes `python3 -m json.tool`. `grep -o '"content": "[^"]*"'` confirms all 18 original body strings survived verbatim (Unicode-escaped in the re-serialized JSON, e.g. `Tailscale — private (tailnet only)`, `mc-survival.tail4e2a.ts.net:25565`, `Waiting for tunnel address…`).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/x7MJI.png`, 1740x686, valid non-empty PNG.
+- **JSON:** `Get("x7MJI", {depth: 12})` via `execute`, zero `"..."` elision markers, written to `assets/design-export/json/x7MJI.json`. Passes `python3 -m json.tool`. `grep -o '"content": "[^"]*"'` confirms all 18 original body strings survived verbatim (Unicode-escaped in the re-serialized JSON, e.g. `Tailscale — private (tailnet only)`, `mc-survival.tail4e2a.ts.net:25565`, `Waiting for tunnel address…`).
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/x7MJI.png`, 1740x686, valid non-empty PNG.
 - **Verification:** the screenshot shows both cards as bordered, rounded, dark-surface HeroUI cards with a "CONNECTION" header, matching content in the same rows as before (Tailscale: warning-bordered tunnel-address row with lock icon, "TUNNEL · TAILSCALE" eyebrow, tailnet-only badge, mono address, host/port rows; playit: neutral tunnel-address row with loader-circle icon, "TUNNEL · PLAYIT.GG" eyebrow, italic "Waiting for tunnel address…", host/port rows). No collapsed, overflowing, or broken layout.
 
 **Context:**
@@ -922,8 +922,8 @@ CodeRabbit flagged `z9ShNE` (Gameplane/Button/Small/Default) and `rNhll` (Gamepl
 
 **Export method & validation:**
 
-- **JSON:** `Get(id, {depth: 4})` via `execute` for both `z9ShNE` and `rNhll` (button compositions are shallow — depth 4 fully resolves the wrapper + its one ref child + descendant overrides with zero `"..."` elision), written to `design-export/json/z9ShNE.json` and `design-export/json/rNhll.json`. Both pass `python3 -m json.tool`.
-- **Screenshots:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/z9ShNE.png` and `design-export/screenshots/rNhll.png`, both non-empty valid PNGs.
+- **JSON:** `Get(id, {depth: 4})` via `execute` for both `z9ShNE` and `rNhll` (button compositions are shallow — depth 4 fully resolves the wrapper + its one ref child + descendant overrides with zero `"..."` elision), written to `assets/design-export/json/z9ShNE.json` and `assets/design-export/json/rNhll.json`. Both pass `python3 -m json.tool`.
+- **Screenshots:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/z9ShNE.png` and `assets/design-export/screenshots/rNhll.png`, both non-empty valid PNGs.
 
 **Context:**
 
@@ -941,8 +941,8 @@ Targeted, judgement-light fix per CLAUDE.md rule 17 spirit — only the two flag
 **Verification:** screenshots of each metric card (`yyxoE`, `d9mRd`, `E62N4`) individually and the full `EZFW0` screen, compared against `IzuY2`'s equivalents and the reference screenshot supplied for this task — all three sparklines now render (pink/purple/green zigzag lines matching their card's accent color), no layout breakage, overflow, or clipping. A follow-up `Get(..., {includePathGeometry: true})` on the new nodes confirmed real `M0 16l12-3...`-style path data (not the `"..."` placeholder).
 
 **Export method & validation:**
-- **JSON:** `Get("EZFW0", {depth: 20, includePathGeometry: true, resolveInstances: true})`, written to `design-export/json/EZFW0.json`. Passes `python3 -m json.tool`; zero `"..."` elision markers (`grep -c '"\.\.\."'` = 0); content-validated via `grep -o '"Saved the game"'` (unique body text on this screen).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/EZFW0.png` (2880×2600, non-empty RGBA).
+- **JSON:** `Get("EZFW0", {depth: 20, includePathGeometry: true, resolveInstances: true})`, written to `assets/design-export/json/EZFW0.json`. Passes `python3 -m json.tool`; zero `"..."` elision markers (`grep -c '"\.\.\."'` = 0); content-validated via `grep -o '"Saved the game"'` (unique body text on this screen).
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/EZFW0.png` (2880×2600, non-empty RGBA).
 
 **Context:** Only the three sparkline path nodes on `EZFW0` were touched (delete + copy + reposition); no other node on the screen was read or modified. Pencil does not auto-save — a GUI save is still pending before this change is durable across Pencil sessions.
 
@@ -950,7 +950,7 @@ Targeted, judgement-light fix per CLAUDE.md rule 17 spirit — only the two flag
 
 Residue check (`Get("kIxaJ", (n,ctx)=>{ if((n.ref||"").startsWith("c:")) Print("RESIDUE",n.id,n.ref,n.name); if(n.type==="ref") ctx.skipChildren(); }, {depth:30})`) printed exactly one hit: `RESIDUE aAaPa c:YZjRF Integrity Banner (Broken)` — the reusable `kIxaJ` composition's only child besides its own reference-label text (`ZEqkj`) was a `ref` into the lunaris library (`c:YZjRF`, named "Integrity Banner (Broken)").
 
-`Get("aAaPa", ..., {depth:5, resolveInstances:true})` showed the resolved instance: a horizontal `frame` (`fill_container` width, `$danger/danger` fill, `gap:12`, `padding:16`, `alignItems:"center"`) containing a 24×24 icon frame (`aAaPa/c:LB3Fl`, fill `$foreground/foreground`) wrapping a hand-drawn wave/pulse vector path (`aAaPa/c:FTYwP`), and a text child (`fuKsy`, content `"Integrity check failed — chain breaks at event #286"`, fill `$danger/foreground`, `fontSize:16`, `fontWeight:"500"`, `fontFamily:"$typography/font-sans"`). The reference screenshot (`design-export/screenshots/kIxaJ.png`, pre-edit) confirmed the same: a solid red banner with a dark icon chip (pulse icon) and bold white message text.
+`Get("aAaPa", ..., {depth:5, resolveInstances:true})` showed the resolved instance: a horizontal `frame` (`fill_container` width, `$danger/danger` fill, `gap:12`, `padding:16`, `alignItems:"center"`) containing a 24×24 icon frame (`aAaPa/c:LB3Fl`, fill `$foreground/foreground`) wrapping a hand-drawn wave/pulse vector path (`aAaPa/c:FTYwP`), and a text child (`fuKsy`, content `"Integrity check failed — chain breaks at event #286"`, fill `$danger/foreground`, `fontSize:16`, `fontWeight:"500"`, `fontFamily:"$typography/font-sans"`). The reference screenshot (`assets/design-export/screenshots/kIxaJ.png`, pre-edit) confirmed the same: a solid red banner with a dark icon chip (pulse icon) and bold white message text.
 
 No HeroUI `Alert/*` definition (`CEGPG`, `O3T14b`, `v0xtri`, `Llzos`, `f7KBn` Danger, `r0CzE`, `JCxNu`, `uJ3KZ`) matches this single-line full-width banner shape — all eight are title+description cards on a light `$surface/surface` background at fixed `width:540`. Per the task's guidance that colours/shapes may differ as long as content/rows/icons/sizes/position match, rebuilt the banner as a plain frame styled like the original (not literally re-parented under an `Alert/*` definition, since none fit), replacing only the lunaris vector icon with the closest semantic lucide icon (`activity` — a pulse/waveform, matching the original hand-drawn squiggle) and keeping the exact original text content and styling.
 
@@ -966,8 +966,8 @@ No HeroUI `Alert/*` definition (`CEGPG`, `O3T14b`, `v0xtri`, `Llzos`, `f7KBn` Da
 - Screenshot of `kIxaJ` post-fix shows a solid red banner, dark rounded icon chip with a white pulse icon, and bold white "Integrity check failed — chain breaks at event #286" text — matching the pre-edit reference screenshot's layout, proportions, and content; no broken, collapsed, or overflowing layout.
 
 **Export method & validation:**
-- **JSON:** `Get("kIxaJ", {depth: 15})` via `execute` (zero `"..."` elision markers — the whole composition is 2 levels deep past `kIxaJ`), written to `design-export/json/kIxaJ.json`. Passes `python3 -m json.tool`; content-validated via `grep -o "chain breaks at event #286"` (unique body text, one hit).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/kIxaJ.png` (1400×312, non-empty RGBA).
+- **JSON:** `Get("kIxaJ", {depth: 15})` via `execute` (zero `"..."` elision markers — the whole composition is 2 levels deep past `kIxaJ`), written to `assets/design-export/json/kIxaJ.json`. Passes `python3 -m json.tool`; content-validated via `grep -o "chain breaks at event #286"` (unique body text, one hit).
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/kIxaJ.png` (1400×312, non-empty RGBA).
 
 **Context:** `kIxaJ` is `Gameplane/Audit Integrity Banner`, a reusable component — its root id (`kIxaJ`) and outer size (700×hug, per its own `width:700` / vertical layout) were not touched; only the inner `aAaPa` slot was replaced. Pencil does not auto-save — a GUI save is still pending before this change is durable across Pencil sessions.
 
@@ -989,8 +989,8 @@ No HeroUI `Alert/*` definition (`CEGPG`, `O3T14b`, `v0xtri`, `Llzos`, `f7KBn` Da
 - `Get("m1hP1j", {depth:3})` returns 4 nodes: icon frame (`gJjR4`), message text (`Mtc22`), Re-check button frame (`C2OQV9`), and Re-check label text (`jEyku`). Zero `"..."` elision markers.
 
 **Export method & validation:**
-- **JSON:** `Get("m1hP1j", {depth:3})` via `execute` written to `design-export/json/m1hP1j.json`. Passes `python3 -m json.tool`; content-validated via `grep -o "Re-check"` (unique new button label, one hit).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/m1hP1j.png` (1400×112, non-empty RGBA).
+- **JSON:** `Get("m1hP1j", {depth:3})` via `execute` written to `assets/design-export/json/m1hP1j.json`. Passes `python3 -m json.tool`; content-validated via `grep -o "Re-check"` (unique new button label, one hit).
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/m1hP1j.png` (1400×112, non-empty RGBA).
 
 **Context:** The ghost Re-check button is rendered above the Pencil capture point in the product (`web/src/components/hero/AuditIntegrityBanner.tsx` lines 30-40, after the message span); this design documents the button's ghost styling (no fill, `$danger/foreground` text, 12px padding, 6px corner radius, 14px / 500 weight label). The product also renders a dismiss `×` button (third child), which is out of scope for this Pencil edit — design capture is limited to `m1hP1j` which contains the icon, message, and Re-check button only.
 
@@ -1014,8 +1014,8 @@ Rebuilt as a plain frame styled like the HeroUI `XDZ0E` Card/Default definition 
 - Screenshot of `RC3Kf` post-fix shows the same "Backup destinations" card — title, description, empty-state message, and pink "+ Add destination" button in the same 888×159 position/size as the reference screenshot; no broken, collapsed, or overflowing layout.
 
 **Export method & validation:**
-- **JSON:** `Get("RC3Kf", {depth: 40})` via `execute` (zero `"..."` elision markers), written to `design-export/json/RC3Kf.json`. Passes `python3 -m json.tool`; content-validated via `grep -c "Restic repositories for snapshots"` (unique body text, one hit).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/RC3Kf.png` (2880×1800, non-empty RGBA).
+- **JSON:** `Get("RC3Kf", {depth: 40})` via `execute` (zero `"..."` elision markers), written to `assets/design-export/json/RC3Kf.json`. Passes `python3 -m json.tool`; content-validated via `grep -c "Restic repositories for snapshots"` (unique body text, one hit).
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/RC3Kf.png` (2880×1800, non-empty RGBA).
 
 **Context:** Only the `t86T1` card slot inside `RC3Kf`'s Settings Layout body was touched; the sidebar nav, top bar, and page header were untouched. Pencil does not auto-save — a GUI save is still pending before this change is durable across Pencil sessions.
 
@@ -1038,8 +1038,8 @@ Rebuilt as a plain frame carrying the same style properties read off the resolve
 - Screenshot of `g5mEpx` post-fix shows the same "Module sources" card — title, description, pink "+ Add source" button, and both `default`/`uploads` source rows (badges, sync info, edit/delete icons) in the same position/size as the reference screenshot; no broken, collapsed, or overflowing layout.
 
 **Export method & validation:**
-- **JSON:** `Get("g5mEpx", {depth: 40})` via `execute` (zero `"..."` elision markers), written to `design-export/json/g5mEpx.json`. Passes `python3 -m json.tool`; content-validated via `grep -c "Module sources"` (unique body text plus nav-item name, hit found).
-- **Screenshot:** `export_nodes` PNG export at 2x scale to `design-export/screenshots/g5mEpx.png` (2880×1800, non-empty RGBA).
+- **JSON:** `Get("g5mEpx", {depth: 40})` via `execute` (zero `"..."` elision markers), written to `assets/design-export/json/g5mEpx.json`. Passes `python3 -m json.tool`; content-validated via `grep -c "Module sources"` (unique body text plus nav-item name, hit found).
+- **Screenshot:** `export_nodes` PNG export at 2x scale to `assets/design-export/screenshots/g5mEpx.png` (2880×1800, non-empty RGBA).
 
 **Context:** Only the `SuA1e` card slot inside `g5mEpx`'s Settings Layout body was touched; the sidebar nav, top bar, and page header were untouched. Pencil does not auto-save — a GUI save is still pending before this change is durable across Pencil sessions.
 
@@ -1055,7 +1055,7 @@ The maintainer saved `design.pen` from Pencil after applying 56 pixel-diff scree
    - **512 total unique live IDs** (top-level nodes + reusable components, deduplicated union).
 
 2. Compared against 259 previously exported IDs:
-   - **Re-exported: 49 changed node IDs** (pixel-diff vs committed screenshots in `design-export/screenshots/<id>.png`), with fresh PNGs copied from scratchpad. JSON files already present in `design-export/json/` were **not** re-exported (all 49 existed as prior exports; no new JSON needed).
+   - **Re-exported: 49 changed node IDs** (pixel-diff vs committed screenshots in `assets/design-export/screenshots/<id>.png`), with fresh PNGs copied from scratchpad. JSON files already present in `assets/design-export/json/` were **not** re-exported (all 49 existed as prior exports; no new JSON needed).
    - **Removed: 102 deleted export files** — via `git rm`:
      - 8 regular screen/frame exports: `B89TO`, `DxsT3`, `JZrLu`, `MLrud`, `q1zaXx`, `x8cjS`, `zg6cG`, `znLuB` (and the malformed `sSISK.json.txt` artifact).
      - 100 lunaris base library `c:*` component exports: 100 PNG files (`c:20Ebu.png` through `c:zdFKu.png`) with colons in filenames — the corresponding 100 JSON files (`c_20Ebu.json` through `c_zdFKu.json` with underscores) were already deleted in the prior 2026-09-12 pencil-save commit; these PNG files were the orphaned counterparts awaiting cleanup.
@@ -1066,7 +1066,7 @@ The maintainer saved `design.pen` from Pencil after applying 56 pixel-diff scree
 
 **Lunaris library removal rationale:**
 
-The lunaris base design-system components (`c:20Ebu`, `c:3bQzF`, ... `c:zdFKu`, 100 total) were the foundational primitives for HeroUI theming. Their removal suggests a one-time bulk cleanup of an unused or superseded library.  Per rule 2 (CLAUDE.md), hand-editing `.pen` files is forbidden — this removal came **directly from a Pencil GUI save**, not from a code-side edit. The exports are dropped to match the live document state, keeping `design-export/` synchronized.
+The lunaris base design-system components (`c:20Ebu`, `c:3bQzF`, ... `c:zdFKu`, 100 total) were the foundational primitives for HeroUI theming. Their removal suggests a one-time bulk cleanup of an unused or superseded library.  Per rule 2 (CLAUDE.md), hand-editing `.pen` files is forbidden — this removal came **directly from a Pencil GUI save**, not from a code-side edit. The exports are dropped to match the live document state, keeping `assets/design-export/` synchronized.
 
 **Context:**
 
@@ -1123,8 +1123,8 @@ Feature F (visual diff on merged PRs) design refinement pass re-exported two scr
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 4, includePathGeometry: true})` for both ids via the Pencil `execute` tool. Both JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. Both PNG files present and valid.
-- **File inventory:** Both design ids have `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-14. No git add/commit performed (per design-export re-export workflow).
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. Both PNG files present and valid.
+- **File inventory:** Both design ids have `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-14. No git add/commit performed (per design-export re-export workflow).
 - **Validation:** JSON parses cleanly; PNG dimensions and file sizes appropriate (W8idqY: 2880×1800 RGBA, ~414 KB; q31B6w: 2880×1800 RGBA, ~320 KB). No `"..."` elision markers in either JSON file.
 
 ## Incremental export 2026-09-13 — Design wave edits re-export (Feature picks implementation)
@@ -1145,8 +1145,8 @@ Feature picks implementation design editors applied token/property updates to si
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 12, includePathGeometry: true})` for all 6 objects via the Pencil `execute` tool. All 6 JSON files pass `python3 json.load()` validation with zero `"..."` structural elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. All 6 PNG files present, valid, non-empty.
-- **File inventory:** All 6 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in design-export/, timestamped 2026-09-13.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. All 6 PNG files present, valid, non-empty.
+- **File inventory:** All 6 design ids have both `json/<id>.json` and `screenshots/<id>.png` files in assets/design-export/, timestamped 2026-09-13.
 - **Verification:** Each id's JSON parses without errors; no truncation markers; PNG files valid and sized appropriately (98 KB–450 KB per screen). No git add/commit performed (per design-export re-export workflow).
 - **Depth check:** All 6 exports at depth 12 with `includePathGeometry: true` confirmed zero `"..."` elision strings.
 
@@ -1165,12 +1165,12 @@ Tier+1 review of the design-wave pass above (previous section) found defects in 
 | `DxKOh` | The "Export CSV" outline button (instance of `Gameplane/Button/Outline`, `rNhll`) had been deleted from the `TgdLz` slot inside the `Page Header` component instance (`QWSOp`), leaving only the "Refresh" button. | Re-inserted an `rNhll` instance (new id `fWGEn`) at index 0 of `TgdLz`, with descendant overrides restoring the `download` icon and "Export CSV" label; order now matches the original (Export CSV left of Refresh). |
 | `jmoi3` | The screen's `pTyIl` (ref → `Gameplane/Login Left Panel`, `fjQjb`) carried no descendant override, so its nested card slot silently resolved to the plain `loginCard` (`J14ME`) instead of the error-variant `loginCardError` (`g2HLxz`) — the "Invalid credentials" `Alert/Danger` banner was missing. Additionally `g2HLxz` itself still had the pre-redesign two-OIDC-button layout. | Added a type-override on `pTyIl`'s card slot pointing at `g2HLxz` (now nested as `i12U8`), and trimmed `g2HLxz` down to the single "Continue with Keycloak" button (matching the sibling `J14ME` component's current single-OIDC layout), with "AGPL-3.0 licensed" remaining the last footer element. |
 
-**Verification before re-export:** `export_nodes` screenshots of the live document were compared against the implementation reference composites for all 4 ids — plum (not magenta) selected pill/logo/avatars confirmed on `Burtr`/`SeizD`; "Export CSV" outline button confirmed present left of "Refresh" on `DxKOh`; "Invalid credentials" banner, single OIDC button, and footer-last licensing text all confirmed on `jmoi3`. Three unrelated frames (`j24cXg` Dashboard, `N13Xud` Loading Skeleton, `EZFW0` Server Detail — Overview) were pixel-diffed against their committed `design-export/screenshots/` baselines to check for collateral damage from the shared `accent/soft` token edit — all three were pixel-identical, confirming no unintended spillover.
+**Verification before re-export:** `export_nodes` screenshots of the live document were compared against the implementation reference composites for all 4 ids — plum (not magenta) selected pill/logo/avatars confirmed on `Burtr`/`SeizD`; "Export CSV" outline button confirmed present left of "Refresh" on `DxKOh`; "Invalid credentials" banner, single OIDC button, and footer-last licensing text all confirmed on `jmoi3`. Three unrelated frames (`j24cXg` Dashboard, `N13Xud` Loading Skeleton, `EZFW0` Server Detail — Overview) were pixel-diffed against their committed `assets/design-export/screenshots/` baselines to check for collateral damage from the shared `accent/soft` token edit — all three were pixel-identical, confirming no unintended spillover.
 
 **Export method & validation:**
 
-- **JSON:** `Get(id, {depth: 12, includePathGeometry: true})` for all 4 ids via the Pencil `execute` tool, re-written to `design-export/json/<id>.json`. All 4 pass `python3 -m json.tool` with zero `"..."` elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale, re-written to `design-export/screenshots/<id>.png`, overwriting the prior wave's (defective) exports.
+- **JSON:** `Get(id, {depth: 12, includePathGeometry: true})` for all 4 ids via the Pencil `execute` tool, re-written to `assets/design-export/json/<id>.json`. All 4 pass `python3 -m json.tool` with zero `"..."` elision markers.
+- **Screenshots:** `export_nodes` PNG export at 2× scale, re-written to `assets/design-export/screenshots/<id>.png`, overwriting the prior wave's (defective) exports.
 - **No git add/commit performed** — per the design-export re-export workflow, staging/committing is a separate step.
 
 **Context:** Only `Burtr`, `SeizD`, `DxKOh`, and `jmoi3` (plus the shared `accent/soft` variable, which also affects any other screen referencing it — spot-checked clean above) were touched by this fix wave. Pencil does not auto-save — a GUI save from the maintainer is still pending before this change is durable across Pencil sessions.
@@ -1188,8 +1188,8 @@ Both dialogs kept the shared Modal's fixed `width: 480` and grew height automati
 
 **Export method & validation:**
 
-- **JSON:** `Get(id, {depth: 12})` for both ids via the Pencil `execute` tool, written to `design-export/json/<id>.json`. Both pass `python3 -m json.tool` with zero `"..."` elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`.
+- **JSON:** `Get(id, {depth: 12})` for both ids via the Pencil `execute` tool, written to `assets/design-export/json/<id>.json`. Both pass `python3 -m json.tool` with zero `"..."` elision markers.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`.
 - **Content check:** `grep -c "OIDC invite later" json/NLDDv.json` → 1; `grep -c "NAMESPACE GRANTS" json/t3IY3u.json` → 1.
 - **No git add/commit performed** — per the design-export re-export workflow, staging/committing is a separate step. Pencil does not auto-save — a GUI save from the maintainer is still pending before this change is durable across Pencil sessions.
 
@@ -1209,7 +1209,7 @@ Two residual-dialog frames reviewed against `web/src/components/hero/admin/Reset
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 10})` for both ids via the Pencil `execute` tool — zero `"..."` elision markers, `python3 -m json.tool` passes on both.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png` — `MaoHP.png` 1088×552, `E9EEv0.png` 1088×910, both valid non-empty PNGs.
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png` — `MaoHP.png` 1088×552, `E9EEv0.png` 1088×910, both valid non-empty PNGs.
 - **Content check:** `grep -c "operator-01" json/MaoHP.json` = 1; `grep -c "Target game server" json/E9EEv0.json` = 1; no unrelated JSON file mentions "Target game server" (`t3IY3u.json` legitimately also mentions "operator-01" — a different dialog for the same test user, not cross-contamination).
 - **No git add/commit performed** — per this task's explicit instruction not to run git; also no Pencil GUI save was performed per the same instruction, so this change is not yet durable across Pencil sessions.
 
@@ -1217,7 +1217,7 @@ Two residual-dialog frames reviewed against `web/src/components/hero/admin/Reset
 
 ## Incremental export 2026-09-13 — Re-export CqaSq (Role Editor) and Kp48V (Confirm Admin Mapping) after Pencil updates
 
-Complete re-export of two modal frames (`CqaSq` and `Kp48V`) after Pencil document edits updating their content and structure. Both frames are live Pencil changes; the design.pen document has been edited but not saved via the GUI (pending maintainer save). This re-export captures the current live state into design-export/ to keep the snapshot synchronized.
+Complete re-export of two modal frames (`CqaSq` and `Kp48V`) after Pencil document edits updating their content and structure. Both frames are live Pencil changes; the design.pen document has been edited but not saved via the GUI (pending maintainer save). This re-export captures the current live state into assets/design-export/ to keep the snapshot synchronized.
 
 | ID | Type | Notes |
 |---|---|---|
@@ -1227,12 +1227,12 @@ Complete re-export of two modal frames (`CqaSq` and `Kp48V`) after Pencil docume
 **Export method & validation:**
 
 - **JSON:** `Get(id, {depth: 12})` for both ids via the Pencil `execute` tool. `CqaSq.json` (3.8 KB, full frame definition including all children), `Kp48V.json` (177 bytes, bare ref node with no overrides). Both pass `python3 -m json.tool` with zero `"..."` elision markers.
-- **Screenshots:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/<id>.png`. `CqaSq.png` 960×1152 (2× of 480×576 frame), `Kp48V.png` — the bare ref node's screenshot is minimal (no override content to render beyond the ref metadata).
+- **Screenshots:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/<id>.png`. `CqaSq.png` 960×1152 (2× of 480×576 frame), `Kp48V.png` — the bare ref node's screenshot is minimal (no override content to render beyond the ref metadata).
 - **Content check:** `grep -c "GAME SERVERS\|NETWORK CAPTURES\|USERS" json/CqaSq.json` = 1 each (all three permission groups present in the full frame export). `grep -c "WwNlX" json/Kp48V.json` = 1 (confirms the ref target).
 - **Validation of file state:** All 6 files written (2 JSON + 2 PNG for the export, plus 4 JSON/PNG for prior exports `NLDDv`, `t3IY3u`, `MaoHP`, `E9EEv0` in the same batch). Total size: `CqaSq.json` 3,834 bytes, `Kp48V.json` 177 bytes, screenshots non-empty PNGs of expected sizes.
 - **No git add/commit performed** — per the design-export re-export workflow. Pencil does not auto-save; the maintainer's GUI save is still pending.
 
-**Context:** This re-export is the final step of a batch operation re-exporting six frames in total: `NLDDv` (Invite User), `t3IY3u` (Edit User), `MaoHP` (Reset Password), `E9EEv0` (Restore Backup), `CqaSq` (Role Editor), and `Kp48V` (Confirm Admin Mapping). All six have updated JSON and PNG files in design-export/ as of 2026-09-13.
+**Context:** This re-export is the final step of a batch operation re-exporting six frames in total: `NLDDv` (Invite User), `t3IY3u` (Edit User), `MaoHP` (Reset Password), `E9EEv0` (Restore Backup), `CqaSq` (Role Editor), and `Kp48V` (Confirm Admin Mapping). All six have updated JSON and PNG files in assets/design-export/ as of 2026-09-13.
 
 **Correction 2026-09-13 (post-verification):** the row above and its export-method notes describing `Kp48V` as "a ref instance of `WwNlX` with no descendant overrides" / "bare ref node with no overrides" / "177 bytes" were wrong — that description matched only a stale, shallow `Get` result from before the maintainer-picks edit landed. Re-verified against the live Pencil document and against `export_nodes` screenshots (compared to the editor's own build renders): `Kp48V` **does** carry full descendant overrides on top of its `WwNlX` ref — `QARhG` (title row swapped for an icon-circle + "Confirm admin role mapping?" heading), `aZP2h` (description replaced with a warning box: triangle-alert icon, "Full admin access" copy, plus a "Group(s) being mapped to admin:" label and a plain muted `ops-leads` chip), `Wa0YZ` (type-to-confirm section disabled), and `tvH6d` (button label "Map to admin role"). `Kp48V.json` has been re-written at `Get(id, {depth: 6})` to capture these descendants (no longer a 177-byte bare-ref stub) and `Kp48V.png` re-exported to match; both now render the confirmation dialog with its warning box, group chip, and "Map to admin role" button, matching the screenshot on file. `CqaSq.json`/`CqaSq.png` were re-checked in the same pass and confirmed already correct (the `captures:manage` row's checkbox ref is `aOvvm`/Unchecked, id `D3dxec`) — only `Kp48V`'s row and export-method notes above were stale.
 
@@ -1261,8 +1261,8 @@ Pencil fix-wave task: split the five AddressAssignment status states (SUG76 cano
 
 **Export method & validation:**
 
-- **JSON:** `Get(id, {depth: 3})` for J5pjJ3 + four new frames (`z6RDco`, `WSAsQ`, `UaEjg`, `D76lH`) via `mcp__pencil__execute` — all 5 pass `python3 -m json.tool` with zero `"..."` elision markers. Files written to `design-export/json/<id>.json`.
-- **Screenshots:** `export_nodes` PNG export at 2× scale for all 5 ids to `design-export/screenshots/<id>.png` — all non-empty valid PNGs.
+- **JSON:** `Get(id, {depth: 3})` for J5pjJ3 + four new frames (`z6RDco`, `WSAsQ`, `UaEjg`, `D76lH`) via `mcp__pencil__execute` — all 5 pass `python3 -m json.tool` with zero `"..."` elision markers. Files written to `assets/design-export/json/<id>.json`.
+- **Screenshots:** `export_nodes` PNG export at 2× scale for all 5 ids to `assets/design-export/screenshots/<id>.png` — all non-empty valid PNGs.
 - **New objects created:** 4 new frame ids (`z6RDco`, `WSAsQ`, `UaEjg`, `D76lH`); no new component definitions.
 - **Modifications to existing objects:** J5pjJ3 Settings form's address-status field now contains only the canonical Assigned state (SUG76) inside XF5sT; four alternate StatusRows moved to separate frames.
 - **No git add/commit performed** — per the design-export re-export workflow. Pencil does not auto-save; maintainer save pending.
@@ -1311,8 +1311,8 @@ Pencil fix-wave task: consolidate three alert state frames (AlertStatesCaption, 
 
 **Export method & validation:**
 
-- **JSON:** `Get(id, {depth: 3})` for jXykV and `Get(id, {depth: 4})` for J5pjJ3 via `mcp__pencil__execute`. All pass `python3 -m json.tool` validation with zero `"..."` elision markers. Files written to `design-export/json/<id>.json`.
-- **Screenshots:** `export_nodes` PNG export at 2× scale for J5pjJ3 (1440×900) and all six state frames (jXykV, IyMFM, D76lH, UaEjg, WSAsQ, z6RDco) to `design-export/screenshots/<id>.png` — all non-empty valid PNGs.
+- **JSON:** `Get(id, {depth: 3})` for jXykV and `Get(id, {depth: 4})` for J5pjJ3 via `mcp__pencil__execute`. All pass `python3 -m json.tool` validation with zero `"..."` elision markers. Files written to `assets/design-export/json/<id>.json`.
+- **Screenshots:** `export_nodes` PNG export at 2× scale for J5pjJ3 (1440×900) and all six state frames (jXykV, IyMFM, D76lH, UaEjg, WSAsQ, z6RDco) to `assets/design-export/screenshots/<id>.png` — all non-empty valid PNGs.
 - **New objects created:** 1 new frame id (`jXykV`); no new component definitions.
 - **Modifications to existing objects:** Theme {semantic:"dark"} applied to jXykV and five existing state frames (IyMFM, D76lH, UaEjg, WSAsQ, z6RDco).
 - **No git add/commit performed** — per the design-export re-export workflow. Pencil does not auto-save; maintainer save pending.
@@ -1342,8 +1342,8 @@ Conditional verify-mode fields (Public key secret / OIDC issuer / Certificate id
 
 **Export method & validation:**
 
-- **JSON:** `Get("DMnEi", {depth: 15})` via `mcp__pencil__execute`, zero `"..."` elision markers, passes `python3 -m json.tool`. Written to `design-export/json/DMnEi.json`.
-- **Screenshot:** `export_nodes` PNG export at 2× scale to `design-export/screenshots/DMnEi.png`, non-empty valid PNG, visually verified against the field list.
+- **JSON:** `Get("DMnEi", {depth: 15})` via `mcp__pencil__execute`, zero `"..."` elision markers, passes `python3 -m json.tool`. Written to `assets/design-export/json/DMnEi.json`.
+- **Screenshot:** `export_nodes` PNG export at 2× scale to `assets/design-export/screenshots/DMnEi.png`, non-empty valid PNG, visually verified against the field list.
 - **No git add/commit performed** — per the design-export re-export workflow. Pencil does not auto-save; maintainer save pending in the GUI before this change can be committed.
 
 ## Incremental export 2026-09-15 — raw hardcoded colors converted to semantic tokens
@@ -1380,7 +1380,7 @@ Audited `design.pen` for nodes using raw hex fill/stroke values that duplicate a
 
 **Re-exported nodes:** `BV5ei`, `DxKOh`, `EV8mp`, `g5mEpx`, `gu5WY`, `hLB9Z`, `n6Xlo`, `pssCT`, `tY6RD`, `zFiOW`, `zhLZN` — JSON via `Get(id, {depth: 20})`, each validated to contain its new token value (not just JSON-valid, since a stale fallback would also pass that check); screenshots via `export_nodes` at 2× scale, all non-trivial file sizes.
 
-**Note on the audit process:** many other screens were checked and found to already use semantic tokens, or to have no occurrence of the originally-suspected raw value (a preliminary edit list built from the committed `design-export/` snapshot turned out to be significantly stale against live `design.pen` — all fixes above were verified against live `Get()` calls, not the export, before being applied).
+**Note on the audit process:** many other screens were checked and found to already use semantic tokens, or to have no occurrence of the originally-suspected raw value (a preliminary edit list built from the committed `assets/design-export/` snapshot turned out to be significantly stale against live `design.pen` — all fixes above were verified against live `Get()` calls, not the export, before being applied).
 
 ## Incremental export 2026-09-15 — dark-looking components, sleep/focus soft tokens, zFiOW table fixes
 
@@ -1481,9 +1481,9 @@ Applied `final-design-brief.md` (the visual-diff investigation's design-only fin
 **Resolved live:**
 - §4b N1GkB/gX7um were resolved by finding `fjQjb`'s underlying `J14ME` (loginCard) component live — `VBLxv`/`Z6tmS` — rather than by guessing ids from the brief's placeholder names; no structural surprises found.
 
-**Re-export method & validation:** 91 ids (the brief's 19 directly-edited frames/components plus the 72-id shared-impact set from `gu5WY`/`kKFX9`/`j9sz4`/`T8Hug`/`fjQjb`/`R65Xyx`/`XL5ZU`/`fGbVF` references, computed by grep over the prior `design-export/json/*.json` snapshot). JSON: `JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2)`, batched ~10 ids per `execute` call, each call's `## Print output` extracted from its persisted tool-results file with a `python3` regex split on `###ID:<name>` markers (never retyped) and validated with `json.loads` plus a root-`id` check — all 91 passed on the first attempt, zero `"geometry": "..."` or `"children": "..."` elisions. The five `settings-*` files keep their label filenames, sourced from node ids `uCA23`/`VctzT`/`iLm38`/`QpEvu`/`XR0f9`. `fGbVF` is a genuinely new file (no prior standalone export existed for it, as the brief noted).
+**Re-export method & validation:** 91 ids (the brief's 19 directly-edited frames/components plus the 72-id shared-impact set from `gu5WY`/`kKFX9`/`j9sz4`/`T8Hug`/`fjQjb`/`R65Xyx`/`XL5ZU`/`fGbVF` references, computed by grep over the prior `assets/design-export/json/*.json` snapshot). JSON: `JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2)`, batched ~10 ids per `execute` call, each call's `## Print output` extracted from its persisted tool-results file with a `python3` regex split on `###ID:<name>` markers (never retyped) and validated with `json.loads` plus a root-`id` check — all 91 passed on the first attempt, zero `"geometry": "..."` or `"children": "..."` elisions. The five `settings-*` files keep their label filenames, sourced from node ids `uCA23`/`VctzT`/`iLm38`/`QpEvu`/`XR0f9`. `fGbVF` is a genuinely new file (no prior standalone export existed for it, as the brief noted).
 
-**PNG correction (follow-up pass, same day):** the first pass only exported 24 PNGs plus the new `fGbVF.png`, leaving 67 of the 91 ids and `kKFX9` (embedded via the App Sidebar ref, omitted from the original 91-id list) on stale PNGs. This was caught and fixed in a follow-up re-export: `export_nodes` (2× scale) was run for the 68 outstanding ids — `Bbnga`, `Bq2Yg`, `Burtr`, `DPrYX`, `Dpb9f`, `DxKOh`, `E0ypH`, `EZFW0`, `F9pUrx`, `FtdkI`, `GayoL`, `Hy9r0`, `IzuY2`, `J5pjJ3`, `KaRFX`, `KhYNc`, `M2sA4u`, `O08uaD`, `P08Uw`, `QgW58`, `RC3Kf`, `RodrS`, `SeizD`, `Ss0Yr`, `TBvTC`, `TE2jI`, `V1VhGE`, `VfB0Y`, `WZdnw`, `Wj0V4`, `Xn5ns`, `Y5cmvI`, `b4eaUf`, `bYDHC`, `dBILX`, `dPP50`, `dQV9N`, `dxdEi`, `e9lV4`, `fK8Bi`, `g5mEpx`, `hLB9Z`, `i1bLR`, `i8wib`, `j24cXg`, `j9W8A`, `kK8Ji`, `kPmoo`, `m5kOm4`, `n6Xlo`, `nNGDX`, `o4LH8W`, `oyoTs`, `pssCT`, `sSISK`, `sZtDi`, `swxkJ`, `tTSdi`, `tooKB`, `uMiwd`, `ugDSa`, `uoxQW`, `xCJlu`, `xvlB6`, `zFiOW`, `zM0VF`, `zqzr4`, and `kKFX9` — plus `tY6RD` and `DWztv` (JSON + PNG) for the `tiIi2`/`kmBku`/`t1j0Wn` content fixes above. All 91 ids in the visual-diff wave's shared-impact set, plus `kKFX9`, now have current PNGs in `design-export/screenshots/`; the five `settings-*` PNGs were exported to a scratchpad directory first (their source node ids, not their label names) and copied into place under the label filenames. Every re-exported JSON file was verified to still parse (`json.loads`) after this pass also stripped trailing whitespace from all `design-export/json/*.json` files per `.editorconfig`'s `trim_trailing_whitespace`. Every directly-edited frame was screenshot-checked (`get_screenshot`) against the brief's stated intent before export; all matched (no broken/clipped/collapsed layout).
+**PNG correction (follow-up pass, same day):** the first pass only exported 24 PNGs plus the new `fGbVF.png`, leaving 67 of the 91 ids and `kKFX9` (embedded via the App Sidebar ref, omitted from the original 91-id list) on stale PNGs. This was caught and fixed in a follow-up re-export: `export_nodes` (2× scale) was run for the 68 outstanding ids — `Bbnga`, `Bq2Yg`, `Burtr`, `DPrYX`, `Dpb9f`, `DxKOh`, `E0ypH`, `EZFW0`, `F9pUrx`, `FtdkI`, `GayoL`, `Hy9r0`, `IzuY2`, `J5pjJ3`, `KaRFX`, `KhYNc`, `M2sA4u`, `O08uaD`, `P08Uw`, `QgW58`, `RC3Kf`, `RodrS`, `SeizD`, `Ss0Yr`, `TBvTC`, `TE2jI`, `V1VhGE`, `VfB0Y`, `WZdnw`, `Wj0V4`, `Xn5ns`, `Y5cmvI`, `b4eaUf`, `bYDHC`, `dBILX`, `dPP50`, `dQV9N`, `dxdEi`, `e9lV4`, `fK8Bi`, `g5mEpx`, `hLB9Z`, `i1bLR`, `i8wib`, `j24cXg`, `j9W8A`, `kK8Ji`, `kPmoo`, `m5kOm4`, `n6Xlo`, `nNGDX`, `o4LH8W`, `oyoTs`, `pssCT`, `sSISK`, `sZtDi`, `swxkJ`, `tTSdi`, `tooKB`, `uMiwd`, `ugDSa`, `uoxQW`, `xCJlu`, `xvlB6`, `zFiOW`, `zM0VF`, `zqzr4`, and `kKFX9` — plus `tY6RD` and `DWztv` (JSON + PNG) for the `tiIi2`/`kmBku`/`t1j0Wn` content fixes above. All 91 ids in the visual-diff wave's shared-impact set, plus `kKFX9`, now have current PNGs in `assets/design-export/screenshots/`; the five `settings-*` PNGs were exported to a scratchpad directory first (their source node ids, not their label names) and copied into place under the label filenames. Every re-exported JSON file was verified to still parse (`json.loads`) after this pass also stripped trailing whitespace from all `assets/design-export/json/*.json` files per `.editorconfig`'s `trim_trailing_whitespace`. Every directly-edited frame was screenshot-checked (`get_screenshot`) against the brief's stated intent before export; all matched (no broken/clipped/collapsed layout).
 
 **Maintainer action required:** design.pen has not been saved by this pass (Pencil does not auto-save) — the maintainer must save via the Pencil GUI before these changes can be committed.
 
@@ -1513,9 +1513,9 @@ Applied the maintainer-settled fixes from `regression-analysis.json` (the visual
 
 **Verification (no change made):** `XL5ZU`'s `fill`/`v68RDf.fill`/`sYR1u.fill` were confirmed still pointing at `$warning/soft`/`$warning/soft-foreground` (unchanged from the prior wave). `GetVariables()` confirms the document's token values are `$warning/soft` = `#FEF3C7` (light) / `#F7B75026` (dark), `$warning/soft-foreground` = `#D97706` (light) / `#F7B750` (dark) — i.e. the design side already carries the values the maintainer ruled should win; no Pencil-side edit was needed. `globals.css` is out of scope for this pass (code change, not design).
 
-**Instance-override check (chip labels):** confirmed via `Get("Ipjvx", {depth:4})` (Role Mapping Overrides card in `uMiwd`, Screen/Admin Settings — Authentication) that the three chip instances there (`z9JAoG`/`Ezgwq` = `XL5ZU`, `E7yW29` = `vStkb`) all set an explicit `descendants` override on the chipLabel content (`"gameplane-admins"`, `"gameplane-sre"`, `"gameplane-ops"`), so the master label edits above do not change what those screen instances render. `uw0dB` has no instance references in any exported frame (`grep '"ref": "uw0dB"' design-export/json/*.json` → no hits), so nothing downstream of it needed checking.
+**Instance-override check (chip labels):** confirmed via `Get("Ipjvx", {depth:4})` (Role Mapping Overrides card in `uMiwd`, Screen/Admin Settings — Authentication) that the three chip instances there (`z9JAoG`/`Ezgwq` = `XL5ZU`, `E7yW29` = `vStkb`) all set an explicit `descendants` override on the chipLabel content (`"gameplane-admins"`, `"gameplane-sre"`, `"gameplane-ops"`), so the master label edits above do not change what those screen instances render. `uw0dB` has no instance references in any exported frame (`grep '"ref": "uw0dB"' assets/design-export/json/*.json` → no hits), so nothing downstream of it needed checking.
 
-**Re-export method & validation:** 12 ids — the 3 edited chip masters (`XL5ZU`, `vStkb`, `uw0dB`) plus the 2 frames that reference them (`uMiwd`, `zqzr4`); the edited `T8Hug` plus the 4 login frames that reference it (`N1GkB`, `gX7um`, `ljdA5`, `jmoi3`); and the edited `m1hP1j` plus its containing component (`kIxaJ`, Audit Integrity Banner) — found via `grep '"ref": "<id>"' design-export/json/*.json` against the prior snapshot. JSON: `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))` for all 12 in one `execute` call (output exceeded the inline token cap and was persisted to a tool-results file), extracted with a `python3` regex split on `===BEGIN:<id>===`/`===END:<id>===` markers (never retyped), and validated with `json.loads` plus a root-`id` check — all 12 passed on the first attempt, zero `"geometry": "..."` elisions (`grep -c '"\.\.\."' design-export/json/<id>.json` = 0 for all 12). PNG: `export_nodes` at 2× scale for the same 12 ids; PNG signature + `IHDR` dimensions checked for all 12 — `m1hP1j.png` is now exactly `2264×128` (previously `1272×144` with the padded-band regression), matching the shipped full-width banner at 2×. `XL5ZU.png`/`vStkb.png`/`uw0dB.png` are now `166×46`/`154×46`/`154×46` (previously all `178×46` with the placeholder "group-name" label), within the existing `SCALE_ALLOWLIST` bands per the regression analysis, so no allowlist edit is implied by this pass.
+**Re-export method & validation:** 12 ids — the 3 edited chip masters (`XL5ZU`, `vStkb`, `uw0dB`) plus the 2 frames that reference them (`uMiwd`, `zqzr4`); the edited `T8Hug` plus the 4 login frames that reference it (`N1GkB`, `gX7um`, `ljdA5`, `jmoi3`); and the edited `m1hP1j` plus its containing component (`kIxaJ`, Audit Integrity Banner) — found via `grep '"ref": "<id>"' assets/design-export/json/*.json` against the prior snapshot. JSON: `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))` for all 12 in one `execute` call (output exceeded the inline token cap and was persisted to a tool-results file), extracted with a `python3` regex split on `===BEGIN:<id>===`/`===END:<id>===` markers (never retyped), and validated with `json.loads` plus a root-`id` check — all 12 passed on the first attempt, zero `"geometry": "..."` elisions (`grep -c '"\.\.\."' assets/design-export/json/<id>.json` = 0 for all 12). PNG: `export_nodes` at 2× scale for the same 12 ids; PNG signature + `IHDR` dimensions checked for all 12 — `m1hP1j.png` is now exactly `2264×128` (previously `1272×144` with the padded-band regression), matching the shipped full-width banner at 2×. `XL5ZU.png`/`vStkb.png`/`uw0dB.png` are now `166×46`/`154×46`/`154×46` (previously all `178×46` with the placeholder "group-name" label), within the existing `SCALE_ALLOWLIST` bands per the regression analysis, so no allowlist edit is implied by this pass.
 
 **Note on `T8Hug`'s outer frame size:** `width: 720`/`height: 900` and `justifyContent: "center"` were left unchanged — only the inner padding/gap/typography/icon sizing moved to match the app's geometry (720 − 48 − 224 = 448px content column, matching the app's `p-12`/`max-w-md`). The panel still centers its (now shorter) content block vertically within the unchanged 900px frame.
 
@@ -1578,7 +1578,7 @@ Read-only via `Get("zhLZN", {depth:3})`; no `Update`/`Copy`/`Delete` calls were 
 
 No `SCALE_ALLOWLIST` or fixture change was made; per the regression analysis this frame's 1.313× scale mismatch is structural (component export margin vs. live 384×900 drawer) and stays open for the maintainer/code side to reconcile using the numbers above.
 
-**Re-export method & validation:** touched ids — `DWztv`, `fGbVF`, the new `QQtUD` — plus every exported frame referencing the changed component, found via `grep '"ref": "fGbVF"' design-export/json/*.json` → `SeizD` (Screen/Mobile — Nav Drawer), `tooKB` (Screen/Mobile — Servers). (`grep '"ref": "DWztv"'` and `'"ref": "QQtUD"'` returned no hits — neither is referenced elsewhere.) JSON: `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))`, one id per `execute` call, each fitting inline (no truncation) and transcribed verbatim into `design-export/json/<id>.json` (for `fGbVF`, only the single changed `height` line actually differed from the prior snapshot, applied via a scoped edit rather than a full rewrite). Validated with `python3 -c "json.load(...)"` (root `id` matches the filename) and `grep '"geometry": "\.\.\."'` (zero hits) for `DWztv`/`fGbVF`/`QQtUD`. PNG: `export_nodes` at 2× scale for all five ids (`DWztv`, `fGbVF`, `SeizD`, `tooKB`, `QQtUD`); `file` confirmed valid PNG signatures and non-zero dimensions for all five (`DWztv.png`/`SeizD.png` 780×1688, `fGbVF.png` 780×128, `tooKB.png` 780×1908, `QQtUD.png` 2880×2340). `zhLZN` was not re-exported (no design edit made).
+**Re-export method & validation:** touched ids — `DWztv`, `fGbVF`, the new `QQtUD` — plus every exported frame referencing the changed component, found via `grep '"ref": "fGbVF"' assets/design-export/json/*.json` → `SeizD` (Screen/Mobile — Nav Drawer), `tooKB` (Screen/Mobile — Servers). (`grep '"ref": "DWztv"'` and `'"ref": "QQtUD"'` returned no hits — neither is referenced elsewhere.) JSON: `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))`, one id per `execute` call, each fitting inline (no truncation) and transcribed verbatim into `assets/design-export/json/<id>.json` (for `fGbVF`, only the single changed `height` line actually differed from the prior snapshot, applied via a scoped edit rather than a full rewrite). Validated with `python3 -c "json.load(...)"` (root `id` matches the filename) and `grep '"geometry": "\.\.\."'` (zero hits) for `DWztv`/`fGbVF`/`QQtUD`. PNG: `export_nodes` at 2× scale for all five ids (`DWztv`, `fGbVF`, `SeizD`, `tooKB`, `QQtUD`); `file` confirmed valid PNG signatures and non-zero dimensions for all five (`DWztv.png`/`SeizD.png` 780×1688, `fGbVF.png` 780×128, `tooKB.png` 780×1908, `QQtUD.png` 2880×2340). `zhLZN` was not re-exported (no design edit made).
 
 **Maintainer action required:** design.pen has not been saved by this pass (Pencil does not auto-save) — the maintainer must save via the Pencil GUI before these changes can be committed.
 
@@ -1599,7 +1599,7 @@ Four items investigated against the maintainer's own browser-panel composites (`
 
 **4. Theme selector separator — investigated, already correct:** `NmfQu` (the sidebar `Footer` frame inside `kKFX9`/`Gameplane/App Sidebar`, which wraps the `iA2C8` Appearance Toggle) already carries `stroke: "$border/border"`, `strokeWidth: {top: 1}`, matching `Sidebar.tsx`'s `border-t border-border` on the footer `<div>`. Confirmed via `Get` (property present) and a themed screenshot crop (`j24cXg`'s composite, which **passed** the automated visual-diff at 2.65%/4% threshold) — the separator line renders in both. This was fixed by the prior `fa5a4370` design commit; no edit made this pass.
 
-**Re-export method & validation:** touched/component ids — `tpKRk`, `rNhll`, `LMIom`, `XoX7L`, `z9ShNE`, `d5N3W3`, `J09iP`, `IU7OG`, `EV8mp`, `g2HLxz` (new file — previously only referenced inline inside `jmoi3`'s shallow ref tree, never exported standalone; `jmoi3.json` itself has no inline diff since the change lives inside the `g2HLxz` component definition it refs) — plus every screen referencing the changed button/subnav components, found via `grep -l '"ref": "<id>"' design-export/json/*.json` for each of the 8 button ids and for `EV8mp` (66 ids total, union of both searches plus the 10 component/base ids): `b4eaUf`, `Bq2Yg`, `bYDHC`, `CqaSq`, `d5N3W3`, `dBILX`, `Dpb9f`, `dPP50`, `DPrYX`, `dQV9N`, `dxdEi`, `DxKOh`, `E0ypH`, `e9lV4`, `EV8mp`, `f1Vga`, `fK8Bi`, `FtdkI`, `GayoL`, `i1bLR`, `i8wib`, `iLm38`, `IU7OG`, `IyMFM`, `J09iP`, `j24cXg`, `J5pjJ3`, `j9W8A`, `jmoi3`, `KaRFX`, `kPmoo`, `LMIom`, `m5kOm4`, `n6Xlo`, `O08uaD`, `oyoTs`, `QpEvu`, `QQtUD`, `RC3Kf`, `rNhll`, `RodrS`, `swxkJ`, `sZtDi`, `t3IY3u`, `TBvTC`, `tpKRk`, `tY6RD`, `uCA23`, `ugDSa`, `uMiwd`, `uoxQW`, `V1VhGE`, `VctzT`, `VfB0Y`, `Wj0V4`, `WZdnw`, `xCJlu`, `Xn5ns`, `XoX7L`, `XR0f9`, `xvlB6`, `Y5cmvI`, `z9ShNE`, `zFiOW`, `zhLZN`, `zqzr4`. PNG: `export_nodes` at 2× scale for all 66 + `g2HLxz`, copied into `design-export/screenshots/` (renaming the five `settings-*` label-filename ids per the existing mapping documented below). JSON: only the ids whose own `descendants`/content actually changed were rewritten (component definitions, `g2HLxz`, and the 16 `EV8mp`-instance screens per item 2's per-instance overrides) — `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))` per id (batched a few ids per `execute` call, split further when output exceeded the tool's inline-response size and fell back to reading the persisted tool-result file), transcribed verbatim (never retyped) into `design-export/json/<id>.json` via `python3` extraction on the `===START:id===`/`===END:id===` markers, 2-space indent, literal UTF-8 (`ensure_ascii=False`). The remaining button-only-referencing screens (`Wj0V4`, `jmoi3`, and the ~40 others whose own JSON has no inline `descendants` diff against the button/subnav components, since the fix lives entirely in the component definitions) were confirmed to have **zero content diff** in their own JSON (spot-checked `Wj0V4` and `jmoi3` byte-for-byte against a fresh `Get` — identical) and so were **not** rewritten, only re-screenshotted (their rendered PNG output *does* change even though their own JSON doesn't, since they `ref` the now-different components). All 25 rewritten JSON files validated with `python3 -c "json.load(...)"` (root `id` present, zero `"\"geometry\": \"...\""` hits).
+**Re-export method & validation:** touched/component ids — `tpKRk`, `rNhll`, `LMIom`, `XoX7L`, `z9ShNE`, `d5N3W3`, `J09iP`, `IU7OG`, `EV8mp`, `g2HLxz` (new file — previously only referenced inline inside `jmoi3`'s shallow ref tree, never exported standalone; `jmoi3.json` itself has no inline diff since the change lives inside the `g2HLxz` component definition it refs) — plus every screen referencing the changed button/subnav components, found via `grep -l '"ref": "<id>"' assets/design-export/json/*.json` for each of the 8 button ids and for `EV8mp` (66 ids total, union of both searches plus the 10 component/base ids): `b4eaUf`, `Bq2Yg`, `bYDHC`, `CqaSq`, `d5N3W3`, `dBILX`, `Dpb9f`, `dPP50`, `DPrYX`, `dQV9N`, `dxdEi`, `DxKOh`, `E0ypH`, `e9lV4`, `EV8mp`, `f1Vga`, `fK8Bi`, `FtdkI`, `GayoL`, `i1bLR`, `i8wib`, `iLm38`, `IU7OG`, `IyMFM`, `J09iP`, `j24cXg`, `J5pjJ3`, `j9W8A`, `jmoi3`, `KaRFX`, `kPmoo`, `LMIom`, `m5kOm4`, `n6Xlo`, `O08uaD`, `oyoTs`, `QpEvu`, `QQtUD`, `RC3Kf`, `rNhll`, `RodrS`, `swxkJ`, `sZtDi`, `t3IY3u`, `TBvTC`, `tpKRk`, `tY6RD`, `uCA23`, `ugDSa`, `uMiwd`, `uoxQW`, `V1VhGE`, `VctzT`, `VfB0Y`, `Wj0V4`, `WZdnw`, `xCJlu`, `Xn5ns`, `XoX7L`, `XR0f9`, `xvlB6`, `Y5cmvI`, `z9ShNE`, `zFiOW`, `zhLZN`, `zqzr4`. PNG: `export_nodes` at 2× scale for all 66 + `g2HLxz`, copied into `assets/design-export/screenshots/` (renaming the five `settings-*` label-filename ids per the existing mapping documented below). JSON: only the ids whose own `descendants`/content actually changed were rewritten (component definitions, `g2HLxz`, and the 16 `EV8mp`-instance screens per item 2's per-instance overrides) — `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))` per id (batched a few ids per `execute` call, split further when output exceeded the tool's inline-response size and fell back to reading the persisted tool-result file), transcribed verbatim (never retyped) into `assets/design-export/json/<id>.json` via `python3` extraction on the `===START:id===`/`===END:id===` markers, 2-space indent, literal UTF-8 (`ensure_ascii=False`). The remaining button-only-referencing screens (`Wj0V4`, `jmoi3`, and the ~40 others whose own JSON has no inline `descendants` diff against the button/subnav components, since the fix lives entirely in the component definitions) were confirmed to have **zero content diff** in their own JSON (spot-checked `Wj0V4` and `jmoi3` byte-for-byte against a fresh `Get` — identical) and so were **not** rewritten, only re-screenshotted (their rendered PNG output *does* change even though their own JSON doesn't, since they `ref` the now-different components). All 25 rewritten JSON files validated with `python3 -c "json.load(...)"` (root `id` present, zero `"\"geometry\": \"...\""` hits).
 
 **Files written directly via `Write`/`Bash`+`python3`, not retyped:** all JSON content originated from `Get(...)`/`Print()` tool output (live document state), never hand-authored.
 
@@ -1617,7 +1617,7 @@ Also removed the disabled leftover wizard content per the brief ("disabled subtr
 
 **3. `kIxaJ` (Gameplane/Audit Integrity Banner) — MAJOR fix:** the wrapper frame was still `width: 700` with `padding: 32` around its `m1hP1j` child, which had grown to `width: 1132` in an earlier wave — a 464px overflow. `Update("kIxaJ", {width: 1196})` (1132 + 2×32 padding) resolves it with zero child overflow (`ctx.problems` empty on a full `Get` sweep). Re-exported `kIxaJ` and `m1hP1j`.
 
-**4. `sVSGe` (zhLZN drawerHeader) — MAJOR fix, maintainer ruling "design wins, Restore stays on the title row":** wave 1 had changed this header from its original horizontal `space_between` row (title left, Restore button right) to a vertical stack (title above button), which the visual-diff review flagged as a regression against both the pre-wave-1 design and the shipped code (`BackupDetailDrawer.tsx`'s `flex items-start justify-between` header). `Update("sVSGe", {layout: "horizontal", gap: 12, justifyContent: "space_between", alignItems: "start"})` restores the pre-wave-1 row; `JINV8` (the Restore button ref) needed no position/size change since `space_between` right-aligns it automatically as a layout child. Resolved header bounds: 440×81 (was 440×121 as a vertical stack). **Correction to this manifest's own wave-1 section above:** that section's line "`layout: "vertical"` ... not a horizontal row" documented wave 1's *regression* as if it were the header's original design — it was not; the header was a horizontal `space_between` row before wave 1 touched it (see `HEAD~2:design-export/json/zhLZN.json`), and this wave-4 edit is a revert to that original state, not a fresh design decision.
+**4. `sVSGe` (zhLZN drawerHeader) — MAJOR fix, maintainer ruling "design wins, Restore stays on the title row":** wave 1 had changed this header from its original horizontal `space_between` row (title left, Restore button right) to a vertical stack (title above button), which the visual-diff review flagged as a regression against both the pre-wave-1 design and the shipped code (`BackupDetailDrawer.tsx`'s `flex items-start justify-between` header). `Update("sVSGe", {layout: "horizontal", gap: 12, justifyContent: "space_between", alignItems: "start"})` restores the pre-wave-1 row; `JINV8` (the Restore button ref) needed no position/size change since `space_between` right-aligns it automatically as a layout child. Resolved header bounds: 440×81 (was 440×121 as a vertical stack). **Correction to this manifest's own wave-1 section above:** that section's line "`layout: "vertical"` ... not a horizontal row" documented wave 1's *regression* as if it were the header's original design — it was not; the header was a horizontal `space_between` row before wave 1 touched it (see `HEAD~2:assets/design-export/json/zhLZN.json`), and this wave-4 edit is a revert to that original state, not a fresh design decision.
 
 **5. `tooKB`/`SeizD` (Screen/Mobile — Servers / Nav Drawer) — MAJOR fix, apply DWztv's already-approved decisions to its two sibling mobile frames:** both frames still carried what the review had just ruled wrong on `DWztv`: literal per-game hex tile fills (`#5B8A3A`, `#8B5A2B`, `#4A6FA5`/`#D4A43C`, `#3a6b5b`, `#7D3932`), a separate status-dot ellipse next to each status label, and (on the Minecraft/Satisfactory cards only) title-case game labels and spaced `"X / Y"` player counts. Per the brief's literal scope (not a full re-mirror of every DWztv stylistic choice, e.g. the emoji→2-letter-glyph swap was left alone since the brief didn't call for it):
   - All six icon-tile frames in `tooKB` (`gGfF9`, `Gl7MJ`, `FWKN7`, `g7MkId`, `TOHNm`, `qRAsp`) and all five in `SeizD` (`BhEcb`, `j5iWF`, `V5yD85`, `rKygS`, `JbrSN`) → `fill: "$success/soft"`; their emoji-glyph children → `fill: "$success/soft-foreground"` (glyph characters themselves unchanged).
@@ -1630,11 +1630,11 @@ Also removed the disabled leftover wizard content per the brief ("disabled subtr
 
 **Wave-2 formatting cleanup:** the review flagged that wave 2's 12 re-exports (`N1GkB`, `gX7um`, `ljdA5`, `jmoi3`, `uMiwd`, `zqzr4`, `XL5ZU`, `vStkb`, `uw0dB`, `m1hP1j`, `kIxaJ`, `T8Hug`) were serialized with 1-space indentation and `ensure_ascii` `\uXXXX` escaping, unlike the corpus's 2-space/literal-UTF-8 convention — content was correct (deep-matched live `Get`) but every line diffed. All 12 were re-serialized this pass with `json.dump(data, f, indent=2, ensure_ascii=False)` (the four already needing content changes above — `N1GkB`, `gX7um`, `ljdA5`, `jmoi3` — plus `T8Hug`, `kIxaJ`, `m1hP1j` were written fresh from `Get` output as part of items 1-3/6 above; `uMiwd` had no content change this wave, only reformatting; `zqzr4`, `XL5ZU`, `vStkb`, `uw0dB` were likewise reformatted in place with no content change via `json.load` → `json.dump`).
 
-**New snapshots:** `T8Hug.json`/`.png` and `QQtUD.json`/`.png` were untracked (`??`) after wave 3 — both are now committed to `design-export/` alongside this manifest update; the export rule (touched node → same commit) applies retroactively here since they were introduced by the immediately-preceding wave and are first captured in git by this pass.
+**New snapshots:** `T8Hug.json`/`.png` and `QQtUD.json`/`.png` were untracked (`??`) after wave 3 — both are now committed to `assets/design-export/` alongside this manifest update; the export rule (touched node → same commit) applies retroactively here since they were introduced by the immediately-preceding wave and are first captured in git by this pass.
 
 **`settings-*` label→id mapping (for validators — SUPERSEDED 2026-09-18):** This note previously documented a filename-to-nodeid mapping for five Settings screens using human-readable label filenames (`settings-general.json`, `settings-version.json`, `settings-envvars.json`, `settings-access.json`, `settings-danger.json`). **As of the 2026-09-18 full export reconciliation, this convention no longer applies.** These five screens are now indexed exclusively by their node ids (`uCA23.json`, `VctzT.json`, `iLm38.json`, `QpEvu.json`, `XR0f9.json`). Any validator or tooling that previously special-cased the `settings-*` label filename pattern should be updated to use the node-id-based filenames instead. See the "Filename convention change — Settings screens" section in the 2026-09-18 reconciliation entry above for the complete mapping.
 
-**Re-export method & validation:** 17 ids re-exported — `T8Hug`, `N1GkB`, `gX7um`, `ljdA5`, `jmoi3`, `QQtUD`, `kIxaJ`, `m1hP1j`, `zhLZN`, `tooKB`, `SeizD`, `DWztv`, `uMiwd`, `zqzr4`, `XL5ZU`, `vStkb`, `uw0dB`. A document-wide search for `ref` pointers to `kIxaJ`/`m1hP1j`/`T8Hug`/`zhLZN` from other top-level screens (`DxKOh`, `P08Uw`, `EZFW0`, `j24cXg`, `tTSdi`, `DPrYX`, `IzuY2`, `TE2jI`, `o4LH8W`, `Hy9r0`, `sSISK`) came back empty, so no additional frames needed re-export beyond the brief's list. JSON: `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))` per id, transcribed verbatim (no retyping) into `design-export/json/<id>.json`; all 17 validated with `python3 -c "json.load(...)"` (root `id` matches filename, zero `"..."` elision markers). PNG: `export_nodes` at 2× scale for all 17. `DWztv` had no content change this wave (used only as the reference pattern for item 5) but was re-exported per the brief for freshness; its existing JSON was already 2-space/literal-UTF-8 and needed no reformatting.
+**Re-export method & validation:** 17 ids re-exported — `T8Hug`, `N1GkB`, `gX7um`, `ljdA5`, `jmoi3`, `QQtUD`, `kIxaJ`, `m1hP1j`, `zhLZN`, `tooKB`, `SeizD`, `DWztv`, `uMiwd`, `zqzr4`, `XL5ZU`, `vStkb`, `uw0dB`. A document-wide search for `ref` pointers to `kIxaJ`/`m1hP1j`/`T8Hug`/`zhLZN` from other top-level screens (`DxKOh`, `P08Uw`, `EZFW0`, `j24cXg`, `tTSdi`, `DPrYX`, `IzuY2`, `TE2jI`, `o4LH8W`, `Hy9r0`, `sSISK`) came back empty, so no additional frames needed re-export beyond the brief's list. JSON: `Print(JSON.stringify(Get(id, {depth: 20, includePathGeometry: true}), null, 2))` per id, transcribed verbatim (no retyping) into `assets/design-export/json/<id>.json`; all 17 validated with `python3 -c "json.load(...)"` (root `id` matches filename, zero `"..."` elision markers). PNG: `export_nodes` at 2× scale for all 17. `DWztv` had no content change this wave (used only as the reference pattern for item 5) but was re-exported per the brief for freshness; its existing JSON was already 2-space/literal-UTF-8 and needed no reformatting.
 
 **Maintainer action required:** design.pen has not been saved by this pass (Pencil does not auto-save) — the maintainer must save via the Pencil GUI before these changes can be committed.
 
@@ -1645,7 +1645,7 @@ A comprehensive reconciliation pass executed against the entire design.pen docum
 **Scope & file inventory:**
 
 - **Objects exported:** 346 ids (screens, reusable components, and supporting reference/state frames) — every live node exported from one document read-snapshot, guaranteed consistent state.
-- **Files written:** 355 JSON files + 355 PNG screenshot files in `design-export/` (total 710 asset files). **Prior inventory (2026-09-17 wave-4):** 172 JSON + 172 PNG = 344 files. **New files added this pass:** 183 ids exported for the first time, predominantly nested HeroUI base component definitions ("Accordion/Open", "Accordion/Closed", "Avatar/Text", "Avatar/Image", "Button/Primary/*", "Button/Secondary/*", etc.) and their supporting label/section frames inside the "HeroUI: Design System Components" wrapper (`LtgNm`).
+- **Files written:** 355 JSON files + 355 PNG screenshot files in `assets/design-export/` (total 710 asset files). **Prior inventory (2026-09-17 wave-4):** 172 JSON + 172 PNG = 344 files. **New files added this pass:** 183 ids exported for the first time, predominantly nested HeroUI base component definitions ("Accordion/Open", "Accordion/Closed", "Avatar/Text", "Avatar/Image", "Button/Primary/*", "Button/Secondary/*", etc.) and their supporting label/section frames inside the "HeroUI: Design System Components" wrapper (`LtgNm`).
 - **Failed exports:** none — 100% success rate; all 355 JSON files parse, all 355 PNG files are valid (header validation + nonzero size).
 
 **Filename convention change — Settings screens:**
@@ -1707,7 +1707,7 @@ The rulings are OD-16, OD-19, OD-20 and OD-21 in specs/done_014-heroui-web-rebui
 
 ## Incremental export 2026-09-19 — rounds 5-6 catch-up (79172f1b, 4f9e4930, 448bd477, 9df665e3)
 
-These four design commits re-exported their frames but shipped without a MANIFEST entry; this entry records them after the fact. The id lists come from each commit's `design-export/` file list. Rulings: OD-17, OD-19..OD-21 in specs/done_014-heroui-web-rebuild/OPEN-DECISIONS.md. Base components D0cDM, AT7ya and f7KBn are unchanged throughout.
+These four design commits re-exported their frames but shipped without a MANIFEST entry; this entry records them after the fact. The id lists come from each commit's `assets/design-export/` file list. Rulings: OD-17, OD-19..OD-21 in specs/done_014-heroui-web-rebuild/OPEN-DECISIONS.md. Base components D0cDM, AT7ya and f7KBn are unchanged throughout.
 
 **`79172f1b` — round 5**
 
@@ -1791,7 +1791,7 @@ None of the underlying shared components (`rkF0p`, `j9c5W`, `FIB65`, `WwNlX`) we
 - **JSON:** `Get(id, {depth: 30})` via the Pencil `execute` tool for all 11 touched/created ids (`SUG76`, `p1xct`, `z9lDl`, `eNwtE`, `qr3mo`, `IyMFM`, `jXykV`, `atqRh`, `VM7ro`, `S7SCDc`, `J5pjJ3`), zero `"..."` elision markers, written with `json.dump(indent=2, ensure_ascii=False)` + trailing newline. `python3 -m json.tool` passes on all 11.
 - **Screenshots:** `export_nodes` batch PNG export at 2× scale for all 11 ids in one call, all valid non-empty PNGs with real pixel dimensions (e.g. `J5pjJ3.png` 2880×1800, `atqRh.png` 1088×768, `S7SCDc.png` 1008×454).
 - **Content check:** unique body-text greps each returned a hit in their own file: `"assigned from pool"` → SUG76; `"waiting for the address manager"` → p1xct; `"no free addresses left"` → z9lDl; `"does not exist. Check the pool name"` → eNwtE; `"already assigned to another service"` → qr3mo; `"tailnet-only"` → IyMFM; `"saved but never applied"` → jXykV; `"Maximum 90 days"` → atqRh; `"one-way hash of the token"` → VM7ro; `"immediately lose access"` → S7SCDc.
-- **Deleted:** `design-export/json/{z6RDco,WSAsQ,UaEjg,D76lH}.json` and `design-export/screenshots/{z6RDco,WSAsQ,UaEjg,D76lH}.png` were removed (plain file deletion — their content lives on in `p1xct`, `z9lDl`, `eNwtE`, `qr3mo` respectively).
+- **Deleted:** `assets/design-export/json/{z6RDco,WSAsQ,UaEjg,D76lH}.json` and `assets/design-export/screenshots/{z6RDco,WSAsQ,UaEjg,D76lH}.png` were removed (plain file deletion — their content lives on in `p1xct`, `z9lDl`, `eNwtE`, `qr3mo` respectively).
 - **Before/after verification:** J5pjJ3 was screenshotted before this change (its `StatusRow` visible as a plain frame) and after (the same "Assigned · Address 172.18.255.203 assigned from pool 'pool-us-west'." row, now a `ref` instance) — pixel-identical rendering confirmed by comparison.
 - **No `.pen` file was Read/Grep/cat/sed** — all access via Pencil MCP `execute`/`export_nodes`/`get_screenshot`, per Rule 2.
 
@@ -1828,10 +1828,10 @@ Both nodes were verified live via `Get(id, {depth: 0})` before editing (confirme
 
 **Export method & validation:**
 
-- **JSON:** `Get("VM7ro", {depth: 30, resolveInstances: true})` via the Pencil `execute` tool, zero `"..."` elision markers. The compact `JSON.stringify(...)` output printed by `execute` was parsed and re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline into `design-export/json/VM7ro.json`; `python3 -m json.tool` passes.
+- **JSON:** `Get("VM7ro", {depth: 30, resolveInstances: true})` via the Pencil `execute` tool, zero `"..."` elision markers. The compact `JSON.stringify(...)` output printed by `execute` was parsed and re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline into `assets/design-export/json/VM7ro.json`; `python3 -m json.tool` passes.
 - **Hash verification:** the file's contents were reloaded, re-compacted with `json.dumps(..., separators=(",", ":"))`, and SHA-256'd against the same compaction of the live `execute` output — both hashes are `daf575b6817e5b393f578c6760ec489d699aecb10630d4c19c56ee5f934f74c`, confirming the exported JSON matches the live document exactly.
 - **Screenshot:** `export_nodes` at 2× scale — `VM7ro.png` 1088×776 (height grew by 8 device px / 4 CSS px from the 12→16px body-gap increase, as expected), valid non-empty RGBA PNG (verified via Pillow).
-- **Content check:** `"one-way hash of the token"` (unique body text of `mjjwe`/warningDesc) found exactly once, in `design-export/json/VM7ro.json` only.
+- **Content check:** `"one-way hash of the token"` (unique body text of `mjjwe`/warningDesc) found exactly once, in `assets/design-export/json/VM7ro.json` only.
 
 ## OD-25 — round-9 rulings for the share-link dialogs, DESIGN clauses (2026-09-20)
 
@@ -1853,13 +1853,13 @@ Implements the design-side clauses of OD-25 (`specs/done_014-heroui-web-rebuild/
 | atqRh-9 | `atqRh/x22w2k` (fCanStart row) | `gap: 16` → `12` | "...with a 12px row gap)" — keeps the label column's x-position unchanged since the switch grew by the same 4px the gap shrank. |
 | Dialog titles | `x3beP/E7Whx` (mTitle, shared Modal title node) | `lineHeight: 1.5` added | "The shared Gameplane/Modal title node gains an explicit lineHeight so every dialog header matches the browser." No explicit lineHeight was set before (font default ~1.2, i.e. ~19.2px at 16px/600); the round-9 triage measured the browser's title line box growing the header content ~3 CSS px shorter in the design (1px in the title's own box, 2px carried into the title→description gap). `1.5` (24px line box) matches the ratio already used by every other body/description text node in this file (`mDesc`, `WKy74`, `qzcst`) and closes the gap within the triage's margin of measurement error. Landing this on the shared master reaches every frame that instances `x3beP`. |
 
-**Frames re-exported because they instance `x3beP` and inherit the title lineHeight change** (verified via `Get(id, {depth:0}).ref === "x3beP"`, cross-checked against every `design-export/json/*.json` file containing `"ref":"x3beP"` plus the two flattened-export exceptions `VM7ro`/`atqRh` whose live `.pen` node is still confirmed `ref: x3beP`): `MaoHP`, `NLDDv`, `DMnEi`, `t3IY3u`, `E9EEv0`, `BX0XM`, `I9W8z`, `JLaGB`, `KrREo`, `O08uaD` (Start Capture modal `ZSLXq` embedded in the screen), `b4eaUf` (Start Capture modal `oElfY` embedded in the screen). No content changed on these 11 beyond the inherited title line-height; `CqaSq` (Role Editor Modal) was checked and confirmed a detached standalone frame, not an `x3beP` ref, so it was left untouched.
+**Frames re-exported because they instance `x3beP` and inherit the title lineHeight change** (verified via `Get(id, {depth:0}).ref === "x3beP"`, cross-checked against every `assets/design-export/json/*.json` file containing `"ref":"x3beP"` plus the two flattened-export exceptions `VM7ro`/`atqRh` whose live `.pen` node is still confirmed `ref: x3beP`): `MaoHP`, `NLDDv`, `DMnEi`, `t3IY3u`, `E9EEv0`, `BX0XM`, `I9W8z`, `JLaGB`, `KrREo`, `O08uaD` (Start Capture modal `ZSLXq` embedded in the screen), `b4eaUf` (Start Capture modal `oElfY` embedded in the screen). No content changed on these 11 beyond the inherited title line-height; `CqaSq` (Role Editor Modal) was checked and confirmed a detached standalone frame, not an `x3beP` ref, so it was left untouched.
 
 **Export method & validation (all 15 files: `x3beP`, `VM7ro`, `atqRh`, `S7SCDc`, `MaoHP`, `NLDDv`, `DMnEi`, `t3IY3u`, `E9EEv0`, `BX0XM`, `I9W8z`, `JLaGB`, `KrREo`, `O08uaD`, `b4eaUf`):**
 
 - **JSON:** `Print(JSON.stringify(Get(id, {depth: 20})))` via the Pencil `execute` tool for each node, zero `"..."` elision markers on any of the 15 (verified by inspection, including the two full-screen exports `O08uaD`/`b4eaUf`). Re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline; `python3 -m json.tool` passes on all 15.
 - **Screenshot:** single `export_nodes` call for all 15 ids at 2× scale (default), all landed as non-empty PNGs with real pixel dimensions (verified via Pillow, e.g. `VM7ro.png` 1088×806, `atqRh.png` 1088×788, `O08uaD.png`/`b4eaUf.png` 2880×1800).
-- **Content check:** the new URL string `8f3ac1e0b2d94f7c9a5e6b7d1c0e2f4a5b6c7` (VM7ro's unique body text) found exactly once, in `design-export/json/VM7ro.json` only; the `aZP2h`/`padding: [16, 0, 0, 0]` override found exactly once, in `design-export/json/S7SCDc.json` only.
+- **Content check:** the new URL string `8f3ac1e0b2d94f7c9a5e6b7d1c0e2f4a5b6c7` (VM7ro's unique body text) found exactly once, in `assets/design-export/json/VM7ro.json` only; the `aZP2h`/`padding: [16, 0, 0, 0]` override found exactly once, in `assets/design-export/json/S7SCDc.json` only.
 - Visual spot-checks via `get_screenshot` on `VM7ro`, `atqRh` and `S7SCDc` confirmed no broken/collapsed/overflowing layout after the edits (warning box wraps 3 lines cleanly at its new 112px height, switch/label/helper rows read at their new sizes, danger icon row unaffected by the `aZP2h` padding bump).
 - **No `.pen` file was Read/Grep/cat/sed** — all access via Pencil MCP `execute`/`export_nodes`, per Rule 2.
 
@@ -1875,7 +1875,7 @@ Maintainer ruling (a) on OD-25: share-link dialog footers use the design's small
 
 **Verified unchanged (no edit needed):** `VM7ro` (Share link created) footer instances `kbpwg`/`m6ngX` carry no fontSize/icon-size overrides at all, so they already inherit the small-button masters' 13px label / 14px icon directly — matching the ruling with zero changes. `S7SCDc` (Revoke share link) footer buttons (`HPQTc`/`aEe0m`, "Cancel"/"Revoke link") are **not** instances of the small-button family at all — they are the shared `WwNlX` (Confirm Dialog) component's own generic `btnCancel`/`btnConfirm` frames, which have no icon slot and read `fontSize: 14` on the **base component definition itself** (not an instance override), meaning any change there would propagate to every other consumer of `WwNlX` across the app (e.g. delete-server confirmations), not just this dialog. Flagged for maintainer clarification rather than changed blind.
 
-**Export method & validation:** `atqRh` re-exported — JSON via `Print(JSON.stringify(Get("atqRh", {depth: 20})))` through the Pencil `execute` tool, zero `"..."` elision markers, re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline, `python3 -m json.tool` passes. Screenshot via `export_nodes` at 2× scale, `design-export/screenshots/atqRh.png` 1088×788 non-empty PNG (unchanged dimensions from the round-9 export, confirming no layout break). Content check: `"fontSize": 13` appears exactly twice and `"width": 14` appears in the icon override, both confirmed in `design-export/json/atqRh.json` only. No `.pen` file was Read/Grep/cat/sed — all access via Pencil MCP `execute`/`export_nodes`. No git add/commit performed (read-back and export only, per task instructions).
+**Export method & validation:** `atqRh` re-exported — JSON via `Print(JSON.stringify(Get("atqRh", {depth: 20})))` through the Pencil `execute` tool, zero `"..."` elision markers, re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline, `python3 -m json.tool` passes. Screenshot via `export_nodes` at 2× scale, `assets/design-export/screenshots/atqRh.png` 1088×788 non-empty PNG (unchanged dimensions from the round-9 export, confirming no layout break). Content check: `"fontSize": 13` appears exactly twice and `"width": 14` appears in the icon override, both confirmed in `assets/design-export/json/atqRh.json` only. No `.pen` file was Read/Grep/cat/sed — all access via Pencil MCP `execute`/`export_nodes`. No git add/commit performed (read-back and export only, per task instructions).
 
 ## Round 10 — VM7ro geometry fixes (2026-09-20), OD-25/OD-21 precedent
 
@@ -1888,7 +1888,7 @@ Applied the two `classification: "same"` issues from the round-10 visual-diff tr
 
 **Verified live before editing:** both `Hp206` (`padding: 14`, `strokeWidth: 2`) and `OEaBF` (unbroken URL content, `fontSize: 13`) confirmed present via `Get(id, {depth: 0})` through the Pencil `execute` tool prior to any `Update`. Both `Update` calls read back immediately afterward, confirming `padding: 13` and the two-line content landed.
 
-**Export method & validation:** `VM7ro` re-exported — JSON via `Print(JSON.stringify(Get("VM7ro", {depth: 20})))`, zero `"..."` elision markers; the resulting JSON was diffed programmatically against `design-export/json/VM7ro.json` (parsed and compared as Python dicts) and found byte-for-byte structurally identical, confirming the exported file hash-matches the live node. `python3 -m json.tool` passes. Screenshot via `export_nodes` at 2× scale, `design-export/screenshots/VM7ro.png` 1088×802 non-empty PNG (height dropped from the prior 806 to 802, consistent with the 2 CSS px / 4 device px warning-box height reduction). Content check: `"padding": 13` on `Hp206` and the two-line `OEaBF` content each appear exactly once, both confirmed in `design-export/json/VM7ro.json` only. Visual spot-check via `Read` on the exported PNG confirmed the warning box and URL wrap visually match the browser capture's break point, with no clipped or broken layout. No `.pen` file was Read/Grep/cat/sed — all access via Pencil MCP `execute`/`export_nodes`. No git add/commit performed (read-back and export only, per task instructions).
+**Export method & validation:** `VM7ro` re-exported — JSON via `Print(JSON.stringify(Get("VM7ro", {depth: 20})))`, zero `"..."` elision markers; the resulting JSON was diffed programmatically against `assets/design-export/json/VM7ro.json` (parsed and compared as Python dicts) and found byte-for-byte structurally identical, confirming the exported file hash-matches the live node. `python3 -m json.tool` passes. Screenshot via `export_nodes` at 2× scale, `assets/design-export/screenshots/VM7ro.png` 1088×802 non-empty PNG (height dropped from the prior 806 to 802, consistent with the 2 CSS px / 4 device px warning-box height reduction). Content check: `"padding": 13` on `Hp206` and the two-line `OEaBF` content each appear exactly once, both confirmed in `assets/design-export/json/VM7ro.json` only. Visual spot-check via `Read` on the exported PNG confirmed the warning box and URL wrap visually match the browser capture's break point, with no clipped or broken layout. No `.pen` file was Read/Grep/cat/sed — all access via Pencil MCP `execute`/`export_nodes`. No git add/commit performed (read-back and export only, per task instructions).
 
 ## OD-26 — round-10 rulings for the share-link dialogs, DESIGN clauses (2026-09-20)
 
@@ -1908,7 +1908,7 @@ Implements the design-only clauses of OD-26 (`specs/done_014-heroui-web-rebuild/
 
 **Shared-master blast-radius check (per OD-26: "check the other footers before committing"):** searched every top-level frame for `"ref":"j9c5W"` / `"ref":"rkF0p"` at `{depth: 8}`. Only two consumers exist for each: `j9c5W` → `atqRh/nKz2n` (btnPrimary, "Create link") and `VM7ro/m6ngX` (btnPrimary, "Done"); `rkF0p` → `atqRh/QTxwn` (btnCancel, "Cancel") only. `VM7ro`'s `kbpwg` (btnCopy, "Copy link") is a `FIB65` (Button/Outline/SM) instance, not `j9c5W`/`rkF0p`, so it is unaffected by the padding change and needed its own explicit width per the ruling's separate clause. No other dialog footer in the file instances either master, so nothing else needed a check.
 >
-> **Correction (round 11, 2026-09-20): this paragraph is false.** The search only matched *direct* `"ref":"j9c5W"`/`"ref":"rkF0p"` occurrences and missed every consumer that reaches those masters indirectly through the `Gameplane/Button/Small/Default` (`z9ShNE`) and `Gameplane/Button/Small/Ghost` (`J09iP`) wrapper components — `z9ShNE`'s own child `IVgQ8` is a `ref` of `j9c5W`, and `J09iP`'s own child `eWkIT` is a `ref` of `rkF0p`, so both wrappers (and therefore every frame that instances *them*) inherit the `[8, 10]` padding change too. `grep -l '"ref": "z9ShNE"' design-export/json/*.json` and the same for `J09iP` turn up roughly 31 additional frames across the file (settings-panel "Save changes"/"Discard" footers, table row actions, etc.) that were never re-exported for this padding change. See the round-11 section at the end of this file for the corrected scope and full re-export list.
+> **Correction (round 11, 2026-09-20): this paragraph is false.** The search only matched *direct* `"ref":"j9c5W"`/`"ref":"rkF0p"` occurrences and missed every consumer that reaches those masters indirectly through the `Gameplane/Button/Small/Default` (`z9ShNE`) and `Gameplane/Button/Small/Ghost` (`J09iP`) wrapper components — `z9ShNE`'s own child `IVgQ8` is a `ref` of `j9c5W`, and `J09iP`'s own child `eWkIT` is a `ref` of `rkF0p`, so both wrappers (and therefore every frame that instances *them*) inherit the `[8, 10]` padding change too. `grep -l '"ref": "z9ShNE"' assets/design-export/json/*.json` and the same for `J09iP` turn up roughly 31 additional frames across the file (settings-panel "Save changes"/"Discard" footers, table row actions, etc.) that were never re-exported for this padding change. See the round-11 section at the end of this file for the corrected scope and full re-export list.
 
 **Frames re-exported because they instance `x3beP` and inherit the title-wrapper change** (verified via `Get(id, {depth: 0}).ref === "x3beP"` against every top-level id): `atqRh`, `VM7ro`, `KrREo`, `BX0XM`, `DMnEi`, `E9EEv0`, `NLDDv`, `t3IY3u`, `MaoHP`, `I9W8z`, `JLaGB` — 11 direct refs. `S7SCDc` and `Kp48V` ref `WwNlX` (Gameplane/Confirm Dialog), a separate master with its own title node (`QARhG`), not reached by this change, and were left untouched.
 
@@ -1916,7 +1916,7 @@ Implements the design-only clauses of OD-26 (`specs/done_014-heroui-web-rebuild/
 
 - **JSON:** `Print(JSON.stringify(Get(id, {depth: 14})))` via the Pencil `execute` tool for each node in one batch, zero `"..."` elision markers on any of the 14. Re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline; `python3 -m json.tool` passes on all 14.
 - **Screenshot:** single `export_nodes` call for all 14 ids at 2× scale, all landed as non-empty PNGs with real pixel dimensions (verified via Pillow): `atqRh.png` 1088×772, `VM7ro.png` 1088×810, `x3beP.png` 1088×558, `j9c5W.png`/`rkF0p.png` 160×64, `KrREo.png` 1088×854, `BX0XM.png` 1088×766, `DMnEi.png` 1088×1898, `E9EEv0.png` 960×778, `NLDDv.png` 960×1032, `t3IY3u.png` 960×868, `MaoHP.png` 960×430, `I9W8z.png`/`JLaGB.png` 1008×558.
-- **Content check:** `mTitleWrap` (the new wrapper frame's name) found exactly once across all `design-export/json/*.json`, in `x3beP.json` only, confirming it did not leak into any other file. `"padding": [8, 10]` confirmed present in both `j9c5W.json` and `rkF0p.json`. `"strokeAlignment": "inner"` confirmed on both `Hp206` and `SICns` inside `VM7ro.json`. `"lineHeight": 1.4615` and `"width": 99` each confirmed exactly once in `VM7ro.json`.
+- **Content check:** `mTitleWrap` (the new wrapper frame's name) found exactly once across all `assets/design-export/json/*.json`, in `x3beP.json` only, confirming it did not leak into any other file. `"padding": [8, 10]` confirmed present in both `j9c5W.json` and `rkF0p.json`. `"strokeAlignment": "inner"` confirmed on both `Hp206` and `SICns` inside `VM7ro.json`. `"lineHeight": 1.4615` and `"width": 99` each confirmed exactly once in `VM7ro.json`.
 - **Visual spot-check** via `get_screenshot` on `atqRh` and `VM7ro` after all edits: both dialogs render with no broken, collapsed, or overflowing layout — footer buttons, warning box, and link/token row all lay out cleanly at their new sizes.
 - **Alpha≥250 bbox re-measurement** (feeds the harness's `REFERENCE_CROP_ALLOWLIST`, per OD-26's sequencing note "fix atqRh-1 first ... then re-measure all three rects"): computed from the freshly exported PNGs via Pillow — `atqRh.png` bbox `(64, 40, 1024, 684)` → panel 960×644 device px; `VM7ro.png` bbox `(64, 40, 1024, 722)` → panel 960×682 device px; `S7SCDc.png` (unchanged, not re-exported) bbox `(64, 40, 944, 420)` → panel 880×380 device px. These are reported for the harness step to consume; `web/scripts/compare-screenshots.mjs` was not edited by this pass (out of scope — design-only).
 - **No `.pen` file was Read/Grep/cat/sed** — all access via Pencil MCP `execute`/`export_nodes`/`get_screenshot`. No git add/commit performed (read-back and export only, per task instructions).
@@ -1926,15 +1926,15 @@ Implements the design-only clauses of OD-26 (`specs/done_014-heroui-web-rebuild/
 Review of the round-10 OD-26 pass (previous section) found two defects, verified live via the Pencil `execute` tool before any change:
 
 1. **Title-override regression.** `Move("E7Whx", parent)` into the new `Ju6la` (`mTitleWrap`) wrapper dropped the `descendants.E7Whx` override that 13 instancing frames of `x3beP` carried, because moving a component's root-level override target restructures the override path. Eleven of these dialogs (`atqRh`, `VM7ro`, `KrREo`, `BX0XM`, `DMnEi`, `E9EEv0`, `NLDDv`, `t3IY3u`, `MaoHP`, `I9W8z`, `JLaGB`) were rendering the master `x3beP`'s own title text, `"Back up now"`, instead of their own. Two nested instances — `O08uaD/ZSLXq` and `b4eaUf/oElfY` (both titled "Start Capture") — were also affected and restored this round via Update("O08uaD/ZSLXq/E7Whx", {content: "Start Capture"}) and Update("b4eaUf/oElfY/E7Whx", {content: "Start Capture"}). Confirmed by reading `Get(id, {depth: 1}).descendants.E7Whx` on each — the key was absent before this fix. This round restores all 13 instances.
-2. **`mTitleWrap` had no visual effect.** `padding: [-1, 0, 1, 0]` on a `fit_content`-height frame nets to zero height change, so the wrapper neither moved the title glyphs nor changed `x3beP`'s box — `design-export/screenshots/x3beP.png` from round 10 is pixel-identical to the pre-round-10 version. The wrapper added structure (and broke the 11 overrides above) without delivering OD-26's "baseline nudged 1 CSS px" clause.
+2. **`mTitleWrap` had no visual effect.** `padding: [-1, 0, 1, 0]` on a `fit_content`-height frame nets to zero height change, so the wrapper neither moved the title glyphs nor changed `x3beP`'s box — `assets/design-export/screenshots/x3beP.png` from round 10 is pixel-identical to the pre-round-10 version. The wrapper added structure (and broke the 11 overrides above) without delivering OD-26's "baseline nudged 1 CSS px" clause.
 
 **Fix applied (verified live before and after via `Get`):**
 
 - `Move("E7Whx", "x3beP", 0)` then `Delete("Ju6la")` — `E7Whx` confirmed back as `x3beP`'s first child (`Get("x3beP", {depth: 1}).children[0].id === "E7Whx"`); `Ju6la` confirmed gone.
-- Restored each of the 11 dialogs' `descendants.E7Whx` override via `Update("<id>/E7Whx", {...})`, values taken from `git show HEAD:design-export/json/<id>.json` (JSON exports, not `.pen` files): `atqRh` "Create share link for mc-survival"; `VM7ro` "Share link created"; `KrREo` "Install Minecraft (Java Edition)"; `BX0XM` "Upload module"; `DMnEi` "Add module source"; `E9EEv0` `{"content":"Restore backup","lineHeight":1.5}`; `NLDDv` "Invite user"; `t3IY3u` "Edit user"; `MaoHP` "Reset password for operator-01"; `I9W8z` "New folder"; `JLaGB` "New file". Read back via `Get("<id>", {depth: 1}).descendants.E7Whx` on all 11 — matches restored — and cross-checked against a fresh `get_screenshot` of each dialog to confirm the title line itself, not just the JSON content field, renders correctly (a plain content-string grep is not sufficient, per the round-10 lesson).
+- Restored each of the 11 dialogs' `descendants.E7Whx` override via `Update("<id>/E7Whx", {...})`, values taken from `git show HEAD:assets/design-export/json/<id>.json` (JSON exports, not `.pen` files): `atqRh` "Create share link for mc-survival"; `VM7ro` "Share link created"; `KrREo` "Install Minecraft (Java Edition)"; `BX0XM` "Upload module"; `DMnEi` "Add module source"; `E9EEv0` `{"content":"Restore backup","lineHeight":1.5}`; `NLDDv` "Invite user"; `t3IY3u` "Edit user"; `MaoHP` "Reset password for operator-01"; `I9W8z` "New folder"; `JLaGB` "New file". Read back via `Get("<id>", {depth: 1}).descendants.E7Whx` on all 11 — matches restored — and cross-checked against a fresh `get_screenshot` of each dialog to confirm the title line itself, not just the JSON content field, renders correctly (a plain content-string grep is not sufficient, per the round-10 lesson).
 - **OD-26's "baseline nudged 1 CSS px" clause was left unimplemented.** The Pencil schema (`get_app_state({include_schema: true})`) exposes no baseline/offset property on text nodes; the only two candidate mechanisms are (a) padding on a wrapping frame, which nets to zero for a symmetric ±1 pair and is clamped/absorbed for an asymmetric one without moving the glyphs (as demonstrated by the round-10 attempt), and (b) `layoutPosition: "absolute"` on the title text, which detaches it from `x3beP`'s vertical flex flow and would stop it from reserving layout space, shifting every sibling (description/body/footer) up by the title's height — a much larger visual side effect than the clause asks for. Neither renders the intended nudge without a side effect, so the title was left exactly as it was pre-round-10 (`lineHeight: 1.5`, no wrapper). **This clause needs a maintainer decision** on an acceptable mechanism (or to drop the clause) before it can be implemented.
 
-**Corrected blast-radius (supersedes the false claim in the round-10 section above):** the OD-26 padding change on `j9c5W`/`rkF0p` also reaches every frame that instances the wrapper components `z9ShNE` (`Gameplane/Button/Small/Default`, whose child `IVgQ8` refs `j9c5W`) and `J09iP` (`Gameplane/Button/Small/Ghost`, whose child `eWkIT` refs `rkF0p`). `grep -l '"ref": "z9ShNE"' design-export/json/*.json` (19 hits) and the same for `J09iP` (27 hits) union to 31 distinct frames: `b4eaUf`, `dPP50`, `dQV9N`, `DxKOh`, `E0ypH`, `e9lV4`, `f1Vga`, `fK8Bi`, `i1bLR`, `i8wib`, `iLm38`, `J5pjJ3`, `KaRFX`, `m5kOm4`, `O08uaD`, `QpEvu`, `QQtUD`, `RodrS`, `swxkJ`, `sZtDi`, `t3IY3u`, `tY6RD`, `uCA23`, `ugDSa`, `V1VhGE`, `VctzT`, `xCJlu`, `Xn5ns`, `XR0f9`, `Y5cmvI`, `zhLZN`.
+**Corrected blast-radius (supersedes the false claim in the round-10 section above):** the OD-26 padding change on `j9c5W`/`rkF0p` also reaches every frame that instances the wrapper components `z9ShNE` (`Gameplane/Button/Small/Default`, whose child `IVgQ8` refs `j9c5W`) and `J09iP` (`Gameplane/Button/Small/Ghost`, whose child `eWkIT` refs `rkF0p`). `grep -l '"ref": "z9ShNE"' assets/design-export/json/*.json` (19 hits) and the same for `J09iP` (27 hits) union to 31 distinct frames: `b4eaUf`, `dPP50`, `dQV9N`, `DxKOh`, `E0ypH`, `e9lV4`, `f1Vga`, `fK8Bi`, `i1bLR`, `i8wib`, `iLm38`, `J5pjJ3`, `KaRFX`, `m5kOm4`, `O08uaD`, `QpEvu`, `QQtUD`, `RodrS`, `swxkJ`, `sZtDi`, `t3IY3u`, `tY6RD`, `uCA23`, `ugDSa`, `V1VhGE`, `VctzT`, `xCJlu`, `Xn5ns`, `XR0f9`, `Y5cmvI`, `zhLZN`.
 
 **Full re-export this round (50 nodes, all hash-matching the live tree after the fixes above):** `x3beP`; the 11 dialogs (`atqRh`, `VM7ro`, `KrREo`, `BX0XM`, `DMnEi`, `E9EEv0`, `NLDDv`, `t3IY3u`, `MaoHP`, `I9W8z`, `JLaGB`); the two shared small-button masters `j9c5W`, `rkF0p`; the two wrapper components `z9ShNE`, `J09iP`; the corrected 31-frame blast radius above; and the 4 screens named directly in this round's task (`kK8Ji`, `P08Uw`, `KhYNc`, `Ss0Yr`).
 
@@ -1953,7 +1953,7 @@ Note: this table uses inclusive maxes while `web/scripts/compare-screenshots.mjs
 
 `S7SCDc.png` was not re-exported this round — it does not instance `x3beP` (it instances the separate `WwNlX` Confirm Dialog master) and does not reference `j9c5W`/`rkF0p`/`z9ShNE`/`J09iP` anywhere in its tree (checked live via `Get("S7SCDc", (n,c) => ...)`), so it is outside every blast radius touched this round; the bbox above is measured from the existing, unchanged file for the harness step's convenience. `VM7ro.png`'s dimensions themselves (1088×810) are unchanged from the round-10 entry and were re-verified correct; the correction here is to the bbox/panel figures, and to the round-10 blast-radius and re-export-list claims above.
 
-No `.pen` file was Read/Grep/cat/sed this round — all access via Pencil MCP `get_app_state`/`execute`/`export_nodes`/`get_screenshot`. No `git checkout`/`restore`/`stash`/`rm` was run, and nothing in `design-export/` or `design.pen` was staged or committed by this pass.
+No `.pen` file was Read/Grep/cat/sed this round — all access via Pencil MCP `get_app_state`/`execute`/`export_nodes`/`get_screenshot`. No `git checkout`/`restore`/`stash`/`rm` was run, and nothing in `assets/design-export/` or `design.pen` was staged or committed by this pass.
 
 ## Round-12 — OD-27 VM7ro-local overrides (2026-09-20)
 
@@ -2002,13 +2002,13 @@ Fixed the sample container image reference in `O5kaV` (Screen/Dialog/Build Modul
 
 **Port rows unchanged:** `f4U7oU` (port 1 name: "game"), `b4CUxa` (port 1 number: 27015), `bcGo3` (port 1 protocol: UDP), `prNFB` (port 2 number: 27015), `evKQq` (port 2 protocol: TCP), and `q96ywV` (storage mount: /home/steam/cs2-data) were examined and deliberately left as-is — they correctly represent a running server configuration. All other siblings (`IVUPC` storage capacity: 20Gi) unchanged.
 
-**Prior hand-edit overridden:** commit `10fe068a` had previously hand-edited `design-export/json/O5kaV.json` directly, changing the digest, port 27015→27016 and TCP→UDP without any corresponding Pencil design changes. That manual edit was reverted; the current export supersedes it with a proper Pencil-sourced update containing only the image reference correction and no port mutations.
+**Prior hand-edit overridden:** commit `10fe068a` had previously hand-edited `assets/design-export/json/O5kaV.json` directly, changing the digest, port 27015→27016 and TCP→UDP without any corresponding Pencil design changes. That manual edit was reverted; the current export supersedes it with a proper Pencil-sourced update containing only the image reference correction and no port mutations.
 
 **Export method & validation:**
 
 - **JSON:** `Get("O5kaV", {depth: 30})` via the Pencil `execute` tool, zero `"..."` elision markers. Re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline; `python3 -m json.tool` passes.
-- **Screenshot:** `export_nodes` at 2× scale → `design-export/screenshots/O5kaV.png` 1600×1070 RGBA non-empty PNG (verified via PIL: 192052 bytes).
-- **Content check:** the full pinned image reference `ghcr.io/valgulnecron/cs2-server:latest@sha256:4b9a8e23f0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7` found exactly once, in `design-export/json/O5kaV.json` only. Port and storage values confirmed unchanged via grep.
+- **Screenshot:** `export_nodes` at 2× scale → `assets/design-export/screenshots/O5kaV.png` 1600×1070 RGBA non-empty PNG (verified via PIL: 192052 bytes).
+- **Content check:** the full pinned image reference `ghcr.io/valgulnecron/cs2-server:latest@sha256:4b9a8e23f0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7` found exactly once, in `assets/design-export/json/O5kaV.json` only. Port and storage values confirmed unchanged via grep.
 - **No `.pen` file was Read/Grep/cat/sed** — all access via Pencil MCP `execute`/`export_nodes`, per Rule 2.
 - No git add/commit performed (task instructions: export and manifest correction only).
 
@@ -2040,9 +2040,9 @@ Per the design/code reconciliation pass, four module-builder screen frames were 
 **Export method & validation (all 4 nodes: `kK8Ji`, `IdbiB`, `O5kaV`, `hmPL7`):**
 
 - **kK8Ji and IdbiB** exported cleanly on the first pass: `Get(id, {depth: 30})` via Pencil `execute` tool, zero `"..."` elision markers. Re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline; `python3 -m json.tool` passes on both.
-- **O5kaV and hmPL7 initially failed to regenerate:** the first-pass agent invoked `execute` with the wrong argument shape (passing `code` instead of `input`), which the tool rejected, and mistakenly concluded `Get()` returns no JSON payload; it left the pre-reconciliation content in `design-export/json/O5kaV.json` and `design-export/json/hmPL7.json` in place and reported success anyway. This was caught and corrected in a follow-up pass: both nodes were re-fetched via `Get(id, {depth: 30})` through `execute` with the correct `input` argument, re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline, and `python3 -m json.tool` passes on both.
+- **O5kaV and hmPL7 initially failed to regenerate:** the first-pass agent invoked `execute` with the wrong argument shape (passing `code` instead of `input`), which the tool rejected, and mistakenly concluded `Get()` returns no JSON payload; it left the pre-reconciliation content in `assets/design-export/json/O5kaV.json` and `assets/design-export/json/hmPL7.json` in place and reported success anyway. This was caught and corrected in a follow-up pass: both nodes were re-fetched via `Get(id, {depth: 30})` through `execute` with the correct `input` argument, re-serialized with `json.dump(indent=2, ensure_ascii=False)` + trailing newline, and `python3 -m json.tool` passes on both.
 - **Screenshot:** `export_nodes` at 2× scale for all 4 ids. First-pass agent self-reports were unreliable: kK8Ji, IdbiB, and hmPL7 generated valid non-empty RGBA PNGs with correct pixel dimensions on the first pass, while O5kaV's PNG never regenerated at all (remained ~20 hours older than design.pen save timestamp, not shown as modified in git status). O5kaV's PNG was corrected in a follow-up pass. Final verification via PNG mtime compared against design.pen save time for all four ids; complemented by change-proving greps (post-change strings present, pre-change strings absent) documented in content checks below.
-- **Content checks:** unique body text per node validated — kK8Ji "Create module" button label found in `design-export/json/kK8Ji.json` only; IdbiB category chips ("Shooter", "Creative", etc.) confirmed in `design-export/json/IdbiB.json` only. For O5kaV and hmPL7, the follow-up pass used change-proving greps instead of a same-in-both-versions check: O5kaV confirmed to contain "Persistent Storage" and `PortRow1_Delete`/`PortRow2_Delete` while no longer containing "Persistent Storage Volume", with the unflipped port rows (game/27015/UDP; query/27015/TCP) and storage values (`/home/steam/cs2-data`, `20Gi`) intact; hmPL7 confirmed to contain "All schema constraints" and "Cluster destination source" and the memory presets ("2Gi", "4Gi", "8Gi", "16Gi") while no longer containing "Instant offline verification passed" or "Resolved image".
+- **Content checks:** unique body text per node validated — kK8Ji "Create module" button label found in `assets/design-export/json/kK8Ji.json` only; IdbiB category chips ("Shooter", "Creative", etc.) confirmed in `assets/design-export/json/IdbiB.json` only. For O5kaV and hmPL7, the follow-up pass used change-proving greps instead of a same-in-both-versions check: O5kaV confirmed to contain "Persistent Storage" and `PortRow1_Delete`/`PortRow2_Delete` while no longer containing "Persistent Storage Volume", with the unflipped port rows (game/27015/UDP; query/27015/TCP) and storage values (`/home/steam/cs2-data`, `20Gi`) intact; hmPL7 confirmed to contain "All schema constraints" and "Cluster destination source" and the memory presets ("2Gi", "4Gi", "8Gi", "16Gi") while no longer containing "Instant offline verification passed" or "Resolved image".
 - **No `.pen` file was Read/Grep/cat/sed** — all access via Pencil MCP `execute`/`export_nodes`, per Rule 2.
 - No git add/commit performed (export and manifest correction only, per task instructions).
 
@@ -2121,7 +2121,7 @@ Feature 016 (user theme customization, `specs/done_016-user-theme-customization/
 1. **Modal pass:** the feature was first built as a modal (`fvIJU` Gameplane/Theme Settings Modal + four modal-over-backdrop screens).
 2. **Page pass:** after the operator's modal→page decision the contract was amended (§2: full settings page at route `/settings/theme` in the standard app shell; actions row = Reset to Defaults left + Save right, no Cancel/X). `fvIJU` — a node created by this wave, not a pre-existing one — was **deleted** along with its exports, and the four screens were rebuilt in place as tabbed pages.
 3. **Idiom-fix pass:** the four screens were rebuilt in place once more (same ids/positions) to match `WZdnw`'s settings-screen idiom: left settings sub-nav (`Mp7Ep`-modeled, active item `$surface/secondary`) + `XDZ0E`/`FRpsu` card sections + WZdnw-style actions row.
-4. **Stacked-page pass (this export):** per operator direction, the sub-nav was also removed (it made the page look like a sub-menu of Admin Settings). The four screens collapsed into ONE simple page — app shell + page header + all sections stacked as cards on one scrollable page. `O6AZz` and `D6ExxJ` (this wave's own nodes) were **deleted** along with their exports (`design-export/json/O6AZz.json`, `design-export/json/D6ExxJ.json`, `design-export/screenshots/O6AZz.png`, `design-export/screenshots/D6ExxJ.png`).
+4. **Stacked-page pass (this export):** per operator direction, the sub-nav was also removed (it made the page look like a sub-menu of Admin Settings). The four screens collapsed into ONE simple page — app shell + page header + all sections stacked as cards on one scrollable page. `O6AZz` and `D6ExxJ` (this wave's own nodes) were **deleted** along with their exports (`assets/design-export/json/O6AZz.json`, `assets/design-export/json/D6ExxJ.json`, `assets/design-export/screenshots/O6AZz.png`, `assets/design-export/screenshots/D6ExxJ.png`).
 
 **No pre-existing node was modified at any point in this wave** — deleting/rebuilding this wave's own nodes is not a pre-existing-node modification; everything that existed before the wave was consumed strictly as `ref` instances (or, for breadcrumb replacement, type-replaced frames inside this wave's own instances).
 
@@ -2146,7 +2146,7 @@ Contract §1 (triggers — TopBar user menu, sidebar footer, login safe-mode lin
 
 **Export method & validation (the 2 screens):**
 
-- **JSON:** `Print(JSON.stringify(Get(id, {depth: 14, includePathGeometry: true})))` via the Pencil `execute` tool, written verbatim to `design-export/json/<id>.json`; `python3 json.load()` passes on both, zero `"..."` elision markers, and neither contains `"ref":"fvIJU"` / `O6AZz` / `D6ExxJ` dangling references (deleted nodes leave no references — verified by grep). Both exports keep unresolved `ref` form for the shell components.
+- **JSON:** `Print(JSON.stringify(Get(id, {depth: 14, includePathGeometry: true})))` via the Pencil `execute` tool, written verbatim to `assets/design-export/json/<id>.json`; `python3 json.load()` passes on both, zero `"..."` elision markers, and neither contains `"ref":"fvIJU"` / `O6AZz` / `D6ExxJ` dangling references (deleted nodes leave no references — verified by grep). Both exports keep unresolved `ref` form for the shell components.
 - **Screenshots:** single `export_nodes` batch at 2x scale → both PNGs non-empty (lWvcv 827 KB, T1wkiT 910 KB).
 - **Content check:** unique body-text greps, all hit exactly once: `lWvcv` → "re-applied later"; `T1wkiT` → "fails WCAG AA" and "32,768".
 - **Visual check:** `get_screenshot` on both screens plus repeated `ctx.problems` sweeps with `resolveInstances: true` — zero clipping/overlap remaining after the height grows (intermediate "partially clipped" reports were the engine measuring against the pre-resize frame height; sweeps after the final resize are clean on repeat reads).
@@ -2185,7 +2185,7 @@ Three operator-directed corrections after the stacked-page pass above.
 
 **Correction 2 — nav column added to `lWvcv` + `T1wkiT`:** each screen's Body (index 1) gained a `Settings Layout` row (fill×fill, gap 24) containing an `Mp7Ep` ref ("Settings Nav", width 220, descendants `{"eIjoV":{"fill":"#00000000"},"vbQ98":{"fill":"$surface/secondary"}}` — Theme active) with the existing content column moved in as child 1, matching `WZdnw`'s nav+fill-content placement exactly. **Judgment call (flagged):** each content column's width was changed 840→`fill_container` to match WZdnw precisely (all cards were already fill-width internally, so no visual regression; the column simply absorbs the space left of it). No screen-height change was needed (nav ~394px < content). New ids — `lWvcv`: layout row `cCakB`, nav instance `beXe1` (body `YBNce`, column `A1pd4`); `T1wkiT`: layout row `fQBYE`, nav instance `O5D0M` (body `y3RL7i`, column `F5MnIY`). `ctx.problems` clean ×2 on both screens; lWvcv crop screenshot-verified (Theme highlighted active) and T1wkiT full screenshot verified.
 
-**Correction 3 — login safe-mode link color:** the `s12HO` link added in the trigger pass rendered blue (`$foreground/link`); the operator fixed it in the `.pen` to pink `$accent/accent` (matching the cards' "Forgot?" link convention) and rewrote `design-export/json/J14ME.json` / `g2HLxz.json` himself — this wave did NOT touch those JSONs. This wave only re-exported the two PNGs and verified color: `J14ME.png` (106 KB) and `g2HLxz.png` (114 KB) at 2x both show "…with safe mode (custom styling…" in pink (verified by pixel-crop reads of the exported PNGs; `N1GkB`/`gX7um` canvas screenshots also show the pink link below the Keycloak button).
+**Correction 3 — login safe-mode link color:** the `s12HO` link added in the trigger pass rendered blue (`$foreground/link`); the operator fixed it in the `.pen` to pink `$accent/accent` (matching the cards' "Forgot?" link convention) and rewrote `assets/design-export/json/J14ME.json` / `g2HLxz.json` himself — this wave did NOT touch those JSONs. This wave only re-exported the two PNGs and verified color: `J14ME.png` (106 KB) and `g2HLxz.png` (114 KB) at 2x both show "…with safe mode (custom styling…" in pink (verified by pixel-crop reads of the exported PNGs; `N1GkB`/`gX7um` canvas screenshots also show the pink link below the Keycloak button).
 
 **Correction-wave export validation (3 re-exported objects + 2 PNG-only):**
 
@@ -2382,7 +2382,7 @@ entry below records the subsequent restoration of canonical Pencil comparisons.
 ## Visual baseline reconciliation 2026-10-02 — Restore canonical Pencil comparisons
 
 In response to upstream PR #542's review, the visual workflow again runs
-`npm run diff:screenshots -- --check-expected` against `design-export/screenshots`.
+`npm run diff:screenshots -- --check-expected` against `assets/design-export/screenshots`.
 No browser captures replace Pencil baselines. The retired browser-reference
 bundles remain available in Git history at `4d7c08bb673e38ccf4a7dba9f3b3deb45dd20474`.
 Thresholds, masks, scaling rules, screenshot fixtures and expected-screen checks
@@ -2437,7 +2437,7 @@ A scan of every top-level frame's bounds found 30 overlapping pairs in four clus
 **Export method & validation:**
 
 - **55 frames that only moved:**
-  - Only the top-level `"y"` in each `design-export/json/<id>.json` changed.
+  - Only the top-level `"y"` in each `assets/design-export/json/<id>.json` changed.
   - It was patched in place with `sed`, without re-serializing, and checked with `jq -e '.y == <new>'`.
   - Their screenshots were not re-exported, because moving a frame does not change its rendered pixels.
 - **The nine flow states above:**

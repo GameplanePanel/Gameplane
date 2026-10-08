@@ -364,7 +364,7 @@ function ResourceCard({
   );
 }
 
-// 8px address rows per design (design-export/screenshots/EZFW0.png): compact
+// 8px address rows per design (assets/design-export/screenshots/EZFW0.png): compact
 // bordered rows for each connection value, most with a copy affordance.
 function EndpointRow({ label, children }: { label: string; children: ReactNode }) {
   return (

@@ -3,7 +3,7 @@ import { useServerCapabilities, type CaptureCapabilities } from "@/lib/useServer
 // Network-capture surface for a GameServer's "Capture" tab. Mirrors the
 // Backups tab's structure (own TanStack Query calls, own mutations, plain
 // <table> for the list) per CLAUDE.md's "Add a new dashboard page" recipe.
-// Design source: design-export/json/{f0s9zG,Bbnga,dBILX,xvlB6,m5kOm4,
+// Design source: assets/design-export/json/{f0s9zG,Bbnga,dBILX,xvlB6,m5kOm4,
 // O08uaD,b4eaUf}.json — read directly (never design.pen; see CLAUDE.md
 // rule 2). Endpoints and error-body shape follow
 // specs/done_003-network-capture-sidecar/contracts/rest-api.md (plain-text
@@ -98,7 +98,7 @@ function durationBetween(startedAt: string, completedAt: string): string {
 
 // Expiry badges recolor as the retention window closes in, so an admin
 // scanning the table can tell "plenty of time" from "about to be
-// GC'd" at a glance (see design-export/json/m5kOm4.json's per-row colors).
+// GC'd" at a glance (see assets/design-export/json/m5kOm4.json's per-row colors).
 function expiryLabel(expiresAt: string): { text: string; color: "default" | "warning" | "danger" } {
   const t = new Date(expiresAt).getTime();
   if (Number.isNaN(t)) return { text: "—", color: "default" };

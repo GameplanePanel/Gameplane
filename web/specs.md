@@ -35,7 +35,7 @@ The Gameplane dashboard is a React SPA providing a UI layer over the Gameplane A
 The [unified dashboard](../docs/unified-dashboard.md) combines authorized
 resources across locations. [Cluster administration](../docs/multicluster-ui.md)
 retains a separate inventory selection. `design.pen` and the
-[design exports](../design-export/MANIFEST.md) define the visual surface.
+[design exports](../assets/design-export/MANIFEST.md) define the visual surface.
 
 - Dashboard, Servers, Backups and global Search consume `/fleet/*` envelopes. Exact location/namespace filters request narrower backend results so they can recover resources omitted by the combined result limit. Authorized scope metadata keeps filter options available for empty or unavailable locations.
 - Each row retains `{cluster, namespace, name, uid}`, resource data and exact target permissions. Same-named resources in different locations remain distinct. Server routes carry `cluster` and `ns`; legacy routes without a cluster resolve local, independently of remembered infrastructure selection.
@@ -938,7 +938,7 @@ Visible tab set depends on server template + active version:
 7. **Modpacks** — Install modpacks (only if template + active version supports loader with modpack capability)
 8. **Players** — Online player snapshot, ban list, whitelist, kick/ban/unban actions
 9. **Backups** — Per-server backup list, schedule management, restore trigger; reads backup repository URL from Secret `key: "repo"`
-10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:127-175`) and router/tab wiring (`ServerDetail.tsx:278`) are implemented in `web/src`.
+10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:127-175`) and router/tab wiring (`ServerDetail.tsx:278`) are implemented in `web/src`.
 11. **Settings** — Grouped form with sub-sections (below); changes are draft-until-save; conflict detection on reload
 
 On narrow screens, server actions wrap and the detail tab strip scrolls inside its navigation container. Selecting a tab keeps that tab visible without horizontally scrolling the page or moving the panel controls off-screen.

@@ -36,7 +36,7 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Component | `specs.md` location | Primary Responsibilities |
 | --- | --- | --- |
 | **Web Dashboard** | `web/specs.md` | The React SPA frontend. |
-| **Design Export** | `design-export/MANIFEST.md` | Plain-file snapshot of the Pencil source for the product's designed screens. |
+| **Design Export** | `assets/design-export/MANIFEST.md` | Plain-file snapshot of the Pencil source for the product's designed screens. |
 | **Images** | `docs/img/` | Screenshot gallery for documentation and testing. |
 | **Website** | `website/` (submodule) | Public marketing and documentation site. |
 | **Modules** | `modules/<game>/specs.md` | OCI bundle templates for deploying specific games (e.g., Minecraft, Rust). |
