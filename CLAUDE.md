@@ -59,7 +59,7 @@ deploy/kind/         local Kind scripts
 test/e2e/            Kind E2E suite (//go:build e2e)
 docs/                architecture, security, modules
 design.pen           canonical Pencil dashboard design
-cosign.pub           image + module signature key
+signing/             cosign public keys, dated legacy key + cross-signature (image + module)
 go.work              links all 16 Go modules (incl. test/e2e)
 Makefile             canonical task runner
 ```

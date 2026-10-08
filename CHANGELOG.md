@@ -981,7 +981,7 @@ the docs ahead of wider external testing. Highlights below.
 ### Added
 
 - **ci/supply-chain:** the cosign **public key is now published** — committed
-  at the repo root as [`cosign.pub`](cosign.pub), exported by CI (job summary +
+  under signing/ as [`cosign.pub`](signing/cosign.pub), exported by CI (job summary +
   artifact on every edge publish), and shipped as a release asset. Both publish
   workflows now **verify each signature right after signing** with the key
   derived from the CI secret, and fail the publish if the committed

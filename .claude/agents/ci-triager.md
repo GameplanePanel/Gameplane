@@ -123,7 +123,7 @@ gh api repos/GameplanePanel/Gameplane/issues/<n>/labels -q '[.[].name]|join(", "
    - `go: <module> / <arch>` → `<module>/` (Go). Coverage threshold in `<module>/.testcoverage.yml` (or from list above for quick lookup).
    - `web` → `web/` (JS/TS). Coverage thresholds in `web/vitest.config.ts`.
    - `e2e-go: <bucket>` → `test/e2e/` (Go). Mapping: `test/e2e/buckets.sh regex '<bucket>'` lists test names.
-   - `chart-template` → `charts/gameplane/` or root `cosign.pub` (if key mismatch).
+   - `chart-template` → `charts/gameplane/` or `signing/cosign.pub` (if key mismatch).
    - `capture-sidecar-setcap-proof` → `capture-sidecar/Dockerfile`.
 
 3. **Extract root cause from logs:**

@@ -20,7 +20,7 @@ import (
 // fixture server can't stand in). raw.githubusercontent.com is already a
 // hard dependency of CI (actions, images), and the file is this repo's own
 // signing key (~100 bytes).
-const modDownloadURL = "https://raw.githubusercontent.com/GameplanePanel/Gameplane/main/cosign.pub"
+const modDownloadURL = "https://raw.githubusercontent.com/GameplanePanel/Gameplane/main/signing/cosign.pub"
 
 // applyModsTemplate is applyBusyboxTemplate plus a mods capability: a plain
 // "mods" directory with URL installs allowed from GitHub raw. No extension

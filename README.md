@@ -222,18 +222,18 @@ values reference. For address pool configuration (pinning servers to specific
 public IP addresses), see [`docs/networking.md`](docs/networking.md).
 
 All published images, the Helm chart, and official module bundles are signed
-with the project's cosign key ([`cosign.pub`](cosign.pub), also baked into
+with the project's cosign key ([`cosign.pub`](signing/cosign.pub), also baked into
 the chart for module verification) and recorded in the public Sigstore Rekor
 transparency log:
 
 ```sh
-cosign verify --key cosign.pub \
+cosign verify --key signing/cosign.pub \
   ghcr.io/gameplanepanel/gameplane/operator:<version>
 ```
 
 Pre-rotation releases (v0.2.0-beta.7 and earlier) were signed with the retired <!-- doc-versions: historical -->
 Ed25519 key and do not have transparency log entries — verify them with
-`cosign-legacy.pub` and `--insecure-ignore-tlog=true`. See
+`signing/2026-07-24-cosign-legacy.pub` and `--insecure-ignore-tlog=true`. See
 [`docs/key-rotation.md`](docs/key-rotation.md) for details.
 
 ## Quickstart (local dev)

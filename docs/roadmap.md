@@ -191,7 +191,7 @@ create/update/delete/patch tool exists. See [`mcp-server/README.md`](../mcp-serv
 The keyed-cosign signing mechanism is implemented and e2e-proven, and
 `ModuleSource.spec.verify` can require a valid signature. It is now **active**
 for official bundles with Sigstore Rekor transparency logging: `cosign.pub`
-(ECDSA P-256) is committed at the repo root (and baked into the chart for
+(ECDSA P-256) is committed under `signing/` (and baked into the chart for
 module verification), and the Helm chart is signed for the first time.
 `publish-edge` signs the rolling images, `release` signs the tagged images,
 the chart, and the official bundles, and `republish-modules` re-signs bundles

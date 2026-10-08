@@ -429,7 +429,7 @@ public key ships to users:
 cosign generate-key-pair                 # writes cosign.key (private) + cosign.pub
 # CI secrets (Settings → Environments → release-signing): paste each file
 #   COSIGN_PRIVATE_KEY = <cosign.key>    COSIGN_PASSWORD = <the passphrase>
-# Commit cosign.pub at the repo root — CI drift-checks it against the
+# Commit cosign.pub as signing/cosign.pub — CI drift-checks it against the
 # private key on every publish, and it ships as a release asset.
 ```
 
@@ -453,7 +453,7 @@ defaultModuleSource:
     verify:
       enabled: true
       # cosignPublicKey ships with the chart (the official ECDSA P-256 key,
-      # same as the repo-root cosign.pub);
+      # same as signing/cosign.pub);
       # override it only to pin a different signer.
 ```
 

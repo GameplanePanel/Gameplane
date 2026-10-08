@@ -132,8 +132,8 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/common-${{ matrix.base }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the tags only now that the digest carries a verified signature.
@@ -338,8 +338,8 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/${{ matrix.game }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the tags only now that the digest carries a verified signature.

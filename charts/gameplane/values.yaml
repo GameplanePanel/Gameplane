@@ -671,7 +671,7 @@ defaultModuleSource:
     # module-signing public key (ECDSA P-256) ships below; set enabled: true
     # (with type: oci) to refuse any official bundle not signed by the matching
     # private key. Module-bundle verification is keyed and offline (no Rekor) by
-    # default. Keep this key byte-identical to the repo-root cosign.pub. See
+    # default. Keep this key byte-identical to signing/cosign.pub. See
     # docs/module-authoring.md "Signing official bundles".
     verify:
       enabled: false
