@@ -1,11 +1,11 @@
 # Gameplane game server image for Nuclear Option (dedicated server).
 #
-# This image builds on the shared SteamCMD base (images/common/steamcmd/).
+# This image builds on the shared SteamCMD base (containers/common/steamcmd/).
 # The game server is installed at container startup via steam-install.sh,
 # so the very first start downloads the game (~900 MB installed).
 #
 # Usage (container networking — port 7779 is loopback-only and unreachable outside the pod):
-#   docker build -t gameplane-nuclear-option:latest images/games/nuclear-option
+#   docker build -t gameplane-nuclear-option:latest containers/games/nuclear-option
 #   docker run -it \
 #     -v game-data:/data \
 #     -p 7778:7778/udp \

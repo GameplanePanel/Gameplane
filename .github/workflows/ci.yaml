@@ -145,7 +145,7 @@ jobs:
             e2etree:
               - 'test/e2e/**'
               - 'deploy/kind/**'
-              - 'docker-bake.hcl'
+              - 'containers/docker-bake.hcl'
             # Narrower than e2etree on purpose: this backs a job that only
             # smoke-tests deploy/kind/**'s pinned dev ingress-nginx manifest
             # on a real Kind cluster, and must NOT run on every e2e-affecting

@@ -301,7 +301,7 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
-    directory: "/images/common/steamcmd"
+    directory: "/containers/common/steamcmd"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -315,7 +315,7 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
-    directory: "/images/games/nuclear-option"
+    directory: "/containers/games/nuclear-option"
     schedule:
       interval: "weekly"
       day: "monday"
