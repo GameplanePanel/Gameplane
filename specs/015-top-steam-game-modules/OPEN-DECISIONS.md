@@ -44,6 +44,9 @@ Factorio natively supports Source RCON over UDP/TCP when `--rcon-port` and `--rc
 ### Recommendation
 The shipped template (`rcon.protocol: source`) is correct and functional. Both RCON and stdin can coexist. Retain the shipped template configuration pending final maintainer confirmation.
 
+### Maintainer Ruling (2026-10-09)
+Keep `rcon.protocol: source` as shipped. `contracts/engine-matrix-contract.md` is corrected to match.
+
 ---
 
 ## 3. Project Zomboid Protocol Finding (T005)
@@ -63,6 +66,9 @@ Project Zomboid's dedicated server supports RCON (Source-compatible protocol) th
 
 ### Recommendation
 The shipped template (`rcon.protocol: source`) is valid and matches PZ's native RCON server capabilities. Retain the shipped template configuration without change pending final maintainer confirmation.
+
+### Maintainer Ruling (2026-10-09)
+Keep `rcon.protocol: source` as shipped. `contracts/engine-matrix-contract.md` is corrected to match.
 
 ---
 

@@ -16,7 +16,7 @@ This matrix defines the required configurations, port specifications, query prot
 | `palworld` | 2394010 | A2S_INFO (UDP) | 8211 UDP | 27015 UDP | 8212 TCP (REST) / 25575 TCP (RCON) | `/palworld/Pal/Saved` | `Save` |
 | `fivem` | N/A | CFX Query (UDP) | 30120 UDP | 30120 UDP | 40120 TCP (txAdmin HTTP) | `/server-data` | `quit` |
 | `rust` | 258550 | A2S_INFO (UDP) | 28015 UDP | 28015 UDP | 28016 TCP (WebSocket RCON) | `/serverdata` | `server.save` |
-| `project-zomboid` | 380870 | A2S_INFO (UDP) | 16261 UDP | 16261 UDP | Stdin Console | `/home/pzuser/Zomboid` | `save` |
+| `project-zomboid` | 380870 | A2S_INFO (UDP) | 16261 UDP | 16261 UDP | 27015 TCP (Source RCON) | `/home/pzuser/Zomboid` | `save` |
 | `team-fortress-2` | 232250 | A2S_INFO (UDP) | 27015 UDP | 27015 UDP | 27015 TCP (Source RCON) | `/home/steam/tf-dedicated` | N/A (Stateless) |
 | `dayz` | 223350 | A2S_INFO (UDP) | 2302 UDP | 27016 UDP | 2306 UDP (BattlEye RCON) | `/serverdata` | `#shutdown` |
 | `farming-simulator-25`| N/A | GIANTS HTTP | 10823 UDP | 10823 UDP | 8080 TCP (Web Admin HTTP) | `/data/My Games/FarmingSimulator2025` | Web Save API |
