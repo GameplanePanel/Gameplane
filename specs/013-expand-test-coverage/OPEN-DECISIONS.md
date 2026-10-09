@@ -1,6 +1,6 @@
 # Open Decisions
 
-**Status**: 3 open (OD-1, OD-2, OD-3); 0 ruled.
+**Status**: 2 open (OD-2, OD-3); 1 ruled (OD-1 on 2026-10-09).
 
 Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract until it is ruled here. Work proceeds on each recommended default except where noted.
 
@@ -8,7 +8,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 ### OD-1: What "module freshness drift" means
 
-**Status**: OPEN
+**Status**: RULED (2026-10-09, user)
 
 **Question**: Which check does the spec's "module freshness drift" gate (FR-001, SC-001) mean?
 
@@ -19,7 +19,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 **Recommended default**: (1). It mechanizes the existing convention that pointer bumps happen only after the submodule PR merges. (2) duplicates Dependabot and turns every PR red on upstream releases; (3) blocks unrelated PRs whenever a submodule moves.
 
-**Blocking**: G6 is not implemented until this is ruled. Every other gate proceeds.
+**Ruling (2026-10-09, user)**: option (1), merged pointers. The `modules/` and `website/` gitlinks must be ancestors of their upstream `main`; being behind the tip is allowed. G6 is unblocked as specified in [contracts/static-gates.md](contracts/static-gates.md#g6-submodule-freshness).
 
 ---
 

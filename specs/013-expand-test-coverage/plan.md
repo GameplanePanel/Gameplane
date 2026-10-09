@@ -95,7 +95,7 @@ specs/013-expand-test-coverage/
 ├── research.md                     # Phase 0 (R0 baseline + R1–R11 decisions)
 ├── data-model.md                   # Phase 1: gate, fixture, gap, record entities
 ├── quickstart.md                   # Phase 1: how to validate each story in CI
-├── OPEN-DECISIONS.md               # OD-1..OD-3 (rule 10)
+├── OPEN-DECISIONS.md               # OD-1 ruled; OD-2, OD-3 open (rule 10)
 ├── contracts/
 │   ├── static-gates.md             # per-gate trigger / failing condition / proof script contract
 │   ├── coverage-gap-record.md      # coverage-gaps.md format + validator rules
@@ -146,7 +146,7 @@ web/
 ## Phase sequencing (input to /speckit-tasks)
 
 1. **Foundation**: seed `coverage-gaps.md` and its validator from R0, and add the `ci_scope.py` outputs. Everything else updates the record.
-2. **US1 static gates** (P1), one PR per gate so each can be shown failing then passing in isolation. Order: codegen drift → govulncheck → hadolint (+ fixes) → Trivy (+ base bumps) → dependency-review (validation PR) → submodule freshness (after OD-1).
+2. **US1 static gates** (P1), one PR per gate so each can be shown failing then passing in isolation. Order: codegen drift → govulncheck → hadolint (+ fixes) → Trivy (+ base bumps) → dependency-review (validation PR) → submodule freshness.
 3. **US2 live specs** (P1), in parallel with US1. The restic helper lands first.
 4. **US4 unit** (P2), independent; can run in parallel with anything.
 5. **US3 optional components** (P2): image bake inputs first, then the lifecycle test.

@@ -71,4 +71,4 @@ Each gate below is a binding contract for its implementing task. Common rules fo
 | Fails when | a committed pointer is not on the upstream default branch (unmerged submodule commit) |
 | Allowed | a pointer behind the tip |
 | Proof | `hack/check-submodule-freshness_test.sh` builds bare upstream + superproject repos in `mktemp -d` and checks an on-branch pointer (pass) and an off-branch pointer (fail) |
-| Status | interpretation pending **OD-1**; not implemented until it is ruled |
+| Status | interpretation settled by **OD-1** (ruled 2026-10-09: merged pointers) |

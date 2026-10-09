@@ -128,7 +128,7 @@ The spec was written on 2026-09-02. Several of its survey numbers are stale, so 
 - Reading "module freshness" as "Go modules not on latest": Dependabot already owns that, and as a merge gate it would turn every PR red on each upstream release.
 - Requiring pointers to equal the tip: blocks unrelated PRs whenever the submodule moves.
 
-The interpretation is recorded as OD-1 so the user can overrule it before the gate lands.
+The user confirmed this interpretation on 2026-10-09 (OD-1, ruled).
 
 ---
 
