@@ -285,6 +285,12 @@ This marks the exact moment the server is ready to accept connections.
 
 ---
 
+## Decision Record: Player Display Names (T022)
+
+The dedicated server's `get-player-list` returns only `steamId` and `faction` (upstream removed `displayName` because the headless server caches no names and directs integrators to Steam's Web API). **FR-007 and US3 Acceptance Scenario 1 stand as written.** Gameplane resolves names with a Steam Web API lookup that lives in the **API server** (`api/internal/steam/`), never the agent: the games namespace runs `default-deny-egress` over every pod (`charts/gameplane/templates/networkpolicies.yaml`), so an agent-side lookup would need an egress hole and the Steam key in every game pod, whereas the control-plane namespace gives one egress path, one Secret and one shared cache.
+
+Constraints: outbound calls dial through `netguard` with the strict `IsPublic` policy; the key is optional and comes from a Secret (`api.steam.apiKeySecretRef`, env `GAMEPLANE_STEAM_API_KEY` only); ids are batched into `ISteamUser/GetPlayerSummaries/v2` calls of up to 100; each call is bounded by a timeout inside the SC-004 five-second budget; results live in a small bounded in-process LRU cache (hours-scale positive TTL, shorter negative TTL for ids Steam omits, single-flight de-duplication) and **not** in a database table, migration, Redis or a cross-replica cache; any failure degrades to the raw Steam ID; kick, ban and unban stay keyed on the Steam ID. Full design: `data-model.md` §8 and `plan.md` Decision 9; implementation: T081–T104.
+
 ## Out of Scope
 
 - **Address pool creation and management**: Gameplane does not create or manage address pools. Pools must be created and configured by the cluster operator (via MetalLB/Cilium/other address manager configuration), and Gameplane only consumes pool names/hints the operator provides.
