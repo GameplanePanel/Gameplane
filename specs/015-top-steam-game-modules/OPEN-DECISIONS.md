@@ -147,6 +147,9 @@ To unify FiveM's txAdmin API (T047) and Farming Simulator 25's web admin API (T0
 ### Recommendation
 Maintainer ruling requested: Amend SC-005 and SC-006 in `spec.md` to reflect the sampled verification strategy, or acknowledge the remaining coverage as deferred heavy tests in `bucket_bot_heavy`.
 
+### Maintainer Ruling (2026-10-09)
+Amend the spec. SC-005 and SC-006 in `spec.md` now state sampled e2e verification plus a static audit of all 26 modules; no per-module restart or RCON e2e tests are added.
+
 ---
 
 ## 7. Storage Mount Path Divergence Findings (T012)
