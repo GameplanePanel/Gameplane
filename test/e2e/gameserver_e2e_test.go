@@ -341,9 +341,8 @@ func TestGameServer_HeartbeatReachesRunning(t *testing.T) {
 }
 
 // TestGameServer_NetworkCaptureStartStopDownload — opt a GameServer into
-// capture (spec.capture.enabled=true; the :capture-enable/:capture-disable
-// HTTP routes are US2 and not yet built, so this is set directly on the
-// spec rather than through the API), start a capture with a BPF filter
+// capture (spec.capture.enabled=true, set directly on the spec at creation
+// so the sidecar is injected on the first reconcile), start a capture with a BPF filter
 // restricted to a single advertised port, generate both filter-matching
 // and non-matching traffic, stop the capture, download the file, and
 // assert:
@@ -388,10 +387,10 @@ func TestGameServer_NetworkCaptureStartStopDownload(t *testing.T) {
 
 	applyBusyboxTemplate(t, tmpl)
 	// spec.capture.enabled=true at creation time — see
-	// applyBusyboxGameServerWithCapture's doc comment for why this
-	// bypasses the (unbuilt) :capture-enable route. The operator
-	// injects the capture sidecar as an ephemeral container as soon as
-	// it observes the flag.
+	// applyBusyboxGameServerWithCapture's doc comment for why the flag is
+	// set at creation rather than through the :capture-enable route. The
+	// operator injects the capture sidecar as an ephemeral container as
+	// soon as it observes the flag.
 	applyBusyboxGameServerWithCapture(t, ns, gsName, tmpl)
 	waitPVCBound(t, ns, gsName+"-data", 90*time.Second)
 	requireAgentReady(t, ns, gsName)

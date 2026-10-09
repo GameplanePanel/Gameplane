@@ -10,6 +10,10 @@ require github.com/GameplanePanel/gameplane/telemetryschema v0.0.0
 
 replace github.com/GameplanePanel/gameplane/telemetryschema => ../../telemetryschema
 
+require github.com/GameplanePanel/gameplane/gameproto v0.0.0
+
+replace github.com/GameplanePanel/gameplane/gameproto => ../../gameproto
+
 require (
 	github.com/coder/websocket v1.8.15
 	github.com/gopacket/gopacket v1.7.4

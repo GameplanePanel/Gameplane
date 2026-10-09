@@ -191,6 +191,75 @@ func runGameBotTest(t *testing.T, s gameBotSpec) {
 		t.Fatalf("test name suffix mismatch: %s ends with %q but asserts depth %s (expected suffix _%s)", testName, suffix, s.ExpectDepth.String(), expectedSuffix)
 	}
 
+	gsName, ns := createGameBotServer(t, envInstance, s)
+
+	// Run the in-cluster probe (positive control).
+	result := envInstance.RunGameProbe(t, GameProbe{
+		GameNS:      ns,
+		GSName:      gsName,
+		Game:        s.Game,
+		Port:        s.ProbePort,
+		Deadline:    s.ProbeDeadline,
+		ExpectDepth: s.ExpectDepth,
+		Args:        s.ProbeArgs,
+	})
+	if result.ExitCode != 0 {
+		var verdictStr string
+		if result.Verdict != nil {
+			verdictStr = result.Verdict.String()
+		} else {
+			verdictStr = "UNKNOWN"
+		}
+		t.Fatalf("positive control probe failed for game %q: exit code %d (expected 0), expected depth %s, verdict %s", s.Game, result.ExitCode, s.ExpectDepth.String(), verdictStr)
+	}
+
+	// Negative control: verify the probe can fail. Run the same probe against a
+	// guaranteed-closed address (127.0.0.1:1) with -expect-fail. This proves:
+	//   - The probe correctly reports failure when it cannot reach the server.
+	//   - The probe does not always report success (structural guarantee that
+	//     a broken probe cannot masquerade as working).
+	// 127.0.0.1:1 is reliably closed in-cluster: it's a loopback address
+	// (the probe pod's own 127.0.0.1) with port 1, which is reserved and never
+	// listens. The probe will immediately get connection refused, proving
+	// transport failure, not a measurement error.
+	negCtrlResult := envInstance.RunGameProbe(t, GameProbe{
+		GameNS:      "default",
+		GSName:      "negative-control-" + s.Game,
+		Game:        s.Game,
+		Port:        1,
+		Deadline:    s.ProbeDeadline,
+		ExpectDepth: s.ExpectDepth,
+		ExpectFail:  true,
+		Args:        s.ProbeArgs,
+	})
+	// Negative control passes only when the probe exits 0 (correctly
+	// failed for transport reasons, depth UNKNOWN). If it reached a
+	// live server (QUERY/PARTIAL/JOINED), had an internal error, or
+	// exited non-zero for any reason, fail the test.
+	if negCtrlResult.ExitCode != 0 {
+		if negCtrlResult.Verdict != nil && negCtrlResult.Verdict.ReachedDepth.String() != "UNKNOWN" {
+			t.Fatalf("negative control probe for game %q unexpectedly reached a live server: depth %s (expected UNKNOWN for transport failure)", s.Game, negCtrlResult.Verdict.ReachedDepth.String())
+		}
+		if negCtrlResult.Verdict == nil {
+			t.Fatalf("negative control probe for game %q failed with exit code %d but verdict could not be parsed", s.Game, negCtrlResult.ExitCode)
+		}
+		// Fallback for any other non-zero exit code (e.g., internal error with UNKNOWN verdict).
+		t.Fatalf("negative control probe for game %q failed with exit code %d (expected 0): verdict depth %s", s.Game, negCtrlResult.ExitCode, negCtrlResult.Verdict.ReachedDepth.String())
+	}
+
+	// Path A: drive the server THROUGH Gameplane if a control channel is declared.
+	// This proves the API, agent, and control protocol integration work end-to-end.
+	if s.Control.Mode != "" {
+		runGameBotPathA(t, gsName, ns, s.Control)
+	}
+}
+
+// createGameBotServer creates the GameTemplate and the GameServer described by s
+// in the games namespace, then waits for status.phase == Running. Both objects are
+// deleted when the test ends. It returns the GameServer name and its namespace.
+func createGameBotServer(t *testing.T, env *Env, s gameBotSpec) (gsName, namespace string) {
+	t.Helper()
+
 	ctx := context.Background()
 	ns := "gameplane-games"
 
@@ -265,17 +334,17 @@ func runGameBotTest(t *testing.T, s gameBotSpec) {
 		"metadata":   map[string]any{"name": s.Template},
 		"spec":       spec,
 	}}
-	if _, err := envInstance.Dyn.Resource(gameTemplateGVR).
+	if _, err := env.Dyn.Resource(gameTemplateGVR).
 		Create(ctx, tmpl, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
 		t.Fatalf("create template: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = envInstance.Dyn.Resource(gameTemplateGVR).
+		_ = env.Dyn.Resource(gameTemplateGVR).
 			Delete(context.Background(), s.Template, metav1.DeleteOptions{})
 	})
 
 	// Create the GameServer, deriving its name from the template name.
-	gsName := s.Template + "-bot"
+	gsName = s.Template + "-bot"
 	gs := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
 		"kind":       "GameServer",
@@ -284,18 +353,18 @@ func runGameBotTest(t *testing.T, s gameBotSpec) {
 			"templateRef": map[string]any{"name": s.Template},
 		},
 	}}
-	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+	if _, err := env.Dyn.Resource(gameServerGVR).Namespace(ns).
 		Create(ctx, gs, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
 		t.Fatalf("create gameserver: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+		_ = env.Dyn.Resource(gameServerGVR).Namespace(ns).
 			Delete(context.Background(), gsName, metav1.DeleteOptions{})
 	})
 
 	// Wait for the server to reach Running phase.
-	envInstance.Eventually(t, s.ReadyTimeout, func() (bool, string) {
-		obj, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gsName, metav1.GetOptions{})
+	env.Eventually(t, s.ReadyTimeout, func() (bool, string) {
+		obj, err := env.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gsName, metav1.GetOptions{})
 		if err != nil {
 			return false, fmt.Sprintf("get gs: %v", err)
 		}
@@ -305,66 +374,7 @@ func runGameBotTest(t *testing.T, s gameBotSpec) {
 		}
 		return false, "phase=" + phase
 	})
-
-	// Run the in-cluster probe (positive control).
-	result := envInstance.RunGameProbe(t, GameProbe{
-		GameNS:      ns,
-		GSName:      gsName,
-		Game:        s.Game,
-		Port:        s.ProbePort,
-		Deadline:    s.ProbeDeadline,
-		ExpectDepth: s.ExpectDepth,
-		Args:        s.ProbeArgs,
-	})
-	if result.ExitCode != 0 {
-		var verdictStr string
-		if result.Verdict != nil {
-			verdictStr = result.Verdict.String()
-		} else {
-			verdictStr = "UNKNOWN"
-		}
-		t.Fatalf("positive control probe failed for game %q: exit code %d (expected 0), expected depth %s, verdict %s", s.Game, result.ExitCode, s.ExpectDepth.String(), verdictStr)
-	}
-
-	// Negative control: verify the probe can fail. Run the same probe against a
-	// guaranteed-closed address (127.0.0.1:1) with -expect-fail. This proves:
-	//   - The probe correctly reports failure when it cannot reach the server.
-	//   - The probe does not always report success (structural guarantee that
-	//     a broken probe cannot masquerade as working).
-	// 127.0.0.1:1 is reliably closed in-cluster: it's a loopback address
-	// (the probe pod's own 127.0.0.1) with port 1, which is reserved and never
-	// listens. The probe will immediately get connection refused, proving
-	// transport failure, not a measurement error.
-	negCtrlResult := envInstance.RunGameProbe(t, GameProbe{
-		GameNS:      "default",
-		GSName:      "negative-control-" + s.Game,
-		Game:        s.Game,
-		Port:        1,
-		Deadline:    s.ProbeDeadline,
-		ExpectDepth: s.ExpectDepth,
-		ExpectFail:  true,
-		Args:        s.ProbeArgs,
-	})
-	// Negative control passes only when the probe exits 0 (correctly
-	// failed for transport reasons, depth UNKNOWN). If it reached a
-	// live server (QUERY/PARTIAL/JOINED), had an internal error, or
-	// exited non-zero for any reason, fail the test.
-	if negCtrlResult.ExitCode != 0 {
-		if negCtrlResult.Verdict != nil && negCtrlResult.Verdict.ReachedDepth.String() != "UNKNOWN" {
-			t.Fatalf("negative control probe for game %q unexpectedly reached a live server: depth %s (expected UNKNOWN for transport failure)", s.Game, negCtrlResult.Verdict.ReachedDepth.String())
-		}
-		if negCtrlResult.Verdict == nil {
-			t.Fatalf("negative control probe for game %q failed with exit code %d but verdict could not be parsed", s.Game, negCtrlResult.ExitCode)
-		}
-		// Fallback for any other non-zero exit code (e.g., internal error with UNKNOWN verdict).
-		t.Fatalf("negative control probe for game %q failed with exit code %d (expected 0): verdict depth %s", s.Game, negCtrlResult.ExitCode, negCtrlResult.Verdict.ReachedDepth.String())
-	}
-
-	// Path A: drive the server THROUGH Gameplane if a control channel is declared.
-	// This proves the API, agent, and control protocol integration work end-to-end.
-	if s.Control.Mode != "" {
-		runGameBotPathA(t, gsName, ns, s.Control)
-	}
+	return gsName, ns
 }
 
 // runGameBotPathA drives the SAME already-running server through Gameplane

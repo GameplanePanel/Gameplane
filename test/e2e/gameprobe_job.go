@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -13,7 +14,9 @@ import (
 	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // probeNamespace is where the game-bot probe Job runs. It must NOT be the games
@@ -24,6 +27,14 @@ import (
 // own `allow-kubelet-probes` policy admits ingress from any RFC1918 pod IP.
 // This also mirrors how a real player reaches the game: from off-cluster.
 const probeNamespace = "default"
+
+// probeJobNameMax is the longest probe Job name that still fits the `job-name`
+// pod label, which is a 63-character label value.
+const probeJobNameMax = 63
+
+// probeJobDeleteWait bounds how long RunGameProbe waits for an earlier probe Job
+// with the same name to disappear before it creates the next one.
+const probeJobDeleteWait = 2 * time.Minute
 
 // probeImage is the in-cluster game-bot image: built by the game-bot CI job
 // (docker-bake.hcl target "e2e-gameprobe") and side-loaded into kind by
@@ -59,12 +70,19 @@ type GameProbe struct {
 	ExpectFail bool
 	// Args carries extra per-game flags, e.g. []string{"-user", "bot"}.
 	Args []string
+	// JobSuffix, when set, is appended to the Job name ("<GSName>-probe-<JobSuffix>")
+	// so back-to-back probes against the same GameServer each get their own Job.
+	JobSuffix string
 }
 
-// ProbeResult carries both the exit code and the parsed verdict from a probe run.
+// ProbeResult carries the exit code, the parsed verdict and the parsed metrics
+// from a probe run.
 type ProbeResult struct {
 	ExitCode int
 	Verdict  *joindepth.ProbeVerdict
+	// Metrics is the raw JSON object from the probe's `METRICS\t<json>` line.
+	// It is nil when the probe printed no such line (non-sustained modes).
+	Metrics json.RawMessage
 }
 
 // RunGameProbe runs the headless protocol bot as a Job inside the cluster,
@@ -84,13 +102,20 @@ type ProbeResult struct {
 func (e *Env) RunGameProbe(t *testing.T, p GameProbe) *ProbeResult {
 	t.Helper()
 	ctx := context.Background()
-	jobName := p.GSName + "-probe"
+	jobName, err := probeJobName(p.GSName, p.JobSuffix)
+	if err != nil {
+		t.Fatalf("%s probe: %v", p.Game, err)
+	}
 	addr := fmt.Sprintf("%s.%s.svc.cluster.local:%d", p.GSName, p.GameNS, p.Port)
 
-	bg := metav1.DeletePropagationBackground
-	// Recreate so a previous failure can't leave a Failed shell behind.
-	_ = e.K8s.BatchV1().Jobs(probeNamespace).Delete(ctx, jobName, metav1.DeleteOptions{PropagationPolicy: &bg})
+	// Recreate so a previous failure can't leave a Failed shell behind. The old
+	// Job must be fully gone before the create below, or the create fails with
+	// AlreadyExists when probes run back to back.
+	if err := e.deleteProbeJob(ctx, jobName); err != nil {
+		t.Fatalf("%s probe: %v", p.Game, err)
+	}
 	t.Cleanup(func() {
+		bg := metav1.DeletePropagationBackground
 		_ = e.K8s.BatchV1().Jobs(probeNamespace).Delete(
 			context.Background(), jobName, metav1.DeleteOptions{PropagationPolicy: &bg})
 	})
@@ -147,9 +172,11 @@ func (e *Env) RunGameProbe(t *testing.T, p GameProbe) *ProbeResult {
 			},
 		},
 	}
-	if _, err := e.K8s.BatchV1().Jobs(probeNamespace).Create(ctx, job, metav1.CreateOptions{}); err != nil {
+	created, err := e.K8s.BatchV1().Jobs(probeNamespace).Create(ctx, job, metav1.CreateOptions{})
+	if err != nil {
 		t.Fatalf("create %s probe job: %v", p.Game, err)
 	}
+	jobUID := created.UID
 
 	// Allow a little more than the probe's own deadline, so a probe timeout
 	// surfaces as its logged reason rather than as this wait expiring.
@@ -168,11 +195,12 @@ func (e *Env) RunGameProbe(t *testing.T, p GameProbe) *ProbeResult {
 				return &ProbeResult{
 					ExitCode: 0,
 					Verdict:  verdict,
+					Metrics:  parseMetricsLogged(t, p.Game, out),
 				}
 			}
 			if j.Status.Failed > 0 {
 				out, _ := e.Kubectl(ctx, "logs", "-n", probeNamespace, "job/"+jobName, "--tail=200")
-				exitCode, exitErr := e.extractExitCode(ctx, jobName)
+				exitCode, exitErr := e.extractExitCode(ctx, jobName, jobUID)
 				verdict, verdictErr := parseVerdictFromLogs(out)
 				if verdictErr != nil {
 					t.Logf("warning: failed to parse verdict from %s probe logs: %v", p.Game, verdictErr)
@@ -185,6 +213,7 @@ func (e *Env) RunGameProbe(t *testing.T, p GameProbe) *ProbeResult {
 				return &ProbeResult{
 					ExitCode: exitCode,
 					Verdict:  verdict,
+					Metrics:  parseMetricsLogged(t, p.Game, out),
 				}
 			}
 		}
@@ -198,8 +227,55 @@ func (e *Env) RunGameProbe(t *testing.T, p GameProbe) *ProbeResult {
 	}
 }
 
-// extractExitCode reads the exit code from a completed Job's pod.
-func (e *Env) extractExitCode(ctx context.Context, jobName string) (int, error) {
+// probeJobName returns the probe Job name for a GameServer: "<GSName>-probe", with
+// "-<suffix>" appended when a suffix is set. The GameServer part is trimmed so the
+// whole name stays within probeJobNameMax.
+func probeJobName(gsName, suffix string) (string, error) {
+	tail := "-probe"
+	if suffix != "" {
+		tail += "-" + suffix
+	}
+	if len(tail) >= probeJobNameMax {
+		return "", fmt.Errorf("probe job suffix %q leaves no room for a %d-char job name", suffix, probeJobNameMax)
+	}
+	base := gsName
+	if room := probeJobNameMax - len(tail); len(base) > room {
+		base = strings.TrimRight(base[:room], "-")
+	}
+	return base + tail, nil
+}
+
+// deleteProbeJob deletes a probe Job left by an earlier run and waits, bounded by
+// probeJobDeleteWait, until the API server no longer returns it. A missing Job is
+// not an error.
+func (e *Env) deleteProbeJob(ctx context.Context, jobName string) error {
+	bg := metav1.DeletePropagationBackground
+	err := e.K8s.BatchV1().Jobs(probeNamespace).Delete(ctx, jobName, metav1.DeleteOptions{PropagationPolicy: &bg})
+	if err != nil && !apierrors.IsNotFound(err) {
+		return fmt.Errorf("delete probe job %s: %w", jobName, err)
+	}
+
+	expiry := time.Now().Add(probeJobDeleteWait)
+	for {
+		_, err := e.K8s.BatchV1().Jobs(probeNamespace).Get(ctx, jobName, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		if time.Now().After(expiry) {
+			if err != nil {
+				return fmt.Errorf("wait for probe job %s to be deleted: %w", jobName, err)
+			}
+			return fmt.Errorf("probe job %s still exists after %s", jobName, probeJobDeleteWait)
+		}
+		time.Sleep(time.Second)
+	}
+}
+
+// extractExitCode reads the exit code from the gameprobe container of the pod
+// owned by this run's Job. jobUID is the UID of the Job that was created for this
+// run; a same-named Job from an earlier run can leave its pods behind briefly, so
+// pods are matched by owner UID rather than by the job-name label alone.
+func (e *Env) extractExitCode(ctx context.Context, jobName string, jobUID types.UID) (int, error) {
 	pods, err := e.K8s.CoreV1().Pods(probeNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: "job-name=" + jobName,
 	})
@@ -207,11 +283,16 @@ func (e *Env) extractExitCode(ctx context.Context, jobName string) (int, error) 
 		return -1, fmt.Errorf("list pods for job: %w", err)
 	}
 
-	if len(pods.Items) == 0 {
+	var pod *corev1.Pod
+	for i := range pods.Items {
+		if ownedByJob(&pods.Items[i], jobUID) {
+			pod = &pods.Items[i]
+			break
+		}
+	}
+	if pod == nil {
 		return -1, fmt.Errorf("no pods found for job %s", jobName)
 	}
-
-	pod := pods.Items[0]
 
 	// Find the container status for the gameprobe container.
 	for _, containerStatus := range pod.Status.ContainerStatuses {
@@ -225,6 +306,16 @@ func (e *Env) extractExitCode(ctx context.Context, jobName string) (int, error) 
 	return -1, fmt.Errorf("container gameprobe not terminated or not found in pod %s", pod.Name)
 }
 
+// ownedByJob reports whether pod has an owner reference to the Job with uid.
+func ownedByJob(pod *corev1.Pod, uid types.UID) bool {
+	for _, ref := range pod.OwnerReferences {
+		if ref.UID == uid {
+			return true
+		}
+	}
+	return false
+}
+
 // parseVerdictFromLogs searches the logs for a VERDICT line and parses it.
 func parseVerdictFromLogs(logs string) (*joindepth.ProbeVerdict, error) {
 	for _, line := range strings.Split(logs, "\n") {
@@ -233,4 +324,34 @@ func parseVerdictFromLogs(logs string) (*joindepth.ProbeVerdict, error) {
 		}
 	}
 	return nil, fmt.Errorf("no VERDICT line found in logs")
+}
+
+// parseMetricsFromLogs searches the logs for a `METRICS\t<json>` line and returns
+// its JSON object. It returns (nil, nil) when no such line exists, and (nil, err)
+// when the line's payload is not valid JSON.
+func parseMetricsFromLogs(logs string) (json.RawMessage, error) {
+	for _, line := range strings.Split(logs, "\n") {
+		payload, ok := strings.CutPrefix(line, "METRICS\t")
+		if !ok {
+			continue
+		}
+		raw := json.RawMessage(strings.TrimSpace(payload))
+		if !json.Valid(raw) {
+			return nil, fmt.Errorf("METRICS line is not valid JSON")
+		}
+		return raw, nil
+	}
+	return nil, nil
+}
+
+// parseMetricsLogged is parseMetricsFromLogs for RunGameProbe: a malformed METRICS
+// line is logged as a warning and treated as absent, like a malformed VERDICT.
+func parseMetricsLogged(t *testing.T, game, logs string) json.RawMessage {
+	t.Helper()
+	metrics, err := parseMetricsFromLogs(logs)
+	if err != nil {
+		t.Logf("warning: failed to parse METRICS from %s probe logs: %v", game, err)
+		return nil
+	}
+	return metrics
 }

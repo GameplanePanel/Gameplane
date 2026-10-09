@@ -4,7 +4,9 @@
 
 **Created**: 2026-08-24
 
-**Status**: Draft
+**Status**: Planned (plan.md, tasks.md)
+
+**Amendments**: 2026-10-09 — gating ruled non-blocking (OPEN-DECISIONS.md OD-1; supersedes SC-005's "block" wording); Unresolved Questions 1–5 answered by OD-2..OD-6; references to the `003-network-capture-sidecar` branch and `main` are stale (003 shipped as `specs/done_003-network-capture-sidecar/`, default branch `master`, trigger per OD-2); `gameproto` `ParsePacket` and `tshark`/`capinfos` do not exist here, so capture validation follows OD-6; "KeepAlive RTT" is measured as defined in OD-3.
 
 **Input**: User description: "A CI regression guard that detects gross performance overhead from running a network capture on a live game server"
 
