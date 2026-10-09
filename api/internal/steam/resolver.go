@@ -9,9 +9,14 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"sync"
+	"time"
 
 	"github.com/GameplanePanel/gameplane/netguard"
 )
+
+// unavailableWarnInterval bounds how often the "resolver unavailable" warn log is emitted.
+const unavailableWarnInterval = time.Minute
 
 // Resolver resolves Steam IDs to display names via the Steam Web API.
 // It batches requests, caches results with positive and negative TTL,
@@ -24,6 +29,12 @@ type Resolver struct {
 	cache   *Cache
 	opts    *Options
 	sf      *singleflightGroup
+	clock   Clock
+
+	// warnMu guards warned and lastWarn, which rate-limit the unavailable warn log.
+	warnMu   sync.Mutex
+	warned   bool
+	lastWarn time.Time
 }
 
 // NewResolver returns a Resolver, or nil if apiKey is empty.
@@ -51,6 +62,7 @@ func NewResolver(apiKey string, opts *Options, clock Clock) *Resolver {
 		cache:   NewCache(opts, clock),
 		opts:    opts,
 		sf:      &singleflightGroup{},
+		clock:   clock,
 	}
 }
 
@@ -62,7 +74,9 @@ func NewResolver(apiKey string, opts *Options, clock Clock) *Resolver {
 // On cache misses, batches uncached ids in groups of up to 100 and queries GetPlayerSummaries.
 // DNS failures, dial failures, netguard blocks, timeouts, non-200 responses, and malformed JSON
 // cause the affected ids to be treated as unresolved (absent from the map) but are NOT returned
-// as errors to the caller. A rate-limited warn log is issued for the outbound failure, but never
+// as errors to the caller. A failed call writes no cache entries at all, so the next lookup retries.
+// Only ids that a successful Steam response omitted are stored as negative entries.
+// A rate-limited (at most once per minute) warn log is issued for the outbound failure, but never
 // includes the API key or any queried ids.
 //
 // Concurrent lookups of the same uncached ids are collapsed into a single upstream call by singleflight.
@@ -99,13 +113,9 @@ func (r *Resolver) Resolve(ctx context.Context, steamIDs []string) map[string]st
 	})
 
 	if err != nil {
-		// The singleflight call failed or was cancelled. Treat as all ids unresolved.
-		// Log at most once per incident (rate-limited), never with the key or ids.
-		slog.Warn("steam resolver unavailable", "err", err)
-		// Store negative entries for the uncached ids so we don't hammer Steam forever.
-		for _, id := range uncached {
-			r.cache.Set(id, "", r.opts.NegativeTTL)
-		}
+		// The upstream call failed. Treat as all ids unresolved. No cache entries are written,
+		// so a later lookup retries Steam. Log rate-limited, never with the key or ids.
+		r.warnUnavailable(err)
 		return result
 	}
 
@@ -117,9 +127,34 @@ func (r *Resolver) Resolve(ctx context.Context, steamIDs []string) map[string]st
 	return result
 }
 
+// warnUnavailable logs that the resolver could not reach Steam, at most once per
+// unavailableWarnInterval. The error text is key-free; callers must not pass ids or the key.
+func (r *Resolver) warnUnavailable(err error) {
+	r.warnMu.Lock()
+	defer r.warnMu.Unlock()
+
+	now := r.now()
+	if r.warned && now.Sub(r.lastWarn) < unavailableWarnInterval {
+		return
+	}
+	r.warned = true
+	r.lastWarn = now
+	slog.Warn("steam resolver unavailable", "err", err)
+}
+
+// now returns the resolver's clock time, falling back to time.Now for resolvers built without one.
+func (r *Resolver) now() time.Time {
+	if r.clock == nil {
+		return time.Now()
+	}
+	return r.clock.Now()
+}
+
 // resolveBatch fetches resolutions for a set of ids, batching into calls of at most 100 ids each.
-// It caches positive and negative results. Unresolved ids are stored as negative cache entries.
-// If the entire call fails, an error is returned and ids are left uncached (so future calls retry).
+// On success it caches positive results and stores negative entries only for ids that the
+// successful Steam responses omitted. If any batch call fails (transport error, netguard block,
+// timeout, non-200 status, malformed JSON), an error is returned and no cache entries are written
+// for any of the ids, so future calls retry them.
 func (r *Resolver) resolveBatch(ctx context.Context, ids []string) (map[string]string, error) {
 	result := make(map[string]string)
 
@@ -134,7 +169,7 @@ func (r *Resolver) resolveBatch(ctx context.Context, ids []string) (map[string]s
 		batchResult, err := r.getPlayerSummaries(ctx, batch)
 		if err != nil {
 			// On any batch failure, return the error and leave all ids uncached.
-			// The caller will decide whether to cache a negative entry or retry.
+			// A failed call says nothing about the ids themselves, so no negative entries are written.
 			return nil, fmt.Errorf("get player summaries: %w", err)
 		}
 
@@ -162,7 +197,8 @@ func (r *Resolver) resolveBatch(ctx context.Context, ids []string) (map[string]s
 // Ids omitted from the response (private profiles, deleted accounts, malformed ids) are absent from the map.
 //
 // On network failure, netguard block, timeout, or non-200 status, returns an error.
-// On malformed JSON, returns an error.
+// On malformed JSON, returns an error. A netguard block is reported as an error (never an empty
+// success), so the caller does not negative-cache the ids.
 // Never logs or returns the API key.
 func (r *Resolver) getPlayerSummaries(ctx context.Context, ids []string) (map[string]string, error) {
 	if len(ids) == 0 {
@@ -186,8 +222,9 @@ func (r *Resolver) getPlayerSummaries(ctx context.Context, ids []string) (map[st
 	if err != nil {
 		// Network error, timeout, or netguard block.
 		if errors.Is(err, netguard.ErrBlockedAddr) {
-			// netguard rejected the address; treat as degradation.
-			return map[string]string{}, nil
+			// netguard rejected the address. Return a fresh wrapped sentinel rather than the
+			// *url.Error, whose text contains the key-bearing request URL.
+			return nil, fmt.Errorf("steam destination blocked: %w", netguard.ErrBlockedAddr)
 		}
 		// http.Client.Do may return a *url.Error whose Error() method renders the full request URL,
 		// which contains the API key as a query parameter. To avoid leaking the key while preserving
