@@ -166,61 +166,73 @@ Comparison between `contracts/engine-matrix-contract.md`'s Storage Mount Path co
 - **Shipped**: `/palworld`
 - **Contract**: `/palworld/Pal/Saved`
 - **Recommendation**: Shipped `/palworld` encompasses world saves, engine settings, and server logs. Narrowing to `/palworld/Pal/Saved` would lose custom configuration files unless extra mounts are configured. Retain shipped `/palworld`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/palworld`; contract updated.
 
 ### 7.2 Rust (`rust`)
 - **Shipped**: `/steamcmd/rust`
 - **Contract**: `/serverdata`
 - **Recommendation**: The image (`didstopia/rust-server`) installs into and runs from `/steamcmd/rust`. Retain shipped `/steamcmd/rust`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/steamcmd/rust`; contract updated.
 
 ### 7.3 Project Zomboid (`project-zomboid`)
 - **Shipped**: `/home/steam/Zomboid`
 - **Contract**: `/home/pzuser/Zomboid`
 - **Recommendation**: The shipped container runs with user `steam` (UID 10000) whose HOME is `/home/steam`. Contract path `/home/pzuser` is inaccurate for this image. Retain shipped `/home/steam/Zomboid`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/steam/Zomboid`; contract updated.
 
 ### 7.4 DayZ (`dayz`)
 - **Shipped**: `/data`
 - **Contract**: `/serverdata`
 - **Recommendation**: Shipped image mounts persistent world data at `/data`. Retain shipped `/data`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/data`; contract updated.
 
 ### 7.5 Garry's Mod (`garrys-mod`)
 - **Shipped**: `/home/gmod/server/garrysmod/data`
 - **Contract**: `/home/steam/gmod-dedicated`
 - **Recommendation**: The container user is `gmod`. Mounting at `/home/gmod/server/garrysmod/data` avoids shadowing the game server binary launcher at `/home/gmod/server`. Retain shipped `/home/gmod/server/garrysmod/data`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/gmod/server/garrysmod/data`; contract updated.
 
 ### 7.6 Terraria (`terraria`)
 - **Shipped**: `/opt/terraria/config`
 - **Contract**: `/root/.local/share/Terraria/Worlds`
 - **Recommendation**: Shipped image stores server configs, world files, and bans in `/opt/terraria/config`. Retain shipped `/opt/terraria/config`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/opt/terraria/config`; contract updated.
 
 ### 7.7 ARK: Survival Ascended (`ark-survival-ascended`)
 - **Shipped**: `/home/gameserver`
 - **Contract**: `/serverdata/ShooterGame/Saved`
 - **Recommendation**: Image `mschnitzer/asa-linux-server` uses `/home/gameserver` as WorkingDir and storage location for cluster and saved data. Retain shipped `/home/gameserver`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/gameserver`; contract updated.
 
 ### 7.8 Factorio (`factorio`)
 - **Shipped**: `/factorio`
 - **Contract**: `/factorio/saves`
 - **Recommendation**: Shipped image `factoriotools/factorio` mounts `/factorio` to persist saves, mods, and `config/` together. Retain shipped `/factorio`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/factorio`; contract updated.
 
 ### 7.9 Don't Starve Together (`dont-starve-together`)
 - **Shipped**: `/data`
 - **Contract**: `/root/.klei/DoNotStarveTogether`
 - **Recommendation**: Shipped image `jamesstevens/dont-starve-together` standardizes on `/data` with internal symlinks to cluster configs. Retain shipped `/data`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/data`; contract updated.
 
 ### 7.10 Valheim (`valheim`)
 - **Shipped**: `/config`
 - **Contract**: `/config/worlds_local`
 - **Recommendation**: Shipped image `lloesche/valheim-server` uses `/config` to persist server state, worlds, and BepInEx configs. Retain shipped `/config`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/config`; contract updated.
 
 ### 7.11 Satisfactory (`satisfactory`)
 - **Shipped**: `/config`
 - **Contract**: `/home/steam/.config/Epic/FactoryGame/Saved`
 - **Recommendation**: Shipped image `wolveix/satisfactory-server` maps `/config` to game configuration, saves, and blueprint storage. Retain shipped `/config`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/config`; contract updated.
 
 ### 7.12 7 Days to Die (`7-days-to-die`)
 - **Shipped**: `/home/sdtdserver/.local/share/7DaysToDie`
 - **Contract**: `/home/sdtduser/.local/share/7DaysToDie`
 - **Recommendation**: Image `vinanrra/7dtd-server` uses `sdtdserver` as its system user, not `sdtduser`. Retain shipped `/home/sdtdserver/.local/share/7DaysToDie`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/sdtdserver/.local/share/7DaysToDie`; contract updated.
 
 ---
 
