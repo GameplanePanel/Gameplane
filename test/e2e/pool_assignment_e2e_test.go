@@ -764,3 +764,128 @@ func TestAddressPool_ExplicitAddressRequest(t *testing.T) {
 		t.Errorf("assigned pool = %q, want pool-us-west", assignedPool)
 	}
 }
+
+// TestAddressPool_AddressInUseConflict covers the address-in-use branch of the
+// AddressAssignment condition: a GameServer requesting an explicit address that
+// another GameServer already holds reports reason AddressInUse, names the
+// holder in its message, and is never handed that address.
+//
+// The holder is waited on until it is Assigned at the address before the
+// contender is created. The operator ranks a holder ahead of a mere requester
+// (see addressConflictLess in operator/internal/controller/gameserver_controller.go),
+// so the conflict is deterministic rather than dependent on creation order.
+func TestAddressPool_AddressInUseConflict(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ns := "gameplane-games"
+	suffix := time.Now().UnixNano()
+	tmplName := fmt.Sprintf("e2e-pool-inuse-%d", suffix)
+	holderName := fmt.Sprintf("e2e-gs-inuse-holder-%d", suffix)
+	contenderName := fmt.Sprintf("e2e-gs-inuse-contender-%d", suffix)
+
+	applyBusyboxTemplate(t, tmplName)
+
+	// .210 is the top of pool-us-west (172.18.255.200-210). Pool requests that
+	// do not name an address are allocated from the low end of the range, so
+	// this address is not contended by the other pool-us-west tests in practice.
+	requestedAddr := "172.18.255.210"
+
+	createServer := func(name string) {
+		t.Helper()
+		gs := &unstructured.Unstructured{Object: map[string]any{
+			"apiVersion": "gameplane.local/v1alpha1",
+			"kind":       "GameServer",
+			"metadata":   map[string]any{"name": name, "namespace": ns},
+			"spec": map[string]any{
+				"templateRef": map[string]any{"name": tmplName},
+				"networking": map[string]any{
+					"expose":      "LoadBalancer",
+					"addressPool": "pool-us-west",
+					"address":     requestedAddr,
+				},
+			},
+		}}
+		if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+			Create(ctx, gs, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
+			t.Fatalf("create gameserver %s: %v", name, err)
+		}
+		t.Cleanup(func() {
+			_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+				Delete(context.Background(), name, metav1.DeleteOptions{})
+		})
+	}
+
+	// Step 1: the holder must actually receive the address, so it holds it.
+	createServer(holderName)
+	envInstance.Eventually(t, 120*time.Second, func() (bool, string) {
+		got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+			Get(ctx, holderName, metav1.GetOptions{})
+		if err != nil {
+			return false, "get holder gameserver: " + err.Error()
+		}
+		cond := findCondition(got.Object, "AddressAssignment")
+		if cond == nil {
+			return false, "holder AddressAssignment condition not found"
+		}
+		if cond["status"] != "True" {
+			return false, fmt.Sprintf("holder not assigned yet: status=%v reason=%v", cond["status"], cond["reason"])
+		}
+		endpoints, _, _ := unstructured.NestedSlice(got.Object, "status", "endpoints")
+		if len(endpoints) == 0 {
+			return false, "holder has no endpoints"
+		}
+		ep, ok := endpoints[0].(map[string]any)
+		if !ok {
+			return false, "holder endpoint malformed"
+		}
+		if host, _ := ep["host"].(string); host != requestedAddr {
+			return false, fmt.Sprintf("holder endpoint host = %q, want %q", host, requestedAddr)
+		}
+		return true, ""
+	})
+
+	// Step 2: a second server asks for the same address and must be refused.
+	createServer(contenderName)
+	envInstance.Eventually(t, 60*time.Second, func() (bool, string) {
+		got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+			Get(ctx, contenderName, metav1.GetOptions{})
+		if err != nil {
+			return false, "get contender gameserver: " + err.Error()
+		}
+		cond := findCondition(got.Object, "AddressAssignment")
+		if cond == nil {
+			return false, "contender AddressAssignment condition not found"
+		}
+		reason, _ := cond["reason"].(string)
+		status, _ := cond["status"].(string)
+		message, _ := cond["message"].(string)
+		if status != "False" {
+			return false, fmt.Sprintf("contender status=%q reason=%q, want False/AddressInUse", status, reason)
+		}
+		if reason != "AddressInUse" {
+			return false, fmt.Sprintf("contender reason=%q, want exactly AddressInUse", reason)
+		}
+		if !strings.Contains(message, holderName) {
+			return false, fmt.Sprintf("message=%q does not name the holder %q", message, holderName)
+		}
+		return true, ""
+	})
+
+	// The refused server must not be given the contested address.
+	got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+		Get(ctx, contenderName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("get contender gameserver for endpoint check: %v", err)
+	}
+	endpoints, _, _ := unstructured.NestedSlice(got.Object, "status", "endpoints")
+	for i, epIface := range endpoints {
+		ep, ok := epIface.(map[string]any)
+		if !ok {
+			continue
+		}
+		if host, _ := ep["host"].(string); host == requestedAddr {
+			t.Errorf("contender endpoints[%d].host = %q, want the address withheld from it", i, host)
+		}
+	}
+}
