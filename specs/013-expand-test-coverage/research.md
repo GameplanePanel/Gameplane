@@ -233,7 +233,7 @@ The telemetry receiver is already covered by `TestTelemetryLifecycle` (R0). This
 **Alternatives considered**:
 - A separate `postgres` bucket with copied tests: violates disjointness and drifts.
 - A matrix dimension `db: [sqlite, postgres]` on all of `e2e-go`: doubles the largest job.
-- A manual-only `workflow_dispatch` trigger: the spec allows it, but a gate that never runs on PRs catches nothing, so it was rejected while the cost stays at one leg. If the leg proves too slow, OD-3 lets the user move it to `master` pushes plus dispatch.
+- A manual-only `workflow_dispatch` trigger: the spec allows it, but a gate that never runs on PRs catches nothing, so it was rejected while the cost stays at one leg. The user confirmed per-PR runs on 2026-10-09 (OD-3, ruled).
 
 ---
 

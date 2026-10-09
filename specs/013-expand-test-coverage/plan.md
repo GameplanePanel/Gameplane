@@ -95,7 +95,7 @@ specs/013-expand-test-coverage/
 ├── research.md                     # Phase 0 (R0 baseline + R1–R11 decisions)
 ├── data-model.md                   # Phase 1: gate, fixture, gap, record entities
 ├── quickstart.md                   # Phase 1: how to validate each story in CI
-├── OPEN-DECISIONS.md               # OD-1, OD-2 ruled; OD-3 open (rule 10)
+├── OPEN-DECISIONS.md               # OD-1..OD-3, all ruled (rule 10)
 ├── contracts/
 │   ├── static-gates.md             # per-gate trigger / failing condition / proof script contract
 │   ├── coverage-gap-record.md      # coverage-gaps.md format + validator rules

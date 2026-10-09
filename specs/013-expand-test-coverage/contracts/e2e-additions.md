@@ -25,7 +25,7 @@ TestOptionalComponents_Lifecycle
 |---|---|
 | Runner | `ubuntu-latest` (amd64 only) |
 | Needs | `changes`, `build-images` |
-| Trigger | the same scope as `e2e-go` (OD-3 may narrow it) |
+| Trigger | the same scope as `e2e-go` (OD-3, ruled 2026-10-09) |
 | Cluster | `deploy/kind/e2e.sh up "$CLUSTER" postgres` |
 | Runs | `buckets.sh regex api-auth`, `api-roles` and `api-rbac`, as three `go test` invocations in that order |
 | Report | in `report.needs`, `NEEDS_ORDER`, `JOB_MATCHERS` |

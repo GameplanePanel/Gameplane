@@ -1,6 +1,6 @@
 # Open Decisions
 
-**Status**: 1 open (OD-3); 2 ruled (OD-1, OD-2 on 2026-10-09).
+**Status**: 0 open; 3 ruled (OD-1, OD-2, OD-3 on 2026-10-09).
 
 Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract until it is ruled here. Work proceeds on each recommended default except where noted.
 
@@ -41,7 +41,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 ### OD-3: When `e2e-postgres` runs
 
-**Status**: OPEN
+**Status**: RULED (2026-10-09, user)
 
 **Question**: Should the Postgres E2E leg run on every PR with an e2e scope, or only on `master` pushes and manual dispatch?
 
@@ -50,3 +50,5 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 2. `push: master` + `workflow_dispatch` only.
 
 **Recommended default**: (1). A gate that never runs on PRs catches regressions only after merge. Revisit with (2) if the leg's first green runs show it slower than the slowest existing `e2e-go` leg.
+
+**Ruling (2026-10-09, user)**: option (1). `e2e-postgres` runs on every PR whose change scope includes e2e (the same `ci_scope.py` output as `e2e-go`), amd64 only.
