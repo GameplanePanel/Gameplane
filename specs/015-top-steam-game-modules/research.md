@@ -84,13 +84,13 @@ This research defines the architectural foundation, container configurations, pr
 ### Decision 6: New `rest` and `cli` RCON Protocols (maintainer ruling)
 
 - **Decision**: Add `rest` and `cli` as first-class `spec.rcon.protocol` enum values (ten values in total), additive and non-breaking.
-  - `rest` is a generic HTTP/JSON console client (`agent/internal/rcon/rest.go`) with per-game adapters: `txadmin` (FiveM, `POST /fxserver/commands`, bearer token), `farming-simulator-25` (`POST /api/console`, basic auth), and a `generic` fallback (`POST /api/command`). Responses are capped at 1 MiB, auth failures back off for 15s, and TLS verification is relaxed only for loopback hosts. Full contract: OPEN-DECISIONS.md §5.
+  - `rest` is a generic HTTP/JSON console client (`agent/internal/rcon/rest.go`) with per-game adapters: `txadmin` (FiveM, `POST /fxserver/commands`, bearer token), `farming-simulator-25` (`POST /api/console`, basic auth), and a `generic` fallback (`POST /api/command`). Responses are capped at 1 MiB, auth failures back off for 15s, and HTTPS uses standard certificate verification with TLS 1.2 as the minimum (`agent/internal/rcon/rest.go`). Full contract: OPEN-DECISIONS.md §5.
   - `cli` lets the agent write commands to the game's stdin through a FIFO (`-cli-pipe`, default `/var/run/gameplane/console.pipe`) so stop sequences and scheduled commands work without a network console. The dashboard console still uses pod-attach (`consoleMode: pty`). The operator mints no `<gs>-rcon` Secret for a passwordless `cli` template, and `rconAvailable` does not advertise live-RCON dashboard actions for it. Ruling: OPEN-DECISIONS.md §1 (Option A).
 - **Rationale**: FiveM's txAdmin and the FS25 web admin are HTTP APIs, and stdin-console games had no way to declare an agent command path; faking them with `palworld`/`satisfactory` or `none` hid real capability.
 - **Alternatives Considered**:
   - *A dedicated protocol per HTTP game*: Rejected; it grows the enum per game when adapters behind one client suffice without a new CRD field.
   - *Keep `none` + `consoleMode: pty` for stdin games*: Rejected; the agent then has no route for lifecycle stop commands.
-- **Shipped state**: The protocols are implemented, but only `fivem` and `farming-simulator-25` declare `rest`, and no module declares `cli` yet; stdin-console games still ship `none` + `consoleMode: pty`.
+- **Shipped state**: The protocols are implemented, but only `fivem` and `farming-simulator-25` declare `rest`, and no module declares `cli` yet; the stdin-console modules (`euro-truck-simulator-2`, `mount-and-blade-2-bannerlord`, `terraria`, `tmodloader`, `beammp`, `dont-starve-together`, `valheim`, `arma-reforger`) still ship `none` + `consoleMode: pty`. `factorio` and `project-zomboid` are not in that group: both ship Source RCON on TCP 27015, and `factorio` also keeps its pty console (OPEN-DECISIONS.md §2/§3).
 
 ### Decision 7: Per-Game Probe Packages and Coverage Register (Principle I)
 

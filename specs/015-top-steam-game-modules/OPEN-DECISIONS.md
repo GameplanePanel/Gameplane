@@ -134,7 +134,7 @@ To unify FiveM's txAdmin API (T047) and Farming Simulator 25's web admin API (T0
    - Bounded response size: Reads capped at 1 MiB (`restMaxResponseBytes`) to prevent unbounded memory consumption.
    - Timeouts: Configurable dial timeout (default 5s) and request timeout (default 10s) as struct fields for unit testability.
    - Auth failure cooldown: 15s cooldown on HTTP 401/403 with `ErrAuth` return to prevent poller hammering.
-   - TLS: Guarded by `isLoopbackHost(host)` so `InsecureSkipVerify` is only enabled for pod-local loopback destinations (127.0.0.1 / ::1 / localhost).
+   - TLS: As implemented, HTTPS uses standard certificate verification with `MinVersion: tls.VersionTLS12` (`agent/internal/rcon/rest.go`); there is no loopback-only `InsecureSkipVerify` path (corrected 2026-10-09).
 
 ---
 

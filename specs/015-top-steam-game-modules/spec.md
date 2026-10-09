@@ -182,7 +182,7 @@ Platform monitoring systems and cluster operators need continuous, accurate heal
 - **SC-003**: 100% of newly authored modules have corresponding `specs.md` documentation satisfying Gameplane Constitution Principle IV.
 - **SC-004**: Server creation time from selecting a template to receiving a running container pod takes less than 30 seconds (excluding one-time image pull and SteamCMD game asset download time).
 - **SC-005**: Game servers restart without data loss, world corruption, or file permission errors on persistent storage volumes, verified by restart e2e tests on a representative sample (FiveM, ARK cluster) plus a static storage/security audit of all 26 modules (mount path, `runAsUser`/`fsGroup`/`HOME`).
-- **SC-006**: Modules with remote console interfaces execute administrative commands and graceful save-on-shutdown sequences, verified by RCON e2e tests on a representative sample (Team Fortress 2, Squad) plus a static audit of every module's `rcon` and `capabilities.lifecycle.stop` configuration.
+- **SC-006**: Modules with remote console interfaces execute administrative commands and graceful save-on-shutdown sequences, verified end to end for Source RCON only, by the Team Fortress 2 and Squad RCON tests, plus a static audit of every module's `rcon` and `capabilities.lifecycle.stop` configuration. The `rest` and `cli` protocols are covered by agent unit tests, not by game-level e2e tests.
 
 ---
 
