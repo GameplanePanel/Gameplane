@@ -1,7 +1,7 @@
 # Data Model: Dedicated Server Modules for Top Steam Games
 
 **Feature**: `015-top-steam-game-modules`  
-**Date**: 2026-09-03  
+**Date**: 2026-09-03 (refreshed 2026-10-09)  
 **Status**: Completed  
 
 ---
@@ -35,6 +35,7 @@ classDiagram
         +String accentColor
         +String description
         +String image
+        +String consoleMode
         +VersionCatalog[] versions
         +PortDefinition[] ports
         +EnvVarDefinition[] env
@@ -77,6 +78,8 @@ classDiagram
         +String protocol
         +Int port
         +String passwordEnv
+        +String passwordFile
+        +SecretKeySelector passwordSecretRef
     }
 
     class CapabilitiesDefinition {
@@ -139,9 +142,29 @@ Defined under `.schema/gametemplate.schema.json`:
 | `spec.env` | EnvVar[] | No | Configurable environment variables and defaults |
 | `spec.storage` | Storage | No | Persistent volume mount point (`size`, `mountPath`, `storageClassName`, `dataSource`, `extra`) |
 | `spec.security` | Security | No | User UID, GID, and filesystem permissions matching image (`runAsUser`, `runAsGroup`, `fsGroup`) |
-| `spec.rcon` | Rcon | No | RCON protocol type, port, and password env key |
+| `spec.consoleMode` | string | No | Dashboard console transport: `rcon`, `pty` (pod-attach to stdin), or `none`. `rcon` requires `spec.rcon.protocol` other than `none` (CEL rule) |
+| `spec.rcon` | Rcon | No | RCON protocol (see §2.3), port, and credential source (`passwordEnv`, `passwordFile`, or `passwordSecretRef`) |
 | `spec.capabilities`| Caps | No | Supported features (mods, backups, player list, lifecycle) |
 | `spec.capabilities.lifecycle.stop` | string[] | No | Pre-stop command sequence (1-16 command strings) for graceful world saves |
+
+### 2.3 `spec.rcon.protocol` Values
+
+Enum at `operator/api/v1alpha1/gametemplate_types.go:1006`, mirrored in `modules/.schema/gametemplate.schema.json` and `modules/validate.py` `RCON_PROTOCOLS`. This feature added `rest` and `cli` (research.md Decision 6).
+
+| Value | Agent client | Used by (shipped) |
+|---|---|---|
+| `source` | `rcon.go` (Source RCON) | cs2, project-zomboid, team-fortress-2, ark-survival-ascended, left-4-dead-2, factorio, the-isle, ark-survival-evolved, hell-let-loose, squad |
+| `websocket` | `websocket.go` | rust |
+| `battleye` | `battleye.go` | dayz |
+| `telnet` | `telnet.go` | none in this feature |
+| `palworld` | `palworld.go` | palworld |
+| `satisfactory` | `satisfactory.go` | satisfactory |
+| `nuclearoption` | `nuclearoption.go` | outside this feature |
+| `rest` | `rest.go` with `txadmin`, `farming-simulator-25`, `generic` adapters | fivem, farming-simulator-25 |
+| `cli` | `cli.go` (writes to the stdin FIFO at `-cli-pipe`) | none yet |
+| `none` | no client | euro-truck-simulator-2, garrys-mod, mount-and-blade-2-bannerlord, terraria, 7-days-to-die, tmodloader, beammp, dont-starve-together, valheim, arma-reforger |
+
+For a `cli` template with neither `passwordEnv` nor `passwordSecretRef`, the operator mints no `<gs>-rcon` Secret (`gameserver_rcon.go`), and the dashboard's `rconAvailable` returns false so live-RCON actions stay hidden (`web/src/lib/capabilities.ts`).
 
 ---
 
