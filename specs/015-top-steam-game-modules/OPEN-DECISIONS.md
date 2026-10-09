@@ -241,6 +241,9 @@ Since `rcon.protocol: none` is configured (TelnetPassword is in serverconfig.xml
 ### Recommendation
 Retain the shipped template's port `8081` without silently renumbering it.
 
+### Maintainer Ruling (2026-10-09)
+Keep `8081/TCP` as shipped. `contracts/engine-matrix-contract.md` carries no telnet port number for this module (its RCON column reads None), so it needs no correction.
+
 ---
 
 ## 9. Deliberate Omission of `capabilities.mods` in Garry's Mod, 7 Days to Die, and Project Zomboid (T094, T096)
