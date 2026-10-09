@@ -503,7 +503,7 @@ func TestResolverServerErrorWritesNoNegativeEntries(t *testing.T) {
 
 func TestResolverNeverAnsweringServerAbandonedWithinTimeout(t *testing.T) {
 	release := make(chan struct{})
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		select {
 		case <-release:
 		case <-r.Context().Done():

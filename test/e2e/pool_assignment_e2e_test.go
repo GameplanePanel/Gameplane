@@ -813,7 +813,7 @@ func TestAddressPool_AddressInUseConflict(t *testing.T) {
 		}
 		t.Cleanup(func() {
 			_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
-				Delete(context.Background(), name, metav1.DeleteOptions{})
+				Delete(context.WithoutCancel(ctx), name, metav1.DeleteOptions{})
 		})
 	}
 
@@ -936,7 +936,7 @@ func TestAddressPool_PoolExhausted(t *testing.T) {
 		}
 		t.Cleanup(func() {
 			_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
-				Delete(context.Background(), name, metav1.DeleteOptions{})
+				Delete(context.WithoutCancel(ctx), name, metav1.DeleteOptions{})
 		})
 	}
 
