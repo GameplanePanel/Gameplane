@@ -32,4 +32,4 @@
 ## Notes
 
 - The feature is CI itself, so the spec necessarily names CI concepts (jobs, suites, runner-minutes, architectures, coverage). It does not prescribe tools or code structure.
-- Two [NEEDS CLARIFICATION] markers remain (FR-010, US3), tracked as OD-2 and OD-3; OD-1 settled 2026-10-09 in OPEN-DECISIONS.md and asked in the project thread. Resolve before `/speckit-plan`.
+- One [NEEDS CLARIFICATION] marker remains (US3), tracked as OD-3; OD-1 and OD-2 settled 2026-10-09 in OPEN-DECISIONS.md and asked in the project thread. Resolve before `/speckit-plan`.

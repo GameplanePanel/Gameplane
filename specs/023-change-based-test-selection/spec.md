@@ -177,8 +177,8 @@ otherwise a green PR can hide a suite that should have run.
 - **FR-009**: Per-module coverage minimums MUST stay enforced on every full run (default
   branch pushes and forced full runs). On a partial PR run, CI MUST instead check coverage
   of the lines the PR changed. (Settled 2026-10-09, OD-1.)
-- **FR-010**: CPU-architecture coverage on PRs MUST follow the maintainer's choice.
-  [NEEDS CLARIFICATION: Q2 below.]
+- **FR-010**: Every end-to-end suite selected for a PR MUST run on both CPU architectures
+  (amd64 and arm64), as today. (Settled 2026-10-09, OD-2.)
 - **FR-011**: The selection rules MUST have their own tests (the existing scope script's
   test file is extended), and a change to the rules MUST run those tests and the full suite.
 - **FR-012**: No test may be deleted, weakened, disabled or excluded from the full suite
@@ -223,10 +223,8 @@ the markers above.
 
 - **Q1 (FR-009) Coverage on partial runs.** Settled 2026-10-09: module minimums on full
   runs only; PRs check coverage of changed lines.
-- **Q2 (FR-010) arm64 on PRs.** Options: (A) PRs run amd64 end-to-end only, arm64 runs
-  on master and when a PR touches arch-sensitive files (Dockerfiles, build tags, native
-  code); (B) keep both architectures for every selected suite on PRs. Recommended: B,
-  since it keeps today's coverage and selection alone meets SC-001.
+- **Q2 (FR-010) arm64 on PRs.** Settled 2026-10-09: keep both architectures for every
+  selected suite.
 - **Q3 (US3) Shared CI config edits.** Options: (A) map each shared file to the jobs it
   feeds, run everything only for the selection script, Makefile, workspace and composite
   actions; (B) keep "any CI config edit runs everything". Recommended: A.
