@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: c46359509ac5cbc817729795d6eed9e28a5ba56159433b5630d0d55926537781
+    gameplane.local/crd-bundle-sha256: d5069bc379d1aee86475b0f63c6c2866423a381b14b44cbf7a77dfd63e3c1c6a
     controller-gen.kubebuilder.io/version: v0.20.1
   name: gametemplates.gameplane.local
 spec:
@@ -1930,6 +1930,14 @@ spec:
                 description: RCON declares the remote-console protocol used by this
                   game, if any.
                 properties:
+                  authentication:
+                    default: true
+                    description: |-
+                      Authentication reports whether the console requires a password. Defaults to true.
+                      When false the operator generates no RCON Secret and injects no password; use it
+                      for consoles with no authentication, such as Nuclear Option's loopback-only
+                      remote-command port.
+                    type: boolean
                   passwordEnv:
                     description: |-
                       PasswordEnv is the environment variable the game container reads
@@ -2011,6 +2019,12 @@ spec:
                     - none
                     type: string
                 type: object
+                x-kubernetes-validations:
+                - message: 'authentication: false cannot be combined with passwordSecretRef,
+                    passwordEnv or passwordFile'
+                  rule: '!has(self.authentication) || self.authentication || (!has(self.passwordSecretRef)
+                    && (!has(self.passwordEnv) || size(self.passwordEnv) == 0) &&
+                    (!has(self.passwordFile) || size(self.passwordFile) == 0))'
               resources:
                 description: Resources are the default compute resources for the game
                   container.

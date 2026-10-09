@@ -309,7 +309,9 @@ export interface GameTemplate {
     versions?: GameVersion[];
     logPath?: string;
     consoleMode?: "rcon" | "pty" | "none";
-    rcon?: { protocol?: string; port?: number };
+    // authentication: whether the console requires a password (default true).
+    // false means no password Secret is minted (e.g. Nuclear Option's loopback port).
+    rcon?: { protocol?: string; port?: number; authentication?: boolean };
     probes?: ProbeSet;
     capabilities?: GameCapabilities;
     configSchema?: Array<{

@@ -539,6 +539,38 @@ namespace (so a sink `configRef` can't be aimed at an arbitrary Secret),
 and delivery errors are sanitized to never echo the sink URL, whose path
 often embeds a capability token.
 
+## Steam display-name lookup
+
+The API server can resolve Steam IDs in player lists to public display names
+through the Steam Web API (`ISteamUser/GetPlayerSummaries/v2`, batched up to
+100 IDs per call). It is an optional outbound dependency, off unless
+`api.steam.apiKeySecretRef.name` is set:
+
+- **Egress origin.** Requests leave only from the API pod in the control-plane
+  namespace, to `api.steampowered.com` over HTTPS. Game pods in the games
+  namespace stay under `default-deny-egress`; they get no path to Steam and
+  never see the key.
+- **Dial guard.** The HTTP client is built on `netguard` with the strict
+  `IsPublic` policy, so loopback, private, link-local and reserved
+  destinations are refused at dial time, including after DNS resolution.
+- **Credential.** The key is a user-supplied Secret, injected as the
+  environment variable `GAMEPLANE_STEAM_API_KEY` (never a flag, so it does not
+  appear in the pod spec or `ps` output). It is never logged, and failure
+  messages from the resolver are key-free. It is never returned in an API
+  response or sent to the browser.
+- **Cache.** Resolved names are kept in a bounded in-process LRU cache keyed on
+  Steam ID, with a positive TTL (default 12h) and a shorter negative TTL
+  (default 15m) for IDs Steam does not return. The cache holds no credential,
+  is never written to disk or the database, and is discarded on restart.
+  Failed calls are not cached.
+- **Identity.** A resolved name is display-only. It is never an identifier for
+  moderation: kick, ban and unban key on the Steam ID alone, so a name change
+  or a spoofed display name cannot change who is acted on.
+- **Failure mode.** If the key is unset, Steam is unreachable, or a call times
+  out (the lookup has a per-request budget of about 1.5 seconds), the player
+  list falls back to raw Steam IDs. The player list is never blocked or failed
+  by the lookup.
+
 ## Audit log integrity
 
 `audit_events` is a hash chain (migration `005_audit_chain.sql`): every row
