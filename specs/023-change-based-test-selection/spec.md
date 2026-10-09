@@ -84,7 +84,7 @@ is still caught.
    **When** CI runs, **Then** the tests that read them run.
 4. **Given** a PR whose web change touches one screen, **When** CI runs, **Then** the
    dashboard tests related to that screen and the files it depends on run, not the whole
-   dashboard suite. [Coverage thresholds: see FR-009.]
+   dashboard suite (coverage per FR-009).
 
 ---
 
@@ -174,9 +174,9 @@ otherwise a green PR can hide a suite that should have run.
   files (for example with a label).
 - **FR-008**: The run summary MUST list, for every suite, whether it ran and the changed
   paths that selected it, or that it was skipped and why.
-- **FR-009**: Per-module coverage minimums MUST stay enforced.
-  [NEEDS CLARIFICATION: Q1 below. A partial test run cannot compute a whole-module
-  coverage figure.]
+- **FR-009**: Per-module coverage minimums MUST stay enforced on every full run (default
+  branch pushes and forced full runs). On a partial PR run, CI MUST instead check coverage
+  of the lines the PR changed. (Settled 2026-10-09, OD-1.)
 - **FR-010**: CPU-architecture coverage on PRs MUST follow the maintainer's choice.
   [NEEDS CLARIFICATION: Q2 below.]
 - **FR-011**: The selection rules MUST have their own tests (the existing scope script's
@@ -221,10 +221,8 @@ otherwise a green PR can hide a suite that should have run.
 Each is asked in the project thread with options and a recommendation; answers replace
 the markers above.
 
-- **Q1 (FR-009) Coverage on partial runs.** Options: (A) enforce module coverage only on
-  full runs (master pushes and forced full runs), PRs check changed lines only;
-  (B) always run a module's whole suite when coverage applies, so only the end-to-end
-  tier gets narrowed; (C) drop coverage from PRs entirely. Recommended: A.
+- **Q1 (FR-009) Coverage on partial runs.** Settled 2026-10-09: module minimums on full
+  runs only; PRs check coverage of changed lines.
 - **Q2 (FR-010) arm64 on PRs.** Options: (A) PRs run amd64 end-to-end only, arm64 runs
   on master and when a PR touches arch-sensitive files (Dockerfiles, build tags, native
   code); (B) keep both architectures for every selected suite on PRs. Recommended: B,
