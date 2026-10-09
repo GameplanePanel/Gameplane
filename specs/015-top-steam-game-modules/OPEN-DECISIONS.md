@@ -267,3 +267,6 @@ Found while refreshing `plan.md` against the shipped templates (plan.md, Known G
 ### Recommendation
 Open for maintainer ruling: (a) widen research.md Decision 1 to the six extra games and add Dockerfiles for them, or (b) move those six templates to pinned community images. Either way, publish the images under `ghcr.io/gameplanepanel/gameplane`, pin real digests with `validate.py --pin` (T119), and re-check before T126.
 
+
+### Maintainer Ruling (2026-10-09)
+- **Image source for the six unbuilt images: Mixed.** For each of `mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`: use a maintained community image pinned by real digest where a suitable one exists; otherwise add a Gameplane-owned `Dockerfile` + `entrypoint.sh` under `modules/<game>/` and register it in `modules/build-images.sh`. The per-game choice is recorded here when the change lands.
