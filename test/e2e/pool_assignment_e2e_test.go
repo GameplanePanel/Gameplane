@@ -995,8 +995,14 @@ func TestAddressPool_PoolExhausted(t *testing.T) {
 			if !ok {
 				continue
 			}
-			if host, _ := ep["host"].(string); host != "" {
-				return false, fmt.Sprintf("second endpoints[%d].host = %q, want no address", i, host)
+			// While allocation has failed the operator shows the Service ClusterIP
+			// as host (endpointsFromService, gameserver_status.go), so the check is
+			// that the exhausted pool's address was not handed out a second time.
+			if host, _ := ep["host"].(string); host == onlyAddr {
+				return false, fmt.Sprintf("second endpoints[%d].host = %q, want not the pool address", i, host)
+			}
+			if pool, _ := ep["pool"].(string); pool != "" {
+				return false, fmt.Sprintf("second endpoints[%d].pool = %q, want empty", i, pool)
 			}
 		}
 		return true, ""
