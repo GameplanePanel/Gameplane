@@ -253,3 +253,17 @@ Per T096, adding a `capabilities.mods` block to `modules/garrys-mod/template.yam
 ### Maintainer Ruling / Recommendation
 Maintain the deliberate omission of `capabilities.mods` for all three modules. Workshop integration is handled via launch parameters / env vars (`ARGS` in GMod, `MODS_URLS` in 7DtD).
 Consequently, per T094, the workshop E2E test is retargeted from Garry's Mod to DayZ (`test/e2e/dayz_workshop_e2e_test.go`), which ships authoritative Steam Workshop `capabilities.mods.idList` wiring under `MOD_LIST`.
+
+---
+
+## 10. Image Pinning and Image Source Gaps (plan refresh, 2026-10-09)
+
+### Finding
+Found while refreshing `plan.md` against the shipped templates (plan.md, Known Gaps 1-3):
+- Ten new modules pin the placeholder digest `@sha256:0000000000000000000000000000000000000000000000000000000000000000`: `ark-survival-evolved`, `arma-reforger`, `beammp`, `euro-truck-simulator-2`, `farming-simulator-25`, `fivem`, `hell-let-loose`, `mount-and-blade-2-bannerlord`, `squad`, `the-isle`. This contradicts FR-003, although T119 is marked complete.
+- Six of those (`mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`) reference `ghcr.io/valgulnecron/gameplane/<game>` images that no Dockerfile in either repository builds; `modules/build-images.sh` knows only the four images from research.md Decision 1.
+- All ten Gameplane-owned refs use the pre-move `valgulnecron` registry owner, while `build-images.sh`'s usage example pushes to `ghcr.io/gameplanepanel/gameplane`.
+
+### Recommendation
+Open for maintainer ruling: (a) widen research.md Decision 1 to the six extra games and add Dockerfiles for them, or (b) move those six templates to pinned community images. Either way, publish the images under `ghcr.io/gameplanepanel/gameplane`, pin real digests with `validate.py --pin` (T119), and re-check before T126.
+
