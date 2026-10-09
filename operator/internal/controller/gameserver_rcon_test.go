@@ -102,6 +102,18 @@ func TestResolveRCON(t *testing.T) {
 			t.Fatalf("cli with passwordEnv should set secretName: %+v", rc)
 		}
 	})
+
+	t.Run("nuclearoption protocol does not generate secret", func(t *testing.T) {
+		rc := resolveRCON(gs, rconTmpl(&gameplanev1alpha1.RCONSpec{
+			Protocol: "nuclearoption",
+		}))
+		if !rc.enabled {
+			t.Fatal("expected enabled for nuclearoption")
+		}
+		if rc.secretName != "" || rc.secretKey != "" {
+			t.Fatalf("nuclearoption should not set secretName/secretKey: %+v", rc)
+		}
+	})
 }
 
 // TestRCONGameEnv verifies environment variable injection into the game container.

@@ -56,8 +56,9 @@ func resolveRCON(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameT
 	} else if tmpl.Spec.RCON.PasswordFile != "" {
 		r.passwordFile = tmpl.Spec.RCON.PasswordFile
 		r.passwordEnv = ""
-	} else if tmpl.Spec.RCON.Protocol == "cli" && tmpl.Spec.RCON.PasswordEnv == "" {
-		// "cli" protocol without passwordEnv or passwordSecretRef does not require a generated secret.
+	} else if (tmpl.Spec.RCON.Protocol == "cli" || tmpl.Spec.RCON.Protocol == "nuclearoption") && tmpl.Spec.RCON.PasswordEnv == "" {
+		// "cli" and "nuclearoption" protocols without passwordEnv or passwordSecretRef do not require a generated secret.
+		// The Nuclear Option remote-command port (TCP 7779) has no authentication, so a minted password would never be read.
 		r.secretName = ""
 		r.secretKey = ""
 	} else {
