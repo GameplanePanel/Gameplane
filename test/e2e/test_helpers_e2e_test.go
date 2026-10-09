@@ -76,11 +76,10 @@ func applyBusyboxGameServer(t *testing.T, ns, gsName, tmplName string) {
 }
 
 // applyBusyboxGameServerWithCapture is applyBusyboxGameServer but with
-// spec.capture.enabled=true set at creation time. US2 (the
-// :capture-enable/:capture-disable HTTP routes that would flip this
-// flag post-creation) is not yet built, so tests exercising capture
-// opt in via the spec directly rather than through the API — see
-// TestGameServer_NetworkCaptureStartStopDownload.
+// spec.capture.enabled=true set at creation time. Tests exercising capture
+// opt in via the spec at creation, so the sidecar is injected on the first
+// reconcile, rather than flipping the flag post-creation through the
+// :capture-enable route — see TestGameServer_NetworkCaptureStartStopDownload.
 func applyBusyboxGameServerWithCapture(t *testing.T, ns, gsName, tmplName string) {
 	t.Helper()
 	applyBusyboxGameServerSpec(t, ns, gsName, tmplName, true)
