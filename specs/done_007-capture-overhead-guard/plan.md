@@ -1,6 +1,6 @@
 # Implementation Plan: Capture Overhead CI Regression Guard (007)
 
-**Spec**: `specs/007-capture-overhead-guard/spec.md` · **Decisions**: `OPEN-DECISIONS.md` (OD-1 ruled; OD-2..OD-8 defaults) · **Created**: 2026-10-09
+**Spec**: `specs/done_007-capture-overhead-guard/spec.md` · **Decisions**: `OPEN-DECISIONS.md` (OD-1 ruled; OD-2..OD-8 defaults) · **Created**: 2026-10-09
 
 ## Summary
 
