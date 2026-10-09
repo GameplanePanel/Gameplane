@@ -62,7 +62,7 @@ install_metallb() {
 # read back from docker rather than hardcoded, because the bridge subnet is
 # docker's choice (commonly 172.18.0.0/16) and not guaranteed.
 apply_metallb_pools() {
-    local subnet prefix range_east range_west attempt
+    local subnet prefix range_east range_west range_single attempt
     subnet="$(docker network inspect kind \
         -f '{{range .IPAM.Config}}{{.Subnet}} {{end}}' | tr ' ' '\n' | grep -m1 '\.' || true)"
     case "${subnet}" in
@@ -75,8 +75,9 @@ apply_metallb_pools() {
     prefix="$(echo "${subnet}" | cut -d. -f1,2)"
     range_east="${prefix}.255.100-${prefix}.255.110"
     range_west="${prefix}.255.200-${prefix}.255.210"
+    range_single="${prefix}.255.150-${prefix}.255.150"
 
-    echo "defining MetalLB pools pool-us-east (${range_east}) and pool-us-west (${range_west})"
+    echo "defining MetalLB pools pool-us-east (${range_east}), pool-us-west (${range_west}) and pool-e2e-single (${range_single})"
     # IPAddressPool and L2Advertisement are gated by MetalLB's validating
     # webhook, which keeps refusing connections for a few seconds after the
     # controller Deployment reports Available. Retry instead of racing it.
@@ -104,6 +105,20 @@ spec:
   addresses:
     - ${range_west}
 ---
+# pool-e2e-single holds exactly one address and never auto-assigns. It exists
+# only so TestAddressPool_PoolExhausted can exhaust a pool without starving the
+# parallel tests that draw from pool-us-east and pool-us-west. Do not reference
+# it from any other test.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: pool-e2e-single
+  namespace: metallb-system
+spec:
+  autoAssign: false
+  addresses:
+    - ${range_single}
+---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
@@ -121,6 +136,15 @@ metadata:
 spec:
   ipAddressPools:
     - pool-us-west
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: pool-e2e-single
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - pool-e2e-single
 EOF
         then
             return 0

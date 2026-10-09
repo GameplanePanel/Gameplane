@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -887,5 +888,159 @@ func TestAddressPool_AddressInUseConflict(t *testing.T) {
 		if host, _ := ep["host"].(string); host == requestedAddr {
 			t.Errorf("contender endpoints[%d].host = %q, want the address withheld from it", i, host)
 		}
+	}
+}
+
+// TestAddressPool_PoolExhausted covers the AllocationFailed branch of the
+// AddressAssignment condition: once a pool has no free address left, MetalLB
+// refuses the next Service that draws from it, the operator reports reason
+// AllocationFailed (derived from the MetalLB Service warning event), and the
+// refused server is given no endpoint address. The refused server's pod must
+// keep running; a failed address allocation must not crash-loop the workload.
+//
+// pool-e2e-single is defined by apply_metallb_pools in deploy/kind/e2e.sh with
+// exactly one address (172.18.255.150) and autoAssign false. It exists only so
+// this test can exhaust a pool; TestAddressPool_PoolExhausted must remain the
+// only test that uses it, or the parallel tests would race for the one address.
+func TestAddressPool_PoolExhausted(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ns := "gameplane-games"
+	suffix := time.Now().UnixNano()
+	tmplName := fmt.Sprintf("e2e-pool-exhaust-%d", suffix)
+	firstName := fmt.Sprintf("e2e-gs-exhaust-first-%d", suffix)
+	secondName := fmt.Sprintf("e2e-gs-exhaust-second-%d", suffix)
+	const poolName = "pool-e2e-single"
+	const onlyAddr = "172.18.255.150"
+
+	applyBusyboxTemplate(t, tmplName)
+
+	createServer := func(name string) {
+		t.Helper()
+		gs := &unstructured.Unstructured{Object: map[string]any{
+			"apiVersion": "gameplane.local/v1alpha1",
+			"kind":       "GameServer",
+			"metadata":   map[string]any{"name": name, "namespace": ns},
+			"spec": map[string]any{
+				"templateRef": map[string]any{"name": tmplName},
+				"networking": map[string]any{
+					"expose":      "LoadBalancer",
+					"addressPool": poolName,
+				},
+			},
+		}}
+		if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+			Create(ctx, gs, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
+			t.Fatalf("create gameserver %s: %v", name, err)
+		}
+		t.Cleanup(func() {
+			_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+				Delete(context.Background(), name, metav1.DeleteOptions{})
+		})
+	}
+
+	// Step 1: the first server takes the only address in the pool.
+	createServer(firstName)
+	envInstance.Eventually(t, 120*time.Second, func() (bool, string) {
+		got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+			Get(ctx, firstName, metav1.GetOptions{})
+		if err != nil {
+			return false, "get first gameserver: " + err.Error()
+		}
+		cond := findCondition(got.Object, "AddressAssignment")
+		if cond == nil {
+			return false, "first AddressAssignment condition not found"
+		}
+		if cond["status"] != "True" {
+			return false, fmt.Sprintf("first not assigned yet: status=%v reason=%v", cond["status"], cond["reason"])
+		}
+		endpoints, _, _ := unstructured.NestedSlice(got.Object, "status", "endpoints")
+		if len(endpoints) == 0 {
+			return false, "first has no endpoints"
+		}
+		ep, ok := endpoints[0].(map[string]any)
+		if !ok {
+			return false, "first endpoint malformed"
+		}
+		if host, _ := ep["host"].(string); host != onlyAddr {
+			return false, fmt.Sprintf("first endpoint host = %q, want %q", host, onlyAddr)
+		}
+		return true, ""
+	})
+
+	// Step 2: the second server asks the same pool, which is now exhausted.
+	createServer(secondName)
+	envInstance.Eventually(t, 180*time.Second, func() (bool, string) {
+		got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+			Get(ctx, secondName, metav1.GetOptions{})
+		if err != nil {
+			return false, "get second gameserver: " + err.Error()
+		}
+		cond := findCondition(got.Object, "AddressAssignment")
+		if cond == nil {
+			return false, "second AddressAssignment condition not found"
+		}
+		status, _ := cond["status"].(string)
+		reason, _ := cond["reason"].(string)
+		if status != "False" {
+			return false, fmt.Sprintf("second status=%q reason=%q, want False/AllocationFailed", status, reason)
+		}
+		if reason != "AllocationFailed" {
+			return false, fmt.Sprintf("second reason=%q, want exactly AllocationFailed", reason)
+		}
+		endpoints, _, _ := unstructured.NestedSlice(got.Object, "status", "endpoints")
+		for i, epIface := range endpoints {
+			ep, ok := epIface.(map[string]any)
+			if !ok {
+				continue
+			}
+			if host, _ := ep["host"].(string); host != "" {
+				return false, fmt.Sprintf("second endpoints[%d].host = %q, want no address", i, host)
+			}
+		}
+		return true, ""
+	})
+
+	// Step 3: the refused server's pod must be Running with a stable game
+	// container restart count. Wait for the pod to come up, then sample twice
+	// across a window; a crash-looping pod would change the restart count.
+	podName := secondName + "-0"
+	gameState := func() (int32, corev1.PodPhase, error) {
+		pod, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			return 0, "", err
+		}
+		cs := findContainerStatusByName(pod.Status.ContainerStatuses, "game")
+		if cs == nil {
+			return 0, pod.Status.Phase, fmt.Errorf("no game container status yet")
+		}
+		return cs.RestartCount, pod.Status.Phase, nil
+	}
+	envInstance.Eventually(t, 180*time.Second, func() (bool, string) {
+		_, phase, err := gameState()
+		if err != nil {
+			return false, "pod " + podName + ": " + err.Error()
+		}
+		if phase != corev1.PodRunning {
+			return false, fmt.Sprintf("pod %s phase=%s, want Running", podName, phase)
+		}
+		return true, ""
+	})
+	preRestarts, prePhase, err := gameState()
+	if err != nil {
+		t.Fatalf("read pod %s before window: %v", podName, err)
+	}
+	time.Sleep(15 * time.Second)
+	postRestarts, postPhase, err := gameState()
+	if err != nil {
+		t.Fatalf("read pod %s after window: %v", podName, err)
+	}
+	if postPhase != prePhase || postPhase != corev1.PodRunning {
+		t.Errorf("pod %s phase before=%s after=%s, want Running throughout", podName, prePhase, postPhase)
+	}
+	if postRestarts != preRestarts {
+		t.Errorf("pod %s game restartCount changed %d -> %d while address allocation was refused",
+			podName, preRestarts, postRestarts)
 	}
 }
