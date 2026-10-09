@@ -41,5 +41,6 @@ description: "Task list for Feature 007: Capture Overhead CI Regression Guard"
 
 ## Phase 6: Verification
 
-- [ ] T013 First CI run of `e2e-capture-overhead`: confirm the sustained probe holds against `itzg/minecraft-server` 1.21.4 (OD-3 gate), the artifact uploads, and runtime stays within SC-006 (≤ ~40 min). Record the run link here.
+- [X] T013 First CI run of `e2e-capture-overhead`: confirm the sustained probe holds against `itzg/minecraft-server` 1.21.4 (OD-3 gate), the artifact uploads, and runtime stays within SC-006 (≤ ~40 min). Record the run link here.
+  - Verified 2026-10-09 on commit dbbd0c0, run https://github.com/GameplanePanel/Gameplane/actions/runs/37876049652 (job `e2e capture overhead (kind)`, 12m45s): `TestGameServer_CaptureOverhead_Joined` PASS in 603.65s, verdict `ok`. Every sustained probe held 30s (`VERDICT PASS JOINED held 30s, 1 keepalives, 14 rtt samples`). The capture had 1126 packets, 0 outside the filter, 15 streams and 0 classify failures. Average RTT was off-1 0.36 ms, on 0.30 ms and off-2 0.33 ms. Artifact `capture-overhead-metrics` uploaded.
 - [X] T014 Fix `specs/done_003-network-capture-sidecar/sc-002-benchmark.md` line ~300, which describes 007 with thresholds 007 does not use, to point at OD-8.
