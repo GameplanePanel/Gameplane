@@ -105,7 +105,6 @@ CI runs the workflow checks and nothing heavy.
 
 1. **Given** a PR that changes only a comment in the CI workflow, **When** CI runs,
    **Then** workflow validation runs and the end-to-end tier does not.
-   [NEEDS CLARIFICATION: Q3 below]
 2. **Given** a PR that changes the selection rules themselves, **When** CI runs, **Then**
    the selection rules' own tests run and the full suite runs.
 
@@ -179,6 +178,10 @@ otherwise a green PR can hide a suite that should have run.
   of the lines the PR changed. (Settled 2026-10-09, OD-1.)
 - **FR-010**: Every end-to-end suite selected for a PR MUST run on both CPU architectures
   (amd64 and arm64), as today. (Settled 2026-10-09, OD-2.)
+- **FR-014**: Each shared CI configuration file MUST be mapped to the jobs it feeds, and
+  an edit to it MUST run only those jobs plus workflow validation. Only the selection
+  script and its tests, the Makefile, the Go workspace files and the shared composite
+  actions MUST still force the full suite. (Settled 2026-10-09, OD-3.)
 - **FR-011**: The selection rules MUST have their own tests (the existing scope script's
   test file is extended), and a change to the rules MUST run those tests and the full suite.
 - **FR-012**: No test may be deleted, weakened, disabled or excluded from the full suite
@@ -209,25 +212,24 @@ otherwise a green PR can hide a suite that should have run.
 - **SC-002**: Median runner-minutes per PR run drops by at least 50% over the first 30
   merged PRs after rollout, compared with the 30 merged PRs before it.
 - **SC-003**: A PR that changes only a comment in shared CI configuration uses under 30
-  runner-minutes, down from about 298 (run 2201). [Depends on Q3.]
+  runner-minutes, down from about 298 (run 2201).
 - **SC-004**: Over the first 60 days, no defect reaches the default branch that a skipped
   suite would have caught on the PR; each master-run failure is checked against the PR's
   selection result, and any miss leads to a rule fix within the same week.
 - **SC-005**: 100% of PR runs show a per-suite ran/skipped reason in the run summary.
 - **SC-006**: Every test that exists today still runs on every default-branch push.
 
-## Open questions
+## Clarifications
 
-Each is asked in the project thread with options and a recommendation; answers replace
-the markers above.
+All three were answered by the maintainer on 2026-10-09.
 
 - **Q1 (FR-009) Coverage on partial runs.** Settled 2026-10-09: module minimums on full
   runs only; PRs check coverage of changed lines.
 - **Q2 (FR-010) arm64 on PRs.** Settled 2026-10-09: keep both architectures for every
   selected suite.
-- **Q3 (US3) Shared CI config edits.** Options: (A) map each shared file to the jobs it
-  feeds, run everything only for the selection script, Makefile, workspace and composite
-  actions; (B) keep "any CI config edit runs everything". Recommended: A.
+- **Q3 (US3) Shared CI config edits.** Settled 2026-10-09: map each shared file to the
+  jobs it feeds; only the selection script, Makefile, workspace files and composite
+  actions still force everything.
 
 ## Assumptions
 

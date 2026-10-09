@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - The feature is CI itself, so the spec necessarily names CI concepts (jobs, suites, runner-minutes, architectures, coverage). It does not prescribe tools or code structure.
-- One [NEEDS CLARIFICATION] marker remains (US3), tracked as OD-3; OD-1 and OD-2 settled 2026-10-09 in OPEN-DECISIONS.md and asked in the project thread. Resolve before `/speckit-plan`.
+- All three clarifications (OD-1..OD-3) settled by the maintainer on 2026-10-09; spec is ready for `/speckit-plan`.
