@@ -368,7 +368,8 @@ type sessionSeen struct {
 // connection is closed when it returns. The returned channel closes then too.
 func startFakeServer(t *testing.T, script func(rd *reader, wr *writer)) (string, <-chan struct{}) {
 	t.Helper()
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	lc := net.ListenConfig{}
+	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("Listen failed: %v", err)
 	}
