@@ -295,3 +295,16 @@ Open for maintainer ruling: (a) widen research.md Decision 1 to the six extra ga
 ### Maintainer Ruling (2026-10-09)
 - **Image source for the six unbuilt images: Mixed.** For each of `mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`: use a maintained community image pinned by real digest where a suitable one exists; otherwise add a Gameplane-owned `Dockerfile` + `entrypoint.sh` under `modules/<game>/` and register it in `modules/build-images.sh`. The per-game choice is recorded here when the change lands.
 - **Registry owner: split by build date.** Images already published under `ghcr.io/valgulnecron/gameplane/…` stay there and existing refs to them are not rewritten. Every image built from now on, including any new build for an existing module, is pushed and signed under `ghcr.io/gameplanepanel/gameplane/…`. The ten placeholder-digest refs in this section were never published, so their first real build goes to `gameplanepanel` and the templates are repointed when they are pinned.
+
+### Per-game image choice (T133, 2026-10-09)
+
+| Module | Choice | Why |
+|---|---|---|
+| `arma-reforger` | Community: `ghcr.io/acemod/arma-reforger` (ACE team), pinned by digest | Actively maintained, configured by env vars, RCON via `RCON_PASSWORD`. It runs as root by design (SteamCMD), as Palworld's image does, so the template drops `spec.security`; the volume mounts at `/reforger`. |
+| `squad` | Gameplane-built (`images/games/squad/`), *pending maintainer card* | `cm2network/squad` is maintained but cannot set the RCON password from env (it lives in `SquadGame/ServerConfig/Rcon.cfg` inside the install), so console and probes would stay broken until hand-edited. |
+| `the-isle` | Gameplane-built (`images/games/the-isle/`) | No community image. SteamCMD app 412680, public `evrima` beta. |
+| `ark-survival-evolved` | Gameplane-built (`images/games/ark-survival-evolved/`), *pending maintainer card* | No clearly maintained community image: recent ones are single-maintainer, older popular ones are 2-5 years stale. SteamCMD app 376030, anonymous. |
+| `mount-and-blade-2-bannerlord` | Gameplane-built (`images/games/mount-and-blade-2-bannerlord/`) | No community image. Windows-only dedicated server (app 1863440), downloaded with `+@sSteamCmdForcePlatformType windows` and run under Wine; a missing `SERVER_TOKEN` idles with instructions (FR-013). |
+| `hell-let-loose` | *Pending maintainer card* (recommended: keep the module, mark it blocked) | The server files go only to Team17's licensed hosting partners; there is no public SteamCMD download, so no image can install it. |
+
+Build location (*pending maintainer card*, recommended): the Gameplane-built images live in this repo's `images/games/<name>/` on the shared SteamCMD base (UID 10000) and are built by `.github/workflows/images.yaml`, which checks each build on PRs and publishes and signs to `ghcr.io/gameplanepanel/gameplane` on merge to `master`, as Nuclear Option does. This supersedes the ruling's "`modules/<game>/` + `modules/build-images.sh`" wording if accepted. `modules/.github/workflows/build-images.yml` still gets the lowercase registry-owner fix for its four existing images.
