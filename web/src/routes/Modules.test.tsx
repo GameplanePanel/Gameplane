@@ -344,8 +344,9 @@ describe("ModulesPage", () => {
     expect(screen.queryByText("Minecraft (Java)")).not.toBeInTheDocument();
   });
 
-  it("shows empty message when catalog is empty", async () => {
+  it("lets an empty catalog open the source editor through Manage sources", async () => {
     catalog.mockResolvedValue({ items: [] });
+    listSources.mockResolvedValue({ items: [] });
     renderPage();
 
     await waitFor(() =>
@@ -353,6 +354,8 @@ describe("ModulesPage", () => {
         screen.getByText(/No modules in any catalog yet/),
       ).toBeInTheDocument(),
     );
+    await userEvent.click(screen.getByRole("button", { name: "Manage sources" }));
+    expect(await screen.findByRole("button", { name: "Add source" })).toBeEnabled();
   });
 
   it("shows install error on the page", async () => {

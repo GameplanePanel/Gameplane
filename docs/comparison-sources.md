@@ -5,7 +5,7 @@ README comparison table. Each product has a section below. Entries are organized
 by row (dimension a–i) and include the source URL, date checked, and what was
 verified.
 
-**Last Updated**: 2026-10-02
+**Last Updated**: 2026-10-08
 
 ---
 
@@ -19,9 +19,12 @@ verified.
 ### Row (a): Deployment/runtime model
 
 **Source ID**: G-a  
-**Evidence**: README.md:8; operator/api/v1alpha1/gameserver_types.go:1–50  
-**Checked on**: 2026-09-02  
-**What was verified**: README status line confirms project is a pre-v1 release (`v0.3.0`; status line re-checked 2026-10-05); GameServer CRD types and controller-runtime operator documented in operator module with support for k3s and multi-node clusters.  
+**Evidence**: docs/standalone-panel.md; deploy/standalone/compose.yaml; api/cmd/management.go; operator/api/v1alpha1/gameserver_types.go
+
+**Checked on**: 2026-10-08 (source review)
+
+**What was verified**: The default install combines the panel and operator on Kubernetes. The standalone Compose deployment runs the API and dashboard without a local Kubernetes cluster; games still use GameServer CRDs and an operator on registered Kubernetes clusters. The README identifies Gameplane as a pre-v1 release. Standalone setup requires a checkout or release containing this feature.
+
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane
 
 <a id="gameplane-row-b"></a>
@@ -74,11 +77,11 @@ verified.
 
 **Source ID**: G-g
 
-**Evidence**: operator/api/v1alpha1/cluster_types.go; api/internal/gateway/server.go; api/internal/handlers/capture_remote.go; api/internal/handlers/mod_target.go; docs/architecture.md
+**Evidence**: operator/api/v1alpha1/cluster_types.go; api/internal/controlplane/store.go; api/internal/gateway/server.go; api/internal/handlers/capture_remote.go; api/internal/handlers/mod_target.go; docs/standalone-panel.md; docs/architecture.md
 
-**Checked on**: 2026-10-02 (source review)
+**Checked on**: 2026-10-08 (source review)
 
-**What was verified**: Cluster CRD for remote registration/monitoring; Pod logs and PTY attach use registered Kubernetes clients. An optional private gateway routes agent operations to UID-aware agents and provides capture downloads/cleanup bound to server and capture identity. Modpack and ID-list configuration use the selected Kubernetes client and template. Direct Kubernetes connectivity and matching component versions remain required. Cluster health reports Kubernetes connectivity, not gateway health.
+**What was verified**: Combined mode stores remote registrations in Cluster CRDs; standalone mode stores them in SQL and encrypts their credentials. User grants remain central and identify the remote cluster and namespace. Pod logs and PTY attach use registered Kubernetes clients. An optional private gateway routes agent operations to UID-aware agents and provides capture downloads/cleanup bound to server and capture identity. Modpack and ID-list configuration use the selected Kubernetes client and template. Direct Kubernetes connectivity and matching component versions remain required. Cluster health reports Kubernetes connectivity, not gateway health.
 
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
 
@@ -95,9 +98,12 @@ verified.
 ### Row (i): Target operator scope (self-hosted vs. managed SaaS)
 
 **Source ID**: G-i  
-**Evidence**: README.md § Why Gameplane? (line 50 onward); CLAUDE.md § Repository Map  
-**Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: README "Why Gameplane?" section states self-hosted Kubernetes deployments (k3s, kubeadm, managed services); no managed SaaS offering documented.  
+**Evidence**: docs/standalone-panel.md; deploy/standalone/compose.yaml; api/cmd/management.go; README.md § Installation
+
+**Checked on**: 2026-10-08 (source review)
+
+**What was verified**: The panel can run on a Docker host or Kubernetes. Game workloads require Kubernetes, including k3s, kubeadm, or managed services. These are self-hosted deployments; no managed SaaS offering is documented.
+
 **Last-known URL**: https://github.com/GameplanePanel/Gameplane
 
 ---

@@ -20,6 +20,20 @@ The Gameplane dashboard is a React SPA providing a UI layer over the Gameplane A
 - Validate form inputs against declared server/template schema before submit
 - Display real-time resource status (CPU, memory, uptime) and live action metrics from RCON/agent
 
+### Standalone panel installations
+
+- Authenticated `GET /admin/installation` reports `standalone` and `localCluster`. The dashboard waits for this capability response before making local infrastructure or module requests; a failed capability request does not imply a local cluster.
+- Standalone `/clusters` may be empty. The UI must not synthesize a local registration or fetch local inventory, templates, or module catalogs in that state. Existing fleet pages continue to render their empty states.
+- Cluster managers can register an existing workload cluster from the Clusters page using its name, display name, and self-contained kubeconfig. Registration does not install an operator or make the panel host a workload node. Removing a registration requires confirmation and leaves running workloads intact. Agent features additionally require remote gateway configuration through the documented API.
+- On standalone installations, Modules and Admin → Module sources require an explicitly selected registered cluster. Catalogs, source mutations, module installation, uploads, builder installation, and deployment use that same captured target. Switching the target remounts dialogs so pending form state cannot be submitted to another cluster.
+- The Modules page exposes its source editor directly, so a workload module manager does not need central configuration permission to manage sources. Source controls use the catalog's target and permissions.
+- Standalone backup destination settings also require an explicitly selected registered workload cluster. Destination reads and mutations retain that target; switching clusters discards open destination forms.
+- Combined installations retain the local module catalog and local module deployment behavior. Account, authentication, configuration, registry, fleet, and sharing endpoints remain management APIs independent of workload selection.
+- Standalone About and Updates sections do not query local Kubernetes information; upgrades use panel/API container images.
+- Standalone System logs shows container-runtime guidance without opening a local Kubernetes log stream. Module reads and management controls check permissions against the selected workload cluster (local on combined installations); permissions granted on another cluster do not enable these controls.
+- The local-only notifications SSE subscription starts only after installation capabilities confirm a local cluster. Standalone dashboards retain polling and do not retry an unscoped `/events` stream against the panel host.
+- Standalone user grants require explicit remote selection, omit the local workload option, and keep the primary panel role separate. Remote cluster-wide roles may contain module read/manage and template read/write permissions as well as inventory and namespaced permissions.
+
 ## Non-goals / Boundaries
 
 **Design-first rule:** Any change to the dashboard's visual surface (new page, new form field, layout shift, color/icon change) originates in `design.pen` (Pencil MCP server), not in React code. The Pencil file is the source of truth for all UI design; code-led redesigns are reverted. See docs/architecture.md and CLAUDE.md rule 1.

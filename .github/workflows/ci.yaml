@@ -136,6 +136,7 @@ jobs:
               - 'web/**'
             charts:
               - 'charts/**'
+              - 'deploy/standalone/**'
               # The chart embeds a copy of the root signing key; the drift
               # check in `chart render` has to run when either side moves.
               - 'cosign.pub'
@@ -778,6 +779,27 @@ jobs:
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - run: helm lint charts/gameplane
 
+  standalone-compose:
+    name: standalone Compose smoke
+    needs: [changes]
+    if: needs.changes.outputs.images == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.charts == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: build and start standalone panel
+        run: docker compose -f deploy/standalone/compose.yaml up -d --build
+      - name: bootstrap and verify persistent standalone panel
+        run: python3 deploy/standalone/smoke.py
+      - name: container logs
+        if: failure()
+        run: docker compose -f deploy/standalone/compose.yaml logs
+      - name: remove smoke containers and volume
+        if: always()
+        run: docker compose -f deploy/standalone/compose.yaml down --volumes
+
   chart-template:
     name: chart render
     needs: [changes]
@@ -792,6 +814,8 @@ jobs:
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
       - name: gateway isolation and API-disabled chart renders
         run: python3 charts/tests/check_gateway.py
+      - name: standalone panel isolation and persistence chart renders
+        run: python3 charts/tests/check_standalone.py
       - name: sanity-check rendered manifests
         run: |
           grep -q 'kind: Deployment' /tmp/rendered.yaml
@@ -1211,8 +1235,8 @@ jobs:
 
   # The api's PostgreSQL backend (--db-driver=postgres) is compiled only
   # with -tags postgres, so the `go` matrix and `lint` never build it. This
-  # job builds and vets api with the tag and runs api/internal/db's tests
-  # against a real PostgreSQL service; the db_postgres_test.go tests skip
+  # job builds and vets api with the tag and runs database and standalone
+  # management storage tests against a real PostgreSQL service; these tests skip
   # unless GAMEPLANE_TEST_POSTGRES_DSN is set. The server keeps the image's
   # default (non-C) locale on purpose: TestPostgres_TextOrderingIsByteWise
   # checks the migrations' COLLATE "C" columns sort byte-wise regardless.
@@ -1263,11 +1287,11 @@ jobs:
       - name: go vet -tags postgres
         working-directory: api
         run: go vet -tags postgres ./...
-      - name: test api/internal/db against PostgreSQL
+      - name: test database and standalone management storage against PostgreSQL
         working-directory: api
         env:
           GAMEPLANE_TEST_POSTGRES_DSN: postgres://postgres@localhost:5432/gameplane_test?sslmode=disable
-        run: go test -tags postgres -count=1 ./internal/db/...
+        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/...
 
   # ---------------------------------------------------------------------
   # kind e2e — one job per suite, each with its own throwaway cluster on
@@ -1934,6 +1958,7 @@ jobs:
         web-e2e-mock,
         helm,
         chart-template,
+        standalone-compose,
         workflow-lint,
         go-e2e-unit,
         api-postgres,
@@ -2040,7 +2065,7 @@ jobs:
             const NEEDS_ORDER = [
               'changes', 'build-images', 'build-images-arm64',
               'capture-sidecar-setcap-proof', 'docs', 'lint', 'go',
-              'web', 'web-e2e-mock', 'helm', 'chart-template', 'workflow-lint', 'go-e2e-unit',
+              'web', 'web-e2e-mock', 'helm', 'chart-template', 'standalone-compose', 'workflow-lint', 'go-e2e-unit',
               'api-postgres',
               'e2e-buckets', 'e2e-go', 'e2e-go-arm64', 'e2e-multicluster', 'e2e-multicluster-arm64', 'e2e-upgrade', 'e2e-upgrade-arm64',
               'e2e-web-live', 'e2e-web-live-arm64', 'e2e-game-bot', 'e2e-capture-overhead', 'e2e-kind-ingress-smoke',
@@ -2061,6 +2086,7 @@ jobs:
               'web-e2e-mock': (n) => n === 'web e2e (mock)',
               helm: (n) => n === 'helm lint',
               'chart-template': (n) => n === 'chart render',
+              'standalone-compose': (n) => n === 'standalone Compose smoke',
               'workflow-lint': (n) => n === 'workflow lint',
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',

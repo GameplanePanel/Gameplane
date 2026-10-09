@@ -15,13 +15,11 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
@@ -50,30 +48,29 @@ func upsertLabelledSecret(ctx context.Context, k *kube.Client, ns, name, feature
 		Type:       corev1.SecretTypeOpaque,
 		StringData: data,
 	}
-	_, err := k.Typed.CoreV1().Secrets(ns).Create(ctx, desired, metav1.CreateOptions{})
+	_, err := k.Secrets(ns).Create(ctx, desired, metav1.CreateOptions{})
 	if err == nil {
 		return nil
 	}
 	if !apierrors.IsAlreadyExists(err) {
 		return err
 	}
-	existing, err := k.Typed.CoreV1().Secrets(ns).Get(ctx, name, metav1.GetOptions{})
+	existing, err := k.Secrets(ns).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 	if existing.Labels[featureLabel] != "true" {
 		return errNotManagedSecret
 	}
-	patch, err := json.Marshal(map[string]any{
-		// Re-assert managed-by so a pre-created labelled Secret an admin
-		// re-saves through the UI becomes deletable through the UI too.
-		"metadata":   map[string]any{"labels": labels},
-		"stringData": data,
-	})
-	if err != nil {
-		return err
+	// Keep unrelated keys/labels and bind the update to the version just read.
+	if existing.Labels == nil {
+		existing.Labels = map[string]string{}
 	}
-	_, err = k.Typed.CoreV1().Secrets(ns).Patch(ctx, name, types.MergePatchType, patch, metav1.PatchOptions{})
+	for key, value := range labels {
+		existing.Labels[key] = value
+	}
+	existing.StringData = data
+	_, err = k.Secrets(ns).Update(ctx, existing, metav1.UpdateOptions{})
 	return err
 }
 
@@ -81,12 +78,12 @@ func upsertLabelledSecret(ctx context.Context, k *kube.Client, ns, name, feature
 // feature label and managed-by=gameplane-api. Anything else reads as
 // not-found so the endpoint doesn't leak which Secrets exist.
 func deleteManagedSecret(ctx context.Context, k *kube.Client, ns, name, featureLabel string) error {
-	existing, err := k.Typed.CoreV1().Secrets(ns).Get(ctx, name, metav1.GetOptions{})
+	existing, err := k.Secrets(ns).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 	if existing.Labels[featureLabel] != "true" || existing.Labels[ManagedByLabel] != managedByValue {
 		return apierrors.NewNotFound(corev1.Resource("secrets"), name)
 	}
-	return k.Typed.CoreV1().Secrets(ns).Delete(ctx, name, metav1.DeleteOptions{})
+	return k.Secrets(ns).Delete(ctx, name, metav1.DeleteOptions{Preconditions: objectDeletePreconditions(existing)})
 }

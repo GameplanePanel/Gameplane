@@ -274,7 +274,6 @@ func mountHomeClientRoutes(t *testing.T, r chi.Router, home *kube.Client, reg *k
 	MountClusterActions(r, home, true, "")
 	MountClusters(r, reg, home, controlNS)
 	MountSystemLogs(r, home, controlNS)
-	MountModules(r, home, controlNS)
 	MountRegistrySecrets(r, home, controlNS)
 }
 
@@ -299,6 +298,7 @@ func TestHomeClientMounts_ServeHomeClusterOnly(t *testing.T) {
 	r := chi.NewRouter()
 	r.Use(rbac.Middleware(reg))
 	mountHomeClientRoutes(t, r, home, reg)
+	MountModulesWithRegistry(r, reg, "gameplane-system")
 	MountCluster(r, reg, newTestStore(t), "test", true, "")
 	MountRegistryWithRegistry(r, reg, fakeSet{p: &fakeProvider{}})
 	MountModIDsWithRegistry(r, reg)

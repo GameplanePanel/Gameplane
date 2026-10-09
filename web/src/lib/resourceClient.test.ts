@@ -60,13 +60,24 @@ describe("immutable resource transport", () => {
   });
   it("preserves explicit administration assignment targets and aggregate filters", async () => {
     const client = createRequestClient({ cluster: "site", namespace: "games" });
-    for (const url of ["/fleet/servers", "/fleet/backups?cluster=filter", "/admin/config", "/modules/catalog", "/roles", "/clusters", "/shares/token", "/users/4/bindings/reader/*?cluster=assignment"]) {
+    for (const url of ["/fleet/servers", "/fleet/backups?cluster=filter", "/admin/config", "/roles", "/clusters", "/shares/token", "/users/4/bindings/reader/*?cluster=assignment"]) {
       expect(client.url(url)).toBe(url);
       await client.api(url);
       expect(fetchMock.mock.lastCall![0]).toBe(url);
     }
     expect(client.url("/cluster")).toBe("/cluster?cluster=site");
     expect(client.url("/modules-other")).toBe("/modules-other?cluster=site");
+  });
+  it("scopes module catalogs to explicit workload targets and preserves the local default", async () => {
+    setCurrentCluster("unrelated");
+    const client = createRequestClient({ cluster: "site", namespace: "games" });
+    expect(client.url("/modules/catalog")).toBe("/modules/catalog?cluster=site");
+    await client.api("/modules/catalog");
+    expect(fetchMock.mock.lastCall![0]).toBe("/modules/catalog?cluster=site");
+    const local = createRequestClient({ cluster: "local", namespace: "games" });
+    expect(local.url("/modules/catalog")).toBe("/modules/catalog");
+    await api("/modules/catalog");
+    expect(fetchMock.mock.lastCall![0]).toBe("/modules/catalog");
   });
   it("cancels JSON and raw reads and scopes stream/download paths", async () => {
     const controller = new AbortController();

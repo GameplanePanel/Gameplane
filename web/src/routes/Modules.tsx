@@ -1,15 +1,18 @@
+import { ModuleTarget } from "@/components/ModuleTarget";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Settings2, Upload } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { Button, Input, buttonVariants } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 
 import { ModuleCard } from "@/components/modules/ModuleCard";
 import { InstallDialog } from "@/components/modules/InstallDialog";
 import { UploadModuleDialog } from "@/components/modules/UploadModuleDialog";
 import { BuildModuleDialog } from "@/components/modules/BuildModuleDialog";
+import { ClusterModuleSources } from "@/components/modules/ModuleSourcesPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PageHeader } from "@/components/PageHeader";
+import { ErrorCard } from "@/components/ui/ErrorCard";
+import { LoadingCard } from "@/components/ui/LoadingCard";
 import { Modules, ModuleSources } from "@/lib/endpoints";
 import { APIError } from "@/lib/api";
 import { verifyForEntry } from "@/lib/verify";
@@ -22,15 +25,19 @@ import { cn } from "@/lib/utils";
 // a Module CR, the operator's Module reconciler pulls the bundle and
 // materializes the GameTemplate.
 export function ModulesPage() {
+  return <ModuleTarget>{(cluster, canManage) => <ModulesCatalog key={cluster} cluster={cluster} canManage={canManage} />}</ModuleTarget>;
+}
+
+function ModulesCatalog({ cluster, canManage }: { cluster: string; canManage: boolean }) {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["modules-catalog"],
-    queryFn: () => Modules.catalog(),
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["modules-catalog", cluster],
+    queryFn: () => Modules.catalog(cluster),
     refetchInterval: 5_000, // pick up phase transitions promptly
   });
-  const { data: sourcesData } = useQuery({
-    queryKey: ["module-sources"],
-    queryFn: () => ModuleSources.list(),
+  const { data: sourcesData, isError: sourcesError, refetch: refetchSources } = useQuery({
+    queryKey: ["module-sources", cluster],
+    queryFn: () => ModuleSources.list(cluster),
   });
 
   const [q, setQ] = useState("");
@@ -41,6 +48,7 @@ export function ModulesPage() {
   const [removeUploadTarget, setRemoveUploadTarget] = useState<CatalogEntry | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [buildOpen, setBuildOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
   const uploadSources = useMemo(
@@ -88,45 +96,48 @@ export function ModulesPage() {
 
   const installMutation = useMutation({
     mutationFn: (args: { source: string; module: string; name: string; version: string }) =>
-      Modules.install(args),
+      Modules.install(args, cluster),
     onSuccess: async () => {
       setInstallTarget(null);
       setPageError(null);
-      await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+      await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
     },
     onError: (err: Error) => setPageError(formatErr(err)),
   });
 
   const upgradeMutation = useMutation({
     mutationFn: (args: { name: string; version: string }) =>
-      Modules.upgrade(args.name, args.version),
+      Modules.upgrade(args.name, args.version, cluster),
     onSuccess: async () => {
       setPageError(null);
-      await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+      await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
     },
     onError: (err: Error) => setPageError(formatErr(err)),
   });
 
   const uninstallMutation = useMutation({
-    mutationFn: (name: string) => Modules.uninstall(name),
+    mutationFn: (name: string) => Modules.uninstall(name, cluster),
     onSuccess: async () => {
       setUninstallTarget(null);
       setPageError(null);
-      await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+      await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
     },
     onError: (err: Error) => setPageError(formatErr(err)),
   });
 
   const removeUploadMutation = useMutation({
     mutationFn: (args: { source: string; module: string }) =>
-      ModuleSources.removeUpload(args.source, args.module),
+      ModuleSources.removeUpload(args.source, args.module, cluster),
     onSuccess: async () => {
       setRemoveUploadTarget(null);
       setPageError(null);
-      await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+      await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
     },
     onError: (err: Error) => setPageError(formatErr(err)),
   });
+
+  if (isLoading) return <LoadingCard message="Loading module catalog…" />;
+  if (isError) return <ErrorCard message="Failed to load module catalog." onRetry={() => void refetch()} />;
 
   return (
     <div className="space-y-6 p-6">
@@ -135,20 +146,23 @@ export function ModulesPage() {
         subtitle="Pre-packaged game-server templates pulled from your configured module sources."
         actions={
           <div className="flex items-center gap-2">
-            <Button onClick={() => setBuildOpen(true)}>
+            <Button isDisabled={!canManage} onClick={() => setBuildOpen(true)}>
               <Plus className="h-4 w-4" /> Create module
             </Button>
             {uploadSources.length > 0 && (
-              <Button variant="outline" onPress={() => setUploadOpen(true)}>
+              <Button variant="outline" isDisabled={!canManage} onPress={() => setUploadOpen(true)}>
                 <Upload className="h-4 w-4" /> Upload module
               </Button>
             )}
-            <Link to="/admin" hash="modules" className={buttonVariants({ variant: "outline" })}>
+            <Button variant="outline" onPress={() => setSourcesOpen((open) => !open)} aria-expanded={sourcesOpen}>
               <Settings2 className="h-4 w-4" /> Manage sources
-            </Link>
+            </Button>
           </div>
         }
       />
+
+      {sourcesOpen ? <ClusterModuleSources cluster={cluster} canManage={canManage} />
+        : sourcesError && <ErrorCard message="Failed to load module sources." onRetry={() => void refetchSources()} />}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex gap-1 rounded-md border border-border bg-card p-1">
@@ -212,6 +226,8 @@ export function ModulesPage() {
       >
         {visible.map((entry) => (
           <ModuleCard
+            cluster={cluster}
+            canManage={canManage}
             key={entry.name}
             entry={entry}
             verify={verifyForEntry(entry, sourcesData?.items ?? [])}
@@ -225,10 +241,10 @@ export function ModulesPage() {
             busy={installMutation.isPending || upgradeMutation.isPending || removeUploadMutation.isPending}
           />
         ))}
-        {!isLoading && visible.length === 0 && (
+        {visible.length === 0 && (
           <div className="col-span-full rounded-lg border border-dashed border-border bg-card/40 p-12 text-center text-sm text-muted">
             {items.length === 0
-              ? "No modules in any catalog yet — check ModuleSource sync status under Admin → Module sources."
+              ? "No modules in any catalog yet — open Manage sources to add a source or check its sync status."
               : "No modules match the current filter."}
           </div>
         )}
@@ -251,22 +267,24 @@ export function ModulesPage() {
       />
 
       <UploadModuleDialog
+        cluster={cluster}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         sources={uploadSources}
         onUploaded={async () => {
           setPageError(null);
-          await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+          await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
         }}
       />
 
       <BuildModuleDialog
+        cluster={cluster}
         open={buildOpen}
         onOpenChange={setBuildOpen}
         sources={uploadSources}
         onInstalled={async () => {
           setPageError(null);
-          await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+          await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
         }}
       />
 

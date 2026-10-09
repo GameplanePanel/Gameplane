@@ -92,7 +92,7 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 			}
 			ns := ""
 			cl := scope.DefaultCluster
-			if clusterInventoryRead(req.Method, req.URL.Path) {
+			if clusterInventoryRead(req.Method, req.URL.Path) || strings.HasPrefix(req.URL.Path, "/modules") || strings.HasPrefix(req.URL.Path, "/templates") {
 				// Authorize before discovery, including registered clusters whose
 				// credentials could not load. The handler validates registration.
 				cl = scope.RequestedCluster(req)
@@ -214,6 +214,7 @@ var rules = []rule{
 
 	// Admin area. Audit is a read; config splits read vs manage; anything
 	// else under /admin defaults to the admin wildcard (fail-closed-ish).
+	{method: "GET", segment: "admin", suffix: "/admin/installation", perm: ""},
 	{method: "GET", segment: "admin", prefix: "/admin/audit", perm: "audit:read"},
 	{method: "GET", segment: "admin", prefix: "/admin/config", perm: "config:read"},
 	{segment: "admin", prefix: "/admin/config", perm: "config:manage"},

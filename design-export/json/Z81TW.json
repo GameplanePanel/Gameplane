@@ -1,0 +1,165 @@
+{
+  "id": "Z81TW",
+  "type": "ref",
+  "reusable": true,
+  "ref": "x3beP",
+  "x": -15757,
+  "y": 30632,
+  "name": "Gameplane/Dialog/Register workload cluster",
+  "theme": {
+    "semantic": "dark"
+  },
+  "width": 480,
+  "context": "PR #630. Requires central cluster:manage. Register stays disabled until Name and Kubeconfig have non-whitespace text. During submission both buttons and dismissal are disabled. On error preserve the draft. Clear the kubeconfig on success. No existing credential is ever displayed.",
+  "descendants": {
+    "E7Whx": {
+      "content": "Register cluster"
+    },
+    "qzcst": {
+      "content": "Connect an existing workload cluster with the Gameplane operator and CRDs installed. The panel host does not become a workload node."
+    },
+    "Nht52": {
+      "type": "frame",
+      "id": "cvNaq",
+      "name": "Registration fields",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": [
+        16,
+        0,
+        0,
+        0
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "E1kLQw",
+          "name": "Name field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "WY2Eh",
+              "name": "Name label",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Name",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "Y9McT",
+              "type": "ref",
+              "ref": "D0cDM",
+              "name": "Name input",
+              "width": "fill_container",
+              "descendants": {
+                "PJERm": {
+                  "content": "production",
+                  "fill": "$field/placeholder"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ReaIB",
+          "name": "Display name field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "d8DaPW",
+              "name": "Display name label",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Display name",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "nZk5b",
+              "type": "ref",
+              "ref": "D0cDM",
+              "name": "Display name input",
+              "width": "fill_container",
+              "descendants": {
+                "PJERm": {
+                  "content": "",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Rfps1",
+          "name": "Kubeconfig field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "Aht2x",
+              "name": "Kubeconfig label",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Kubeconfig",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Bi1Nn",
+              "name": "Kubeconfig textarea (eight rows)",
+              "width": "fill_container",
+              "height": 172,
+              "fill": "$field/background",
+              "cornerRadius": "$radius/xl",
+              "stroke": "$field/border",
+              "strokeWidth": 1,
+              "padding": 12
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "zJG5E",
+          "name": "Connection helper",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Use a self-contained kubeconfig with credentials and an API address reachable from this panel. Agent console, files and logs also require remote gateway configuration.",
+          "lineHeight": 1.5,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    "V7HYp": {
+      "opacity": 0.5
+    },
+    "TZ7Ef": {
+      "content": "Register"
+    }
+  }
+}
+

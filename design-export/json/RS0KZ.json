@@ -1,0 +1,451 @@
+{
+  "type": "frame",
+  "id": "RS0KZ",
+  "x": -12557,
+  "y": 32032,
+  "name": "State/Standalone — Cluster selection and request states",
+  "context": "Interaction reference, not a single dashboard screen. No workload queries before capabilities and selection resolve. Retry retains the selected remote.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "gap": 24,
+  "padding": 32,
+  "children": [
+    {
+      "type": "text",
+      "id": "MKxQW",
+      "name": "Reference title",
+      "fill": "$foreground/foreground",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "Standalone workload selection",
+      "lineHeight": 1.5,
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 24,
+      "fontWeight": "600"
+    },
+    {
+      "type": "frame",
+      "id": "ebNpV",
+      "name": "Selection states",
+      "width": "fill_container",
+      "gap": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "cGqBU",
+          "name": "Empty dropdown",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": "$radius/3xl",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "bm0hY",
+              "name": "State title",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "No registered clusters",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "oV6ND",
+              "name": "Workload cluster selector",
+              "height": 36,
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                6,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "kRBdc",
+                  "name": "API status",
+                  "fill": "$muted",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "MNf1m",
+                  "name": "Selector label",
+                  "fill": "$muted",
+                  "content": "Cluster:",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ocDjw",
+                  "name": "Selected workload cluster",
+                  "fill": "$foreground/foreground",
+                  "content": "Select cluster",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "ahab6",
+                  "name": "Open cluster choices",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Hikui",
+              "name": "Cluster menu",
+              "width": "fill_container",
+              "fill": "$overlay",
+              "cornerRadius": 6,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "OMwrM",
+                  "name": "Empty cluster menu action",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "No clusters available · Manage clusters",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yuYzW",
+          "name": "Registered dropdown",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": "$radius/3xl",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "VDdRD",
+              "name": "State title",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Explicit remote selection",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "aW3rE",
+              "name": "Workload cluster selector",
+              "height": 36,
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                6,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "z0qmuR",
+                  "name": "API status",
+                  "fill": "$success/success",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "G4TPp",
+                  "name": "Selector label",
+                  "fill": "$muted",
+                  "content": "Cluster:",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "WKcwf",
+                  "name": "Selected workload cluster",
+                  "fill": "$foreground/foreground",
+                  "content": "East production",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "eEmef",
+                  "name": "Open cluster choices",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EQ4VY",
+              "name": "Cluster choices",
+              "width": "fill_container",
+              "fill": "$overlay",
+              "cornerRadius": 6,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "l32Yb",
+                  "name": "East option",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "East production  ✓",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "GV2tB",
+                  "name": "West option",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "West backup",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "PT3xk",
+                  "name": "Administration action",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "View all clusters",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "FW9eC",
+      "name": "Loading and failure states",
+      "width": "fill_container",
+      "gap": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "ln61E",
+          "name": "Loading",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": "$radius/3xl",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "YO7gr",
+              "name": "State title",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Loading",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "MHckh",
+              "name": "Status copy",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Loading installation…\nLoading clusters…\nLoading permissions…",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "JNCrO",
+          "name": "Installation unavailable",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": "$radius/3xl",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "wCHfF",
+              "name": "State title",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Installation unavailable",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "R72SqV",
+              "name": "Status copy",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Couldn't load installation capabilities.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "qJC3T",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "Retry",
+              "opacity": 1,
+              "descendants": {
+                "FCYQ9": {
+                  "enabled": false
+                },
+                "GqVun": {
+                  "content": "Retry"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KHCdz",
+          "name": "Registry unavailable",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": "$radius/3xl",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "BHDVF",
+              "name": "State title",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Registry unavailable",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 18,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "ouszc",
+              "name": "Status copy",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Couldn't load registered clusters.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "bDQy5",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "Retry",
+              "opacity": 1,
+              "descendants": {
+                "FCYQ9": {
+                  "enabled": false
+                },
+                "GqVun": {
+                  "content": "Retry"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "ZwDM2",
+      "name": "Scope note",
+      "fill": "$muted",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "Each card above documents a separate request state. A failed request never falls back to a local workload cluster.",
+      "lineHeight": 1.5,
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal"
+    }
+  ]
+}
+

@@ -20,6 +20,7 @@ import { APIError } from "@/lib/api";
 import { ModuleSources, type UploadedModule } from "@/lib/endpoints";
 
 interface UploadModuleDialogProps {
+  cluster?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   // Names of the upload-type ModuleSources that can receive bundles.
@@ -31,7 +32,7 @@ interface UploadModuleDialogProps {
 // archive (.tar.gz/.zip with module.yaml + template.yaml). The file is
 // validated server-side via a dry run first, so the user sees the
 // parsed metadata before committing.
-export function UploadModuleDialog({ open, onOpenChange, sources, onUploaded }: UploadModuleDialogProps) {
+export function UploadModuleDialog({ open, onOpenChange, sources, onUploaded, cluster = "local" }: UploadModuleDialogProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -63,7 +64,7 @@ export function UploadModuleDialog({ open, onOpenChange, sources, onUploaded }: 
     if (!f || !source) return;
     setBusy(true);
     try {
-      setPreview(await ModuleSources.upload(source, f, { dryRun: true }));
+      setPreview(await ModuleSources.upload(source, f, { dryRun: true }, cluster));
     } catch (err) {
       setError(err instanceof APIError ? err.body || err.message : (err as Error).message);
     } finally {
@@ -79,7 +80,7 @@ export function UploadModuleDialog({ open, onOpenChange, sources, onUploaded }: 
     setBusy(true);
     setError(null);
     try {
-      await ModuleSources.upload(source, file);
+      await ModuleSources.upload(source, file, undefined, cluster);
       await onUploaded();
       onOpenChange(false);
     } catch (err) {

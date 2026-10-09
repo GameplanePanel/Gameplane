@@ -1,0 +1,234 @@
+{
+  "type": "frame",
+  "id": "r139UP",
+  "x": -10957,
+  "y": 33432,
+  "name": "Screen/Standalone — System logs",
+  "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "WWoii",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "BuhAS": {
+          "content": "Central management"
+        },
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "zV6Z5": {
+          "fill": "$accent/soft"
+        },
+        "zV6Z5/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "zV6Z5/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "bR7V9",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "GFROW",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "VzGni": {
+              "type": "frame",
+              "id": "i0bjE",
+              "name": "Breadcrumbs",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AFgeH",
+                  "name": "crumbRoot",
+                  "fill": "$muted",
+                  "content": "gameplane",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "hxYAU",
+                  "name": "crumbSep",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "u2AU5",
+                  "name": "crumbMid",
+                  "fill": "$muted",
+                  "content": "Settings",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "trGtl",
+                  "name": "crumbSep",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "SXXoW",
+                  "name": "crumbPage",
+                  "fill": "$foreground/foreground",
+                  "content": "System logs",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "cI7TE",
+          "name": "Central management notice",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "stroke": "$border/border",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "padding": [
+            12,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "MILE7",
+              "name": "Central management scope",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HdzoC",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "SC3by",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "System logs header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "System logs"
+                },
+                "VbHwU": {
+                  "content": "Logs for this standalone panel."
+                },
+                "TgdLz": {
+                  "type": "frame",
+                  "id": "bVoTh",
+                  "x": 1132,
+                  "y": 8.5,
+                  "name": "Page actions",
+                  "enabled": false,
+                  "width": 1,
+                  "height": 1,
+                  "gap": 8,
+                  "alignItems": "center"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "s6N0gl",
+              "name": "Container logs",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yPx4G",
+                  "name": "Container logs title",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "View logs through your container runtime",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "TT48A",
+                  "name": "Container logs guidance",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "For Docker Compose, run docker compose logs --follow from your panel installation directory. Operator logs are available on each workload cluster.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

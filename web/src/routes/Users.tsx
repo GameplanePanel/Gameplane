@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useInstallation } from "@/lib/useInstallation";
 import {
   useMutation,
   useQuery,
@@ -645,11 +646,18 @@ function DeleteRoleDialog({
 }
 
 function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
+  const installation = useInstallation();
+  if (installation.isPending) return <p className="text-xs text-muted">Loading installation…</p>;
+  if (installation.isError) return <p className="text-xs text-danger">Couldn&apos;t load installation capabilities.</p>;
+  return <NamespaceGrantsForm userId={userId} roles={roles} standalone={installation.data.standalone} />;
+}
+
+function NamespaceGrantsForm({ userId, roles, standalone }: { userId: number; roles: Role[]; standalone: boolean }) {
   const qc = useQueryClient();
   const [roleName, setRoleName] = useState(
     roles.find((r) => r.name === "operator")?.name ?? roles[0]?.name ?? "",
   );
-  const [cluster, setCluster] = useState("local");
+  const [cluster, setCluster] = useState(standalone ? "" : "local");
   const [namespace, setNamespace] = useState("");
 
   const { data: bindings = [], error: bindingsError } = useQuery({
@@ -670,13 +678,13 @@ function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
   const allowsRemoteWideGrant = (name: string) => {
     const role = roles.find((r) => r.name === name);
     return !!role && !!catalog &&
-      role.permissions.every((p) => p === "cluster:read" || namespacedPermissions.has(p));
+      role.permissions.every((p) => ["cluster:read", "modules:read", "modules:manage", "templates:read", "templates:write"].includes(p) || namespacedPermissions.has(p));
   };
-  const allNamespacesAllowed = cluster !== "local" && cluster !== "*" && allowsRemoteWideGrant(roleName);
+  const allNamespacesAllowed = !!cluster && cluster !== "local" && cluster !== "*" && allowsRemoteWideGrant(roleName);
   const scopeError = namespace.trim() === "*" && !allNamespacesAllowed
     ? cluster === "local"
       ? "The local primary role is managed above. Choose a namespace for an additional local grant."
-      : "All namespaces requires a role containing only node inventory and namespace permissions. Central administration permissions are not allowed."
+      : "All namespaces requires a role containing only workload cluster permissions. Central administration permissions are not allowed."
     : undefined;
   const refresh = () => void qc.invalidateQueries({ queryKey: ["user-bindings", userId] });
 
@@ -698,7 +706,7 @@ function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
         Cluster & namespace grants
       </div>
       <p className="text-xs text-foreground/60">
-        The primary role above manages local access. Additional grants apply only to their named cluster and namespace.
+        {standalone ? "The primary role above manages panel access." : "The primary role above manages local access."} Additional grants apply only to their named cluster and namespace.
       </p>
       {bindings.length > 0 && (
         <ul className="space-y-1">
@@ -713,7 +721,7 @@ function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
                 <span className="text-foreground/60">in</span>
                 <span className="font-mono">{b.namespace === "*" ? "all namespaces" : b.namespace}</span>
                 <span className="text-foreground/60">on</span>
-                <span className="font-mono">{bindingCluster}</span>
+                <span className="font-mono">{standalone && primary ? "panel" : bindingCluster}</span>
                 {managed ? (
                   <span className="ml-auto text-foreground/60">{primary ? "Primary role (managed above)" : "Managed outside this editor"}</span>
                 ) : (
@@ -735,6 +743,7 @@ function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
       <div className="grid gap-2 sm:grid-cols-2">
         <Select
           aria-label="Grant cluster"
+          placeholder="Select a workload cluster"
           value={cluster}
           onChange={(v) => {
             setCluster(String(v));
@@ -747,7 +756,7 @@ function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
           </Select.Trigger>
           <Select.Popover className="rounded border border-border">
             <ListBox className="p-0" aria-label="Grant cluster">
-              <ListBoxItem id="local">Local cluster</ListBoxItem>
+              {!standalone && <ListBoxItem id="local">Local cluster</ListBoxItem>}
               {(clusters?.items ?? []).filter((c) => c.name !== "local").map((c) => (
                 <ListBoxItem key={c.name} id={c.name}>
                   {c.displayName ? `${c.displayName} (${c.name})` : c.name}
@@ -797,7 +806,7 @@ function NamespaceGrants({ userId, roles }: { userId: number; roles: Role[] }) {
           variant="ghost"
           size="sm"
           className="text-[13px]"
-          isDisabled={!roleName || !namespace.trim() || !!scopeError || !!clustersError || add.isPending}
+          isDisabled={!cluster || (standalone && !clusters?.items.some((item) => item.name === cluster)) || !roleName || !namespace.trim() || !!scopeError || !!clustersError || add.isPending}
           onPress={() => add.mutate({ roleName, namespace: namespace.trim(), cluster })}
         >
           Add

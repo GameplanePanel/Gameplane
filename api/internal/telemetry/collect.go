@@ -251,7 +251,7 @@ func collectFeatures(ctx context.Context, deps Deps, servers []unstructured.Unst
 		Backups:         len(listItems(ctx, deps, "schedules")) > 0,
 		SSO:             deps.Flags.OIDCConfigured || hasSSOProvider(ctx, deps.Store),
 		AuditForwarding: deps.Flags.AuditWebhook || deps.Flags.AuditS3,
-		Clusters:        telemetryschema.ClusterBand(1 + countClusters(ctx, deps)),
+		Clusters:        telemetryschema.ClusterBand(localClusterCount(deps) + countClusters(ctx, deps)),
 		DB:              telemetryschema.SanitizeEnum(telemetryschema.DBs, deps.Flags.DBDriver),
 		Language:        "en",
 	}
@@ -259,10 +259,10 @@ func collectFeatures(ctx context.Context, deps Deps, servers []unstructured.Unst
 
 // countClusters counts registered Cluster CRs, 0 when they can't be listed.
 func countClusters(ctx context.Context, deps Deps) int {
-	if deps.Kube == nil || deps.Kube.Dynamic == nil {
+	if deps.Kube == nil || deps.Kube.Clusters() == nil {
 		return 0
 	}
-	list, err := deps.Kube.Dynamic.Resource(kube.GVRCluster).List(ctx, metav1.ListOptions{})
+	list, err := deps.Kube.Clusters().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return 0
 	}
@@ -295,4 +295,11 @@ func hasSSOProvider(ctx context.Context, store *db.Store) bool {
 		}
 	}
 	return false
+}
+
+func localClusterCount(deps Deps) int {
+	if deps.Kube == nil || deps.Kube.IsStandalone() {
+		return 0
+	}
+	return 1
 }

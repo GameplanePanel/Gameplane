@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
-import { Select, Switch, ListBox, ListBoxItem, Tabs, Tab as TabComponent, Button } from "@heroui/react";
+import { Select, Switch, ListBox, ListBoxItem, Tabs, Tab as TabComponent, Button, Card, CardContent } from "@heroui/react";
 import { APIError } from "@/lib/api";
 import { errorTextWithStatus } from "@/lib/errors";
 import { withCluster } from "@/lib/endpoints";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { LoadingCard } from "@/components/ui/LoadingCard";
+import { ErrorCard } from "@/components/ui/ErrorCard";
+import { useInstallation } from "@/lib/useInstallation";
 
 type LogComponent = "api" | "operator";
 
@@ -76,6 +79,20 @@ async function streamSystemLogs(opts: {
 }
 
 export function AdminLogsPage() {
+  const installation = useInstallation();
+  if (installation.isPending) return <LoadingCard message="Loading installation…" />;
+  if (installation.isError) return <ErrorCard message="Couldn't load installation capabilities." onRetry={() => void installation.refetch()} />;
+  if (installation.data.standalone) return <div className="space-y-4 p-6">
+    <PageHeader title="System logs" description="Logs for this standalone panel." />
+    <Card><CardContent className="space-y-2 p-6">
+      <h2 className="font-medium">View logs through your container runtime</h2>
+      <p className="text-sm text-muted">For Docker Compose, run <code className="font-mono">docker compose logs --follow</code> from your panel installation directory. Operator logs are available on each workload cluster.</p>
+    </CardContent></Card>
+  </div>;
+  return <ClusterSystemLogs />;
+}
+
+function ClusterSystemLogs() {
   const [component, setComponent] = useState<LogComponent>("api");
   const [tail, setTail] = useState(500);
   const [follow, setFollow] = useState(false);

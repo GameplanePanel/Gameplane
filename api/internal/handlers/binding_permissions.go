@@ -11,11 +11,11 @@ import (
 // remoteWidePermissionsAllowed keeps supplemental remote grants away from
 // control-plane administration. Can always scopes cluster:read to the selected
 // cluster. Other Can(false) permissions accept a global grant from any cluster,
-// so only inventory and catalogued namespaced permissions are safe here;
+// so only target-scoped inventory, modules, templates and catalogued namespaced permissions are safe here;
 // '*' is never allowed.
 func remoteWidePermissionsAllowed(permissions []string) bool {
 	for _, permission := range permissions {
-		if permission != "cluster:read" && !rbac.Namespaced(permission) {
+		if permission != "cluster:read" && permission != "modules:read" && permission != "modules:manage" && permission != "templates:read" && permission != "templates:write" && !rbac.Namespaced(permission) {
 			return false
 		}
 	}

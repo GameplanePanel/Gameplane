@@ -5,6 +5,10 @@ A Kubernetes-native game server control panel. Open-source alternative to
 Docker — scales from a single-node k3s homelab to multi-node production
 clusters without changing the operational model.
 
+The dashboard and API can also run on a host without Kubernetes using
+[standalone Docker Compose](docs/standalone-panel.md). Game servers still run
+on registered Kubernetes clusters, each with its own operator and agents.
+
 > Status: **pre-v1 release** (`v0.3.0`). The operator, API, agent, and dashboard
 > are feature-complete for the v1 scope and stabilized for external testing.
 > See [Pre-v1 status & known limitations](#pre-v1-status--limitations) before
@@ -63,15 +67,15 @@ are feature-complete for the v1 scope and stabilized for external testing.
 
 | Dimension | Gameplane | Pterodactyl | CubeCoders AMP | Agones |
 |-----------|-----------|-------------|----------------|--------|
-| Deployment/runtime model | Kubernetes-native CRDs and controller-runtime operator; scales from k3s homelab to multi-node clusters. [BETA] [G-a](docs/comparison-sources.md#gameplane-row-a) | Self-hosted Panel with PHP/MySQL/Redis dependencies; Wings backend manages Docker containers. [P-a](docs/comparison-sources.md#pterodactyl-row-a) | Web-based control panel supporting Windows (native) and Linux (Debian 10+). [C-a](docs/comparison-sources.md#cubecoders-row-a) | Kubernetes-native library extending K8s with GameServer/Fleet CRDs. [A-a](docs/comparison-sources.md#agones-row-a) |
+| Deployment/runtime model | Combined Kubernetes install or standalone panel on Docker Compose; game workloads use Kubernetes CRDs and a controller-runtime operator, from k3s to multi-node clusters. [BETA] [G-a](docs/comparison-sources.md#gameplane-row-a) | Self-hosted Panel with PHP/MySQL/Redis dependencies; Wings backend manages Docker containers. [P-a](docs/comparison-sources.md#pterodactyl-row-a) | Web-based control panel supporting Windows (native) and Linux (Debian 10+). [C-a](docs/comparison-sources.md#cubecoders-row-a) | Kubernetes-native library extending K8s with GameServer/Fleet CRDs. [A-a](docs/comparison-sources.md#agones-row-a) |
 | Scaling & auto-sleep | Opt-in idle auto-sleep with configurable wake windows, manual wake button, or wake-on-connect. Minecraft/Terraria full protocol support; others use packet heuristics. [optional] [G-b](docs/comparison-sources.md#gameplane-row-b) | Multi-node support with cron-based power scheduling; no dedicated idle/auto-sleep feature. [P-b](docs/comparison-sources.md#pterodactyl-row-b) | Instance Automatic Sleep feature; multi-server architecture with controller managing instances. [C-b](docs/comparison-sources.md#cubecoders-row-b) | Fleet autoscaling via buffer/webhook strategies; no idle/sleep state. [A-b](docs/comparison-sources.md#agones-row-b) |
 | Inbound connectivity (NAT traversal, relay) | Integrated frp, Tailscale, playit relay sidecars; playit mappings user-managed via playit.gg account. [optional; disabled by default] [G-c](docs/comparison-sources.md#gameplane-row-c) | No integrated relay sidecars; manual proxy/port forwarding configuration required. [P-c](docs/comparison-sources.md#pterodactyl-row-c) | not publicly documented (checked 2026-09-02) [C-c](docs/comparison-sources.md#cubecoders-row-c) | No relay or NAT traversal features documented. [A-c](docs/comparison-sources.md#agones-row-c) |
 | Backup and restore | Restic snapshots to S3-compatible storage; on-demand or cron-scheduled via BackupSchedule; one-click restore. [G-d](docs/comparison-sources.md#gameplane-row-d) | Wings (local, default) or S3-compatible backup drivers; cron scheduling and on-demand backups. [P-d](docs/comparison-sources.md#pterodactyl-row-d) | not publicly documented (checked 2026-09-02) [C-d](docs/comparison-sources.md#cubecoders-row-d) | not applicable (Agones is a Kubernetes operator library) [A-d](docs/comparison-sources.md#agones-row-d) |
 | Access control & authentication | Local argon2id + OIDC (Keycloak/Google/GitHub); three built-in roles (admin/operator/viewer); custom roles supported. [G-e](docs/comparison-sources.md#gameplane-row-e) | 2FA configurable per account or admin-only; subuser management via Artisan CLI. [P-e](docs/comparison-sources.md#pterodactyl-row-e) | Role-based access control; OIDC single-sign-on in Advanced Edition. [C-e](docs/comparison-sources.md#cubecoders-row-e) | not applicable (Agones is a Kubernetes operator library) [A-e](docs/comparison-sources.md#agones-row-e) |
 | Game template distribution | OCI bundles via ModuleSource (git/http/oci/local/upload); optional cosign signature verification per source. 30 ready-to-use templates shipped. [G-f](docs/comparison-sources.md#gameplane-row-f) | Community eggs repository (eggs.pterodactyl.io) with nests and custom egg creation support. [P-f](docs/comparison-sources.md#pterodactyl-row-f) | Customizable templates framework; community-contributed templates available via external repositories. [C-f](docs/comparison-sources.md#cubecoders-row-f) | not applicable (Agones is a Kubernetes operator library) [A-f](docs/comparison-sources.md#agones-row-f) |
-| Multi-tenancy & multi-cluster | Cluster CRD, remote Pod logs/PTY, and optional private gateway for supported agent operations. UID-bound remote capture downloads/cleanup; modpack and ID-list configuration on the selected cluster. Requires matching gateway, operator, agent and capture-sidecar versions. [G-g](docs/comparison-sources.md#gameplane-row-g) | Single Panel managing multiple nodes; no documented remote cluster or cross-cluster streaming. [P-g](docs/comparison-sources.md#pterodactyl-row-g) | Multi-server management via controller architecture; multi-tenancy not supported in AMP 2 (planned for AMP 3). [C-g](docs/comparison-sources.md#cubecoders-row-g) | Multi-cluster allocation via GameServerAllocationPolicy; allocator service with mTLS authentication. [A-g](docs/comparison-sources.md#agones-row-g) |
+| Multi-tenancy & multi-cluster | Remote registration through Cluster CRDs in combined mode or SQL in standalone mode; central user grants, remote Pod logs/PTY, and optional private gateway for agent operations. UID-bound capture downloads/cleanup; modpack and ID-list configuration on the selected cluster. Requires matching gateway, operator, agent and capture-sidecar versions. [G-g](docs/comparison-sources.md#gameplane-row-g) | Single Panel managing multiple nodes; no documented remote cluster or cross-cluster streaming. [P-g](docs/comparison-sources.md#pterodactyl-row-g) | Multi-server management via controller architecture; multi-tenancy not supported in AMP 2 (planned for AMP 3). [C-g](docs/comparison-sources.md#cubecoders-row-g) | Multi-cluster allocation via GameServerAllocationPolicy; allocator service with mTLS authentication. [A-g](docs/comparison-sources.md#agones-row-g) |
 | Licensing | GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). [G-h](docs/comparison-sources.md#gameplane-row-h) | MIT License (Panel and Wings). [P-h](docs/comparison-sources.md#pterodactyl-row-h) | Proprietary; per-instance tiers (Standard/Professional/Advanced/Enterprise). [C-h](docs/comparison-sources.md#cubecoders-row-h) | Apache License 2.0. [A-h](docs/comparison-sources.md#agones-row-h) |
-| Target operator scope (self-hosted vs. managed SaaS) | Self-hosted only; runs on Kubernetes (k3s, kubeadm, managed services); no managed SaaS offering. [G-i](docs/comparison-sources.md#gameplane-row-i) | Self-hosted only; requires Linux system capable of running Docker containers. [P-i](docs/comparison-sources.md#pterodactyl-row-i) | Self-installed on user hardware (Windows or Linux); no managed SaaS version. [C-i](docs/comparison-sources.md#cubecoders-row-i) | Self-hosted operator software; runs anywhere Kubernetes can run. [A-i](docs/comparison-sources.md#agones-row-i) |
+| Target operator scope (self-hosted vs. managed SaaS) | Self-hosted only; panel runs on Docker Compose or Kubernetes, while games require Kubernetes (k3s, kubeadm, managed services); no managed SaaS offering. [G-i](docs/comparison-sources.md#gameplane-row-i) | Self-hosted only; requires Linux system capable of running Docker containers. [P-i](docs/comparison-sources.md#pterodactyl-row-i) | Self-installed on user hardware (Windows or Linux); no managed SaaS version. [C-i](docs/comparison-sources.md#cubecoders-row-i) | Self-hosted operator software; runs anywhere Kubernetes can run. [A-i](docs/comparison-sources.md#agones-row-i) |
 
 ## Features
 
@@ -99,7 +103,7 @@ Gameplane supports two distinct mod installation models, depending on how the ga
 Gameplane integrates with **10 mod registries**: Modrinth, CurseForge, Thunderstore, Hangar, Factorio Mod Portal, Steam Workshop, SpigotMC, GitHub Releases, uMod, and Nexus Mods.
 
 - **No setup required**: Modrinth, Thunderstore, Hangar, Factorio, SpigotMC, GitHub, and uMod work out of the box.
-- **API Key required**: CurseForge, Steam Workshop, and Nexus Mods require an API key configured under **Settings → Mod registries**. Keys are securely stored in Kubernetes Secrets.
+- **API Key required**: CurseForge, Steam Workshop, and Nexus Mods require an API key configured under **Settings → Mod registries**. Combined installations store keys in Kubernetes Secrets; standalone panels encrypt them in the API database.
 - **Registry Caveats**: Nexus Mods is browse-only because download links require a premium account and direct requester IP. Factorio downloads require the user's `factorio.com` credentials in the install form.
 
 ## Architecture
@@ -128,13 +132,17 @@ Central API (Go): authentication, RBAC, REST, WebSocket, aggregation
         └──────────────────────────────────────────────────────────────┘
 ```
 
-The central API connects directly to agents in its local cluster. Remote agent
+In a combined installation, the central API connects directly to agents in its local cluster. Remote agent
 operations use the optional gateway, which runs the API image's `gateway`
 subcommand and verifies the selected GameServer identity. Direct Kubernetes
 connectivity is still required for every registered cluster. Each cluster retains
 its own operator and storage; users and authorization stay central. See
 [gateway installation](docs/gateway-install.md) and
 [remote request routing](docs/multicluster-agent-gateway.md).
+
+A standalone panel has no `local` cluster. It stores remote registrations and
+encrypted credentials in SQL and connects to the registered workload clusters.
+Back up its database and `/data/panel.key` together.
 
 ### Components
 
@@ -197,12 +205,27 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── mcp-server/           # Optional read-only Model Context Protocol server
 ├── charts/gameplane/     # Helm deployment chart
 ├── deploy/kind/          # Local dev environment bootstrap scripts
+├── deploy/standalone/    # API + dashboard Docker Compose deployment
 ├── docs/                 # Technical documentation & guides
 ├── specs/                # Feature specifications and proposals
 └── test/                 # Integration & end-to-end kind test suites
 ```
 
 ## Installation
+
+Choose where the panel and game workloads run:
+
+| Installation | Panel host | Game workloads | Guide |
+|---|---|---|---|
+| Combined Helm install | Kubernetes | Local and registered remote clusters | [Combined installation](docs/install.md) |
+| Standalone panel | Docker Compose, or a panel-only Helm release | Registered remote Kubernetes clusters | [Standalone setup](docs/standalone-panel.md) |
+| Remote operator and optional gateway | Central panel runs elsewhere | This Kubernetes cluster | [Remote cluster setup](docs/standalone-panel.md#install-and-register-remote-game-clusters) |
+
+Standalone support requires a checkout or release containing this feature. The
+guide builds the Compose images from that checkout and covers admin setup,
+HTTPS access, remote registration, permissions, and database/key backups.
+
+For the default combined installation, use Helm:
 
 The Helm chart and component images are published to the GitHub Container
 Registry as OCI artifacts — no `helm repo add` required:

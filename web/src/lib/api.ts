@@ -35,7 +35,7 @@ function withNS(path: string, ns?: string): string {
 export function isCentralAPI(path: string): boolean {
   const pathname = path.split("?")[0];
   if (pathname === "/users/me/servers") return false;
-  return ["/auth", "/users", "/roles", "/admin", "/modules", "/clusters", "/fleet", "/shares"].some(
+  return ["/auth", "/users", "/roles", "/admin", "/clusters", "/fleet", "/shares"].some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
   );
 }

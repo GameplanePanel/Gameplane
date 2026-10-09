@@ -7,13 +7,14 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import { APIError, api } from "@/lib/api";
 import type { ClusterNode, NodeJoinInfo } from "@/types";
-import { Cluster } from "@/lib/endpoints";
+import { Cluster, Clusters } from "@/lib/endpoints";
 import { useMe, can } from "@/lib/auth";
 import type { AllConfig } from "@/lib/config";
 import { useCurrentCluster } from "@/lib/cluster";
 import { ClusterSelector } from "@/components/ClusterSelector";
 import { ErrorCard } from "@/components/ui/ErrorCard";
 import { LoadingCard } from "@/components/ui/LoadingCard";
+import { useInstallation } from "@/lib/useInstallation";
 
 // opMessage turns a cluster-op error into user copy — 501 means the
 // operator hasn't enabled clusterOps.
@@ -27,7 +28,20 @@ function opMessage(e: unknown): string {
 
 export function ClusterPage() {
   const clusterId = useCurrentCluster();
-  return <><div className="px-6 pt-6"><ClusterSelector /></div><ClusterInventory key={clusterId} clusterId={clusterId} /></>;
+  const installation = useInstallation();
+  const registry = useQuery({ queryKey: ["clusters"], queryFn: () => Clusters.list(), enabled: installation.data?.standalone === true });
+  const available = installation.data?.localCluster || registry.data?.items.some((cluster) => cluster.name === clusterId);
+  return <><div className="px-6 pt-6"><ClusterSelector /></div>
+    {installation.isPending ? <LoadingCard message="Loading installation…" />
+      : installation.isError ? <ErrorCard message="Couldn't load installation capabilities." onRetry={() => void installation.refetch()} />
+      : available ? <ClusterInventory key={clusterId} clusterId={clusterId} />
+      : registry.isPending ? <LoadingCard message="Loading clusters…" />
+      : registry.isError ? <ErrorCard message="Couldn't load registered clusters." onRetry={() => void registry.refetch()} />
+      : <Card className="m-6"><CardContent className="space-y-2 p-6">
+        <h2 className="font-medium">Select a workload cluster</h2>
+        <p className="text-sm text-muted">Choose a registered cluster to view its node inventory. Register workload clusters on the Clusters page.</p>
+      </CardContent></Card>}
+  </>;
 }
 
 function ClusterInventory({ clusterId }: { clusterId: string }) {

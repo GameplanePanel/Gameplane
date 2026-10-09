@@ -922,6 +922,32 @@ cluster, don't enable `mcpServer` there.
 
 ## Secrets
 
+Combined installations store management credentials in Kubernetes Secrets.
+Standalone panels store their labelled management credentials, including remote
+kubeconfigs, gateway keys, OIDC client secrets, notification credentials, and mod
+registry keys, as AES-GCM ciphertext in SQL. They use a persistent 32-byte key.
+The supplied standalone profiles mount it separately at `/keys/panel.key`;
+custom deployments retain the legacy `/data/panel.key` default. Keep protected
+key backups separate from database backups. Provisioned-key mode requires an
+existing read-only key file or Kubernetes Secret and never creates a replacement.
+Startup validates file ownership, permissions, type and size, and rejects extended
+access ACLs that could grant additional readers. Encryption does not protect credentials from someone who can
+read both files or control the running API. A missing key with existing
+credentials, a wrong key, or corrupted credential data prevents API startup.
+See [standalone storage and recovery](standalone-panel.md#storage-and-recovery).
+
+Master-key rotation is an offline transaction through `rotate-panel-key`.
+Versioned authenticated ciphertext identifies its key; the database key-state
+lock rejects writes by processes still holding a retired key. Old key files are
+retained for historical backups. See the
+[rotation procedure](standalone-panel.md#rotate-the-master-encryption-key) before
+changing a mounted key.
+
+The feature labels and managed-secret deletion guards apply to both stores.
+Game credentials and backup repository Secrets remain on the workload cluster.
+The Kubernetes Secret and Helm environment examples below apply to Kubernetes
+deployments.
+
 Secrets Gameplane reads or creates, by convention:
 
 - `gameplane-<gameserver>-rcon` — per-game RCON password, created by operator
@@ -952,9 +978,9 @@ generates a fresh password on the next pod restart.
 
 ## Kubeconfig Secret handling
 
-In a multi-cluster setup, each target cluster is referenced by a Secret
-containing its kubeconfig. Access to cluster credentials is protected
-by several layers:
+Each registered cluster references a labelled kubeconfig credential, stored in
+a Kubernetes Secret in combined mode or encrypted SQL in standalone mode.
+Access to cluster credentials is protected by several layers:
 
 - **Embedded credentials only.** The API and operator reject token files,
   client certificate/key files, CA files, `exec` authentication, and
@@ -962,29 +988,45 @@ by several layers:
   entry, including unused contexts. Remote kubeconfigs must carry tokens
   or certificate/key/CA data directly; they cannot read control-plane files
   or run local authentication commands.
+- **Standalone destination policy.** Standalone clients require verified HTTPS,
+  reject redirects and forward proxies, and validate all DNS answers before
+  dialing a pinned address. Loopback, metadata, link-local and other unsafe
+  address classes are blocked; optional operator CIDRs narrow access to the
+  intended workload networks. The same policy protects gateway connections.
+  Remote response, watch-frame and notification-cache limits bound memory used
+  by an untrusted workload endpoint. See the
+  [standalone connection policy](standalone-panel.md#install-and-register-remote-game-clusters).
 - **Label guard.** The API only reads Secrets labelled
   `gameplane.local/cluster-kubeconfig=true` when registering a cluster
   via the dashboard or API. This prevents a user from pointing at an
   arbitrary control-plane Secret (e.g., the OIDC client secret or
   backup credentials) and using it as a kubeconfig.
 - **Delete guard.** `DELETE /clusters/{name}` drops the cluster's client at
-  once and deletes the referenced Secret only when it is the one POST generates
-  for that cluster (cluster-<name>-kubeconfig) and carries
-  `gameplane.local/cluster-kubeconfig=true` (Secrets created before the
-  managed-by label was added are also cleaned up). Any other Secret, including
+  once and deletes the referenced Secret only when it uses the API's fixed
+  registration name or a nonce-suffixed rotation name for that cluster, and carries
+  `gameplane.local/cluster-kubeconfig=true`. Rotation names additionally require
+  the API's managed-by label (legacy fixed-name Secrets predate that label).
+  UID/resourceVersion preconditions prevent cleanup from deleting a replacement.
+  Any other Secret, including
   one named for a different cluster or one without the kubeconfig label, is
   left in place. A kubeconfig Secret you create with kubectl or GitOps under
   another name is never deleted over HTTP.
+- **In-place rotation.** `PUT /clusters/{name}/kubeconfig` requires central
+  `cluster:manage`, publishes an immutable replacement, and switches the
+  registration reference only if its UID and previous reference still match.
+  It preserves gateway configuration and user grants and reloads the client.
+  Revoke the old credential on the target after verifying the replacement;
+  requests already in flight may still use it.
 - **Never logged or returned.** The kubeconfig is never logged by the
   API, never echoed in responses, never visible in audit trails. It
   exists only to bootstrap the Kubernetes client for that cluster.
-- **Permission gating.** Only users holding the `cluster:manage`
-  permission (admin-only) can register, list, or delete clusters via
-  the API. Dashboard access to `/clusters` is similarly gated.
+- **Permission gating.** Registering or deleting a cluster requires
+  `cluster:manage`. Discovery returns only registrations the caller may see;
+  workload grants and central cluster-management permission determine visibility.
 - **No implicit RBAC.** Registering a cluster does not grant any user
-  access to resources on that cluster. Access is determined by role
-  bindings created independently on the target cluster, not by
-  federation. See [install.md](install.md#rbac-and-permissions).
+  access to resources on that cluster. The central API stores dashboard user
+  grants by target cluster and namespace. The registered kubeconfig's Kubernetes
+  permissions are a separate requirement. See [install.md](install.md#rbac-and-permissions).
 
 ## Install-Time OIDC Role Mappings
 

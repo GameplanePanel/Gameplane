@@ -117,7 +117,7 @@ func PermsByClusterToJSON(perms map[string]map[string]map[string]struct{}) map[s
 //     privilege escalation.
 //   - The "*" permission wildcard (the built-in admin role) matches any perm
 //     but is still subject to the same cluster gating for namespaced perms.
-//   - Inventory (cluster:read) always requires a cluster-wide grant on the
+//   - Inventory, modules and templates always require a cluster-wide grant on the
 //     selected cluster or wildcard cluster, regardless of namespaced. An
 //     omitted cluster selects the home cluster; namespace grants never qualify.
 func (u *User) Can(perm string, namespaced bool, cluster, ns string) bool {
@@ -128,7 +128,7 @@ func (u *User) Can(perm string, namespaced bool, cluster, ns string) bool {
 	cwHolds := func(ck string) bool {
 		return permSetHas(u.Perms[ck]["*"], "*") || permSetHas(u.Perms[ck]["*"], perm)
 	}
-	if perm == "cluster:read" {
+	if perm == "cluster:read" || perm == "modules:read" || perm == "modules:manage" || perm == "templates:read" || perm == "templates:write" {
 		if cluster == "" {
 			cluster = scope.DefaultCluster
 		}
@@ -168,7 +168,7 @@ func (u *User) CanDiscoverCluster(cluster string) bool {
 	if u.Can("users:manage", false, "", "") || u.Can("cluster:manage", false, "", "") {
 		return true
 	}
-	if u.Can("cluster:read", true, cluster, "") {
+	if u.Can("cluster:read", true, cluster, "") || u.Can("modules:read", true, cluster, "") || u.Can("modules:manage", true, cluster, "") {
 		return true
 	}
 	for _, ck := range []string{cluster, "*"} {

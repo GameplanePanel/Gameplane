@@ -181,17 +181,18 @@ describe("ClusterSelector", () => {
 
     renderWithQuery(<ClusterSelector />);
 
-    // Should render "local" as fallback
+    // An empty registry must not advertise a nonexistent local cluster.
     await waitFor(() => {
-      expect(screen.getByText("local")).toBeInTheDocument();
+      expect(screen.getByText("Select cluster")).toBeInTheDocument();
     });
+    expect(screen.queryByText("local")).not.toBeInTheDocument();
 
     const trigger = screen.getByRole("button", { name: /select cluster/i });
     await userEvent.click(trigger);
 
     // Should show a helpful message
     await waitFor(() => {
-      expect(screen.getByText("No clusters available")).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: /Manage clusters/ })).toBeEnabled();
     });
   });
 

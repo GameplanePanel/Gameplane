@@ -47,6 +47,7 @@ const queueSize = 256
 // shipped to generic webhook sinks, so field renames are a breaking change
 // for webhook consumers.
 type Event struct {
+	Cluster   string    `json:"cluster,omitempty"`
 	Type      EventType `json:"type"`
 	TS        string    `json:"ts"`
 	Kind      string    `json:"kind,omitempty"` // CRD kind: GameServer | Backup | Restore

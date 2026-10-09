@@ -136,7 +136,7 @@ func TestRemoteBindings_GrantAndRevokePreservePrimaryRole(t *testing.T) {
 func TestRemoteBindings_RejectGlobalRolesAndNonRemoteTargets(t *testing.T) {
 	r, store, sessions, id := remoteBindingFixture(t)
 	createRemoteRole(t, r, "cluster-reader", []string{"cluster:read"})
-	for _, permission := range []string{"users:manage", "roles:manage", "config:manage", "cluster:manage", "modules:read"} {
+	for _, permission := range []string{"users:manage", "roles:manage", "config:manage", "cluster:manage"} {
 		resource, _, _ := strings.Cut(permission, ":")
 		createRemoteRole(t, r, "global-"+resource, []string{permission})
 	}
@@ -148,7 +148,6 @@ func TestRemoteBindings_RejectGlobalRolesAndNonRemoteTargets(t *testing.T) {
 		{RoleName: "global-roles", Namespace: "*", Cluster: "remote"},
 		{RoleName: "global-config", Namespace: "*", Cluster: "remote"},
 		{RoleName: "global-cluster", Namespace: "*", Cluster: "remote"},
-		{RoleName: "global-modules", Namespace: "*", Cluster: "remote"},
 		{RoleName: "cluster-reader", Namespace: "*", Cluster: "local"},
 		{RoleName: "cluster-reader", Namespace: "*", Cluster: ""},
 		{RoleName: "cluster-reader", Namespace: "*", Cluster: "*"},
@@ -172,6 +171,65 @@ func TestRemoteBindings_RejectGlobalRolesAndNonRemoteTargets(t *testing.T) {
 	}
 }
 
+func TestRemoteBindings_ModuleAndTemplateRoleGrantsStayOnSelectedCluster(t *testing.T) {
+	r, _, sessions, id := remoteBindingFixture(t)
+	permissions := []string{"modules:read", "modules:manage", "templates:read", "templates:write"}
+	before := loadedBindingUser(t, sessions, id)
+	createRemoteRole(t, r, "remote-catalog", permissions)
+	path := "/users/" + strconv.FormatInt(id, 10) + "/bindings"
+	granted := remoteBindingRequest(t, r, http.MethodPost, path, addBindingReq{RoleName: "remote-catalog", Namespace: "*", Cluster: "remote"})
+	if granted.Code != http.StatusCreated {
+		t.Fatalf("remote catalog grant: %d %s", granted.Code, granted.Body)
+	}
+	u := loadedBindingUser(t, sessions, id)
+	for _, permission := range permissions {
+		if !u.Can(permission, false, "remote", "") {
+			t.Errorf("remote role did not grant %s", permission)
+		}
+		if u.Can(permission, false, "other", "") {
+			t.Errorf("remote role leaked %s to other cluster", permission)
+		}
+		if u.Can(permission, false, "local", "") != before.Can(permission, false, "local", "") {
+			t.Errorf("remote role changed primary local grant for %s", permission)
+		}
+	}
+	for _, permission := range []string{"users:manage", "roles:manage", "config:manage", "cluster:manage"} {
+		if u.Can(permission, false, "", "") {
+			t.Errorf("remote catalog role conferred central %s", permission)
+		}
+	}
+	// A bound role can gain another target-scoped catalog permission while
+	// central administration remains forbidden by the role-edit guards.
+	updated := remoteBindingRequest(t, r, http.MethodPatch, "/roles/remote-catalog", map[string]any{"permissions": []string{"modules:read", "templates:read"}})
+	if updated.Code != http.StatusOK {
+		t.Fatalf("catalog role read-only edit: %d %s", updated.Code, updated.Body)
+	}
+	u = loadedBindingUser(t, sessions, id)
+	if u.Can("modules:manage", false, "remote", "") || u.Can("templates:write", false, "remote", "") || !u.Can("templates:read", false, "remote", "") {
+		t.Fatal("catalog role edit failed to revoke writes while preserving reads")
+	}
+	updated = remoteBindingRequest(t, r, http.MethodPatch, "/roles/remote-catalog", map[string]any{"permissions": permissions})
+	if updated.Code != http.StatusOK {
+		t.Fatalf("catalog role target-scoped edit: %d %s", updated.Code, updated.Body)
+	}
+	for _, permission := range []string{"users:manage", "roles:manage", "config:manage", "cluster:manage"} {
+		denied := remoteBindingRequest(t, r, http.MethodPatch, "/roles/remote-catalog", map[string]any{"permissions": []string{"modules:read", permission}})
+		if denied.Code != http.StatusBadRequest {
+			t.Errorf("catalog role widened to %s: %d %s", permission, denied.Code, denied.Body)
+		}
+	}
+	revoked := remoteBindingRequest(t, r, http.MethodDelete, path+"/remote-catalog/*?cluster=remote", nil)
+	if revoked.Code != http.StatusNoContent {
+		t.Fatalf("catalog role revoke: %d %s", revoked.Code, revoked.Body)
+	}
+	u = loadedBindingUser(t, sessions, id)
+	for _, permission := range permissions {
+		if u.Can(permission, false, "remote", "") {
+			t.Errorf("revoked remote permission survived: %s", permission)
+		}
+	}
+}
+
 func TestRemoteBindings_RoleEditsCannotWidenButCanRevoke(t *testing.T) {
 	r, _, sessions, id := remoteBindingFixture(t)
 	createRemoteRole(t, r, "cluster-reader", []string{"cluster:read", "servers:read"})
@@ -180,7 +238,7 @@ func TestRemoteBindings_RoleEditsCannotWidenButCanRevoke(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("grant status=%d body=%s", rr.Code, rr.Body)
 	}
-	for _, permission := range []string{"*", "users:manage", "roles:manage", "config:manage", "cluster:manage", "modules:read"} {
+	for _, permission := range []string{"*", "users:manage", "roles:manage", "config:manage", "cluster:manage"} {
 		rr = remoteBindingRequest(t, r, http.MethodPatch, "/roles/cluster-reader", map[string]any{"permissions": []string{"cluster:read", permission}})
 		if rr.Code != http.StatusBadRequest {
 			t.Fatalf("widen to %s: status=%d body=%s", permission, rr.Code, rr.Body)

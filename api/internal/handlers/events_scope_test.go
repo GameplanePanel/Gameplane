@@ -117,12 +117,19 @@ func TestEvents_StreamsOnlyReadableKinds(t *testing.T) {
 			want:  []string{"servers", "templates"},
 		},
 		{
-			// Namespaced kinds are gated by the target cluster; the
-			// cluster-scoped templates:read is granted by any cluster's
-			// cluster-wide binding (auth.User.Can).
+			// Templates, like namespaced workload kinds, require permission
+			// on the selected cluster.
 			name:  "bindings on another cluster only",
 			perms: permMap{"other": {"*": eventsPermSet("servers:read", "backups:read", "schedules:read", "templates:read")}},
-			want:  []string{"templates"},
+			want:  []string{},
+		},
+		{
+			name: "local server reader cannot stream another cluster's templates",
+			perms: permMap{
+				scope.DefaultCluster: {"*": eventsPermSet("servers:read")},
+				"other":              {"*": eventsPermSet("templates:read")},
+			},
+			want: []string{"servers"},
 		},
 		{
 			name:  "admin",

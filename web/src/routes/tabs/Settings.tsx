@@ -264,7 +264,9 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <fieldset key={draftRevision} disabled={save.isPending} inert={save.isPending} className="min-w-0 flex-1 overflow-auto border-0 p-6 scrollbar-thin">
+        {/* Share dialogs own their state independently of the settings draft.
+            A status refresh must not discard a newly issued, one-time token. */}
+        <fieldset key={section === "sharelinks" ? "sharelinks" : draftRevision} disabled={save.isPending} inert={save.isPending} className="min-w-0 flex-1 overflow-auto border-0 p-6 scrollbar-thin">
           {section === "general"    && <GeneralSection    draft={draft} onChange={onChangeDraft} template={template} />}
           {section === "version"    && <VersionSection    draft={draft} onChange={onChangeDraft} template={template} />}
           {section === "config"     && <GameConfigSection draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.config} />}

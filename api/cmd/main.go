@@ -17,7 +17,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/GameplanePanel/gameplane/api/internal/audit"
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
@@ -27,7 +26,6 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/notify"
 	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 	"github.com/GameplanePanel/gameplane/api/internal/registry"
-	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/api/internal/telemetry"
 	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
@@ -84,6 +82,13 @@ func main() {
 				logger.Error("bootstrap-admin", "err", err)
 				os.Exit(1)
 			}
+			return
+		case "rotate-panel-key":
+			if err := rotatePanelKey(ctx, args[1:]); err != nil {
+				logger.Error("rotate-panel-key", "err", err)
+				os.Exit(1)
+			}
+			logger.Info("panel key rotation completed; restart the API with the new key file")
 			return
 		default:
 			logger.Error("unknown subcommand", "name", args[0])
@@ -179,25 +184,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	restCfg, err := ctrl.GetConfig()
+	k8s, reg, err := managementClients(ctx, cfg, store)
 	if err != nil {
-		logger.Error("get kubeconfig", "err", err)
+		logger.Error("initialize management storage", "err", err)
 		os.Exit(1)
 	}
-	k8s, err := kube.New(restCfg)
-	if err != nil {
-		logger.Error("kube client", "err", err)
-		os.Exit(1)
-	}
-	// reg is the pool of per-cluster clients that cluster-dispatch-aware
-	// handlers resolve `?cluster=` against. A single-cluster install has
-	// exactly one entry: the home cluster registered as scope.DefaultCluster
-	// ("local"). Cluster-dispatch handlers (Resources, PodEvents, Lifecycle,
-	// Ownership, Events, Destinations) take reg; home-cluster/control-plane
-	// handlers (SystemLogs, Modules, Cluster, ClusterActions, AuthProviderSecrets, ws)
-	// still take the bare k8s client directly.
-	reg := kube.NewRegistry(scope.DefaultCluster)
-	reg.Set(scope.DefaultCluster, k8s)
 
 	sessions := auth.NewSessionStore(store)
 	sessions.StartGC(ctx, time.Hour)
@@ -282,7 +273,7 @@ func main() {
 	// configured in Admin Settings. Best-effort mirror — never gates
 	// reconciliation or requests.
 	notifier := notify.New(store, k8s, cfg.namespace)
-	go notifier.Run(ctx)
+	go notifier.RunWithRegistry(ctx, reg)
 
 	// Cluster registry: watch Cluster CRDs and populate the client registry
 	// with remote cluster connections. Single-cluster installs only have the
@@ -377,13 +368,14 @@ func main() {
 		handlers.MountNotifications(p, notifier, k8s, cfg.namespace)
 		handlers.MountAuthProviderSecrets(p, k8s, cfg.namespace)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)
-		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
+		handlers.MountClusterActions(p, k8s, cfg.clusterOps && !cfg.standalone, cfg.clusterExternalAddress)
 		handlers.MountClusters(p, reg, k8s, cfg.namespace)
+		handlers.MountInstallation(p, cfg.standalone)
 		handlers.MountEvents(p, reg)
 		handlers.MountDestinations(p, reg)
 		handlers.MountTunnelCredentials(p, reg)
 		handlers.MountSystemLogs(p, k8s, cfg.namespace)
-		handlers.MountModules(p, k8s, cfg.namespace)
+		handlers.MountModulesWithRegistry(p, reg, cfg.namespace)
 		handlers.MountRegistrySecrets(p, k8s, cfg.namespace)
 		// Precedence: a runtime, admin-configured key (DB row + labelled
 		// Secret, resolved lazily per registry.DBKeyFunc) always wins over
@@ -499,11 +491,15 @@ func main() {
 }
 
 type config struct {
-	addr        string
-	metricsAddr string
-	dbDriver    string
-	dbDSN       string
-	logLevel    string
+	standalone          bool
+	panelKeyFile        string
+	panelKeyProvisioned bool
+	remoteAllowedCIDRs  string
+	addr                string
+	metricsAddr         string
+	dbDriver            string
+	dbDSN               string
+	logLevel            string
 
 	oidcIssuer                    string
 	oidcClientID                  string
@@ -624,6 +620,10 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	c.captureMaxRetentionSecs = envOrInt64("GAMEPLANE_CAPTURE_MAX_RETENTION", 604800)
 	fs.IntVar(&c.captureDefaultMaxDurationS, "capture-default-max-duration", envOrInt("GAMEPLANE_CAPTURE_DEFAULT_MAX_DURATION", 300), "default max capture duration in seconds")
 	c.captureDefaultMaxSizeBytes = envOrInt64("GAMEPLANE_CAPTURE_DEFAULT_MAX_SIZE", 5368709120)
+	fs.BoolVar(&c.standalone, "standalone", envOr("GAMEPLANE_STANDALONE", "") == "true", "run without a local Kubernetes cluster")
+	fs.StringVar(&c.panelKeyFile, "panel-key-file", envOr("GAMEPLANE_PANEL_KEY_FILE", "/data/panel.key"), "persistent standalone credential encryption key file")
+	fs.BoolVar(&c.panelKeyProvisioned, "panel-key-provisioned", envOr("GAMEPLANE_PANEL_KEY_PROVISIONED", "") == "true", "require an existing read-only standalone credential key; never generate it")
+	fs.StringVar(&c.remoteAllowedCIDRs, "remote-allowed-cidrs", envOr("GAMEPLANE_REMOTE_ALLOWED_CIDRS", ""), "optional comma-separated CIDRs allowed for standalone Kubernetes and gateway connections")
 	fs.StringVar(&c.namespace, "namespace", envOr("GAMEPLANE_NAMESPACE", "gameplane-system"),
 		"namespace the control plane runs in (module upload ConfigMaps are stored here)")
 	fs.StringVar(&c.gameDataStorageClass, "game-data-storage-class", envOr("GAMEPLANE_GAME_DATA_STORAGE_CLASS", ""),

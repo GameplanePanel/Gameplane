@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
@@ -23,6 +24,10 @@ const resyncPeriod = 10 * time.Minute
 // remote kubeconfigs are logged but do not crash — the registry continues
 // to serve what it has.
 func WatchClusters(ctx context.Context, home *Client, reg *Registry, ns string) {
+	if home.IsStandalone() {
+		watchStandaloneClusters(ctx, home, reg, ns)
+		return
+	}
 	factory := dynamicinformer.NewDynamicSharedInformerFactory(home.Dynamic, resyncPeriod)
 
 	if _, err := factory.ForResource(GVRCluster).Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -105,9 +110,23 @@ func removeDeletedCluster(reg *Registry, obj any) {
 // loads the secret, creates a client, and registers it in the registry.
 // If the Cluster is being deleted, it is removed from the registry instead.
 func loadCluster(ctx context.Context, home *Client, reg *Registry, ns, name string) error {
-	u, err := home.Dynamic.Resource(GVRCluster).Get(ctx, name, metav1.GetOptions{})
+	return loadClusterForUID(ctx, home, reg, ns, name, "")
+}
+
+// RefreshRegisteredCluster reloads credentials without a remote connectivity
+// probe. The expected identity prevents a rotation from carrying a refresh
+// across deletion/recreation of the registration.
+func RefreshRegisteredCluster(ctx context.Context, home *Client, reg *Registry, ns, name string, expectedUID types.UID) error {
+	return loadClusterForUID(ctx, home, reg, ns, name, expectedUID)
+}
+
+func loadClusterForUID(ctx context.Context, home *Client, reg *Registry, ns, name string, expectedUID types.UID) error {
+	u, err := home.Clusters().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("get cluster CRD: %w", err)
+	}
+	if expectedUID != "" && u.GetUID() != expectedUID {
+		return apierrors.NewNotFound(GVRCluster.GroupResource(), name)
 	}
 
 	// If the cluster is being deleted, remove it from the registry.
@@ -144,7 +163,21 @@ func loadCluster(ctx context.Context, home *Client, reg *Registry, ns, name stri
 		return fmt.Errorf("load client from secret: %w", err)
 	}
 
-	reg.SetWithUID(name, u.GetUID(), c)
+	// Serialize the final metadata check with client removal/publication. A
+	// credential loaded before rotation must never replace its newer client.
+	reg.mu.Lock()
+	defer reg.mu.Unlock()
+	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	current, err := home.Clusters().Get(checkCtx, name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("recheck cluster registration: %w", err)
+	}
+	if current.GetDeletionTimestamp() != nil || current.GetUID() != u.GetUID() || current.GetResourceVersion() != u.GetResourceVersion() {
+		return apierrors.NewConflict(GVRCluster.GroupResource(), name, fmt.Errorf("cluster registration changed during credential load"))
+	}
+	reg.clients[name] = c
+	reg.uids[name] = u.GetUID()
 	slog.Debug("cluster watch: loaded cluster", "cluster", name)
 	return nil
 }

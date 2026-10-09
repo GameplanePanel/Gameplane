@@ -44,7 +44,8 @@ export function ClusterSelector() {
 
   const clusters = data?.items ?? [];
   const currentCluster = clusters.find((c) => c.name === currentClusterId);
-  const displayName = getDisplayName(currentCluster, currentClusterId);
+  const displayName = data && !currentCluster && currentClusterId === "local"
+    ? "Select cluster" : getDisplayName(currentCluster, currentClusterId);
   const phase = currentCluster?.phase ?? "Unknown";
   const phaseColor = getPhaseColor(phase);
 
@@ -83,8 +84,8 @@ export function ClusterSelector() {
               </span>
             </DropdownItem>
           ) : clusters.length === 0 ? (
-            <DropdownItem isDisabled>
-              <span className="text-sm text-muted">No clusters available</span>
+            <DropdownItem onPress={handleViewClusters} textValue="Manage clusters">
+              <span className="text-sm text-muted">No clusters available · Manage clusters</span>
             </DropdownItem>
           ) : (
             <>

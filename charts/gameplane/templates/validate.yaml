@@ -1,0 +1,19 @@
+{{- if .Values.api.standalone }}
+{{- $panelKey := .Values.api.panelKey | default dict }}
+{{- $keyFileName := $panelKey.fileName | default "panel.key" }}
+{{- if or (gt (len $keyFileName) 128) (not (regexMatch "^[A-Za-z0-9][A-Za-z0-9._-]*$" $keyFileName)) }}
+{{- fail "api.panelKey.fileName must be a simple filename of at most 128 characters" }}
+{{- end }}
+{{- if and $panelKey.existingSecret ($panelKey.storage | default dict).existingClaim }}
+{{- fail "choose either api.panelKey.existingSecret or api.panelKey.storage.existingClaim" }}
+{{- end }}
+{{- if eq (include "gameplane.operatorEnabled" .) "true" }}
+{{- fail "api.standalone requires operator.enabled=false; install operators in the remote game clusters" }}
+{{- end }}
+{{- if ne (int .Values.api.replicas) 1 }}
+{{- fail "api.standalone requires api.replicas=1 for the persistent panel key and database" }}
+{{- end }}
+{{- if (.Values.gateway | default dict).enabled }}
+{{- fail "api.standalone cannot host gateway.enabled; install the gateway in the remote game cluster" }}
+{{- end }}
+{{- end }}

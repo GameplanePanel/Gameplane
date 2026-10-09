@@ -1,0 +1,12 @@
+# Fresh central panel install; use helm install/upgrade --skip-crds.
+# Helm processes crds/ before values/templates, so values alone cannot skip CRDs.
+operator:
+  enabled: false
+api:
+  enabled: true
+  standalone: true
+crds:
+  autoApply:
+    enabled: false
+ingress:
+  enabled: false

@@ -4,6 +4,11 @@ Gameplane is split across long-lived components — dashboard, API, operator,
 and [optional] audit-syslog-bridge / telemetry-receiver satellites — plus a
 short-lived per-pod agent sidecar.
 
+The default Helm installation runs the panel and operator together. A
+[standalone panel](standalone-panel.md) runs the dashboard and API without local
+Kubernetes; registered remote clusters run the operators and game workloads.
+The diagram and direct-agent examples below describe the combined installation.
+
 > **For AI Agents & Developers:** This document provides a high-level human-readable overview. For deep technical details, specifications, and boundaries of individual components, read the respective `specs.md` files located in each component directory (e.g., `api/specs.md`, `operator/specs.md`). AI Agents should consult [`agent-architecture.md`](agent-architecture.md) as their primary index.
 
 ```
@@ -80,7 +85,7 @@ manage Gameplane with `kubectl apply` — the operator is authoritative.
 4. StatefulSet starts the game pod (game container + agent sidecar)
 5. Agent starts heartbeating → sets `status.agent.lastHeartbeat`
 6. Operator observes heartbeat → sets `status.phase=Running`
-7. Dashboard SSE stream receives the status update, re-renders
+7. Dashboard receives the status update through local SSE or resource polling and re-renders
 
 > **What `Running` means.** The phase flips to `Running` once the pod is
 > Ready *and* the agent heartbeat is fresh. That signals the pod and
@@ -289,19 +294,23 @@ bundle upload) only reads and writes these CRs/ConfigMaps; the
 operator owns all reconciliation, so the dashboard and kubectl always
 converge on the same outcome. Format spec: `docs/module-authoring.md`.
 
+Combined panels manage the local module catalog. Standalone panels require an
+explicit registered cluster for module and source operations; that cluster's
+operator reconciles the changes.
+
 ## Multi-cluster (federation)
 
 Gameplane scales across multiple Kubernetes clusters through a
 federation model: each target cluster runs its own operator and agents,
-while the API server (on the control-plane cluster) holds a pool of
+while the central API server holds a pool of
 Kubernetes clients keyed by cluster ID and dispatches requests via a
-`?cluster=` URL parameter. The built-in "local" cluster targets the
-same cluster as the API; any additional cluster is registered through
-a cluster-scoped CRD.
+`?cluster=` URL parameter. Combined installations have a built-in `local`
+cluster targeting the same cluster as the API. Standalone panels have no local
+workload client and start with an empty registry.
 
 **Cluster registration and health:**
 
-- A `Cluster` CRD (group `gameplane.local/v1alpha1`) is the source of
+- In combined mode, a `Cluster` CRD (group `gameplane.local/v1alpha1`) is the source of
   truth for additional clusters. Each `Cluster` references a
   `kubeconfig` Secret via a selector, and the API watches `Cluster`
   updates to populate its client pool live.
@@ -309,9 +318,13 @@ a cluster-scoped CRD.
   `gameplane.local/cluster-kubeconfig=true` in the control-plane
   namespace — the label guard prevents pointing at arbitrary Secrets
   (see "Kubeconfig Secret handling" in `docs/security.md`).
-- The operator health-checks each registered `Cluster` and reconciles
+- In combined mode, the operator health-checks each registered `Cluster` and reconciles
   `status.phase` (Unknown/Healthy/Unhealthy), so Kubernetes connectivity
   is visible in the dashboard. This status does not probe an optional gateway.
+- Standalone panels persist registrations and labelled credentials in SQL.
+  Credential payloads use AES-GCM with a persistent key outside the database.
+  The API polls registrations and remote Kubernetes health every 30 seconds;
+  it needs no central operator. See [storage and recovery](standalone-panel.md#storage-and-recovery).
 
 **Deployment model:**
 
@@ -320,11 +333,13 @@ a cluster-scoped CRD.
   Optional remote agent access also runs a private gateway from the API image,
   with no user database or browser/admin routes. Upgrade the operator and agents
   for the UID-bound agent protocol before enabling this path.
-- The **control-plane cluster** hosts the API and dashboard; it may or
-  may not have game pods itself (if `cluster=local`).
+- The **central panel** hosts the API and dashboard. A combined installation
+  can also host local game pods. A standalone panel manages registered remote
+  workloads and can run on a host without Kubernetes.
 - A **resource request** made to the API with `?cluster=<name>` is dispatched to
   the named cluster's Kubernetes client. Omitting the selector targets
-  the built-in "local" cluster. Collection reads under `/fleet/*` instead combine
+  the built-in `local` cluster in combined mode and fails in standalone mode.
+  Collection reads under `/fleet/*` combine
   authorized scopes by default, with optional cluster and namespace filters.
   Each returned resource retains its target identity and permissions; partial
   results report unavailable or truncated scopes. See the
@@ -362,13 +377,12 @@ a cluster-scoped CRD.
 
 **RBAC and permissions:**
 
-Registering an additional cluster grants **no implicit RBAC** on it.
-Each cluster's role bindings are independent; existing bindings
-created before federation was enabled are pinned to "local". To grant
-a user access to resources on a newly registered cluster, create
-matching role bindings on that target cluster or add cluster-scoped
-permissions through the API. See `docs/install.md#registering-an-additional-cluster`
-for the registration flow.
+Registering a cluster grants no implicit workload access. The central API stores
+user roles and grants by cluster and namespace in its database. Existing primary
+roles remain pinned to `local`; in standalone mode they grant panel administration
+without remote workload access. Add remote grants through **Users & RBAC** or the
+user bindings API. The registered kubeconfig separately needs Kubernetes RBAC on
+the target. See [registration and permissions](install.md#rbac-and-permissions).
 
 ## Security boundaries
 

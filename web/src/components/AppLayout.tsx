@@ -14,6 +14,7 @@ import {
 import { APIError } from "@/lib/api";
 import { Clusters, Auth } from "@/lib/endpoints";
 import { useMe, can } from "@/lib/auth";
+import { useInstallation } from "@/lib/useInstallation";
 import type { User } from "@/types";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/ui/AppShell";
@@ -91,6 +92,7 @@ function useAppearance(
 
 export function AppLayout() {
   const { data: me, error, isLoading } = useMe();
+  const installation = useInstallation();
   const { data: registry } = useQuery({ queryKey: ["clusters"], queryFn: () => Clusters.list() });
   const canViewInventory = registry?.items.some((item) => item.canViewInventory === true) === true;
   const canManageInfrastructure = can(me, "cluster:manage") || canViewInventory;
@@ -206,7 +208,7 @@ export function AppLayout() {
     : buildCrumbs(pathname);
   // Extract the last breadcrumb label as the mobile title
   const mobileTitle = crumbs.length > 0 ? crumbs[crumbs.length - 1].label : "";
-  const centralManagement = ["/modules", "/users", "/admin", "/settings"].some(
+  const centralManagement = ["/users", "/admin", "/settings", ...(installation.data?.standalone === false ? ["/modules"] : [])].some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
   );
 
@@ -242,7 +244,7 @@ export function AppLayout() {
             breadcrumbs={<Breadcrumbs items={crumbs} />}
             clusterSelector={null}
             search={<GlobalSearch />}
-            notifications={<NotificationsPanel />}
+            notifications={<NotificationsPanel enabled={installation.data?.localCluster === true} />}
             mobileTitle={mobileTitle}
             user={me}
             onMenuClick={() => setDrawerOpen(true)}

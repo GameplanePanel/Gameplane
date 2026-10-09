@@ -1,0 +1,429 @@
+{
+  "type": "frame",
+  "id": "WrmU5",
+  "x": -14157,
+  "y": 30632,
+  "name": "Screen/Standalone — Clusters (Registered)",
+  "context": "PR #630 standalone deployment; matches current dashboard behavior.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "Q8Gy6o",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "BuhAS": {
+          "content": "Gameplane"
+        },
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP": {
+          "fill": "$accent/soft"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "cZ1pA",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Dd917",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Clusters"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "quYQ7",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "mnPfw",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Clusters header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Clusters"
+                },
+                "VbHwU": {
+                  "content": "Administration of registered locations, connectivity and node inventory."
+                },
+                "TgdLz": {
+                  "type": "frame",
+                  "id": "irpdH",
+                  "name": "Page actions",
+                  "height": 36,
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "I414g1",
+                      "type": "ref",
+                      "ref": "cb4rt",
+                      "name": "Register cluster",
+                      "opacity": 1,
+                      "descendants": {
+                        "Xpn7K": {
+                          "enabled": false
+                        },
+                        "U6q13B": {
+                          "content": "Register cluster"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "a7s07j",
+              "name": "API status scope",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "2 clusters available · Status reports Kubernetes API connectivity, not game or gateway health.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "jiXKV",
+              "name": "Registered remote clusters",
+              "width": "fill_container",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "K1kXX",
+                  "name": "east cluster",
+                  "width": "fill_container",
+                  "fill": "$surface/surface",
+                  "cornerRadius": "$radius/3xl",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ApcQf",
+                      "name": "Cluster identity",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FQWWf",
+                          "name": "Name and registration",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "owEMr",
+                              "name": "Cluster display name",
+                              "fill": "$foreground/foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "East production",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "jyqB7",
+                              "name": "Registration name",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "east",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "D5B31",
+                          "name": "Selected cluster",
+                          "fill": "$accent/accent",
+                          "content": "Selected",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "zlSQA",
+                      "name": "API connectivity",
+                      "fill": "$success/success",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "API: Healthy",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "IcfRP",
+                      "name": "Last checked",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Last checked just now",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "LGzV8",
+                      "name": "Cluster actions",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "id": "i0uSmF",
+                          "type": "ref",
+                          "ref": "cb4rt",
+                          "name": "View servers",
+                          "opacity": 1,
+                          "descendants": {
+                            "Xpn7K": {
+                              "enabled": false
+                            },
+                            "U6q13B": {
+                              "content": "View servers"
+                            }
+                          }
+                        },
+                        {
+                          "id": "vuyS6",
+                          "type": "ref",
+                          "ref": "i6gfu",
+                          "name": "View nodes",
+                          "opacity": 1,
+                          "descendants": {
+                            "FCYQ9": {
+                              "enabled": false
+                            },
+                            "GqVun": {
+                              "content": "View nodes"
+                            }
+                          }
+                        },
+                        {
+                          "id": "W1073i",
+                          "type": "ref",
+                          "ref": "i6gfu",
+                          "name": "Remove",
+                          "opacity": 1,
+                          "descendants": {
+                            "FCYQ9": {
+                              "enabled": false
+                            },
+                            "GqVun": {
+                              "content": "Remove"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "q8PXwO",
+                  "name": "west cluster",
+                  "width": "fill_container",
+                  "fill": "$surface/surface",
+                  "cornerRadius": "$radius/3xl",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "kbDHQ",
+                      "name": "Cluster identity",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "AvgGx",
+                          "name": "Name and registration",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dr8J4",
+                              "name": "Cluster display name",
+                              "fill": "$foreground/foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "West backup",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 18,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "cBPBX",
+                              "name": "Registration name",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "west",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "j82uX",
+                      "name": "API connectivity",
+                      "fill": "$danger/danger",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "API: Unhealthy",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bmjhu",
+                      "name": "Last checked",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Last checked just now",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QcHLE",
+                      "name": "Cluster actions",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "id": "U7jY7p",
+                          "type": "ref",
+                          "ref": "cb4rt",
+                          "name": "View servers",
+                          "opacity": 1,
+                          "descendants": {
+                            "Xpn7K": {
+                              "enabled": false
+                            },
+                            "U6q13B": {
+                              "content": "View servers"
+                            }
+                          }
+                        },
+                        {
+                          "id": "IoRuy",
+                          "type": "ref",
+                          "ref": "i6gfu",
+                          "name": "View nodes",
+                          "opacity": 1,
+                          "descendants": {
+                            "FCYQ9": {
+                              "enabled": false
+                            },
+                            "GqVun": {
+                              "content": "View nodes"
+                            }
+                          }
+                        },
+                        {
+                          "id": "Bd9ic",
+                          "type": "ref",
+                          "ref": "i6gfu",
+                          "name": "Remove",
+                          "opacity": 1,
+                          "descendants": {
+                            "FCYQ9": {
+                              "enabled": false
+                            },
+                            "GqVun": {
+                              "content": "Remove"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

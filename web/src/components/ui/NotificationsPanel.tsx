@@ -17,10 +17,9 @@ interface Notice {
 // Window for coalescing SSE-driven cache invalidations per query key.
 const INVALIDATE_COALESCE_MS = 500;
 
-// No props today — the component owns its own SSE subscription and local
-// state (see the doc comment below). Kept as a named type so callers and
-// future props have a stable place to land.
-export type NotificationsPanelProps = Record<string, never>;
+// The events feed is local-only. Standalone installations keep the bell
+// available without repeatedly opening a stream against a missing cluster.
+export interface NotificationsPanelProps { enabled?: boolean }
 
 // phaseOf reads status.phase off a watch object ("" when absent).
 function phaseOf(obj: GameplaneEvent["object"] | undefined): string {
@@ -34,13 +33,14 @@ function phaseOf(obj: GameplaneEvent["object"] | undefined): string {
  * waiting for the next poll) and is buffered into a dropdown panel. The
  * badge shows the unread count.
  */
-export function NotificationsPanel(): JSX.Element {
+export function NotificationsPanel({ enabled = true }: NotificationsPanelProps): JSX.Element {
   const qc = useQueryClient();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
+    if (!enabled) return;
     let seq = 0;
     // Coalesce invalidations per query key: a burst of watch events for one
     // kind costs a single refetch. An in-flight fetch is never cancelled (a
@@ -100,7 +100,7 @@ export function NotificationsPanel(): JSX.Element {
       pending.clear();
       dispose();
     };
-  }, [qc]);
+  }, [qc, enabled]);
 
   return (
     <Popover

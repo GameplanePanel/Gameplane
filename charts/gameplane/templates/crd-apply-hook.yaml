@@ -1,3 +1,4 @@
+{{- if not .Values.api.standalone }}
 {{- if .Values.crds.autoApply.enabled }}
 {{- /*
 Helm installs the files under crds/ only on the FIRST install and never
@@ -277,4 +278,6 @@ spec:
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets: {{ toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}
+
 {{- end }}

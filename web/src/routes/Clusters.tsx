@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Card, CardContent } from "@heroui/react";
 import { Network } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -10,9 +11,22 @@ import { useCurrentCluster } from "@/lib/cluster";
 import { useClusterSelection } from "@/lib/useClusterSelection";
 import { useMe, can } from "@/lib/auth";
 import { cn, formatRelative } from "@/lib/utils";
+import { RegisterClusterDialog } from "@/components/RegisterClusterDialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export function ClustersPage() {
   const { data: me } = useMe();
+  const client = useQueryClient();
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
+  const remove = useMutation({
+    mutationFn: (name: string) => Clusters.remove(name),
+    onSuccess: async () => {
+      setRemoveTarget(null);
+      await client.invalidateQueries({ queryKey: ["clusters"] });
+      await client.invalidateQueries({ queryKey: ["fleet"] });
+    },
+  });
   const currentCluster = useCurrentCluster();
   const selectCluster = useClusterSelection();
   const navigate = useNavigate();
@@ -30,7 +44,13 @@ export function ClustersPage() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      <PageHeader title="Clusters" description="Administration of registered locations, connectivity and node inventory." />
+      <PageHeader title="Clusters" description="Administration of registered locations, connectivity and node inventory."
+        actions={can(me, "cluster:manage") && <Button onPress={() => setRegisterOpen(true)}>Register cluster</Button>} />
+      {registerOpen && <RegisterClusterDialog open onOpenChange={setRegisterOpen} />}
+      {remove.error && <ErrorCard message="Couldn't remove the cluster registration. Try again." />}
+      <ConfirmDialog open={!!removeTarget} onOpenChange={(open) => !open && setRemoveTarget(null)} title={`Remove ${removeTarget ?? ""}?`}
+        description="Removes this panel's connection to the cluster. Running workloads remain on the cluster."
+        confirmLabel="Remove cluster" destructive busy={remove.isPending} onConfirm={() => removeTarget && remove.mutate(removeTarget)} />
       {!isLoading && !error && !can(me, "cluster:manage") && !clusters.some((item) => item.canViewInventory) ? (
         <ErrorCard message="Cluster administration requires inventory or cluster-management access." />
       ) : isLoading ? (
@@ -40,7 +60,7 @@ export function ClustersPage() {
       ) : clusters.length === 0 ? (
         <Card><CardContent className="space-y-2 p-6">
           <h2 className="font-medium">No clusters available</h2>
-          <p className="text-sm text-muted">Ask your administrator for access to a registered cluster.</p>
+          <p className="text-sm text-muted">{can(me, "cluster:manage") ? "Register a workload cluster to deploy and manage game servers. This panel can run without a local cluster." : "Ask your administrator for access to a registered cluster."}</p>
         </CardContent></Card>
       ) : (
         <>
@@ -68,6 +88,7 @@ export function ClustersPage() {
                   <div className="mt-auto flex flex-wrap gap-2">
                     <Button onPress={() => void openCluster(cluster.name, "/servers")} aria-label={`View servers in ${cluster.displayName || cluster.name}`}>View servers</Button>
                     {cluster.canViewInventory === true && <Button variant="outline" onPress={() => void openCluster(cluster.name, "/cluster")} aria-label={`View nodes in ${cluster.displayName || cluster.name}`}>View nodes</Button>}
+                    {cluster.name !== "local" && can(me, "cluster:manage") && <Button variant="outline" onPress={() => setRemoveTarget(cluster.name)} aria-label={`Remove cluster ${cluster.displayName || cluster.name}`}>Remove</Button>}
                   </div>
                 </CardContent>
               </Card>

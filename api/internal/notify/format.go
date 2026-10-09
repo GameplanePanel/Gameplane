@@ -39,6 +39,9 @@ func title(e Event) string {
 	if e.Name == "" {
 		return fmt.Sprintf("[%s] %s", inst, what)
 	}
+	if e.Cluster != "" {
+		return fmt.Sprintf("[%s] %s: %s/%s/%s", inst, what, e.Cluster, e.Namespace, e.Name)
+	}
 	return fmt.Sprintf("[%s] %s: %s/%s", inst, what, e.Namespace, e.Name)
 }
 

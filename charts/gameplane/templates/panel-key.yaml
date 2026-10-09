@@ -1,0 +1,21 @@
+{{- if and (eq (include "gameplane.apiEnabled" .) "true") .Values.api.standalone }}
+{{- $panelKey := .Values.api.panelKey | default dict }}
+{{- $storage := $panelKey.storage | default dict }}
+{{- if and (not $panelKey.existingSecret) (not $storage.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gameplane-api-key
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: { storage: {{ $storage.size | default "1Mi" }} }
+  {{- with $storage.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

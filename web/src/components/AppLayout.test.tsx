@@ -65,6 +65,50 @@ async function sidebarRoot() {
 }
 
 describe("AppLayout", () => {
+  it.each([true, false])("labels module ownership for the installation mode (standalone=%s)", async (standalone) => {
+    const originalLocation = routerMocks.useLocation;
+    routerMocks.useLocation = () => ({ pathname: "/modules" } as ReturnType<typeof import("@tanstack/react-router").useLocation>);
+    server.use(http.get("/admin/installation", () => HttpResponse.json({ standalone, localCluster: !standalone })));
+    const view = renderWithQuery(<AppLayout />);
+    try {
+      await waitFor(() => expect(view.client.getQueryData(["installation"])).toEqual({ standalone, localCluster: !standalone }));
+      await screen.findByTestId("outlet");
+      if (standalone) {
+        await waitFor(() => expect(screen.queryByText("Central management.")).not.toBeInTheDocument());
+      } else {
+        expect(await screen.findByText("Central management.")).toBeInTheDocument();
+      }
+    } finally {
+      view.unmount();
+      routerMocks.useLocation = originalLocation;
+    }
+  });
+
+  it.each([true, false])("opens local events only when installation capabilities report a local cluster (standalone=%s)", async (standalone) => {
+    const connect = vi.fn();
+    class EventStream {
+      constructor(url: string) { connect(url); }
+      close() {}
+    }
+    vi.stubGlobal("EventSource", EventStream);
+    server.use(http.get("/admin/installation", () => HttpResponse.json({ standalone, localCluster: !standalone })));
+    const view = renderWithQuery(<AppLayout />);
+    try {
+      expect(connect).not.toHaveBeenCalled();
+      await waitFor(() => expect(view.client.getQueryData(["installation"])).toEqual({ standalone, localCluster: !standalone }));
+      if (standalone) {
+        await userEvent.click(await screen.findByRole("button", { name: /notifications/i }));
+        expect(await screen.findByText("No recent activity.")).toBeInTheDocument();
+        expect(connect).not.toHaveBeenCalled();
+      } else {
+        await waitFor(() => expect(connect).toHaveBeenCalledWith("/events"));
+      }
+    } finally {
+      view.unmount();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("renders the sidebar nav items shared by all roles", async () => {
     server.use(
       http.get("/users/me", () => HttpResponse.json(makeUser({ role: "viewer" }))),

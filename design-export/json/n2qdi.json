@@ -1,0 +1,162 @@
+{
+  "type": "frame",
+  "id": "n2qdi",
+  "x": -17357,
+  "y": 30632,
+  "name": "Screen/Standalone — Clusters (Empty)",
+  "context": "PR #630 standalone deployment; matches current dashboard behavior.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "peZu0",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "BuhAS": {
+          "content": "Gameplane"
+        },
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP": {
+          "fill": "$accent/soft"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "p4p9Y2",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "G9ZToI",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Clusters"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "f9tEzp",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "lL09w",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Clusters header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Clusters"
+                },
+                "VbHwU": {
+                  "content": "Administration of registered locations, connectivity and node inventory."
+                },
+                "TgdLz": {
+                  "type": "frame",
+                  "id": "uUIw5",
+                  "name": "Page actions",
+                  "height": 36,
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "zl6X7",
+                      "type": "ref",
+                      "ref": "cb4rt",
+                      "name": "Register cluster",
+                      "opacity": 1,
+                      "descendants": {
+                        "Xpn7K": {
+                          "enabled": false
+                        },
+                        "U6q13B": {
+                          "content": "Register cluster"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "MMxRr",
+              "name": "No registered clusters",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "A1ikQ",
+                  "name": "Empty title",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "No clusters available",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ITq33",
+                  "name": "Empty description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Register a workload cluster to deploy and manage game servers. This panel can run without a local cluster.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

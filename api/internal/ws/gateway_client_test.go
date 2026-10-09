@@ -78,6 +78,21 @@ func TestGatewayURLRejectsNonOrigins(t *testing.T) {
 	}
 }
 
+func TestStandaloneGatewayRejectsUnsafeDestinations(t *testing.T) {
+	for _, endpoint := range []string{"https://127.0.0.1:8443", "https://169.254.169.254", "https://metadata.google.internal", "https://10.1.2.3:8443"} {
+		t.Run(endpoint, func(t *testing.T) {
+			resolver, home, _ := gatewayFixture(t, endpoint)
+			// Select the existing fake Kubernetes registration/secret clients as
+			// standalone management storage, without introducing a network bypass.
+			home.ClusterStore = home.Clusters()
+			home.RemoteAccess, _ = kube.NewRemoteAccessPolicy([]string{"192.168.0.0/16"})
+			if _, _, err := resolver.resolve(t.Context(), "remote", agentTarget{name: "alpha", namespace: "gameplane-games"}); err == nil {
+				t.Fatal("unsafe gateway endpoint was accepted")
+			}
+		})
+	}
+}
+
 func TestGatewayResolverBindsRemoteUIDAndReadsCredentialsFresh(t *testing.T) {
 	resolver, home, remote := gatewayFixture(t, "https://gateway.test:8443")
 	target := agentTarget{name: "alpha", namespace: "gameplane-games"}

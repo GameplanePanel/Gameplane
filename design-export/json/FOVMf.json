@@ -1,0 +1,263 @@
+{
+  "type": "frame",
+  "id": "FOVMf",
+  "x": -12557,
+  "y": 33432,
+  "name": "Screen/Standalone — Settings · About",
+  "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "CjTjh",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "BuhAS": {
+          "content": "Central management"
+        },
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB": {
+          "fill": "$accent/soft"
+        },
+        "ya5KB/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "ya5KB/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "UN7yo",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Pucwu",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Settings"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "i1oDk0",
+          "name": "Central management notice",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "stroke": "$border/border",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "padding": [
+            12,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "wVBRj",
+              "name": "Central management scope",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "GFScj",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "I7XR8",
+              "type": "ref",
+              "ref": "xCDF7",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Admin settings"
+                },
+                "VbHwU": {
+                  "content": "Platform-wide configuration for this Gameplane instance."
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "euy61",
+              "name": "Settings Layout",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "p5foG0",
+                  "type": "ref",
+                  "ref": "Mp7Ep",
+                  "name": "Settings Nav",
+                  "width": 220,
+                  "descendants": {
+                    "eIjoV": {
+                      "fill": "#00000000"
+                    },
+                    "WlxKs": {
+                      "fill": "$surface/secondary"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "X1EyDE",
+                  "name": "About",
+                  "width": "fill_container",
+                  "fill": "$surface/surface",
+                  "cornerRadius": "$radius/3xl",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "D6N4hh",
+                      "name": "Section title",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "About",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "osqdf",
+                      "name": "About description",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "This Gameplane build.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CSzHs",
+                      "name": "Gameplane row",
+                      "width": "fill_container",
+                      "gap": 24,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OlU4p",
+                          "name": "Gameplane label",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": 100,
+                          "content": "Gameplane",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "AORiq",
+                          "name": "Gameplane value",
+                          "fill": "$foreground/foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "—",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IMEAc",
+                      "name": "License row",
+                      "width": "fill_container",
+                      "gap": 24,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "lgbba",
+                          "name": "License label",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": 100,
+                          "content": "License",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Slm3S",
+                          "name": "License value",
+                          "fill": "$foreground/foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "AGPL-3.0",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

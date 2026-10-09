@@ -25,7 +25,14 @@ const resyncPeriod = 10 * time.Minute
 // which is also the whole restart story (a failure that completes while
 // the API is down is missed here but still visible in the dashboard).
 func (n *Notifier) runWatchers(ctx context.Context) {
-	factory := dynamicinformer.NewDynamicSharedInformerFactory(n.k.Dynamic, resyncPeriod)
+	n.runClusterWatchers(ctx, n.k, "")
+}
+
+func (n *Notifier) runClusterWatchers(ctx context.Context, k *kube.Client, cluster string) {
+	if k == nil || k.Dynamic == nil {
+		return
+	}
+	factory := dynamicinformer.NewDynamicSharedInformerFactory(k.Dynamic, resyncPeriod)
 
 	// alerted tracks GameServers with an un-recovered unhealthy alert, so
 	// recovery events pair with an outage instead of firing on every start.
@@ -51,6 +58,7 @@ func (n *Notifier) runWatchers(ctx context.Context) {
 			}
 			mu.Unlock()
 			for _, e := range events {
+				e.Cluster = cluster
 				n.Enqueue(stampTS(e))
 			}
 		},
@@ -80,6 +88,7 @@ func (n *Notifier) runWatchers(ctx context.Context) {
 					return
 				}
 				for _, e := range phaseEvents(kind, oldU, newU) {
+					e.Cluster = cluster
 					n.Enqueue(stampTS(e))
 				}
 			},

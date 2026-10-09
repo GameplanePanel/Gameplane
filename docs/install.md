@@ -1,5 +1,10 @@
 # Install
 
+For a central dashboard/API on a host without Kubernetes, use the
+[standalone panel guide](standalone-panel.md), including Docker Compose and a
+panel-only Helm profile. The instructions below describe the default combined
+installation, with an operator and a local game cluster.
+
 ## Prerequisites
 
 - Kubernetes 1.28+
@@ -106,6 +111,9 @@ Open `https://<ingress.host>` and log in.
 Top-level knobs (see `values.yaml` for the full list):
 
 - `image.registry` / `image.tag` — container image pinning
+- `operator.enabled` — enable the workload operator (default `true`). Set to `false` for a standalone central panel.
+- `api.enabled` — enable the central API and dashboard (default `true`). Set to `false` on a remote operator/gateway installation.
+- `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false`, one API replica, and `--skip-crds` when installing the panel. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
 - `operator.configInitImage` / `operator.resticImage` — the two images the operator
   injects into workloads it creates: the config-init container on game pods
@@ -127,7 +135,7 @@ Top-level knobs (see `values.yaml` for the full list):
   `--set operator.gameDataStorage.storageClassName=fast-nvme`
 - `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; not yet covered by e2e or upgrade tests)
 - `api.db.dsn` — connection string; SQLite default persists to a PVC
-- `api.storage.existingClaim` — pre-existing PVC to mount for the API's SQLite database instead of letting Helm create `gameplane-api-data` (default `""`). The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
+- `api.storage.existingClaim` — pre-existing PVC for the API's SQLite database and, in standalone mode, its encryption key (default `""`). Standalone PostgreSQL deployments also need persistent storage for the key. The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
 - `api.oidc.enabled` + the following settings — wire OIDC login from Helm (shows
   up as the read-only `helm` provider). Providers can also be added at runtime
   under **Admin Settings → Authentication** — no Helm values or restart needed;
@@ -564,14 +572,14 @@ official registry) and `uploads` (dashboard bundle uploads). The default uses
 `type: git` is available to track an unreleased branch directly from the
 `GameplanePanel/module` repository. Install games from the dashboard's **Modules** page,
 or add more sources — git repositories, http archives, a local directory — under
-**Modules → Manage sources** (admin) or by applying `ModuleSource` CRs. See
+**Modules → Manage sources** (requires `modules:manage` on that cluster) or by applying `ModuleSource` CRs. Standalone panels require a selected remote cluster for these operations. See
 `docs/module-authoring.md` for the source types and the bundle format.
 
 ## Registering an additional cluster
 
 Gameplane can manage game servers across multiple Kubernetes clusters
 through a federation model. Each target cluster runs its own operator
-instance; the control-plane cluster's API dispatches requests to the
+instance; the central API dispatches requests to the
 target cluster via a `?cluster=<name>` parameter. See
 [architecture.md](architecture.md#multi-cluster-federation) for the
 design details.
@@ -623,6 +631,10 @@ The existing `Cluster` health status reports Kubernetes connectivity, not gatewa
 readiness or complete interactive feature coverage.
 
 ### Path 1: kubectl apply
+
+This path applies to a combined installation with a central Kubernetes cluster.
+A standalone panel uses the dashboard or API in Path 2 and stores registrations
+in its database.
 
 1. Create a `kubeconfig` Secret in the control-plane's `gameplane-system` namespace.
    The Secret **must** be labelled `gameplane.local/cluster-kubeconfig=true`:
@@ -690,24 +702,33 @@ in place. Delete the Secret with kubectl when you no longer need it.
 
 ### Path 2: Dashboard API
 
-POST to `/clusters` with permission `cluster:manage` (admin-only):
+In either installation mode, use **Clusters → Register cluster**, or POST to
+`/clusters` with `cluster:manage`. Supply a self-contained kubeconfig as a raw
+YAML string in JSON. The following example uses `jq` to encode it correctly.
+`PANEL_URL` is the HTTPS dashboard origin, `cookies.txt` holds your authenticated
+`gameplane_session` and `gameplane_csrf` cookies, and `CSRF_TOKEN` is the latter
+cookie's value:
 
 ```sh
-curl -X POST https://<dashboard>/api/clusters \
-  -H "Content-Type: application/json" \
-  -H "X-Gameplane-CSRF: <csrf-token>" \
-  --cookie "session=<session-cookie>" \
-  -d '{
-    "name": "my-cluster",
-    "kubeconfig": "<base64-encoded kubeconfig>"
-  }'
+jq -n --rawfile kubeconfig remote-kubeconfig.yaml \
+  '{name:"my-cluster",kubeconfig:$kubeconfig}' |
+  curl --fail-with-body --cookie cookies.txt \
+    --header "Content-Type: application/json" \
+    --header "X-Gameplane-CSRF: $CSRF_TOKEN" \
+    --data-binary @- "$PANEL_URL/clusters"
 ```
 
-The API stores the kubeconfig as a labelled Secret and creates the
-`Cluster` CRD. The kubeconfig is never returned by the API and never
-logged. Removing the cluster deletes both the `Cluster` and that Secret.
+Combined installations store the kubeconfig in a labelled Secret and create a
+`Cluster` resource. Standalone panels store the registration and encrypted
+credential in SQL. The API never returns or logs the kubeconfig. Removing an
+API-created registration also removes its managed credentials; it leaves the
+remote workloads running. Keep cookie jars and kubeconfig files private.
 
 ### Helm CRD caveat
+
+This section applies to combined and remote workload installations. A standalone
+central Helm release skips CRDs and their apply hook; follow its
+[panel profile](standalone-panel.md#central-panel-on-kubernetes).
 
 **`helm upgrade` never updates CRDs.** That is a documented Helm limitation,
 not a Gameplane one: files under a chart's `crds/` directory are installed on
@@ -758,15 +779,26 @@ helm install gameplane charts/gameplane -n gameplane-system --create-namespace -
 
 ### RBAC and permissions
 
-Registering a cluster grants **no implicit RBAC** on it — a user who
-can start servers on the "local" cluster will not automatically be able
-to do so on a newly registered cluster. Each cluster maintains its own
-role bindings. To grant a user access to resources on the target
-cluster, create matching role bindings there, or use the dashboard to
-add cluster-scoped permissions if the target cluster's API also
-supports the same RBAC model.
+Registering a cluster grants no dashboard user access to its workloads. The
+central API stores user roles and cluster/namespace grants in its database.
+In **Users & RBAC**, create a custom workload role, then add a grant for the
+intended user and remote cluster. Use **All namespaces** for inventory, module,
+and template permissions, or a specific game namespace for namespaced access.
+Changing a user's grants ends their sessions; they must sign in again.
+
+Remote roles cannot contain central administration permissions or the built-in
+admin wildcard. Keep the user's primary panel role when adding remote grants.
+The [standalone guide](standalone-panel.md#grant-workload-access) lists the
+permissions and dashboard steps.
+
+Separately, the registered kubeconfig needs Kubernetes RBAC for the operations
+the API performs on that target. Kubernetes RoleBindings grant access to that
+credential's identity; they do not create Gameplane user grants.
 
 ## Upgrading
+
+These Helm commands upgrade a combined installation. For Compose and panel-only
+Helm releases, use [standalone upgrades](standalone-panel.md#upgrading).
 
 ```sh
 helm upgrade gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
@@ -822,7 +854,7 @@ upgrade strategy: the old pod is fully terminated before the new one starts.
 This ensures no two API processes try to write the same SQLite database file
 (which is a single-writer store on a ReadWriteOnce PVC). As a result,
 SQLite-backed installs experience a few seconds of dashboard downtime during
-an upgrade — this is expected and deliberate. Postgres-backed installs (experimental)
-would use rolling updates with no downtime, since the database is external and
-shared, but Postgres remains experimental and the API should still run as a
-single replica (see `api.replicas` in `values.yaml`).
+an upgrade. Combined PostgreSQL installs use rolling updates, but the driver
+remains experimental and the API should still run as a single replica (see
+`api.replicas` in `values.yaml`). Standalone installs use `Recreate` with either
+database driver because the API also mounts its persistent encryption-key volume.

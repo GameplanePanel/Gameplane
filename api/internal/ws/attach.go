@@ -112,7 +112,7 @@ func (a *attachProxy) handle(w http.ResponseWriter, req *http.Request) {
 		}, scheme.ParameterCodec).
 		URL()
 
-	exec, err := remotecommand.NewSPDYExecutor(a.k.Config, "POST", url)
+	exec, err := a.k.NewSPDYExecutor("POST", url)
 	if err != nil {
 		slog.Error("build attach executor", "name", name, "ns", ns, "err", err)
 		writeEnvErr(ctx, wsConn, "attach unavailable")

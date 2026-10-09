@@ -1,3 +1,4 @@
+{{- if or (eq (include "gameplane.operatorEnabled" .) "true") (and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone)) }}
 {{- /*
   Agent mTLS material.
 
@@ -108,4 +109,6 @@ data:
     {{- /* A custom client Secret must exist with tls.crt and tls.key. Offline renders (helm template, client dry-run) always see an empty lookup, so there only a found-but-incomplete Secret fails; against a live cluster a missing Secret fails too. */ -}}
     {{- fail (printf "api.agentMTLS.clientCertRef.name=%q: Secret not found or missing required keys (tls.crt, tls.key)" $clientSecretName) }}
   {{- end }}
+{{- end }}
+
 {{- end }}

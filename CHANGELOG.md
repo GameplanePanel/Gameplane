@@ -9,6 +9,14 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 ### Upgrade Notes
 
+- **Standalone panel/API:** run the central panel with Docker Compose or the
+  standalone Helm profile, without a local Kubernetes cluster or operator.
+  Register remote clusters explicitly and back up the credential encryption key
+  with the database. See [standalone installation](docs/standalone-panel.md).
+- **Remote module/template grants:** module and template permissions now apply
+  to their selected cluster. Grant these permissions explicitly on remote
+  clusters; a local grant no longer authorizes another cluster's catalog.
+
 - **Telemetry is on by default for new installs, after a first-login
   notice:** a new install with a telemetry destination in effect now shares
   basic and extended data by default; the stock destination is the project's

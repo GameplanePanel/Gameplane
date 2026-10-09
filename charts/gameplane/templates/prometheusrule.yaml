@@ -1,3 +1,4 @@
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if .Values.prometheusRules.enabled }}
 # Alerts on the operator's standard controller-runtime metrics (scraped by the
 # operator ServiceMonitor). Deliberately uses only the operator's own metric
@@ -86,4 +87,6 @@ spec:
               {{`{{ $value }}`}} Backup(s) are in the Failed phase. A backup
               failed and has not been superseded; check the Backup status and the
               operator logs before relying on restore.
+{{- end }}
+
 {{- end }}

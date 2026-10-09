@@ -6,6 +6,8 @@ import { renderWithQuery } from "@/test/render";
 import { UsersPage } from "./Users";
 import { APIError } from "@/lib/api";
 import type { ExtendedUser } from "@/types";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 
 // The page calls Users.* and Roles.* from `@/lib/endpoints`. Stub the
 // whole module so we can assert the right calls were made without
@@ -913,6 +915,36 @@ describe("Cluster grants", () => {
     await user.click(await screen.findByRole("button", { name: /Grant cluster/ }));
     await user.click(await screen.findByRole("option", { name: "Chicago 2 (remote-1)" }));
   }
+
+  it("requires an explicit remote target and omits Local cluster on standalone panels", async () => {
+    server.use(http.get("/admin/installation", () => HttpResponse.json({ standalone: true, localCluster: false })));
+    const user = await openGrantEditor();
+    expect(screen.getByText(/primary role above manages panel access/)).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Grant namespace"), "games");
+    expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: /Grant cluster/ }));
+    expect(await screen.findByRole("option", { name: "Chicago 2 (remote-1)" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Local cluster" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: "Chicago 2 (remote-1)" }));
+    expect(screen.getByRole("button", { name: "Add" })).toBeEnabled();
+  });
+
+  it("grants module and template administration across a remote cluster", async () => {
+    rolesList.mockResolvedValue([...ROLE_DEFS, {
+      name: "module-admin", description: "Manage remote modules and templates.", builtin: false,
+      permissions: ["modules:read", "modules:manage", "templates:read", "templates:write"],
+    }]);
+    addBinding.mockResolvedValue({ roleName: "module-admin", namespace: "*", cluster: "remote-1" });
+    const user = await openGrantEditor();
+    await selectRemote(user);
+    await user.click(screen.getByRole("button", { name: /Grant role/ }));
+    await user.click(await screen.findByRole("option", { name: "module-admin" }));
+    const allNamespaces = screen.getByRole("button", { name: "All namespaces" });
+    await waitFor(() => expect(allNamespaces).toBeEnabled());
+    await user.click(allNamespaces);
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() => expect(addBinding).toHaveBeenCalledWith(2, { roleName: "module-admin", namespace: "*", cluster: "remote-1" }));
+  });
 
   it("grants a custom inventory role to all namespaces on the selected remote cluster", async () => {
     rolesList.mockResolvedValue([...ROLE_DEFS, {

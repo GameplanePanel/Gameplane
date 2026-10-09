@@ -126,3 +126,12 @@ without them rotating a custom Secret would not roll the API and operator.
 true
 {{- end -}}
 {{- end -}}
+
+{{- /* Preserve the combined default when upgrading with --reuse-values. */}}
+{{- define "gameplane.operatorEnabled" -}}
+{{- if hasKey .Values.operator "enabled" -}}
+{{- .Values.operator.enabled -}}
+{{- else -}}
+true
+{{- end -}}
+{{- end -}}

@@ -1,4 +1,5 @@
 {{- if .Values.serviceMonitors.enabled }}
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -28,6 +29,7 @@ spec:
   endpoints:
     - { port: metrics, interval: 30s }
 ---
+{{- end }}
 {{- if (eq (include "gameplane.apiEnabled" .) "true") }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -87,6 +89,7 @@ spec:
   rationale (rejected client-cert approach, containerPort naming) lives in
   agent/specs.md's /metrics section — this is a pointer, not a copy.
 */}}
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
@@ -104,4 +107,6 @@ spec:
     - port: metrics
       interval: 30s
       path: /metrics
+{{- end }}
+
 {{- end }}

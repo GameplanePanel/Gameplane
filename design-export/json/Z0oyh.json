@@ -1,0 +1,191 @@
+{
+  "type": "frame",
+  "id": "Z0oyh",
+  "x": -10957,
+  "y": 30632,
+  "name": "Screen/Standalone — Modules (No selection)",
+  "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "BQhzL",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "BuhAS": {
+          "content": "Gameplane"
+        },
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "sTSGR": {
+          "fill": "$accent/soft"
+        },
+        "sTSGR/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "sTSGR/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "ZCtkb",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "DRroL",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Modules"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "pFGvI",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "s0m1C",
+              "name": "Workload cluster selector",
+              "height": 36,
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                6,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "abqFF",
+                  "name": "API status",
+                  "fill": "$muted",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "h8qD6u",
+                  "name": "Selector label",
+                  "fill": "$muted",
+                  "content": "Cluster:",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Udlbe",
+                  "name": "Selected workload cluster",
+                  "fill": "$foreground/foreground",
+                  "content": "Select cluster",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "EdLxM",
+                  "name": "Open cluster choices",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "B0Utzk",
+              "name": "Select cluster guidance",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "k8WlA",
+                  "name": "Selection title",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Select a workload cluster",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "W8Meb",
+                  "name": "Selection description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Modules and their sources are managed by the operator on a registered workload cluster.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "AIuUK",
+                  "name": "Manage clusters link",
+                  "fill": "$accent/accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Manage clusters",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

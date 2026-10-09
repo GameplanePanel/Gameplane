@@ -19,6 +19,13 @@ type Client struct {
 	Dynamic dynamic.Interface
 	Typed   kubernetes.Interface
 	Config  *rest.Config
+	// Management stores are set only for a standalone panel. Such a client
+	// deliberately has no Kubernetes transport and is never a workload target.
+	SecretStore      func(string) SecretStore
+	ClusterStore     ClusterStore
+	RegisterCluster  ClusterRegistrar
+	RemoteAccess     *RemoteAccessPolicy
+	kubeconfigDigest [32]byte
 }
 
 // GetServer fetches a GameServer by namespace and name. Returns nil if

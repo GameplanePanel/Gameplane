@@ -1,7 +1,9 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { renderWithQuery as baseRenderWithQuery } from "@/test/render";
 import { SettingsTab } from "./Settings";
 import type { GameServer } from "@/types";
@@ -55,6 +57,37 @@ function stubTemplate() {
 }
 
 describe("SettingsTab", () => {
+  it("preserves share creation and its one-time token across server status refreshes", async () => {
+    const link = { id: "share-id", token: "one-time-token", createdAt: new Date().toISOString(), expiresAt: null, canStart: false };
+    fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
+      if (url.startsWith("/templates/")) return jsonRes({ metadata: { name: "minecraft-java" }, spec: { displayName: "Minecraft", game: "minecraft-java", version: "1.0", image: "x" } });
+      if (url.includes(":shares")) return jsonRes(init?.method === "POST" ? link : []);
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    const subject = (snapshot: GameServer) => <ResourceTargetProvider
+      target={{ cluster: "local", name: "mc-survival" }}
+      access={{ canWrite: true, canControl: true, canConsole: true, canDelete: true, isOwner: true, isCollaborator: false, permissions: ["*"] }}>
+      <SettingsTab gs={snapshot} name="mc-survival" />
+    </ResourceTargetProvider>;
+    const view = baseRenderWithQuery(subject(gs({ status: { phase: "Starting" } })));
+    await userEvent.click(screen.getByRole("tab", { name: "Share links" }));
+    await userEvent.click(screen.getAllByRole("button", { name: "Create link" })[0]);
+    const createDialog = await screen.findByRole("dialog", { name: "Create share link for mc-survival" });
+    await userEvent.click(within(createDialog).getByRole("button", { name: /30 days/ }));
+    await userEvent.click(screen.getByRole("option", { name: "No expiry" }));
+    view.rerender(<QueryClientProvider client={view.client}>{subject(gs({ metadata: { name: "mc-survival", resourceVersion: "101" }, status: { phase: "Running" } }))}</QueryClientProvider>);
+    expect(screen.getByRole("dialog", { name: "Create share link for mc-survival" })).toBeVisible();
+    expect(within(createDialog).getByRole("button", { name: /No expiry/ })).toBeVisible();
+    await userEvent.click(within(createDialog).getByRole("button", { name: "Create link" }));
+    await screen.findByRole("dialog", { name: "Share link created" });
+    view.rerender(<QueryClientProvider client={view.client}>{subject(gs({ metadata: { name: "mc-survival", resourceVersion: "102" }, status: { phase: "Running", startedAt: new Date().toISOString() } }))}</QueryClientProvider>);
+    const createdDialog = screen.getByRole("dialog", { name: "Share link created" });
+    expect(createdDialog).toBeVisible();
+    expect(within(createdDialog).getByText(/\/share\/one-time-token$/)).toBeVisible();
+    await userEvent.click(within(createdDialog).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Share link created" })).not.toBeInTheDocument());
+  });
+
   it("requires reload without writing to a replacement server UID", async () => {
     let writes = 0;
     fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {

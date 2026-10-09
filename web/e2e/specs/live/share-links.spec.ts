@@ -166,7 +166,9 @@ test.describe("live: share links", () => {
     await expect(page.getByRole("heading", { name: serverName })).toBeVisible({ timeout: 20_000 });
     await detail.clickTab("Settings");
     await page.getByRole("tab", { name: /^share links$/i }).click();
-    await page.getByRole("main").getByRole("button", { name: "Create link" }).click();
+    // The persistent header opener comes first; an empty list also renders
+    // the same action in its empty state (including on a fresh retry worker).
+    await page.getByRole("main").getByRole("button", { name: "Create link", exact: true }).first().click();
     const dialog = page.getByRole("dialog", {
       name: new RegExp(`^create share link for ${serverName}$`, "i"),
     });

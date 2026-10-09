@@ -2531,3 +2531,33 @@ T041 and T052 of `specs/done_022-default-telemetry-dashboard/`. New frames sit i
 | `qFLfB` | Historical/Share Link — Asleep (view only) | Retained with historical name and context. Resolve does not expose start capability, so an asleep poll cannot select this state. |
 
 `q31B6w` is unchanged. Both listed frames have MCP `Get` JSON exports (depth 30, path geometry included) and 2× PNG exports. The cooldown card was visually checked with `TakeScreenshot`; no clipping was reported. Browser capture for `FBiMN` uses a mocked 429 Start response with Retry-After; visual comparison remains pending CI.
+
+## Standalone panel (PR #630, 2026-10-08)
+
+Added standalone variants beside the existing combined-installation designs. Copy and available actions were checked against PR #630 at `794ee79da08d5381af875b15d80b5b17593b172c`.
+
+| Object ID | State |
+| --- | --- |
+| `w34N9` | Dashboard with no workload clusters: zero fleet, unavailable inventory, central audit, and no cluster-dependent create action |
+| `n2qdi` | Empty registered-cluster list |
+| `WrmU5` | Registered remote clusters with API connectivity status |
+| `Z81TW` | Reusable registration dialog with empty kubeconfig input |
+| `RpHBg` | Registration dialog in the Clusters screen |
+| `HVhmb` | Remove-registration confirmation; workloads remain on the cluster |
+| `Be7ZW` | Cluster inventory requiring an explicit workload selection |
+| `RS0KZ` | Selector, installation/registry failures, loading, and Retry reference states |
+| `Z0oyh` | Modules without a selected workload cluster |
+| `ZlLf0` | Modules permission denied on the selected cluster |
+| `EWrn0` | Remote module catalog with Deploy to east actions |
+| `p8QSPq` | Remote module catalog with inline source management |
+| `D9QYZ` | Backup destinations requiring workload selection |
+| `l64bd` | Module source settings requiring workload selection |
+| `Uzzje` | Standalone container update guidance |
+| `FOVMf` | Standalone About without a local Kubernetes version |
+| `r139UP` | Container-runtime system-log guidance |
+| `aMU7O` | User grants without a selected workload target |
+| `C9bR6` | User grants targeting a named remote cluster |
+
+Interaction context records permission gating, retained registration drafts on failure, pending dismissal restrictions, and clearing cluster-bound module drafts when the target changes. Primary user roles manage panel access; additional grants name the workload cluster and namespace. The reference board documents separate request states, not a single application screen. Master-key storage/rotation and in-place kubeconfig rotation are backend/operator workflows in this PR and do not add dashboard controls.
+
+All 19 roots have MCP `Get` JSON exports (depth 30, path geometry included) and 2× PNG exports. Structural checks found no remaining placeholders or unintended clipping. The two catalog category strips intentionally scroll horizontally. Screens and dialogs were visually inspected with `TakeScreenshot`; JSON copy/actions received an independent source review. No live-browser comparison was performed for this design-only pass.

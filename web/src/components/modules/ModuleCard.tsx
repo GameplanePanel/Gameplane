@@ -18,6 +18,8 @@ import type { EntryVerify } from "@/lib/verify";
 import type { CatalogEntry } from "@/types";
 
 interface ModuleCardProps {
+  cluster?: string;
+  canManage?: boolean;
   entry: CatalogEntry;
   // Verification posture for this entry, joined client-side from the
   // sources list by the parent (see lib/verify.verifyForEntry).
@@ -40,6 +42,8 @@ interface ModuleCardProps {
 //   - other phase != Ready → render the phase + spinner (no actions)
 export function ModuleCard({
   entry,
+  cluster = "local",
+  canManage = true,
   verify,
   onInstall,
   onUpgrade,
@@ -47,10 +51,10 @@ export function ModuleCard({
   onRemoveUpload,
   busy,
 }: ModuleCardProps) {
-  const { gameCodes, byName } = useGameCodes("local");
+  const { gameCodes, byName } = useGameCodes(cluster);
   const navigate = useNavigate();
-  const deployLocally = async () => {
-    await navigate({ to: "/servers/new", search: { template: entry.moduleName, cluster: "local" } });
+  const deploy = async () => {
+    await navigate({ to: "/servers/new", search: { template: entry.moduleName, cluster } });
   };
   const upgradeAvailable =
     entry.installed &&
@@ -170,17 +174,17 @@ export function ModuleCard({
             <Button
               size="sm"
               variant="outline"
-              onPress={() => void deployLocally()}
+              onPress={() => void deploy()}
               className="h-8"
             >
-              <ExternalLink className="h-3.5 w-3.5" /> Deploy locally
+              <ExternalLink className="h-3.5 w-3.5" /> {cluster === "local" ? "Deploy locally" : `Deploy to ${cluster}`}
             </Button>
           )}
           {upgradeAvailable && entry.phase === "Ready" && (
             <Button
               size="sm"
               onPress={() => onUpgrade(entry)}
-              isDisabled={busy}
+              isDisabled={busy || !canManage}
               className="h-8"
             >
               <ArrowUpCircle className="h-3.5 w-3.5" />
@@ -191,7 +195,7 @@ export function ModuleCard({
             <Button
               size="sm"
               onPress={() => onUpgrade(entry)}
-              isDisabled={busy}
+              isDisabled={busy || !canManage}
               className="h-8"
             >
               <ArrowUpCircle className="h-3.5 w-3.5" />
@@ -202,7 +206,7 @@ export function ModuleCard({
             <Button
               size="sm"
               onPress={() => onInstall(entry)}
-              isDisabled={busy}
+              isDisabled={busy || !canManage}
               className="h-8"
             >
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
@@ -214,7 +218,7 @@ export function ModuleCard({
               size="sm"
               variant="outline"
               onPress={() => onUninstall(entry)}
-              isDisabled={busy || !!inFlight}
+              isDisabled={busy || !!inFlight || !canManage}
               className="h-8"
             >
               Uninstall
@@ -225,7 +229,7 @@ export function ModuleCard({
               size="sm"
               variant="outline"
               onPress={() => onRemoveUpload?.(entry)}
-              isDisabled={busy}
+              isDisabled={busy || !canManage}
               className="h-8"
             >
               <Trash2 className="h-3.5 w-3.5" />

@@ -1,3 +1,4 @@
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if .Values.grafanaDashboards.enabled }}
 # Grafana dashboard for the operator, shipped as a ConfigMap that the Grafana
 # sidecar (kube-prometheus-stack / grafana helm chart) auto-imports by label.
@@ -16,4 +17,6 @@ metadata:
 data:
   gameplane-operator.json: |-
     {{- .Files.Get "dashboards/gameplane-operator.json" | nindent 4 }}
+{{- end }}
+
 {{- end }}

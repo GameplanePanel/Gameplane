@@ -327,9 +327,9 @@ func TestFleetPlacements_RequireCreateAndTemplateRead(t *testing.T) {
 	home := fleetTestClient(newCluster("remote", nil, nil), newCluster("offline", nil, nil), template.DeepCopy())
 	reg := clusterTestRegistry(home)
 	reg.Set("remote", fleetTestClient(template))
-	u := inventoryUser("local", "*", "templates:read")
-	u.Perms["remote"] = map[string]map[string]struct{}{scope.DefaultNamespace: {"servers:write": {}}}
-	u.Perms["offline"] = map[string]map[string]struct{}{scope.DefaultNamespace: {"servers:write": {}}}
+	u := inventoryUser("remote", "*", "templates:read")
+	u.Perms["remote"][scope.DefaultNamespace] = map[string]struct{}{"servers:write": {}}
+	u.Perms["offline"] = map[string]map[string]struct{}{"*": {"templates:read": {}}, scope.DefaultNamespace: {"servers:write": {}}}
 	got := decodeFleet[fleetPlacement](t, fleetRouter(reg), u, "/fleet/placements")
 	if !got.Partial || len(got.Items) != 1 || got.Items[0].Cluster != "remote" || got.Items[0].Namespace != scope.DefaultNamespace || string(got.Items[0].Templates[0].GetUID()) != "remote-template" {
 		t.Fatalf("placements=%+v", got)
@@ -346,6 +346,12 @@ func TestFleetPlacements_RequireCreateAndTemplateRead(t *testing.T) {
 	noCreate := decodeFleet[fleetPlacement](t, fleetRouter(reg), inventoryUser("local", "*", "templates:read"), "/fleet/placements")
 	if len(noCreate.Items) != 0 || noCreate.Partial {
 		t.Fatalf("template reader gained create placement: %+v", noCreate)
+	}
+	wrongTarget := inventoryUser("local", "*", "templates:read")
+	wrongTarget.Perms["remote"] = map[string]map[string]struct{}{scope.DefaultNamespace: {"servers:write": {}}}
+	denied := decodeFleet[fleetPlacement](t, fleetRouter(reg), wrongTarget, "/fleet/placements")
+	if len(denied.Items) != 0 || denied.Partial {
+		t.Fatalf("local template grant authorized remote placement: %+v", denied)
 	}
 }
 

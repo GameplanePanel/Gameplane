@@ -11,6 +11,7 @@ metadata:
   name: gameplane-api
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
+{{- if not .Values.api.standalone }}
 ---
 # Cluster-wide READ access: templates (cluster-scoped), nodes, storage
 # classes, and read-only watches on Gameplane CRDs for the /events stream.
@@ -36,7 +37,7 @@ rules:
     verbs: [create, update, patch, delete]      # source management (add/edit/remove sources) from the dashboard
   - apiGroups: ["gameplane.local"]
     resources: [clusters]
-    verbs: [get, list, watch, create, delete]   # cluster registration and management from the dashboard
+    verbs: [get, list, watch, create, update, delete]   # registration and gateway configuration from the dashboard
   - apiGroups: [""]
     resources: [nodes, events]
     verbs: [get, list, watch]
@@ -179,11 +180,12 @@ subjects:
   - kind: ServiceAccount
     name: gameplane-api
     namespace: {{ .Release.Namespace }}
+{{- end }}
 {{- /*
   Safety guard: If switching an existing install to existingClaim, ensure the
   live gameplane-api-data PVC won't be pruned and destroyed by Helm.
 */}}
-{{- if and (eq .Values.api.db.driver "sqlite") .Values.api.storage.existingClaim }}
+{{- if and (or .Values.api.standalone (eq .Values.api.db.driver "sqlite")) .Values.api.storage.existingClaim }}
   {{- $livePVC := lookup "v1" "PersistentVolumeClaim" .Release.Namespace "gameplane-api-data" }}
   {{- if $livePVC }}
     {{- $annotations := $livePVC.metadata.annotations | default dict }}
@@ -192,7 +194,7 @@ subjects:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if and (eq .Values.api.db.driver "sqlite") (not .Values.api.storage.existingClaim) }}
+{{- if and (or .Values.api.standalone (eq .Values.api.db.driver "sqlite")) (not .Values.api.storage.existingClaim) }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -221,7 +223,7 @@ spec:
   replicas: {{ .Values.api.replicas }}
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-api }
-  {{- if eq .Values.api.db.driver "sqlite" }}
+  {{- if or .Values.api.standalone (eq .Values.api.db.driver "sqlite") }}
   # Recreate strategy for SQLite: the database is a single-writer store
   # on a ReadWriteOnce PVC. RollingUpdate would start a new pod before
   # terminating the old one, allowing two processes to compete for the
@@ -249,20 +251,39 @@ spec:
       labels:
         app.kubernetes.io/name: gameplane-api
         {{- include "gameplane.labels" . | nindent 8 }}
+      {{- if not .Values.api.standalone }}
       annotations:
         checksum/mtls: {{ include "gameplane.mtlsChecksum" . }}
+      {{- end }}
     spec:
       serviceAccountName: gameplane-api
+      {{- if .Values.api.standalone }}
+      automountServiceAccountToken: false
+      {{- end }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
         fsGroup: 65532
+        {{- if .Values.api.standalone }}
+        # Avoid widening a generated 0600 key to 0660 on each PVC remount.
+        fsGroupChangePolicy: OnRootMismatch
+        {{- end }}
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: api
           image: {{ include "gameplane.apiImage" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            {{- if .Values.api.standalone }}
+            - --standalone
+            - {{ printf "--panel-key-file=/keys/%s" ((.Values.api.panelKey | default dict).fileName | default "panel.key") | quote }}
+            {{- with .Values.api.remoteAllowedCIDRs }}
+            - {{ printf "--remote-allowed-cidrs=%s" (join "," .) | quote }}
+            {{- end }}
+            {{- if (.Values.api.panelKey | default dict).existingSecret }}
+            - --panel-key-provisioned
+            {{- end }}
+            {{- end }}
             - --db-driver={{ .Values.api.db.driver }}
             - --db-dsn={{ .Values.api.db.dsn }}
             {{- if .Values.api.oidc.enabled }}
@@ -288,12 +309,14 @@ spec:
             - {{ printf "--oidc-role-mapping-viewer=%s" (join "," .Values.api.oidc.roleMappings.viewer) | quote }}
             {{- end }}
             {{- end }}
+            {{- if not .Values.api.standalone }}
             {{- if and .Values.operator.gameDataStorage .Values.operator.gameDataStorage.storageClassName }}
             - --game-data-storage-class={{ .Values.operator.gameDataStorage.storageClassName }}
             {{- end }}
             - --agent-ca-bundle=/etc/gameplane/agent-ca/ca.crt
             - --agent-client-cert=/etc/gameplane/agent-client/tls.crt
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
+            {{- end }}
             {{- if gt (int .Values.api.audit.retentionDays) 0 }}
             - --audit-retention-days={{ .Values.api.audit.retentionDays }}
             {{- end }}
@@ -336,7 +359,7 @@ spec:
             {{- if not (ternary $telemetry.enabled true (hasKey $telemetry "enabled")) }}
             - --telemetry-disabled
             {{- end }}
-            {{- if .Values.defaultModuleSource.enabled }}
+            {{- if and (not .Values.api.standalone) .Values.defaultModuleSource.enabled }}
             - --official-module-source={{ .Values.defaultModuleSource.name | default "default" }}
             {{- end }}
             {{- /*
@@ -359,14 +382,14 @@ spec:
             - --update-channel={{ $channel }}
             - --trusted-proxies={{ .Values.api.trustedProxies }}
             - --metrics-addr=:{{ .Values.api.metricsPort | default 9090 }}
-            {{- if .Values.clusterOps.externalAddress }}
+            {{- if and (not .Values.api.standalone) .Values.clusterOps.externalAddress }}
             - --cluster-external-address={{ .Values.clusterOps.externalAddress }}
             {{- end }}
           env:
             - name: GAMEPLANE_NAMESPACE
               valueFrom:
                 fieldRef: { fieldPath: metadata.namespace }
-            {{- if .Values.clusterOps.enabled }}
+            {{- if and (not .Values.api.standalone) .Values.clusterOps.enabled }}
             - name: GAMEPLANE_CLUSTER_OPS
               value: "true"
             {{- end }}
@@ -443,19 +466,44 @@ spec:
             capabilities: { drop: [ALL] }
           volumeMounts:
             - { name: data, mountPath: /data }
+            {{- if .Values.api.standalone }}
+            - name: panel-key
+              mountPath: /keys
+              {{- if (.Values.api.panelKey | default dict).existingSecret }}
+              readOnly: true
+              {{- end }}
+            {{- end }}
+            {{- if not .Values.api.standalone }}
             - { name: agent-ca, mountPath: /etc/gameplane/agent-ca, readOnly: true }
             - { name: agent-client, mountPath: /etc/gameplane/agent-client, readOnly: true }
+            {{- end }}
       volumes:
         - name: data
-          {{- if eq .Values.api.db.driver "sqlite" }}
+          {{- if or .Values.api.standalone (eq .Values.api.db.driver "sqlite") }}
           persistentVolumeClaim: { claimName: {{ .Values.api.storage.existingClaim | default "gameplane-api-data" }} }
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- if .Values.api.standalone }}
+        {{- $panelKey := .Values.api.panelKey | default dict }}
+        - name: panel-key
+          {{- if $panelKey.existingSecret }}
+          secret:
+            secretName: {{ $panelKey.existingSecret | quote }}
+            defaultMode: 0440
+            items:
+              - key: {{ $panelKey.secretKey | default "panel.key" | quote }}
+                path: {{ $panelKey.fileName | default "panel.key" | quote }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ ($panelKey.storage | default dict).existingClaim | default "gameplane-api-key" | quote }}
+          {{- end }}
+        {{- else }}
         - name: agent-ca
           secret: { secretName: {{ .Values.api.agentMTLS.caSecretRef.name }} }
         - name: agent-client
           secret: { secretName: {{ .Values.api.agentMTLS.clientCertRef.name }} }
+        {{- end }}
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets: {{ toYaml . | nindent 8 }}
       {{- end }}

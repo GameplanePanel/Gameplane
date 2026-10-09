@@ -128,6 +128,39 @@ func TestUserCan_ClusterScopedNotGatedByCluster(t *testing.T) {
 	}
 }
 
+func TestUserCan_ModuleAndTemplatePermissionsAreTargetScoped(t *testing.T) {
+	for _, permission := range []string{"modules:read", "modules:manage", "templates:read", "templates:write"} {
+		for _, namespaced := range []bool{false, true} {
+			t.Run(permission+map[bool]string{false: "/cluster-scoped", true: "/explicit-target"}[namespaced], func(t *testing.T) {
+				remote := &User{Perms: map[string]map[string]map[string]struct{}{"remote": {"*": {permission: {}}}}}
+				if !remote.Can(permission, namespaced, "remote", "") {
+					t.Fatal("remote workload grant denied on selected cluster")
+				}
+				for _, other := range []string{"", "local", "other"} {
+					if remote.Can(permission, namespaced, other, "") {
+						t.Errorf("remote workload grant leaked to target %q", other)
+					}
+				}
+				namespace := &User{Perms: map[string]map[string]map[string]struct{}{"remote": {"games": {permission: {}, "*": {}}}}}
+				if namespace.Can(permission, namespaced, "remote", "games") {
+					t.Fatal("namespace grant authorized cluster-wide catalog access")
+				}
+				wildcard := &User{Perms: map[string]map[string]map[string]struct{}{"*": {"*": {permission: {}}}}}
+				for _, target := range []string{"", "local", "remote", "other"} {
+					if !wildcard.Can(permission, namespaced, target, "") {
+						t.Errorf("wildcard workload grant denied target %q", target)
+					}
+				}
+				for _, central := range []string{"users:manage", "roles:manage", "config:manage", "cluster:manage"} {
+					if remote.Can(central, false, "", "") {
+						t.Errorf("workload grant conferred central %s", central)
+					}
+				}
+			})
+		}
+	}
+}
+
 func TestUserCan_InventoryAlwaysTargetScoped(t *testing.T) {
 	for _, tc := range []struct {
 		name, bindingCluster, bindingNamespace, permission, target, namespace string

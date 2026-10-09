@@ -54,7 +54,7 @@ type SecretReader func(ctx context.Context, name string) (map[string][]byte, err
 // RegistryKeySecretLabel=true.
 func NewK8sSecretReader(k *kube.Client, ns string) SecretReader {
 	return func(ctx context.Context, name string) (map[string][]byte, error) {
-		sec, err := k.Typed.CoreV1().Secrets(ns).Get(ctx, name, metav1.GetOptions{})
+		sec, err := k.Secrets(ns).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("get registry-key secret %s/%s: %w", ns, name, err)
 		}

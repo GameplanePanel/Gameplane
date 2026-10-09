@@ -47,6 +47,8 @@ crds:
     pullPolicy: IfNotPresent
 
 operator:
+  # Disable all operator resources for a standalone central panel.
+  enabled: true
   replicas: 1
   logLevel: info     # zap log level: debug|info|error (warn not supported by zap's --zap-log-level)
   agentLogLevel: ""  # injected into every agent sidecar as GAMEPLANE_LOG_LEVEL (debug|info|warn|error); empty injects nothing, avoiding StatefulSet rollouts on upgrade
@@ -123,6 +125,9 @@ api:
   # Disable the central API, its database/RBAC, dashboard, ingress and API-only
   # integrations on remote operator+gateway installs. Agent mTLS is preserved.
   enabled: true
+  # Central panel only: SQL-backed settings and credentials, no local cluster.
+  # Requires operator.enabled=false and helm install --skip-crds.
+  standalone: false
   replicas: 1        # Keep at 1. SQLite is single-writer on a RWO volume; with db.driver=postgres the user-management lock and audit hash chain are still per-process
   logLevel: info     # API log verbosity (debug|info|warn|error), passed as GAMEPLANE_LOG_LEVEL
   # Port of the API's Prometheus metrics listener. It is separate from the
@@ -154,7 +159,24 @@ api:
     # image is built without it). Example:
     # dsn: "postgres://gameplane:***@postgres/gameplane?sslmode=require"
 
-  # PVC attached to the API for SQLite storage. Only used when db.driver=sqlite.
+  # Standalone encryption keys use separate storage configured under panelKey.
+  panelKey:
+    # Select a new filename after offline master-key rotation on the generated PVC.
+    fileName: panel.key
+    # Mount a pre-provisioned 32-byte key read-only. No key is generated in this mode.
+    # Use a separate Secret and backup/access policy from the database.
+    existingSecret: ""
+    secretKey: panel.key
+    storage:
+      size: 1Mi
+      storageClassName: ""
+      existingClaim: ""
+
+  # Optional destination CIDRs for standalone Kubernetes APIs and agent gateways.
+  # Empty permits safe public/private addresses; unsafe address classes stay blocked.
+  remoteAllowedCIDRs: []
+
+  # Database PVC. Back up its contents separately from the encryption key.
   storage:
     size: 2Gi
     storageClassName: ""

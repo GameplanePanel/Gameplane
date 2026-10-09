@@ -1,3 +1,4 @@
+import { ModuleTarget } from "@/components/ModuleTarget";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -19,15 +20,21 @@ import { formatRelative } from "@/lib/utils";
 import { verifyMode } from "@/lib/verify";
 import type { ModuleSource, ModuleSourceSpec } from "@/types";
 import { SourceDialog } from "./SourceDialog";
+import { ErrorCard } from "@/components/ui/ErrorCard";
+import { LoadingCard } from "@/components/ui/LoadingCard";
 
 // ModuleSourcesPanel lists every ModuleSource and lets admins add,
 // edit, and remove them. The same sources can equally be declared via
 // Helm values or `kubectl apply` — the dashboard just writes the CRs.
 export function ModuleSourcesPanel() {
+  return <ModuleTarget loadingMessage="Loading module sources…">{(cluster, canManage) => <ClusterModuleSources key={cluster} cluster={cluster} canManage={canManage} />}</ModuleTarget>;
+}
+
+export function ClusterModuleSources({ cluster, canManage }: { cluster: string; canManage: boolean }) {
   const qc = useQueryClient();
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["module-sources"],
-    queryFn: () => ModuleSources.list(),
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["module-sources", cluster],
+    queryFn: () => ModuleSources.list(cluster),
     refetchInterval: 10_000,
   });
 
@@ -37,13 +44,13 @@ export function ModuleSourcesPanel() {
 
   const invalidate = async () => {
     setPanelError(null);
-    await qc.invalidateQueries({ queryKey: ["module-sources"] });
-    await qc.invalidateQueries({ queryKey: ["modules-catalog"] });
+    await qc.invalidateQueries({ queryKey: ["module-sources", cluster] });
+    await qc.invalidateQueries({ queryKey: ["modules-catalog", cluster] });
   };
 
   const saveMutation = useMutation({
     mutationFn: ({ name, spec }: { name: string; spec: ModuleSourceSpec }) =>
-      editTarget ? ModuleSources.update(name, spec) : ModuleSources.create(name, spec),
+      editTarget ? ModuleSources.update(name, spec, cluster) : ModuleSources.create(name, spec, cluster),
     onSuccess: async () => {
       setDialogOpen(false);
       await invalidate();
@@ -51,21 +58,17 @@ export function ModuleSourcesPanel() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (name: string) => ModuleSources.remove(name),
+    mutationFn: (name: string) => ModuleSources.remove(name, cluster),
     onSuccess: invalidate,
     onError: (err: Error) =>
       setPanelError(err instanceof APIError ? err.body || err.message : err.message),
   });
 
   if (isLoading) {
-    return <Card className="p-5 text-sm text-muted">Loading module sources…</Card>;
+    return <LoadingCard message="Loading module sources…" />;
   }
   if (isError) {
-    return (
-      <Card className="p-5 text-sm text-danger">
-        Failed to load module sources.
-      </Card>
-    );
+    return <ErrorCard message="Failed to load module sources." onRetry={() => void refetch()} />;
   }
 
   const sources = data?.items ?? [];
@@ -83,6 +86,7 @@ export function ModuleSourcesPanel() {
         </div>
         <Button
           size="sm"
+          isDisabled={!canManage}
           variant="primary"
           onPress={() => {
             setEditTarget(null);
@@ -107,6 +111,7 @@ export function ModuleSourcesPanel() {
         <ul className="divide-y divide-border">
           {sources.map((s) => (
             <SourceRow
+              canManage={canManage}
               key={s.metadata.name}
               source={s}
               onEdit={() => {
@@ -152,11 +157,13 @@ export function sourceLocation(spec: ModuleSource["spec"]): string {
 }
 
 function SourceRow({
+  canManage,
   source,
   onEdit,
   onDelete,
   deleting,
 }: {
+  canManage: boolean;
   source: ModuleSource;
   onEdit: () => void;
   onDelete: () => void;
@@ -218,14 +225,14 @@ function SourceRow({
         {stale && <div className="text-warning">serving stale catalog</div>}
       </div>
       <div className="flex items-center gap-1">
-        <Button size="sm" variant="ghost" onPress={onEdit} aria-label={`Edit ${source.metadata.name}`}>
+        <Button size="sm" variant="ghost" isDisabled={!canManage} onPress={onEdit} aria-label={`Edit ${source.metadata.name}`}>
           <Pencil className="h-3.5 w-3.5" />
         </Button>
         <Button
           size="sm"
           variant="ghost"
           onPress={onDelete}
-          isDisabled={deleting}
+          isDisabled={deleting || !canManage}
           aria-label={`Delete ${source.metadata.name}`}
         >
           <Trash2 className="h-3.5 w-3.5 text-danger" />

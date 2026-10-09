@@ -39,6 +39,7 @@ import {
 } from "@/lib/endpoints";
 
 interface BuildModuleDialogProps {
+  cluster?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sources: string[];
@@ -79,10 +80,11 @@ export function BuildModuleDialog({
   onOpenChange,
   sources,
   onInstalled,
+  cluster = "local",
 }: BuildModuleDialogProps) {
   const { data: archetypesData, isLoading: archetypesLoading, error: archetypesError } = useQuery({
-    queryKey: ["builder-archetypes"],
-    queryFn: () => ModuleBuilder.archetypes(),
+    queryKey: ["builder-archetypes", cluster],
+    queryFn: () => ModuleBuilder.archetypes(cluster),
   });
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -222,7 +224,7 @@ export function BuildModuleDialog({
         summary,
         storageSize,
         storageMountPath,
-      });
+      }, cluster);
       setModuleYaml(scaffoldRes.moduleYaml);
       setTemplateYaml(scaffoldRes.templateYaml);
       setReadmeMd(scaffoldRes.readmeMd);
@@ -232,11 +234,11 @@ export function BuildModuleDialog({
         ModuleBuilder.validate({
           moduleYaml: scaffoldRes.moduleYaml,
           templateYaml: scaffoldRes.templateYaml,
-        }),
+        }, cluster),
         ModuleBuilder.preview({
           templateYaml: scaffoldRes.templateYaml,
           memory: simMemory,
-        }),
+        }, cluster),
       ]);
       if (seq === validationSeqRef.current) {
         setValidationResult(valRes);
@@ -254,8 +256,8 @@ export function BuildModuleDialog({
     const seq = ++validationSeqRef.current;
     try {
       const [valRes, prevRes] = await Promise.all([
-        ModuleBuilder.validate({ moduleYaml: mYaml, templateYaml: tYaml }),
-        ModuleBuilder.preview({ templateYaml: tYaml, memory: mem }),
+        ModuleBuilder.validate({ moduleYaml: mYaml, templateYaml: tYaml }, cluster),
+        ModuleBuilder.preview({ templateYaml: tYaml, memory: mem }, cluster),
       ]);
       if (seq === validationSeqRef.current) {
         setValidationResult(valRes);
@@ -291,7 +293,7 @@ export function BuildModuleDialog({
         moduleYaml,
         templateYaml,
         readmeMd,
-      });
+      }, cluster);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -321,7 +323,7 @@ export function BuildModuleDialog({
         templateYaml,
         readmeMd,
         targetSource,
-      });
+      }, cluster);
       if (onInstalled) {
         await onInstalled();
       }

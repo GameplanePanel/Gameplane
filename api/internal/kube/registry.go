@@ -16,10 +16,30 @@ import (
 // is not usable; construct with NewRegistry. All methods are safe for
 // concurrent use.
 type Registry struct {
-	mu        sync.RWMutex
-	clients   map[string]*Client
-	uids      map[string]types.UID
-	defaultID string
+	mu         sync.RWMutex
+	clients    map[string]*Client
+	uids       map[string]types.UID
+	defaultID  string
+	management *Client
+}
+
+// SetManagement sets the panel's credential and registration backend. It does
+// not register the panel host as a workload cluster.
+func (r *Registry) SetManagement(c *Client) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.management = c
+}
+
+// Management returns the explicit backend, falling back to the default
+// Kubernetes client for existing installations and callers.
+func (r *Registry) Management() *Client {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	if r.management != nil {
+		return r.management
+	}
+	return r.clients[r.defaultID]
 }
 
 // NewRegistry returns an empty Registry whose default cluster is defaultID.

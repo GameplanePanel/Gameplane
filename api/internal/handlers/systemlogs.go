@@ -22,6 +22,10 @@ import (
 // MountSystemLogs registers the system logs API handlers.
 func MountSystemLogs(r chi.Router, k *kube.Client, namespace string) {
 	r.Get("/admin/system-logs/{component}", func(w http.ResponseWriter, req *http.Request) {
+		if k == nil || k.Typed == nil {
+			httperr.WriteCode(w, req, http.StatusNotImplemented, errors.New("standalone panel logs are available from the container runtime"))
+			return
+		}
 		component := chi.URLParam(req, "component")
 
 		// Component must be exactly "api" or "operator"

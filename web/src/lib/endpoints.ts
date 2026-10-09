@@ -119,8 +119,11 @@ export interface NamespacesResponse {
 
 // Multi-cluster registry operations.
 export const Clusters = {
-  // list returns all registered clusters in the registry, including the local cluster.
+  // The local cluster is present only on combined installations.
   list: () => api<List<ClusterRegistry>>("/clusters"),
+  register: (body: { name: string; displayName: string; kubeconfig: string }) =>
+    api<ClusterRegistry>("/clusters", { method: "POST", body }),
+  remove: (name: string) => api<void>(`/clusters/${encodeURIComponent(name)}`, { method: "DELETE" }),
 };
 
 // envelope wraps a typed `spec` in the unstructured Kubernetes envelope the
@@ -427,14 +430,14 @@ export interface InstallRequest {
 }
 
 export const Modules = {
-  catalog: () => api<List<CatalogEntry>>("/modules/catalog"),
-  list: () => api<List<Module>>("/modules"),
-  install: (body: InstallRequest) =>
-    api<Module>("/modules", { method: "POST", body }),
-  upgrade: (name: string, version: string) =>
-    api<Module>(`/modules/${name}`, { method: "PATCH", body: { version } }),
-  uninstall: (name: string) =>
-    api<void>(`/modules/${name}`, { method: "DELETE" }),
+  catalog: (cluster = "local") => api<List<CatalogEntry>>("/modules/catalog", { cluster }),
+  list: (cluster = "local") => api<List<Module>>("/modules", { cluster }),
+  install: (body: InstallRequest, cluster = "local") =>
+    api<Module>("/modules", { cluster, method: "POST", body }),
+  upgrade: (name: string, version: string, cluster = "local") =>
+    api<Module>(`/modules/${name}`, { cluster, method: "PATCH", body: { version } }),
+  uninstall: (name: string, cluster = "local") =>
+    api<void>(`/modules/${name}`, { cluster, method: "DELETE" }),
 };
 
 // UploadedModule is the parsed-metadata echo from a bundle upload
@@ -455,9 +458,10 @@ async function uploadBundle(
   source: string,
   file: Blob,
   opts: { dryRun?: boolean } = {},
+  cluster = "local",
 ): Promise<UploadedModule> {
   const path = `/modules/sources/${source}/upload${opts.dryRun ? "?dryRun=true" : ""}`;
-  const res = await fetch(withCluster(path), {
+  const res = await fetch(withCluster(path, cluster), {
     method: "POST",
     headers: csrfHeaders(),
     credentials: "include",
@@ -471,17 +475,17 @@ async function uploadBundle(
 }
 
 export const ModuleSources = {
-  list: () => api<List<ModuleSource>>("/modules/sources"),
-  create: (name: string, spec: ModuleSourceSpec) =>
-    api<ModuleSource>("/modules/sources", { method: "POST", body: { name, ...spec } }),
-  update: (name: string, spec: ModuleSourceSpec) =>
-    api<ModuleSource>(`/modules/sources/${name}`, { method: "PUT", body: spec }),
-  remove: (name: string) =>
-    api<void>(`/modules/sources/${name}`, { method: "DELETE" }),
-  upload: (source: string, file: Blob, opts?: { dryRun?: boolean }) =>
-    uploadBundle(source, file, opts),
-  removeUpload: (source: string, module: string) =>
-    api<void>(`/modules/sources/${source}/upload/${module}`, { method: "DELETE" }),
+  list: (cluster = "local") => api<List<ModuleSource>>("/modules/sources", { cluster }),
+  create: (name: string, spec: ModuleSourceSpec, cluster = "local") =>
+    api<ModuleSource>("/modules/sources", { cluster, method: "POST", body: { name, ...spec } }),
+  update: (name: string, spec: ModuleSourceSpec, cluster = "local") =>
+    api<ModuleSource>(`/modules/sources/${name}`, { cluster, method: "PUT", body: spec }),
+  remove: (name: string, cluster = "local") =>
+    api<void>(`/modules/sources/${name}`, { cluster, method: "DELETE" }),
+  upload: (source: string, file: Blob, opts?: { dryRun?: boolean }, cluster = "local") =>
+    uploadBundle(source, file, opts, cluster),
+  removeUpload: (source: string, module: string, cluster = "local") =>
+    api<void>(`/modules/sources/${source}/upload/${module}`, { cluster, method: "DELETE" }),
 };
 
 // Share link operations live in api.ts as `Shares` (it needs the api
@@ -612,18 +616,18 @@ export interface BuilderArchetypesResponse {
 }
 
 export const ModuleBuilder = {
-  archetypes: () =>
-    api<BuilderArchetypesResponse>("/modules/builder/archetypes", { method: "GET" }),
-  scaffold: (body: BuilderScaffoldRequest) =>
-    api<BuilderScaffoldResponse>("/modules/builder/scaffold", { method: "POST", body }),
-  validate: (body: { moduleYaml: string; templateYaml: string }) =>
-    api<BuilderValidateResponse>("/modules/builder/validate", { method: "POST", body }),
-  preview: (body: BuilderPreviewRequest) =>
-    api<BuilderPreviewResponse>("/modules/builder/preview", { method: "POST", body }),
-  installToCluster: (body: BuilderInstallRequest) =>
-    api<BuilderExportInstallResponse>("/modules/builder/export", { method: "POST", body }),
-  downloadArchive: async (body: BuilderArchiveRequest): Promise<Blob> => {
-    const res = await fetch(withCluster("/modules/builder/export"), {
+  archetypes: (cluster = "local") =>
+    api<BuilderArchetypesResponse>("/modules/builder/archetypes", { method: "GET", cluster }),
+  scaffold: (body: BuilderScaffoldRequest, cluster = "local") =>
+    api<BuilderScaffoldResponse>("/modules/builder/scaffold", { method: "POST", body, cluster }),
+  validate: (body: { moduleYaml: string; templateYaml: string }, cluster = "local") =>
+    api<BuilderValidateResponse>("/modules/builder/validate", { method: "POST", body, cluster }),
+  preview: (body: BuilderPreviewRequest, cluster = "local") =>
+    api<BuilderPreviewResponse>("/modules/builder/preview", { method: "POST", body, cluster }),
+  installToCluster: (body: BuilderInstallRequest, cluster = "local") =>
+    api<BuilderExportInstallResponse>("/modules/builder/export", { method: "POST", body, cluster }),
+  downloadArchive: async (body: BuilderArchiveRequest, cluster = "local"): Promise<Blob> => {
+    const res = await fetch(withCluster("/modules/builder/export", cluster), {
       method: "POST",
       headers: { ...csrfHeaders(), "Content-Type": "application/json" },
       credentials: "include",

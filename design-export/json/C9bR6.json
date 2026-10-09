@@ -1,0 +1,298 @@
+{
+  "id": "C9bR6",
+  "type": "ref",
+  "ref": "x3beP",
+  "name": "Gameplane/Dialog/Edit user — Standalone (Remote grant)",
+  "x": -14157,
+  "y": 34832,
+  "theme": {
+    "semantic": "dark"
+  },
+  "width": 480,
+  "context": "PR #630. Only registered remotes appear as workload grant targets. Primary binding is panel access. workload-viewer is a sample role containing workload permissions only. All namespaces must reject roles containing central administration permissions; Add is disabled for unknown or missing targets.",
+  "descendants": {
+    "E7Whx": {
+      "content": "Edit user"
+    },
+    "qzcst": {
+      "content": "operator-01"
+    },
+    "Nht52": {
+      "type": "frame",
+      "id": "VTnn4",
+      "name": "User fields and remote grants",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 12,
+      "padding": [
+        16,
+        0,
+        0,
+        0
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "cvRRo",
+          "name": "Display name field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "daXHP",
+              "name": "Display name label",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Display name",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "bnmSQ",
+              "type": "ref",
+              "ref": "D0cDM",
+              "name": "Display name value",
+              "width": "fill_container",
+              "descendants": {
+                "PJERm": {
+                  "content": "Server Operator",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "GQKvB",
+          "name": "Email field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "E68vT",
+              "name": "Email label",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Email",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "dlcki",
+              "type": "ref",
+              "ref": "D0cDM",
+              "name": "Email value",
+              "width": "fill_container",
+              "descendants": {
+                "PJERm": {
+                  "content": "operator@example.test",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YGebt",
+          "name": "Primary role (cluster-wide) field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "fKaDX",
+              "name": "Primary role (cluster-wide) label",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Primary role (cluster-wide)",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "NDN3M",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Primary role (cluster-wide) value",
+              "width": "fill_container",
+              "descendants": {
+                "cFsFk": {
+                  "content": "operator",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WKq0E",
+          "name": "Grant separator",
+          "width": "fill_container",
+          "height": 1,
+          "fill": "$border/border"
+        },
+        {
+          "type": "text",
+          "id": "z3zvqX",
+          "name": "Grant heading",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "CLUSTER & NAMESPACE GRANTS",
+          "lineHeight": 1.5,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "ib7po",
+          "name": "Grant scope explanation",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "The primary role above manages panel access. Additional grants apply only to their named cluster and namespace.",
+          "lineHeight": 1.5,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "TMJ5E",
+          "name": "Primary panel binding",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "operator in all namespaces on panel\nPrimary role (managed above)",
+          "lineHeight": 1.5,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "nEG0s",
+          "name": "Remote target and role",
+          "width": "fill_container",
+          "gap": 8,
+          "children": [
+            {
+              "id": "g3poUP",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Grant cluster",
+              "width": "fill_container",
+              "descendants": {
+                "cFsFk": {
+                  "content": "East production (east)"
+                }
+              }
+            },
+            {
+              "id": "Qnadg",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Grant role",
+              "width": "fill_container",
+              "descendants": {
+                "cFsFk": {
+                  "content": "workload-viewer"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "JnTPd",
+          "name": "Namespace grant actions",
+          "width": "fill_container",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "zj1aN",
+              "type": "ref",
+              "ref": "D0cDM",
+              "name": "Grant namespace",
+              "width": "fill_container",
+              "height": 32,
+              "descendants": {
+                "PJERm": {
+                  "content": "*"
+                }
+              }
+            },
+            {
+              "id": "k0ziBt",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "All namespaces",
+              "opacity": 1,
+              "descendants": {
+                "FCYQ9": {
+                  "enabled": false
+                },
+                "GqVun": {
+                  "content": "All namespaces"
+                }
+              }
+            },
+            {
+              "id": "i6XYjB",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "Add",
+              "opacity": 1,
+              "descendants": {
+                "FCYQ9": {
+                  "enabled": false
+                },
+                "GqVun": {
+                  "content": "Add"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "Z3OG8d",
+          "name": "Inventory grant guidance",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "For remote node inventory, create a role in the Roles tab with “View nodes, version, and storage”, then grant it to all namespaces on that cluster.",
+          "lineHeight": 1.5,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    "V7HYp": {
+      "opacity": 1
+    },
+    "TZ7Ef": {
+      "content": "Save changes"
+    }
+  }
+}
+
