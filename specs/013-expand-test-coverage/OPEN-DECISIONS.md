@@ -1,6 +1,6 @@
 # Open Decisions
 
-**Status**: 2 open (OD-2, OD-3); 1 ruled (OD-1 on 2026-10-09).
+**Status**: 1 open (OD-3); 2 ruled (OD-1, OD-2 on 2026-10-09).
 
 Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract until it is ruled here. Work proceeds on each recommended default except where noted.
 
@@ -25,7 +25,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 ### OD-2: hadolint `trustedRegistries`
 
-**Status**: OPEN
+**Status**: RULED (2026-10-09, user)
 
 **Question**: Should hadolint enforce a trusted-registry allowlist for `FROM` lines?
 
@@ -34,6 +34,8 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 2. Allowlist `docker.io`, `gcr.io/distroless`, `ghcr.io/gameplanepanel`, so a new base from any other registry fails.
 
 **Recommended default**: (1) for the first gate PR. (2) can follow as its own change once the current base set is known from the first CI run.
+
+**Ruling (2026-10-09, user)**: option (1), no allowlist. `.hadolint.yaml` carries `failure-threshold: warning` only, with no `trustedRegistries` key and no `ignored:` list.
 
 ---
 

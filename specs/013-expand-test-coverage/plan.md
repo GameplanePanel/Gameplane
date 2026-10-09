@@ -77,7 +77,7 @@ Test-side: Playwright 1.63, vitest 5, `client-go/kubernetes/fake`, existing e2e 
 |---|---|---|
 | **I. E2E-Tested Delivery** | The feature *adds* E2E. New Go E2E tests are bucketed (`optional-components`, and `TestE2E_ResticRepoReady` in `operator`), `t.Parallel()`, with unique names and budgeted logins. Postgres reuses existing buckets, so no test is unbucketed. The static gates are CI config, verified by their own fixture proofs, not E2E; this is the same pattern as the existing `joincoverage_test.sh` and `lint-gate-verify_test.sh`. | PASS |
 | **II. Design-First** | No visual change. Tests only. A UI defect a new live spec exposes is fixed in its own task, designed first in `design.pen`. | PASS (N/A) |
-| **III. Best Practice / no suppressions** | No `//nolint`, `eslint-disable`, `@ts-ignore`, hadolint ignore, Trivy ignore file, or `allow-ghsas`. Pre-existing findings are fixed in code. `.hadolint.yaml` holds only a threshold and trusted registries. New Go test code wraps errors with `%w`. | PASS |
+| **III. Best Practice / no suppressions** | No `//nolint`, `eslint-disable`, `@ts-ignore`, hadolint ignore, Trivy ignore file, or `allow-ghsas`. Pre-existing findings are fixed in code. `.hadolint.yaml` holds only a failure threshold. New Go test code wraps errors with `%w`. | PASS |
 | **IV. Spec-Driven** | The spec → plan → tasks chain is followed. `api/specs.md` and `tunnel/specs.md` are unaffected (no behavior change). `deploy/kind` and `.github` have no `specs.md` requirement. `api/Dockerfile` gains a build arg with the default unchanged, so the published image is identical. | PASS |
 | **V. Delegation** | Implementation runs through `Workflow` scripts per CLAUDE.md rule 13, at haiku first with tier-up diff review. Gate scripts are rule-shaped work, so one agent writes them as scripts (rule 13, "scripts over fan-out"). | PASS |
 | **VI. CI Bears the Load** | No local test or lint runs. Notably, hadolint's pre-existing findings are discovered by the gate PR's first CI run, not locally (R3). Nothing is reported green until CI is. | PASS |
@@ -95,7 +95,7 @@ specs/013-expand-test-coverage/
 ├── research.md                     # Phase 0 (R0 baseline + R1–R11 decisions)
 ├── data-model.md                   # Phase 1: gate, fixture, gap, record entities
 ├── quickstart.md                   # Phase 1: how to validate each story in CI
-├── OPEN-DECISIONS.md               # OD-1 ruled; OD-2, OD-3 open (rule 10)
+├── OPEN-DECISIONS.md               # OD-1, OD-2 ruled; OD-3 open (rule 10)
 ├── contracts/
 │   ├── static-gates.md             # per-gate trigger / failing condition / proof script contract
 │   ├── coverage-gap-record.md      # coverage-gaps.md format + validator rules
@@ -117,7 +117,7 @@ specs/013-expand-test-coverage/
 ├── workflows/{publish-edge,release}.yaml   # Trivy before cosign sign
 └── actions/{build-e2e-images,e2e-images}/  # + mcp-server, audit-syslog-bridge, tunnel-frp,
                                             #   api:e2e-postgres
-.hadolint.yaml                      # threshold + trusted registries only
+.hadolint.yaml                      # failure threshold only (OD-2)
 hack/
 ├── ci_scope.py, test_ci_scope.py   # new scope outputs
 ├── check-submodule-freshness.sh

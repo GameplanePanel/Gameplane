@@ -81,7 +81,7 @@ The spec was written on 2026-09-02. Several of its survey numbers are stale, so 
 
 ## R3: Dockerfile lint gate
 
-**Decision**: a `hadolint` step in the `workflow-lint` job (it already runs actionlint and zizmor; Dockerfiles are build config of the same kind). It uses a SHA-pinned hadolint binary verified by `sha256sum -c`, the same pattern as actionlint at `ci.yaml:1136-1151`, and runs over `git ls-files '*Dockerfile*'`, excluding `hack/testdata/**`. `failure-threshold: warning`. A root `.hadolint.yaml` holds only `trustedRegistries` and the `failure-threshold`, and ignores no rules.
+**Decision**: a `hadolint` step in the `workflow-lint` job (it already runs actionlint and zizmor; Dockerfiles are build config of the same kind). It uses a SHA-pinned hadolint binary verified by `sha256sum -c`, the same pattern as actionlint at `ci.yaml:1136-1151`, and runs over `git ls-files '*Dockerfile*'`, excluding `hack/testdata/**`. `failure-threshold: warning`. A root `.hadolint.yaml` holds only the `failure-threshold` and ignores no rules (no `trustedRegistries`, per OD-2).
 
 **Pre-existing findings**: fixed in the same PR that turns the gate on (FR-008: fix, never silence). Rule 8 forbids running hadolint locally, so the gate PR's first CI run lists the findings, and the fixes follow as commits on that PR. The gate is never merged in a red or report-only state.
 
@@ -94,7 +94,7 @@ The spec was written on 2026-09-02. Several of its survey numbers are stale, so 
 - Trivy `config`: overlaps but has weaker Dockerfile style rules.
 - Delta mode: rejected because the file set is small enough to fix outright.
 
-**Open**: whether `trustedRegistries` should be enforced (it would flag `FROM` lines from Docker Hub) is OD-2.
+**Ruled (OD-2, 2026-10-09)**: no `trustedRegistries` allowlist for now.
 
 ---
 

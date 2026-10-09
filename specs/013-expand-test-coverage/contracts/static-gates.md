@@ -36,7 +36,7 @@ Each gate below is a binding contract for its implementing task. Common rules fo
 |---|---|
 | Location | a step in the existing `workflow-lint` job |
 | Command | `hadolint --config .hadolint.yaml $(git ls-files '*Dockerfile*' ':!hack/testdata/**' ':!*.dockerignore')` |
-| Config | `.hadolint.yaml`: `failure-threshold: warning`; `trustedRegistries` per OD-2; **no `ignored:` list** |
+| Config | `.hadolint.yaml`: `failure-threshold: warning`; no `trustedRegistries` (OD-2, ruled 2026-10-09); **no `ignored:` list** |
 | Fails when | any warning or error |
 | Proof | `hack/check-hadolint_test.sh` on `hack/testdata/hadolint/{fail,pass}/Dockerfile` |
 | Pre-existing | fixed in the gate's own PR, after the first CI run lists them |
