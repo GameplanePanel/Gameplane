@@ -19,9 +19,21 @@ containers/
 │       ├── Dockerfile            # SteamCMD base for Steam-distributed games
 │       └── steam-install.sh       # Shared runtime installer helper
 └── games/
-    └── nuclear-option/
-        ├── Dockerfile            # Game-specific image (FROM common-steamcmd)
-        └── entrypoint.sh          # Game-specific startup logic
+    ├── nuclear-option/
+    │   ├── Dockerfile            # Game-specific image (FROM common-steamcmd)
+    │   └── entrypoint.sh          # Game-specific startup logic
+    ├── squad/
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    ├── the-isle/
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    ├── ark-survival-evolved/
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    └── mount-and-blade-2-bannerlord/
+        ├── Dockerfile
+        └── entrypoint.sh
 ```
 
 ### `common/` — reusable base images
@@ -124,6 +136,8 @@ All parameters are environment variables (no command-line args):
 | `STEAM_SENTINEL_FILE` | (required) | Path to a file that proves install success (e.g., `/data/srcds_run`). Must be provided by the entrypoint. |
 | `STEAM_RETRY_COUNT` | `3` | Number of install attempts before giving up. |
 | `STEAM_RETRY_DELAY` | `5` | Seconds to wait between retries. |
+| `STEAM_BETA` | (empty) | Optional public beta branch passed as `-beta <name>` (e.g. `evrima` for The Isle). |
+| `STEAM_PLATFORM` | (empty) | Optional `+@sSteamCmdForcePlatformType` value, set before `+login` (e.g. `windows` for Bannerlord, which runs under Wine). |
 
 ### Example: Installing Half-Life 2: Deathmatch
 

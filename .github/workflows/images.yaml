@@ -203,6 +203,14 @@ jobs:
         include:
           - game: nuclear-option
             context: containers/games/nuclear-option
+          - game: squad
+            context: containers/games/squad
+          - game: the-isle
+            context: containers/games/the-isle
+          - game: ark-survival-evolved
+            context: containers/games/ark-survival-evolved
+          - game: mount-and-blade-2-bannerlord
+            context: containers/games/mount-and-blade-2-bannerlord
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Signing is mandatory when publishing to a registry: fail before anything

@@ -16,6 +16,8 @@ set -euo pipefail
 #   STEAM_VALIDATE=false \
 #   STEAM_SKIP_IF_INSTALLED=true \
 #   STEAM_SENTINEL_FILE=/data/srcds_run \
+#   STEAM_BETA=evrima \
+#   STEAM_PLATFORM=windows \
 #     steam-install.sh
 
 # Configuration from env vars with sensible defaults.
@@ -26,6 +28,8 @@ STEAM_SKIP_IF_INSTALLED="${STEAM_SKIP_IF_INSTALLED:-true}"
 STEAM_SENTINEL_FILE="${STEAM_SENTINEL_FILE:-}"
 STEAM_RETRY_COUNT="${STEAM_RETRY_COUNT:-3}"
 STEAM_RETRY_DELAY="${STEAM_RETRY_DELAY:-5}"
+STEAM_BETA="${STEAM_BETA:-}"
+STEAM_PLATFORM="${STEAM_PLATFORM:-}"
 
 # Validate required parameters.
 if [[ -z "$STEAM_APPID" ]]; then
@@ -58,12 +62,25 @@ mkdir -p "$STEAM_INSTALL_DIR"
 # Alpine-based image this script was originally written against and never
 # existed in the image we actually ship on). Invoke it by name so this also
 # keeps working if the upstream image ever moves the binary within PATH.
-STEAMCMD_CMD=(
-  "steamcmd"
+STEAMCMD_CMD=("steamcmd")
+
+# Optional platform override (e.g. "windows" for games that only ship a
+# Windows dedicated server and run under Wine). SteamCMD only honours it
+# before +login.
+if [[ -n "$STEAM_PLATFORM" ]]; then
+  STEAMCMD_CMD+=("+@sSteamCmdForcePlatformType" "$STEAM_PLATFORM")
+fi
+
+STEAMCMD_CMD+=(
   "+force_install_dir" "$STEAM_INSTALL_DIR"
   "+login" "anonymous"
   "+app_update" "$STEAM_APPID"
 )
+
+# Optional public beta branch (e.g. "evrima" for The Isle).
+if [[ -n "$STEAM_BETA" ]]; then
+  STEAMCMD_CMD+=("-beta" "$STEAM_BETA")
+fi
 
 # Add validation flag if requested.
 if [[ "$STEAM_VALIDATE" == "true" ]]; then
