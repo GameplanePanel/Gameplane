@@ -629,3 +629,133 @@ func TestCountWithRegex(t *testing.T) {
 		}
 	})
 }
+
+// --- Structured (JSON) player list tests ---
+
+func TestPlayerListStructuredEntries(t *testing.T) {
+	// Nuclear Option's get-player-list returns {"Players":[{steamId,faction}]}.
+	// The handler must expose the ids as Players and the full records as
+	// Entries, with Online counting the entries and no name ever added.
+	actions := &caps.PlayerActions{
+		List: &caps.PlayerList{Command: "get-player-list"},
+	}
+	rc := &fakeRcon{respond: func(string) (string, error) {
+		return `{"Players":[{"steamId":"76561198000000001","faction":"Boscali"},{"steamId":"76561198000000002","faction":""},{"steamId":"","faction":"Cratian"}]}`, nil
+	}}
+	r := chi.NewRouter()
+	Mount(r, rc, "nuclear-option", actions)
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	status, body := doJSON(t, srv, "GET", "/players", nil)
+	if status != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", status, body)
+	}
+	if rc.last != "get-player-list" {
+		t.Errorf("rcon called with %q, want 'get-player-list'", rc.last)
+	}
+	var got Snapshot
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if got.Online != 2 || got.Max != -1 {
+		t.Errorf("counts = (%d, %d), want (2, -1)", got.Online, got.Max)
+	}
+	if want := []string{"76561198000000001", "76561198000000002"}; !reflect.DeepEqual(got.Players, want) {
+		t.Errorf("players = %v, want %v", got.Players, want)
+	}
+	wantEntries := []Entry{
+		{SteamID: "76561198000000001", Faction: "Boscali"},
+		{SteamID: "76561198000000002"},
+	}
+	if !reflect.DeepEqual(got.Entries, wantEntries) {
+		t.Errorf("entries = %+v, want %+v", got.Entries, wantEntries)
+	}
+}
+
+func TestPlayerListStructuredEmpty(t *testing.T) {
+	actions := &caps.PlayerActions{
+		List: &caps.PlayerList{Command: "get-player-list"},
+	}
+	rc := &fakeRcon{respond: func(string) (string, error) {
+		return `{"Players":[]}`, nil
+	}}
+	r := chi.NewRouter()
+	Mount(r, rc, "nuclear-option", actions)
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	status, body := doJSON(t, srv, "GET", "/players", nil)
+	if status != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", status, body)
+	}
+	var got Snapshot
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if got.Online != 0 {
+		t.Errorf("online = %d, want 0", got.Online)
+	}
+	if got.Players == nil || len(got.Players) != 0 {
+		t.Errorf("players = %#v, want empty non-nil slice", got.Players)
+	}
+	if got.Entries != nil {
+		t.Errorf("entries = %+v, want omitted", got.Entries)
+	}
+	if strings.Contains(string(body), `"entries"`) {
+		t.Errorf("body %s should omit entries key", body)
+	}
+}
+
+func TestParseStructuredListFallsThroughOnNonJSON(t *testing.T) {
+	// Output that is not the structured shape must report ok=false so the
+	// regex/line parsers keep their existing behaviour.
+	for _, raw := range []string{
+		"There are 2 of a max of 20 players online: alice, bob",
+		"alice\nbob",
+		`{"Players":null}`,
+		`{"Other":[]}`,
+		`{not json`,
+		``,
+	} {
+		if _, ok := parseStructuredList(raw); ok {
+			t.Errorf("parseStructuredList(%q) ok = true, want false", raw)
+		}
+	}
+}
+
+func TestPlayerListNonJSONUnchanged(t *testing.T) {
+	// A list command whose output is plain text must still go through the
+	// configured entryRegex and produce no entries.
+	actions := &caps.PlayerActions{
+		List: &caps.PlayerList{
+			Command:    "get-player-list",
+			EntryRegex: `^(\w+)$`,
+		},
+	}
+	rc := &fakeRcon{respond: func(string) (string, error) {
+		return "alice\nbob", nil
+	}}
+	r := chi.NewRouter()
+	Mount(r, rc, "some-game", actions)
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	status, body := doJSON(t, srv, "GET", "/players", nil)
+	if status != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", status, body)
+	}
+	var got Snapshot
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if want := []string{"alice", "bob"}; !reflect.DeepEqual(got.Players, want) {
+		t.Errorf("players = %v, want %v", got.Players, want)
+	}
+	if got.Online != 2 || got.Max != -1 {
+		t.Errorf("counts = (%d, %d), want (2, -1)", got.Online, got.Max)
+	}
+	if got.Entries != nil {
+		t.Errorf("entries = %+v, want nil for non-JSON output", got.Entries)
+	}
+}

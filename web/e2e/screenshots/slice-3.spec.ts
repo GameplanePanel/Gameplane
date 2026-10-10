@@ -5,9 +5,9 @@ import { capture as sharedCapture, captureLocator } from "./capture";
 // (Create Server wizard steps 1-5), Modules Catalog, and Backups
 // (Index/Schedules/Restores + detail drawer/restore dialog/list item).
 // Screenshot verification tests for the HeroUI rebuild, capturing the 12
-// design frames listed in design-export/MANIFEST.md's "Incremental export
+// design frames listed in assets/design-export/MANIFEST.md's "Incremental export
 // 2026-09-05 — Slice 3 design wave" section at 1440px, for comparison
-// against design-export/screenshots/<id>.png per
+// against assets/design-export/screenshots/<id>.png per
 // specs/done_014-heroui-web-rebuild/contracts/screen-verification.md.
 //
 // Mirrors slice2a.spec.ts's structure (viewport, capture() helper,
@@ -207,7 +207,7 @@ test.describe("Slice 3: Create Server, Modules, Backups (Desktop — 1440x900) @
     // Design PNG is light theme — see setTheme()'s note.
     await setTheme(page, "light");
     // Freeze the clock so BackupDetailDrawer's formatRelative(startTime) /
-    // formatRelative(completionTime) read "3h ago" (design-export/json/
+    // formatRelative(completionTime) read "3h ago" (assets/design-export/json/
     // zhLZN.json) instead of drifting with the real wall clock. The
     // mc-survival-nightly-0713 fixture (handlers.ts) has startTime
     // 2026-07-13T00:12:04Z and completionTime 2026-07-13T00:14:41Z — 2m37s
@@ -272,7 +272,7 @@ test.describe("Slice 3: Create Server, Modules, Backups (Desktop — 1440x900) @
     // screenshots only the visible box, cutting off Allow list / Refresh
     // interval. Give only this test a taller viewport so the form fits.
     await page.setViewportSize({ width: 1440, height: 1200 });
-    // #376 resolved: design-export/screenshots/DMnEi.png is genuinely the
+    // #376 resolved: assets/design-export/screenshots/DMnEi.png is genuinely the
     // "Add module source" dialog (Gameplane/Dialog/Add Module Source,
     // (-17205,28535)) — MANIFEST.md mislabeled the node "Gameplane/Backup
     // List Item". This test now captures what the reference actually shows.

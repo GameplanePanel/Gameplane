@@ -1,8 +1,8 @@
-# Gameplane game server image for Mount & Blade II: Bannerlord (dedicated server).
+# Gameplane game server image for The Isle (dedicated server).
 #
-# TaleWorlds ships the dedicated server as a Windows build only, so SteamCMD downloads it with STEAM_PLATFORM=windows and it runs under Wine. SERVER_TOKEN (from the in-game "customserver.gettoken" command, valid for 3 months) is required; without it the container idles with instructions instead of crash-looping (FR-013).
+# Installs the public "evrima" beta branch of app 412680 (override with THE_ISLE_BRANCH).
 #
-# Builds on the shared SteamCMD base (images/common/steamcmd/). The game is
+# Builds on the shared SteamCMD base (containers/common/steamcmd/). The game is
 # installed at container start by steam-install.sh into STEAM_INSTALL_DIR
 # (default /data, the GameServer's persistent volume). No game files are
 # baked into the image.
@@ -15,7 +15,7 @@ FROM ${STEAMCMD_BASE_IMAGE}
 # it even when it is started through a vendor wrapper script.
 USER root
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends tini wine && \
+    apt-get install -y --no-install-recommends tini && \
     rm -rf /var/lib/apt/lists/*
 USER gameserver:gameserver
 
@@ -25,6 +25,6 @@ ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/entrypoint.sh"]
 
 ARG VERSION=dev
 LABEL org.opencontainers.image.version="${VERSION}"
-LABEL org.opencontainers.image.title="Gameplane Mount & Blade II: Bannerlord Server"
-LABEL org.opencontainers.image.description="Mount & Blade II: Bannerlord dedicated server (Windows build under Wine) for Gameplane"
+LABEL org.opencontainers.image.title="Gameplane The Isle Server"
+LABEL org.opencontainers.image.description="The Isle (Evrima) dedicated server for Gameplane"
 LABEL org.opencontainers.image.source="https://github.com/gameplanepanel/gameplane"

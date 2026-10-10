@@ -52,7 +52,6 @@ AREA_BY_DIR = {
     "api": "area: api",
     "agent": "area: agent",
     "web": "area: web",
-    "design-export": "area: web",
     "modules": "area: modules",
     "charts": "area: chart",
     "specs": "area: specs",
@@ -87,6 +86,8 @@ def area_for_path(path):
     """
     if path in AREA_BY_FILE:
         return AREA_BY_FILE[path]
+    if path.startswith("assets/design-export/"):
+        return "area: web"
     if path.startswith("test/e2e/"):
         return "area: e2e"
     if path.startswith("docs/"):

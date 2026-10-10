@@ -37,7 +37,7 @@ const probeJobNameMax = 63
 const probeJobDeleteWait = 2 * time.Minute
 
 // probeImage is the in-cluster game-bot image: built by the game-bot CI job
-// (docker-bake.hcl target "e2e-gameprobe") and side-loaded into kind by
+// (containers/docker-bake.hcl target "e2e-gameprobe") and side-loaded into kind by
 // deploy/kind/e2e.sh. Override it when the cluster pulls from a registry
 // instead (e.g. a reused remote cluster).
 func (e *Env) probeImage() string {

@@ -14,7 +14,7 @@ description: "Task list for Feature 007: Capture Overhead CI Regression Guard"
 
 ## Phase 1: Spec housekeeping
 
-- [X] T001 Record OD-1..OD-8 in `specs/007-capture-overhead-guard/OPEN-DECISIONS.md` and add an amendment note to `spec.md` pointing the stale branch names (`003-network-capture-sidecar`, `main`), the FR-006/SC-005 gating conflict, `gameproto` `ParsePacket` and `tshark`/`capinfos` references at the decisions that supersede them.
+- [X] T001 Record OD-1..OD-8 in `specs/done_007-capture-overhead-guard/OPEN-DECISIONS.md` and add an amendment note to `spec.md` pointing the stale branch names (`003-network-capture-sidecar`, `main`), the FR-006/SC-005 gating conflict, `gameproto` `ParsePacket` and `tshark`/`capinfos` references at the decisions that supersede them.
 
 ## Phase 2: Probe sustained mode (US1, FR-002, FR-009)
 

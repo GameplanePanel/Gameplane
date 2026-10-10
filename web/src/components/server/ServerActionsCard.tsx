@@ -118,7 +118,7 @@ type RunStatus = { kind: "ok" | "err"; text: string; type?: "output" | "sent" };
 // this falls back to a generic "Quick actions" body of lifecycle shortcuts
 // (start/stop/restart/wake, open console) built from data already on the
 // GameServer — so the design's four-card right column
-// (design-export/screenshots/EZFW0.png) is populated for every template,
+// (assets/design-export/screenshots/EZFW0.png) is populated for every template,
 // not just ones with declared actions. `gs`/`ns`/`onOpenConsole` are
 // optional: callers that don't pass `gs` keep the old "render nothing"
 // behavior.

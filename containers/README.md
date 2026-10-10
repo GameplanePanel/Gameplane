@@ -13,7 +13,7 @@ Official module templates pin game images by digest (not tag), making pinning im
 ## Layout
 
 ```
-images/
+containers/
 ├── common/
 │   └── steamcmd/
 │       ├── Dockerfile            # SteamCMD base for Steam-distributed games
@@ -44,17 +44,17 @@ The base contains **no game files**. Individual games download at runtime into a
 
 ### `games/` — game-specific images
 
-Each game has one directory under `images/games/<name>/` with a **Dockerfile** (inheriting FROM a common base) and **entrypoint.sh** (orchestrating install and launch).
+Each game has one directory under `containers/games/<name>/` with a **Dockerfile** (inheriting FROM a common base) and **entrypoint.sh** (orchestrating install and launch).
 
 #### Adding a new game
 
-1. Create the directory: `mkdir -p images/games/<name>`
+1. Create the directory: `mkdir -p containers/games/<name>`
 2. Author `Dockerfile` to inherit FROM the common base (the CI workflow passes `STEAMCMD_BASE_IMAGE` as a build arg with the freshly-pushed base digest) and set up game-specific config.
 3. Author `entrypoint.sh` to call `steam-install.sh`, validate the install, and launch the server.
 4. Add the game to `.github/workflows/images.yaml` in the `game-images` job matrix:
    ```yaml
    - game: <name>
-     context: images/games/<name>
+     context: containers/games/<name>
    ```
 5. Push to a feature branch; the workflow builds, signs, and surfaces the digest in the job summary.
 6. Once merged, pin the digest in the module's `template.yaml` (see **Reading published digests** below).
@@ -96,7 +96,7 @@ exec ./srcds_run -game csgo -console +mapname de_dust2
 
 ## Reading published digests and pinning images
 
-When the workflow runs (triggered by a push to `images/**`), it builds, signs, and publishes both the common base and all game images. Each digest is surfaced in the **job summary** at the bottom of the workflow logs.
+When the workflow runs (triggered by a push to `containers/**`), it builds, signs, and publishes both the common base and all game images. Each digest is surfaced in the **job summary** at the bottom of the workflow logs.
 
 To pin an image in a module:
 
@@ -201,10 +201,10 @@ For manual testing:
 
 ```bash
 # Build the base image locally (context is the image's directory)
-docker build -t gameplane-steamcmd-base:latest -f Dockerfile images/common/steamcmd
+docker build -t gameplane-steamcmd-base:latest -f Dockerfile containers/common/steamcmd
 
 # Build a game image (context is the image's directory)
-docker build -t my-game:latest -f Dockerfile images/games/my-game
+docker build -t my-game:latest -f Dockerfile containers/games/my-game
 
 # Run locally (requires a mounted volume for persistence)
 docker run -it \
@@ -236,7 +236,7 @@ The `cosign.pub` file (committed to the repo root) is the public key for verific
 The `images.yaml` workflow runs on:
 
 - **`workflow_dispatch`** — manual trigger from the GitHub Actions UI.
-- **`push` to `images/**`** — any change to image source.
+- **`push` to `containers/**`** — any change to image source.
 - **`push` to `.github/workflows/images.yaml`** — any change to the workflow itself.
 
 Images are not rebuilt on changes to operator, API, agent, or other non-image code, keeping the registry lean.

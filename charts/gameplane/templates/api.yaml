@@ -412,6 +412,37 @@ spec:
                   key:  {{ .Values.api.telemetry.authSecretRef.key }}
             {{- end }}
             {{- /*
+            `steam` may be absent after `helm upgrade --reuse-values` from a
+            chart that predates it, so every level is guarded with default dict.
+            The cache knobs are emitted only when set; the key is a Secret ref.
+            */}}
+            {{- $steam := .Values.api.steam | default dict }}
+            {{- $steamKey := $steam.apiKeySecretRef | default dict }}
+            {{- if $steamKey.name }}
+            - name: GAMEPLANE_STEAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $steamKey.name }}
+                  key:  {{ $steamKey.key | default "api-key" }}
+            {{- end }}
+            {{- $steamCache := $steam.cache | default dict }}
+            {{- with $steamCache.maxEntries }}
+            - name: GAMEPLANE_STEAM_CACHE_MAX_ENTRIES
+              value: {{ . | int | quote }}
+            {{- end }}
+            {{- with $steamCache.ttl }}
+            - name: GAMEPLANE_STEAM_CACHE_TTL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $steamCache.negativeTTL }}
+            - name: GAMEPLANE_STEAM_CACHE_NEGATIVE_TTL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $steamCache.timeout }}
+            - name: GAMEPLANE_STEAM_TIMEOUT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- /*
             `capture` may be absent entirely after `helm upgrade --reuse-values`
             from a chart that predates it (F-214). Guard presence of the block
             only, and use hasKey rather than `default` for the numeric fields so

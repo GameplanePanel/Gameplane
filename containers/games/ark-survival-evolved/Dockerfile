@@ -2,7 +2,7 @@
 #
 # RCON uses ServerAdminPassword, which the entrypoint sets from RCON_PASSWORD.
 #
-# Builds on the shared SteamCMD base (images/common/steamcmd/). The game is
+# Builds on the shared SteamCMD base (containers/common/steamcmd/). The game is
 # installed at container start by steam-install.sh into STEAM_INSTALL_DIR
 # (default /data, the GameServer's persistent volume). No game files are
 # baked into the image.

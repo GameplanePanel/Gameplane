@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 // SettingsNav is the settings sub-navigation shared by the admin settings
 // page (/admin) and the per-user theme settings page (/settings/theme), per
-// the Screen/Theme Settings design (design-export lWvcv): one item per
+// the Screen/Theme Settings design (assets/design-export lWvcv): one item per
 // settings area, "Theme" sitting between "General" and "Authentication".
 // Admin settings sections are in-page state (not routes), so ordinary
 // entries report their key through onSelect; only "Theme" is a real route

@@ -102,6 +102,67 @@ func TestResolveRCON(t *testing.T) {
 			t.Fatalf("cli with passwordEnv should set secretName: %+v", rc)
 		}
 	})
+
+	t.Run("nuclearoption with authentication=false does not generate secret", func(t *testing.T) {
+		f := false
+		rc := resolveRCON(gs, rconTmpl(&gameplanev1alpha1.RCONSpec{
+			Protocol:       "nuclearoption",
+			Authentication: &f,
+		}))
+		if !rc.enabled {
+			t.Fatal("expected enabled for nuclearoption")
+		}
+		if rc.secretName != "" || rc.secretKey != "" {
+			t.Fatalf("authentication=false should not set secretName/secretKey: %+v", rc)
+		}
+	})
+
+	t.Run("authentication=false clears passwordEnv and ignores secret ref", func(t *testing.T) {
+		f := false
+		rc := resolveRCON(gs, rconTmpl(&gameplanev1alpha1.RCONSpec{
+			Protocol:       "nuclearoption",
+			Authentication: &f,
+			PasswordEnv:    "RCON_PASSWORD",
+		}))
+		if rc.secretName != "" || rc.passwordEnv != "" {
+			t.Fatalf("authentication=false should clear secret and passwordEnv: %+v", rc)
+		}
+	})
+
+	t.Run("nuclearoption with authentication unset generates secret by default", func(t *testing.T) {
+		rc := resolveRCON(gs, rconTmpl(&gameplanev1alpha1.RCONSpec{
+			Protocol: "nuclearoption",
+		}))
+		if !rc.enabled || rc.secretName != "smp-rcon" || rc.secretKey != "password" {
+			t.Fatalf("authentication default should mint secret: %+v", rc)
+		}
+	})
+
+	t.Run("authentication=true generates secret", func(t *testing.T) {
+		tr := true
+		rc := resolveRCON(gs, rconTmpl(&gameplanev1alpha1.RCONSpec{
+			Protocol:       "nuclearoption",
+			Authentication: &tr,
+		}))
+		if !rc.enabled || rc.secretName != "smp-rcon" || rc.secretKey != "password" {
+			t.Fatalf("authentication=true should mint secret: %+v", rc)
+		}
+	})
+}
+
+// TestAuthenticationEnabled verifies the nil-safe default of RCONSpec.AuthenticationEnabled.
+func TestAuthenticationEnabled(t *testing.T) {
+	var nilSpec *gameplanev1alpha1.RCONSpec
+	if !nilSpec.AuthenticationEnabled() {
+		t.Fatal("nil receiver must default to true")
+	}
+	if !(&gameplanev1alpha1.RCONSpec{}).AuthenticationEnabled() {
+		t.Fatal("unset authentication must default to true")
+	}
+	f := false
+	if (&gameplanev1alpha1.RCONSpec{Authentication: &f}).AuthenticationEnabled() {
+		t.Fatal("authentication=false must report false")
+	}
 }
 
 // TestRCONGameEnv verifies environment variable injection into the game container.

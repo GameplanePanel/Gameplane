@@ -6,7 +6,7 @@ import sharp from "sharp";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SCREENSHOTS_DIR = here;
-const DESIGN_EXPORT_DIR = path.resolve(here, "../../../design-export/screenshots");
+const DESIGN_EXPORT_DIR = path.resolve(here, "../../../assets/design-export/screenshots");
 
 /**
  * Capture a screenshot matching the reference frame dimensions and save to web/e2e/screenshots/<id>.png

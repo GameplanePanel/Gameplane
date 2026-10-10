@@ -146,7 +146,7 @@ jobs:
             e2etree:
               - 'test/e2e/**'
               - 'deploy/kind/**'
-              - 'docker-bake.hcl'
+              - 'containers/docker-bake.hcl'
             # Narrower than e2etree on purpose: this backs a job that only
             # smoke-tests deploy/kind/**'s pinned dev ingress-nginx manifest
             # on a real Kind cluster, and must NOT run on every e2e-affecting
@@ -161,7 +161,7 @@ jobs:
               - 'modules/**'
               - 'docs/game-coverage.md'
             # Gates the non-blocking e2e-capture-overhead job on PRs (OD-2 in
-            # specs/007-capture-overhead-guard/OPEN-DECISIONS.md). Master pushes
+            # specs/done_007-capture-overhead-guard/OPEN-DECISIONS.md). Master pushes
             # run it through the e2e gate instead.
             capture_overhead:
               - 'capture-sidecar/**'

@@ -2,7 +2,7 @@
 #
 # Squad's RCON password lives in SquadGame/ServerConfig/Rcon.cfg; the entrypoint writes it from RCON_PASSWORD on every start so the panel console works without hand-editing files.
 #
-# Builds on the shared SteamCMD base (images/common/steamcmd/). The game is
+# Builds on the shared SteamCMD base (containers/common/steamcmd/). The game is
 # installed at container start by steam-install.sh into STEAM_INSTALL_DIR
 # (default /data, the GameServer's persistent volume). No game files are
 # baked into the image.
