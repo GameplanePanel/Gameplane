@@ -122,13 +122,13 @@ reviews:
         CRITICAL: Any visual change to a dashboard screen MUST be preceded by a design update.
         Flag if:
         - The route file (*.tsx) shows visual changes but no matching design.pen update in the PR
-        - design.pen or website.pen was touched but design-export/ or website-export/ was not updated
+        - design.pen or website.pen was touched but assets/design-export/ or website-export/ was not updated
           with fresh JSON dumps and screenshots of the changed frames
 
         Visual change means: added/changed components, layout shifts, color/style updates, new pages.
         Backend-only logic changes do not require a design pass.
 
-        The design-export/ snapshot is critical: a stale export actively misleads future agents.
+        The assets/design-export/ snapshot is critical: a stale export actively misleads future agents.
         Both design.pen AND the export must be committed in the same change.
 
         Reference: CLAUDE.md rule 1, Constitution Principle II.

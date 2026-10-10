@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-08-27
-**Feature**: [specs/010-easy-module-building/spec.md](file:///home/valgul/project/Gameplane/specs/010-easy-module-building/spec.md)
+**Feature**: [specs/done_010-easy-module-building/spec.md](file:///home/valgul/project/Gameplane/specs/done_010-easy-module-building/spec.md)
 
 ## Content Quality
 

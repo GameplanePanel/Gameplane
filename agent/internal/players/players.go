@@ -57,11 +57,20 @@ type Capabilities struct {
 	Whitelist bool `json:"whitelist"`
 }
 
+// Entry is one structured player-list record for games whose list command
+// returns JSON (Nuclear Option's get-player-list). It carries the game's
+// own identifier and faction; the agent never adds a display name.
+type Entry struct {
+	SteamID string `json:"steamId"`
+	Faction string `json:"faction,omitempty"`
+}
+
 // Snapshot is a player list query result.
 type Snapshot struct {
 	Online       int          `json:"online"`
 	Max          int          `json:"max"`
 	Players      []string     `json:"players"`
+	Entries      []Entry      `json:"entries,omitempty"`
 	AsOf         string       `json:"asOf"`
 	Capabilities Capabilities `json:"capabilities"`
 }
@@ -151,7 +160,9 @@ func (h *handler) fetch() (Snapshot, error) {
 		return Snapshot{}, err
 	}
 	var snap Snapshot
-	if h.listRE != nil {
+	if structured, ok := parseStructuredList(raw); ok {
+		snap = structured
+	} else if h.listRE != nil {
 		snap = h.parseListWithRegex(raw)
 	} else {
 		snap = parseList(raw)
@@ -394,6 +405,42 @@ func parseList(raw string) Snapshot {
 		}
 	}
 	return Snapshot{Online: online, Max: maxN, Players: names}
+}
+
+// parseStructuredList decodes a JSON player-list body of the form
+// {"Players":[{"steamId":"...","faction":"..."}]}. It reports ok=false for
+// any output that is not that shape (including a missing or null Players
+// key), so the caller falls back to the regex/line parsers unchanged.
+// Entries with an empty steamId are skipped. Max stays -1, as it does for
+// the regex path, because the body carries no server maximum.
+func parseStructuredList(raw string) (Snapshot, bool) {
+	trimmed := strings.TrimSpace(raw)
+	if !strings.HasPrefix(trimmed, "{") {
+		return Snapshot{}, false
+	}
+	var body struct {
+		Players *[]struct {
+			SteamID string `json:"steamId"`
+			Faction string `json:"faction"`
+		} `json:"Players"`
+	}
+	if err := json.Unmarshal([]byte(trimmed), &body); err != nil || body.Players == nil {
+		return Snapshot{}, false
+	}
+	entries := []Entry{}
+	ids := []string{}
+	for _, p := range *body.Players {
+		if p.SteamID == "" {
+			continue
+		}
+		entries = append(entries, Entry{SteamID: p.SteamID, Faction: p.Faction})
+		ids = append(ids, p.SteamID)
+	}
+	snap := Snapshot{Online: len(ids), Max: -1, Players: ids}
+	if len(entries) > 0 {
+		snap.Entries = entries
+	}
+	return snap, true
 }
 
 // parseListWithRegex uses a custom regex to extract player names from the

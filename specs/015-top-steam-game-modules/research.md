@@ -1,7 +1,7 @@
 # Research: Dedicated Server Modules for Top Steam Games
 
 **Feature**: `015-top-steam-game-modules`  
-**Date**: 2026-09-03  
+**Date**: 2026-09-03 (refreshed 2026-10-09)  
 **Status**: Completed  
 
 ---
@@ -52,6 +52,7 @@ This research defines the architectural foundation, container configurations, pr
 - **Alternatives Considered**:
   - *Sourcing community images for all 26 games*: Rejected for the four auxiliary-service games because community images crash-loop when credentials are missing (violating FR-013) or fail to co-supervise required companion services in a single pod (violating FR-012).
   - *Building custom Gameplane base images for all 26 games*: Rejected because maintaining 26 bespoke upstream SteamCMD game downloaders introduces unnecessary maintenance overhead for standard games.
+- **Shipped state (2026-10-09)**: The four images are built from `modules/<game>/Dockerfile` + `entrypoint.sh` by `modules/build-images.sh`. Six further new modules (`mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`) also reference `ghcr.io/valgulnecron/gameplane/<game>` images, contrary to this decision, with no build source and placeholder digests. Whether this decision widens to cover them or they move to community images is open; see plan.md Known Gaps.
 
 ### Decision 2: Single-Pod Auxiliary Service Supervision (Clarification Q1)
 
@@ -73,11 +74,30 @@ This research defines the architectural foundation, container configurations, pr
 - **Rationale**: Fulfills Constitution Principle I (mandatory protocol-level probe authorship without CI runner resource exhaustion).
 - **Alternatives Considered**:
   - *Skipping E2E tests for heavy games*: Strictly prohibited by Constitution Principle I.
+- **Shipped state**: In CI, all 13 new games run in `bucket_bot_heavy` (`test/e2e/buckets.sh`), including `tmodloader` and `beammp`, which are in `fastGameSet` for local runs but bucketed heavy for the runner's disk budget. `bot-fast` holds only `minecraft-java`, `terraria`, `garrys-mod` and the wake-on-connect tests.
 
 ### Decision 5: Mandatory Module Specification Structure (Principle IV)
 
 - **Decision**: Author a comprehensive, standardized `specs.md` inside every module directory (`modules/<name>/specs.md`) covering Purpose, Protocols, Ports, Storage Layout, Invariants, Security, and References.
 - **Rationale**: Ensures complete compliance with Constitution Principle IV across all 26 top Steam dedicated server modules.
+
+### Decision 6: New `rest` and `cli` RCON Protocols (maintainer ruling)
+
+- **Decision**: Add `rest` and `cli` as first-class `spec.rcon.protocol` enum values (ten values in total), additive and non-breaking.
+  - `rest` is a generic HTTP/JSON console client (`agent/internal/rcon/rest.go`) with per-game adapters: `txadmin` (FiveM, `POST /fxserver/commands`, bearer token), `farming-simulator-25` (`POST /api/console`, basic auth), and a `generic` fallback (`POST /api/command`). Responses are capped at 1 MiB, auth failures back off for 15s, and HTTPS uses standard certificate verification with TLS 1.2 as the minimum (`agent/internal/rcon/rest.go`). Full contract: OPEN-DECISIONS.md §5.
+  - `cli` lets the agent write commands to the game's stdin through a FIFO (`-cli-pipe`, default `/var/run/gameplane/console.pipe`) so stop sequences and scheduled commands work without a network console. The dashboard console still uses pod-attach (`consoleMode: pty`). The operator mints no `<gs>-rcon` Secret for a passwordless `cli` template, and `rconAvailable` does not advertise live-RCON dashboard actions for it. Ruling: OPEN-DECISIONS.md §1 (Option A).
+- **Rationale**: FiveM's txAdmin and the FS25 web admin are HTTP APIs, and stdin-console games had no way to declare an agent command path; faking them with `palworld`/`satisfactory` or `none` hid real capability.
+- **Alternatives Considered**:
+  - *A dedicated protocol per HTTP game*: Rejected; it grows the enum per game when adapters behind one client suffice without a new CRD field.
+  - *Keep `none` + `consoleMode: pty` for stdin games*: Rejected; the agent then has no route for lifecycle stop commands.
+- **Shipped state**: The protocols are implemented, but only `fivem` and `farming-simulator-25` declare `rest`, and no module declares `cli` yet; the stdin-console modules (`euro-truck-simulator-2`, `mount-and-blade-2-bannerlord`, `terraria`, `tmodloader`, `beammp`, `dont-starve-together`, `valheim`, `arma-reforger`) still ship `none` + `consoleMode: pty`. `factorio` and `project-zomboid` are not in that group: both ship Source RCON on TCP 27015, and `factorio` also keeps its pty console (OPEN-DECISIONS.md §2/§3).
+
+### Decision 7: Per-Game Probe Packages and Coverage Register (Principle I)
+
+- **Decision**: Each new game gets a standalone probe package in `test/e2e/internal/<game>/` (`app.go` with `-addr`/`-deadline`/`-expect-depth`/`-expect-fail`, plus `spec.md`) that reuses `test/e2e/internal/protocol/{a2sproto,sourceproto,joindepth}` where the wire format matches, and is proven to fail against a dead address and succeed against a real listener before any test depends on it. `docs/game-coverage.md` records each game's covered, deferred, or blocked state and the reason.
+- **Rationale**: Principle I requires that a probe be trusted only after it is shown to fail; a coverage register keeps blocked games (undocumented wire formats, relay-only joins) visible instead of silently missing.
+- **Alternatives Considered**:
+  - *One shared generic A2S probe for all games*: Rejected; several games (BeamMP, tModLoader, FS25) do not speak A2S, and a shared probe hides per-game join depth.
 
 ---
 
@@ -85,4 +105,4 @@ This research defines the architectural foundation, container configurations, pr
 
 1. **No Shadowing of Binaries**: `storage.mountPath` must strictly point to data/save/config subdirectories (`/data`, `/serverdata`, `/home/steam/gamesaves`) and never shadow entrypoint binaries or container root filesystems.
 2. **UID/GID Alignment**: For containers running as non-root users (e.g. UID 1000 or 10000), `spec.security.runAsUser`, `spec.security.fsGroup`, and explicit `HOME` environment variables must be declared to ensure SteamCMD operations succeed.
-3. **Save-on-Shutdown Execution**: Every template must define a `spec.capabilities.lifecycle.stop` action with the engine's native save command before terminating the pod.
+3. **Save-on-Shutdown Execution**: When the engine supports persistence, the template defines `spec.capabilities.lifecycle.stop` with the engine's native save command before the pod terminates. Match-based games with no persistent world (`mount-and-blade-2-bannerlord`, `hell-let-loose`, `squad`) and modules with no reachable console (`garrys-mod`, `7-days-to-die`) ship without it. `dayz` (OPEN-DECISIONS.md, T086) and `beammp` also ship without it.

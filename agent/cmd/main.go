@@ -187,7 +187,7 @@ func main() {
 		// middleware.Timeout (F-103): applying a request-scoped deadline to
 		// them force-closes the socket / aborts the download every time the
 		// deadline elapses, regardless of whether the stream is still healthy.
-		logs.Mount(protected, gameLogPath)
+		logs.Mount(protected, dataRoot, gameLogPath)
 		console.Mount(protected, rconClient)
 		mods.Mount(protected, dataRoot, modsSpec)
 		files.Mount(protected, dataRoot)

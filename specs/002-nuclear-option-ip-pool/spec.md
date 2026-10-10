@@ -90,10 +90,10 @@ An operator wants to change the server's name, password, or mission rotation wit
 
 **Acceptance Scenarios**:
 
-1. **Given** a running Nuclear Option server, **When** an operator edits the server name to a valid value (e.g., "My Awesome Server") and attempts to save, **Then** the dashboard validates the change, accepts it, and marks the server as "Configuration Changed — Restart Required" or similar.
+1. **Given** a running Nuclear Option server, **When** an operator edits the server name to a valid value (e.g., "My Awesome Server") and attempts to save, **Then** the dashboard validates the change, accepts it, and marks the server as "Configuration Changed — Restart Required" or similar. **AMENDMENT (2026-10-09, T118)**: there is no separate "Restart Required" status; a saved configuration change is reconciled by the operator, which re-renders the config and rolls the pod through the `gameplane.local/config-hash` pod-template annotation (`operator/internal/controller/gameserver_config.go:28`), so the scenario is satisfied by the change being accepted and applied by that restart.
 2. **Given** an operator editing the server name to an invalid value (e.g., a string 256+ characters), **When** they try to save, **Then** the dashboard validates the change, rejects it with a message like "Server name must be 1–64 characters", and does not apply the change.
 3. **Given** the server is restarted with the new valid name, **When** the server boots, **Then** the new name is reflected in the config file and in the in-game server browser.
-4. **Given** an operator editing the mission rotation or other game settings via a JSON text field, **When** the JSON is malformed and they attempt to save, **Then** the dashboard validates the JSON format, rejects it with "Invalid JSON in [field]: [specific error]", and does not apply the change (preventing the server from entering a crash loop on the next restart).
+4. **Given** an operator editing the mission rotation or other game settings via a JSON text field, **When** the JSON is malformed and they attempt to save, **Then** the dashboard validates the JSON format, rejects it with "Invalid JSON in [field]: [specific error]", and does not apply the change (preventing the server from entering a crash loop on the next restart). **AMENDMENT (2026-10-09, T118)**: Gameplane has no JSON config-field type; mission rotation and other settings are typed fields (enum, int with `min`/`max`, string with `minLength`/`maxLength`). An invalid value is rejected in the dashboard before saving and, if it reaches the operator, surfaces on `status.conditions` naming the field and the constraint, without a crash loop. That is the behaviour this scenario now requires.
 
 ---
 
@@ -284,6 +284,12 @@ This marks the exact moment the server is ready to accept connections.
 *Resolution:* Logs are accessible and parseable. Backup of logs is feasible; log inclusion in backups is fully supported.
 
 ---
+
+## Decision Record: Player Display Names (T022)
+
+The dedicated server's `get-player-list` returns only `steamId` and `faction` (upstream removed `displayName` because the headless server caches no names and directs integrators to Steam's Web API). **FR-007 and US3 Acceptance Scenario 1 stand as written.** Gameplane resolves names with a Steam Web API lookup that lives in the **API server** (`api/internal/steam/`), never the agent: the games namespace runs `default-deny-egress` over every pod (`charts/gameplane/templates/networkpolicies.yaml`), so an agent-side lookup would need an egress hole and the Steam key in every game pod, whereas the control-plane namespace gives one egress path, one Secret and one shared cache.
+
+Constraints: outbound calls dial through `netguard` with the strict `IsPublic` policy; the key is optional and comes from a Secret (`api.steam.apiKeySecretRef`, env `GAMEPLANE_STEAM_API_KEY` only); ids are batched into `ISteamUser/GetPlayerSummaries/v2` calls of up to 100; each call is bounded by a timeout inside the SC-004 five-second budget; results live in a small bounded in-process LRU cache (hours-scale positive TTL, shorter negative TTL for ids Steam omits, single-flight de-duplication) and **not** in a database table, migration, Redis or a cross-replica cache; any failure degrades to the raw Steam ID; kick, ban and unban stay keyed on the Steam ID. Full design: `data-model.md` §8 and `plan.md` Decision 9; implementation: T081–T104.
 
 ## Out of Scope
 

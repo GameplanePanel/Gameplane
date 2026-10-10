@@ -11,7 +11,7 @@
 // When it is "sso-only", overrides /auth/providers to report no local-login
 // provider, so Login.tsx renders its SSO-only branch.
 
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 import { setupWorker } from "msw/browser";
 import { handlers, buildScreenshotHandlers, buildSsoOnlyHandlers } from "./handlers";
 import { makeConfig } from "./factories";
@@ -134,14 +134,21 @@ function getHandlerSet(): Parameters<typeof setupWorker>[0][] {
   return handlers;
 }
 
-const worker = setupWorker(...getHandlerSet());
+// msw 3 also intercepts page navigations, so a reload or page.goto("/cluster")
+// would get the GET /cluster API mock instead of the SPA. Let every document
+// navigation reach Vite; only fetches from the app are mocked.
+const navigationPassthrough = http.all("*", ({ request }) =>
+  request.mode === "navigate" ? passthrough() : undefined,
+);
+
+const worker = setupWorker(navigationPassthrough, ...getHandlerSet());
 
 export async function startMSW(): Promise<void> {
   await worker.start({
     // Don't error on requests we haven't mocked — pass them through to
     // the real network. Lets us mix mocked auth/list endpoints with a
     // real fetch for things we don't care to mock.
-    onUnhandledRequest: "bypass",
+    onUnhandledFrame: "bypass",
     serviceWorker: { url: "/mockServiceWorker.js" },
   });
 }

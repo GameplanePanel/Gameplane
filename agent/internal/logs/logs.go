@@ -1,9 +1,7 @@
 // Package logs streams the game container's log file over a WebSocket.
 //
-// In-cluster plumbing: the operator mounts the game container's log as a
-// readable file into the agent via a shared emptyDir + symlink, or the
-// game itself is configured to write to /data/logs/latest.log. This
-// package doesn't care — it just tails whatever path it's handed.
+// Log paths are resolved beneath the operator-supplied data root. Each read
+// uses a confined regular-file descriptor, including after log rotation.
 package logs
 
 import (
@@ -23,12 +21,15 @@ import (
 )
 
 type handler struct {
-	path string
+	path      string
+	root      string
+	relative  string
+	configErr error
 }
 
 // Mount registers the log-streaming WebSocket endpoints on the supplied router.
-func Mount(r chi.Router, path string) {
-	h := &handler{path: path}
+func Mount(r chi.Router, root, path string) {
+	h := newHandler(root, path)
 	r.Get("/logs/tail", h.tail)
 	r.Get("/logs/download", h.download)
 }
@@ -38,22 +39,30 @@ func (h *handler) download(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "log download not configured (set --game-log-path)", http.StatusServiceUnavailable)
 		return
 	}
-	fi, err := os.Stat(h.path)
+	source, err := h.openSource()
+	if err != nil {
+		http.Error(w, "log file unavailable", http.StatusInternalServerError)
+		return
+	}
+	defer source.close()
+	f, err := source.open()
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			http.Error(w, "log file not found", http.StatusNotFound)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "log file unavailable", http.StatusInternalServerError)
 		return
 	}
-	if fi.IsDir() {
-		http.Error(w, "log path is a directory", http.StatusInternalServerError)
+	defer func() { _ = f.Close() }()
+	fi, err := f.Stat()
+	if err != nil {
+		http.Error(w, "log file unavailable", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Disposition",
 		fmt.Sprintf(`attachment; filename=%q`, filepath.Base(h.path)))
-	http.ServeFile(w, req, h.path)
+	http.ServeContent(w, req, filepath.Base(h.path), fi.ModTime(), f)
 }
 
 func (h *handler) tail(w http.ResponseWriter, req *http.Request) {
@@ -83,21 +92,27 @@ func (h *handler) tail(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	if err := streamFile(ctx, conn, h.path, fromEnd, tailLines); err != nil && !errors.Is(err, context.Canceled) {
-		_ = conn.Close(websocket.StatusInternalError, err.Error())
+	source, err := h.openSource()
+	if err != nil {
+		_ = conn.Close(websocket.StatusInternalError, "log file unavailable")
+		return
+	}
+	defer source.close()
+	if err := streamFile(ctx, conn, source, fromEnd, tailLines); err != nil && !errors.Is(err, context.Canceled) {
+		_ = conn.Close(websocket.StatusInternalError, "log file unavailable")
 	}
 }
 
-// streamFile tails path, delivering each full line as a text WS frame.
+// streamFile tails a confined source, delivering each full line as a text WS frame.
 // If tailLines > 0, replays the last tailLines lines before following.
 // Reopens the file on rotation (ENOENT or inode change) with a short
 // backoff so logrotate-style setups keep working.
-func streamFile(ctx context.Context, conn *websocket.Conn, path string, fromEnd bool, tailLines int64) error {
+func streamFile(ctx context.Context, conn *websocket.Conn, source *logSource, fromEnd bool, tailLines int64) error {
 	for {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		f, err := os.Open(filepath.Clean(path))
+		f, err := source.open()
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				if sleep(ctx, time.Second) != nil {
@@ -116,7 +131,7 @@ func streamFile(ctx context.Context, conn *websocket.Conn, path string, fromEnd 
 		} else if fromEnd {
 			_, _ = f.Seek(0, io.SeekEnd)
 		}
-		if err := tailLoop(ctx, conn, f); err != nil {
+		if err := tailLoop(ctx, conn, source, f); err != nil {
 			_ = f.Close()
 			if errors.Is(err, errRotated) {
 				fromEnd = false
@@ -178,7 +193,7 @@ func replayTail(ctx context.Context, conn *websocket.Conn, f *os.File, tailLines
 	return nil
 }
 
-func tailLoop(ctx context.Context, conn *websocket.Conn, f *os.File) error {
+func tailLoop(ctx context.Context, conn *websocket.Conn, source *logSource, f *os.File) error {
 	reader := bufio.NewReader(f)
 	for {
 		if ctx.Err() != nil {
@@ -194,7 +209,7 @@ func tailLoop(ctx context.Context, conn *websocket.Conn, f *os.File) error {
 		case err == nil:
 			continue
 		case errors.Is(err, io.EOF):
-			if rotated, rerr := checkRotation(f); rerr != nil {
+			if rotated, rerr := checkRotation(source, f); rerr != nil {
 				return rerr
 			} else if rotated {
 				return errRotated
@@ -208,16 +223,21 @@ func tailLoop(ctx context.Context, conn *websocket.Conn, f *os.File) error {
 	}
 }
 
-func checkRotation(f *os.File) (bool, error) {
+func checkRotation(source *logSource, f *os.File) (bool, error) {
 	fi1, err := f.Stat()
 	if err != nil {
 		return false, err
 	}
-	fi2, err := os.Stat(f.Name())
+	probe, err := source.open()
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return true, nil
 		}
+		return false, err
+	}
+	defer func() { _ = probe.Close() }()
+	fi2, err := probe.Stat()
+	if err != nil {
 		return false, err
 	}
 	return !os.SameFile(fi1, fi2), nil

@@ -379,7 +379,7 @@ input:-webkit-autofill:focus {
 }
 
 /* ==========================================================================
-   Dialog geometry — pinned to Gameplane/Modal (design-export/json/x3beP.json):
+   Dialog geometry — pinned to Gameplane/Modal (assets/design-export/json/x3beP.json):
    padding 20, header gap 4, body padding-top 16 + gap 16, footer padding-top
    20 + gap 8. HeroUI's ModalHeader/ModalBody/ModalFooter are not column-flex
    containers on their own, so per-dialog `gap-*` utilities passed to
@@ -583,7 +583,7 @@ input:-webkit-autofill:focus {
    notConfigured (BV5ei) and fromHelm (Rwnu3) still use the pink chip--soft
    pill via color="danger"/"default" and need no override here.
    Uses outline instead of border: the design's stroke is inner-aligned
-   (doesn't grow the shape's bounding box — see design-export/json/R65Xyx.json
+   (doesn't grow the shape's bounding box — see assets/design-export/json/R65Xyx.json
    "strokeAlignment":"inner"), and CSS outline never participates in layout
    sizing regardless of offset, matching that exactly. A real `border` here
    was pushing the rendered chip ~1.2% wider than the reference, forcing the

@@ -556,6 +556,46 @@ expire after 90 days without a report) is at
   The receiver's session cookie is `Secure`, so use a browser that treats
   `localhost` as a secure origin or put TLS in front.
 
+## Steam display names (optional)
+
+Nuclear Option and other Steam-ID games report only Steam IDs in their player
+lists. With a Steam Web API key set, the API server looks up each player's
+public display name (`ISteamUser/GetPlayerSummaries/v2`) and shows it next to
+the ID. The lookup runs only in the API, never in game pods, and is off by
+default. Without a key, player lists show raw Steam IDs and nothing is sent to
+Steam.
+
+Get a key at <https://steamcommunity.com/dev/apikey> (sign in with Steam; the
+domain field on that form is not used by Gameplane). Store it in a Secret in
+the release namespace and point the chart at it:
+
+```sh
+kubectl -n gameplane-system create secret generic steam-api \
+  --from-literal=api-key='<your Steam Web API key>'
+helm upgrade ... \
+  --set api.steam.apiKeySecretRef.name=steam-api
+```
+
+- `api.steam.apiKeySecretRef.name` — the Secret holding the key; empty (the
+  default) turns the lookup off.
+- `api.steam.apiKeySecretRef.key` — the key within that Secret (default
+  `api-key`).
+- `api.steam.cache.*` — optional tuning of the in-memory name cache, with
+  defaults shown: `maxEntries: 10000` (LRU bound on cached Steam IDs),
+  `ttl: 12h` (lifetime of a resolved name), `negativeTTL: 15m` (lifetime of an
+  ID Steam does not return), `timeout: 2s` (per Steam call).
+
+The key is read from the Secret into the API's environment
+(`GAMEPLANE_STEAM_API_KEY`), never a flag. It is never logged and never sent to
+the browser. The cache lives in process memory only and is rebuilt after each
+API restart; no database table, Redis or shared cache is involved. A failed
+Steam call is not cached, so the next request retries. If Steam is slow or
+unreachable, a player list waits at most about 1.5 seconds and then falls back
+to the raw Steam ID for any name it does not have. Names are display-only;
+kick, ban and unban continue to use Steam IDs. See
+[security](security.md#steam-display-name-lookup) for the egress and threat
+model.
+
 ## Installing a module
 
 The chart ships two `ModuleSource`s: `default` (pulls pre-built bundles from the

@@ -6,11 +6,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/GameplanePanel/gameplane/test/e2e/internal/minecraft-java/minecraftproto"
@@ -26,7 +28,13 @@ func main() {
 			"ping (server-list ping only, never logs in, expect-depth QUERY) | "+
 			"wake (ping + a single non-retried login attempt, tolerant of the "+
 			"connection being dropped mid-response — for exercising a "+
-			"wake-on-connect sentinel's handshake parser, expect-depth PARTIAL)")
+			"wake-on-connect sentinel's handshake parser, expect-depth PARTIAL) | "+
+			"sustained (ping + login warm-up, then one -hold long session with "+
+			"keep-alive echo and ping RTT sampling; prints a METRICS line; expect-depth JOINED)")
+	hold := flag.Duration("hold", 30*time.Second,
+		"sustained mode: how long the session must stay open after Play starts")
+	pingEvery := flag.Duration("ping-every", 2*time.Second,
+		"sustained mode: interval between Ping Requests used for RTT samples")
 
 	// Standard flags per the probe CLI contract.
 	addr := flag.String("addr", "", "game server host:port (in-cluster Service DNS)")
@@ -63,6 +71,15 @@ func main() {
 		emitVerdictAndExit(&verdict, joindepth.QUERY, *expectFail, 1)
 	}
 
+	if *mode == "sustained" && (*hold <= 0 || *pingEvery <= 0) {
+		verdict := joindepth.ProbeVerdict{
+			ReachedDepth: joindepth.QUERY,
+			Detail:       "Bad flag: -hold and -ping-every must be positive",
+			Err:          errors.New("-hold and -ping-every must be positive"),
+		}
+		emitVerdictAndExit(&verdict, joindepth.QUERY, *expectFail, 1)
+	}
+
 	// Create the probe context with deadline.
 	ctx, cancel := context.WithTimeout(context.Background(), *deadline)
 	defer cancel()
@@ -77,6 +94,10 @@ func main() {
 		reached, evidence, transportErr = probeMinecraftPing(ctx, *addr)
 	case "wake":
 		reached, evidence, transportErr = probeMinecraftWake(ctx, *addr, *user)
+	case "sustained":
+		var metrics minecraftproto.HoldResult
+		reached, evidence, metrics, transportErr = probeMinecraftSustained(ctx, *addr, *user, *hold, *pingEvery)
+		printMetrics(&metrics)
 	default:
 		reached, evidence, transportErr = probeMinecraft(ctx, *addr, *user)
 	}
@@ -134,11 +155,31 @@ func probeMinecraft(ctx context.Context, addr, user string) (joindepth.JoinDepth
 	log.Printf("ping ok: version=%q protocol=%d players=%d/%d",
 		st.Version.Name, st.Version.Protocol, st.Players.Online, st.Players.Max)
 
-	// The server answers pings while it is still preparing the spawn area but
-	// rejects logins until the world is ready, so the login is retried too.
+	loginResult, err := awaitPlayableLogin(ctx, addr, st.Version.Protocol, user)
+	if err != nil {
+		var fatalErr errFatal
+		if errors.As(err, &fatalErr) {
+			// Non-retryable error: server is in online-mode. Report as PARTIAL.
+			evidence := fmt.Sprintf("Encryption Request (0x01) sent; %s", loginResult.Detail)
+			return joindepth.PARTIAL, evidence, nil
+		}
+		return joindepth.QUERY, "", fmt.Errorf("login: %w", err)
+	}
+
+	// Success: server sent Login Success.
+	evidence := fmt.Sprintf("Login Success packet (0x02); username %q accepted", user)
+	return joindepth.JOINED, evidence, nil
+}
+
+// awaitPlayableLogin retries the login until the server accepts it or ctx ends.
+// The server answers pings while it is still preparing the spawn area but
+// rejects logins until the world is ready, so the login is retried. An
+// online-mode server is returned as errFatal. The result is the last login
+// response seen and may be non-nil alongside an error.
+func awaitPlayableLogin(ctx context.Context, addr string, protocol int, user string) (*minecraftproto.LoginResult, error) {
 	var loginResult *minecraftproto.LoginResult
-	err = retry(ctx, "login", loginAttempt, func(c context.Context) error {
-		r, err := minecraftproto.Login(c, addr, st.Version.Protocol, user)
+	err := retry(ctx, "login", loginAttempt, func(c context.Context) error {
+		r, err := minecraftproto.Login(c, addr, protocol, user)
 		if err != nil {
 			return err
 		}
@@ -155,19 +196,70 @@ func probeMinecraft(ctx context.Context, addr, user string) (joindepth.JoinDepth
 			return fmt.Errorf("login refused: %s", r.Detail)
 		}
 	})
+	return loginResult, err
+}
+
+// probeMinecraftSustained pings and logs in with the same warm-up retries as
+// probeMinecraft, then makes a single sustained session of length hold (no
+// retry of the hold itself). It returns the metrics for the METRICS line
+// alongside the usual depth, evidence and error. A drop, timeout or disconnect
+// during the hold is a transport error (exit 3).
+func probeMinecraftSustained(ctx context.Context, addr, user string, hold, pingEvery time.Duration) (joindepth.JoinDepth, string, minecraftproto.HoldResult, error) {
+	var st *minecraftproto.Status
+	err := retry(ctx, "server-list ping", probeAttempt, func(c context.Context) error {
+		s, err := minecraftproto.Ping(c, addr)
+		if err != nil {
+			return err
+		}
+		st = s
+		return nil
+	})
 	if err != nil {
+		evidence := err.Error()
+		return joindepth.JoinDepth(-1), evidence,
+			minecraftproto.HoldResult{KeepaliveRTTSamplesMs: []float64{}, Failure: "join: " + evidence},
+			fmt.Errorf("server-list ping: %w", err)
+	}
+	log.Printf("ping ok: version=%q protocol=%d players=%d/%d",
+		st.Version.Name, st.Version.Protocol, st.Players.Online, st.Players.Max)
+
+	if _, err := awaitPlayableLogin(ctx, addr, st.Version.Protocol, user); err != nil {
 		var fatalErr errFatal
 		if errors.As(err, &fatalErr) {
-			// Non-retryable error: server is in online-mode. Report as PARTIAL.
-			evidence := fmt.Sprintf("Encryption Request (0x01) sent; %s", loginResult.Detail)
-			return joindepth.PARTIAL, evidence, nil
+			// Online-mode server: same PARTIAL outcome as the join probe.
+			return joindepth.PARTIAL, "Encryption Request (0x01) sent; " + fatalErr.Error(),
+				minecraftproto.HoldResult{KeepaliveRTTSamplesMs: []float64{}, Failure: "join: " + err.Error()}, nil
 		}
-		return joindepth.QUERY, "", fmt.Errorf("login: %w", err)
+		return joindepth.QUERY, "", minecraftproto.HoldResult{KeepaliveRTTSamplesMs: []float64{}, Failure: "join: " + err.Error()},
+			fmt.Errorf("login: %w", err)
 	}
 
-	// Success: server sent Login Success.
-	evidence := fmt.Sprintf("Login Success packet (0x02); username %q accepted", user)
-	return joindepth.JOINED, evidence, nil
+	res, err := minecraftproto.Hold(ctx, addr, st.Version.Protocol, user, hold, pingEvery)
+	if err != nil {
+		// A failed join (no Login Success) is QUERY; anything later means the
+		// join succeeded and the hold ended early, so the depth is JOINED.
+		if strings.HasPrefix(res.Failure, "join:") {
+			return joindepth.QUERY, res.Failure, res, err
+		}
+		evidence := fmt.Sprintf("Login Success packet (0x02); session ended after %.1fs: %s",
+			res.HeldSec, res.Failure)
+		return joindepth.JOINED, evidence, res, err
+	}
+
+	evidence := fmt.Sprintf("held %s, %d keepalives, %d rtt samples",
+		hold, res.KeepalivesReceived, len(res.KeepaliveRTTSamplesMs))
+	return joindepth.JOINED, evidence, res, nil
+}
+
+// printMetrics writes the single METRICS line that precedes the VERDICT line.
+// Its JSON field names are the contract documented in spec.md.
+func printMetrics(m *minecraftproto.HoldResult) {
+	raw, err := json.Marshal(m)
+	if err != nil {
+		log.Printf("metrics encode: %v", err)
+		return
+	}
+	fmt.Printf("METRICS\t%s\n", raw)
 }
 
 // probeMinecraftPing issues a server-list ping and nothing else. It is used

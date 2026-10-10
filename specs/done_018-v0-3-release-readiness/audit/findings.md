@@ -2546,7 +2546,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 
 **Repro / observation**
 1. `docs/module-authoring.md:139-141` says "`template.yaml` is the same `GameTemplate` you would write today, with one difference: omit `metadata.name`".
-2. `specs/010-easy-module-building/contracts/archetypes-contract.md` §3 says: "The offline validator (`gp-module validate`) requires `metadata.name` to be present and non-empty".
+2. `specs/done_010-easy-module-building/contracts/archetypes-contract.md` §3 says: "The offline validator (`gp-module validate`) requires `metadata.name` to be present and non-empty".
 3. Copy a scaffolded module and delete `metadata.name` from `template.yaml`. `validate` reports `ERROR [template-schema-violation] template.yaml:5: metadata.name is required in template.yaml`.
 
 **Expected:** The authoring guide and the spec agree. Under the spec 010 contract, the guide says to include `metadata.name`.
@@ -2611,7 +2611,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 
 **Repro / observation**
 1. Copy a scaffolded module and append `gameplaneMinVersion: 9.0.0` to `module.yaml`. `validate` prints `OK (no findings)`.
-2. `gp-module --version` prints `1.0.0`. `specs/010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author".
+2. `gp-module --version` prints `1.0.0`. `specs/done_010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author".
 
 **Expected:** A warning when `gameplaneMinVersion` is above the version the tool represents.
 
@@ -2626,7 +2626,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 **Control:** Privilege defaults for scaffolded modules. The `steamcmd` preset is documented as producing a template that runs the game as a non-root user.
 
 **Repro / observation (defensive; confirms whether the control holds):**
-1. Read `archetypes.go:121`: the description ends "(Valve UDP ports, save volume, non-root user)". `specs/010-easy-module-building/contracts/archetypes-contract.md:13` lists "non-root security defaults" as a primary characteristic of `steamcmd`.
+1. Read `archetypes.go:121`: the description ends "(Valve UDP ports, save volume, non-root user)". `specs/done_010-easy-module-building/contracts/archetypes-contract.md:13` lists "non-root security defaults" as a primary characteristic of `steamcmd`.
 2. Read `archetypes.go:122`: `DefaultImage` is `cm2network/steamcmd:root@sha256:4d830b…`. The tag names the upstream image's root variant.
 3. In a scratch directory, run `gp-module init x --archetype steamcmd -y` and read the generated `template.yaml`. It uses that image and has no `spec.security` block.
 4. Read `operator/internal/controller/gameserver_controller.go:1981-1990`. With no `spec.security`, `gameContainerSecurityContext` returns nil, so the pod runs the game as whatever user the image declares.

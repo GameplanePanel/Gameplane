@@ -13,10 +13,10 @@ import (
 	"github.com/coder/websocket"
 )
 
-// TestDownload_StatNonNotExistError covers download's non-ENOENT os.Stat
+// TestDownload_StatNonNotExistError covers download's non-ENOENT open
 // error branch (the 500 path, distinct from the 404 ErrNotExist path
 // other tests already cover): the configured path's parent component is
-// a regular file, so os.Stat fails with ENOTDIR rather than ENOENT.
+// a regular file, so the descriptor walk fails with ENOTDIR rather than ENOENT.
 func TestDownload_StatNonNotExistError(t *testing.T) {
 	dir := t.TempDir()
 	file := filepath.Join(dir, "notadir")
@@ -25,7 +25,7 @@ func TestDownload_StatNonNotExistError(t *testing.T) {
 	}
 	badPath := filepath.Join(file, "child") // "notadir/child": ENOTDIR, not ENOENT
 
-	url := mountServer(t, badPath)
+	url := mountServer(t, dir, badPath)
 	resp, err := testGet(t, url+"/logs/download")
 	if err != nil {
 		t.Fatalf("get: %v", err)
@@ -36,17 +36,14 @@ func TestDownload_StatNonNotExistError(t *testing.T) {
 	}
 }
 
-// TestStreamFile_DirectoryPathReturnsError covers streamFile's final
-// error-propagation return after tailLoop fails on a non-rotation error:
-// reading from a directory FD fails with EISDIR, which tailLoop's default
-// switch case surfaces, and streamFile must close the handle and return
-// that error rather than looping or swallowing it.
+// TestStreamFile_DirectoryPathReturnsError verifies that a directory is
+// rejected before any stream reads, rather than looping or swallowing it.
 func TestStreamFile_DirectoryPathReturnsError(t *testing.T) {
 	dir := t.TempDir() // a directory used as the "log file" path
 
-	err := streamFile(context.Background(), nil, dir, false, 0)
+	err := streamFile(context.Background(), nil, testSource(t, filepath.Dir(dir), dir), false, 0)
 	if err == nil {
-		t.Fatal("streamFile on a directory path should fail once ReadString hits EISDIR")
+		t.Fatal("streamFile on a directory path should reject the nonregular file")
 	}
 }
 
@@ -72,7 +69,7 @@ func TestTailLoop_CtxCanceledImmediately(t *testing.T) {
 	cancel()
 
 	// conn is nil: the ctx.Err() check must fire before any conn use.
-	if err := tailLoop(ctx, nil, f); !errors.Is(err, context.Canceled) {
+	if err := tailLoop(ctx, nil, testSource(t, dir, path), f); !errors.Is(err, context.Canceled) {
 		t.Fatalf("tailLoop with a pre-canceled ctx = %v, want context.Canceled", err)
 	}
 }
@@ -106,7 +103,7 @@ func TestTailLoop_WriteFailsOnClosedConn(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	if err := tailLoop(context.Background(), cli, f); err == nil {
+	if err := tailLoop(context.Background(), cli, testSource(t, dir, path), f); err == nil {
 		t.Fatal("tailLoop should fail when the WS write fails on an already-closed conn")
 	}
 }
@@ -132,7 +129,7 @@ func TestTailLoop_EmptyFileWaitsThenCtxExpires(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	err = tailLoop(ctx, nil, f)
+	err = tailLoop(ctx, nil, testSource(t, dir, path), f)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("tailLoop on an empty, unrotated file = %v, want context.DeadlineExceeded", err)
 	}
@@ -140,7 +137,7 @@ func TestTailLoop_EmptyFileWaitsThenCtxExpires(t *testing.T) {
 
 // TestCheckRotation_ClosedFileStatError covers checkRotation's OWN f.Stat()
 // error branch, distinct from TestCheckRotation_StatError which covers
-// the SECOND os.Stat(f.Name()) call: closing f first makes the file's own
+// the confined rotation probe: closing f first makes the file's own
 // Stat fail immediately.
 func TestCheckRotation_ClosedFileStatError(t *testing.T) {
 	dir := t.TempDir()
@@ -156,7 +153,7 @@ func TestCheckRotation_ClosedFileStatError(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	rot, err := checkRotation(f)
+	rot, err := checkRotation(testSource(t, dir, path), f)
 	if err == nil {
 		t.Fatal("expected an error from Stat on a closed file")
 	}

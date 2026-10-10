@@ -146,6 +146,90 @@ func TestSingleflightErrorFansOut(t *testing.T) {
 	}
 }
 
+func TestSingleflightCancelledWaiterDoesNotAffectOthers(t *testing.T) {
+	// One waiter cancels its context while the shared flight is in progress.
+	// The flight must not be cancelled, and every waiter (including the cancelled one)
+	// must receive the same result.
+	sf := &singleflightGroup{}
+	ids := []string{"id1", "id2"}
+	const n = 5
+	want := map[string]string{"id1": "Player1", "id2": "Player2"}
+
+	release := make(chan struct{})
+	var mu sync.Mutex
+	callCount := 0
+	var flightCtxErr error
+
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	type outcome struct {
+		res map[string]string
+		err error
+	}
+	outcomes := make(chan outcome, n)
+
+	var started sync.WaitGroup
+	for i := 0; i < n; i++ {
+		ctx := context.Background()
+		if i == 0 {
+			ctx = cancelCtx
+		}
+		started.Add(1)
+		go func() {
+			started.Done()
+			res, err := sf.Do(ctx, ids, func(fctx context.Context) (map[string]string, error) {
+				mu.Lock()
+				callCount++
+				mu.Unlock()
+
+				<-release
+
+				// Record whether the shared flight observed a cancellation.
+				mu.Lock()
+				flightCtxErr = fctx.Err()
+				mu.Unlock()
+				return map[string]string{"id1": "Player1", "id2": "Player2"}, nil
+			})
+			outcomes <- outcome{res, err}
+		}()
+	}
+
+	// Wait for every goroutine to start, then give them time to join the flight.
+	started.Wait()
+	time.Sleep(10 * time.Millisecond)
+
+	// Cancel the first waiter's context while the flight is still blocked, then let it finish.
+	cancel()
+	close(release)
+
+	for i := 0; i < n; i++ {
+		o := <-outcomes
+		if o.err != nil {
+			t.Errorf("waiter %d: expected nil error, got %v", i, o.err)
+			continue
+		}
+		if len(o.res) != len(want) {
+			t.Errorf("waiter %d: expected %d results, got %v", i, len(want), o.res)
+			continue
+		}
+		for id, val := range want {
+			if o.res[id] != val {
+				t.Errorf("waiter %d: expected %s=%s, got %q", i, id, val, o.res[id])
+			}
+		}
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if callCount != 1 {
+		t.Errorf("expected 1 upstream call, got %d", callCount)
+	}
+	if flightCtxErr != nil {
+		t.Errorf("shared flight context was cancelled by a single waiter: %v", flightCtxErr)
+	}
+}
+
 func TestSingleflightSecondCallerJoinsInFlight(t *testing.T) {
 	// Test that a second caller joining an in-flight call receives the shared result
 	// without triggering a second upstream invocation.

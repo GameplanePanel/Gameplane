@@ -1002,6 +1002,14 @@ Secret) > `passwordFile` (game-managed) > operator-generated Secret (default).
 | `passwordSecretRef` | Use external credentials | Yes (external) | Via `passwordEnv` | Any game with your own Secret |
 | `passwordFile` | Game manages the password | No | No | Factorio with `config/rconpw` |
 
+`authentication` (default `true`) says whether the console requires a password at
+all. Set `authentication: false` for a console with no authentication, such as
+Nuclear Option's loopback-only remote-command port: the operator then mints no
+password Secret, mounts nothing for the agent, and injects no password env var.
+It cannot be combined with `passwordSecretRef`, `passwordEnv` or `passwordFile`
+(the API rejects the combination). Modules that relied on the old implicit
+no-password behaviour for `protocol: nuclearoption` must now set it explicitly.
+
 For games without usable RCON set `protocol: none`. Real cases from the
 official modules:
 

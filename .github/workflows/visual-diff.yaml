@@ -5,12 +5,12 @@ on:
     branches: [master]
     paths:
       - 'web/**'
-      - 'design-export/**'
+      - 'assets/design-export/**'
       - '.github/workflows/visual-diff.yaml'
   pull_request:
     paths:
       - 'web/**'
-      - 'design-export/**'
+      - 'assets/design-export/**'
       - '.github/workflows/visual-diff.yaml'
   workflow_dispatch:
 

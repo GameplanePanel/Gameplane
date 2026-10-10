@@ -2,7 +2,7 @@
 
 **Branch**: `010-easy-module-building` | **Date**: 2026-08-27 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/010-easy-module-building/spec.md`
+**Input**: Feature specification from `/specs/done_010-easy-module-building/spec.md`
 
 ## Summary
 
@@ -71,7 +71,7 @@ Deliver a unified, offline-capable Go CLI developer toolkit (`gp-module`) and a 
 ### Documentation (this feature)
 
 ```text
-specs/010-easy-module-building/
+specs/done_010-easy-module-building/
 ├── spec.md                       # Feature specification
 ├── plan.md                       # Implementation plan (this document)
 ├── research.md                   # Phase 0 research findings and technical decisions

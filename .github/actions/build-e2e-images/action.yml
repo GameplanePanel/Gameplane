@@ -19,7 +19,7 @@ runs:
     - name: bake e2e images (operator/api/agent/sentinel/capture-sidecar/telemetry-receiver/fakeoidc)
       uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
       with:
-        files: docker-bake.hcl
+        files: containers/docker-bake.hcl
         targets: e2e
         load: true
         set: |
@@ -40,7 +40,7 @@ runs:
     - name: bake gameprobe image
       uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
       with:
-        files: docker-bake.hcl
+        files: containers/docker-bake.hcl
         targets: e2e-gameprobe
         load: true
         set: |

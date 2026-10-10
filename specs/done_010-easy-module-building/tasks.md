@@ -1,6 +1,6 @@
 # Tasks: Easy Module Building & Authoring Toolkit
 
-**Input**: Design documents from `/specs/010-easy-module-building/`  
+**Input**: Design documents from `/specs/done_010-easy-module-building/`  
 **Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/)
 
 ---
@@ -134,7 +134,7 @@
 - [X] T035 [P] Register `TestModule_ScaffoldAndPackage` in `bucket_operator` in `test/e2e/buckets.sh` and verify disjointness via `./test/e2e/buckets.sh verify`
 - [X] T036 Implement end-to-end Kubernetes lifecycle test in `test/e2e/module_toolkit_e2e_test.go`
 - [X] T037 Run `make check-specs` to verify all Go modules have valid `specs.md` files per Constitution Principle IV
-- [X] T038 Run quickstart validation scenarios from `specs/010-easy-module-building/quickstart.md`
+- [X] T038 Run quickstart validation scenarios from `specs/done_010-easy-module-building/quickstart.md`
 
 ---
 

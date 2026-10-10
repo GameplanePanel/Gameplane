@@ -258,9 +258,9 @@ Design, as decided:
 
 Rationale: it keeps the promised UX (FR-007 / US3-AC1) intact, confines a third-party dependency and a credential to a single control-plane component that already has an egress path, and reuses the repo's existing SSRF dial-guard instead of inventing a second outbound-HTTP policy.
 
-**Decision 10: Players Capability Parsing Strategy for JSON Response — PENDING MAINTAINER CONFIRMATION**
+**Decision 10: Players Capability Parsing Strategy for JSON Response — DECIDED 2026-10-09: Option 2**
 
-*Status: **RECOMMENDATION pending maintainer confirmation.** Protocol's per-command response shapes are marked UNVERIFIED (13 of 19 commands in contracts/nuclear-option-remote-command.md); exact behavior contingent on live-server testing. Implementation choice deferred until protocol is verified.*
+*Status: **DECIDED** by the maintainer on 2026-10-09 (project thread decision card "Names + faction"). Implemented additively so no existing client breaks: when the list command's output is a JSON object with a `Players` array, the agent's `/players` snapshot keeps `players` as the flat list of Steam IDs and adds `entries: [{steamId, faction}]` (`agent/internal/players/players.go`); the API adds `displayName` to those entries (`api/internal/ws/players_hydrate.go`). The dashboard rendering (T095/T096/T102) waits for the Pencil design pass.*
 
 The agent's player-list capability (agent/internal/caps/caps.go, type `PlayerList`, lines 115–123) is currently structured around text-based RCON output: it declares a `Command` (the RCON command to run) and an optional `EntryRegex` (regex applied over the console text output to extract player names). The `Snapshot` struct returned by the `/players` endpoint (agent/internal/players/players.go, lines 57–64) carries a `Players []string` field populated by this regex-parsing flow.
 
@@ -276,9 +276,9 @@ Nuclear Option's remote-command protocol returns structured JSON instead: `{"Pla
 
 **Alternative (if Option 2 proves too complex during implementation)**: Fall back to Option 3 (no players capability v1). This is safe for the module's core gameplay (the operator can still run remote commands by Steam ID), but leaves the dashboard's Players tab and idle auto-sleep at reduced capability for this game until the protocol-aware parser is implemented in a follow-up release.
 
-**Decision 11: RCON Password Secret Minting for Unauthenticated Protocols — PENDING MAINTAINER CONFIRMATION**
+**Decision 11: RCON Password Secret Minting for Unauthenticated Protocols — DECIDED 2026-10-09: template switch**
 
-*Status: **RECOMMENDATION pending maintainer confirmation.***
+*Status: **DECIDED** by the maintainer on 2026-10-09: instead of a protocol check, GameTemplate gains `spec.rcon.authentication` (default `true`, today's behaviour). `false` means the console has no authentication, so the operator mints no `<gs>-rcon` Secret, mounts nothing for the agent and injects no password env; a CEL rule rejects `false` together with `passwordSecretRef`, `passwordEnv` or `passwordFile` (`operator/api/v1alpha1/gametemplate_types.go`, `operator/internal/controller/gameserver_rcon.go`). The Nuclear Option template sets `authentication: false`. The options below are kept for history.*
 
 The operator's `reconcileRCONSecret` function (operator/internal/controller/gameserver_rcon.go, lines 66–100) ensures that whenever a template declares an RCON interface, a per-GameServer Secret is minted (unless the template references an external PasswordSecretRef or uses a game-managed password file). The Secret holds a randomly-generated password, mounted into the agent sidecar at `/etc/gameplane/rcon` for use over the RCON protocol.
 
