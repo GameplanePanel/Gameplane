@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -14,7 +15,11 @@ import (
 
 func TestGameServer_MissingTemplateKeepsBoundedRetry(t *testing.T) {
 	gs := &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{Name: "waiting", Namespace: "games"}, Spec: gameplanev1alpha1.GameServerSpec{TemplateRef: gameplanev1alpha1.GameTemplateRef{Name: "missing"}}}
-	c := fake.NewClientBuilder().WithScheme(testScheme(t)).WithObjects(gs).WithStatusSubresource(gs).Build()
+	scheme := testScheme(t)
+	if err := batchv1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(gs).WithStatusSubresource(gs).Build()
 	r := &GameServerReconciler{Client: c}
 	for range 2 {
 		result, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)})

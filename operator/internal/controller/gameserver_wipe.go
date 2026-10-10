@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -13,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -38,113 +36,109 @@ if [ -n "$left" ]; then
 fi`
 )
 
-// reconcileWipe runs a one-shot Job that empties the GameServer's data PVC
-// when a wipe has been requested and the server is suspended (so the game
-// pod isn't holding the ReadWriteOnce volume). It's idempotent: the request
-// is acked once the Job succeeds and the same token never re-runs.
+// reconcileWipe holds exclusive access from guard acquisition through worker
+// drain. Reconciles for a GameServer key are serialized; restore/API writers
+// arbitrate through the checked GameServer guard update.
 func (r *GameServerReconciler) reconcileWipe(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) error {
-	// A previous acknowledgement may be newer than this cache snapshot.
-	// Refresh the request and guard before any wipe side effect, so a stale
-	// pending token cannot recreate a writer after a restore acquires it.
-	reader := r.APIReader
-	if reader == nil {
-		reader = r.Client
-	}
-	var live gameplanev1alpha1.GameServer
-	if err := reader.Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
-		return client.IgnoreNotFound(err)
-	}
-	if live.UID != gs.UID {
+	changed, err := r.ensureWipeGuard(ctx, gs)
+	if apierrors.IsNotFound(err) {
 		return nil
 	}
-	gs = &live
-	// A restic restore has exclusive access to this data volume. Do not
-	// create a wipe Job or acknowledge a wipe by resuming the server yet.
+	if err != nil {
+		return err
+	}
 	if gs.Annotations[restoreGuardAnnotation] != "" {
 		return nil
 	}
 	req := gs.Annotations[WipeRequestedAnnotation]
-	done := gs.Annotations[WipeCompletedAnnotation]
+	guard := gs.Annotations[wipeGuardAnnotation]
 	jobName := gs.Name + "-wipe"
-
-	if req == "" || req == done {
-		// Nothing pending — clean up any finished wipe Job left behind.
-		return r.deleteWipeJob(ctx, gs, jobName)
-	}
-
-	// Only wipe while suspended; otherwise the game pod still mounts the
-	// volume. The API sets suspend=true when requesting a wipe.
-	if !gs.Spec.Suspend {
-		log.FromContext(ctx).Info("data wipe requested but server not suspended; waiting", "server", gs.Name)
-		return nil
-	}
-
-	// Wait for the pod to actually be gone (Status.Replicas == 0) before mounting
-	// the PVC. A slowly-stopping game would still hold the ReadWriteOnce volume
-	// if the Job ran during the graceful stop, causing the Job to fail permanently.
-	var ss appsv1.StatefulSet
-	switch err := r.Get(ctx, types.NamespacedName{Namespace: gs.Namespace, Name: gs.Name}, &ss); {
-	case apierrors.IsNotFound(err):
-		// StatefulSet is gone — pod is definitely gone.
-	case err != nil:
+	state, err := wipeWorkers(ctx, r.wipeReader(), gs)
+	if err != nil {
 		return err
-	case ss.Status.Replicas > 0:
-		// Pod still present — requeue and wait for scale-down to complete.
-		log.FromContext(ctx).Info("data wipe requested but pod still draining; waiting", "server", gs.Name)
-		return nil
 	}
-
-	// Also verify the game pod object itself is gone, not just scaled down —
-	// a pod in Terminating state still holds the ReadWriteOnce PVC.
-	var pod corev1.Pod
-	podName := types.NamespacedName{Namespace: gs.Namespace, Name: gs.Name + "-0"}
-	switch err := r.Get(ctx, podName, &pod); {
-	case apierrors.IsNotFound(err):
-		// Pod is definitely gone.
-	case err != nil:
-		return err
-	default:
-		// Pod still exists (including Terminating state) — requeue.
-		log.FromContext(ctx).Info("data wipe requested but pod still terminating; waiting", "server", gs.Name)
-		return nil
-	}
-
+	// Foreign Jobs can never prove completion or authorize cleanup.
 	var job batchv1.Job
-	err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: gs.Namespace}, &job)
-	switch {
-	case apierrors.IsNotFound(err):
-		return r.createWipeJob(ctx, gs, tmpl, jobName, req)
-	case err != nil:
+	err = r.wipeReader().Get(ctx, types.NamespacedName{Name: jobName, Namespace: gs.Namespace}, &job)
+	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
-
-	if !metav1.IsControlledBy(&job, gs) {
-		return fmt.Errorf("wipe Job %s/%s is not controlled by this GameServer", gs.Namespace, jobName)
-	}
-
-	// A leftover Job from a previous request — replace it.
-	if job.Labels[wipeTokenLabel] != req {
-		return r.deleteWipeJob(ctx, gs, jobName)
-	}
-	// The current request finished successfully — ack and clean up.
-	if job.Status.Succeeded > 0 {
-		if err := r.ackWipe(ctx, gs, req); err != nil {
-			return err
+	exists := err == nil
+	if exists && !metav1.IsControlledBy(&job, gs) {
+		if pendingWipe(gs) {
+			return fmt.Errorf("wipe Job %s/%s is not controlled by this GameServer", gs.Namespace, jobName)
 		}
+		exists = false
+	}
+	if changed {
+		return nil
+	}
+	if guard == "" {
 		return r.deleteWipeJob(ctx, gs, jobName)
 	}
-	// The Job exhausted its retries without succeeding (e.g. a permission
-	// error the wipe container's uid can't get past) — report the failure
-	// on the GameServer instead of leaving the request silently pending.
-	// Do not ack and do not delete the Job, so its pod logs stay available
-	// for the operator to inspect; a new request (a different token) will
-	// still replace it via the "leftover Job" branch above.
-	if jobPermanentlyFailed(&job) {
-		return r.setWipeFailed(ctx, gs)
+	if !pendingWipe(gs) || req != guard || (exists && job.Labels[wipeTokenLabel] != guard) {
+		// Foreground deletion cannot hide independently inventoried pods.
+		for _, old := range state.jobs {
+			if old.DeletionTimestamp.IsZero() {
+				if err := r.deleteWipeJob(ctx, gs, old.Name); err != nil {
+					return err
+				}
+			}
+		}
+		if len(state.jobs) != 0 || state.livePods {
+			return nil
+		}
+		return r.releaseWipeGuard(ctx, gs, guard, false)
 	}
-	return nil
+	if gs.Annotations[wipeSuccessAnnotation] == guard {
+		// Success is durable before Job deletion, and acknowledgment waits
+		// for foreground cleanup, including terminal pods now terminating.
+		if exists && job.DeletionTimestamp.IsZero() {
+			return r.deleteWipeJob(ctx, gs, jobName)
+		}
+		if len(state.jobs) != 0 || state.livePods {
+			return nil
+		}
+		return r.ackWipe(ctx, gs, guard)
+	}
+	if exists && !job.DeletionTimestamp.IsZero() {
+		return nil
+	}
+	if exists {
+		if job.Status.Succeeded > 0 {
+			return r.recordWipeSuccess(ctx, gs, guard)
+		}
+		if jobPermanentlyFailed(&job) {
+			// Retain guard, failed Job and logs even after a direct start request.
+			if !gs.Spec.Suspend {
+				gs.Spec.Suspend = true
+				if err := r.Update(ctx, gs); err != nil {
+					return err
+				}
+			}
+			return r.setWipeFailed(ctx, gs)
+		}
+		return nil
+	}
+	if state.busy {
+		return nil
+	}
+	stopped, err := r.wipeTargetStopped(ctx, gs)
+	if err != nil || !stopped {
+		return err
+	}
+	// Revalidate immediately before launch. Another GameServer reconcile for
+	// this key cannot concurrently release the guard during this launch.
+	var live gameplanev1alpha1.GameServer
+	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
+		return client.IgnoreNotFound(err)
+	}
+	if live.UID != gs.UID || live.Annotations[wipeGuardAnnotation] != guard || live.Annotations[WipeRequestedAnnotation] != guard || !pendingWipe(&live) || live.Annotations[restoreGuardAnnotation] != "" {
+		return nil
+	}
+	return r.createWipeJob(ctx, &live, tmpl, jobName, guard)
 }
 
 func (r *GameServerReconciler) createWipeJob(
@@ -163,6 +157,7 @@ func (r *GameServerReconciler) createWipeJob(
 			Namespace: gs.Namespace,
 			Labels: map[string]string{
 				wipeTokenLabel:                 token,
+				wipeUIDLabel:                   string(gs.UID),
 				"app.kubernetes.io/managed-by": "gameplane",
 				"app.kubernetes.io/name":       gs.Name,
 			},
@@ -170,6 +165,7 @@ func (r *GameServerReconciler) createWipeJob(
 		Spec: batchv1.JobSpec{
 			BackoffLimit: &backoff,
 			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{wipeTokenLabel: token, wipeUIDLabel: string(gs.UID)}},
 				Spec: corev1.PodSpec{
 					RestartPolicy: corev1.RestartPolicyNever,
 					SecurityContext: &corev1.PodSecurityContext{
@@ -230,19 +226,12 @@ func (r *GameServerReconciler) createWipeJob(
 }
 
 func (r *GameServerReconciler) ackWipe(ctx context.Context, gs *gameplanev1alpha1.GameServer, token string) error {
-	patch := client.MergeFrom(gs.DeepCopy())
-	if gs.Annotations == nil {
-		gs.Annotations = map[string]string{}
-	}
-	gs.Annotations[WipeCompletedAnnotation] = token
-	// A successful wipe restarts the server on a fresh world. Set suspend=false
-	// to resume the server after the data has been cleared.
-	gs.Spec.Suspend = false
-	if err := r.Patch(ctx, gs, patch); err != nil {
+	if err := r.releaseWipeGuard(ctx, gs, token, true); err != nil {
 		return err
 	}
-	// A successful wipe clears a DataWipe=False left by an earlier failed
-	// request, so the condition only ever describes the latest wipe.
+	if gs.Annotations[WipeCompletedAnnotation] != token {
+		return nil
+	}
 	if meta.FindStatusCondition(gs.Status.Conditions, gameplanev1alpha1.GameServerConditionDataWipe) == nil {
 		return nil
 	}
@@ -256,13 +245,13 @@ func (r *GameServerReconciler) ackWipe(ctx context.Context, gs *gameplanev1alpha
 
 func (r *GameServerReconciler) deleteWipeJob(ctx context.Context, gs *gameplanev1alpha1.GameServer, name string) error {
 	var job batchv1.Job
-	if err := r.Get(ctx, types.NamespacedName{Name: name, Namespace: gs.Namespace}, &job); err != nil {
+	if err := r.wipeReader().Get(ctx, types.NamespacedName{Name: name, Namespace: gs.Namespace}, &job); err != nil {
 		return client.IgnoreNotFound(err)
 	}
 	if !metav1.IsControlledBy(&job, gs) {
 		return nil
 	}
-	policy := metav1.DeletePropagationBackground
+	policy := metav1.DeletePropagationForeground
 	uid := job.UID
 	return client.IgnoreNotFound(r.Delete(ctx, &job, &client.DeleteOptions{PropagationPolicy: &policy, Preconditions: &metav1.Preconditions{UID: &uid}}))
 }

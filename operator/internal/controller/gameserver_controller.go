@@ -239,6 +239,14 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := r.Get(ctx, req.NamespacedName, &gs); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	// Refresh and recover wipe ownership before deriving config or idle state.
+	// A later refresh would mix an older idle calculation with a newer status
+	// patch base and could overwrite a concurrent idle-clock update.
+	if changed, err := r.ensureWipeGuard(ctx, &gs); err != nil {
+		return requeueOnConflict(ctrl.Result{}, err)
+	} else if changed {
+		return ctrl.Result{Requeue: true}, nil
+	}
 
 	// Resolve the template this GameServer points at. Templates are
 	// cluster-scoped so no namespace is needed.
@@ -397,7 +405,15 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile BackupSchedule")
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileWipe(ctx, &gs, &tmpl); err != nil {
+	// Preflight already recovered legacy workers. An ordinary pass needs only
+	// finished-Job cleanup; avoid repeating namespace inventories here.
+	var wipeErr error
+	if gs.Annotations[wipeGuardAnnotation] != "" || pendingWipe(&gs) {
+		wipeErr = r.reconcileWipe(ctx, &gs, &tmpl)
+	} else {
+		wipeErr = r.deleteWipeJob(ctx, &gs, gs.Name+"-wipe")
+	}
+	if err := wipeErr; err != nil {
 		if apierrors.IsConflict(err) {
 			return ctrl.Result{Requeue: true}, nil
 		}
@@ -1176,6 +1192,13 @@ func (r *GameServerReconciler) desiredReplicas(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	idle idleState,
 ) (int32, time.Duration, error) {
+	if gs.Annotations[wipeGuardAnnotation] != "" || pendingWipe(gs) {
+		replicas, poll, err := r.softStop(ctx, gs, tmpl)
+		if poll == 0 || poll > wipeDrainPoll {
+			poll = wipeDrainPoll
+		}
+		return replicas, poll, err
+	}
 	// Restore owns the data PVC until its workers have drained. Keep the
 	// workload stopped even if a concurrent power request clears suspend.
 	if gs.Annotations[restoreGuardAnnotation] != "" {
@@ -1408,24 +1431,56 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 			"gameplane.local/template":   tmpl.Name,
 		}
 		actualReplicas := replicas
-		if ss.Annotations[restoreGuardAnnotation] != "" {
+		if ss.Annotations[restoreGuardAnnotation] != "" || ss.Annotations[wipeGuardAnnotation] != "" {
 			actualReplicas = 0
-		} else if ss.ResourceVersion == "" && r.APIReader != nil {
-			// A new StatefulSet can be created from a stale GameServer cache
-			// snapshot. Consult the live object before starting its first pod.
-			var live gameplanev1alpha1.GameServer
-			if err := r.APIReader.Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
-				return err
-			}
-			if live.UID != gs.UID {
-				return fmt.Errorf("GameServer changed identity before StatefulSet creation")
-			}
-			if guard := live.Annotations[restoreGuardAnnotation]; guard != "" {
+		}
+		// Both creates and updates can originate from stale cache snapshots.
+		// Read live ownership even after a marker was cleared for release: a
+		// conflicting GameServer release must still keep this workload fenced.
+		var live gameplanev1alpha1.GameServer
+		if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
+			return err
+		}
+		if live.UID != gs.UID {
+			return fmt.Errorf("GameServer changed identity before StatefulSet mutation")
+		}
+		if owner := metav1.GetControllerOf(ss); owner != nil && owner.UID != live.UID {
+			return fmt.Errorf("StatefulSet belongs to a different GameServer identity")
+		}
+		if live.Annotations[restoreGuardAnnotation] == "" {
+			// Restore cleanup can race a callback that restamps the workload
+			// before the checked GameServer release. That release guarantees
+			// worker drain, so the same live owner's absent guard permits
+			// removing the stale marker without changing requested replicas.
+			delete(ss.Annotations, restoreGuardAnnotation)
+		}
+		for _, annotation := range []string{restoreGuardAnnotation, wipeGuardAnnotation} {
+			if guard := live.Annotations[annotation]; guard != "" {
 				actualReplicas = 0
 				if ss.Annotations == nil {
 					ss.Annotations = make(map[string]string)
 				}
-				ss.Annotations[restoreGuardAnnotation] = guard
+				ss.Annotations[annotation] = guard
+			}
+		}
+		if pendingWipe(&live) {
+			actualReplicas = 0
+		}
+		if live.Annotations[wipeGuardAnnotation] == "" && !pendingWipe(&live) {
+			workers, err := wipeWorkers(ctx, r.wipeReader(), &live)
+			if err != nil {
+				return err
+			}
+			if workers.busy {
+				actualReplicas = 0
+			} else {
+				// A callback may have restamped the marker between workload
+				// cleanup and the checked GameServer release. Recover that
+				// interrupted release once the live guard and workers are gone.
+				delete(ss.Annotations, wipeGuardAnnotation)
+				if ss.Annotations[restoreGuardAnnotation] == "" {
+					actualReplicas = replicas
+				}
 			}
 		}
 		ss.Spec.Replicas = &actualReplicas
@@ -1895,7 +1950,10 @@ func (r *GameServerReconciler) stopActiveCaptures(ctx context.Context, gs *gamep
 // function never clobbers fields other reconcile steps concurrently own
 // (e.g. the agent sidecar's status.agent heartbeat).
 func (r *GameServerReconciler) patchCaptureStatus(ctx context.Context, gs, base *gameplanev1alpha1.GameServer) error {
-	if err := r.Status().Patch(ctx, gs, client.MergeFrom(base)); err != nil {
+	// Patch responses contain the full GameServer, even for a no-op patch.
+	// Keep the caller's snapshot coherent with its already-derived idle state
+	// so a fresh response cannot turn an older idle clock into a stale write.
+	if err := r.Status().Patch(ctx, gs.DeepCopy(), client.MergeFrom(base)); err != nil {
 		return fmt.Errorf("patch capture status for %s: %w", gs.Name, err)
 	}
 	return nil

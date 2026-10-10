@@ -72,6 +72,7 @@ func TestWipePreservesForeignJobs(t *testing.T) {
 func TestWipeCleanupPreservesJobReplacedDuringDelete(t *testing.T) {
 	scheme := wipeScheme(t)
 	gs := wipeGameServer(false, "")
+	gs.Annotations[wipeGuardAnnotation] = wipeOrphanGuard
 	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-wipe", Namespace: gs.Namespace, UID: "owned-job"}}
 	if err := controllerutil.SetControllerReference(gs, job, scheme); err != nil {
 		t.Fatal(err)

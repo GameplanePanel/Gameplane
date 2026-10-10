@@ -71,7 +71,11 @@ func (r *RestoreReconciler) bindRestoreTarget(ctx context.Context, rs *gameplane
 // is written in that same update; a crash cannot leave a lock without suspension.
 func (r *RestoreReconciler) claimRestoreTarget(ctx context.Context, rs *gameplanev1alpha1.Restore, gs *gameplanev1alpha1.GameServer) (bool, error) {
 	owner := restoreIdentityJSON(rs.Name, rs.UID)
-	if req := gs.Annotations[WipeRequestedAnnotation]; gs.Annotations[restoreGuardAnnotation] == "" && req != "" && req != gs.Annotations[WipeCompletedAnnotation] {
+	workers, err := wipeWorkers(ctx, r.apiReader(), gs)
+	if err != nil {
+		return false, err
+	}
+	if req := gs.Annotations[WipeRequestedAnnotation]; gs.Annotations[wipeGuardAnnotation] != "" || workers.busy || (gs.Annotations[restoreGuardAnnotation] == "" && pendingWipe(gs)) {
 		message := "Waiting for pending data wipe to finish before restoring"
 		var job batchv1.Job
 		err := r.apiReader().Get(ctx, types.NamespacedName{Namespace: gs.Namespace, Name: gs.Name + "-wipe"}, &job)

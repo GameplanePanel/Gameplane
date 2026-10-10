@@ -49,21 +49,14 @@ func wipeGameServer(suspend bool, req string) *gameplanev1alpha1.GameServer {
 func TestReconcileWipe_CreatesJobWhenSuspended(t *testing.T) {
 	s := wipeScheme(t)
 	gs := wipeGameServer(true, "tok1")
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "alpha",
-			Namespace: "ns",
-		},
-		Status: appsv1.StatefulSetStatus{Replicas: 0},
-	}
+	ss := wipeStoppedSet(gs)
+	ss.Status.Replicas = 0
 	tmpl := &gameplanev1alpha1.GameTemplate{}
 	tmpl.Name = "mc"
 
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
-	}
+	wipePasses(t, r, gs, 4)
 
 	var job batchv1.Job
 	if err := cl.Get(context.Background(), types.NamespacedName{Name: "alpha-wipe", Namespace: "ns"}, &job); err != nil {
@@ -77,7 +70,7 @@ func TestReconcileWipe_CreatesJobWhenSuspended(t *testing.T) {
 	}
 }
 
-func TestReconcileWipe_SkipsWhenNotSuspended(t *testing.T) {
+func TestReconcileWipe_AcquiresGuardBeforeWorkloadExists(t *testing.T) {
 	s := wipeScheme(t)
 	gs := wipeGameServer(false, "tok1")
 	tmpl := &gameplanev1alpha1.GameTemplate{}
@@ -85,8 +78,10 @@ func TestReconcileWipe_SkipsWhenNotSuspended(t *testing.T) {
 
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
+	wipePasses(t, r, gs, 4)
+	current := wipeCurrent(t, cl, gs)
+	if current.Annotations[wipeGuardAnnotation] != "tok1" || !current.Spec.Suspend {
+		t.Fatal("pending request did not fence direct start")
 	}
 	var job batchv1.Job
 	err := cl.Get(context.Background(), types.NamespacedName{Name: "alpha-wipe", Namespace: "ns"}, &job)
@@ -98,13 +93,8 @@ func TestReconcileWipe_SkipsWhenNotSuspended(t *testing.T) {
 func TestReconcileWipe_AcksWhenJobSucceeded(t *testing.T) {
 	s := wipeScheme(t)
 	gs := wipeGameServer(true, "tok1")
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "alpha",
-			Namespace: "ns",
-		},
-		Status: appsv1.StatefulSetStatus{Replicas: 0},
-	}
+	ss := wipeStoppedSet(gs)
+	ss.Status.Replicas = 0
 	tmpl := &gameplanev1alpha1.GameTemplate{}
 	tmpl.Name = "mc"
 
@@ -121,9 +111,7 @@ func TestReconcileWipe_AcksWhenJobSucceeded(t *testing.T) {
 	}
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss, job).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
-	}
+	wipePasses(t, r, gs, 4)
 
 	// The request is acked on the GameServer.
 	var got gameplanev1alpha1.GameServer
@@ -147,13 +135,8 @@ func TestReconcileWipe_AcksWhenJobSucceeded(t *testing.T) {
 func TestReconcileWipe_RestartsServerAfterWipe(t *testing.T) {
 	s := wipeScheme(t)
 	gs := wipeGameServer(true, "tok1")
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "alpha",
-			Namespace: "ns",
-		},
-		Status: appsv1.StatefulSetStatus{Replicas: 0},
-	}
+	ss := wipeStoppedSet(gs)
+	ss.Status.Replicas = 0
 	tmpl := &gameplanev1alpha1.GameTemplate{}
 	tmpl.Name = "mc"
 
@@ -170,9 +153,7 @@ func TestReconcileWipe_RestartsServerAfterWipe(t *testing.T) {
 	}
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss, job).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
-	}
+	wipePasses(t, r, gs, 4)
 
 	// After a successful wipe, suspend must be false to restart the server.
 	var got gameplanev1alpha1.GameServer
@@ -194,18 +175,11 @@ func TestReconcileWipe_WaitsForPodToBeGone(t *testing.T) {
 	tmpl.Name = "mc"
 
 	// StatefulSet exists with replicas > 0 (pod still draining).
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "alpha",
-			Namespace: "ns",
-		},
-		Status: appsv1.StatefulSetStatus{Replicas: 1},
-	}
+	ss := wipeStoppedSet(gs)
+	ss.Status.Replicas = 1
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
-	}
+	wipePasses(t, r, gs, 4)
 
 	// No wipe job should be created while the pod is still running.
 	var job batchv1.Job
@@ -222,13 +196,8 @@ func TestReconcileWipe_WaitsForPodObjectToBeGone(t *testing.T) {
 	tmpl.Name = "mc"
 
 	// StatefulSet exists with replicas == 0 but pod still terminating.
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "alpha",
-			Namespace: "ns",
-		},
-		Status: appsv1.StatefulSetStatus{Replicas: 0},
-	}
+	ss := wipeStoppedSet(gs)
+	ss.Status.Replicas = 0
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "alpha-0",
@@ -240,9 +209,7 @@ func TestReconcileWipe_WaitsForPodObjectToBeGone(t *testing.T) {
 	}
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss, pod).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
-	}
+	wipePasses(t, r, gs, 4)
 
 	// No wipe job should be created while the pod object exists, even with replicas == 0.
 	var job batchv1.Job
@@ -259,18 +226,11 @@ func TestReconcileWipe_CreatesJobWhenPodGone(t *testing.T) {
 	tmpl.Name = "mc"
 
 	// StatefulSet exists with replicas == 0 (pod is gone).
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "alpha",
-			Namespace: "ns",
-		},
-		Status: appsv1.StatefulSetStatus{Replicas: 0},
-	}
+	ss := wipeStoppedSet(gs)
+	ss.Status.Replicas = 0
 	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	if err := r.reconcileWipe(context.Background(), gs, tmpl); err != nil {
-		t.Fatalf("reconcileWipe: %v", err)
-	}
+	wipePasses(t, r, gs, 4)
 
 	// Wipe job should be created once the pod is gone.
 	var job batchv1.Job
