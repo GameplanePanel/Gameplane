@@ -121,7 +121,7 @@ jobs:
           exit 1
       # Round-trip check, mirroring publish-edge.yaml: strictly verify the
       # signature just pushed (no --insecure-ignore-tlog, so the Rekor evidence
-      # must be present), and fail the release if the committed cosign.pub no
+      # must be present), and fail the release if the committed signing/cosign.pub no
       # longer matches the signing key.
       - name: verify signature & check published key
         env:
@@ -133,8 +133,8 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/${{ matrix.component }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the release tags only now that the digest carries a verified
@@ -307,7 +307,7 @@ jobs:
           # Ship the signature-verification key with the release once it is
           # committed in the repo.
           assets=()
-          if [ -f cosign.pub ]; then assets=(cosign.pub); fi
+          if [ -f signing/cosign.pub ]; then assets=(signing/cosign.pub); fi
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
             "${args[@]}" "${assets[@]}"
 

@@ -15,12 +15,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// modDownloadURL is a tiny, stable, public file the agent can fetch through
+// modDownloadURL is a small, stable, public file the agent can fetch through
 // its SSRF guard (the guard requires a PUBLIC dialed IP, so an in-cluster
 // fixture server can't stand in). raw.githubusercontent.com is already a
 // hard dependency of CI (actions, images), and the file is this repo's own
-// signing key (~100 bytes).
-const modDownloadURL = "https://raw.githubusercontent.com/GameplanePanel/Gameplane/main/cosign.pub"
+// README (~25 KB, well under the 16 MB mods limit).
+const modDownloadURL = "https://raw.githubusercontent.com/GameplanePanel/Gameplane/main/README.md"
 
 // applyModsTemplate is applyBusyboxTemplate plus a mods capability: a plain
 // "mods" directory with URL installs allowed from GitHub raw. No extension

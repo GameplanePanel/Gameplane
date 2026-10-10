@@ -130,7 +130,7 @@ def image_inputs(dockerfile):
 def select_images(root, images, paths):
     # Signing/configuration changes must rebuild all images even without COPYs.
     if paths is None or any(
-        p in {"go.work", "go.work.sum", ".dockerignore", "cosign.pub"}
+        p in {"go.work", "go.work.sum", ".dockerignore", "signing/cosign.pub"}
         or p.startswith((".github/", "hack/ci_scope", "hack/test_ci_scope"))
         for p in paths
     ):

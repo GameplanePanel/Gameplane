@@ -138,7 +138,7 @@ jobs:
               - 'charts/**'
               # The chart embeds a copy of the root signing key; the drift
               # check in `chart render` has to run when either side moves.
-              - 'cosign.pub'
+              - 'signing/cosign.pub'
               # The CRD bundle-hash stamp check regenerates the chart CRDs
               # from these; an edit to either must re-run it.
               - 'operator/config/crd/**'
@@ -242,14 +242,14 @@ jobs:
               # Non-docs/ link targets referenced from the audited files
               # (docs/dependencies.md -> CHANGELOG.md, docs/contributing.md
               # -> CLAUDE.md and specs/012-.../outreach.md, README.md ->
-              # LICENSE/cosign.pub, docs/key-rotation.md -> the legacy key
+              # LICENSE, signing/cosign.pub, docs/key-rotation.md -> the legacy key
               # files) — renaming or moving any of these must run check-links.
               - 'CHANGELOG.md'
               - 'CLAUDE.md'
               - 'LICENSE'
-              - 'cosign.pub'
-              - 'cosign-legacy.pub'
-              - 'cosign.pub.legacy-sig'
+              - 'signing/cosign.pub'
+              - 'signing/2026-07-24-cosign-legacy.pub'
+              - 'signing/cosign.pub.legacy-sig'
               - 'specs/**/outreach.md'
       - id: combine
         # Fold the raw filters into single-token booleans so every downstream
@@ -1089,7 +1089,7 @@ jobs:
         run: |
           hack/sync-chart-crds.sh
           git diff --exit-code -- charts/gameplane/crds charts/gameplane/crd-manifests
-      - name: chart cosign key matches root cosign.pub
+      - name: chart cosign key matches signing/cosign.pub
         # values.yaml embeds a copy of the signing public key so the operator
         # can verify official module bundles. Nothing regenerates it, so a key
         # rotation that updates only the root file leaves the chart verifying
@@ -1110,11 +1110,11 @@ jobs:
               data = base64.b64decode((d.get('data') or {})['cosign.pub']).decode()
           sys.stdout.write(data if data.endswith('\n') else data + '\n')
           PY
-          if ! diff -u cosign.pub /tmp/chart-cosign.pub; then
-            echo "::error::charts/gameplane/values.yaml cosignPublicKey does not match the root cosign.pub — update both when rotating the signing key"
+          if ! diff -u signing/cosign.pub /tmp/chart-cosign.pub; then
+            echo "::error::charts/gameplane/values.yaml cosignPublicKey does not match signing/cosign.pub — update both when rotating the signing key"
             exit 1
           fi
-          echo "chart cosign key matches root cosign.pub"
+          echo "chart cosign key matches signing/cosign.pub"
       - name: docs/oidc.md example values render (F-252)
         # docs/oidc.md's Keycloak "Or in values.yaml" example is meant to be
         # copy-pasteable. Render it as a real -f values file (with

@@ -50,16 +50,16 @@ when you need reproducibility.
 
 Every published image (tagged releases and `:edge`), the Helm chart, and the
 official module bundles are signed with the project's cosign key,
-[`cosign.pub`](../cosign.pub) at the repo root, and recorded in the public
+[`signing/cosign.pub`](../signing/cosign.pub), and recorded in the public
 Sigstore Rekor transparency log:
 
 ```sh
-cosign verify --key cosign.pub \
+cosign verify --key signing/cosign.pub \
   ghcr.io/gameplanepanel/gameplane/operator:<version>
 ```
 
 Pre-rotation releases (v0.2.0-beta.7 and earlier) used the retired Ed25519 key <!-- doc-versions: historical -->
-and lack transparency log entries — verify those with `cosign-legacy.pub` and
+and lack transparency log entries — verify those with `signing/2026-07-24-cosign-legacy.pub` and
 `--insecure-ignore-tlog=true`. See [`key-rotation.md`](key-rotation.md) for the
 trust continuity proof. Module bundles are verified the same way; the chart
 carries the key, so bundle verification is just a values flip — see

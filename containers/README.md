@@ -212,10 +212,10 @@ docker run -it \
 All published images are signed with cosign using the project's private key. Signatures are recorded in Sigstore's Rekor transparency log. To verify a published image:
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/gameplanepanel/gameplane/nuclear-option@sha256:...
+cosign verify --key signing/cosign.pub ghcr.io/gameplanepanel/gameplane/nuclear-option@sha256:...
 ```
 
-The `cosign.pub` file (committed to the repo root) is the public key for verification.
+The `signing/cosign.pub` file is the public key for verification.
 
 ## Workflow triggers
 
