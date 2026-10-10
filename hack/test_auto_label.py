@@ -38,7 +38,7 @@ class AreaForPath(unittest.TestCase):
             "agent/internal/files/a.go": "area: agent",
             "web/src/routes/Share.tsx": "area: web",
             "design.pen": "area: web",
-            "design-export/json/a.json": "area: web",
+            "assets/design-export/json/a.json": "area: web",
             "modules": "area: modules",
             "docs/module-authoring.md": "area: modules",
             "charts/gameplane/values.yaml": "area: chart",

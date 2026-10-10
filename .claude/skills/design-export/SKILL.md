@@ -17,7 +17,7 @@ Every edit to `design.pen` (dashboard) or `website/website.pen` (public site) mu
 
 1. **Pencil does not auto-save.** After MCP edits (or any editor work), ask the user to save the design file via the GUI before proceeding with export.
 2. **Collect touched node IDs.** Identify which screens and components were added or modified. Node IDs are visible in Pencil's node inspector or in the Get() output.
-3. **Verify against MANIFEST.md.** Check `design-export/MANIFEST.md` to see whether any existing node needs its export refreshed (e.g., a re-exported variant of a screen).
+3. **Verify against MANIFEST.md.** Check `assets/design-export/MANIFEST.md` to see whether any existing node needs its export refreshed (e.g., a re-exported variant of a screen).
 
 ### Export procedure
 
@@ -25,12 +25,12 @@ For each touched node ID:
 
 1. **JSON export** — via `mcp__pencil__execute` running `Get("<id>", {depth: N})`:
    - Choose depth high enough that the node's complete structure comes through with zero `"..."` elision markers.
-   - Pipe output to `design-export/json/<id>.json` (website screens → `website/website-export/json/<id>.json`).
-   - Validation: `python3 -m json.tool design-export/json/<id>.json > /dev/null` (or `website/website-export/json/<id>.json` for website screens) must pass.
+   - Pipe output to `assets/design-export/json/<id>.json` (website screens → `website/website-export/json/<id>.json`).
+   - Validation: `python3 -m json.tool assets/design-export/json/<id>.json > /dev/null` (or `website/website-export/json/<id>.json` for website screens) must pass.
 
 2. **Screenshot export** — via `mcp__pencil__export_nodes`:
    - Export the node ID at 2x scale.
-   - Write to `design-export/screenshots/<id>.png` (website → `website/website-export/screenshots/<id>.png`).
+   - Write to `assets/design-export/screenshots/<id>.png` (website → `website/website-export/screenshots/<id>.png`).
    - Validation: file must be non-empty with real pixel dimensions.
 
 3. **Content validation** — grep for a string unique to that node's body text (never in a frame name):
@@ -41,7 +41,7 @@ For each touched node ID:
 ### Incremental export — touch only what changed
 
 - Export only the nodes you added or edited — do NOT re-run a full export of every screen and component unless renames or structural changes make wider staleness likely.
-- If a re-exported node is a variant of an existing screen (e.g., "Admin Settings — Authentication (Save rejected)"), add a row to `design-export/MANIFEST.md` under an "Incremental export" section documenting the date, nodes touched, what changed, and export method/validation used.
+- If a re-exported node is a variant of an existing screen (e.g., "Admin Settings — Authentication (Save rejected)"), add a row to `assets/design-export/MANIFEST.md` under an "Incremental export" section documenting the date, nodes touched, what changed, and export method/validation used.
 - Keep the MANIFEST always in git so the next session can see what was exported when and why.
 
 ### Same-commit rule
@@ -50,10 +50,10 @@ The export MUST land in the same commit as the `.pen` file change:
 
 ```sh
 # For dashboard (design.pen) exports:
-git add design.pen design-export/json/<id>.json design-export/screenshots/<id>.png design-export/MANIFEST.md
+git add design.pen assets/design-export/json/<id>.json assets/design-export/screenshots/<id>.png assets/design-export/MANIFEST.md
 
 # For website (website/website.pen) exports:
-git add website/website.pen website/website-export/json/<id>.json website/website-export/screenshots/<id>.png design-export/MANIFEST.md
+git add website/website.pen website/website-export/json/<id>.json website/website-export/screenshots/<id>.png assets/design-export/MANIFEST.md
 
 git commit -s -m "design: <brief description of change>"
 ```

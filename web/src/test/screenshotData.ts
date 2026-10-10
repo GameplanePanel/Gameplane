@@ -1298,7 +1298,7 @@ export const screenshotRegistryProjects: RegistryProject[] = [
   },
 ];
 
-// Author/downloads values are pinned to design-export/json/tY6RD.json's
+// Author/downloads values are pinned to assets/design-export/json/tY6RD.json's
 // "Card <title>" nodes (Server Detail — Modpacks) so the screenshot capture
 // (slice2b.spec.ts's tY6RD test) matches the design frame's copy exactly —
 // title/description/id/slug/pageUrl/provider are unaffected.

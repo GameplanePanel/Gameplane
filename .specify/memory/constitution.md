@@ -94,7 +94,7 @@ reading one floods an agent's context while revealing nothing useful about the d
 for which `get_screenshot` and `export_nodes` are the correct tools.
 Every design edit — a new screen or a change to an existing one, in either `.pen` file —
 MUST be followed, in the same change, by re-exporting the touched object(s) to the
-matching plain-file snapshot: `design-export/{json,screenshots}/` for `design.pen`,
+matching plain-file snapshot: `assets/design-export/{json,screenshots}/` for `design.pen`,
 `website/website-export/{json,screenshots}/` for `website.pen`. The export is produced
 via the `pencil` MCP server (a JSON dump per touched node and a screenshot per touched
 node), scoped to what changed, not a full re-run of every screen. A design change without
