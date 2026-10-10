@@ -218,6 +218,7 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
       {pending && (
         <ConfirmAction
           player={pending.label}
+          playerId={pending.player}
           action={pending.action}
           reason={reason}
           onReasonChange={setReason}
@@ -350,6 +351,7 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
 
 function ConfirmAction({
   player,
+  playerId,
   action,
   reason,
   onReasonChange,
@@ -358,6 +360,7 @@ function ConfirmAction({
   submitting,
 }: {
   player: string;
+  playerId: string;
   action: Action;
   reason: string;
   onReasonChange: (v: string) => void;
@@ -370,7 +373,14 @@ function ConfirmAction({
   return (
     <div className="rounded border border-border bg-surface/50 p-4">
       <p className="text-sm text-foreground">
-        {verb} <span className="font-mono">{player}</span>?
+        {verb} <span className="font-mono">{player}</span>
+        {playerId !== player && (
+          <>
+            {" "}
+            (<span className="font-mono">{playerId}</span>)
+          </>
+        )}
+        ?
       </p>
       <Input
         className="mt-3"

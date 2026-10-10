@@ -157,6 +157,33 @@ describe("PlayersTab", () => {
     await userEvent.click(kickButtons[kickButtons.length - 1]);
     await waitFor(() => expect(kicked).toEqual([entry.steamId]));
   });
+
+  it("shows the Steam ID next to the display name in the kick confirmation", async () => {
+    const entry = makePlayerEntry();
+    server.use(
+      http.get("/servers/alpha/players", () =>
+        HttpResponse.json(makePlayers({ online: 1, players: [entry.steamId], entries: [entry] })),
+      ),
+    );
+    renderWithQuery(<PlayersTab name="alpha" />);
+    await screen.findByText("Pilot_Vance");
+    await userEvent.click(screen.getByRole("button", { name: "Kick" }));
+    expect(await screen.findByText(entry.steamId)).toBeInTheDocument();
+  });
+
+  it("shows the raw Steam ID once when the row has no display name", async () => {
+    const entry = makePlayerEntry({ displayName: undefined });
+    server.use(
+      http.get("/servers/alpha/players", () =>
+        HttpResponse.json(makePlayers({ online: 1, players: [entry.steamId], entries: [entry] })),
+      ),
+    );
+    renderWithQuery(<PlayersTab name="alpha" />);
+    await screen.findByText(entry.steamId);
+    await userEvent.click(screen.getByRole("button", { name: "Kick" }));
+    await screen.findByPlaceholderText(/Reason/i);
+    expect(screen.getAllByText(entry.steamId)).toHaveLength(2);
+  });
 });
 
 function renderWithQuery(ui: ReactElement, options?: Parameters<typeof baseRenderWithQuery>[1]) {
