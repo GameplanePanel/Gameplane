@@ -873,12 +873,20 @@ export interface PlayerCapabilities {
   whitelist?: boolean;
 }
 
+export interface PlayerEntry {
+  steamId: string;
+  faction?: string;
+  displayName?: string;
+}
+
 export interface PlayersResp {
   /** -1 when the agent cannot determine the player count. */
   online: number;
   /** -1 when the agent cannot determine the player cap. */
   max: number;
   players: string[];
+  /** Structured roster (Nuclear Option): Steam ID, optional faction and resolved display name. Other games omit it. */
+  entries?: PlayerEntry[];
   asOf: string;
   capabilities: PlayerCapabilities;
 }
