@@ -2531,3 +2531,11 @@ T041 and T052 of `specs/done_022-default-telemetry-dashboard/`. New frames sit i
 | `qFLfB` | Historical/Share Link — Asleep (view only) | Retained with historical name and context. Resolve does not expose start capability, so an asleep poll cannot select this state. |
 
 `q31B6w` is unchanged. Both listed frames have MCP `Get` JSON exports (depth 30, path geometry included) and 2× PNG exports. The cooldown card was visually checked with `TakeScreenshot`; no clipping was reported. Browser capture for `FBiMN` uses a mocked 429 Start response with Retry-After; visual comparison remains pending CI.
+
+## Players tab Nuclear Option state (spec 002, 2026-10-11)
+
+| Object ID | Name | Change |
+| --- | --- | --- |
+| `EkcbF` | Screen/Server Detail — Players (Nuclear Option) | New copy of `dPP50` with three player rows: display name plus faction chip, raw Steam ID (muted monospace) plus faction chip, and a named row without a faction. Kick/ban actions unchanged. Games without entries keep the `dPP50` layout. |
+
+JSON: `Print(JSON.stringify(Get("EkcbF", {depth: 12})))`, `python3 -m json.tool` passes, no `"..."` elisions. PNG: `Export(["EkcbF"], "png", …, {scale: 2})` (2880x1800). Body-text check: `Pilot_Vance` appears only in `EkcbF.json`.

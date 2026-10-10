@@ -129133,6 +129133,581 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "EkcbF",
+      "x": 24240,
+      "y": 9175,
+      "name": "Screen/Server Detail — Players (Nuclear Option)",
+      "theme": {
+        "semantic": "dark"
+      },
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$background/background",
+      "children": [
+        {
+          "id": "OgNOa",
+          "type": "ref",
+          "ref": "kKFX9",
+          "name": "App Sidebar",
+          "height": "fill_container",
+          "descendants": {
+            "iTbd8": {
+              "fill": "#00000000"
+            },
+            "iTbd8/ghUsw": {
+              "fill": "$foreground/foreground"
+            },
+            "iTbd8/bpSQ7": {
+              "fill": "$foreground/foreground"
+            },
+            "i8Z1B": {
+              "fill": "$accent/soft"
+            },
+            "i8Z1B/Sr2Q5": {
+              "fill": "$accent/soft-foreground"
+            },
+            "i8Z1B/Ra9NK": {
+              "fill": "$accent/soft-foreground"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Rp6DU",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "YvEX0",
+              "type": "ref",
+              "ref": "gu5WY",
+              "name": "Top Bar",
+              "width": "fill_container",
+              "descendants": {
+                "Gl7AY": {
+                  "content": "mc-survival"
+                }
+              }
+            },
+            {
+              "id": "ziiI3",
+              "type": "ref",
+              "ref": "S4k0x",
+              "name": "Detail Header",
+              "width": "fill_container"
+            },
+            {
+              "id": "CZGgf",
+              "type": "ref",
+              "ref": "I9kvlZ",
+              "name": "Tabs Bar",
+              "width": "fill_container",
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "Wp6q1": {
+                  "fill": "#00000000"
+                },
+                "Wp6q1/YUR8N": {
+                  "fill": "$muted"
+                },
+                "hNitQ": {
+                  "fill": "$segment"
+                },
+                "hNitQ/VcxMI": {
+                  "fill": "$foreground/segment"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "kSV4O",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$background/background",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "qaOgu",
+                  "name": "Stat Cards Row",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "WzVvI",
+                      "type": "ref",
+                      "ref": "ZWcwn",
+                      "name": "Stat Online",
+                      "width": "fill_container",
+                      "descendants": {
+                        "Nd4Wf": {
+                          "content": "ONLINE"
+                        },
+                        "QdcEm": {
+                          "icon": "users",
+                          "fill": "$success/success",
+                          "library": "lucide",
+                          "enabled": false
+                        },
+                        "vj2Ru": {
+                          "content": "3 / 16"
+                        },
+                        "h0n7zo": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "e6vjE",
+                      "type": "ref",
+                      "ref": "ZWcwn",
+                      "name": "Stat Whitelisted",
+                      "width": "fill_container",
+                      "descendants": {
+                        "Nd4Wf": {
+                          "content": "WHITELISTED"
+                        },
+                        "QdcEm": {
+                          "icon": "list-checks",
+                          "fill": "$accent/accent",
+                          "library": "lucide",
+                          "enabled": false
+                        },
+                        "vj2Ru": {
+                          "content": "1"
+                        },
+                        "h0n7zo": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "t6W6Ha",
+                      "type": "ref",
+                      "ref": "ZWcwn",
+                      "name": "Stat Banned",
+                      "width": "fill_container",
+                      "descendants": {
+                        "Nd4Wf": {
+                          "content": "BANNED"
+                        },
+                        "QdcEm": {
+                          "icon": "ban",
+                          "fill": "#DC2626",
+                          "library": "lucide",
+                          "enabled": false
+                        },
+                        "vj2Ru": {
+                          "content": "0"
+                        },
+                        "h0n7zo": {
+                          "enabled": false
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Fd8Uh",
+                  "name": "Online Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hq3TE",
+                      "name": "onlineCount",
+                      "fill": "$muted",
+                      "content": "3 / 16 online",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "uZt1s",
+                      "type": "ref",
+                      "ref": "J09iP",
+                      "name": "Btn Refresh",
+                      "descendants": {
+                        "eWkIT/WtPjS": {
+                          "icon": "refresh-cw"
+                        },
+                        "eWkIT/r4VbAi": {
+                          "content": "Refresh"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FFLq9",
+                  "name": "Player Rows",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CU5YB",
+                      "name": "Player Row — Pilot_Vance",
+                      "width": "fill_container",
+                      "fill": "$surface/surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "U4JCYZ",
+                          "name": "Identity",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jazOT",
+                              "name": "Player Name",
+                              "fill": "$foreground/foreground",
+                              "content": "Pilot_Vance",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "o4KOO",
+                              "name": "Faction Chip",
+                              "fill": "$accent/soft",
+                              "cornerRadius": 999,
+                              "padding": [
+                                2,
+                                8
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "g29s1",
+                                  "name": "Faction",
+                                  "fill": "$accent/soft-foreground",
+                                  "content": "Boscali",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lcV26",
+                          "name": "Actions",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "QHLxS",
+                              "name": "Kick",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "user-minus",
+                              "library": "lucide",
+                              "fill": "$muted"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "Yg6O6",
+                              "name": "Ban",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "ban",
+                              "library": "lucide",
+                              "fill": "$muted"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "n4v2g",
+                      "name": "Player Row — 76561198012345678",
+                      "width": "fill_container",
+                      "fill": "$surface/surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "A5Zm3",
+                          "name": "Identity",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "y5jU7",
+                              "name": "Player Name",
+                              "fill": "$muted",
+                              "content": "76561198012345678",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "XA9al",
+                              "name": "Faction Chip",
+                              "fill": "$warning/soft",
+                              "cornerRadius": 999,
+                              "padding": [
+                                2,
+                                8
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "c4KnH",
+                                  "name": "Faction",
+                                  "fill": "$warning/soft-foreground",
+                                  "content": "Primeva",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "FcXFL",
+                          "name": "Actions",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "bNGuv",
+                              "name": "Kick",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "user-minus",
+                              "library": "lucide",
+                              "fill": "$muted"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "rW6uh",
+                              "name": "Ban",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "ban",
+                              "library": "lucide",
+                              "fill": "$muted"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "BZT9r",
+                      "name": "Player Row — Corvus",
+                      "width": "fill_container",
+                      "fill": "$surface/surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "fdtbM",
+                          "name": "Identity",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WWbxK",
+                              "name": "Player Name",
+                              "fill": "$foreground/foreground",
+                              "content": "Corvus",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "NKkGP",
+                          "name": "Actions",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "eRiYf",
+                              "name": "Kick",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "user-minus",
+                              "library": "lucide",
+                              "fill": "$muted"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "r67gbD",
+                              "name": "Ban",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "ban",
+                              "library": "lucide",
+                              "fill": "$muted"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "VJXco",
+                  "name": "Whitelist Section",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "g6KG4P",
+                      "name": "Whitelist Header",
+                      "width": "fill_container",
+                      "stroke": "$border/border",
+                      "strokeAlignment": "inner",
+                      "gap": 4,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "M7drTR",
+                          "name": "Whitelist Chevron",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "chevron-right",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "Vlwun",
+                          "name": "Whitelist Icon",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "list-checks",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Ldhz8",
+                          "name": "Whitelist Label",
+                          "fill": "$muted",
+                          "content": "Whitelist (1)",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "c7d0b",
+                  "name": "Banned Section",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "k0OT6l",
+                      "name": "Banned Header",
+                      "width": "fill_container",
+                      "stroke": "$border/border",
+                      "strokeAlignment": "inner",
+                      "gap": 4,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "aNE27",
+                          "name": "Banned Chevron",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "chevron-right",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "TjQ06",
+                          "name": "Banned Label",
+                          "fill": "$muted",
+                          "content": "Banned (0)",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
