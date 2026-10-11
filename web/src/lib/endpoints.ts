@@ -946,6 +946,18 @@ function makeResourceEndpoints(request: RequestClient) {
         body: content,
       });
     },
+    create: async (
+      server: string,
+      path: string,
+      content: string | Blob,
+      ns?: string,
+    ): Promise<void> => {
+      await filesFetch(withNS(`${filesBase(server)}/create?path=${encodeURIComponent(path)}`, ns), {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream", ...csrfHeaders() },
+        body: content,
+      });
+    },
     mkdir: async (server: string, path: string, ns?: string): Promise<void> => {
       await filesFetch(withNS(`${filesBase(server)}/mkdir?path=${encodeURIComponent(path)}`, ns), {
         method: "POST",

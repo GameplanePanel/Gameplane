@@ -164,6 +164,7 @@ Resource usage env vars (set by the operator):
 | `/files/read` | GET | Read file inline (small files only); query param `path` |
 | `/files/download` | GET | Download file as attachment; query param `path` |
 | `/files/write` | POST | Overwrite or create file; query param `path`; body is raw file content |
+| `/files/create` | POST | Create only; query param `path`; raw body capped at 64 MiB. Atomically refuses any existing final entry with 409 `file already exists`, including directories, symlinks and concurrent creators. Shares rooted traversal and 0644/no inherited access-ACL new-file policy; cleans temporary files on failure and fails closed if atomic no-replace is unsupported. Older agents return 404; clients must never fall back to `/files/write`. |
 | `/files/upload` | POST | Upload one or more files to a directory; query param `path`; body is `multipart/form-data` with `files[]`; returns HTTP 400 if the destination directory or a destination file name is, or is reached through, a symlink |
 | `/files/mkdir` | POST | Create directory (recursive); query param `path` |
 | `/files/delete` | DELETE | Delete file or directory; query param `path`, optional `recursive` (boolean) |

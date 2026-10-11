@@ -289,6 +289,7 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - The new file/folder name prompt explains a rejected name inline ("Names can't contain "/" or be "." or "..".") and marks the input `aria-invalid`; Create stays disabled
    - Monaco editor unchanged
    - File drafts bind to the selected path, resource target and selection generation. Selection clears content immediately and Save stays disabled until that file has loaded. Late reads and save completions cannot replace another selection's content or baseline, including reopening the same path. Saves capture their target, path, body and directory at click time; edits typed during a save remain dirty against the saved body. Changing server/namespace/cluster/UID starts a fresh file browser.
+   - New file uses POST `/files/create` with the encoded path, namespace/cluster scope, credentials and CSRF headers. The agent atomically refuses existing entries with 409; a conflict or unsupported older agent/gateway keeps the prompt open, shows the error and does not select a file or invalidate the list. Never fall back to `/files/write`; editor saves and uploads retain overwrite behavior.
 
 6. **Players** (`web/src/routes/tabs/Players.tsx`, 386 lines)
    - Online player snapshot, ban list, whitelist management
@@ -1039,7 +1040,7 @@ Each namespace is an object of typed functions building and fetching URLs:
 
 - **ModRegistries** — `putSecret(provider, apiKey)`, `deleteSecret(provider)`
 
-- **Files** — `list(server, path, ns?)`, `read(server, path, ns?)`, `write(server, path, content, ns?)`, `mkdir(server, path, ns?)`, `remove(server, path, recursive?, ns?)`, `upload(server, dir, files, ns?)`, `downloadURL(server, path, ns?)`
+- **Files** — `list(server, path, ns?)`, `read(server, path, ns?)`, `write(server, path, content, ns?)`, `create(server, path, content, ns?)`, `mkdir(server, path, ns?)`, `remove(server, path, recursive?, ns?)`, `upload(server, dir, files, ns?)`, `downloadURL(server, path, ns?)`
 
 - **Logs** — `downloadURL(server, ns?)`, `fileStreamPath(server, ns?)` (WebSocket), `podStreamPath(server, ns?)` (WebSocket)
 

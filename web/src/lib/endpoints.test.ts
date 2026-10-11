@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Audit, Auth, Clusters, Files, Logs, Players, Servers, Templates, Users } from "./endpoints";
+import { Audit, Auth, Clusters, Files, Logs, Players, Servers, Templates, Users, createResourceClient } from "./endpoints";
 
 // Mock the cluster module so we don't depend on actual localStorage in tests
 vi.mock("./cluster", () => ({
@@ -146,6 +146,37 @@ describe("endpoints", () => {
       expect(c.init.method).toBe("POST");
       expect(c.init.headers?.["Content-Type"]).toBe("application/octet-stream");
       expect(c.init.body).toBe("k=v\n");
+    });
+
+    it("create POSTs encoded octet-stream content with namespace and credentials", async () => {
+      fetchMock.mockImplementation(async () => new Response(null, { status: 204 }));
+      await Files.create("mc-survival", "/new #?.txt", "", "team-c");
+      const c = called();
+      expect(c.url).toBe("/servers/mc-survival/files/create?path=%2Fnew%20%23%3F.txt&namespace=team-c");
+      expect(c.init.method).toBe("POST");
+      expect(c.init.headers?.["Content-Type"]).toBe("application/octet-stream");
+      expect(c.init.body).toBe("");
+      expect(fetchMock.mock.calls.at(-1)?.[1]?.credentials).toBe("include");
+    });
+
+    it.each([409, 404])("create fails closed on %s without retrying write", async (status) => {
+      fetchMock.mockImplementation(async () => new Response("create failed", { status }));
+      await expect(Files.create("mc-survival", "/existing.txt", "")).rejects.toThrow("create failed");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(called().url).toBe("/servers/mc-survival/files/create?path=%2Fexisting.txt");
+    });
+
+    it("create preserves the captured remote cluster and sends the CSRF token", async () => {
+      fetchMock.mockImplementation(async () => new Response(null, { status: 204 }));
+      document.cookie = "gameplane_csrf=create-token; path=/";
+      try {
+        const client = createResourceClient({ cluster: "remote", namespace: "team-c" });
+        await client.Files.create("mc-survival", "/new.txt", "");
+        expect(called().url).toBe("/servers/mc-survival/files/create?path=%2Fnew.txt&namespace=team-c&cluster=remote");
+        expect(called().init.headers?.["X-Gameplane-CSRF"]).toBe("create-token");
+      } finally {
+        document.cookie = "gameplane_csrf=; Max-Age=0; path=/";
+      }
     });
 
     it("mkdir POSTs to /files/mkdir with empty body", async () => {

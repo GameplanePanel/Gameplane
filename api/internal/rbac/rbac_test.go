@@ -70,6 +70,8 @@ func TestAllow(t *testing.T) {
 	}{
 		{RoleViewer, "GET", "/servers", scope.DefaultCluster, true},
 		{RoleViewer, "POST", "/servers", scope.DefaultCluster, false},
+		{RoleViewer, "POST", "/servers/foo/files/create", scope.DefaultCluster, false},
+		{RoleOperator, "POST", "/servers/foo/files/create", scope.DefaultCluster, true},
 		{RoleOperator, "POST", "/servers", scope.DefaultCluster, true},
 		{RoleOperator, "DELETE", "/users/1", scope.DefaultCluster, false},
 		{RoleAdmin, "DELETE", "/users/1", scope.DefaultCluster, true},

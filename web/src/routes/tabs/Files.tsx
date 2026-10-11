@@ -221,7 +221,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
   const newFileMutation = useMutation({
     mutationFn: async (fileName: string) => {
       const path = joinPath(cwd, fileName);
-      await Files.write(name, path, "", ns);
+      await Files.create(name, path, "", ns);
       return path;
     },
     onSuccess: async (path) => {

@@ -36,6 +36,9 @@ func TestOperationAllowlist(t *testing.T) {
 	}{
 		{http.MethodGet, "/console", 0, true},
 		{http.MethodPost, "/files/write", 64 << 20, true},
+		{http.MethodPost, "/files/create", 64 << 20, true},
+		{http.MethodGet, "/files/create", 0, false},
+		{http.MethodPut, "/files/create", 0, false},
 		{http.MethodPost, "/mods/upload", 512 << 20, true},
 		{http.MethodPost, "/actions/run", 16 << 10, true},
 		{http.MethodGet, "/files/write", 0, false},

@@ -35,6 +35,9 @@ var errPathOutOfRoot = errors.New("path escapes root")
 // part of the file-browser surface. Like errPathOutOfRoot it is safe to echo.
 var errDotfile = errors.New("dotfile access denied")
 
+// errFileExists is a client-safe conflict for create-only operations.
+var errFileExists = errors.New("file already exists")
+
 // hasDotComponent reports whether the slash-separated relative path rel
 // (already stripped of its leading slash) has a dot-prefixed component.
 func hasDotComponent(rel string) bool {
@@ -67,6 +70,7 @@ func Mount(r chi.Router, root string) {
 			bounded.Get("/list", h.list)
 			bounded.Get("/read", h.read)
 			bounded.Post("/write", h.write)
+			bounded.Post("/create", h.create)
 			bounded.Post("/mkdir", h.mkdir)
 			bounded.Delete("/delete", h.del)
 		})
@@ -207,7 +211,7 @@ func (h *handler) download(w http.ResponseWriter, req *http.Request) {
 	http.ServeContent(w, req, fi.Name(), fi.ModTime(), f)
 }
 
-// maxWriteBytes caps a single /files/write body. The API-side ws proxy
+// maxWriteBytes caps a single /files/write or /files/create body. The API-side ws proxy
 // already enforces 64 MiB, so this is defense-in-depth against direct
 // agent access with a valid mTLS cert.
 const maxWriteBytes = 64 << 20
@@ -224,6 +228,14 @@ const maxUploadFileBytes = 64 << 20
 const maxUploadFiles = 64
 
 func (h *handler) write(w http.ResponseWriter, req *http.Request) {
+	h.storeRequest(w, req, false)
+}
+
+func (h *handler) create(w http.ResponseWriter, req *http.Request) {
+	h.storeRequest(w, req, true)
+}
+
+func (h *handler) storeRequest(w http.ResponseWriter, req *http.Request, createOnly bool) {
 	comps, err := h.components(req.URL.Query().Get("path"))
 	if err != nil {
 		h.fail(w, err)
@@ -235,7 +247,11 @@ func (h *handler) write(w http.ResponseWriter, req *http.Request) {
 	// only on success, so any error after the copy starts (ENOSPC, a body that
 	// ends early, an agent restart mid-copy) leaves the previous file intact
 	// (F-102). The whole sequence runs through one parent directory descriptor.
-	err = h.writeFile(comps, func(dst io.Writer) error {
+	store := h.writeFile
+	if createOnly {
+		store = h.createFile
+	}
+	err = store(comps, func(dst io.Writer) error {
 		_, copyErr := io.Copy(dst, body)
 		return copyErr
 	})
@@ -344,7 +360,7 @@ func (h *handler) storePart(comps []string, filename string, src io.Reader, limi
 	if strings.HasPrefix(name, ".") {
 		return errDotfile
 	}
-	return h.storeIn(comps, name, ".upload-", false, func(dst io.Writer) error {
+	return h.storeIn(comps, name, ".upload-", false, storeReplace, func(dst io.Writer) error {
 		// Read one byte past the cap: if that byte materializes the part is
 		// over the limit, whatever its multipart headers claimed.
 		n, err := io.Copy(dst, io.LimitReader(src, limit+1))
@@ -393,6 +409,8 @@ func (h *handler) del(w http.ResponseWriter, req *http.Request) {
 
 func httpErr(w http.ResponseWriter, err error) {
 	switch {
+	case errors.Is(err, errFileExists):
+		http.Error(w, errFileExists.Error(), http.StatusConflict)
 	case errors.Is(err, errPreserveAccess):
 		http.Error(w, "cannot preserve existing file access; the file changed or the filesystem does not support its group/POSIX ACL permissions", http.StatusConflict)
 	case errors.Is(err, os.ErrNotExist):
