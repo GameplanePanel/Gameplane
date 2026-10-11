@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-05
 
-**Status**: Implemented (pending CI)
+**Status**: Implemented (merged in PR #567, 2026-10-05)
 
 **Input**: Finding #6 from the backup review: deleting a `Backup` (by hand, through the API, or via `BackupSchedule` retention) removes only the Kubernetes object. The restic snapshot it created stays in the repository forever, so retention never reclaims repository space and the repository accumulates orphaned snapshots (two were already orphaned in the e2e `gameplane-test-restic` repository). Nothing in the Backup delete path touched the repository.
 

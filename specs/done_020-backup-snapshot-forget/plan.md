@@ -2,7 +2,7 @@
 
 **Branch**: `feat/backup-snapshot-forget` | **Date**: 2026-10-05 | **Spec**: [./spec.md](./spec.md)
 
-**Input**: Feature specification from `specs/020-backup-snapshot-forget/spec.md`; every open question (Q1-Q8) was decided by the maintainer on 2026-10-05 and is recorded in `OPEN-DECISIONS.md`.
+**Input**: Feature specification from `specs/done_020-backup-snapshot-forget/spec.md`; every open question (Q1-Q8) was decided by the maintainer on 2026-10-05 and is recorded in `OPEN-DECISIONS.md`.
 
 ## Summary
 
@@ -98,7 +98,7 @@ test/e2e/
 └── buckets.sh                                    # register the new test in bucket_operator
 docs/architecture.md                              # "Backup deletion and snapshot cleanup"
 operator/specs.md                                 # BackupReconciler / BackupScheduleReconciler
-specs/020-backup-snapshot-forget/                 # this folder
+specs/done_020-backup-snapshot-forget/                 # this folder
 ```
 
 ## Complexity Tracking
