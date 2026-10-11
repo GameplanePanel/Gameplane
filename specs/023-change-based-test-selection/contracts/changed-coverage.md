@@ -6,14 +6,16 @@ Changed-lines coverage gate for partial runs (FR-009, settled OD-1). Python stdl
 
 ```text
 python3 hack/check_changed_coverage.py --base <sha> --head <sha> \
-  --threshold <percent> (--go-profile <file> --module <dir> | --vitest-json <file>)
+  (--go-profile <file> --module <dir> | --vitest-json <file>)
 ```
 
 - `--go-profile`: a Go cover profile (`mode: atomic`) from the partial `go test` run,
   merged with the envtest profile for operator and api. Paths in the profile are import
   paths; `--module` maps them back to repo paths through `go.mod`.
 - `--vitest-json`: Vitest's `coverage/coverage-final.json` (Istanbul format).
-- `--threshold`: see OD-5 in [OPEN-DECISIONS.md](../OPEN-DECISIONS.md).
+- Threshold (settled OD-5): read from the source of truth, never passed in. Go: the
+  module's `.testcoverage.yml` `threshold.total`. Web: the `lines` value under
+  `coverage.thresholds` in `web/vitest.config.ts`. A missing value fails the check.
 
 ## Behaviour
 

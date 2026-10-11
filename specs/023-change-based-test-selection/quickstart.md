@@ -29,6 +29,9 @@ results go in `validation.md` in this folder.
 
 Every scenario's summary must list every suite with a decision and reason (SC-005).
 
+The `TestCISelection_*` e2e tests (research R13) run in the `operator` bucket on every
+scenario PR that selects it, and must be green on each.
+
 ## After rollout
 
 - On the first `master` push after merge, every job runs (FR-006, SC-006).

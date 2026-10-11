@@ -32,7 +32,7 @@ table to the run summary. Details: [research.md](./research.md).
 
 **Storage**: N/A (values pass between jobs as `GITHUB_OUTPUT` keys within one run)
 
-**Testing**: `hack/test_ci_scope.py` unittest suite (extended), run in CI via `make test-ci-scope`; end-to-end validation by draft PRs per [quickstart.md](./quickstart.md)
+**Testing**: `test/e2e/ci_selection_e2e_test.go` in the `operator` bucket (Principle I, OD-4); `hack/test_ci_scope.py` unittest suite (extended), run via `make test-ci-scope`; draft-PR validation per [quickstart.md](./quickstart.md)
 
 **Target Platform**: GitHub-hosted runners (`ubuntu-latest`, `ubuntu-24.04-arm`)
 
@@ -50,7 +50,7 @@ table to the run summary. Details: [research.md](./research.md).
 
 | Principle | Status | Notes |
 |---|---|---|
-| **I. E2E-Tested Delivery** (NON-NEGOTIABLE) | **NEEDS RULING (OD-4)** | No CRD, API, agent or dashboard behaviour changes, so there is no `test/e2e/` Go test to write. Verification is the extended `test_ci_scope.py` plus the draft-PR scenarios in quickstart.md, which are real runs of the feature itself. Spec 008 left the same question unresolved for CI-only work. |
+| **I. E2E-Tested Delivery** (NON-NEGOTIABLE) | Pass (OD-4 settled 2026-10-11) | The maintainer ruled that an e2e test is required. `test/e2e/ci_selection_e2e_test.go` (research R13) drives the real selection path end to end, from a committed change through `ci_scope.py` to the bucket regexes `go test -run` uses, and is registered in the `operator` bucket per the e2e conventions (`t.Parallel()`, unique temp dirs, no logins). `test_ci_scope.py` and the quickstart draft-PR runs remain supporting layers. |
 | **II. Design-First** | Pass (exempt) | No dashboard or website surface. `design.pen` untouched. |
 | **III. Language & Ecosystem Best Practice** | Pass | No `//nolint`, `eslint-disable` or config loosening. Coverage thresholds in `.testcoverage.yml` and `vitest.config.ts` are not edited; partial runs swap in the changed-lines gate per settled OD-1. |
 | **IV. Spec-Driven Development** | Pass | Spec settled (OD-1..OD-3), this plan, then `/speckit-tasks`. No module `specs.md` is affected (`hack/`, `.github/` and `test/e2e/` harness files are not module roots); `test/e2e/internal/specs.md` untouched. |
@@ -60,7 +60,7 @@ table to the run summary. Details: [research.md](./research.md).
 
 **Post-design re-check (after Phase 1)**: unchanged. The design adds two stdlib scripts'
 worth of logic, one JSON file and workflow wiring; it adds no subsystem the spec does
-not name (see research R12). Principle I still needs OD-4.
+not name (see research R12). Principle I is met by the e2e test in R13.
 
 ## Project Structure
 
@@ -91,7 +91,8 @@ hack/
 ├── test_ci_scope.py           # extended: one case per acceptance scenario
 └── check_changed_coverage.py  # new: changed-lines coverage for Go profiles and Vitest JSON
 test/e2e/
-├── buckets.sh                 # unchanged membership
+├── buckets.sh                 # adds TestCISelection_* to the operator bucket
+├── ci_selection_e2e_test.go   # new: e2e test of the selection path (R13)
 └── suite-components.json      # new: per-test component declarations
 .github/workflows/ci.yaml      # changes job outputs; go/web jobs take package/file lists;
                                #   e2e matrices take e2e-exclude; workflow_dispatch;
@@ -109,7 +110,7 @@ docs/contributing.md           # how selection works, the label, how to add a su
    output and step summary listing today's decisions unchanged. Ships alone; gives
    SC-005 before any skipping.
 2. **P1 e2e selection** (US1): `suite-components.json`, `verify-suites`, `e2e-exclude`,
-   per-test bot matrix, special-job booleans.
+   per-test bot matrix, special-job booleans, and `ci_selection_e2e_test.go`.
 3. **P2 unit selection** (US2): package graph, `go-packages`, `web-tests`,
    `check_changed_coverage.py`, coverage switch on `scope`.
 4. **P3 CI config mapping** (US3): `ci.yaml` line mapper and the narrowed shared-file list.
@@ -121,5 +122,5 @@ Each phase is its own PR so a mistake in one can be reverted alone.
 
 | Item | Why needed | Simpler alternative rejected because |
 |---|---|---|
-| Principle I has no e2e test for this feature (pending OD-4) | The feature's surface is the CI workflow itself; there is no cluster path to exercise | A Go e2e test that parses workflow YAML would boot a kind cluster to check text, and misfile a CI gate as a cluster test |
+| e2e test for CI logic runs inside a kind-cluster bucket (OD-4) | Constitution Principle I as ruled by the maintainer | Running it in `go-e2e-unit` (no cluster) would not be a bucketed e2e test, which the ruling asked for |
 | New `check_changed_coverage.py` | OD-1 requires a changed-lines gate and go-test-coverage v2.18.9 has no such mode | Installing `diff-cover` adds a dependency and a format-conversion step to every Go and web job |

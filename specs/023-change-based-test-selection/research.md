@@ -117,7 +117,7 @@ declared per test, not per bucket.
 - **Alternatives**: `go list -deps -test -json` (exact, but needs Go and a module
   download in the gate job); Bazel/Pants-style build graphs (far out of scope).
 
-### R5. Coverage: module gate on full runs, changed-lines gate on partial runs — threshold **OPEN (OD-5)**
+### R5. Coverage: module gate on full runs, changed-lines gate on partial runs
 
 - **Decision (settled by OD-1)**: full runs keep `make cover-go-merge && make
   cover-go-check` and Vitest thresholds unchanged. Partial runs skip the module totals
@@ -125,7 +125,9 @@ declared per test, not per bucket.
   lines with the Go cover profile and the Vitest `coverage-final.json`, and fails when
   the covered share is below the threshold. Lines that are not statements (comments,
   blank, declarations) are ignored because neither profile lists them.
-- **Open**: the threshold for changed lines. See OD-5.
+- **Threshold (settled OD-5, 2026-10-11)**: the module's own minimum. The script reads
+  `threshold.total` from the module's `.testcoverage.yml`, and for web the `lines`
+  threshold from `web/vitest.config.ts` (92), so no number is duplicated.
 - **Rationale**: go-test-coverage v2.18.9 has no changed-lines mode that fits this repo;
   a stdlib script reading the two profile formats is about the size of the existing
   `ci_scope.py` helpers.
@@ -203,3 +205,29 @@ declared per test, not per bucket.
 - **Rationale**: spec 008 recorded the cost of an unrequested verifier subsystem
   (`specs/done_008-hardened-github-actions/OPEN-DECISIONS.md`, D-H). This plan adds only
   what the requirements name.
+
+### R13. The e2e test required by OD-4
+
+- **Decision**: add `test/e2e/ci_selection_e2e_test.go` (`//go:build e2e`) with one
+  `TestCISelection_<Scenario>` per spec acceptance scenario that a single commit can
+  express (US1-1..4, US2-1..3, US3-1..2, plus the unmapped-path and full-run edges).
+  Each test, with `t.Parallel()` and its own `t.TempDir()`:
+  1. exports the checked-out tree with `git archive HEAD` into the temp dir and commits it
+     as the base (works on the shallow checkout every e2e job uses);
+  2. applies the scenario's edit and commits it as the head;
+  3. runs `python3 hack/ci_scope.py modules --base <base> --head <head>` with
+     `GITHUB_OUTPUT` pointed at a temp file;
+  4. asserts the `selection`, `e2e-exclude` and `go-packages` outputs match the scenario;
+  5. for every selected bucket, runs `test/e2e/buckets.sh regex <bucket>` and asserts the
+     regex matches at least one `Test` function compiled into this e2e package, so a
+     selection can never point at a bucket that runs nothing.
+- **Bucket**: `operator` (zero logins, runs wide). The file is declared in
+  `suite-components.json` with `paths` = `hack/ci_scope.py`, `test/e2e/suite-components.json`,
+  `test/e2e/buckets.sh`, `.github/workflows/ci.yaml`; most of those already force the
+  full suite, so the test always runs when the rules change.
+- **Rationale**: the maintainer ruled the test required (OD-4, 2026-10-11). Step 5 is the
+  part only the e2e package can check: it ties the selection output to the tests that
+  actually exist in the compiled suite.
+- **Needs on the runner**: `git` and `python3`, both present on `ubuntu-latest` and
+  `ubuntu-24.04-arm`. No cluster resources are created, so the test adds seconds, not a
+  new job.
