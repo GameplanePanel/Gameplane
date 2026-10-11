@@ -2,8 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "node:url";
 
-// Settings > Game configuration (design frames OC804, QFEg9, j72iI0 password
-// will be removed, x8CTg6 new password typed) and the 404 page (Ne5TA), captured at 1440x900 @2x = 2880x1800, same as the frames.
+// Settings > Game configuration (design frames OC804, QFEg9, h5clan password
+// will be removed, ffmEd new password typed) and the 404 page (Ne5TA), captured at 1440x900 @2x = 2880x1800, same as the frames.
 // Frames wxINm (read-only) and e9FnC (orphan key) are intentionally not
 // captured: they need per-state server fixtures.
 
@@ -63,7 +63,7 @@ test.describe("Game configuration + 404 (Desktop — 1440x900) @screenshots", ()
     await capture(page, "QFEg9");
   });
 
-  test("j72iI0: Server Detail — Settings · Game configuration (password will be removed)", async ({ page }) => {
+  test("h5clan: Server Detail — Settings · Game configuration (password will be removed)", async ({ page }) => {
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Settings");
     await clickTab(page, "Game configuration");
@@ -72,10 +72,10 @@ test.describe("Game configuration + 404 (Desktop — 1440x900) @screenshots", ()
     await page.mouse.move(0, 0);
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.waitForTimeout(200);
-    await capture(page, "j72iI0");
+    await capture(page, "h5clan");
   });
 
-  test("x8CTg6: Server Detail — Settings · Game configuration (new password typed)", async ({ page }) => {
+  test("ffmEd: Server Detail — Settings · Game configuration (new password typed)", async ({ page }) => {
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Settings");
     await clickTab(page, "Game configuration");
@@ -84,7 +84,7 @@ test.describe("Game configuration + 404 (Desktop — 1440x900) @screenshots", ()
     await page.mouse.move(0, 0);
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.waitForTimeout(200);
-    await capture(page, "x8CTg6");
+    await capture(page, "ffmEd");
   });
 
   test("Ne5TA: Page not found", async ({ page }) => {

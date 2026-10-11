@@ -40,10 +40,10 @@ description: "Task list for Feature 021: Edit game configuration from server Set
 - [ ] T019 Archive to `specs/done_021-settings-game-config` after merge (rule 16).
 
 ## Phase 7: Clear a stored optional password (OD-2)
-- [X] T020 [Visual] `design.pen` OC804/QFEg9 Remove button, new frames j72iI0 (will be removed) and x8CTg6 (new password typed); export to `assets/design-export/`.
+- [X] T020 [Visual] `design.pen` OC804/QFEg9 Remove button, new frames h5clan (will be removed) and ffmEd (new password typed); export to `assets/design-export/`.
 - [X] T021 [Web] `ConfigFields.tsx` (Remove/Undo, removing state) and `GameConfig.tsx` (`removing` set, key absent while removing).
 - [X] T022 [Test] New tests for Remove, Undo, required password, typing after Remove; existing tests untouched.
-- [X] T023 [Visual] `web/e2e/screenshots/slice-gameconfig.spec.ts`: add j72iI0 and x8CTg6 states.
+- [X] T023 [Visual] `web/e2e/screenshots/slice-gameconfig.spec.ts`: add h5clan and ffmEd states.
 - [ ] T024 CI green, PR labels `type: feature`, `area: web`, `area: specs`; human approval.
 
 ## Notes

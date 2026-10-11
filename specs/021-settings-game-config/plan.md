@@ -13,7 +13,7 @@ Extract the wizard's inline config field loop into `web/src/components/server/Co
 ## Constitution Check
 | Rule | Status |
 |---|---|
-| Design-first (rule 1) | Frames `OC804 QFEg9 j72iI0 x8CTg6 wxINm e9FnC Ne5TA EV8mp` exported before code |
+| Design-first (rule 1) | Frames `OC804 QFEg9 h5clan ffmEd wxINm e9FnC Ne5TA EV8mp` exported before code |
 | Operator authority (rule 10) | No API validation; client validation is advisory |
 | Login privacy (rule 3) | 404 sits behind the layout auth guard, shows no data |
 | Fix, don't silence (rule 4) | No eslint-disable; no `any` |
@@ -31,7 +31,7 @@ web/src/routes/NotFound.tsx                       NEW 404 page
 web/src/router/tree.tsx                           splat route under app layout
 web/src/components/AppLayout.tsx                  fixed 404 breadcrumb
 web/src/test/{screenshotData,handlers}.ts         screenshot fixtures (single-get configSchema)
-web/e2e/screenshots/slice-gameconfig.spec.ts      captures OC804 QFEg9 j72iI0 x8CTg6 Ne5TA
+web/e2e/screenshots/slice-gameconfig.spec.ts      captures OC804 QFEg9 h5clan ffmEd Ne5TA
 web/specs.md, docs/module-authoring.md            docs
 ```
 
