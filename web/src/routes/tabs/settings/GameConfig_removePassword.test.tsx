@@ -134,6 +134,25 @@ describe("GameConfigSection: removing a stored optional password", () => {
     expect(screen.getByLabelText(/Server password/)).toHaveAttribute("placeholder", "Password will be removed");
   });
 
+  it("emptying a replacement typed after a remount returns to unchanged, not removed", () => {
+    const spy = vi.fn();
+    const target = { cluster: "local", name: "mc-survival", namespace: "gameplane-games" };
+    const access = { canWrite: true, canControl: true, canConsole: true, canDelete: true, isOwner: false, isCollaborator: false, permissions: ["*"] };
+    // Fresh mount whose draft already has the key removed (Remove, then a section switch).
+    renderWithQuery(
+      <ResourceTargetProvider target={target} access={access}>
+        <GameConfigSection
+          draft={server({ ADMIN_PASSWORD: CONFIG_REDACTED_MARKER, SERVER_PASSWORD: "x" })}
+          template={template}
+          storedConfig={STORED}
+          onChange={spy}
+        />
+      </ResourceTargetProvider>,
+    );
+    fireEvent.change(screen.getByLabelText(/Server password/), { target: { value: "" } });
+    expect(spy.mock.calls.at(-1)?.[0].spec.config).toEqual({ ADMIN_PASSWORD: CONFIG_REDACTED_MARKER, SERVER_PASSWORD: CONFIG_REDACTED_MARKER });
+  });
+
   it("offers no Remove or Undo without write access", () => {
     renderWithQuery(<Harness canWrite={false} initial={server(STORED)} />);
     expect(screen.queryByRole("button", { name: "Remove password" })).toBeNull();

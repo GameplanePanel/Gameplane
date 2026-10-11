@@ -81,8 +81,10 @@ export function GameConfigSection({ draft, onChange, template, storedConfig, onV
   const setValue = (name: string, value: string) => {
     const field = schema.find((f) => f.name === name);
     const next = { ...values };
-    if (value === "" && storedRef.current.has(name)) {
+    if (value === "" && (storedRef.current.has(name) || storedConfig?.[name] === CONFIG_REDACTED_MARKER)) {
       // Emptied a field the API reported as the marker: back to "unchanged".
+      // The saved config also counts, because a remounted section (after a
+      // Remove and a section switch) never saw the marker in its draft.
       next[name] = CONFIG_REDACTED_MARKER;
     } else if (field?.type === "password" && value === "") {
       delete next[name];
