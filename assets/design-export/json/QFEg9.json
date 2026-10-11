@@ -566,17 +566,38 @@
                                   "gap": 6,
                                   "children": [
                                     {
-                                      "id": "S8dLsw",
-                                      "type": "ref",
-                                      "ref": "D0cDM",
-                                      "name": "Input",
+                                      "type": "frame",
+                                      "id": "v2RYLO",
+                                      "name": "Input row",
                                       "width": "fill_container",
-                                      "descendants": {
-                                        "PJERm": {
-                                          "content": "Unchanged — type to replace",
-                                          "fill": "$field/placeholder"
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "S8dLsw",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": "fill_container",
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "Unchanged — type to replace",
+                                              "fill": "$field/placeholder"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "yCtMa",
+                                          "type": "ref",
+                                          "ref": "J09iP",
+                                          "name": "Remove password button",
+                                          "descendants": {
+                                            "eWkIT/r4VbAi": {
+                                              "content": "Remove password"
+                                            }
+                                          }
                                         }
-                                      }
+                                      ]
                                     },
                                     {
                                       "type": "text",
