@@ -126,12 +126,16 @@ docs/
 
 ## Known Gaps (found during the 2026-10-09 refresh)
 
-These were found by comparing the shipped templates with this plan. They are not resolved here; each needs a fix or a maintainer ruling before the feature is closed out (T126).
+These were found by comparing the shipped templates with this plan. **Resolved 2026-10-11** by Phase 9 (T132-T146), except `hell-let-loose`, whose image ruling is still pending (T133, T138); see the note under each gap.
 
 1. **Placeholder image digests (FR-003, SC-002).** Ten of the 13 new modules pin `@sha256:0000…0000`: `ark-survival-evolved`, `arma-reforger`, `beammp`, `euro-truck-simulator-2`, `farming-simulator-25`, `fivem`, `hell-let-loose`, `mount-and-blade-2-bannerlord`, `squad`, `the-isle`. T119 (digest-pinning pass) is marked done, but these images were never pinned.
+   *Resolved (T141, T142):* nine of the ten now pin real digests (GameplanePanel/module#48); `validate.py` reports 0 errors across all 30 modules. `hell-let-loose` keeps its placeholder (a warning) until its ruling.
 2. **Images with no build source.** Six templates reference `ghcr.io/valgulnecron/gameplane/<game>` images that nothing in either repository builds: `mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`. `modules/build-images.sh` builds only the four images from research.md Decision 1. Either research.md Decision 1 widens to these six (with Dockerfiles), or the templates move to community images.
+   *Resolved (T133-T140, OPEN-DECISIONS §10):* `arma-reforger` moved to the ACE community image; `squad`, `the-isle`, `ark-survival-evolved` and `mount-and-blade-2-bannerlord` are built in this repo's `containers/games/` (#638), and the four original images moved there too (#651).
 3. **Stale registry owner.** All ten Gameplane-owned image refs use `ghcr.io/valgulnecron/gameplane/…`; the repositories moved to `GameplanePanel` in October 2026, and `build-images.sh`'s own usage example pushes to `ghcr.io/gameplanepanel/gameplane`.
+   *Resolved (T141):* every Gameplane-built ref now points at `ghcr.io/gameplanepanel/gameplane/…`, except `hell-let-loose`.
 4. **Planning matrix drift.** `engine-matrix-resolved.md` no longer matches several shipped templates, for example `palworld` stop (`save`, `shutdown 1`), `rust` stop (`server.save`, `quit`), `ark-survival-ascended` stop (`SaveWorld`, `DoExit`), `tmodloader` mount path (`/opt/terraria/config`), and the CI bucket for `tmodloader`/`beammp` (shipped in `bot-heavy`, matrix says `bot-fast`). The templates are authoritative.
+   *Resolved (T143):* `engine-matrix-resolved.md` was re-read from the shipped templates and `test/e2e/buckets.sh`.
 
 ---
 

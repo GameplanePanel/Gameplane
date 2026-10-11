@@ -52,7 +52,7 @@ This research defines the architectural foundation, container configurations, pr
 - **Alternatives Considered**:
   - *Sourcing community images for all 26 games*: Rejected for the four auxiliary-service games because community images crash-loop when credentials are missing (violating FR-013) or fail to co-supervise required companion services in a single pod (violating FR-012).
   - *Building custom Gameplane base images for all 26 games*: Rejected because maintaining 26 bespoke upstream SteamCMD game downloaders introduces unnecessary maintenance overhead for standard games.
-- **Shipped state (2026-10-09)**: The four images are built from `modules/<game>/Dockerfile` + `entrypoint.sh` by `modules/build-images.sh`. Six further new modules (`mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`) also reference `ghcr.io/valgulnecron/gameplane/<game>` images, contrary to this decision, with no build source and placeholder digests. Whether this decision widens to cover them or they move to community images is open; see plan.md Known Gaps.
+- **Shipped state (2026-10-11, T133)**: Gameplane builds, publishes and cosign-signs eight images from `containers/games/<game>/` in GameplanePanel/Gameplane (`.github/workflows/images.yaml`) to `ghcr.io/gameplanepanel/gameplane/<game>`: the four above plus `squad`, `the-isle`, `ark-survival-evolved` and `mount-and-blade-2-bannerlord`, for which no suitable community image exists (OPEN-DECISIONS §10). `arma-reforger` uses the community `ghcr.io/acemod/arma-reforger`. `hell-let-loose` has no image yet; its ruling is pending.
 
 ### Decision 2: Single-Pod Auxiliary Service Supervision (Clarification Q1)
 
