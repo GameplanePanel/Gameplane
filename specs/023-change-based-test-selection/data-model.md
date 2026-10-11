@@ -51,7 +51,7 @@ A CI unit that can be skipped as a whole.
 
 | Kind | Members | Selected when |
 |---|---|---|
-| e2e bucket | `operator`, `api-auth` (+`ratelimit` tail), `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `telemetry`, `multicluster`, `upgrade`, `capture-overhead` | any of its tests matches a declaration whose components or paths intersect the changed set |
+| e2e bucket | `operator`, `api-auth` (+`ratelimit` tail), `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `telemetry`, `multicluster`, `upgrade`, `capture-overhead` | any of its tests matches a declaration whose components or paths intersect the changed set; the job then runs only those tests (OD-6) |
 | game-bot test | each `bot-fast` test | the test itself is selected |
 | web-live | `e2e-web-live*` | `web` changed, or any component its Playwright live run uses (api, operator, agent) |
 | ingress smoke | `e2e-kind-ingress-smoke` | unchanged: `kindsmoke` filter |

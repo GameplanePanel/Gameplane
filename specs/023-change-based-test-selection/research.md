@@ -2,8 +2,8 @@
 
 Phase 0 output for [plan.md](./plan.md). Facts were gathered read-only on 2026-10-11 from
 `master` at `8388366` (no test, lint or build was run). Each item gives a decision, its
-rationale and the alternatives that were rejected. Items marked **OPEN** depend on a
-maintainer ruling recorded in [OPEN-DECISIONS.md](./OPEN-DECISIONS.md).
+rationale and the alternatives that were rejected. Maintainer rulings are recorded in
+[OPEN-DECISIONS.md](./OPEN-DECISIONS.md); none is open.
 
 ## What exists today
 
@@ -76,16 +76,22 @@ declared per test, not per bucket.
   annotations in each `_test.go` file (scattered, needs a Go parser); YAML (needs PyYAML
   or a hand parser in the `changes` job).
 
-### R2. Run every test of a selected bucket (bucket-level skip only) — **OPEN (OD-6)**
+### R2. Run only the affected tests inside a selected bucket (settled OD-6, 2026-10-11)
 
-- **Proposed**: when a bucket is selected, run its whole bucket regex as today.
-- **Rationale**: almost all the saving comes from not booting a cluster at all (each
-  e2e job boots kind and installs the chart before any test runs). Running only part
-  of a bucket would change login-budget timing that the buckets were tuned for, and
-  would make one bucket's runtime depend on the diff.
-- **Alternative**: also filter tests inside a selected bucket with a narrower `-run`
-  regex. Saves more on wide buckets (`operator`, `telemetry`) at the cost of more moving
-  parts.
+- **Decision**: `ci_scope.py` emits, per selected bucket, an anchored `^(A|B|…)$` regex of
+  only the selected tests, built from `buckets.sh list <bucket>` filtered by the suite
+  map. The `e2e-go*` jobs pass that regex to `go test -run` instead of
+  `buckets.sh regex <bucket>`. The `ratelimit` tail runs only when one of its tests is
+  selected. On full scope the emitted regex equals `buckets.sh regex <bucket>`, so full
+  runs are unchanged.
+- **Rationale**: the maintainer chose the larger saving on wide buckets (`operator`,
+  `telemetry`). Running a subset only lowers a bucket's login count, so it stays inside
+  the login budget the buckets were cut for.
+- **Risk handled**: a test's own setup must not depend on another test in the same
+  bucket having run. The e2e conventions already require independent, `t.Parallel()`
+  tests with unique names; any test found to depend on another is a bug to fix, not a
+  reason to widen the selection.
+- **Alternative rejected**: skip whole buckets only (less saving).
 
 ### R3. Component dependency closure reuses the module closure, plus a universal set
 
@@ -217,10 +223,11 @@ declared per test, not per bucket.
   2. applies the scenario's edit and commits it as the head;
   3. runs `python3 hack/ci_scope.py modules --base <base> --head <head>` with
      `GITHUB_OUTPUT` pointed at a temp file;
-  4. asserts the `selection`, `e2e-exclude` and `go-packages` outputs match the scenario;
-  5. for every selected bucket, runs `test/e2e/buckets.sh regex <bucket>` and asserts the
-     regex matches at least one `Test` function compiled into this e2e package, so a
-     selection can never point at a bucket that runs nothing.
+  4. asserts the `selection`, `e2e-exclude`, `e2e-run` and `go-packages` outputs match the
+     scenario;
+  5. for every selected bucket, asserts its `e2e-run` regex matches at least one `Test`
+     function compiled into this e2e package and matches nothing outside that bucket's
+     `buckets.sh list`, so a selection can never run nothing or leak across buckets.
 - **Bucket**: `operator` (zero logins, runs wide). The file is declared in
   `suite-components.json` with `paths` = `hack/ci_scope.py`, `test/e2e/suite-components.json`,
   `test/e2e/buckets.sh`, `.github/workflows/ci.yaml`; most of those already force the

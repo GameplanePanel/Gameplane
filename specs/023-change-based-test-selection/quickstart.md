@@ -14,7 +14,7 @@ results go in `validation.md` in this folder.
 
 | # | Draft PR changes | Expect in the `detect changes` summary | Expect in the run |
 |---|---|---|---|
-| 1 | One line in `agent/internal/console/` | scope partial; agent suites `run`, `telemetry`, `upgrade`, `api-rbac`, `api-auth`, `api-roles`, `api-mods`, `capture-overhead` `skip` | Full result in ≤ 20 min (SC-001) |
+| 1 | One line in `agent/internal/console/` | scope partial; agent suites `run` with only their agent tests in the `-run` regex, `telemetry`, `upgrade`, `api-rbac`, `api-auth`, `api-roles`, `api-mods`, `capture-overhead` `skip` | Full result in ≤ 20 min (SC-001) |
 | 2 | One line in `sentinel/` | operator RBAC and auth suites `skip` (US1-2) | |
 | 3 | One line in `charts/gameplane/values.yaml` | `full`-equivalent: every e2e suite `run` (US1-3) | |
 | 4 | One line in an existing `test/e2e/*_e2e_test.go` | the bucket holding that file's tests `run` (US1-4) | |

@@ -12,8 +12,8 @@ test suite, and any CI config edit runs all 89 jobs. This plan extends the exist
 `changes` job and `hack/ci_scope.py` (stdlib Python, no Go install) to decide, from the
 PR's changed files:
 
-1. **which e2e suites run**, from a per-test component map in
-   `test/e2e/suite-components.json` beside `buckets.sh`;
+1. **which e2e suites and which tests inside them run**, from a per-test component map
+   in `test/e2e/suite-components.json` beside `buckets.sh`;
 2. **which Go packages and dashboard test files run**, from an import graph built by
    scanning sources (`go test <packages>`, `vitest related <files>`);
 3. **which jobs a CI config edit feeds**, by mapping changed `ci.yaml` lines to job blocks.
@@ -110,7 +110,7 @@ docs/contributing.md           # how selection works, the label, how to add a su
    output and step summary listing today's decisions unchanged. Ships alone; gives
    SC-005 before any skipping.
 2. **P1 e2e selection** (US1): `suite-components.json`, `verify-suites`, `e2e-exclude`,
-   per-test bot matrix, special-job booleans, and `ci_selection_e2e_test.go`.
+   `e2e-run` per-bucket test regex, per-test bot matrix, special-job booleans, and `ci_selection_e2e_test.go`.
 3. **P2 unit selection** (US2): package graph, `go-packages`, `web-tests`,
    `check_changed_coverage.py`, coverage switch on `scope`.
 4. **P3 CI config mapping** (US3): `ci.yaml` line mapper and the narrowed shared-file list.

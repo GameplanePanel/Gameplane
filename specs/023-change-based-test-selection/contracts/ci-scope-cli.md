@@ -24,6 +24,7 @@ path forces everything (research R8).
 | `go-packages` | JSON object: module → list of package patterns | `["./..."]` on full scope or when a module's own `go.mod`/`go.sum` changed |
 | `web-tests` | JSON: `"all"` or list of `web/src/...` source paths for `vitest related` | |
 | `e2e-exclude` | JSON matrix-exclude list of `{bucket}` | For `e2e-go` and `e2e-go-arm64` |
+| `e2e-run` | JSON object: bucket → anchored `-run` regex of the selected tests | Replaces `buckets.sh regex <bucket>` in the e2e jobs (OD-6); equals it on full scope |
 | `e2e-multicluster`, `e2e-upgrade`, `e2e-web-live`, `e2e-capture-overhead` | `"true"`/`"false"` | Folded into the existing `combine` step booleans |
 | `ci-jobs` | JSON list of job ids selected by the `ci.yaml` line mapper | Folded into each job's gate |
 | `unmapped` | JSON list of paths | Non-empty forces full scope and fails `selection-rules` |

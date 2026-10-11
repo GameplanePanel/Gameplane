@@ -10,7 +10,6 @@ OD-3 (US3, FR-014): each shared CI config file runs only the jobs it feeds plus 
 ## Settled (user, 2026-10-11)
 OD-4 (Principle I): a Go e2e test is required for this feature even though it is CI-only. Plan research R13 defines it: `TestCISelection_*` in `test/e2e/`, registered in the `operator` bucket.
 OD-5 (FR-009): changed lines on a partial run must meet the module's own coverage minimum (`total` from its `.testcoverage.yml`; web uses the Vitest `lines` threshold, 92).
+OD-6 (plan R2): a selected e2e bucket runs only its affected tests; full runs still run every test of every bucket.
 
-
-## OD-6 (plan R2): granularity inside a selected e2e bucket — **Open**
-Options: (a) a selected bucket runs all its tests, as today; only whole buckets are skipped; (b) also run only the selected tests inside a bucket. Recommended: (a); most of the time is cluster boot, and the buckets are tuned for login budget.
+No open decisions remain.
