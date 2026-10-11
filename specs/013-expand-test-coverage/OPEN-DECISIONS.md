@@ -1,6 +1,6 @@
 # Open Decisions
 
-**Status**: 0 open; 3 ruled (OD-1, OD-2, OD-3 on 2026-10-09).
+**Status**: 2 open (OD-4, OD-5); 3 ruled (OD-1, OD-2, OD-3 on 2026-10-09).
 
 Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract until it is ruled here. Work proceeds on each recommended default except where noted.
 
@@ -52,3 +52,33 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 **Recommended default**: (1). A gate that never runs on PRs catches regressions only after merge. Revisit with (2) if the leg's first green runs show it slower than the slowest existing `e2e-go` leg.
 
 **Ruling (2026-10-09, user)**: option (1). `e2e-postgres` runs on every PR whose change scope includes e2e (the same `ci_scope.py` output as `e2e-go`), amd64 only.
+
+---
+
+### OD-4: The dependency-review validation PR
+
+**Status**: OPEN
+
+**Question**: May the implementer open a throwaway, never-merged PR on the public `GameplanePanel/Gameplane` repo that adds a dependency with a known high-severity advisory, to prove the `dependency review` gate fails (tasks T033)?
+
+**Options**:
+1. Yes: open it as a draft, record the red run, close it and delete its branch.
+2. No: skip the live proof and record the gate's proof as "configuration review only" in the gap record.
+
+**Recommended default**: (1). It is the only way to show this gate can fail (FR-006). The PR is public but never merged, and its branch is deleted right after.
+
+**Blocking**: T033 waits on this ruling.
+
+---
+
+### OD-5: How the spec documents ship
+
+**Status**: OPEN
+
+**Question**: Should the spec folder (spec, plan, tasks) go to `master` as its own docs PR before any implementation PR, or ride along in the first implementation PR?
+
+**Options**:
+1. Its own docs PR first; each implementation PR then branches from `master`.
+2. Inside the first implementation PR (G5 codegen drift).
+
+**Recommended default**: (1). Reviewers approve the plan once, and each later PR's diff stays limited to its own gate or story.
