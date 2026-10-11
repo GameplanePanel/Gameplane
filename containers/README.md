@@ -31,10 +31,24 @@ containers/
     ├── ark-survival-evolved/
     │   ├── Dockerfile
     │   └── entrypoint.sh
-    └── mount-and-blade-2-bannerlord/
+    ├── mount-and-blade-2-bannerlord/
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    ├── fivem/                    # standalone base (alpine), not on common-steamcmd
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    ├── beammp/                   # standalone base (alpine)
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    ├── farming-simulator-25/     # standalone base (debian + Wine)
+    │   ├── Dockerfile
+    │   └── entrypoint.sh
+    └── euro-truck-simulator-2/   # standalone base (debian)
         ├── Dockerfile
         └── entrypoint.sh
 ```
+
+`fivem`, `beammp`, `farming-simulator-25` and `euro-truck-simulator-2` moved here from the `GameplanePanel/module` repo unchanged. They do not build on the SteamCMD base and run as UID/GID 1000 with `HOME=/home/gameplane`; the `STEAMCMD_BASE_IMAGE` build arg CI passes is unused by them.
 
 ### `common/` — reusable base images
 
