@@ -1,6 +1,6 @@
 # Open Decisions
 
-**Status**: 1 open (OD-4); 4 ruled (OD-1, OD-2, OD-3 on 2026-10-09; OD-5 on 2026-10-11).
+**Status**: 0 open; 5 ruled (OD-1, OD-2, OD-3 on 2026-10-09; OD-4, OD-5 on 2026-10-11).
 
 Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract until it is ruled here. Work proceeds on each recommended default except where noted.
 
@@ -57,7 +57,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 ### OD-4: The dependency-review validation PR
 
-**Status**: OPEN
+**Status**: RULED (2026-10-11, user)
 
 **Question**: May the implementer open a throwaway, never-merged PR on the public `GameplanePanel/Gameplane` repo that adds a dependency with a known high-severity advisory, to prove the `dependency review` gate fails (tasks T033)?
 
@@ -67,7 +67,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 **Recommended default**: (1). It is the only way to show this gate can fail (FR-006). The PR is public but never merged, and its branch is deleted right after.
 
-**Blocking**: T033 waits on this ruling.
+**Ruling (2026-10-11, user)**: no PR check to prove it. A throwaway PR was rejected, and so was a never-merged fixture branch compared in CI. The user suggested local runners (act, wrkflw, Rehearse); they cannot reach the GitHub dependency-graph API the action needs, and CLAUDE.md rule 8 forbids local workflow runs. The gate ships on **configuration review only**: G-04 is recorded as `closed-unproven`, and the FR-006 exception is listed in plan Complexity Tracking.
 
 ---
 

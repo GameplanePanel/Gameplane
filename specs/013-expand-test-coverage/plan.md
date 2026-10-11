@@ -15,7 +15,7 @@ Close the spec's coverage gaps across all four test tiers, starting from a re-su
 - `dependency-review-action` on PRs (R4)
 - codegen/tidy drift and submodule-pointer freshness (R5)
 
-Each ships with a fixture-driven `_test.sh` that proves it can fail. The one exception is dependency-review, whose proof is a recorded, closed validation PR. Pre-existing findings are fixed in the PR that turns the gate on; nothing is suppressed.
+Each ships with a fixture-driven `_test.sh` that proves it can fail. The one exception is dependency-review: it can only be exercised against commits on GitHub, and a throwaway PR was ruled out (OD-4), so it ships on configuration review and its gap row is marked unproven. Pre-existing findings are fixed in the PR that turns the gate on; nothing is suppressed.
 
 **Live dashboard E2E (US2).** Five new live Playwright specs: notifications, users + roles, role bindings, backup restore, mod registries. Each seeds through the real API, reloads to prove persistence, and asserts one real API error path (R6).
 
@@ -82,7 +82,7 @@ Test-side: Playwright 1.63, vitest 5, `client-go/kubernetes/fake`, existing e2e 
 | **V. Delegation** | Implementation runs through `Workflow` scripts per CLAUDE.md rule 13, at haiku first with tier-up diff review. Gate scripts are rule-shaped work, so one agent writes them as scripts (rule 13, "scripts over fan-out"). | PASS |
 | **VI. CI Bears the Load** | No local test or lint runs. Notably, hadolint's pre-existing findings are discovered by the gate PR's first CI run, not locally (R3). Nothing is reported green until CI is. | PASS |
 
-**Post-design re-check (after Phase 1)**: unchanged. The design adds one deviation, recorded below: dependency-review's proof-of-failure is a recorded PR rather than a script.
+**Post-design re-check (after Phase 1)**: unchanged. The design adds one deviation, recorded below: dependency-review ships without a failure proof (OD-4, configuration review only).
 
 ## Project Structure
 
@@ -156,6 +156,6 @@ web/
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
-| FR-006 proof for dependency-review is a recorded, closed validation PR, not a script run on every change | The action evaluates the PR's diff through GitHub's dependency-graph API; no local or fixture input exists | A committed vulnerable `package.json`/`go.mod` fixture would trigger real Dependabot security alerts on `master` and could be pulled into builds |
+| FR-006 is not met for dependency-review: the gate ships on configuration review only, with its gap row marked `closed-unproven` (OD-4) | The action reads the dependency diff between two commits through GitHub's dependency-graph API, so no local or fixture input can drive it; the user ruled out a throwaway PR and a fixture branch | A throwaway public PR or fixture branch with a vulnerable dependency (rejected by the user, OD-4); running the workflow locally with act (cannot reach the dependency-graph API, and CLAUDE.md rule 8 forbids local runs) |
 | SC-005 "same scenarios" is met by a second execution of existing buckets, not by tests in a Postgres bucket | `buckets.sh verify` requires each test in exactly one bucket | Copying tests into a `postgres` bucket duplicates and drifts; a db matrix over all of `e2e-go` doubles the largest job |
 | US5 scenario 3 (upgrade from a prior version) is proven at the DB layer, not in kind | No released API image was ever built with `-tags postgres`, so no prior Postgres deployment exists to upgrade from | Building an old commit's API with the tag would test a binary that never shipped |

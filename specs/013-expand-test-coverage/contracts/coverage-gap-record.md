@@ -7,7 +7,7 @@
 ```markdown
 # Coverage Gap Record
 
-**Summary**: <closed>/<total> closed · <in-progress> in progress · <open> open · <by-design> unit-only by design
+**Summary**: <closed>/<total> closed · <closed-unproven> closed unproven · <in-progress> in progress · <open> open · <by-design> unit-only by design
 **Last updated**: YYYY-MM-DD
 
 | ID | Category | Gap | Story | FR | Priority | Status | Evidence | Notes |
@@ -21,12 +21,12 @@
 2. `ID` matches `^G-\d{2}$` and is unique.
 3. `Category` ∈ {`static`, `e2e-dashboard`, `e2e-optional`, `unit`, `e2e-postgres`}.
 4. `Priority` ∈ {`P1`, `P2`, `P3`}.
-5. `Status` ∈ {`open`, `in-progress`, `closed`, `unit-only-by-design`}.
+5. `Status` ∈ {`open`, `in-progress`, `closed`, `closed-unproven`, `unit-only-by-design`}.
 6. `closed` rows have non-empty `Evidence` containing a repo path or job name **and** an `https://github.com/GameplanePanel/` link.
-7. `unit-only-by-design` rows have non-empty `Notes`.
+7. `unit-only-by-design` rows have non-empty `Notes`. `closed-unproven` rows have `Evidence` naming the job and the PR that added it, and `Notes` citing the ruling that waived the failure proof (only G-04, OD-4).
 8. The `Summary` counts equal the counts computed from the table.
 
-**Proof**: `hack/check-coverage-gaps_test.sh` runs the validator on `hack/testdata/coverage-gaps/{pass,fail}/*.md`. The fail cases are a bad status, a closed row without evidence, and a wrong summary count.
+**Proof**: `hack/check-coverage-gaps_test.sh` runs the validator on `hack/testdata/coverage-gaps/{pass,fail}/*.md`. The fail cases are a bad status, a closed row without evidence, a wrong summary count, and a `closed-unproven` row without a ruling in Notes.
 
 ## Seed rows (from research R0)
 

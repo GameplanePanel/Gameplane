@@ -49,7 +49,7 @@ Each gate below is a binding contract for its implementing task. Common rules fo
 | Triggers | `pull_request` only |
 | Action | `actions/dependency-review-action`, `fail-on-severity: high`, `comment-summary-in-pr: on-failure`; no `allow-ghsas`, no `allow-licenses` change |
 | Fails when | the PR adds or changes a dependency with a high or critical advisory |
-| Proof | one closed, never-merged validation PR adding a known high-severity dependency, showing the job red. Its URL is recorded in the gap record (plan Complexity Tracking) |
+| Proof | none: configuration review only (OD-4, ruled 2026-10-11). Gap row G-04 is `closed-unproven`; see plan Complexity Tracking |
 
 ## G5 `codegen-drift`
 

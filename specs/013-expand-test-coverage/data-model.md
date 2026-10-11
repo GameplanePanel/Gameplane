@@ -13,11 +13,11 @@ A CI job (or a step inside one) that blocks merge on a finding.
 | `trigger` | set of {`pull_request`, `push:master`, `schedule`, `workflow_call` from publish} | At least `pull_request` |
 | `scope_output` | `ci_scope.py` output name | Required unless the gate runs on every PR |
 | `failing_condition` | text | Concrete and tool-level, e.g. "reachable vuln", "HIGH/CRITICAL with a fix available" |
-| `proof` | → Gate Fixture, or a URL for `dependency-review` | Required (FR-006) |
+| `proof` | → Gate Fixture | Required (FR-006), except `dependency-review`, which has none (OD-4) |
 | `suppressions` | always empty | Any ignore file or inline directive is a contract violation (FR-008) |
 | `in_report` | bool | MUST be true: listed in the `report` job's `needs`, `NEEDS_ORDER` and `JOB_MATCHERS` |
 
-**State**: `planned` → `proposed` (PR open, first CI run lists pre-existing findings) → `proven` (the fixture proof is green, and the gate is red on the fail fixture and green on the pass fixture) → `blocking` (merged, every pre-existing finding fixed). A gate never merges in `proposed`.
+**State**: `planned` → `proposed` (PR open, first CI run lists pre-existing findings) → `proven` (the fixture proof is green, and the gate is red on the fail fixture and green on the pass fixture) → `blocking` (merged, every pre-existing finding fixed). A gate never merges in `proposed`. `dependency-review` skips `proven` (OD-4).
 
 ## Gate Fixture
 
@@ -54,11 +54,11 @@ One row in the Coverage Gap Record.
 | `gap` | text | What is missing |
 | `story` / `fr` | refs | `US1`…`US5`, `FR-00x` |
 | `priority` | enum | `P1`, `P2`, `P3` (from the story) |
-| `status` | enum | `open`, `in-progress`, `closed`, `unit-only-by-design` |
+| `status` | enum | `open`, `in-progress`, `closed`, `closed-unproven`, `unit-only-by-design` |
 | `evidence` | text | Required when `closed`: a test path and/or CI job name, plus a proof link (PR or run URL) |
 | `notes` | text | Optional |
 
-**Transitions**: `open` → `in-progress` (PR opened) → `closed` (PR merged, CI green). `unit-only-by-design` is reachable only from `open`, and only with a reason in `notes` (e.g. the Tailscale/playit tunnel providers, research R7). A `closed` row is never reopened. A regression is filed as a new row citing the old one.
+**Transitions**: `open` → `in-progress` (PR opened) → `closed` (PR merged, CI green). `unit-only-by-design` is reachable only from `open`, and only with a reason in `notes` (e.g. the Tailscale/playit tunnel providers, research R7). `closed-unproven` is reachable only from `in-progress`, for a gate whose failure proof a ruling waived (G-04, OD-4). A `closed` row is never reopened. A regression is filed as a new row citing the old one.
 
 ## Coverage Gap Record
 

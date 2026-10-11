@@ -4,7 +4,7 @@ description: "Task list for 013-expand-test-coverage"
 
 # Tasks: Expand Test Coverage
 
-**Input**: Design documents from `specs/013-expand-test-coverage/`. These are [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md) and [OPEN-DECISIONS.md](OPEN-DECISIONS.md) (OD-1 to OD-3 are ruled; OD-4 and OD-5 are open).
+**Input**: Design documents from `specs/013-expand-test-coverage/`. These are [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md) and [OPEN-DECISIONS.md](OPEN-DECISIONS.md) (all five, OD-1 to OD-5, are ruled).
 
 **Tests**: tests *are* this feature's deliverables (FR-002 to FR-005). Every user-story phase therefore consists mostly of test, fixture and CI tasks. Each gate also has a "proof it can fail" task (FR-006).
 
@@ -58,7 +58,7 @@ description: "Task list for 013-expand-test-coverage"
 
   Fill the Summary and Last updated lines.
 - [ ] T003 [P] Write `hack/check-coverage-gaps.sh`, which validates a gap-record file (default `specs/013-expand-test-coverage/coverage-gaps.md`, overridable with `COVERAGE_GAPS_FILE`) against rules 1–8 of contracts/coverage-gap-record.md. It exits non-zero with a `file:line` message per violation.
-- [ ] T004 [P] Add the fixtures `hack/testdata/coverage-gaps/pass/ok.md` and `hack/testdata/coverage-gaps/fail/{bad-status,closed-no-evidence,wrong-summary}.md`.
+- [ ] T004 [P] Add the fixtures `hack/testdata/coverage-gaps/pass/ok.md` and `hack/testdata/coverage-gaps/fail/{bad-status,closed-no-evidence,wrong-summary,unproven-no-ruling}.md`.
 - [ ] T005 Write `hack/check-coverage-gaps_test.sh`. It must fail unless every `fail/*.md` is rejected and `pass/ok.md` is accepted (depends on T003, T004).
 - [ ] T006 Add a `check-coverage-gaps` target (running both scripts) to `Makefile`, include it in the `lint:` prerequisites, and add a `run: make check-coverage-gaps` step to the `docs` job in `.github/workflows/ci.yaml`, next to `make check-specs`.
 
@@ -196,7 +196,7 @@ description: "Task list for 013-expand-test-coverage"
   - uses `actions/dependency-review-action`, SHA-pinned, with `fail-on-severity: high` and `comment-summary-in-pr: on-failure`
 
   Register it in `report`, and make the report treat `skipped` on push events as neutral, the same way other PR-only jobs are tallied.
-- [ ] T033 [US1] Open the throwaway validation PR (plan Complexity Tracking). It must wait on **OD-4**. The PR adds a dependency with a known high-severity GHSA to `web/package.json`; the GHSA must be chosen at the time and named in the PR. Record that `dependency review` is red, close the PR without merging, delete its branch, and put the PR link in G-04's Evidence.
+- [ ] T033 [US1] Once the T032 PR merges, set G-04 to `closed-unproven` in `coverage-gaps.md`: Evidence names the `dependency review` job and that PR, and Notes cite OD-4 (configuration review only; no throwaway PR, no fixture branch, no local act run).
 
 ### G6 submodule freshness: PR `ci: submodule freshness gate` (OD-1 ruled)
 

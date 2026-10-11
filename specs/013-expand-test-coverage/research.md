@@ -102,7 +102,7 @@ The spec was written on 2026-09-02. Several of its survey numbers are stale, so 
 
 **Decision**: a `dependency review` job on `pull_request` only, using `actions/dependency-review-action` (SHA-pinned) with `fail-on-severity: high` and `comment-summary-in-pr: on-failure`. It sets no `allow-ghsas`. It covers the gomod (16 modules), npm (`web/`, `website/` pointer excluded) and GitHub Actions ecosystems from the dependency graph.
 
-**Proof it can fail**: this gate reads the PR's dependency diff from GitHub's dependency graph, so it cannot be run against a local fixture. The proof is a one-time, never-merged validation PR that adds a dependency with a known high-severity advisory and shows the job red. The PR stays closed and its link is recorded in the Coverage Gap Record row for this gate. This is the documented exception to FR-006's "run as part of the gate's validation" (see plan Complexity Tracking).
+**Proof it can fail**: none. This gate reads the dependency diff between two commits from GitHub's dependency graph, so it cannot be run against a local fixture, and local runners such as act cannot reach that API. The user ruled out both a throwaway validation PR and a fixture branch (OD-4, 2026-10-11). The gate ships on configuration review only, and its Coverage Gap Record row is `closed-unproven`. This is the documented exception to FR-006 (see plan Complexity Tracking).
 
 **Rationale**:
 - Dependabot only proposes upgrades; it does not stop a contributor from adding a vulnerable or newly-introduced dependency.

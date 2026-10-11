@@ -17,7 +17,7 @@ For each gate in [contracts/static-gates.md](contracts/static-gates.md):
 
 1. **Proof step green**: the gate's `hack/check-<gate>_test.sh` step passes. It exits 0 only when the gate failed on the fail fixture and passed on the pass fixture.
 2. **Gate green on the branch**: the gate job itself is green, which means every pre-existing finding was fixed.
-3. **Gate blocks for real**: the Coverage Gap Record row links a run where the gate was red on a real violation. That is the gate PR's first run (hadolint, Trivy, govulncheck with pre-existing findings) or the dependency-review validation PR.
+3. **Gate blocks for real**: the Coverage Gap Record row links a run where the gate was red on a real violation. That is the gate PR's first run (hadolint, Trivy, govulncheck with pre-existing findings). `dependency review` is the exception: its row is `closed-unproven` (OD-4).
 4. **No suppressions**: `git diff master -- . ':!specs'` contains no `nolint`, `eslint-disable`, `@ts-ignore`, `hadolint ignore`, `.trivyignore`, `allow-ghsas` or `-exclude`.
 
 Expected at release time (acceptance scenario 3): one `master` CI run with `vuln (go)`, `vuln (images)`, `workflow-lint` (hadolint), `codegen drift` and `submodule freshness` all green, and `dependency review` green on the release PR.
