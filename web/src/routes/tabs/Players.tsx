@@ -16,6 +16,7 @@ import { Button, Input } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { errorText } from "@/lib/errors";
+import { playerRows } from "@/lib/players";
 
 import { cn } from "@/lib/utils";
 
@@ -32,7 +33,7 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
   const resourceClient = useResourceClient(resourceTarget);
   const { Players: PlayersAPI } = resourceClient;
   const qc = useQueryClient();
-  const [pending, setPending] = useState<{ player: string; action: Action } | null>(null);
+  const [pending, setPending] = useState<{ player: string; label: string; action: Action } | null>(null);
   const [reason, setReason] = useState("");
   const [showBanned, setShowBanned] = useState(false);
   const [showWhitelist, setShowWhitelist] = useState(false);
@@ -45,6 +46,7 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
     refetchInterval: 5_000,
   });
   const caps = data?.capabilities;
+  const rows = playerRows(data);
 
   // Banned + whitelist are fetched whenever the game supports them so the
   // summary tiles always have counts; the sections below just toggle the
@@ -161,12 +163,17 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
       )}
 
       <ul className="grid gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {data?.players.map((p) => (
+        {rows.map((r) => (
           <li
-            key={p}
+            key={r.id}
             className="flex items-center justify-between gap-2 rounded border border-border bg-surface/30 px-3 py-2 font-mono text-sm"
           >
-            <span className="truncate">{p}</span>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className={cn("truncate", !r.named && "text-muted")}>{r.label}</span>
+              {r.faction && (
+                <span className="rounded-full bg-accent/10 px-2 py-0.5 font-sans text-xs text-accent">{r.faction}</span>
+              )}
+            </div>
             {caps && (caps.kick || caps.ban) && (
               <div className="flex items-center gap-1">
                 {caps.kick && (
@@ -176,7 +183,7 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
                     size="sm"
                     isDisabled={!canControl} aria-label="Kick"
                     onClick={() => {
-                      setPending({ player: p, action: "kick" });
+                      setPending({ player: r.id, label: r.label, action: "kick" });
                       setReason("");
                     }}
                   >
@@ -190,9 +197,9 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
                     isIconOnly
                     variant="ghost"
                     size="sm"
-                    isDisabled={!canControl} aria-label={`Ban ${p}`}
+                    isDisabled={!canControl} aria-label={`Ban ${r.label}`}
                     onClick={() => {
-                      setPending({ player: p, action: "ban" });
+                      setPending({ player: r.id, label: r.label, action: "ban" });
                       setReason("");
                     }}
                   >
@@ -205,12 +212,13 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
             )}
           </li>
         ))}
-        {data?.players.length === 0 && <p className="text-sm text-muted">Nobody online.</p>}
+        {data && rows.length === 0 && <p className="text-sm text-muted">Nobody online.</p>}
       </ul>
 
       {pending && (
         <ConfirmAction
-          player={pending.player}
+          player={pending.label}
+          playerId={pending.player}
           action={pending.action}
           reason={reason}
           onReasonChange={setReason}
@@ -343,6 +351,7 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
 
 function ConfirmAction({
   player,
+  playerId,
   action,
   reason,
   onReasonChange,
@@ -351,6 +360,7 @@ function ConfirmAction({
   submitting,
 }: {
   player: string;
+  playerId: string;
   action: Action;
   reason: string;
   onReasonChange: (v: string) => void;
@@ -363,7 +373,14 @@ function ConfirmAction({
   return (
     <div className="rounded border border-border bg-surface/50 p-4">
       <p className="text-sm text-foreground">
-        {verb} <span className="font-mono">{player}</span>?
+        {verb} <span className="font-mono">{player}</span>
+        {playerId !== player && (
+          <>
+            {" "}
+            (<span className="font-mono">{playerId}</span>)
+          </>
+        )}
+        ?
       </p>
       <Input
         className="mt-3"

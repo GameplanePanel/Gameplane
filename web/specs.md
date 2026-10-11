@@ -292,6 +292,8 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
 
 6. **Players** (`web/src/routes/tabs/Players.tsx`, 386 lines)
    - Online player snapshot, ban list, whitelist management
+   - Rows come from `playerRows()` (`web/src/lib/players.ts`): when the snapshot carries `entries` (Nuclear Option), each row shows the display name, or the raw Steam ID in muted text when none resolved, plus a faction chip; otherwise rows render the flat `players` strings unchanged. The Overview `PlayersCard` uses the same rows (label only, no faction).
+   - Kick/ban always send the row's Steam ID, never the rendered display name
    - Player count summary via ui/ StatCard (line 15)
    - Kick/ban/unban actions with reason input via HeroUI Input (line 14)
    - Error display via ui/ ErrorBanner (line 16, used at line 131)
