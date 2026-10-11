@@ -1,6 +1,6 @@
 # Open Decisions
 
-**Status**: 2 open (OD-4, OD-5); 3 ruled (OD-1, OD-2, OD-3 on 2026-10-09).
+**Status**: 1 open (OD-4); 4 ruled (OD-1, OD-2, OD-3 on 2026-10-09; OD-5 on 2026-10-11).
 
 Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract until it is ruled here. Work proceeds on each recommended default except where noted.
 
@@ -73,7 +73,7 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 
 ### OD-5: How the spec documents ship
 
-**Status**: OPEN
+**Status**: RULED (2026-10-11, user)
 
 **Question**: Should the spec folder (spec, plan, tasks) go to `master` as its own docs PR before any implementation PR, or ride along in the first implementation PR?
 
@@ -82,3 +82,5 @@ Per CLAUDE.md rule 10, an open value MUST NOT be committed as a settled contract
 2. Inside the first implementation PR (G5 codegen drift).
 
 **Recommended default**: (1). Reviewers approve the plan once, and each later PR's diff stays limited to its own gate or story.
+
+**Ruling (2026-10-11, user)**: option (1). The spec folder ships as its own `docs:` PR first; each implementation PR then branches from `master`.
