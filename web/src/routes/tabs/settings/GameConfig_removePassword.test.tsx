@@ -41,6 +41,7 @@ function Harness({ initial, canWrite = true, spy }: { initial: GameServer; canWr
       <GameConfigSection
         draft={draft}
         template={template}
+        storedConfig={initial.spec.config}
         onChange={(next) => {
           spy?.(next);
           setDraft(next);
@@ -103,18 +104,38 @@ describe("GameConfigSection: removing a stored optional password", () => {
     expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
   });
 
-  it("emptying the field while removed keeps it removed", () => {
+  it("Undo puts the key back in its saved position (draft stays clean)", () => {
     const spy = vi.fn();
-    renderWithQuery(<Harness initial={server(STORED)} spy={spy} />);
+    const initial = server({ SERVER_PASSWORD: CONFIG_REDACTED_MARKER, ADMIN_PASSWORD: CONFIG_REDACTED_MARKER, MOTD: "hi" });
+    renderWithQuery(<Harness initial={initial} spy={spy} />);
     fireEvent.click(screen.getByRole("button", { name: "Remove password" }));
-    const calls = spy.mock.calls.length;
-    fireEvent.change(screen.getByLabelText(/Server password/), { target: { value: "" } });
-    expect(spy.mock.calls.length).toBe(calls);
-    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(JSON.stringify(spy.mock.calls.at(-1)?.[0].spec.config)).toBe(JSON.stringify(initial.spec.config));
   });
 
-  it("is not offered without write access", () => {
+  it("keeps the will-be-removed state when the section remounts", () => {
+    const initial = server(STORED);
+    const props = { template, storedConfig: initial.spec.config, onChange: () => undefined };
+    const draft = server({ ADMIN_PASSWORD: CONFIG_REDACTED_MARKER });
+    const access = { canWrite: true, canControl: true, canConsole: true, canDelete: true, isOwner: false, isCollaborator: false, permissions: ["*"] };
+    const target = { cluster: "local", name: "mc-survival", namespace: "gameplane-games" };
+    const { unmount } = renderWithQuery(
+      <ResourceTargetProvider target={target} access={access}>
+        <GameConfigSection draft={draft} {...props} />
+      </ResourceTargetProvider>,
+    );
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
+    unmount();
+    renderWithQuery(
+      <ResourceTargetProvider target={target} access={access}>
+        <GameConfigSection draft={draft} {...props} />
+      </ResourceTargetProvider>,
+    );
+    expect(screen.getByLabelText(/Server password/)).toHaveAttribute("placeholder", "Password will be removed");
+  });
+
+  it("offers no Remove or Undo without write access", () => {
     renderWithQuery(<Harness canWrite={false} initial={server(STORED)} />);
-    expect(screen.getByRole("button", { name: "Remove password" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Remove password" })).toBeNull();
   });
 });

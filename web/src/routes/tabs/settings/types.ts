@@ -4,6 +4,12 @@ export interface SectionProps {
   draft: GameServer;
   onChange: (next: GameServer) => void;
   template?: GameTemplate;
+  /**
+   * spec.config of the last saved server (stored passwords are the redaction
+   * marker). Lets the game-config section tell "will be removed" from "unset"
+   * across remounts.
+   */
+  storedConfig?: Record<string, string>;
   onValidityChange?: (valid: boolean) => void;
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Alert, Button, Input } from "@heroui/react";
 
@@ -18,7 +18,7 @@ const INVALID_CONFIG_PREFIX = "invalid config:";
 // draft until the user types, and the PUT then keeps the stored value. An
 // optional stored password is cleared only through the explicit Remove button
 // (spec 021 OD-2); emptying a typed value still returns to "unchanged".
-export function GameConfigSection({ draft, onChange, template, onValidityChange }: SectionProps) {
+export function GameConfigSection({ draft, onChange, template, storedConfig, onValidityChange }: SectionProps) {
   const access = useResourceAccess();
   const canWrite = access?.canWrite === true;
   const schema = useMemo(() => template?.spec.configSchema ?? [], [template]);
@@ -45,11 +45,25 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
     }
   }, [schema, values]);
 
-  // Stored optional passwords the user marked for removal. The key is absent
-  // from the draft (the API deletes an optional password when its key is
-  // missing); this set only drives the "will be removed" state. The section
-  // remounts on save/discard (Settings draftRevision), which resets it.
-  const [removing, setRemoving] = useState<ReadonlySet<string>>(new Set());
+  // Stored optional passwords marked for removal: the saved server holds the
+  // marker but the draft has no key (the API deletes an optional password when
+  // its key is missing). Derived, so it survives switching Settings sections;
+  // Discard and a successful save change the saved config or the draft.
+  const removing = useMemo(
+    () =>
+      new Set(
+        schema
+          .filter(
+            (f) =>
+              f.type === "password" &&
+              !f.required &&
+              storedConfig?.[f.name] === CONFIG_REDACTED_MARKER &&
+              values[f.name] === undefined,
+          )
+          .map((f) => f.name),
+      ),
+    [schema, storedConfig, values],
+  );
 
   const known = useMemo(() => new Set(schema.map((f) => f.name)), [schema]);
   const orphans = useMemo(
@@ -67,14 +81,6 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
   const setValue = (name: string, value: string) => {
     const field = schema.find((f) => f.name === name);
     const next = { ...values };
-    if (removing.has(name)) {
-      if (value === "") return;
-      setRemoving((prev) => {
-        const rest = new Set(prev);
-        rest.delete(name);
-        return rest;
-      });
-    }
     if (value === "" && storedRef.current.has(name)) {
       // Emptied a field the API reported as the marker: back to "unchanged".
       next[name] = CONFIG_REDACTED_MARKER;
@@ -92,17 +98,22 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
   const removePassword = (name: string) => {
     const next = { ...values };
     delete next[name];
-    setRemoving((prev) => new Set(prev).add(name));
     commit(next);
   };
 
   const undoRemovePassword = (name: string) => {
-    setRemoving((prev) => {
-      const rest = new Set(prev);
-      rest.delete(name);
-      return rest;
-    });
-    commit({ ...values, [name]: CONFIG_REDACTED_MARKER });
+    // Put the key back where the saved config had it: Settings compares the
+    // draft to the baseline by JSON, so key order decides "dirty".
+    const next: Record<string, string> = {};
+    for (const key of Object.keys(storedConfig ?? {})) {
+      if (key === name) next[key] = CONFIG_REDACTED_MARKER;
+      else if (key in values) next[key] = values[key];
+    }
+    for (const key of Object.keys(values)) {
+      if (!(key in next)) next[key] = values[key];
+    }
+    next[name] ??= CONFIG_REDACTED_MARKER;
+    commit(next);
   };
 
   const removeOrphan = (name: string) => {

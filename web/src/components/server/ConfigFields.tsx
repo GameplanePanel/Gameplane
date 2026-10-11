@@ -55,6 +55,8 @@ export function ConfigFieldInput({
 }: ConfigFieldInputProps) {
   const id = useId();
   const errorId = `${id}-error`;
+  const noteId = `${id}-note`;
+  const labelId = `${id}-label`;
   const label = field.displayName ?? field.name;
   const settings = variant === "settings";
   const invalid = settings && error !== undefined && error !== "";
@@ -68,7 +70,7 @@ export function ConfigFieldInput({
     id,
     disabled,
     "aria-invalid": invalid ? true : undefined,
-    "aria-describedby": invalid ? errorId : undefined,
+    "aria-describedby": [invalid ? errorId : "", removing ? noteId : ""].filter(Boolean).join(" ") || undefined,
   } as const;
 
   let control: ReactNode;
@@ -127,7 +129,7 @@ export function ConfigFieldInput({
         {...common}
         type={field.type === "password" ? "password" : "text"}
         inputMode={field.type === "int" ? "numeric" : undefined}
-        className={invalid || removing ? "border-danger" : undefined}
+        className={invalid ? "border-danger" : removing ? "border-danger placeholder:text-danger" : undefined}
         value={shown}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
@@ -136,24 +138,24 @@ export function ConfigFieldInput({
   }
 
   let removeAction: ReactNode = null;
-  if (settings && removing && onUndo) {
+  if (settings && removing && onUndo && !disabled) {
     removeAction = (
       <Button
         variant="ghost"
         size="sm"
+        aria-describedby={labelId}
         onPress={onUndo}
-        isDisabled={disabled}
       >
         Undo
       </Button>
     );
-  } else if (settings && stored && field.type === "password" && !field.required && onRemove) {
+  } else if (settings && stored && field.type === "password" && !field.required && onRemove && !disabled) {
     removeAction = (
       <Button
         variant="ghost"
         size="sm"
+        aria-describedby={labelId}
         onPress={onRemove}
-        isDisabled={disabled}
       >
         Remove password
       </Button>
@@ -172,7 +174,7 @@ export function ConfigFieldInput({
 
   return (
     <div className="grid grid-cols-1 items-start gap-1.5 sm:grid-cols-[200px_1fr] sm:gap-4">
-      <label htmlFor={id} className="text-sm text-fg sm:pt-2">
+      <label id={labelId} htmlFor={id} className="text-sm text-fg sm:pt-2">
         {label}
         {field.required && (
           <span aria-hidden="true" className="text-danger">
@@ -181,18 +183,16 @@ export function ConfigFieldInput({
         )}
       </label>
       <div className="space-y-1">
-        {removeAction ? (
-          <div className="flex items-center gap-2">
-            <div className="flex-1">{control}</div>
-            {removeAction}
-          </div>
-        ) : (
-          control
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex-1">{control}</div>
+          {removeAction}
+        </div>
         {field.description && <p className="text-xs text-muted">{field.description}</p>}
         {field.type === "password" &&
           (removing ? (
-            <p className="text-xs text-danger">{REMOVING_PASSWORD_NOTE}</p>
+            <p id={noteId} className="text-xs text-danger">
+              {REMOVING_PASSWORD_NOTE}
+            </p>
           ) : (
             <p className="text-xs text-muted">Write-only</p>
           ))}
