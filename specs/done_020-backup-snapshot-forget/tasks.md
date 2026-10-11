@@ -4,7 +4,7 @@ description: "Task list for Feature 020: Forget Restic Snapshot on Backup Delete
 
 # Tasks: Forget Restic Snapshot on Backup Delete
 
-**Input**: Design documents from `specs/020-backup-snapshot-forget/`: `spec.md`, `plan.md`, `OPEN-DECISIONS.md` (Q1-Q8 settled 2026-10-05).
+**Input**: Design documents from `specs/done_020-backup-snapshot-forget/`: `spec.md`, `plan.md`, `OPEN-DECISIONS.md` (Q1-Q8 settled 2026-10-05).
 
 **Prerequisites**: plan.md (required), spec.md (required), OPEN-DECISIONS.md (every task below cites the ruling it implements; nothing here re-decides one).
 
@@ -21,7 +21,7 @@ description: "Task list for Feature 020: Forget Restic Snapshot on Backup Delete
 
 ## Phase 1: Spec
 
-- [X] T001 [Docs] Create `specs/020-backup-snapshot-forget/` (`spec.md`, `plan.md`, `tasks.md`, `OPEN-DECISIONS.md`) recording Q1-Q8 as decided by the maintainer on 2026-10-05.
+- [X] T001 [Docs] Create `specs/done_020-backup-snapshot-forget/` (`spec.md`, `plan.md`, `tasks.md`, `OPEN-DECISIONS.md`) recording Q1-Q8 as decided by the maintainer on 2026-10-05.
 
 ---
 
@@ -61,9 +61,9 @@ description: "Task list for Feature 020: Forget Restic Snapshot on Backup Delete
 
 ## Phase 6: Verification and ship
 
-- [ ] T016 Push `feat/backup-snapshot-forget`; CI (lint including `check-specs`, unit, envtest, e2e bucket `operator`) is the only verification. Confirm the `make manifests` generated-file check accepts the hand-edited `role.yaml` (Q1); if CI reorders it, take CI's output.
-- [ ] T017 Open the PR with labels `type: feature` and `area: operator`, `area: e2e`, `area: specs` (REST only, CLAUDE.md rule 14). A human approves and merges (rule 12).
-- [ ] T018 After merge, archive per rule 16: `git mv specs/020-backup-snapshot-forget specs/done_020-backup-snapshot-forget` and update in-repo references in the same commit.
+- [X] T016 Push `feat/backup-snapshot-forget`; CI (lint including `check-specs`, unit, envtest, e2e bucket `operator`) is the only verification. Confirm the `make manifests` generated-file check accepts the hand-edited `role.yaml` (Q1); if CI reorders it, take CI's output. Done: CI green on PR #567.
+- [X] T017 Open the PR with labels `type: feature` and `area: operator`, `area: e2e`, `area: specs` (REST only, CLAUDE.md rule 14). A human approves and merges (rule 12). Done: PR #567 carried these labels and was merged 2026-10-05.
+- [X] T018 After merge, archive per rule 16: `git mv specs/020-backup-snapshot-forget specs/done_020-backup-snapshot-forget` and update in-repo references in the same commit. Done in this commit.
 
 ---
 
