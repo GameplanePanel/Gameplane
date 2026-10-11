@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Alert, Button, Input } from "@heroui/react";
 
@@ -15,7 +15,9 @@ const INVALID_CONFIG_PREFIX = "invalid config:";
 // key = template default (or auto). Only non-default values are written, so a
 // later template default change still flows. Password values are write-only:
 // the API returns a marker for a stored password (or for any key it cannot classify); the marker stays in the
-// draft until the user types, and the PUT then keeps the stored value.
+// draft until the user types, and the PUT then keeps the stored value. An
+// optional stored password is cleared only through the explicit Remove button
+// (spec 021 OD-2); emptying a typed value still returns to "unchanged".
 export function GameConfigSection({ draft, onChange, template, onValidityChange }: SectionProps) {
   const access = useResourceAccess();
   const canWrite = access?.canWrite === true;
@@ -43,6 +45,12 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
     }
   }, [schema, values]);
 
+  // Stored optional passwords the user marked for removal. The key is absent
+  // from the draft (the API deletes an optional password when its key is
+  // missing); this set only drives the "will be removed" state. The section
+  // remounts on save/discard (Settings draftRevision), which resets it.
+  const [removing, setRemoving] = useState<ReadonlySet<string>>(new Set());
+
   const known = useMemo(() => new Set(schema.map((f) => f.name)), [schema]);
   const orphans = useMemo(
     () => Object.keys(values).filter((k) => !known.has(k)).sort(),
@@ -59,6 +67,14 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
   const setValue = (name: string, value: string) => {
     const field = schema.find((f) => f.name === name);
     const next = { ...values };
+    if (removing.has(name)) {
+      if (value === "") return;
+      setRemoving((prev) => {
+        const rest = new Set(prev);
+        rest.delete(name);
+        return rest;
+      });
+    }
     if (value === "" && storedRef.current.has(name)) {
       // Emptied a field the API reported as the marker: back to "unchanged".
       next[name] = CONFIG_REDACTED_MARKER;
@@ -71,6 +87,22 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
       next[name] = value;
     }
     commit(next);
+  };
+
+  const removePassword = (name: string) => {
+    const next = { ...values };
+    delete next[name];
+    setRemoving((prev) => new Set(prev).add(name));
+    commit(next);
+  };
+
+  const undoRemovePassword = (name: string) => {
+    setRemoving((prev) => {
+      const rest = new Set(prev);
+      rest.delete(name);
+      return rest;
+    });
+    commit({ ...values, [name]: CONFIG_REDACTED_MARKER });
   };
 
   const removeOrphan = (name: string) => {
@@ -124,6 +156,9 @@ export function GameConfigSection({ draft, onChange, template, onValidityChange 
           variant="settings"
           disabled={!canWrite}
           errors={errorText}
+          removing={removing}
+          onRemove={removePassword}
+          onUndo={undoRemovePassword}
         />
 
         {orphans.map((key) => (

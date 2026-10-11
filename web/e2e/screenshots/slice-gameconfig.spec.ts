@@ -2,8 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "node:url";
 
-// Settings > Game configuration (design frames OC804, QFEg9) and the 404 page
-// (Ne5TA), captured at 1440x900 @2x = 2880x1800, same as the frames.
+// Settings > Game configuration (design frames OC804, QFEg9, j72iI0 password
+// will be removed, x8CTg6 new password typed) and the 404 page (Ne5TA), captured at 1440x900 @2x = 2880x1800, same as the frames.
 // Frames wxINm (read-only) and e9FnC (orphan key) are intentionally not
 // captured: they need per-state server fixtures.
 
@@ -61,6 +61,30 @@ test.describe("Game configuration + 404 (Desktop — 1440x900) @screenshots", ()
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.waitForTimeout(200);
     await capture(page, "QFEg9");
+  });
+
+  test("j72iI0: Server Detail — Settings · Game configuration (password will be removed)", async ({ page }) => {
+    await page.goto("/servers/mc-survival");
+    await clickTab(page, "Settings");
+    await clickTab(page, "Game configuration");
+    await page.getByRole("button", { name: "Remove password" }).click();
+    await expect(page.getByText("Removed when you save. Undo to keep the stored password.")).toBeVisible({ timeout: 10_000 });
+    await page.mouse.move(0, 0);
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.waitForTimeout(200);
+    await capture(page, "j72iI0");
+  });
+
+  test("x8CTg6: Server Detail — Settings · Game configuration (new password typed)", async ({ page }) => {
+    await page.goto("/servers/mc-survival");
+    await clickTab(page, "Settings");
+    await clickTab(page, "Game configuration");
+    await page.getByLabel(/^Server password/).fill("0123456789");
+    await expect(page.getByRole("button", { name: "Remove password" })).toHaveCount(0);
+    await page.mouse.move(0, 0);
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.waitForTimeout(200);
+    await capture(page, "x8CTg6");
   });
 
   test("Ne5TA: Page not found", async ({ page }) => {
