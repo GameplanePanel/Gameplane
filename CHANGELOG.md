@@ -105,6 +105,28 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 - **Provider runbook:** [`docs/telemetry-provider.md`](docs/telemetry-provider.md)
   covers deploying the receiver, TLS, keeping `:8081` private, secrets and
   rotation, retention, scraping `/metrics` and backing up `telemetry.db`.
+- **Optional Steam display names on player lists:** with
+  `api.steam.apiKeySecretRef.name` set to a Secret holding a Steam Web API key
+  (key name `api-key` by default), the API looks up public display names for
+  Steam IDs in player lists through `ISteamUser/GetPlayerSummaries/v2`, with an
+  in-memory cache tuned by `api.steam.cache.{maxEntries,ttl,negativeTTL,timeout}`
+  (defaults 10000 entries, 12h, 15m, 2s). Without a key, or when Steam is
+  unreachable, player lists show raw Steam IDs as before. The key is env-only,
+  never logged and never sent to the browser. See
+  [`docs/install.md`](docs/install.md#steam-display-names-optional) and
+  [`docs/security.md`](docs/security.md#steam-display-name-lookup).
+- **Nuclear Option player lists are structured:** the agent's player output
+  for JSON player lists now includes an entry per player (`steamId` and
+  `faction`), which the API uses for display-name lookup.
+
+### Changed
+
+- **No RCON Secret for unauthenticated consoles:** a new optional
+  `GameTemplate` field `spec.rcon.authentication` (default `true`) lets a
+  template declare a console with no password, such as Nuclear Option's
+  loopback-only remote-command port. When `false`, the operator mints no
+  per-server `<gameserver>-rcon` Secret, mounts nothing for the
+  agent and injects no password environment variable.
 
 ## [0.3.0] — 2026-10-05
 
@@ -981,7 +1003,7 @@ the docs ahead of wider external testing. Highlights below.
 ### Added
 
 - **ci/supply-chain:** the cosign **public key is now published** — committed
-  at the repo root as [`cosign.pub`](cosign.pub), exported by CI (job summary +
+  under signing/ as [`cosign.pub`](signing/cosign.pub), exported by CI (job summary +
   artifact on every edge publish), and shipped as a release asset. Both publish
   workflows now **verify each signature right after signing** with the key
   derived from the CI secret, and fail the publish if the committed

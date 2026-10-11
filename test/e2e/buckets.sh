@@ -102,6 +102,8 @@ TestAddressPool_ChangePoolOnRunningServer
 TestAddressPool_RESTAPICarriesPool
 TestAddressPool_StatusVisibleInAddressAssignmentCondition
 TestAddressPool_ExplicitAddressRequest
+TestAddressPool_AddressInUseConflict
+TestAddressPool_PoolExhausted
 TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions
 EOF
 }
@@ -357,13 +359,23 @@ TestTelemetryLifecycle
 EOF
 }
 
+# capture-overhead is kept OUT of bot-fast on purpose: bot-fast's matrix legs
+# are blocking, while this bucket feeds the non-blocking e2e-capture-overhead
+# job (continue-on-error, never blocks a merge — spec 007 OD-1) and runs only
+# on master pushes or PRs that touch the capture path or the probe (OD-2). It
+# is a gross-regression guard, not SC-002 certification.
+bucket_capture_overhead() { cat <<'EOF'
+TestGameServer_CaptureOverhead_Joined
+EOF
+}
+
 # Tests that exist in the suite but deliberately run in NO bucket. Every
 # entry needs a reason; `verify` fails on any unlisted stray so additions
 # here are a conscious, reviewed act. Currently empty.
 unbucketed() { :; }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead
 }
 
 list_bucket() {
@@ -380,6 +392,7 @@ list_bucket() {
 	multicluster) bucket_multicluster ;;
 	upgrade) bucket_upgrade ;;
 	telemetry) bucket_telemetry ;;
+	capture-overhead) bucket_capture_overhead ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
 		exit 2

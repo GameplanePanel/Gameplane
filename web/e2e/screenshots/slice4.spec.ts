@@ -5,8 +5,8 @@ import { capture, captureLocator } from "./capture";
 // Users & RBAC, Audit Log, System Logs, and Cluster Settings. Screenshot
 // verification tests for the HeroUI rebuild, capturing the design frames
 // listed in specs/done_014-heroui-web-rebuild/contracts/component-map.md's
-// "Slice 4" entry / design-export/MANIFEST.md, at 1440px, for comparison
-// against design-export/screenshots/<id>.png per
+// "Slice 4" entry / assets/design-export/MANIFEST.md, at 1440px, for comparison
+// against assets/design-export/screenshots/<id>.png per
 // contracts/screen-verification.md.
 //
 // Mirrors slice2a.spec.ts's structure (viewport, capture() helper,
@@ -18,7 +18,7 @@ import { capture, captureLocator } from "./capture";
 // variants, provenance badge variants, and standalone dialogs) rather than
 // distinct screens. Each of those is captured with captureLocator() (see
 // ./capture) scoped to the rendered element itself — not the full page —
-// and, because the corresponding design-export/screenshots/<id>.png for
+// and, because the corresponding assets/design-export/screenshots/<id>.png for
 // every one of those component ids was exported from Pencil's light
 // palette while the rest of this suite captures the app in dark theme (per
 // test.use({ colorScheme: "dark" }) above), each of those tests calls
@@ -138,7 +138,7 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
   });
 
   test("R65Xyx: Provenance Badge — Overridden", async ({ page, context }) => {
-    // Design PNG is light theme (design-export/screenshots/R65Xyx.png) — see
+    // Design PNG is light theme (assets/design-export/screenshots/R65Xyx.png) — see
     // the header comment's note on element-captured component ids.
     await setTheme(page, "light");
     await setAdminConfigVariant(context, "oidc");
@@ -146,7 +146,7 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await clickSection(page, "Authentication");
     await expect(page.getByText("Overridden in dashboard")).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(200);
-    // Design PNG (design-export/screenshots/R65Xyx.png) is a 408x44 crop of a
+    // Design PNG (assets/design-export/screenshots/R65Xyx.png) is a 408x44 crop of a
     // single ProvenanceBadge, not a full screen — scope the capture to the
     // rendered chip via its data-type hook (ProvenanceBadge.tsx: `data-type={type}`).
     await captureLocator(page, "R65Xyx", page.locator('[data-type="overridden"]').first());
@@ -285,7 +285,7 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
   });
 
   test("zqzr4: Admin Settings — Authentication (Admin mapping warning)", async ({ page }) => {
-    // NOTE: the design frame (design-export/MANIFEST.md) describes an
+    // NOTE: the design frame (assets/design-export/MANIFEST.md) describes an
     // inline AdminGroupsInlineWarning appearing under this field as soon
     // as an admin group is typed; the current AddProviderForm only warns
     // via ConfirmAdminMappingDialog on submit (see Kp48V) — the inline
@@ -536,7 +536,7 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await page.waitForTimeout(200);
     // Bare-banner id: kIxaJ is the 700px caption composition around the
     // banner; the design reference now lives at m1hP1j (see
-    // design-export/MANIFEST.md's m1hP1j row). kIxaJ stays exported but is
+    // assets/design-export/MANIFEST.md's m1hP1j row). kIxaJ stays exported but is
     // no longer diffed.
     await captureLocator(page, "m1hP1j", page.getByRole("alert"));
   });

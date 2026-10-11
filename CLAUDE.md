@@ -59,7 +59,7 @@ deploy/kind/         local Kind scripts
 test/e2e/            Kind E2E suite (//go:build e2e)
 docs/                architecture, security, modules
 design.pen           canonical Pencil dashboard design
-cosign.pub           image + module signature key
+signing/             cosign public keys, dated legacy key + cross-signature (image + module)
 go.work              links all 16 Go modules (incl. test/e2e)
 Makefile             canonical task runner
 ```
@@ -79,7 +79,7 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
 
 ## Core rules
 
-1. **Design-first UI:** dashboard changes are designed in `design.pen` via Pencil MCP before React code; website changes start in `website/website.pen`. After every Pencil update export touched nodes to `design-export/json/<id>.json` (`mcp__pencil__execute` `Get`) and `design-export/screenshots/<id>.png` (`mcp__pencil__export_nodes`); website → `website/website-export/`.
+1. **Design-first UI:** dashboard changes are designed in `design.pen` via Pencil MCP before React code; website changes start in `website/website.pen`. After every Pencil update export touched nodes to `assets/design-export/json/<id>.json` (`mcp__pencil__execute` `Get`) and `assets/design-export/screenshots/<id>.png` (`mcp__pencil__export_nodes`); website → `website/website-export/`.
 2. **Never hand-edit `.pen` files:** no edit/delete/`Read`/`Grep`/`cat`/`sed` (multi-MB JSON, easily corrupted). Use Pencil MCP; ask the user to save in the UI after changes; inspect diffs only via `git diff --stat`.
 3. **Login privacy:** `/login` and unauthenticated views never expose cluster names, versions, server counts, or account-existence errors — generic messages ("invalid credentials").
 4. **Fix, don't silence:** no `//nolint`, `eslint-disable`, or loosened configs. Allowed: `_test.go` exempt from `errcheck`/`gosec`/`unparam`; `operator/internal/controller/` exempt from revive `exported:`.
@@ -105,7 +105,7 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
     ```
 15. **Specs:** a feature's spec is its whole `specs/<feature>/` folder (`data-model.md`, `contracts/`, `OPEN-DECISIONS.md`, …) — check it for explicit exemptions before flagging violations. Mark obsolete tasks withdrawn in `tasks.md` with citations; never delete them.
 16. **Archival:** once every task is complete/withdrawn and the PR is merged into `master`, `git mv specs/<NNN>-<slug> specs/done_<NNN>-<slug>` and update in-repo references in the same commit.
-17. **Mechanical design waves** (token re-skins): scripted, blind updates at `haiku`. Precompute change lists with `grep`/`jq` on `design-export/json/<id>.json`; `haiku` applies `Update(id, {prop: value})`. Verify by screenshot comparison (`export_nodes` vs snapshot PNG), not JSON dumps; avoid `Get(id, {depth: 10+})`.
+17. **Mechanical design waves** (token re-skins): scripted, blind updates at `haiku`. Precompute change lists with `grep`/`jq` on `assets/design-export/json/<id>.json`; `haiku` applies `Update(id, {prop: value})`. Verify by screenshot comparison (`export_nodes` vs snapshot PNG), not JSON dumps; avoid `Get(id, {depth: 10+})`.
 18. **Scout once, brief many:** one scout reads code/docs/failures and writes a factual brief (exact `file:line`, before/after code, justification). Fix agents get only the brief and edit blind at `haiku` — never tell them to re-read files, test suites, or `CLAUDE.md` and `AGENTS.md`. Reviewers check git diffs against the brief.
 
 ## Architecture
@@ -133,7 +133,7 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
 
 - **CRD field:** edit `operator/api/v1alpha1/<kind>_types.go` → `make generate && make manifests` → reconciler `operator/internal/controller/<kind>_controller.go` → mirror in `web/src/types.ts` + affected `web/src/routes/` → envtest `<kind>_envtest_test.go`.
 - **API route:** handler in `api/internal/handlers/` → mount in `api/cmd/main.go` with RBAC middleware (`api/internal/rbac/`) → `api/internal/handlers/<name>_envtest_test.go` → client method in `web/src/lib/api.ts`.
-- **Dashboard screen:** design in `design.pen` + export to `design-export/` → `web/src/routes/<name>.tsx`, register in `web/src/router/tree.tsx` → data via `web/src/lib/api.ts` + TanStack Query → `web/src/routes/<name>.test.tsx`.
+- **Dashboard screen:** design in `design.pen` + export to `assets/design-export/` → `web/src/routes/<name>.tsx`, register in `web/src/router/tree.tsx` → data via `web/src/lib/api.ts` + TanStack Query → `web/src/routes/<name>.test.tsx`.
 - **Game module:** edit `modules/<name>/` (`module.yaml`, `template.yaml`, `README.md`) → `make modules-push` → commit in `GameplanePanel/module` → `git add modules` + commit pointer bump in root.
 - **Website:** design in `website/website.pen` + export to `website/website-export/` → change `website/` per its own CLAUDE.md and AGENTS.md → commit/push/PR in `GameplanePanel/website` (default branch `main`) → `git add website` + commit pointer bump in root.
 - **DB migration:** new sequential `api/internal/db/migrations/common/<NNN>_<name>.sql` (013 onward) — portable SQL both SQLite and PostgreSQL run unchanged (no `datetime('now')`/`strftime`, `AUTOINCREMENT`, `INSERT OR …`, `COLLATE NOCASE`; bind timestamps from Go). `migrations/sqlite/` and `migrations/postgres/` hold the frozen per-dialect 001–012 sets; see `api/internal/db/migrations/README.md`. Append-only, applied on API startup.

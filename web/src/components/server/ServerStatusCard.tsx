@@ -15,7 +15,7 @@ import { formatUptime } from "@/lib/utils";
 // before the first reading arrives. When the game declares no metrics (or
 // has no RCON) it falls back to a generic summary built from data already
 // on the GameServer (phase, uptime, version, players) so the card — and
-// the design's four-card right column (design-export/screenshots/EZFW0.png)
+// the design's four-card right column (assets/design-export/screenshots/EZFW0.png)
 // — stays populated for every template, not just ones with declared
 // metrics. `gs` is optional: callers that don't pass it keep the old
 // "render nothing" behavior.

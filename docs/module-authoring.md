@@ -429,7 +429,7 @@ public key ships to users:
 cosign generate-key-pair                 # writes cosign.key (private) + cosign.pub
 # CI secrets (Settings → Environments → release-signing): paste each file
 #   COSIGN_PRIVATE_KEY = <cosign.key>    COSIGN_PASSWORD = <the passphrase>
-# Commit cosign.pub at the repo root — CI drift-checks it against the
+# Commit cosign.pub as signing/cosign.pub — CI drift-checks it against the
 # private key on every publish, and it ships as a release asset.
 ```
 
@@ -453,7 +453,7 @@ defaultModuleSource:
     verify:
       enabled: true
       # cosignPublicKey ships with the chart (the official ECDSA P-256 key,
-      # same as the repo-root cosign.pub);
+      # same as signing/cosign.pub);
       # override it only to pin a different signer.
 ```
 
@@ -1001,6 +1001,14 @@ Secret) > `passwordFile` (game-managed) > operator-generated Secret (default).
 | operator-generated (default) | Operator controls the password | Yes (auto-created) | Via `passwordEnv` | Minecraft with `RCON_PASSWORD` |
 | `passwordSecretRef` | Use external credentials | Yes (external) | Via `passwordEnv` | Any game with your own Secret |
 | `passwordFile` | Game manages the password | No | No | Factorio with `config/rconpw` |
+
+`authentication` (default `true`) says whether the console requires a password at
+all. Set `authentication: false` for a console with no authentication, such as
+Nuclear Option's loopback-only remote-command port: the operator then mints no
+password Secret, mounts nothing for the agent, and injects no password env var.
+It cannot be combined with `passwordSecretRef`, `passwordEnv` or `passwordFile`
+(the API rejects the combination). Modules that relied on the old implicit
+no-password behaviour for `protocol: nuclearoption` must now set it explicitly.
 
 For games without usable RCON set `protocol: none`. Real cases from the
 official modules:

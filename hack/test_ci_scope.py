@@ -116,7 +116,7 @@ class ScopeTests(unittest.TestCase):
 
     def test_image_configuration_or_unknown_diff_rebuilds_every_image(self):
         images = [{"component": "api"}, {"component": "other"}]
-        for paths in (None, ["go.work"], [".dockerignore"], ["cosign.pub"],
+        for paths in (None, ["go.work"], [".dockerignore"], ["signing/cosign.pub"],
                       [".github/workflows/publish-edge.yaml"], ["hack/ci_scope.py"]):
             with self.subTest(paths=paths):
                 self.assertEqual(select_images(self.root, images, paths), images)

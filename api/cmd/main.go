@@ -28,6 +28,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 	"github.com/GameplanePanel/gameplane/api/internal/registry"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/steam"
 	"github.com/GameplanePanel/gameplane/api/internal/telemetry"
 	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
@@ -290,6 +291,22 @@ func main() {
 	// from kubeconfigs stored as Secrets.
 	go kube.WatchClusters(ctx, k8s, reg, cfg.namespace)
 
+	// Optional Steam display-name lookup for player lists. Off unless the
+	// key is set; the resolver is then the only holder of the key and of
+	// the in-memory cache, and nothing is persisted.
+	var playerNames ws.PlayerNameResolver
+	if cfg.steamAPIKey != "" {
+		playerNames = steam.NewResolver(cfg.steamAPIKey, &steam.Options{
+			MaxEntries:  cfg.steamCacheMaxEntries,
+			TTL:         cfg.steamCacheTTL,
+			NegativeTTL: cfg.steamCacheNegativeTTL,
+			Timeout:     cfg.steamTimeout,
+		}, nil)
+		logger.Info("steam player name lookup enabled")
+	} else {
+		logger.Info("steam player name lookup disabled; player lists show raw Steam IDs")
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer)
 	// Client IP middleware runs before rate limiting and audit so the determined
@@ -415,7 +432,7 @@ func main() {
 		}
 		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, cfg.namespace), captureConfig)
 		handlers.MountCapture(p, reg, auditor, captureConfig, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
-		ws.Mount(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, ws.AgentGatewayOptions{Namespace: cfg.namespace})
+		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{Namespace: cfg.namespace})
 	})
 
 	// Usage telemetry. Run returns at once when the resolved destination is
@@ -533,6 +550,11 @@ type config struct {
 	auditStdout            bool
 	auditWebhookURL        string
 	auditWebhookAuth       string
+	steamAPIKey            string
+	steamCacheMaxEntries   int
+	steamCacheTTL          time.Duration
+	steamCacheNegativeTTL  time.Duration
+	steamTimeout           time.Duration
 	auditS3Endpoint        string
 	auditS3Bucket          string
 	auditS3Prefix          string
@@ -606,6 +628,17 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	// mounted Secret) only — never a flag, since flag values are visible in the
 	// pod spec and `ps`.
 	c.auditWebhookAuth = envOr("GAMEPLANE_AUDIT_WEBHOOK_AUTH", "")
+	// The Steam Web API key is a credential (a mounted Secret), so like the
+	// tokens above it comes from the environment only, never a flag.
+	c.steamAPIKey = envOr("GAMEPLANE_STEAM_API_KEY", "")
+	fs.IntVar(&c.steamCacheMaxEntries, "steam-cache-max-entries", envOrInt("GAMEPLANE_STEAM_CACHE_MAX_ENTRIES", steam.DefaultMaxEntries),
+		"maximum in-memory Steam display-name cache entries (non-positive = default)")
+	fs.DurationVar(&c.steamCacheTTL, "steam-cache-ttl", envOrDuration("GAMEPLANE_STEAM_CACHE_TTL", steam.DefaultTTL),
+		"lifetime of a resolved Steam display name in the in-memory cache (non-positive = default)")
+	fs.DurationVar(&c.steamCacheNegativeTTL, "steam-cache-negative-ttl", envOrDuration("GAMEPLANE_STEAM_CACHE_NEGATIVE_TTL", steam.DefaultNegativeTTL),
+		"lifetime of an unresolvable Steam ID in the in-memory cache (non-positive = default)")
+	fs.DurationVar(&c.steamTimeout, "steam-timeout", envOrDuration("GAMEPLANE_STEAM_TIMEOUT", steam.DefaultTimeout),
+		"timeout for each Steam Web API call (non-positive = default)")
 	fs.StringVar(&c.auditS3Endpoint, "audit-s3-endpoint", envOr("GAMEPLANE_AUDIT_S3_ENDPOINT", ""), "S3-compatible endpoint host:port (empty = disabled)")
 	fs.StringVar(&c.auditS3Bucket, "audit-s3-bucket", envOr("GAMEPLANE_AUDIT_S3_BUCKET", ""), "S3 bucket for audit events (required if endpoint is set)")
 	fs.StringVar(&c.auditS3Prefix, "audit-s3-prefix", envOr("GAMEPLANE_AUDIT_S3_PREFIX", ""), "S3 object key prefix (e.g., 'gameplane-audit')")

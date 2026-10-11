@@ -2,7 +2,7 @@
 // on to render its happy-path UI without each test having to declare
 // every endpoint. Tests override individual routes via `server.use(...)`.
 
-import { http, HttpResponse, ws } from "msw";
+import { http, HttpResponse, ws, type PathParams } from "msw";
 import { fleetHandlers } from "./fleetHandlers";
 import {
   makeAudit,
@@ -37,6 +37,11 @@ import {
 } from "./screenshotData";
 
 export const INVALID_BPF_FILTER_FIXTURE = "tcp prot 8080 foo";
+
+// msw 3 matches paths without path-to-regexp, so `:name([^:/]+)` is no longer
+// supported. A `/servers/:name` resolver that returns nothing falls through to
+// the next handler, which keeps `name:verb` URLs for the regex handlers.
+const isColonAction = (params: PathParams) => String(params.name).includes(":");
 
 export const handlers = [
   ...fleetHandlers,
@@ -166,11 +171,12 @@ export const handlers = [
       ],
     }),
   ),
-  // `:name([^:/]+)` excludes ':' so this never swallows a `name:verb` colon-action
-  // URL (e.g. `alpha:capture`) meant for one of the regex handlers below — a
-  // dead/misordered colon-action handler should 404 as unhandled, not silently
-  // return a plausible-looking server here.
-  http.get("/servers/:name([^:/]+)", ({ params, request, cookies }) => {
+  // isColonAction falls through on ':' so this never swallows a `name:verb`
+  // colon-action URL (e.g. `alpha:capture`) meant for one of the regex handlers
+  // below — a dead/misordered colon-action handler should 404 as unhandled, not
+  // silently return a plausible-looking server here.
+  http.get("/servers/:name", ({ params, request, cookies }) => {
+    if (isColonAction(params)) return;
     const cluster = new URL(request.url).searchParams.get("cluster") || "local";
     const namespace = new URL(request.url).searchParams.get("namespace") || "gameplane-games";
     return HttpResponse.json(makeServer({ metadata: { name: String(params.name), namespace,
@@ -192,10 +198,10 @@ export const handlers = [
     );
   }),
   // See the GET /servers/:name comment above — same colon-exclusion reasoning.
-  http.put("/servers/:name([^:/]+)", ({ params }) =>
+  http.put("/servers/:name", ({ params }) => isColonAction(params) ? undefined :
     HttpResponse.json(makeServer({ metadata: { name: String(params.name) } })),
   ),
-  http.delete("/servers/:name([^:/]+)", () => new HttpResponse(null, { status: 204 })),
+  http.delete("/servers/:name", ({ params }) => isColonAction(params) ? undefined : new HttpResponse(null, { status: 204 })),
 
   // Lifecycle: chi uses `:verb` literal-colon URL syntax, which standard
   // URL pattern matchers don't parse — fall back to regex per verb.
@@ -915,7 +921,8 @@ export function buildScreenshotHandlers() {
         items: data.servers,
       }),
     ),
-    http.get("/servers/:name([^:/]+)", ({ params, cookies }) => {
+    http.get("/servers/:name", ({ params, cookies }) => {
+      if (isColonAction(params)) return;
       const name = String(params.name);
       const server = data.servers.find((s) => s.metadata.name === name);
       if (!server) {
@@ -1042,10 +1049,10 @@ export function buildScreenshotHandlers() {
         }),
       );
     }),
-    http.put("/servers/:name([^:/]+)", ({ params }) =>
+    http.put("/servers/:name", ({ params }) => isColonAction(params) ? undefined :
       HttpResponse.json(makeServer({ metadata: { name: String(params.name) } })),
     ),
-    http.delete("/servers/:name([^:/]+)", () => new HttpResponse(null, { status: 204 })),
+    http.delete("/servers/:name", ({ params }) => isColonAction(params) ? undefined : new HttpResponse(null, { status: 204 })),
 
     // Lifecycle actions
     http.post(/\/servers\/[^/]+:start$/, () => new HttpResponse(null, { status: 202 })),

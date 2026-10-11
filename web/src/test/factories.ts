@@ -17,6 +17,7 @@ import type {
   CatalogEntry,
   Module,
   ModuleSource,
+  PlayerEntry,
   PlayersResp,
   Restore,
   NetworkCapture,
@@ -268,6 +269,15 @@ export function makePlayers(over: Partial<PlayersResp> = {}): PlayersResp {
     players: ["alice", "bob"],
     asOf: "2026-05-07T12:00:00Z",
     capabilities: { kick: true, ban: true, unban: true, whitelist: true },
+    ...over,
+  };
+}
+
+export function makePlayerEntry(over: Partial<PlayerEntry> = {}): PlayerEntry {
+  return {
+    steamId: "76561198000000001",
+    faction: "Boscali",
+    displayName: "Pilot_Vance",
     ...over,
   };
 }

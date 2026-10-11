@@ -12,6 +12,7 @@ import { ServerSleepCard } from "@/components/server/ServerSleepCard";
 import { EventList } from "@/components/server/EventList";
 import { formatBytes } from "@/lib/utils";
 import { mapServerEvent, type NormalizedServerEvent } from "@/lib/events";
+import { playerRows } from "@/lib/players";
 
 export function OverviewTab({
   gs,
@@ -364,7 +365,7 @@ function ResourceCard({
   );
 }
 
-// 8px address rows per design (design-export/screenshots/EZFW0.png): compact
+// 8px address rows per design (assets/design-export/screenshots/EZFW0.png): compact
 // bordered rows for each connection value, most with a copy affordance.
 function EndpointRow({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -386,7 +387,7 @@ function PlayersCard({
   // A negative online count is the agent's "unknown" sentinel (RCON
   // unavailable or a stale heartbeat) — render "—", matching the Players tab.
   const onlineUnknown = online < 0;
-  const names = roster?.players ?? [];
+  const rows = playerRows(roster);
   const supported =
     roster === undefined || roster.capabilities !== undefined;
 
@@ -398,8 +399,8 @@ function PlayersCard({
             Players online ·{" "}
             <span className="font-mono">{onlineUnknown ? "—" : online}</span>
           </h3>
-          {names.length > 0 && (
-            <span className="text-xs text-muted">{names.length} listed</span>
+          {rows.length > 0 && (
+            <span className="text-xs text-muted">{rows.length} listed</span>
           )}
         </div>
       </CardHeader>
@@ -412,23 +413,23 @@ function PlayersCard({
           <p className="text-sm text-muted">Player count unknown.</p>
         ) : online === 0 ? (
           <p className="text-sm text-muted">No players connected.</p>
-        ) : names.length === 0 ? (
+        ) : rows.length === 0 ? (
           <p className="text-sm text-muted">
             {online} online · names not yet available.
           </p>
         ) : (
           <ul className="space-y-2 text-sm">
-            {names.slice(0, 5).map((n) => (
-              <li key={n} className="flex items-center gap-2">
+            {rows.slice(0, 5).map((r) => (
+              <li key={r.id} className="flex items-center gap-2">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface font-mono text-[10px] text-muted">
-                  {n.slice(0, 2).toUpperCase()}
+                  {r.label.slice(0, 2).toUpperCase()}
                 </div>
-                <span className="truncate font-mono text-foreground">{n}</span>
+                <span className="truncate font-mono text-foreground">{r.label}</span>
               </li>
             ))}
-            {names.length > 5 && (
+            {rows.length > 5 && (
               <li className="pl-8 text-xs text-muted">
-                + {names.length - 5} more
+                + {rows.length - 5} more
               </li>
             )}
           </ul>

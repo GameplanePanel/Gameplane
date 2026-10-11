@@ -50,16 +50,16 @@ when you need reproducibility.
 
 Every published image (tagged releases and `:edge`), the Helm chart, and the
 official module bundles are signed with the project's cosign key,
-[`cosign.pub`](../cosign.pub) at the repo root, and recorded in the public
+[`signing/cosign.pub`](../signing/cosign.pub), and recorded in the public
 Sigstore Rekor transparency log:
 
 ```sh
-cosign verify --key cosign.pub \
+cosign verify --key signing/cosign.pub \
   ghcr.io/gameplanepanel/gameplane/operator:<version>
 ```
 
 Pre-rotation releases (v0.2.0-beta.7 and earlier) used the retired Ed25519 key <!-- doc-versions: historical -->
-and lack transparency log entries — verify those with `cosign-legacy.pub` and
+and lack transparency log entries — verify those with `signing/2026-07-24-cosign-legacy.pub` and
 `--insecure-ignore-tlog=true`. See [`key-rotation.md`](key-rotation.md) for the
 trust continuity proof. Module bundles are verified the same way; the chart
 carries the key, so bundle verification is just a values flip — see
@@ -555,6 +555,46 @@ expire after 90 days without a report) is at
   Then open `http://localhost:8081` and sign in with the dashboard token.
   The receiver's session cookie is `Secure`, so use a browser that treats
   `localhost` as a secure origin or put TLS in front.
+
+## Steam display names (optional)
+
+Nuclear Option and other Steam-ID games report only Steam IDs in their player
+lists. With a Steam Web API key set, the API server looks up each player's
+public display name (`ISteamUser/GetPlayerSummaries/v2`) and shows it next to
+the ID. The lookup runs only in the API, never in game pods, and is off by
+default. Without a key, player lists show raw Steam IDs and nothing is sent to
+Steam.
+
+Get a key at <https://steamcommunity.com/dev/apikey> (sign in with Steam; the
+domain field on that form is not used by Gameplane). Store it in a Secret in
+the release namespace and point the chart at it:
+
+```sh
+kubectl -n gameplane-system create secret generic steam-api \
+  --from-literal=api-key='<your Steam Web API key>'
+helm upgrade ... \
+  --set api.steam.apiKeySecretRef.name=steam-api
+```
+
+- `api.steam.apiKeySecretRef.name` — the Secret holding the key; empty (the
+  default) turns the lookup off.
+- `api.steam.apiKeySecretRef.key` — the key within that Secret (default
+  `api-key`).
+- `api.steam.cache.*` — optional tuning of the in-memory name cache, with
+  defaults shown: `maxEntries: 10000` (LRU bound on cached Steam IDs),
+  `ttl: 12h` (lifetime of a resolved name), `negativeTTL: 15m` (lifetime of an
+  ID Steam does not return), `timeout: 2s` (per Steam call).
+
+The key is read from the Secret into the API's environment
+(`GAMEPLANE_STEAM_API_KEY`), never a flag. It is never logged and never sent to
+the browser. The cache lives in process memory only and is rebuilt after each
+API restart; no database table, Redis or shared cache is involved. A failed
+Steam call is not cached, so the next request retries. If Steam is slow or
+unreachable, a player list waits at most about 1.5 seconds and then falls back
+to the raw Steam ID for any name it does not have. Names are display-only;
+kick, ban and unban continue to use Steam IDs. See
+[security](security.md#steam-display-name-lookup) for the egress and threat
+model.
 
 ## Installing a module
 

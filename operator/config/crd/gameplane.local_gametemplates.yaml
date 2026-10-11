@@ -1929,6 +1929,14 @@ spec:
                 description: RCON declares the remote-console protocol used by this
                   game, if any.
                 properties:
+                  authentication:
+                    default: true
+                    description: |-
+                      Authentication reports whether the console requires a password. Defaults to true.
+                      When false the operator generates no RCON Secret and injects no password; use it
+                      for consoles with no authentication, such as Nuclear Option's loopback-only
+                      remote-command port.
+                    type: boolean
                   passwordEnv:
                     description: |-
                       PasswordEnv is the environment variable the game container reads
@@ -2010,6 +2018,12 @@ spec:
                     - none
                     type: string
                 type: object
+                x-kubernetes-validations:
+                - message: 'authentication: false cannot be combined with passwordSecretRef,
+                    passwordEnv or passwordFile'
+                  rule: '!has(self.authentication) || self.authentication || (!has(self.passwordSecretRef)
+                    && (!has(self.passwordEnv) || size(self.passwordEnv) == 0) &&
+                    (!has(self.passwordFile) || size(self.passwordFile) == 0))'
               resources:
                 description: Resources are the default compute resources for the game
                   container.

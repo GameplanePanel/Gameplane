@@ -44,6 +44,9 @@ Factorio natively supports Source RCON over UDP/TCP when `--rcon-port` and `--rc
 ### Recommendation
 The shipped template (`rcon.protocol: source`) is correct and functional. Both RCON and stdin can coexist. Retain the shipped template configuration pending final maintainer confirmation.
 
+### Maintainer Ruling (2026-10-09)
+Keep `rcon.protocol: source` as shipped. `contracts/engine-matrix-contract.md` is corrected to match.
+
 ---
 
 ## 3. Project Zomboid Protocol Finding (T005)
@@ -63,6 +66,9 @@ Project Zomboid's dedicated server supports RCON (Source-compatible protocol) th
 
 ### Recommendation
 The shipped template (`rcon.protocol: source`) is valid and matches PZ's native RCON server capabilities. Retain the shipped template configuration without change pending final maintainer confirmation.
+
+### Maintainer Ruling (2026-10-09)
+Keep `rcon.protocol: source` as shipped. `contracts/engine-matrix-contract.md` is corrected to match.
 
 ---
 
@@ -128,7 +134,7 @@ To unify FiveM's txAdmin API (T047) and Farming Simulator 25's web admin API (T0
    - Bounded response size: Reads capped at 1 MiB (`restMaxResponseBytes`) to prevent unbounded memory consumption.
    - Timeouts: Configurable dial timeout (default 5s) and request timeout (default 10s) as struct fields for unit testability.
    - Auth failure cooldown: 15s cooldown on HTTP 401/403 with `ErrAuth` return to prevent poller hammering.
-   - TLS: Guarded by `isLoopbackHost(host)` so `InsecureSkipVerify` is only enabled for pod-local loopback destinations (127.0.0.1 / ::1 / localhost).
+   - TLS: As implemented, HTTPS uses standard certificate verification with `MinVersion: tls.VersionTLS12` (`agent/internal/rcon/rest.go`); there is no loopback-only `InsecureSkipVerify` path (corrected 2026-10-09).
 
 ---
 
@@ -147,6 +153,9 @@ To unify FiveM's txAdmin API (T047) and Farming Simulator 25's web admin API (T0
 ### Recommendation
 Maintainer ruling requested: Amend SC-005 and SC-006 in `spec.md` to reflect the sampled verification strategy, or acknowledge the remaining coverage as deferred heavy tests in `bucket_bot_heavy`.
 
+### Maintainer Ruling (2026-10-09)
+Amend the spec. SC-005 and SC-006 in `spec.md` now state sampled e2e verification plus a static audit of all 26 modules; no per-module restart or RCON e2e tests are added.
+
 ---
 
 ## 7. Storage Mount Path Divergence Findings (T012)
@@ -157,61 +166,73 @@ Comparison between `contracts/engine-matrix-contract.md`'s Storage Mount Path co
 - **Shipped**: `/palworld`
 - **Contract**: `/palworld/Pal/Saved`
 - **Recommendation**: Shipped `/palworld` encompasses world saves, engine settings, and server logs. Narrowing to `/palworld/Pal/Saved` would lose custom configuration files unless extra mounts are configured. Retain shipped `/palworld`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/palworld`; contract updated.
 
 ### 7.2 Rust (`rust`)
 - **Shipped**: `/steamcmd/rust`
 - **Contract**: `/serverdata`
 - **Recommendation**: The image (`didstopia/rust-server`) installs into and runs from `/steamcmd/rust`. Retain shipped `/steamcmd/rust`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/steamcmd/rust`; contract updated.
 
 ### 7.3 Project Zomboid (`project-zomboid`)
 - **Shipped**: `/home/steam/Zomboid`
 - **Contract**: `/home/pzuser/Zomboid`
 - **Recommendation**: The shipped container runs with user `steam` (UID 10000) whose HOME is `/home/steam`. Contract path `/home/pzuser` is inaccurate for this image. Retain shipped `/home/steam/Zomboid`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/steam/Zomboid`; contract updated.
 
 ### 7.4 DayZ (`dayz`)
 - **Shipped**: `/data`
 - **Contract**: `/serverdata`
 - **Recommendation**: Shipped image mounts persistent world data at `/data`. Retain shipped `/data`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/data`; contract updated.
 
 ### 7.5 Garry's Mod (`garrys-mod`)
 - **Shipped**: `/home/gmod/server/garrysmod/data`
 - **Contract**: `/home/steam/gmod-dedicated`
 - **Recommendation**: The container user is `gmod`. Mounting at `/home/gmod/server/garrysmod/data` avoids shadowing the game server binary launcher at `/home/gmod/server`. Retain shipped `/home/gmod/server/garrysmod/data`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/gmod/server/garrysmod/data`; contract updated.
 
 ### 7.6 Terraria (`terraria`)
 - **Shipped**: `/opt/terraria/config`
 - **Contract**: `/root/.local/share/Terraria/Worlds`
 - **Recommendation**: Shipped image stores server configs, world files, and bans in `/opt/terraria/config`. Retain shipped `/opt/terraria/config`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/opt/terraria/config`; contract updated.
 
 ### 7.7 ARK: Survival Ascended (`ark-survival-ascended`)
 - **Shipped**: `/home/gameserver`
 - **Contract**: `/serverdata/ShooterGame/Saved`
 - **Recommendation**: Image `mschnitzer/asa-linux-server` uses `/home/gameserver` as WorkingDir and storage location for cluster and saved data. Retain shipped `/home/gameserver`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/gameserver`; contract updated.
 
 ### 7.8 Factorio (`factorio`)
 - **Shipped**: `/factorio`
 - **Contract**: `/factorio/saves`
 - **Recommendation**: Shipped image `factoriotools/factorio` mounts `/factorio` to persist saves, mods, and `config/` together. Retain shipped `/factorio`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/factorio`; contract updated.
 
 ### 7.9 Don't Starve Together (`dont-starve-together`)
 - **Shipped**: `/data`
 - **Contract**: `/root/.klei/DoNotStarveTogether`
 - **Recommendation**: Shipped image `jamesstevens/dont-starve-together` standardizes on `/data` with internal symlinks to cluster configs. Retain shipped `/data`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/data`; contract updated.
 
 ### 7.10 Valheim (`valheim`)
 - **Shipped**: `/config`
 - **Contract**: `/config/worlds_local`
 - **Recommendation**: Shipped image `lloesche/valheim-server` uses `/config` to persist server state, worlds, and BepInEx configs. Retain shipped `/config`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/config`; contract updated.
 
 ### 7.11 Satisfactory (`satisfactory`)
 - **Shipped**: `/config`
 - **Contract**: `/home/steam/.config/Epic/FactoryGame/Saved`
 - **Recommendation**: Shipped image `wolveix/satisfactory-server` maps `/config` to game configuration, saves, and blueprint storage. Retain shipped `/config`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/config`; contract updated.
 
 ### 7.12 7 Days to Die (`7-days-to-die`)
 - **Shipped**: `/home/sdtdserver/.local/share/7DaysToDie`
 - **Contract**: `/home/sdtduser/.local/share/7DaysToDie`
 - **Recommendation**: Image `vinanrra/7dtd-server` uses `sdtdserver` as its system user, not `sdtduser`. Retain shipped `/home/sdtdserver/.local/share/7DaysToDie`.
+- **Maintainer Ruling (2026-10-09)**: Keep shipped `/home/sdtdserver/.local/share/7DaysToDie`; contract updated.
 
 ---
 
@@ -231,6 +252,9 @@ Since `rcon.protocol: none` is configured (TelnetPassword is in serverconfig.xml
 
 ### Recommendation
 Retain the shipped template's port `8081` without silently renumbering it.
+
+### Maintainer Ruling (2026-10-09)
+Keep `8081/TCP` as shipped. `contracts/engine-matrix-contract.md` carries no telnet port number for this module (its RCON column reads None), so it needs no correction.
 
 ---
 
@@ -253,3 +277,36 @@ Per T096, adding a `capabilities.mods` block to `modules/garrys-mod/template.yam
 ### Maintainer Ruling / Recommendation
 Maintain the deliberate omission of `capabilities.mods` for all three modules. Workshop integration is handled via launch parameters / env vars (`ARGS` in GMod, `MODS_URLS` in 7DtD).
 Consequently, per T094, the workshop E2E test is retargeted from Garry's Mod to DayZ (`test/e2e/dayz_workshop_e2e_test.go`), which ships authoritative Steam Workshop `capabilities.mods.idList` wiring under `MOD_LIST`.
+
+---
+
+## 10. Image Pinning and Image Source Gaps (plan refresh, 2026-10-09)
+
+### Finding
+Found while refreshing `plan.md` against the shipped templates (plan.md, Known Gaps 1-3):
+- Ten new modules pin the placeholder digest `@sha256:0000000000000000000000000000000000000000000000000000000000000000`: `ark-survival-evolved`, `arma-reforger`, `beammp`, `euro-truck-simulator-2`, `farming-simulator-25`, `fivem`, `hell-let-loose`, `mount-and-blade-2-bannerlord`, `squad`, `the-isle`. This contradicts FR-003, although T119 is marked complete.
+- Six of those (`mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`) reference `ghcr.io/valgulnecron/gameplane/<game>` images that no Dockerfile in either repository builds; `modules/build-images.sh` knows only the four images from research.md Decision 1.
+- All ten Gameplane-owned refs use the pre-move `valgulnecron` registry owner, while `build-images.sh`'s usage example pushes to `ghcr.io/gameplanepanel/gameplane`.
+
+### Recommendation
+Open for maintainer ruling: (a) widen research.md Decision 1 to the six extra games and add Dockerfiles for them, or (b) move those six templates to pinned community images. Either way, publish the images under `ghcr.io/gameplanepanel/gameplane`, pin real digests with `validate.py --pin` (T119), and re-check before T126.
+
+
+### Maintainer Ruling (2026-10-09)
+- **Image source for the six unbuilt images: Mixed.** For each of `mount-and-blade-2-bannerlord`, `the-isle`, `ark-survival-evolved`, `arma-reforger`, `hell-let-loose`, `squad`: use a maintained community image pinned by real digest where a suitable one exists; otherwise add a Gameplane-owned `Dockerfile` + `entrypoint.sh` under `modules/<game>/` and register it in `modules/build-images.sh`. The per-game choice is recorded here when the change lands.
+- **Registry owner: split by build date.** Images already published under `ghcr.io/valgulnecron/gameplane/…` stay there and existing refs to them are not rewritten. Every image built from now on, including any new build for an existing module, is pushed and signed under `ghcr.io/gameplanepanel/gameplane/…`. The ten placeholder-digest refs in this section were never published, so their first real build goes to `gameplanepanel` and the templates are repointed when they are pinned.
+
+### Per-game image choice (T133, 2026-10-09)
+
+| Module | Choice | Why |
+|---|---|---|
+| `arma-reforger` | Community: `ghcr.io/acemod/arma-reforger` (ACE team), pinned by digest | Actively maintained, configured by env vars, RCON via `RCON_PASSWORD`. It runs as root by design (SteamCMD), as Palworld's image does, so the template drops `spec.security`; the volume mounts at `/reforger`. |
+| `squad` | Gameplane-built (`containers/games/squad/`), maintainer ruling 2026-10-09 | `cm2network/squad` is maintained but cannot set the RCON password from env (it lives in `SquadGame/ServerConfig/Rcon.cfg` inside the install), so console and probes would stay broken until hand-edited. |
+| `the-isle` | Gameplane-built (`containers/games/the-isle/`) | No community image. SteamCMD app 412680, public `evrima` beta. |
+| `ark-survival-evolved` | Gameplane-built (`containers/games/ark-survival-evolved/`), maintainer ruling 2026-10-09 | No clearly maintained community image: recent ones are single-maintainer, older popular ones are 2-5 years stale. SteamCMD app 376030, anonymous. |
+| `mount-and-blade-2-bannerlord` | Gameplane-built (`containers/games/mount-and-blade-2-bannerlord/`) | No community image. Windows-only dedicated server (app 1863440), downloaded with `+@sSteamCmdForcePlatformType windows` and run under Wine; a missing `SERVER_TOKEN` idles with instructions (FR-013). |
+| `hell-let-loose` | *Pending maintainer card* (recommended: keep the module, mark it blocked) | The server files go only to Team17's licensed hosting partners; there is no public SteamCMD download, so no image can install it. |
+
+Build location (maintainer ruling 2026-10-09): the Gameplane-built images live in this repo's `containers/games/<name>/` on the shared SteamCMD base (UID 10000) and are built by `.github/workflows/images.yaml`, which checks each build on PRs and publishes and signs to `ghcr.io/gameplanepanel/gameplane` on merge to `master`, as Nuclear Option does. This supersedes the "`modules/<game>/` + `modules/build-images.sh`" wording of the ruling above. `modules/.github/workflows/build-images.yml` still gets the lowercase registry-owner fix for its four existing images.
+
+Build location for the four original images (maintainer ruling 2026-10-10): `fivem`, `beammp`, `farming-simulator-25` and `euro-truck-simulator-2` move unchanged from `modules/<game>/` to this repo's `containers/games/<game>/` and join the `images.yaml` matrix, because the module repo's `build-images.yml` has no signing key and only ever built them without pushing. The module repo drops its copies, `build-images.sh` and `build-images.yml`.

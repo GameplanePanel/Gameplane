@@ -309,7 +309,9 @@ export interface GameTemplate {
     versions?: GameVersion[];
     logPath?: string;
     consoleMode?: "rcon" | "pty" | "none";
-    rcon?: { protocol?: string; port?: number };
+    // authentication: whether the console requires a password (default true).
+    // false means no password Secret is minted (e.g. Nuclear Option's loopback port).
+    rcon?: { protocol?: string; port?: number; authentication?: boolean };
     probes?: ProbeSet;
     capabilities?: GameCapabilities;
     configSchema?: Array<{
@@ -871,12 +873,20 @@ export interface PlayerCapabilities {
   whitelist?: boolean;
 }
 
+export interface PlayerEntry {
+  steamId: string;
+  faction?: string;
+  displayName?: string;
+}
+
 export interface PlayersResp {
   /** -1 when the agent cannot determine the player count. */
   online: number;
   /** -1 when the agent cannot determine the player cap. */
   max: number;
   players: string[];
+  /** Structured roster (Nuclear Option): Steam ID, optional faction and resolved display name. Other games omit it. */
+  entries?: PlayerEntry[];
   asOf: string;
   capabilities: PlayerCapabilities;
 }

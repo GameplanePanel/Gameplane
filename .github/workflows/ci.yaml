@@ -92,6 +92,7 @@ jobs:
       go-exclude: ${{ steps.scope.outputs.go-exclude }}
       e2e-unit: ${{ steps.scope.outputs.e2e-unit }}
       bot-matrix: ${{ steps.bots.outputs.matrix }}
+      capture_overhead: ${{ steps.combine.outputs.capture_overhead }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -137,7 +138,7 @@ jobs:
               - 'charts/**'
               # The chart embeds a copy of the root signing key; the drift
               # check in `chart render` has to run when either side moves.
-              - 'cosign.pub'
+              - 'signing/cosign.pub'
               # The CRD bundle-hash stamp check regenerates the chart CRDs
               # from these; an edit to either must re-run it.
               - 'operator/config/crd/**'
@@ -145,7 +146,7 @@ jobs:
             e2etree:
               - 'test/e2e/**'
               - 'deploy/kind/**'
-              - 'docker-bake.hcl'
+              - 'containers/docker-bake.hcl'
             # Narrower than e2etree on purpose: this backs a job that only
             # smoke-tests deploy/kind/**'s pinned dev ingress-nginx manifest
             # on a real Kind cluster, and must NOT run on every e2e-affecting
@@ -159,6 +160,16 @@ jobs:
               - 'modules'
               - 'modules/**'
               - 'docs/game-coverage.md'
+            # Gates the non-blocking e2e-capture-overhead job on PRs (OD-2 in
+            # specs/done_007-capture-overhead-guard/OPEN-DECISIONS.md). Master pushes
+            # run it through the e2e gate instead.
+            capture_overhead:
+              - 'capture-sidecar/**'
+              - 'operator/internal/controller/networkcapture*'
+              - 'api/internal/handlers/capture*'
+              - 'test/e2e/internal/minecraft-java/**'
+              - 'test/e2e/capture_overhead_e2e_test.go'
+              - 'test/e2e/gameprobe_job.go'
             ci:
               - '.github/workflows/ci.yaml'
               - '.github/actions/**'
@@ -231,14 +242,14 @@ jobs:
               # Non-docs/ link targets referenced from the audited files
               # (docs/dependencies.md -> CHANGELOG.md, docs/contributing.md
               # -> CLAUDE.md and specs/012-.../outreach.md, README.md ->
-              # LICENSE/cosign.pub, docs/key-rotation.md -> the legacy key
+              # LICENSE, signing/cosign.pub, docs/key-rotation.md -> the legacy key
               # files) — renaming or moving any of these must run check-links.
               - 'CHANGELOG.md'
               - 'CLAUDE.md'
               - 'LICENSE'
-              - 'cosign.pub'
-              - 'cosign-legacy.pub'
-              - 'cosign.pub.legacy-sig'
+              - 'signing/cosign.pub'
+              - 'signing/2026-07-24-cosign-legacy.pub'
+              - 'signing/cosign.pub.legacy-sig'
               - 'specs/**/outreach.md'
       - id: combine
         # Fold the raw filters into single-token booleans so every downstream
@@ -253,6 +264,7 @@ jobs:
           E2ETREE: ${{ steps.filter.outputs.e2etree }}
           GAMECOVERAGE: ${{ steps.filter.outputs.gamecoverage }}
           CI: ${{ steps.filter.outputs.ci == 'true' || steps.scope.outputs.all == 'true' }}
+          CAPTURE: ${{ steps.filter.outputs.capture_overhead }}
           GITHUB: ${{ steps.filter.outputs.github }}
           SPECS: ${{ steps.filter.outputs.specs }}
           DOCS: ${{ steps.filter.outputs.docs }}
@@ -266,6 +278,7 @@ jobs:
           ghv=false;  { [ "$GITHUB" = true ] || [ "$CI" = true ]; } && ghv=true
           specsv=false; { [ "$SPECS" = true ] || [ "$CI" = true ]; } && specsv=true
           docsv=false; { [ "$DOCS" = true ] || [ "$CI" = true ]; } && docsv=true
+          capov=false; { [ "$CAPTURE" = true ] || [ "$CI" = true ]; } && capov=true
           # Keep this gate narrow on PRs; KINDSMOKE also enables it for every
           # master push, independently of its file filter.
           ksv=false; [ "$KINDSMOKE" = true ] && ksv=true
@@ -280,6 +293,7 @@ jobs:
             echo "specs=$specsv"
             echo "docs=$docsv"
             echo "kindsmoke=$ksv"
+            echo "capture_overhead=$capov"
           } >> "$GITHUB_OUTPUT"
 
   # Build the operator/api/agent (+ gameprobe) images ONCE and publish them as
@@ -674,7 +688,7 @@ jobs:
       - name: dashboard nginx accepts default mod uploads within API request limit
         working-directory: .
         run: python3 web/test-mod-upload-proxy.py
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - run: npm ci
       - name: eslint
@@ -711,7 +725,7 @@ jobs:
       - name: upload web coverage
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-web
           path: web/coverage
@@ -729,7 +743,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - run: npm ci
       - name: playwright browser cache
@@ -744,7 +758,7 @@ jobs:
         run: npm run test:e2e:mock
       - name: upload playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-mock
           path: web/playwright-report
@@ -1075,7 +1089,7 @@ jobs:
         run: |
           hack/sync-chart-crds.sh
           git diff --exit-code -- charts/gameplane/crds charts/gameplane/crd-manifests
-      - name: chart cosign key matches root cosign.pub
+      - name: chart cosign key matches signing/cosign.pub
         # values.yaml embeds a copy of the signing public key so the operator
         # can verify official module bundles. Nothing regenerates it, so a key
         # rotation that updates only the root file leaves the chart verifying
@@ -1096,11 +1110,11 @@ jobs:
               data = base64.b64decode((d.get('data') or {})['cosign.pub']).decode()
           sys.stdout.write(data if data.endswith('\n') else data + '\n')
           PY
-          if ! diff -u cosign.pub /tmp/chart-cosign.pub; then
-            echo "::error::charts/gameplane/values.yaml cosignPublicKey does not match the root cosign.pub — update both when rotating the signing key"
+          if ! diff -u signing/cosign.pub /tmp/chart-cosign.pub; then
+            echo "::error::charts/gameplane/values.yaml cosignPublicKey does not match signing/cosign.pub — update both when rotating the signing key"
             exit 1
           fi
-          echo "chart cosign key matches root cosign.pub"
+          echo "chart cosign key matches signing/cosign.pub"
       - name: docs/oidc.md example values render (F-252)
         # docs/oidc.md's Keycloak "Or in values.yaml" example is meant to be
         # copy-pasteable. Render it as a real -f values file (with
@@ -1349,7 +1363,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1468,7 +1482,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1561,7 +1575,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1626,11 +1640,11 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1670,7 +1684,7 @@ jobs:
           include-operator-logs: "false"
       - name: upload playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-live-${{ matrix.arch }}
           path: web/playwright-report
@@ -1723,7 +1737,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1745,6 +1759,73 @@ jobs:
             GAMEPLANE_E2E_GAME_BOT=1 \
             go test -tags=e2e -timeout 30m -v -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-game-bot)
+        if: failure()
+        uses: ./.github/actions/dump-cluster-state
+        with:
+          context: ${{ env.CTX }}
+          namespaces: "gameplane-system,gameplane-games"
+
+  # Capture-overhead regression guard (spec 007, FR-006..FR-008). This is a
+  # gross-regression guard, NOT SC-002 certification: the certified number is
+  # the live-cluster manual benchmark in
+  # specs/done_003-network-capture-sidecar/sc-002-benchmark.md. It never blocks
+  # a merge (OD-1, maintainer ruling 2026-10-09): job-level continue-on-error
+  # keeps the workflow and PRs mergeable. A detected regression turns this job
+  # red and is recorded in capture-overhead-metrics.json (uploaded below).
+  # Runs on master pushes, and on PRs only when the diff touches the capture
+  # path or the probe (OD-2, changes.outputs.capture_overhead).
+  e2e-capture-overhead:
+    name: e2e capture overhead (kind)
+    needs: [changes, build-images]
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.changes.outputs.e2e == 'true') ||
+      (github.event_name == 'pull_request' && needs.changes.outputs.capture_overhead == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    permissions:
+      contents: read
+    env:
+      CLUSTER: gameplane-e2e
+      CTX: kind-gameplane-e2e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: e2e
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - name: install kind
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        with:
+          install_only: true
+      - name: load images
+        uses: ./.github/actions/e2e-images
+      - name: bring up cluster + helm install
+        run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
+      - name: run go e2e (capture overhead)
+        # Sustained-mode probes against the real itzg/minecraft-server image.
+        # The bucket (test/e2e/buckets.sh, capture-overhead) owns the test list;
+        # it is deliberately not in bot-fast, whose legs block merges.
+        env:
+          GAMEPLANE_E2E_ARTIFACT_DIR: ${{ runner.temp }}/capture-overhead
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex capture-overhead)"
+          mkdir -p "$GAMEPLANE_E2E_ARTIFACT_DIR"
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            GAMEPLANE_E2E_GAME_BOT=1 \
+            go test -tags=e2e -timeout 40m -v -run "$RUN_REGEX" ./...
+      - name: upload capture overhead metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: capture-overhead-metrics
+          path: ${{ runner.temp }}/capture-overhead/capture-overhead-metrics.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: dump cluster state on failure (e2e-capture-overhead)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
         with:
@@ -1779,7 +1860,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: read ingress-nginx version pin from up.sh
@@ -1866,6 +1947,7 @@ jobs:
         e2e-web-live,
         e2e-web-live-arm64,
         e2e-game-bot,
+        e2e-capture-overhead,
         e2e-kind-ingress-smoke,
       ]
     if: always()
@@ -1961,7 +2043,7 @@ jobs:
               'web', 'web-e2e-mock', 'helm', 'chart-template', 'workflow-lint', 'go-e2e-unit',
               'api-postgres',
               'e2e-buckets', 'e2e-go', 'e2e-go-arm64', 'e2e-multicluster', 'e2e-multicluster-arm64', 'e2e-upgrade', 'e2e-upgrade-arm64',
-              'e2e-web-live', 'e2e-web-live-arm64', 'e2e-game-bot', 'e2e-kind-ingress-smoke',
+              'e2e-web-live', 'e2e-web-live-arm64', 'e2e-game-bot', 'e2e-capture-overhead', 'e2e-kind-ingress-smoke',
             ];
 
             // Maps each workflow job id to how its `name:` field (as reported by
@@ -1992,6 +2074,7 @@ jobs:
               'e2e-web-live': (n) => n.startsWith('e2e web live /') && n.includes('/ amd64 '),
               'e2e-web-live-arm64': (n) => n.startsWith('e2e web live /') && n.includes('/ arm64 '),
               'e2e-game-bot': (n) => n.startsWith('e2e game bot /'),
+              'e2e-capture-overhead': (n) => n === 'e2e capture overhead (kind)',
               'e2e-kind-ingress-smoke': (n) => n === 'ingress-nginx smoke (kind)',
             };
 

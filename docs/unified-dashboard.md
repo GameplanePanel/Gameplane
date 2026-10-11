@@ -26,7 +26,7 @@ All popovers stage selections until Apply. Clear resets the draft, Apply commits
 
 The interface uses the existing Gameplane/HeroUI components and theme tokens.
 `design.pen` is the canonical design source; the
-[design manifest](../design-export/MANIFEST.md) records node IDs and export scope.
+[design manifest](../assets/design-export/MANIFEST.md) records node IDs and export scope.
 
 ## Data and authorization contract
 

@@ -234,6 +234,27 @@ api:
         accessKeyKey: access-key   # key containing the access key ID
         secretKeyKey: secret-key    # key containing the secret access key
 
+  # Steam display names for the player list (Nuclear Option and other
+  # Steam-ID games). Optional and off by default: with no key set, player
+  # lists show raw Steam IDs and nothing is sent to Steam.
+  steam:
+    # Steam Web API key, sourced from a Secret (never a flag). Create the
+    # Secret out-of-band in the release namespace, e.g.
+    #   kubectl -n <release-namespace> create secret generic steam-api \
+    #     --from-literal=api-key=<your key>
+    # then set name below. Leave name empty and player lists show raw Steam IDs.
+    apiKeySecretRef:
+      name: ""
+      key: api-key
+    # Optional tuning of the in-memory display-name cache. It is in-memory
+    # only: nothing is stored on disk or in the database, and it is rebuilt
+    # after every API restart. Uncomment to override the defaults shown.
+    # cache:
+    #   maxEntries: 10000     # LRU bound on cached Steam IDs
+    #   ttl: 12h              # lifetime of a resolved display name
+    #   negativeTTL: 15m      # lifetime of an unresolvable Steam ID
+    #   timeout: 2s           # timeout for each Steam Web API call
+
   # Anonymous usage telemetry (see docs/install.md). Two independent gates:
   # the admin switches in the dashboard decide WHETHER anything is sent, this
   # block decides WHETHER it may be sent at all (enabled) and WHERE it goes
@@ -671,7 +692,7 @@ defaultModuleSource:
     # module-signing public key (ECDSA P-256) ships below; set enabled: true
     # (with type: oci) to refuse any official bundle not signed by the matching
     # private key. Module-bundle verification is keyed and offline (no Rekor) by
-    # default. Keep this key byte-identical to the repo-root cosign.pub. See
+    # default. Keep this key byte-identical to signing/cosign.pub. See
     # docs/module-authoring.md "Signing official bundles".
     verify:
       enabled: false
