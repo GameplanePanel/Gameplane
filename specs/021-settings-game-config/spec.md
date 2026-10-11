@@ -28,7 +28,7 @@ A server admin opens Settings > Game configuration, changes difficulty and max p
 **Acceptance**: 1. Given a template with a configSchema, the section appears between Version and Resources. 2. Given a value equal to the schema default, the key is not stored. 3. Given an invalid value (e.g. 900 for an int with max 255), the inline error "Must be between 1 and 255." shows and Save is disabled.
 
 ### User Story 2 - Passwords stay secret (P1)
-**Acceptance**: 1. A stored password renders as an empty input with placeholder "Unchanged — type to replace" and the note "Write-only"; the marker is never visible. 2. Saving without touching it sends the marker back, and the API keeps the stored value. 3. Typing a new value replaces it.
+**Acceptance**: 1. A stored password renders as an empty input with placeholder "Unchanged — type to replace" and the note "Write-only"; the marker is never visible. 2. Saving without touching it sends the marker back, and the API keeps the stored value. 3. Typing a new value replaces it. 4. A stored OPTIONAL password shows a "Remove password" button; pressing it shows "Password will be removed" with an "Undo" button and the note "Removed when you save. Undo to keep the stored password.", and Save deletes the password (the key is sent absent). Undo restores "unchanged". Required passwords have no Remove button. Emptying a field the user typed in still returns to "unchanged" (an accidental backspace never deletes a password).
 
 ### User Story 3 - Clean up after a template change (P2)
 **Acceptance**: keys in `spec.config` that the template no longer declares are listed with "No longer in the template" and a Remove button; if the operator reports `invalid config:` the message is shown in a danger alert.
@@ -40,7 +40,8 @@ A server admin opens Settings > Game configuration, changes difficulty and max p
 - Read-only users (no `servers:write`): fields disabled, no restart alert, footer shows "You need permission to change this server's settings.".
 - Template fetch fails or has no schema: section hidden (unless stray keys exist).
 - API fail-closed redaction (template unreadable) returns the marker for every key; non-password keys then show an empty input. Accepted, rare.
-- A required password with a stored marker is valid without retyping.
+- A required password with a stored marker is valid without retyping and cannot be removed.
+- Removing then typing a new value replaces the password (the removed state ends). Discard or a successful save resets the removed state (the section remounts).
 
 ## Requirements
 
@@ -49,7 +50,7 @@ A server admin opens Settings > Game configuration, changes difficulty and max p
 - **FR-002**: Fields MUST render from the schema via the shared `ConfigFields` component, used by both the wizard and Settings, with no per-game branching.
 - **FR-003**: The section MUST write only non-default values; a value equal to the default (or empty with no default) removes the key; an empty map is written as absent.
 - **FR-004**: Client validation MUST cover required, enum, int (integer, min, max), bool, string/password length; messages as in `web/src/lib/validation.ts`; invalid state MUST disable Save via `onValidityChange`.
-- **FR-005**: Password values MUST be write-only; the redaction marker MUST never be rendered.
+- **FR-005**: Password values MUST be write-only; the redaction marker MUST never be rendered. A stored optional password MUST be removable only through the explicit Remove action, with a visible "will be removed" state and Undo before Save (OD-2).
 - **FR-006**: The section MUST state that saving restarts the server, and MUST NOT offer an apply-later mode.
 - **FR-007**: Orphaned keys MUST be listed with Remove; an `invalid config:` Ready-condition message MUST be surfaced.
 - **FR-008**: Without `servers:write` the section MUST be read-only with the permission note.

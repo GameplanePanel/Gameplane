@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { Input } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 
 import { cn } from "@/lib/utils";
 import { CONFIG_REDACTED_MARKER, type ConfigField } from "@/lib/validation";
@@ -14,6 +14,8 @@ import { CONFIG_REDACTED_MARKER, type ConfigField } from "@/lib/validation";
 export type ConfigFieldVariant = "wizard" | "settings";
 
 export const STORED_PASSWORD_PLACEHOLDER = "Unchanged — type to replace";
+export const REMOVING_PASSWORD_PLACEHOLDER = "Password will be removed";
+export const REMOVING_PASSWORD_NOTE = "Removed when you save. Undo to keep the stored password.";
 // Leading empty <option> labels for selects whose draft value is empty: unset
 // (no value, no default) or reported by the API as the redaction marker.
 export const UNSET_OPTION_LABEL = "Select…";
@@ -30,6 +32,14 @@ export interface ConfigFieldInputProps {
   disabled?: boolean;
   /** Inline error text (rendered by the settings variant only). */
   error?: string;
+  /**
+   * Settings variant: the stored optional password is marked for removal. The
+   * control shows "will be removed" and an Undo button instead of Remove.
+   */
+  removing?: boolean;
+  /** Settings variant: offered for a stored optional password. */
+  onRemove?: () => void;
+  onUndo?: () => void;
 }
 
 export function ConfigFieldInput({
@@ -39,9 +49,14 @@ export function ConfigFieldInput({
   variant = "wizard",
   disabled = false,
   error,
+  removing = false,
+  onRemove,
+  onUndo,
 }: ConfigFieldInputProps) {
   const id = useId();
   const errorId = `${id}-error`;
+  const noteId = `${id}-note`;
+  const labelId = `${id}-label`;
   const label = field.displayName ?? field.name;
   const settings = variant === "settings";
   const invalid = settings && error !== undefined && error !== "";
@@ -55,7 +70,7 @@ export function ConfigFieldInput({
     id,
     disabled,
     "aria-invalid": invalid ? true : undefined,
-    "aria-describedby": invalid ? errorId : undefined,
+    "aria-describedby": [invalid ? errorId : "", removing ? noteId : ""].filter(Boolean).join(" ") || undefined,
   } as const;
 
   let control: ReactNode;
@@ -101,10 +116,12 @@ export function ConfigFieldInput({
       </select>
     );
   } else {
-    const shown = stored ? "" : (value ?? field.default ?? "");
-    const placeholder = stored
-      ? STORED_PASSWORD_PLACEHOLDER
-      : field.autoFromMemoryLimit
+    const shown = stored || removing ? "" : (value ?? field.default ?? "");
+    const placeholder = removing
+      ? REMOVING_PASSWORD_PLACEHOLDER
+      : stored
+        ? STORED_PASSWORD_PLACEHOLDER
+        : field.autoFromMemoryLimit
         ? `Auto: ${field.autoFromMemoryLimit.percent}% of the memory limit`
         : undefined;
     control = (
@@ -112,11 +129,36 @@ export function ConfigFieldInput({
         {...common}
         type={field.type === "password" ? "password" : "text"}
         inputMode={field.type === "int" ? "numeric" : undefined}
-        className={invalid ? "border-danger" : undefined}
+        className={invalid ? "border-danger" : removing ? "border-danger placeholder:text-danger" : undefined}
         value={shown}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
+    );
+  }
+
+  let removeAction: ReactNode = null;
+  if (settings && removing && onUndo && !disabled) {
+    removeAction = (
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-describedby={labelId}
+        onPress={onUndo}
+      >
+        Undo
+      </Button>
+    );
+  } else if (settings && stored && field.type === "password" && !field.required && onRemove && !disabled) {
+    removeAction = (
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-describedby={labelId}
+        onPress={onRemove}
+      >
+        Remove password
+      </Button>
     );
   }
 
@@ -132,7 +174,7 @@ export function ConfigFieldInput({
 
   return (
     <div className="grid grid-cols-1 items-start gap-1.5 sm:grid-cols-[200px_1fr] sm:gap-4">
-      <label htmlFor={id} className="text-sm text-fg sm:pt-2">
+      <label id={labelId} htmlFor={id} className="text-sm text-fg sm:pt-2">
         {label}
         {field.required && (
           <span aria-hidden="true" className="text-danger">
@@ -141,9 +183,19 @@ export function ConfigFieldInput({
         )}
       </label>
       <div className="space-y-1">
-        {control}
+        <div className="flex items-center gap-2">
+          <div className="flex-1">{control}</div>
+          {removeAction}
+        </div>
         {field.description && <p className="text-xs text-muted">{field.description}</p>}
-        {field.type === "password" && <p className="text-xs text-muted">Write-only</p>}
+        {field.type === "password" &&
+          (removing ? (
+            <p id={noteId} className="text-xs text-danger">
+              {REMOVING_PASSWORD_NOTE}
+            </p>
+          ) : (
+            <p className="text-xs text-muted">Write-only</p>
+          ))}
         {field.target === "file" && <p className="text-xs text-muted">Written to file</p>}
         {invalid && (
           <p id={errorId} role="alert" className="text-xs text-danger">
@@ -162,6 +214,10 @@ export interface ConfigFieldsProps {
   variant?: ConfigFieldVariant;
   disabled?: boolean;
   errors?: Record<string, string>;
+  /** Settings variant: names of stored optional passwords marked for removal. */
+  removing?: ReadonlySet<string>;
+  onRemove?: (name: string) => void;
+  onUndo?: (name: string) => void;
 }
 
 export function ConfigFields({
@@ -171,6 +227,9 @@ export function ConfigFields({
   variant = "wizard",
   disabled = false,
   errors,
+  removing,
+  onRemove,
+  onUndo,
 }: ConfigFieldsProps) {
   return (
     <>
@@ -183,6 +242,9 @@ export function ConfigFields({
           variant={variant}
           disabled={disabled}
           error={errors?.[f.name]}
+          removing={removing?.has(f.name)}
+          onRemove={onRemove && (() => onRemove(f.name))}
+          onUndo={onUndo && (() => onUndo(f.name))}
         />
       ))}
     </>

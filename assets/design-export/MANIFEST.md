@@ -2539,3 +2539,14 @@ T041 and T052 of `specs/done_022-default-telemetry-dashboard/`. New frames sit i
 | `EkcbF` | Screen/Server Detail — Players (Nuclear Option) | New copy of `dPP50` with three player rows: display name plus faction chip, raw Steam ID (muted monospace) plus faction chip, and a named row without a faction. Kick/ban actions unchanged. Games without entries keep the `dPP50` layout. |
 
 JSON: `Print(JSON.stringify(Get("EkcbF", {depth: 12})))`, `python3 -m json.tool` passes, no `"..."` elisions. PNG: `Export(["EkcbF"], "png", …, {scale: 2})` (2880x1800). Body-text check: `Pilot_Vance` appears only in `EkcbF.json`.
+
+## Incremental export 2026-10-11 — Game config optional password clear state (spec 021 OD-2)
+
+| Node | Name | Change |
+| --- | --- | --- |
+| `OC804` | Screen/Server Detail — Settings · Game configuration | Stored optional password (untouched): the input sits in an "Input row" beside a ghost "Remove password" button. |
+| `QFEg9` | … (Invalid value) | Same "Remove password" button added to the stored password row. |
+| `h5clan` | … (Password will be removed) | New copy of `OC804`. Danger-outlined input reads "Password will be removed", the button reads "Undo", helper "Removed when you save. Undo to keep the stored password." |
+| `ffmEd` | … (New password typed) | New copy of `OC804`. Masked typed value, no remove button, helper "Write-only". |
+
+`Ne5TA` is unaffected. All four have MCP `Get` JSON exports (depth 20, zero elisions; `OC804`/`QFEg9` patched from the prior export with the `Get` result for the changed field subtree) and 2× PNG exports via `Export`. Validated by grepping `Password will be removed` (only `h5clan`) and `Remove password` (`OC804`, `QFEg9`, `h5clan`).

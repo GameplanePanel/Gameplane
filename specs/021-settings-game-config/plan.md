@@ -13,7 +13,7 @@ Extract the wizard's inline config field loop into `web/src/components/server/Co
 ## Constitution Check
 | Rule | Status |
 |---|---|
-| Design-first (rule 1) | Frames `OC804 QFEg9 wxINm e9FnC Ne5TA EV8mp` exported before code |
+| Design-first (rule 1) | Frames `OC804 QFEg9 h5clan ffmEd wxINm e9FnC Ne5TA EV8mp` exported before code |
 | Operator authority (rule 10) | No API validation; client validation is advisory |
 | Login privacy (rule 3) | 404 sits behind the layout auth guard, shows no data |
 | Fix, don't silence (rule 4) | No eslint-disable; no `any` |
@@ -31,12 +31,12 @@ web/src/routes/NotFound.tsx                       NEW 404 page
 web/src/router/tree.tsx                           splat route under app layout
 web/src/components/AppLayout.tsx                  fixed 404 breadcrumb
 web/src/test/{screenshotData,handlers}.ts         screenshot fixtures (single-get configSchema)
-web/e2e/screenshots/slice-gameconfig.spec.ts      captures OC804 QFEg9 Ne5TA
+web/e2e/screenshots/slice-gameconfig.spec.ts      captures OC804 QFEg9 h5clan ffmEd Ne5TA
 web/specs.md, docs/module-authoring.md            docs
 ```
 
 ## Complexity Tracking
 | Aspect | Why | Simpler alternative rejected |
 |---|---|---|
-| `storedRef` of password names seen as marker | Emptying a typed password must return to "unchanged", not silently clear a stored optional password | Always delete the key: would clear an optional stored password on an accidental backspace |
+| `storedRef` of password names seen as marker, plus a `removing` set | Emptying a typed password must return to "unchanged"; clearing a stored optional password is an explicit Remove action (OD-2) whose "will be removed" state lives in `removing` (key absent from the draft, reset on section remount) | Clear on empty: an accidental backspace would delete a stored optional password |
 | configSchema only on the screenshot single-get | Keeps wizard captures unchanged | Adding it to the template list would add a "Template configuration" block to `vUqMl` |

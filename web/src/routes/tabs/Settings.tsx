@@ -108,6 +108,10 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   // a render-time computation.
   const [dirty, setDirty] = useState(false);
   const baselineRef = useRef<GameServer | null>(null);
+  // spec.config of the baseline, as state because the Game configuration
+  // section reads it during render; it must match what the draft was cloned
+  // from, not a newer `gs` that arrived while edits are unsaved.
+  const [baselineConfig, setBaselineConfig] = useState<Record<string, string> | undefined>(undefined);
   const lastSeenRef = useRef<GameServer | undefined>(undefined);
 
   // Initialize / reset the draft whenever a fresh server arrives and
@@ -124,6 +128,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
     }
     const clone = structuredClone(gs);
     baselineRef.current = clone;
+    setBaselineConfig(clone.spec.config);
     setDraft(clone);
     setConflict(false);
     setDirty(false);
@@ -167,6 +172,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       const clone = structuredClone(saved);
       baselineRef.current = clone;
+      setBaselineConfig(clone.spec.config);
       setDraft(clone);
       setDirty(false);
       setConflict(false);
@@ -206,6 +212,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       const fresh = await Servers.get(name, ns);
       const clone = structuredClone(fresh);
       baselineRef.current = clone;
+      setBaselineConfig(clone.spec.config);
       setDraft(clone);
       setDirty(false);
       setConflict(false);
@@ -267,7 +274,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
         <fieldset key={draftRevision} disabled={save.isPending} inert={save.isPending} className="min-w-0 flex-1 overflow-auto border-0 p-6 scrollbar-thin">
           {section === "general"    && <GeneralSection    draft={draft} onChange={onChangeDraft} template={template} />}
           {section === "version"    && <VersionSection    draft={draft} onChange={onChangeDraft} template={template} />}
-          {section === "config"     && <GameConfigSection draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.config} />}
+          {section === "config"     && <GameConfigSection draft={draft} onChange={onChangeDraft} template={template} storedConfig={baselineConfig} onValidityChange={validityCallbacks.config} />}
           {section === "resources"  && <ResourcesSection  draft={draft} onChange={onChangeDraft} template={template} />}
           {section === "networking" && <NetworkingSection draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.networking} />}
           {section === "env"        && <EnvVarsSection    draft={draft} onChange={onChangeDraft} template={template} />}
