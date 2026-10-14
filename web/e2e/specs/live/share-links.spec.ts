@@ -160,13 +160,14 @@ test.describe("live: share links", () => {
   // not because a dialog could be open yet here (none is), but so this
   // stays correct even if a previous dialog's DOM lingers — the button text
   // "Create link" is shared with the create dialog's own submit button.
+  // When the list is empty the page renders a second "Create link" (the empty-state CTA, ShareLinks.tsx), so take the header one with .first().
   async function openCreateDialog(page: Page): Promise<Locator> {
     const detail = new ServerDetailPage(page);
     await detail.goto(serverName);
     await expect(page.getByRole("heading", { name: serverName })).toBeVisible({ timeout: 20_000 });
     await detail.clickTab("Settings");
     await page.getByRole("tab", { name: /^share links$/i }).click();
-    await page.getByRole("main").getByRole("button", { name: "Create link" }).click();
+    await page.getByRole("main").getByRole("button", { name: "Create link" }).first().click();
     const dialog = page.getByRole("dialog", {
       name: new RegExp(`^create share link for ${serverName}$`, "i"),
     });
