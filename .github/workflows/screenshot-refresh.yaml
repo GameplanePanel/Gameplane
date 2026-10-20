@@ -4,17 +4,17 @@
 # release tag push, and open pull requests with refreshed images. Captures run in CI
 # (not locally, per CLAUDE.md rule 8); all images are reproducible and deterministic
 # using mocked API data. Dashboard screenshots go to docs/img/*. Website screenshots
-# (1440x900 viewport, 2880x1800 PNG) are synced to gameplane-website repo as a separate PR.
+# (1440x900 viewport, 2880x1800 PNG) are synced to GameplanePanel/website repo as a separate PR.
 #
 # Triggers:
 # - on: push tags v* (automatic on release tag; opened PRs trigger CI normally)
 # - on: workflow_dispatch (manual on-demand capture; requires SCREENSHOT_BOT_PAT secret)
 #
 # Credentials:
-# - SCREENSHOT_BOT_PAT: Fine-grained PAT scoped to Gameplane + gameplane-website
-#   (+ gameplane-module, unused), with Contents and Pull requests read/write.
+# - SCREENSHOT_BOT_PAT: Fine-grained PAT scoped to Gameplane + GameplanePanel/website
+#   (+ GameplanePanel/module, unused), with Contents and Pull requests read/write.
 #   Used by both dashboard PR and website PR steps. The website step skips with a
-#   warning when the token cannot write to gameplane-website. See OD-13 and OD-16
+#   warning when the token cannot write to GameplanePanel/website. See OD-13 and OD-16
 #   (amended 2026-10-07).
 #
 # Security: No dependency or browser caches are restored in this workflow: it publishes
@@ -52,7 +52,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
           package-manager-cache: false
@@ -66,7 +66,7 @@ jobs:
 
       - name: upload playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-screenshots
           path: web/playwright-report
@@ -125,7 +125,7 @@ jobs:
               --base "$base" \
               --head "$branch" \
               --title "chore: refresh dashboard screenshots (${REF_NAME})" \
-              --body-file <(printf "Automated dashboard screenshot refresh on %s release tag.\n\nBase: %s\nTrigger: %s\n\nSee contract: specs/012-docs-refresh-and-outreach/contracts/screenshot-set.md (OD-3 Decision).\n" "$REF_NAME" "$base" "$EVENT_NAME")
+              --body-file <(printf "Automated dashboard screenshot refresh on %s release tag.\n\nBase: %s\nTrigger: %s\n\nSee contract: specs/done_012-docs-refresh-and-outreach/contracts/screenshot-set.md (OD-3 Decision).\n" "$REF_NAME" "$base" "$EVENT_NAME")
           fi
 
       - name: open website screenshot pull request
@@ -154,7 +154,7 @@ jobs:
           done
 
           # Set up credential helper for secure token handling
-          website_repo_path="$RUNNER_TEMP/gameplane-website"
+          website_repo_path="$RUNNER_TEMP/website"
           helper="$RUNNER_TEMP/git-credential-website"
           cat >"$helper" <<'EOF'
           #!/bin/sh
@@ -162,19 +162,19 @@ jobs:
           EOF
           chmod 0700 "$helper"
 
-          # Clone gameplane-website repo with credential helper
-          if ! git clone -c credential.helper="$helper" https://github.com/ValgulNecron/gameplane-website.git "$website_repo_path"; then
-            echo "::warning title=website screenshots::SCREENSHOT_BOT_PAT cannot read ValgulNecron/gameplane-website; skipping the website pull request"
+          # Clone GameplanePanel/website repo with credential helper
+          if ! git clone -c credential.helper="$helper" https://github.com/GameplanePanel/website.git "$website_repo_path"; then
+            echo "::warning title=website screenshots::SCREENSHOT_BOT_PAT cannot read GameplanePanel/website; skipping the website pull request"
             exit 0
           fi
 
           # Configure credential helper for the cloned repo
           git -C "$website_repo_path" config --local credential.helper "$helper"
 
-          # Preflight check: ensure the token has write access to gameplane-website
+          # Preflight check: ensure the token has write access to GameplanePanel/website
           if ! out="$(git -C "$website_repo_path" push --dry-run origin "HEAD:refs/heads/chore/screenshot-refresh-preflight" 2>&1)"; then
             echo "::debug::$out"
-            echo "::warning title=website screenshots::SCREENSHOT_BOT_PAT cannot push to ValgulNecron/gameplane-website (it needs Contents and Pull requests read/write on that repo); skipping the website pull request"
+            echo "::warning title=website screenshots::SCREENSHOT_BOT_PAT cannot push to GameplanePanel/website (it needs Contents and Pull requests read/write on that repo); skipping the website pull request"
             exit 0
           fi
 
@@ -200,21 +200,21 @@ jobs:
 
           git -C "$website_repo_path" checkout -b "$branch"
           git -C "$website_repo_path" add src/assets/screenshots/dashboard.png src/assets/screenshots/servers.png src/assets/screenshots/console.png src/assets/screenshots/backups.png src/assets/screenshots/modules.png
-          git -C "$website_repo_path" commit -s -m "chore: refresh website screenshots (${REF_NAME})" -m "Generated by ValgulNecron/Gameplane .github/workflows/screenshot-refresh.yaml at ${SOURCE_SHA}."
+          git -C "$website_repo_path" commit -s -m "chore: refresh website screenshots (${REF_NAME})" -m "Generated by GameplanePanel/Gameplane .github/workflows/screenshot-refresh.yaml at ${SOURCE_SHA}."
 
           # The bot branch is disposable: a re-run on the same ref replaces it.
           git -C "$website_repo_path" push --force origin "HEAD:${branch}"
 
           # Check for an existing PR and create or update it
           export GH_TOKEN="$WEBSITE_TOKEN"
-          existing="$(gh pr list -R ValgulNecron/gameplane-website --head "$branch" --base "$base" --state open --json number --jq '.[0].number // empty')"
+          existing="$(gh pr list -R GameplanePanel/website --head "$branch" --base "$base" --state open --json number --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then
             echo "updated existing PR #$existing"
           else
             gh pr create \
-              -R ValgulNecron/gameplane-website \
+              -R GameplanePanel/website \
               --base "$base" \
               --head "$branch" \
               --title "chore: refresh website screenshots (${REF_NAME})" \
-              --body-file <(printf "Automated website screenshot refresh on %s.\n\nSource: %s @ %s\nTrigger: %s\n\nSee contract: specs/012-docs-refresh-and-outreach (website screenshot amendment, OD-16).\n" "$REF_NAME" "$SOURCE_REPO" "$SOURCE_SHA" "$EVENT_NAME")
+              --body-file <(printf "Automated website screenshot refresh on %s.\n\nSource: %s @ %s\nTrigger: %s\n\nSee contract: specs/done_012-docs-refresh-and-outreach (website screenshot amendment, OD-16).\n" "$REF_NAME" "$SOURCE_REPO" "$SOURCE_SHA" "$EVENT_NAME")
           fi

@@ -19,9 +19,10 @@ import {
 } from "@heroui/react";
 import { ChevronDown } from "lucide-react";
 import { Users } from "@/lib/endpoints";
-import { errorText } from "@/lib/errors";
+import { errorTextIntl } from "@/lib/errors";
 import { OWNER_ANNOTATION } from "@/lib/annotations";
 import { cn } from "@/lib/utils";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 interface Props {
   target?: ResourceTarget;
@@ -38,6 +39,7 @@ interface Props {
 // server action menus.
 export function TransferServerDialog({
   target: explicitTarget, name, ns, open, onOpenChange, onTransferred }: Props) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns }, explicitTarget);
   const resourceClient = useResourceClient(resourceTarget);
   const { Servers } = resourceClient;
@@ -74,19 +76,16 @@ export function TransferServerDialog({
         <ModalContainer>
           <ModalDialog>
             <ModalHeader>
-              <ModalHeading>Transfer {name}</ModalHeading>
+              <ModalHeading>{intl.formatMessage({ id: "web.components.server.transfer_server_dialog.transfer_name", defaultMessage: "Transfer {name}", description: "Transfer server dialog: sentence with name in ModalHeading" }, { name: name })}</ModalHeading>
             </ModalHeader>
 
             <ModalBody>
               <div className="space-y-4">
-                <div className="text-sm text-muted">
-                  Current owner: {currentOwner || "unassigned"}.
+                <div className="text-sm text-muted">{intl.formatMessage({ id: "web.components.server.transfer_server_dialog.current_owner", defaultMessage: "Current owner: {owner}.", description: "Transfer server dialog: current owner line; {owner} is the owner username or the unassigned label" }, { owner: currentOwner || intl.formatMessage({ id: "web.components.server.transfer_server_dialog.unassigned", defaultMessage: "unassigned", description: "Transfer server dialog: shown when the server has no owner" }) })}
                 </div>
 
                 {usersError ? (
-                  <div className="text-xs text-danger">
-                    You need permission to list users to pick a recipient.
-                  </div>
+                  <div className="text-xs text-danger">{intl.formatMessage({ id: "web.components.server.transfer_server_dialog.you_need_permission_to_list_users_to", defaultMessage: "You need permission to list users to pick a recipient.", description: "Transfer server dialog: error text shown when the user lacks permission to list users, so no new owner can be picked" })}</div>
                 ) : (
                   <Popover isOpen={popoverOpen} onOpenChange={setPopoverOpen}>
                     <PopoverTrigger
@@ -96,13 +95,13 @@ export function TransferServerDialog({
                       )}
                     >
                       <span className={selectedUser ? "text-fg" : "text-muted"}>
-                        {selectedUser?.username || "Select a user…"}
+                        {selectedUser?.username || intl.formatMessage({ id: "web.components.server.transfer_server_dialog.select_user", defaultMessage: "Select a user…", description: "Transfer server dialog: placeholder of the user select when none is chosen" })}
                       </span>
                       <ChevronDown className="h-4 w-4 text-muted shrink-0" />
                     </PopoverTrigger>
                     <PopoverContent className="min-w-[200px]">
                       <ListBox
-                        aria-label="Transfer to"
+                        aria-label={intl.formatMessage({ id: "web.components.server.transfer_server_dialog.transfer_to", defaultMessage: "Transfer to", description: "Transfer server dialog: screen-reader name of the list of users to pick as the new owner; not visible on screen" })}
                         selectionMode="single"
                         onSelectionChange={(selected) => {
                           const [id] = selected === "all" ? [] : selected;
@@ -122,7 +121,7 @@ export function TransferServerDialog({
 
                 {transfer.isError && (
                   <div className="text-xs text-danger">
-                    {errorText(transfer.error, "transfer failed")}
+                    {errorTextIntl(intl, transfer.error, intl.formatMessage({ id: "web.components.server.transfer_server_dialog.transfer_failed", defaultMessage: "transfer failed", description: "Transfer server dialog: fallback error text when the transfer request fails without a message" }))}
                   </div>
                 )}
               </div>
@@ -134,15 +133,13 @@ export function TransferServerDialog({
                 size="sm"
                 isDisabled={transfer.isPending}
                 onPress={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
+              >{intl.formatMessage({ id: "web.components.server.transfer_server_dialog.cancel", defaultMessage: "Cancel", description: "Transfer server dialog: button that closes the dialog without transferring the server; keep it short" })}</Button>
               <Button
                 size="sm"
                 isDisabled={!userId || transfer.isPending}
                 onPress={() => transfer.mutate()}
               >
-                {transfer.isPending ? "Transferring…" : "Transfer"}
+                {transfer.isPending ? intl.formatMessage({ id: "web.components.server.transfer_server_dialog.transferring", defaultMessage: "Transferring…", description: "Transfer server dialog: submit button label while the transfer runs" }) : intl.formatMessage({ id: "web.components.server.transfer_server_dialog.transfer", defaultMessage: "Transfer", description: "Transfer server dialog: submit button label" })}
               </Button>
             </ModalFooter>
           </ModalDialog>

@@ -9,8 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // These tests pin the F-259 stop contract (maintainer decision 2026-09-25,

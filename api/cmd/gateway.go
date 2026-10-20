@@ -12,8 +12,8 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/ValgulNecron/gameplane/api/internal/gateway"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/gateway"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 func runGateway(ctx context.Context, args []string) error {

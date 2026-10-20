@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/registry"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/registry"
 )
 
 // fakeModLister serves a canned agent /mods payload (or an error).

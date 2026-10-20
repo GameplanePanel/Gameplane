@@ -1,3 +1,4 @@
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if .Values.defaultModuleSource.enabled }}
 {{- $src := .Values.defaultModuleSource }}
 {{- $type := $src.type | default "oci" }}
@@ -49,4 +50,6 @@ metadata:
 spec:
   type: upload
   refreshInterval: {{ .Values.uploadModuleSource.refreshInterval | default "1h" }}
+{{- end }}
+
 {{- end }}

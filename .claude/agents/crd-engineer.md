@@ -43,15 +43,17 @@ make generate    # regenerates operator/api/v1alpha1/zz_generated.deepcopy.go
 make manifests   # regenerates operator/config/crd/*.yaml, operator/config/rbac/*.yaml
 ```
 
-**Critical:** The chart also syncs these. After `make manifests`, verify both locations are updated:
+**Critical:** The chart also syncs these. After `make manifests`, verify all three locations are updated:
 - `operator/config/crd/` (YAML source)
-- `charts/gameplane/crds/` (chart copy for pre-upgrade hook)
+- `charts/gameplane/charts/gameplane-crds/crds/` (native Helm CRDs, gated by `operator.enabled`)
+- `charts/gameplane/crd-manifests/` (chart copy for pre-upgrade hook)
 
 Do NOT manually edit any generated file. Never touch:
 - `operator/api/v1alpha1/zz_generated.deepcopy.go`
 - `operator/config/crd/*.yaml`
 - `operator/config/rbac/*.yaml`
-- `charts/gameplane/crds/*.yaml`
+- `charts/gameplane/charts/gameplane-crds/crds/*.yaml`
+- `charts/gameplane/crd-manifests/*.yaml`
 
 ### 3. Update the Reconciler
 
@@ -96,7 +98,8 @@ git add operator/api/v1alpha1/<kind>_types.go \
         operator/api/v1alpha1/zz_generated.deepcopy.go \
         operator/config/crd/*.yaml \
         operator/config/rbac/*.yaml \
-        charts/gameplane/crds/*.yaml \
+        charts/gameplane/charts/gameplane-crds/crds/*.yaml \
+        charts/gameplane/crd-manifests/*.yaml \
         operator/internal/controller/<kind>_controller.go \
         operator/internal/controller/<kind>_envtest_test.go \
         web/src/types.ts [web/src/routes/<changed-files>.tsx]  # Replace with specific route files actually modified (e.g., web/src/routes/Dashboard.tsx web/src/routes/Config.tsx)
@@ -105,8 +108,7 @@ git commit -s -m "feat: add <field> to <Kind>
 
 Description of the new behavior.
 
-Co-Authored-By: <model actually running this session> <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_<id>"
+Co-Authored-By: <model actually running this session> <noreply@anthropic.com>"
 ```
 
 ## Local Testing Discipline (CLAUDE.md Rule 8)

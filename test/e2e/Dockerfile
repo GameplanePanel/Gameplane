@@ -21,6 +21,8 @@ ENV CGO_ENABLED=0
 
 # Build every per-game probe: scan for internal/*/app.go, extract the game
 # name (directory), and compile the binary.
+# DL4006: fail the RUN if any command in a pipe fails.
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 RUN mkdir -p /out/probe && \
     for appfile in internal/*/app.go; do \
         game=$(dirname "$appfile" | cut -d/ -f2); \

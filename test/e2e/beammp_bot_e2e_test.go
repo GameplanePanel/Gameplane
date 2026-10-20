@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_BeamMPBot_Query boots a BeamMP dedicated server
@@ -25,7 +25,7 @@ func TestGameServer_BeamMPBot_Query(t *testing.T) {
 		Game:        "beammp",
 		Template:    fmt.Sprintf("e2e-beammp-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E BeamMP",
-		Image:       "ghcr.io/valgulnecron/gameplane/beammp:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/beammp:latest@sha256:4c4ffee19ca8013cacbbdf8e65e0fe09109ab99c8607313daa4f688bab8b9391",
 		Env: map[string]string{
 			"BEAMMP_AUTH_KEY": "test-auth-key",
 			"SERVER_NAME":     "Gameplane E2E BeamMP",

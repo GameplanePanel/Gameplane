@@ -1,0 +1,47 @@
+{
+  "type": "frame",
+  "id": "TSXYO",
+  "x": 2712,
+  "y": 3109,
+  "name": "Gameplane/Sink Language Row",
+  "reusable": true,
+  "gap": 8,
+  "padding": [
+    6,
+    0,
+    0,
+    0
+  ],
+  "alignItems": "center",
+  "children": [
+    {
+      "type": "text",
+      "id": "a2jUf",
+      "name": "sinkLangLabel",
+      "fill": "$muted",
+      "content": "Language",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal"
+    },
+    {
+      "id": "JeJkG",
+      "type": "ref",
+      "ref": "AT7ya",
+      "name": "sinkLangSelect",
+      "width": 200,
+      "height": 32,
+      "padding": [
+        6,
+        10
+      ],
+      "descendants": {
+        "cFsFk": {
+          "content": "English",
+          "fill": "$foreground/foreground",
+          "fontSize": 13
+        }
+      }
+    }
+  ]
+}

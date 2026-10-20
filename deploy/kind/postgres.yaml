@@ -1,0 +1,79 @@
+# PostgreSQL 17 for the `e2e postgres` CI job (spec 013 US5). deploy/kind/e2e.sh
+# applies it in the release namespace when called with the `postgres` profile,
+# and installs the chart with api.db.driver=postgres and the `dsn` key below.
+# The image digest matches the `api (postgres)` job's service in ci.yaml.
+# Throwaway credentials: the cluster lives for one CI job.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gameplane-postgres
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/name: gameplane-postgres
+    app.kubernetes.io/component: e2e-fixture
+type: Opaque
+stringData:
+  username: gameplane
+  password: e2e-postgres-password
+  database: gameplane
+  dsn: postgres://gameplane:e2e-postgres-password@gameplane-postgres.gameplane-system.svc.cluster.local:5432/gameplane?sslmode=disable
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gameplane-postgres
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/name: gameplane-postgres
+    app.kubernetes.io/component: e2e-fixture
+spec:
+  selector: { app.kubernetes.io/name: gameplane-postgres }
+  ports:
+    - { name: postgres, port: 5432, targetPort: postgres }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gameplane-postgres
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/name: gameplane-postgres
+    app.kubernetes.io/component: e2e-fixture
+spec:
+  serviceName: gameplane-postgres
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: gameplane-postgres }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: gameplane-postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+          ports:
+            - { name: postgres, containerPort: 5432 }
+          env:
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: gameplane-postgres, key: username } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: gameplane-postgres, key: password } }
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: gameplane-postgres, key: database } }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "gameplane", "-d", "gameplane"]
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: { storage: 1Gi }

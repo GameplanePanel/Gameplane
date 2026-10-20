@@ -15,8 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/notify"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/notify"
 )
 
 // sinkSecretRouter is notifTestRouter without the Notifier — the secret

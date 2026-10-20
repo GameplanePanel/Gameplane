@@ -34,8 +34,8 @@ func TestWrite_BodyTooLarge(t *testing.T) {
 		t.Fatalf("post: %v", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNoContent {
-		t.Fatal("oversize write should not succeed")
+	if resp.StatusCode != http.StatusRequestEntityTooLarge {
+		t.Fatalf("oversized write status=%d, want 413", resp.StatusCode)
 	}
 }
 

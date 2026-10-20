@@ -65,7 +65,7 @@ test("API reads bypass a cached HTML document at the same URL", async ({ page, b
         revision,
       });
       expect(jsonRequests).toBe(revision);
-      expect(jsonAccepts[revision - 1]).toBe("application/json");
+      expect(jsonAccepts[revision - 1]).toBe("application/json, application/problem+json");
     }
   } finally {
     server.closeAllConnections();

@@ -27,7 +27,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
 # Copy tailscale binaries from the official upstream image pinned by digest.
 # tailscale is distributed as official OCI images; pinning by digest
 # ensures reproducible builds. The image ships both tailscaled and tailscale CLI.
-FROM tailscale/tailscale:v1.102.5@sha256:c507f3a2a6ab1cabd8d809b98edeb41edbd5c3fb6ad9632ffd098b4c7d0b4065 AS tailscale-stage
+FROM tailscale/tailscale:v1.104.1@sha256:87c55d6be56ad85b3d8bceca5f87f73de288c609131460dd1be1874c250cc41d AS tailscale-stage
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /

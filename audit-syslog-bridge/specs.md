@@ -1,7 +1,7 @@
 # audit-syslog-bridge — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/audit-syslog-bridge`
+**Module / package:** `github.com/GameplanePanel/gameplane/audit-syslog-bridge`
 
 ## Purpose
 

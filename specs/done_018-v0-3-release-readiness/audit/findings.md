@@ -27,10 +27,10 @@ Security findings that are not yet fixed are held off-git until their fix merges
 | F-019 | Telemetry receiver had no ingress NetworkPolicy restricting senders to the API | charts/gameplane/ | imported:SECURITY_AUDIT.md#6 | S3 | imported | #350 | | fixed together with F-012 in PR #350 (`charts/gameplane/templates/telemetry-receiver.yaml`); confirm live in T049 |
 | F-020 | Nuclear Option's assumed UDP 7777 game-join port is not bound on the live server | modules/, docs/ | imported:specs/002-nuclear-option-ip-pool/spec.md | S4 | imported | | | believed not-a-defect: matches FR-004's documented contingency (see Justification); T049 confirms |
 | F-021 | Helm-seeded OIDC role mappings documented while the feature sits under CHANGELOG Unreleased | docs/ | imported:specs/012-docs-refresh-and-outreach/OPEN-DECISIONS.md#OD-8 | S4 | imported | #340 | | believed fixed by #340: per OD-8's ruling, `docs/oidc.md:21` carries the unreleased qualifier; confirm in T049 |
-| F-022 | `cli` rcon.protocol semantics: confirm the implementation matches the recorded Option A ruling | operator/, agent/, web/ | imported:specs/015-top-steam-game-modules/OPEN-DECISIONS.md#1-cli-rconprotocol-semantics-t005-t019-t025 | S3 | imported | | | 015 OD §1 records "Resolution: Option A Confirmed"; T049 checks operator `resolveRCON`, agent and `rconAvailable` against it |
-| F-023 | Open question: Factorio template's `rcon.protocol: source` vs. an earlier contract claim of `none` | modules/ | imported:specs/015-top-steam-game-modules/OPEN-DECISIONS.md#2-factorio-protocol-finding-t005 | S3 | imported | | | shipped template retained pending final maintainer confirmation |
-| F-024 | Open question: Project Zomboid template's `rcon.protocol: source` vs. an earlier contract claim of `none` | modules/ | imported:specs/015-top-steam-game-modules/OPEN-DECISIONS.md#3-project-zomboid-protocol-finding-t005 | S3 | imported | | | shipped template retained pending final maintainer confirmation |
-| F-025 | Open question: generic `rest` rcon wire contract (FiveM txAdmin / Farming Simulator 25) not yet given a final ruling | agent/ | imported:specs/015-top-steam-game-modules/OPEN-DECISIONS.md#5-generic-rest-wire-contract-t005-t018-t047-t052 | S3 | imported | | | contract documented and implemented in `agent/internal/rcon/rest.go`; pending final maintainer sign-off |
+| F-022 | `cli` rcon.protocol semantics: confirm the implementation matches the recorded Option A ruling | operator/, agent/, web/ | imported:specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md#1-cli-rconprotocol-semantics-t005-t019-t025 | S3 | imported | | | 015 OD §1 records "Resolution: Option A Confirmed"; T049 checks operator `resolveRCON`, agent and `rconAvailable` against it |
+| F-023 | Open question: Factorio template's `rcon.protocol: source` vs. an earlier contract claim of `none` | modules/ | imported:specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md#2-factorio-protocol-finding-t005 | S3 | imported | | | shipped template retained pending final maintainer confirmation |
+| F-024 | Open question: Project Zomboid template's `rcon.protocol: source` vs. an earlier contract claim of `none` | modules/ | imported:specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md#3-project-zomboid-protocol-finding-t005 | S3 | imported | | | shipped template retained pending final maintainer confirmation |
+| F-025 | Open question: generic `rest` rcon wire contract (FiveM txAdmin / Farming Simulator 25) not yet given a final ruling | agent/ | imported:specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md#5-generic-rest-wire-contract-t005-t018-t047-t052 | S3 | imported | | | contract documented and implemented in `agent/internal/rcon/rest.go`; pending final maintainer sign-off |
 | F-026 | `hack/check-doc-versions.sh` recognises only `-beta.N` versions and matches single-digit minor/patch components where its header documents `[0-9]+` | hack/ | review:hack | S3 | fixed-unverified | #420 | | |
 | F-027 | `docs/install.md` has no rollback procedure | docs/ | review:docs | S3 | open | | | fix in T063 after the live rollback (T062) |
 | F-028 | `charts/gameplane/values.yaml` git module source still pinned to `ref: v0.2.0-beta.6` | charts/gameplane/ | review:charts/gameplane | S3 | open | | | T054: pin to a new gameplane-module v0.3.0 tag after INV-MOD rows pass |
@@ -604,50 +604,50 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 ### F-022
 
 **Repro / observation**
-1. Read `specs/015-top-steam-game-modules/OPEN-DECISIONS.md` §1 ("`cli` rcon.protocol Semantics", line 7-24): the maintainer ruled `cli` a first-class `spec.rcon.protocol` enum value, with a described relationship to pod-attach, operator `resolveRCON` implications, and web dashboard `rconAvailable` gating — but the document's own framing (line 3) is that everything in it "remain[s] explicitly open for maintainer ruling".
+1. Read `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md` §1 ("`cli` rcon.protocol Semantics", line 7-24): the maintainer ruled `cli` a first-class `spec.rcon.protocol` enum value, with a described relationship to pod-attach, operator `resolveRCON` implications, and web dashboard `rconAvailable` gating — but the document's own framing (line 3) is that everything in it "remain[s] explicitly open for maintainer ruling".
 2. Cross-check `web/src/lib/capabilities.ts:20` (`rconAvailable`) and the operator's `resolveRCON` against the description in §1.
 
 **Expected:** the `cli` protocol's semantics, operator behavior and dashboard gating match the description in §1 (the maintainer's Option A ruling).
 
 **Actual:** the implementation described in §1 (agent-driven local console, no minted RCON Secret for `cli` without an explicit password ref, `rconAvailable` excluding `cli`) matches current code at a glance, and §1 itself records the ruling ("The maintainer ruled...", line 14, under "Resolution: Option A Confirmed", line 16); only the file's preamble (line 3) describes its contents as open. Imported for T049 to confirm the implementation against that ruling; not independently re-verified against every call site in this session.
 
-**Evidence:** [../../015-top-steam-game-modules/OPEN-DECISIONS.md#1-cli-rconprotocol-semantics-t005-t019-t025](../../015-top-steam-game-modules/OPEN-DECISIONS.md#1-cli-rconprotocol-semantics-t005-t019-t025)
+**Evidence:** [../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#1-cli-rconprotocol-semantics-t005-t019-t025](../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#1-cli-rconprotocol-semantics-t005-t019-t025)
 
 ### F-023
 
 **Repro / observation**
-1. Read `specs/015-top-steam-game-modules/OPEN-DECISIONS.md` §2 ("Factorio Protocol Finding", line 28-45): `modules/factorio/template.yaml` ships `rcon.protocol: source`, while `contracts/engine-matrix-contract.md` previously claimed `rcon.protocol: none`. The recommendation is to retain the shipped `source` config "pending final maintainer confirmation".
+1. Read `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md` §2 ("Factorio Protocol Finding", line 28-45): `modules/factorio/template.yaml` ships `rcon.protocol: source`, while `contracts/engine-matrix-contract.md` previously claimed `rcon.protocol: none`. The recommendation is to retain the shipped `source` config "pending final maintainer confirmation".
 2. Read `modules/factorio/template.yaml` and confirm it still ships `rcon.protocol: source`.
 
 **Expected:** the Factorio template's RCON protocol setting is confirmed correct by an explicit maintainer ruling before release, resolving the discrepancy with the earlier contract claim.
 
 **Actual:** the shipped template still uses `rcon.protocol: source` as the finding recommends, but the document records no final ruling — still open. Not independently re-verified against `contracts/engine-matrix-contract.md`'s current text in this session.
 
-**Evidence:** [../../015-top-steam-game-modules/OPEN-DECISIONS.md#2-factorio-protocol-finding-t005](../../015-top-steam-game-modules/OPEN-DECISIONS.md#2-factorio-protocol-finding-t005)
+**Evidence:** [../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#2-factorio-protocol-finding-t005](../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#2-factorio-protocol-finding-t005)
 
 ### F-024
 
 **Repro / observation**
-1. Read `specs/015-top-steam-game-modules/OPEN-DECISIONS.md` §3 ("Project Zomboid Protocol Finding", line 49-65): `modules/project-zomboid/template.yaml` ships `rcon.protocol: source`, while `contracts/engine-matrix-contract.md` claimed stdin-only (`none`). The recommendation is to retain the shipped `source` config "pending final maintainer confirmation".
+1. Read `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md` §3 ("Project Zomboid Protocol Finding", line 49-65): `modules/project-zomboid/template.yaml` ships `rcon.protocol: source`, while `contracts/engine-matrix-contract.md` claimed stdin-only (`none`). The recommendation is to retain the shipped `source` config "pending final maintainer confirmation".
 2. Read `modules/project-zomboid/template.yaml` and confirm it still ships `rcon.protocol: source`.
 
 **Expected:** the Project Zomboid template's RCON protocol setting is confirmed correct by an explicit maintainer ruling before release.
 
 **Actual:** the shipped template still uses `rcon.protocol: source` as the finding recommends, but the document records no final ruling — still open. Not independently re-verified against `contracts/engine-matrix-contract.md`'s current text in this session.
 
-**Evidence:** [../../015-top-steam-game-modules/OPEN-DECISIONS.md#3-project-zomboid-protocol-finding-t005](../../015-top-steam-game-modules/OPEN-DECISIONS.md#3-project-zomboid-protocol-finding-t005)
+**Evidence:** [../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#3-project-zomboid-protocol-finding-t005](../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#3-project-zomboid-protocol-finding-t005)
 
 ### F-025
 
 **Repro / observation**
-1. Read `specs/015-top-steam-game-modules/OPEN-DECISIONS.md` §5 ("Generic `rest` Wire Contract", line 89-131): specifies the `RESTAdapter` interface, the `txadmin` and `farming-simulator-25` adapters, a generic fallback adapter, and safety properties (1 MiB response cap, timeouts, 15s auth-failure cooldown, loopback-only `InsecureSkipVerify`) for `agent/internal/rcon/rest.go`.
+1. Read `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md` §5 ("Generic `rest` Wire Contract", line 89-131): specifies the `RESTAdapter` interface, the `txadmin` and `farming-simulator-25` adapters, a generic fallback adapter, and safety properties (1 MiB response cap, timeouts, 15s auth-failure cooldown, loopback-only `InsecureSkipVerify`) for `agent/internal/rcon/rest.go`.
 2. Read `agent/internal/rcon/rest.go` and confirm the adapters and safety properties described are present.
 
 **Expected:** the `rest` protocol's wire contract matches what's documented, and the open item is closed with an explicit maintainer ruling before release.
 
 **Actual:** the contract is documented in full implementation detail and appears built (adapter names, endpoints, auth schemes, response caps match the description), but the document carries no closing ruling — still open. Not independently re-verified line-by-line against `agent/internal/rcon/rest.go` in this session.
 
-**Evidence:** [../../015-top-steam-game-modules/OPEN-DECISIONS.md#5-generic-rest-wire-contract-t005-t018-t047-t052](../../015-top-steam-game-modules/OPEN-DECISIONS.md#5-generic-rest-wire-contract-t005-t018-t047-t052)
+**Evidence:** [../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#5-generic-rest-wire-contract-t005-t018-t047-t052](../../done_015-top-steam-game-modules/OPEN-DECISIONS.md#5-generic-rest-wire-contract-t005-t018-t047-t052)
 
 ### F-026
 
@@ -834,7 +834,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 2. `test/e2e/buckets.sh:187-195`: `bot-fast`, which is what CI runs, has only Minecraft, Terraria and Garry's Mod. Lines `:214`, `:226`, `:230` and `:240` put factorio, tmodloader and beammp tests in `bot-heavy`, with "exceeds runner disk" reasons.
 3. `test/e2e/factorio_bot_e2e_test.go:28-29`: "This is a heavy-set test (opt-in via GAMEPLANE_E2E_GAME_BOT=1 and GAMEPLANE_E2E_GAMES=all)". But factorio is in `fastGameSet`.
 4. `test/e2e/internal/specs.md:293-298` lists a 3-game fast set. `:345-354` ("Why the fast set is small") lists 4 games including factorio.
-5. `specs/015-top-steam-game-modules/engine-matrix-resolved.md:30-31,34,60` classifies tmodloader, beammp and factorio as `bot-fast`. `buckets.sh` does the opposite.
+5. `specs/done_015-top-steam-game-modules/engine-matrix-resolved.md:30-31,34,60` classifies tmodloader, beammp and factorio as `bot-fast`. `buckets.sh` does the opposite.
 
 **Expected:** there is one "fast set" definition, or `fastGameSet` is explicitly documented as a different axis from `bot-fast`. Code, docs, `buckets.sh` and spec 015 agree on which games are fast.
 
@@ -2546,7 +2546,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 
 **Repro / observation**
 1. `docs/module-authoring.md:139-141` says "`template.yaml` is the same `GameTemplate` you would write today, with one difference: omit `metadata.name`".
-2. `specs/010-easy-module-building/contracts/archetypes-contract.md` §3 says: "The offline validator (`gp-module validate`) requires `metadata.name` to be present and non-empty".
+2. `specs/done_010-easy-module-building/contracts/archetypes-contract.md` §3 says: "The offline validator (`gp-module validate`) requires `metadata.name` to be present and non-empty".
 3. Copy a scaffolded module and delete `metadata.name` from `template.yaml`. `validate` reports `ERROR [template-schema-violation] template.yaml:5: metadata.name is required in template.yaml`.
 
 **Expected:** The authoring guide and the spec agree. Under the spec 010 contract, the guide says to include `metadata.name`.
@@ -2611,7 +2611,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 
 **Repro / observation**
 1. Copy a scaffolded module and append `gameplaneMinVersion: 9.0.0` to `module.yaml`. `validate` prints `OK (no findings)`.
-2. `gp-module --version` prints `1.0.0`. `specs/010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author".
+2. `gp-module --version` prints `1.0.0`. `specs/done_010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author".
 
 **Expected:** A warning when `gameplaneMinVersion` is above the version the tool represents.
 
@@ -2626,7 +2626,7 @@ Control: the optional telemetry-receiver Service accepts ingress on port 8080 on
 **Control:** Privilege defaults for scaffolded modules. The `steamcmd` preset is documented as producing a template that runs the game as a non-root user.
 
 **Repro / observation (defensive; confirms whether the control holds):**
-1. Read `archetypes.go:121`: the description ends "(Valve UDP ports, save volume, non-root user)". `specs/010-easy-module-building/contracts/archetypes-contract.md:13` lists "non-root security defaults" as a primary characteristic of `steamcmd`.
+1. Read `archetypes.go:121`: the description ends "(Valve UDP ports, save volume, non-root user)". `specs/done_010-easy-module-building/contracts/archetypes-contract.md:13` lists "non-root security defaults" as a primary characteristic of `steamcmd`.
 2. Read `archetypes.go:122`: `DefaultImage` is `cm2network/steamcmd:root@sha256:4d830b…`. The tag names the upstream image's root variant.
 3. In a scratch directory, run `gp-module init x --archetype steamcmd -y` and read the generated `template.yaml`. It uses that image and has no `spec.security` block.
 4. Read `operator/internal/controller/gameserver_controller.go:1981-1990`. With no `spec.security`, `gameContainerSecurityContext` returns nil, so the pod runs the game as whatever user the image declares.

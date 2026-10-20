@@ -1,0 +1,13 @@
+# Coverage threshold gate for the shared i18n module.
+# Enforced by `make cover-go-check` via go-test-coverage/v2.
+#
+# i18n holds the shared language packs, the ICU message formatter, the pack
+# validator and the i18n-check CLI. Almost all of it is pure and unit-testable,
+# so the gate is 90%.
+profile: coverage/unit.out
+github-action-output: false
+
+threshold:
+  file: 0
+  package: 0
+  total: 90

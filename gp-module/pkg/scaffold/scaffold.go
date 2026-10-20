@@ -2,7 +2,7 @@
 package scaffold
 
 import (
-	internalscaffold "github.com/ValgulNecron/gameplane/gp-module/internal/scaffold"
+	internalscaffold "github.com/GameplanePanel/gameplane/gp-module/internal/scaffold"
 )
 
 // Options defines inputs for module scaffolding.

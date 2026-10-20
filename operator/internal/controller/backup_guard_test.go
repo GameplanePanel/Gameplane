@@ -20,8 +20,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
-	"github.com/ValgulNecron/gameplane/operator/internal/agent"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/agent"
 )
 
 type guardQuiescer struct {

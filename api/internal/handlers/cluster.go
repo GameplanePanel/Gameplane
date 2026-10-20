@@ -18,10 +18,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8srest "k8s.io/client-go/rest"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // MountCluster exposes read-only cluster observability the dashboard's
@@ -73,9 +73,9 @@ func (h *clusterHandler) forRequest(w http.ResponseWriter, req *http.Request) (*
 		// Registration metadata lives centrally, but inventory never does.
 		// Keep a disconnected registration distinguishable from an unknown ID.
 		if id != h.reg.DefaultID() {
-			home := h.reg.Default()
-			if home != nil && home.Dynamic != nil {
-				_, err := home.Dynamic.Resource(kube.GVRCluster).Get(req.Context(), id, metav1.GetOptions{})
+			home := h.reg.Management()
+			if home != nil && home.Clusters() != nil {
+				_, err := home.Clusters().Get(req.Context(), id, metav1.GetOptions{})
 				if apierrors.IsNotFound(err) {
 					httperr.Write(w, req, scope.ErrForbiddenCluster)
 					return nil, false

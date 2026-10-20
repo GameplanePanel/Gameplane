@@ -180,7 +180,7 @@ async function browserContextFor(
 // DOM contract attributes over CSS classes, aligned with the landed
 // implementation where it exists (web/src/routes/ThemeSettings.tsx,
 // SafeModeBanner.tsx, Login.tsx) and falling back to contract/design-derived
-// labels (design-export/json/lWvcv.json Theme Settings, DAz77.json banner,
+// labels (assets/design-export/json/lWvcv.json Theme Settings, DAz77.json banner,
 // J14ME.json login card) otherwise. Scoping note: "Custom colors" exists
 // both as a preset radio card label (inside the "Preset theme" radiogroup)
 // and as the section card title — preset selections are therefore always

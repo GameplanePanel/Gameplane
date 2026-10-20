@@ -14,8 +14,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
 // Provider key names as documented in docs/tunnels.md.
@@ -73,20 +74,20 @@ func (h *tunnelCredsHandler) put(w http.ResponseWriter, req *http.Request) {
 
 	var body putReq
 	if err := json.NewDecoder(io.LimitReader(req.Body, 1<<16)).Decode(&body); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.tunnel.invalid_request_body", nil))
 		return
 	}
 
 	// Validate provider is known.
 	expectedKeys, ok := tunnelProviderKeys[body.Provider]
 	if !ok {
-		http.Error(w, fmt.Sprintf("unknown provider: %s", body.Provider), http.StatusBadRequest)
+		httperr.WriteCode(w, req, http.StatusBadRequest, fmt.Errorf("unknown provider: %s", body.Provider))
 		return
 	}
 
 	// Validate values match provider's expected keys.
 	if err := validateTunnelValues(body.Values, expectedKeys); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		httperr.WriteCode(w, req, http.StatusBadRequest, err)
 		return
 	}
 
@@ -131,7 +132,7 @@ func (h *tunnelCredsHandler) put(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		if !isServerOwnedSecretObject(existing, name, gs.GetUID()) {
-			http.Error(w, "conflict: existing secret is not owned by this server", http.StatusConflict)
+			httperr.WriteMessage(w, req, messages.New("server.tunnel.secret_not_owned_conflict", nil))
 			return
 		}
 
@@ -274,7 +275,7 @@ func (h *tunnelCredsHandler) delete(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if ok && tunnelEnabled {
-		http.Error(w, "cannot delete tunnel credentials while tunnel is enabled; disable the tunnel first or use PUT to rotate credentials", http.StatusConflict)
+		httperr.WriteMessage(w, req, messages.New("server.tunnel.credentials_in_use", nil))
 		return
 	}
 
@@ -292,7 +293,7 @@ func (h *tunnelCredsHandler) delete(w http.ResponseWriter, req *http.Request) {
 		existing, err := k.Typed.CoreV1().Secrets(ns).Get(req.Context(), secretRef, metav1.GetOptions{})
 		if err == nil {
 			if !isServerOwnedSecretObject(existing, name, gs.GetUID()) {
-				http.Error(w, "forbidden: cannot delete secret not owned by this server", http.StatusForbidden)
+				httperr.WriteMessage(w, req, messages.New("server.tunnel.secret_not_owned_forbidden", nil))
 				return
 			}
 			checkedSecret = existing

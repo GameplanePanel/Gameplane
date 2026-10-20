@@ -20,9 +20,9 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	clienttesting "k8s.io/client-go/testing"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // sseRecorder is a goroutine-safe http.ResponseWriter and http.Flusher, so
@@ -117,12 +117,19 @@ func TestEvents_StreamsOnlyReadableKinds(t *testing.T) {
 			want:  []string{"servers", "templates"},
 		},
 		{
-			// Namespaced kinds are gated by the target cluster; the
-			// cluster-scoped templates:read is granted by any cluster's
-			// cluster-wide binding (auth.User.Can).
+			// Templates, like namespaced workload kinds, require permission
+			// on the selected cluster.
 			name:  "bindings on another cluster only",
 			perms: permMap{"other": {"*": eventsPermSet("servers:read", "backups:read", "schedules:read", "templates:read")}},
-			want:  []string{"templates"},
+			want:  []string{},
+		},
+		{
+			name: "local server reader cannot stream another cluster's templates",
+			perms: permMap{
+				scope.DefaultCluster: {"*": eventsPermSet("servers:read")},
+				"other":              {"*": eventsPermSet("templates:read")},
+			},
+			want: []string{"servers"},
 		},
 		{
 			name:  "admin",

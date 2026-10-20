@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 // newRolesServerAs mounts the role routes behind a stub that authenticates

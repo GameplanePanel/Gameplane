@@ -22,8 +22,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 // fakeKubeClientWithClusters builds a kube.Client with custom GVR mappings

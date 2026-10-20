@@ -1,12 +1,97 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type ElementHandle, type Locator, type Page } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 import sharp from "sharp";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const SCREENSHOTS_DIR = here;
-const DESIGN_EXPORT_DIR = path.resolve(here, "../../../design-export/screenshots");
+// en-XA run (spec 019 T100, OD-018, OD-019): VITE_I18N_PSEUDO=1 selects the
+// en-XA Playwright project. The specs still drive the UI in English; each
+// capture switches the app to the pseudo-language, writes the screenshot to
+// web/test-results/en-XA, soft-fails on text that is cut off without a way to
+// read it in full (FR-010), and switches back.
+const PSEUDO = process.env.VITE_I18N_PSEUDO === "1";
+const SCREENSHOTS_DIR = PSEUDO ? path.resolve(here, "../../test-results/en-XA") : here;
+if (PSEUDO) fs.mkdirSync(path.join(SCREENSHOTS_DIR, "clipping"), { recursive: true });
+const DESIGN_EXPORT_DIR = path.resolve(here, "../../../assets/design-export/screenshots");
+
+type I18nTestHook = { gameplaneI18nTest?: { setOverride: (tag: string | null) => void } };
+
+// switchLanguage sets (tag) or clears (null) the app's test language override
+// and waits until the page shows that language with its catalog loaded.
+async function switchLanguage(page: Page, tag: string | null): Promise<void> {
+  const installed = await page.evaluate((t) => {
+    const hook = (window as unknown as I18nTestHook).gameplaneI18nTest;
+    hook?.setOverride(t);
+    return hook !== undefined;
+  }, tag);
+  expect(installed, "the en-XA run needs a dev server started with VITE_I18N_PSEUDO=1").toBe(true);
+  await page.waitForFunction((t) => {
+    const html = document.documentElement;
+    const switched = t === null ? html.lang !== "en-XA" : html.lang === t;
+    return switched && html.dataset.i18nLoaded === html.lang;
+  }, tag);
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  await page.waitForTimeout(150);
+}
+
+interface ClippedText {
+  text: string;
+  element: string;
+}
+
+// auditClipping lists elements whose own text is cut off by overflow hidden,
+// clip, an ellipsis or a line clamp, unless the element or one of its three
+// nearest ancestors has a title that shows the full text on hover. It writes
+// the list to clipping/<id>.json and soft-fails when it is not empty.
+async function auditClipping(page: Page, id: string, scope?: ElementHandle<Node>): Promise<void> {
+  const clipped = await page.evaluate((root: Node | null): ClippedText[] => {
+    const base = root instanceof Element ? root : document.body;
+    const out: ClippedText[] = [];
+    const describe = (el: Element): string => {
+      const parts: string[] = [];
+      for (let n: Element | null = el; n && n !== document.body && parts.length < 4; n = n.parentElement) {
+        let s = n.tagName.toLowerCase();
+        if (n.id) s += "#" + n.id;
+        const cls = typeof n.className === "string" ? n.className.trim().split(/\s+/).filter(Boolean).slice(0, 3).join(".") : "";
+        if (cls) s += "." + cls;
+        parts.unshift(s);
+      }
+      return parts.join(" > ");
+    };
+    const revealed = (el: Element): boolean => {
+      let n: Element | null = el;
+      for (let i = 0; n && i < 4; i += 1, n = n.parentElement) {
+        if (n.getAttribute("title")) return true;
+      }
+      return false;
+    };
+    const hides = (v: string): boolean => v === "hidden" || v === "clip";
+    for (const el of Array.from(base.querySelectorAll("*"))) {
+      if (!(el instanceof HTMLElement)) continue;
+      if (el.closest(".xterm, .monaco-editor, [aria-hidden='true']")) continue;
+      const own = Array.from(el.childNodes)
+        .filter((n) => n.nodeType === Node.TEXT_NODE)
+        .map((n) => n.textContent ?? "")
+        .join("")
+        .trim();
+      if (!own) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === "inline" || cs.display === "contents" || cs.visibility !== "visible") continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 2 || rect.height <= 2) continue; // visually hidden text
+      const clamp = cs.getPropertyValue("-webkit-line-clamp");
+      const cutX = el.scrollWidth > el.clientWidth + 1 && (hides(cs.overflowX) || cs.textOverflow === "ellipsis");
+      const cutY = el.scrollHeight > el.clientHeight + 1 && (hides(cs.overflowY) || (clamp !== "" && clamp !== "none"));
+      if ((cutX || cutY) && !revealed(el)) out.push({ text: own.slice(0, 120), element: describe(el) });
+    }
+    return out;
+  }, scope ?? null);
+  const report = path.join(SCREENSHOTS_DIR, "clipping", `${id}.json`);
+  fs.mkdirSync(path.dirname(report), { recursive: true });
+  fs.writeFileSync(report, JSON.stringify(clipped, null, 2) + "\n");
+  expect.soft(clipped, `${id}: text cut off without a hover reveal (FR-010)`).toEqual([]);
+}
 
 /**
  * Capture a screenshot matching the reference frame dimensions and save to web/e2e/screenshots/<id>.png
@@ -37,7 +122,12 @@ export async function capture(page: Page, id: string): Promise<void> {
     const el = document.activeElement as HTMLElement | null;
     if (el && !el.closest('[role="dialog"],[role="listbox"],[role="menu"],[data-open="true"]')) el.blur();
   });
+  if (PSEUDO) await switchLanguage(page, "en-XA");
   await page.screenshot({ path: screenshotPath, animations: "disabled" });
+  if (PSEUDO) {
+    await auditClipping(page, id);
+    await switchLanguage(page, null);
+  }
 }
 
 /**
@@ -71,7 +161,14 @@ export async function captureLocator(page: Page, id: string, locator: Locator): 
   // columns — a row holding any border, fill or glyph pixel stops the trim, so
   // this can never eat real content — and never by more than 2 device px, so a
   // genuine size regression still reaches the scale gate.
-  const buf = await locator.screenshot({ animations: "disabled", caret: "hide" });
+  // Resolve the element before switching: its English accessible name stops
+  // matching in en-XA.
+  const handle = PSEUDO ? await locator.elementHandle() : null;
+  if (PSEUDO && !handle) throw new Error(`${id}: element not found`);
+  if (handle) await switchLanguage(page, "en-XA");
+  const buf = handle
+    ? await handle.screenshot({ animations: "disabled", caret: "hide" })
+    : await locator.screenshot({ animations: "disabled", caret: "hide" });
   const before = await sharp(buf).metadata();
   const trimmed = await sharp(buf).trim({ threshold: 0 }).toBuffer({ resolveWithObject: true });
   const overTrimmed =
@@ -99,9 +196,9 @@ export async function captureLocator(page: Page, id: string, locator: Locator): 
   // edge was mistaken for backdrop and trimmed, moving the crop out of
   // alignment with the design reference). Gate the strip on the capture
   // actually being a dialog.
-  const isDialogCapture = await locator.evaluate(
-    (el) => el.closest('[role="dialog"],[role="alertdialog"]') !== null,
-  );
+  const isDialogCapture = handle
+    ? await handle.evaluate((el) => el.closest('[role="dialog"],[role="alertdialog"]') !== null)
+    : await locator.evaluate((el) => el.closest('[role="dialog"],[role="alertdialog"]') !== null);
   if (isDialogCapture) {
     const NEAR_UNIFORM_TOLERANCE = 6; // per RGB channel, 0-255
     const stripBudget = Math.max(0, 4 - heightAlreadyRemoved); // device px per edge
@@ -133,5 +230,11 @@ export async function captureLocator(page: Page, id: string, locator: Locator): 
     }
   }
 
+  await fs.promises.mkdir(path.dirname(screenshotPath), { recursive: true });
   await fs.promises.writeFile(screenshotPath, out);
+  if (handle) {
+    await auditClipping(page, id, handle);
+    await switchLanguage(page, null);
+    await handle.dispose();
+  }
 }

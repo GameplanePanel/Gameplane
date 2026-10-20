@@ -1,6 +1,9 @@
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 WORKDIR /src
 
+# telemetryschema is an in-repo module the receiver depends on via a local replace
+# (../telemetryschema); copy it first so `go mod download` and the build resolve it.
+COPY telemetryschema/ ./telemetryschema/
 COPY telemetry-receiver/go.mod telemetry-receiver/go.sum* ./telemetry-receiver/
 WORKDIR /src/telemetry-receiver
 RUN go mod download

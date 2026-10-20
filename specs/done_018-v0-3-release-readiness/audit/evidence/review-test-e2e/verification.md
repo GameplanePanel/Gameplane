@@ -3,7 +3,7 @@
 Verifier input: `notes.md` in this directory (sonnet reviewer, candidates C-e2e-01..03).
 Method: read every cited location plus its callers and history (`git log -S`), the CI wiring
 (`.github/workflows/ci.yaml:1104-1117`, `Makefile:185-205`), the per-test doc comments, and the
-specs that set the classification (`specs/015-top-steam-game-modules/engine-matrix-resolved.md`,
+specs that set the classification (`specs/done_015-top-steam-game-modules/engine-matrix-resolved.md`,
 `docs/game-coverage.md`). Nothing was executed; no test or lint suite was run (CLAUDE.md rule 8).
 None of the three duplicates an already-tracked item or an entry in `audit/findings.md`, `audit/rounds.md` or `OPEN-DECISIONS.md`.
 
@@ -15,7 +15,7 @@ None of the three duplicates an already-tracked item or an entry in `audit/findi
 
 ### C-e2e-01
 
-**Location (corrected):** `test/e2e/gamebot_helpers_e2e_test.go:24-32`; `test/e2e/buckets.sh:187-195` (bot-fast), `:214`, `:226`, `:230`, `:240` (heavy reasons for factorio, tmodloader and beammp); `test/e2e/internal/specs.md:293-298` compared with `:345-354`; `test/e2e/factorio_bot_e2e_test.go:26-29`; `specs/015-top-steam-game-modules/engine-matrix-resolved.md:30-31,34,48-50,60`.
+**Location (corrected):** `test/e2e/gamebot_helpers_e2e_test.go:24-32`; `test/e2e/buckets.sh:187-195` (bot-fast), `:214`, `:226`, `:230`, `:240` (heavy reasons for factorio, tmodloader and beammp); `test/e2e/internal/specs.md:293-298` compared with `:345-354`; `test/e2e/factorio_bot_e2e_test.go:26-29`; `specs/done_015-top-steam-game-modules/engine-matrix-resolved.md:30-31,34,48-50,60`.
 
 Repro (by reading the files):
 1. `test/e2e/gamebot_helpers_e2e_test.go:24-32`: the comment says "These four ... boot quickly (minutes at most) and fit within a single kind node". The slice lists 6 games: minecraft-java, terraria, factorio, garrys-mod, tmodloader and beammp.
@@ -23,7 +23,7 @@ Repro (by reading the files):
 3. `test/e2e/buckets.sh:187-195`: `bot-fast`, which is the set CI runs at `ci.yaml:1112-1117`, has only the Minecraft, Terraria and Garry's Mod bot tests. `:214`, `:226`, `:230` and `:240` put the factorio, tmodloader and beammp tests in `bot_heavy`, and three of those four reasons say "exceeds runner disk" or "Multi-GB ... download". `docs/game-coverage.md:12,29,30` says `bot-heavy` for the same three.
 4. `test/e2e/factorio_bot_e2e_test.go:28-29`: "This is a heavy-set test (opt-in via GAMEPLANE_E2E_GAME_BOT=1 and GAMEPLANE_E2E_GAMES=all)". That is false, because factorio is in `fastGameSet`.
 5. `test/e2e/internal/specs.md:293-298` lists a 3-game fast set. `:345-354` ("Why the fast set is small") lists 4 games including factorio.
-6. `specs/015-top-steam-game-modules/engine-matrix-resolved.md:30-31,34,60` classifies tmodloader, beammp and factorio as `bot-fast` and says they are "bucketed in `bucket_bot_fast`". `buckets.sh` does the opposite.
+6. `specs/done_015-top-steam-game-modules/engine-matrix-resolved.md:30-31,34,60` classifies tmodloader, beammp and factorio as `bot-fast` and says they are "bucketed in `bucket_bot_fast`". `buckets.sh` does the opposite.
 7. Behavioural consequence: `GAMEPLANE_E2E_GAME_BOT=1 make test-e2e-keep` (`Makefile:197-199` has no `-run`) with `GAMEPLANE_E2E_GAMES` unset boots all 6 games one after another (none use `t.Parallel()`). Three of them are games the repo says exceed a CI runner's disk.
 
 **Expected:** there is one "fast set" definition, or `fastGameSet` is explicitly documented as a different axis from `bot-fast`. The code comment, `internal/specs.md`, `factorio_bot_e2e_test.go`, `buckets.sh`, `docs/game-coverage.md` and spec 015 agree on which games are fast.

@@ -14,8 +14,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/audit"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 )
 
 // MountAudit registers the audit log API handlers.

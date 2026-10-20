@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 func newRolesServer(t *testing.T) (*httptest.Server, *db.Store) {

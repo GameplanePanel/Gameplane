@@ -35,6 +35,8 @@ Run every session.
 netguard/            SSRF dial-guard: IsAllowed (operator module sources, API sinks, agent loopback RCON); IsPublic (agent mod downloads, API Steam resolver)
 gameaction/          console-injection guard + command renderer (api, agent)
 gameproto/           Minecraft/Terraria handshake parser (sentinel)
+telemetryschema/     shared telemetry report contract (api, telemetry-receiver)
+i18n/                shared language packs, ICU formatter, pack validator, i18n-check (api, web, operator, gp-module)
 gp-module/           module authoring CLI: init/validate/preview/package
 operator/            controller-runtime operator
   api/v1alpha1/      CRD types (edit here, then `make generate manifests`); zz_generated.deepcopy.go GENERATED
@@ -51,15 +53,15 @@ mcp-server/          read-only MCP server
 svcutil/             env parsing + graceful shutdown helpers
 tunnel/              relay client supervisor (frp, Tailscale, playit)
 web/                 React 19 + strict TS + Vite dashboard; src/{routes,components,lib,router,styles,test}/
-modules/             SUBMODULE gameplane-module (OCI game templates)
-website/             SUBMODULE gameplane-website (Astro docs/marketing; has its own CLAUDE.md and AGENTS.md)
+modules/             SUBMODULE GameplanePanel/module (OCI game templates)
+website/             SUBMODULE GameplanePanel/website (Astro docs/marketing; has its own CLAUDE.md and AGENTS.md)
 charts/gameplane/    Helm chart (crd-manifests/, hooks)
 deploy/kind/         local Kind scripts
 test/e2e/            Kind E2E suite (//go:build e2e)
 docs/                architecture, security, modules
 design.pen           canonical Pencil dashboard design
-cosign.pub           image + module signature key
-go.work              links all 15 Go modules (incl. test/e2e)
+signing/             cosign public keys, dated legacy key + cross-signature (image + module)
+go.work              links all 17 Go modules (incl. test/e2e)
 Makefile             canonical task runner
 ```
 
@@ -68,28 +70,28 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
 ## Commands (always via Makefile)
 
 - **Dev:** `make dev-up` (Kind + OCI registry :5001 + Helm), `make web-dev` (Vite, proxies in-cluster API), `make dev-load` (load built images; run `make images` first), `make dev-install` (Helm upgrade), `make dev-down`.
-- **Build:** `make build` (all Go + web), `make build-go` (14 modules in GO_MODULES, all but test/e2e), `make build-web` (`npm ci && npm run build`), `make images`.
-- **Codegen:** `make generate` (deepcopy), `make manifests` (CRD/RBAC YAML, synced to `charts/gameplane/crds/`), `make modules-push`, `make tidy`.
+- **Build:** `make build` (all Go + web), `make build-go` (15 modules in GO_MODULES, all but test/e2e), `make build-web` (`npm ci && npm run build`), `make images`.
+- **Codegen:** `make generate` (deepcopy), `make manifests` (CRD/RBAC YAML, synced to `charts/gameplane/charts/gameplane-crds/crds/` and `charts/gameplane/crd-manifests/`), `make modules-push`, `make tidy`.
 - **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade)`.
 - **E2E conventions:** register new tests in `test/e2e/buckets.sh`; `t.Parallel()` + unique names; guard shared resources (`ociPushMu` for module pushes, `ensureResticRepo(t)` for shared backup repos). Rate limits per cluster: IP burst 10 (5/min), user burst 6 (3/min) — cap an API bucket at ~7 admin logins.
 - **Lint:** `make lint` = gofmt, go vet, golangci-lint, ESLint, `check-specs`, `check-doc-versions`, `check-links`.
 
-**Coverage minimums:** netguard 91, gameaction 91, gameproto 90, gp-module 80, operator 72, api 80, agent 90, svcutil 90; audit-syslog-bridge, telemetry-receiver, sentinel, capture-sidecar, mcp-server, tunnel 70; web 92 lines / 76 functions / 82 branches / 92 statements.
+**Coverage minimums:** netguard 91, gameaction 91, gameproto 90, telemetryschema 90, i18n 90, gp-module 80, operator 72, api 80, agent 90, svcutil 90; audit-syslog-bridge, telemetry-receiver, sentinel, capture-sidecar, mcp-server, tunnel 70; web 92 lines / 76 functions / 82 branches / 92 statements.
 
 ## Core rules
 
-1. **Design-first UI:** dashboard changes are designed in `design.pen` via Pencil MCP before React code; website changes start in `website/website.pen`. After every Pencil update export touched nodes to `design-export/json/<id>.json` (`mcp__pencil__execute` `Get`) and `design-export/screenshots/<id>.png` (`mcp__pencil__export_nodes`); website → `website/website-export/`.
+1. **Design-first UI:** dashboard changes are designed in `design.pen` via Pencil MCP before React code; website changes start in `website/website.pen`. After every Pencil update export touched nodes to `assets/design-export/json/<id>.json` (`mcp__pencil__execute` `Get`) and `assets/design-export/screenshots/<id>.png` (`mcp__pencil__export_nodes`); website → `website/website-export/`.
 2. **Never hand-edit `.pen` files:** no edit/delete/`Read`/`Grep`/`cat`/`sed` (multi-MB JSON, easily corrupted). Use Pencil MCP; ask the user to save in the UI after changes; inspect diffs only via `git diff --stat`.
 3. **Login privacy:** `/login` and unauthenticated views never expose cluster names, versions, server counts, or account-existence errors — generic messages ("invalid credentials").
 4. **Fix, don't silence:** no `//nolint`, `eslint-disable`, or loosened configs. Allowed: `_test.go` exempt from `errcheck`/`gosec`/`unparam`; `operator/internal/controller/` exempt from revive `exported:`.
 5. **TypeScript:** strict; no unjustified `any` (explain in a comment if unavoidable); every promise `await`ed or `void`-prefixed.
 6. **Go errors:** wrap with `%w`.
-7. **CRD sync:** after editing `operator/api/v1alpha1/*_types.go` run `make generate && make manifests`; commit deepcopy, `operator/config/{crd,rbac}/*.yaml`, `charts/gameplane/crds/*.yaml`/`crd-manifests/` in the same changeset.
+7. **CRD sync:** after editing `operator/api/v1alpha1/*_types.go` run `make generate && make manifests`; commit deepcopy, `operator/config/{crd,rbac}/*.yaml`, `charts/gameplane/charts/gameplane-crds/crds/*.yaml`, and `charts/gameplane/crd-manifests/*.yaml` in the same changeset.
 8. **Verification:** locally only compile checks (`go build ./...`, `npx tsc --noEmit`); never test/lint suites (`make test|lint|cover`, `go test`, `npm test`, envtest, E2E). Push a feature branch; CI is the sole verification authority.
 9. **Kubernetes primitives first** (StatefulSet, Service, PVC, Job, ConfigMap, Secret, CRDs) before custom abstractions.
 10. **Operator authority:** business logic lives in reconcilers (`operator/internal/controller/`); the API is a UX gateway and never bypasses reconciliation.
 11. **Commits:** commit each completed logical unit (`feat:`/`fix:`/`chore:`…), signed (`git commit -s`); never amend pushed commits or use `--no-verify`; keep trailers `Co-Authored-By: <current model>`.
-12. **Branches:** one per unit of work; delete remote + local branch right after merge. `master` is protected by ruleset `18692396` ("protect main"): 1 human approval, no self-approval, no direct pushes, approvals dismissed on push — agents cannot merge PRs. Check: `gh api repos/ValgulNecron/Gameplane/rules/branches/master`.
+12. **Branches:** one per unit of work; delete remote + local branch right after merge. `master` is protected by ruleset `18692396` ("protect main"): 1 human approval, no self-approval, no direct pushes, approvals dismissed on push — agents cannot merge PRs. Check: `gh api repos/GameplanePanel/Gameplane/rules/branches/master`.
 13. **Multi-agent delegation:** main loop orchestrates/reviews; implementation goes through `Workflow` scripts (`parallel()`/`pipeline()`).
     - Start at `haiku`; escalate only on functional failure `haiku` → `sonnet` → `opus` → `fable`. `fable` needs explicit human permission.
     - Set `model:` on every `agent()` call (default is session Opus); check with `grep -c "model:"`.
@@ -99,12 +101,12 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
     - UI changes: browser smoke test via Chrome MCP at `sonnet`, parallel with reviews.
 14. **PR labels (REST only — `gh pr edit` is broken by the Projects-classic deprecation):** ≥1 `type:` (`feature|fix|refactor|test|ci|chore|docs|security`) and ≥1 `area:` (`operator|api|agent|web|modules|chart|e2e|specs|shared|optional-components`); `breaking` when applicable.
     ```sh
-    gh api -X POST repos/ValgulNecron/Gameplane/issues/<pr>/labels -f "labels[]=type: fix" -f "labels[]=area: api"
-    gh api -X PATCH repos/ValgulNecron/Gameplane/pulls/<pr> --input <payload_with_body.json>
+    gh api -X POST repos/GameplanePanel/Gameplane/issues/<pr>/labels -f "labels[]=type: fix" -f "labels[]=area: api"
+    gh api -X PATCH repos/GameplanePanel/Gameplane/pulls/<pr> --input <payload_with_body.json>
     ```
 15. **Specs:** a feature's spec is its whole `specs/<feature>/` folder (`data-model.md`, `contracts/`, `OPEN-DECISIONS.md`, …) — check it for explicit exemptions before flagging violations. Mark obsolete tasks withdrawn in `tasks.md` with citations; never delete them.
 16. **Archival:** once every task is complete/withdrawn and the PR is merged into `master`, `git mv specs/<NNN>-<slug> specs/done_<NNN>-<slug>` and update in-repo references in the same commit.
-17. **Mechanical design waves** (token re-skins): scripted, blind updates at `haiku`. Precompute change lists with `grep`/`jq` on `design-export/json/<id>.json`; `haiku` applies `Update(id, {prop: value})`. Verify by screenshot comparison (`export_nodes` vs snapshot PNG), not JSON dumps; avoid `Get(id, {depth: 10+})`.
+17. **Mechanical design waves** (token re-skins): scripted, blind updates at `haiku`. Precompute change lists with `grep`/`jq` on `assets/design-export/json/<id>.json`; `haiku` applies `Update(id, {prop: value})`. Verify by screenshot comparison (`export_nodes` vs snapshot PNG), not JSON dumps; avoid `Get(id, {depth: 10+})`.
 18. **Scout once, brief many:** one scout reads code/docs/failures and writes a factual brief (exact `file:line`, before/after code, justification). Fix agents get only the brief and edit blind at `haiku` — never tell them to re-read files, test suites, or `CLAUDE.md` and `AGENTS.md`. Reviewers check git diffs against the brief.
 
 ## Architecture
@@ -114,6 +116,8 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
 | netguard | Go | dial-time SSRF prevention: `IsAllowed` (operator/API module sources and sinks, agent loopback RCON), `IsPublic` (agent mod downloads, API Steam resolver) |
 | gameaction | Go | validates console input against schemas; escapes injection |
 | gameproto | Go | Minecraft/Terraria wire parser for connection filtering |
+| telemetryschema | Go | stdlib-only shared telemetry report contract: types, strict decode, official module catalog, report signing (api, telemetry-receiver) |
+| i18n | Go | shared language packs (`go:embed`), ICU MessageFormat subset, pack validator, `i18n-check` CI tool (api, web, operator, gp-module) |
 | gp-module | Go | module CLI: scaffold, offline validate, dry-run preview, OCI package |
 | svcutil | Go | stdlib-only env + graceful shutdown (`RunHTTP`) |
 | operator | Go, controller-runtime | authoritative reconciler for 9 CRDs (`GameServer`, `GameTemplate`, …) |
@@ -131,9 +135,9 @@ After cloning: `git submodule update --init` (`modules/` required for `make dev-
 
 - **CRD field:** edit `operator/api/v1alpha1/<kind>_types.go` → `make generate && make manifests` → reconciler `operator/internal/controller/<kind>_controller.go` → mirror in `web/src/types.ts` + affected `web/src/routes/` → envtest `<kind>_envtest_test.go`.
 - **API route:** handler in `api/internal/handlers/` → mount in `api/cmd/main.go` with RBAC middleware (`api/internal/rbac/`) → `api/internal/handlers/<name>_envtest_test.go` → client method in `web/src/lib/api.ts`.
-- **Dashboard screen:** design in `design.pen` + export to `design-export/` → `web/src/routes/<name>.tsx`, register in `web/src/router/tree.tsx` → data via `web/src/lib/api.ts` + TanStack Query → `web/src/routes/<name>.test.tsx`.
-- **Game module:** edit `modules/<name>/` (`module.yaml`, `template.yaml`, `README.md`) → `make modules-push` → commit in `gameplane-module` → `git add modules` + commit pointer bump in root.
-- **Website:** design in `website/website.pen` + export to `website/website-export/` → change `website/` per its own CLAUDE.md and AGENTS.md → commit/push/PR in `gameplane-website` (default branch `main`) → `git add website` + commit pointer bump in root.
+- **Dashboard screen:** design in `design.pen` + export to `assets/design-export/` → `web/src/routes/<name>.tsx`, register in `web/src/router/tree.tsx` → data via `web/src/lib/api.ts` + TanStack Query → `web/src/routes/<name>.test.tsx`.
+- **Game module:** edit `modules/<name>/` (`module.yaml`, `template.yaml`, `README.md`) → `make modules-push` → commit in `GameplanePanel/module` → `git add modules` + commit pointer bump in root.
+- **Website:** design in `website/website.pen` + export to `website/website-export/` → change `website/` per its own CLAUDE.md and AGENTS.md → commit/push/PR in `GameplanePanel/website` (default branch `main`) → `git add website` + commit pointer bump in root.
 - **DB migration:** new sequential `api/internal/db/migrations/common/<NNN>_<name>.sql` (013 onward) — portable SQL both SQLite and PostgreSQL run unchanged (no `datetime('now')`/`strftime`, `AUTOINCREMENT`, `INSERT OR …`, `COLLATE NOCASE`; bind timestamps from Go). `migrations/sqlite/` and `migrations/postgres/` hold the frozen per-dialect 001–012 sets; see `api/internal/db/migrations/README.md`. Append-only, applied on API startup.
 
 ## Reference docs

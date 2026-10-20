@@ -1,21 +1,65 @@
 # Roadmap to v1
 
-Gameplane is currently **`v0.3.0`**. The CRDs, operator, API, agent, and
-dashboard are feature-complete for the v1 scope and stabilized for external
-testing, but the project is not yet recommended for unattended production. This
-page tracks what stands between v0.3 and a v1 GA release.
+## Current release
+
+- **Version:** `v0.3.0` (pre-v1), released 2026-10-05. See the [changelog](../CHANGELOG.md).
+- **Status as of 2026-10-14:** The CRDs, operator, API, agent, and dashboard are
+  feature-complete for the v1 scope and stabilized for external testing, but the
+  project is not yet recommended for unattended production. This page tracks what
+  stands between v0.3 and a v1 GA release.
+- **What works today:** see [`README.md`](../README.md) and [`architecture.md`](architecture.md).
 
 It is a living document: items move out of it as they ship, and anything
-discovered along the way gets added. For what already works today, see
-[`README.md`](../README.md) and [`architecture.md`](architecture.md).
+discovered along the way gets added.
 
 ---
 
-## Shipped toward v1
+## Shipped in v0.3.0 and since
 
-These items have shipped and are reflected in current `main`.
+### Since v0.3.0 (Unreleased)
 
-### Multi-cluster: dashboard cluster selector (PR #107) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
+- Independent central panel: Docker Compose runs the API and dashboard without a host Kubernetes cluster; a standalone Helm profile runs without the central operator or workloads ([changelog](../CHANGELOG.md)).
+- Credential maintenance: standalone key custody, offline `rotate-panel-key`, `PUT /clusters/{name}/kubeconfig`, and `PUT`/`DELETE /clusters/{name}/gateway` ([changelog](../CHANGELOG.md)).
+- Extended telemetry tier: a second, separately consented tier with a random install ID and fixed-set categories; signed reports ([changelog](../CHANGELOG.md)).
+- Telemetry receiver dashboard and an optional public `GET /v1/summary` ([changelog](../CHANGELOG.md)).
+- Proof-of-work on telemetry ingestion, off by default ([changelog](../CHANGELOG.md)).
+- Telemetry provider runbook at `docs/telemetry-provider.md` ([changelog](../CHANGELOG.md)).
+- Optional Steam display names on player lists, via a Steam Web API key ([changelog](../CHANGELOG.md)).
+- Nuclear Option player lists are structured (`steamId`, `faction`) ([changelog](../CHANGELOG.md)).
+- New optional `GameTemplate` field `spec.rcon.authentication` (default `true`) allows consoles with no RCON Secret ([changelog](../CHANGELOG.md)).
+- Standalone credential protection: keys kept outside database volumes, transactional rotation ([changelog](../CHANGELOG.md)).
+- Remote workload boundaries: verified TLS, dial-time unsafe-destination rejection, bounded responses; `GAMEPLANE_REMOTE_ALLOWED_CIDRS` / `api.remoteAllowedCIDRs` ([changelog](../CHANGELOG.md)).
+- Removed: the Hell Let Loose module is withdrawn from the official catalog ([changelog](../CHANGELOG.md)).
+- Upgrade-note behaviour changes: telemetry is on by default for new installs after a first-login notice; installs with a saved basic toggle start sending to the default receiver after upgrade; an empty `api.telemetry.endpoint` means the project default receiver; the receiver `/metrics` moved to `:8081` and needs the dashboard token; the bundled receiver stores data on a PVC by default; receiver `DASHBOARD_TOKEN` must be at least 32 characters ([changelog](../CHANGELOG.md)).
+- Breaking: selected-cluster module and template grants need a cluster-wide grant for remote catalogs ([changelog](../CHANGELOG.md)).
+- Feature catalog: [FEATURES.md](../FEATURES.md) lists every capability with its maturity and default, mirrored on the website and kept in step by `make check-features-sync` (spec 024, PR #703).
+
+### Shipped in v0.3.0
+
+- Configurable backup/restore Job retry limit and deadline Helm values ([changelog](../CHANGELOG.md)).
+- Multicluster gateways and unified server management across clusters ([changelog](../CHANGELOG.md)).
+- User theme customization: presets, custom colors with a WCAG AA check, custom CSS overlay, safe mode ([changelog](../CHANGELOG.md)).
+- Network capture sidecar: admin-only, on-demand PCAPNG capture from running game pods ([changelog](../CHANGELOG.md)).
+- Module authoring toolkit `gp-module` (scaffold, validate, preview, package) and the dashboard Modules builder ([changelog](../CHANGELOG.md)).
+- 13 new top Steam game modules ([changelog](../CHANGELOG.md)).
+- Nuclear Option dedicated server support ([changelog](../CHANGELOG.md)).
+- Install-time config: Helm-seeded OIDC role mappings and a default StorageClass for game-data PVCs ([changelog](../CHANGELOG.md)).
+- Share link expiry options (presets, custom date, no expiry) replacing the 90-day cap ([changelog](../CHANGELOG.md)).
+- Console WebSocket robustness on non-default ports, and input queueing ([changelog](../CHANGELOG.md)).
+- Existing PVC for SQLite via `api.storage.existingClaim` ([changelog](../CHANGELOG.md)).
+- REST and CLI console protocols for games with HTTP admin APIs or PTY-only consoles ([changelog](../CHANGELOG.md)).
+- Mod archive path confinement (zip-slip and symlink guards) ([changelog](../CHANGELOG.md)).
+- Design and visual polish: HeroUI foundation and brand re-theme ([changelog](../CHANGELOG.md)).
+- Experimental PostgreSQL backend works end to end ([changelog](../CHANGELOG.md)).
+- Owner-only server operations (transfer, collaborators, wipe, delete) need the owner or an admin ([changelog](../CHANGELOG.md)).
+- Data wipe failures fail the Job and set `DataWipe=False`; backup/restore quiesce lifecycle fixed, and restore removes files created after the snapshot ([changelog](../CHANGELOG.md)).
+- SQLite DSN gets `busy_timeout(5000)` by default; agent metrics on a separate unauthenticated `:9090` listener that the PodMonitor scrapes ([changelog](../CHANGELOG.md)).
+- Multi-cluster request scoping, OIDC role re-evaluation, bootstrap-admin reset, cluster registration removal, mod bundle integrity, and tunnel credential handling hardened ([changelog](../CHANGELOG.md)).
+- Upgrade note: every game pod gains an empty capture `emptyDir`, so existing GameServers roll once on upgrade ([changelog](../CHANGELOG.md)).
+
+### Earlier releases (before v0.3.0)
+
+#### Multi-cluster: dashboard cluster selector (PR #107) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
 
 The initial dashboard selector routed requests to one cluster at a time. The
 [unified dashboard](unified-dashboard.md) now combines authorized resources with
@@ -33,12 +77,12 @@ sidecars together; direct Kubernetes connectivity remains required.
 Dedicated gateway health in the dashboard remains follow-up work. The existing
 cluster-health indicator reports Kubernetes connectivity only.
 
-### Multi-cluster: dual-cluster e2e coverage (PR #104) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
+#### Multi-cluster: dual-cluster e2e coverage (PR #104) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
 
 A real `kind ×2` e2e test (multicluster bucket) asserting `?cluster=` dispatch
 lands a GameServer on cluster B and that a viewer scoped to cluster A cannot see it.
 
-### Audit log integrity (tamper evidence) (PR #103, dashboard banner PR #108) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
+#### Audit log integrity (tamper evidence) (PR #103, dashboard banner PR #108) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
 
 Complete end-to-end. Backend: migration `005_audit_chain.sql`,
 `Auditor.insertChained`/`Auditor.Verify`, and `GET /admin/audit/verify`. The
@@ -73,7 +117,7 @@ remaining gap and is a candidate future hardening, not yet implemented.
 
 Threat-model context lives in [`security.md`](security.md#audit-log-integrity).
 
-### Upgrade testing (`e2e upgrade` bucket) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
+#### Upgrade testing (`e2e upgrade` bucket) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
 `helm upgrade` was the most dangerous operation a user performs and the only
 one CI never exercised. It now runs on every PR, on both amd64 and arm64:
@@ -97,7 +141,7 @@ while, but [`install.md`](install.md#helm-crd-caveat) still told users to run
 
 Not yet covered: upgrades skipping several releases at once, and Postgres [experimental].
 
-### Idle auto-sleep (backend PR #180, dashboard PR #182) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
+#### Idle auto-sleep (backend PR #180, dashboard PR #182) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
 Opt-in per server (`spec.idle`): the operator scales a GameServer to zero once
 it has reported no online players for `afterMinutes`, and brings it back on a
@@ -140,7 +184,7 @@ browser would duplicate scheduling semantics the operator owns (rule 10).
 Persisting it on status is the right fix, and is a CRD change rather than a
 dashboard one.
 
-### Wake-on-connect for idle auto-sleep (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
+#### Wake-on-connect for idle auto-sleep (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
 A sentinel [optional] component holds advertised ports while a server is asleep and wakes
 it on a genuine connection attempt. Opt-in per server via `spec.idle.wakeOnConnect`
@@ -172,11 +216,11 @@ it on a genuine connection attempt. Opt-in per server via `spec.idle.wakeOnConne
   Service-backed modes (ClusterIP/NodePort/LoadBalancer) proxy through until Ready.
 - Costs one small pod per sleeping server, which is why it is opt-in.
 
-**Honest limitations:** Only Minecraft and Terraria get real parsing; the other
-14 shipped modules use generic (they are UDP-only and have no connection to
-hold). Hostport is asymmetric as described.
+**Honest limitations:** Only Minecraft and Terraria get real parsing; tModLoader
+also declares the Terraria parser. The other 26 of the 29 catalog modules use the
+`generic` default (they hold no connection to parse), and hostport is asymmetric as described.
 
-### Read-only MCP server (PR #105) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
+#### Read-only MCP server (PR #105) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
 
 An [MCP](https://modelcontextprotocol.io) server letting an AI assistant read
 current cluster state and *propose* fixes — strictly read-only, no writes.
@@ -186,12 +230,12 @@ A new optional component [optional] (distroless Docker image, Helm toggle) expos
 "Propose a fix" returns suggested YAML or `kubectl` invocations as text — no
 create/update/delete/patch tool exists. See [`mcp-server/README.md`](../mcp-server/README.md).
 
-### Module signing: active for official bundles (ECDSA P-256, Rekor-logged) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
+#### Module signing: active for official bundles (ECDSA P-256, Rekor-logged) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
 The keyed-cosign signing mechanism is implemented and e2e-proven, and
 `ModuleSource.spec.verify` can require a valid signature. It is now **active**
 for official bundles with Sigstore Rekor transparency logging: `cosign.pub`
-(ECDSA P-256) is committed at the repo root (and baked into the chart for
+(ECDSA P-256) is committed under `signing/` (and baked into the chart for
 module verification), and the Helm chart is signed for the first time.
 `publish-edge` signs the rolling images, `release` signs the tagged images,
 the chart, and the official bundles, and `republish-modules` re-signs bundles
@@ -201,7 +245,7 @@ fail-closed when the key is absent. The operator's verify path remains
 offline/keyed, preserving air-gapped functionality. See
 [Signing official bundles](module-authoring.md#signing-official-bundles).
 
-### Hermetic module images (gameplane-module#35, docs in #178) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
+#### Hermetic module images (gameplane-module#35, docs in #178) (shipped v0.2.0-beta.8) <!-- doc-versions: historical -->
 
 Every shipped module's default image is now pinned by digest, so a server
 binary can no longer change underneath a user on pod restart with no version
@@ -215,6 +259,21 @@ module repo's `validate.py` enforces the rule (`spec.image` and any
 `default: true` entry are an error if unpinned, with a `# gameplane:floating`
 opt-out), and a monthly workflow refreshes the pins. Authoring rules live in
 [Pinning images by digest](module-authoring.md#pinning-images-by-digest).
+
+---
+
+## In progress
+
+Status as of 2026-10-14. Task counts come from each spec's `tasks.md`.
+
+- **Spec 002, Nuclear Option module and load-balancer IP pool override** (`specs/002-nuclear-option-ip-pool/`): 136 of 143 tasks done. Blocked: the server does not bind UDP 7777, so no join client can be built until a real-client packet capture documents the handshake (maintainer decision, 2026-10-11). Unblocked by: that packet capture. The join test, its bucket and the coverage row wait on it.
+- **Spec 009, code scanning remediation and Dependabot** (`specs/009-remediate-security-dependabot/`): 80 of 82 tasks done. Blocked: TypeScript 7 is blocked because the `@typescript-eslint` peer range stops before TypeScript 7, and ESLint 10 is blocked because `eslint-plugin-react` does not accept `^10`. Unblocked by: a `@typescript-eslint` release that accepts TypeScript 7 (then T055/T056 and PR #272), and an `eslint-plugin-react` release that accepts `^10` (then PR #386, and #387 if open).
+- **Spec 013, expand test coverage** (`specs/done_013-expand-test-coverage/`): 39 of 62 tasks done. No external blocker is named. Open work is the live web e2e specs, the optional-components e2e, the Postgres e2e, docs and checks, and the archive step. Some tasks wait for the first green CI run of their job, and the archive waits until every PR is merged. Open PRs for this spec are in progress.
+- **Spec 019, app localization and community language packs** (`specs/019-localization-language-packs/`): 0 of 105 tasks checked; the four design decisions are settled. The implementation is on open PR #668 and is not yet on `master`. Unblocked by: merging PR #668, which needs human approval. The first step is the `i18n/` module and checker.
+- **Spec 021, edit game configuration from server Settings** (`specs/done_021-settings-game-config/`): done. All 24 tasks complete; merged in PR #568 and PR #652, then archived.
+- **Spec 022, default telemetry destination, extended telemetry and telemetry dashboard** (`specs/done_022-default-telemetry-dashboard/`): 109 of 119 tasks done. The shipped feature is unchanged until the version-trend amendment (2026-10-14, T101 to T110) lands. Blocked: T104 needs Pencil design work on the machine where Pencil runs; T109 needs the user's sign-off before editing existing tests `lifecycle_test.go:11` and `charts_test.go:83`; T110 waits for the PR to merge. Unblocked by: the design work, that sign-off, and the merge.
+- **Spec 023, change-based test selection** (`specs/023-change-based-test-selection/`): 0 of 52 tasks done; no open decisions remain. No blocker is named. T001 creates the `ci: full-run` label. T052 needs 30 merged PRs to measure runner minutes.
+- **Spec 025, standalone panel and API** (`specs/025-standalone-panel/`, see [standalone panel](standalone-panel.md)): implemented and merged in PR #630; all 51 tasks done, with known gaps listed in the spec. The folder was renumbered from `023-standalone-panel` and written after the fact. Next step: archive to `done_025`.
 
 ---
 
@@ -254,13 +313,6 @@ process).
 
 ---
 
-## Explicitly out of scope for v1
-
-- **A hosted/managed Gameplane (not planned).** The project targets self-hosted clusters, from
-  a single-node k3s homelab to multi-node production.
-
----
-
 ## Known gaps tracked for completion
 
 ### Users page: service accounts and identity-provider tabs (planned, v1.1)
@@ -279,8 +331,16 @@ template's authoring and configuration — the game module itself, not its
 join-protocol wire format. Those specification files belong in the
 `gameplane-module` submodule repo (e.g., `modules/minecraft-java/specs.md`),
 are tracked there in the module repository rather than in this main repo, and
-are a known incomplete item for v1. See the module submodule's project board
-for status.
+are a known incomplete item for v1. As of 2026-10-14, 26 of the 29 modules have
+a `specs.md`; `enshrouded`, `minecraft-java` and `v-rising` do not yet. See the
+module submodule's project board for status.
+
+---
+
+## Out of scope for v1
+
+- **A hosted/managed Gameplane (not planned).** The project targets self-hosted clusters, from
+  a single-node k3s homelab to multi-node production.
 
 ---
 
@@ -291,10 +351,12 @@ status for its join-protocol E2E testing. See [`docs/game-coverage.md`](game-cov
 canonical per-module status:
 
 - **2 modules** have real join coverage in CI (`minecraft-java`, `terraria`).
-- **26 modules** are blocked on undocumented or partially-documented
+- **25 modules** are blocked on undocumented or partially-documented
   wire-protocol formats, each with a named unblocking artifact (packet capture,
   reverse-engineering session, or anti-cheat analysis). They are candidates for
   future protocol work once documentation becomes available.
 - **2 modules** are permanently out-of-scope-by-design due to architectural
   constraints (`valheim` routes through Steam Datagram Relay;
   `dayz` requires BattlEye anti-cheat validation before join completion).
+
+Total: 29 modules.

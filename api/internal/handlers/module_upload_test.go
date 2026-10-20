@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 const uploadModuleYAML = `apiVersion: gameplane.local/module/v1

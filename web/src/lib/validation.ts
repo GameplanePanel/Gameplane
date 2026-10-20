@@ -1,4 +1,22 @@
+import { defineMessages, type IntlShape } from "react-intl";
+
+import { englishIntl } from "@/lib/i18n/format";
 import type { GameTemplate } from "@/types";
+
+// Descriptors with placeholders are passed inline to formatMessage (typed values);
+// descriptors without placeholders live in defineMessages.
+const MESSAGES = defineMessages({
+  whole_number: {
+    id: "web.lib.validation.whole_number",
+    defaultMessage: "Must be a whole number.",
+    description: "Config field validation: integer field value is not a whole number",
+  },
+  true_false: {
+    id: "web.lib.validation.true_false",
+    defaultMessage: "Must be true or false.",
+    description: "Config field validation: boolean field value is neither true nor false",
+  },
+});
 
 export type ConfigField = NonNullable<GameTemplate["spec"]["configSchema"]>[number];
 
@@ -54,25 +72,46 @@ const GO_BOOLS = ["1", "t", "T", "TRUE", "true", "True", "0", "f", "F", "FALSE",
 // fieldValueProblem mirrors the operator's materializeConfig checks for one
 // non-empty value. The operator stays authoritative; this only gives early
 // feedback.
-function fieldValueProblem(field: ConfigField, value: string): string | null {
+function fieldValueProblem(field: ConfigField, value: string, intl: IntlShape): string | null {
   switch (field.type) {
     case "int": {
-      if (!/^[+-]?\d+$/.test(value)) return "Must be a whole number.";
+      if (!/^[+-]?\d+$/.test(value)) return intl.formatMessage(MESSAGES.whole_number);
       const n = Number(value);
       const { min, max } = field;
-      if (min != null && max != null && (n < min || n > max)) return `Must be between ${min} and ${max}.`;
-      if (min != null && n < min) return `Must be at least ${min}.`;
-      if (max != null && n > max) return `Must be at most ${max}.`;
+      // Bounds are passed as strings so English keeps the exact digits (no grouping separators).
+      if (min != null && max != null && (n < min || n > max)) return intl.formatMessage({
+        id: "web.lib.validation.between",
+        defaultMessage: "Must be between {min} and {max}.",
+        description: "Config field validation: number outside a min and max range; {min} and {max} are the limits",
+      }, { min: String(min), max: String(max) });
+      if (min != null && n < min) return intl.formatMessage({
+        id: "web.lib.validation.at_least",
+        defaultMessage: "Must be at least {min}.",
+        description: "Config field validation: number below the minimum; {min} is the minimum",
+      }, { min: String(min) });
+      if (max != null && n > max) return intl.formatMessage({
+        id: "web.lib.validation.at_most",
+        defaultMessage: "Must be at most {max}.",
+        description: "Config field validation: number above the maximum; {max} is the maximum",
+      }, { max: String(max) });
       return null;
     }
     case "bool":
-      return GO_BOOLS.includes(value) ? null : "Must be true or false.";
+      return GO_BOOLS.includes(value) ? null : intl.formatMessage(MESSAGES.true_false);
     case "string":
     case "password": {
       const len = new TextEncoder().encode(value).length;
       const { minLength, maxLength } = field;
-      if (minLength != null && len < minLength) return `Must be at least ${minLength} characters.`;
-      if (maxLength != null && len > maxLength) return `Must be at most ${maxLength} characters.`;
+      if (minLength != null && len < minLength) return intl.formatMessage({
+        id: "web.lib.validation.chars_at_least",
+        defaultMessage: "Must be at least {min} characters.",
+        description: "Config field validation: text shorter than the minimum length; {min} is the minimum number of characters",
+      }, { min: String(minLength) });
+      if (maxLength != null && len > maxLength) return intl.formatMessage({
+        id: "web.lib.validation.chars_at_most",
+        defaultMessage: "Must be at most {max} characters.",
+        description: "Config field validation: text longer than the maximum length; {max} is the maximum number of characters",
+      }, { max: String(maxLength) });
       return null;
     }
     default:
@@ -83,6 +122,7 @@ function fieldValueProblem(field: ConfigField, value: string): string | null {
 export function validateConfig(
   schema: ConfigField[],
   values: Record<string, string>,
+  intl: IntlShape = englishIntl,
 ): ConfigError[] {
   const errors: ConfigError[] = [];
   for (const field of schema) {
@@ -90,7 +130,11 @@ export function validateConfig(
     const provided = raw ?? field.default ?? "";
     const label = field.displayName ?? field.name;
     if (field.required && provided === "") {
-      const message = `${label} is required`;
+      const message = intl.formatMessage({
+        id: "web.lib.validation.required",
+        defaultMessage: "{label} is required",
+        description: "Config field validation: shown under a required config field left empty; {label} is the field's display name",
+      }, { label });
       errors.push({ name: field.name, message, text: message });
       continue;
     }
@@ -99,13 +143,22 @@ export function validateConfig(
     // the field type: nothing to check.
     if (provided === CONFIG_REDACTED_MARKER) continue;
     if (field.type === "enum" && field.enum && !field.enum.includes(provided)) {
-      const message = `${label} must be one of: ${field.enum.join(", ")}`;
+      const message = intl.formatMessage({
+        id: "web.lib.validation.one_of",
+        defaultMessage: "{label} must be one of: {options}",
+        description: "Config field validation: enum field value not in the allowed list; {label} is the field's display name and {options} is a comma-separated list of allowed values",
+      }, { label, options: field.enum.join(", ") });
       errors.push({ name: field.name, message, text: message });
       continue;
     }
-    const problem = fieldValueProblem(field, provided);
+    const problem = fieldValueProblem(field, provided, intl);
     if (problem) {
-      errors.push({ name: field.name, message: `${label}: ${problem}`, text: problem });
+      const message = intl.formatMessage({
+        id: "web.lib.validation.label_problem",
+        defaultMessage: "{label}: {problem}",
+        description: "Config field validation: prefixes a value problem with the field name; {label} is the field's display name and {problem} is the problem sentence",
+      }, { label, problem });
+      errors.push({ name: field.name, message, text: problem });
     }
   }
   return errors;

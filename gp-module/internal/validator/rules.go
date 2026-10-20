@@ -9,7 +9,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/common"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/common"
 )
 
 var sha256DigestRegex = regexp.MustCompile(`@sha256:[0-9a-fA-F]{64}$`)

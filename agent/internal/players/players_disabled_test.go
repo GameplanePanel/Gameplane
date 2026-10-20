@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/rcon"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 // With RCON disabled (game declares no console protocol), the players

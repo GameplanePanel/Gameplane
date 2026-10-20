@@ -94,11 +94,11 @@ gh pr view <pr-number>
 ```bash
 # Instead of: gh pr edit <n> --add-label "type: fix" --add-label "area: api"
 # Use:
-gh api -X POST repos/ValgulNecron/Gameplane/issues/<n>/labels \
+gh api -X POST repos/GameplanePanel/Gameplane/issues/<n>/labels \
   -f "labels[]=type: fix" -f "labels[]=area: api"
 
 # Verify labels were applied:
-gh api repos/ValgulNecron/Gameplane/issues/<n>/labels -q '[.[].name]|join(", ")'
+gh api repos/GameplanePanel/Gameplane/issues/<n>/labels -q '[.[].name]|join(", ")'
 ```
 
 ### 3. Master is protected by ruleset, not classic branch-protection (rule 12)
@@ -107,7 +107,7 @@ gh api repos/ValgulNecron/Gameplane/issues/<n>/labels -q '[.[].name]|join(", ")'
 
 **Root cause:** `protect main` ruleset (id 18692396) enforces `pull_request` (needs 1 human approval), `dismiss_stale_reviews_on_push: true` (approval is dropped if you push after being approved).
 
-**Owning file:** Repository settings; check with `gh api repos/ValgulNecron/Gameplane/rules/branches/master`
+**Owning file:** Repository settings; check with `gh api repos/GameplanePanel/Gameplane/rules/branches/master`
 
 **Fix:**
 - Never push after approval is granted on a PR. Get the branch **green** (all checks passing) **before** asking for review.
@@ -123,7 +123,7 @@ gh api repos/ValgulNecron/Gameplane/issues/<n>/labels -q '[.[].name]|join(", ")'
    - `go: <module> / <arch>` → `<module>/` (Go). Coverage threshold in `<module>/.testcoverage.yml` (or from list above for quick lookup).
    - `web` → `web/` (JS/TS). Coverage thresholds in `web/vitest.config.ts`.
    - `e2e-go: <bucket>` → `test/e2e/` (Go). Mapping: `test/e2e/buckets.sh regex '<bucket>'` lists test names.
-   - `chart-template` → `charts/gameplane/` or root `cosign.pub` (if key mismatch).
+   - `chart-template` → `charts/gameplane/` or `signing/cosign.pub` (if key mismatch).
    - `capture-sidecar-setcap-proof` → `capture-sidecar/Dockerfile`.
 
 3. **Extract root cause from logs:**

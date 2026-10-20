@@ -25,7 +25,7 @@ jobs:
     # admits only master and v* tags (repository settings).
     environment: release-signing
     steps:
-      # The module bundles live in the gameplane-module submodule at modules/,
+      # The module bundles live in the GameplanePanel/module submodule at modules/,
       # so this job needs a recursive checkout to read their source. The
       # submodule is public, so the default GITHUB_TOKEN clones it (no PAT).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

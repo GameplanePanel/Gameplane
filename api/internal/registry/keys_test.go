@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 // newTestStore opens an in-memory SQLite store and runs migrations,

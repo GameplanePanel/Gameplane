@@ -15,13 +15,17 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 // MountSystemLogs registers the system logs API handlers.
 func MountSystemLogs(r chi.Router, k *kube.Client, namespace string) {
 	r.Get("/admin/system-logs/{component}", func(w http.ResponseWriter, req *http.Request) {
+		if k == nil || k.Typed == nil {
+			httperr.WriteCode(w, req, http.StatusNotImplemented, errors.New("standalone panel logs are available from the container runtime"))
+			return
+		}
 		component := chi.URLParam(req, "component")
 
 		// Component must be exactly "api" or "operator"

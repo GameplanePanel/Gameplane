@@ -54,7 +54,7 @@ The access/capability state board (`w1QYmf`), disabled capture screen (`Bbnga`),
 Start Capture modal (`O08uaD`) and mobile Capture screen (`SUtGZ`) use the
 selected site's capabilities and limits. Retained-download availability remains
 distinct from permission to start new captures. The
-[design manifest](../design-export/MANIFEST.md) records the Pencil export scope.
+[design manifest](../assets/design-export/MANIFEST.md) records the Pencil export scope.
 
 Users, provider credentials, the module catalog, installation administration and
 node enrollment remain centrally managed. Clusters retain independent game

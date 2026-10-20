@@ -31,7 +31,7 @@ export function getCurrentCluster(): string {
   // Load from localStorage on first read, guarded against SecurityError
   try {
     const stored = localStorage.getItem(CLUSTER_KEY);
-    currentClusterId = stored || DEFAULT_CLUSTER;
+    currentClusterId = stored ?? DEFAULT_CLUSTER;
   } catch {
     // Private browsing or storage blocked — use default
     currentClusterId = DEFAULT_CLUSTER;

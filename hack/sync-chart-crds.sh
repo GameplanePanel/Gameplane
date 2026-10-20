@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# sync-chart-crds.sh: copy the controller-gen CRDs into the Helm chart's crds/
-# and crd-manifests/ directories, stamping every copy with a bundle hash.
+# sync-chart-crds.sh: copy the controller-gen CRDs into the conditional CRD
+# subchart and the parent's crd-manifests/, stamping each with a bundle hash.
 #
 # Purpose:
 #   The chart's crds.autoApply hook (templates/crd-apply-hook.yaml) must fire
@@ -58,7 +58,7 @@ for f in "${files[@]}"; do
     exit 1
   fi
   base=$(basename "$f")
-  for dir in charts/gameplane/crds charts/gameplane/crd-manifests; do
+  for dir in charts/gameplane/charts/gameplane-crds/crds charts/gameplane/crd-manifests; do
     awk -v line="    ${annotation}: ${hash}" '
       { print }
       /^  annotations:$/ && !done { print line; done = 1 }

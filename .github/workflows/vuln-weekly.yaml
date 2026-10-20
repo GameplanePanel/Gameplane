@@ -1,0 +1,33 @@
+# Spec 013 G1: catches advisories published after a merge; scans master weekly.
+# Runs govulncheck over every go.work module on the master branch (same gate as the vuln (go) CI job).
+name: vuln weekly
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vuln-weekly
+  cancel-in-progress: false
+
+jobs:
+  vuln-go:
+    name: vuln (go) weekly
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: vuln-weekly
+      - name: install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+      - name: govulncheck every go.work module
+        run: ./hack/govulncheck-all.sh

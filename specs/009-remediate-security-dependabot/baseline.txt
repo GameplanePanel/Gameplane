@@ -44,7 +44,7 @@
 
 ## Token Permission Test
 
-PASS: Successfully read alert #1 via gh api /repos/ValgulNecron/Gameplane/code-scanning/alerts/1
+PASS: Successfully read alert #1 via gh api /repos/GameplanePanel/Gameplane/code-scanning/alerts/1
 - No 403 error
 - No scope errors
 - security_events scope is available

@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"io/fs"
 	"os"
 	"slices"
 	"sort"
@@ -26,6 +27,17 @@ const postgresDSNEnv = "GAMEPLANE_TEST_POSTGRES_DSN"
 // newPostgresStore opens a migrated Store on a fresh schema of the test
 // database and drops the schema when the test ends.
 func newPostgresStore(t *testing.T) *Store {
+	t.Helper()
+	s := openPostgresSchema(t)
+	if err := s.Migrate(t.Context()); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	return s
+}
+
+// openPostgresSchema opens a Store on a fresh, unmigrated schema of the test
+// database and drops the schema when the test ends.
+func openPostgresSchema(t *testing.T) *Store {
 	t.Helper()
 	dsn := os.Getenv(postgresDSNEnv)
 	if dsn == "" {
@@ -61,9 +73,6 @@ func newPostgresStore(t *testing.T) *Store {
 	t.Cleanup(func() { _ = s.Close() })
 	if s.Driver != "postgres" {
 		t.Fatalf("driver = %q, want postgres", s.Driver)
-	}
-	if err := s.Migrate(ctx); err != nil {
-		t.Fatalf("migrate: %v", err)
 	}
 	return s
 }
@@ -412,5 +421,137 @@ func TestPostgres_RebindLeavesLiteralsAlone(t *testing.T) {
 	var sum int
 	if err := stmt.QueryRowContext(t.Context(), 2, 3).Scan(&sum); err != nil || sum != 5 {
 		t.Fatalf("prepared sum = %d, %v", sum, err)
+	}
+}
+
+// TestPostgres_MigrateFromFrozenBaseline upgrades a database that stopped at
+// the frozen per-dialect set (migrations/postgres 001–012, the last layout
+// before migrations/common) to head. Rows written with the 012-era columns
+// must read back unchanged, and schema_migrations must list every version.
+func TestPostgres_MigrateFromFrozenBaseline(t *testing.T) {
+	s := openPostgresSchema(t)
+	ctx := t.Context()
+
+	if _, err := s.DB.ExecContext(ctx,
+		`CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)`,
+	); err != nil {
+		t.Fatalf("create schema_migrations: %v", err)
+	}
+	frozen, err := listSQL(migrations, legacyMigrationDirs["postgres"])
+	if err != nil {
+		t.Fatalf("list frozen migrations: %v", err)
+	}
+	if len(frozen) != 12 {
+		t.Fatalf("frozen postgres set has %d files, want 12", len(frozen))
+	}
+	for _, f := range frozen {
+		content, err := fs.ReadFile(migrations, f.path)
+		if err != nil {
+			t.Fatalf("read %s: %v", f.path, err)
+		}
+		if err := s.runMigration(ctx, f.name, string(content)); err != nil {
+			t.Fatalf("apply %s: %v", f.name, err)
+		}
+	}
+
+	// Rows as a 012-era API wrote them.
+	const (
+		stamp     = "2026-01-02 03:04:05"
+		username  = "baseline-admin"
+		email     = "admin@example.test"
+		display   = "Baseline Admin"
+		pwHash    = "$argon2id$v=19$m=65536,t=1,p=4$c2FsdA$aGFzaA"
+		linkID    = "baseline-link"
+		rawToken  = "baseline-share-token"
+		auditPath = "/roles"
+	)
+	var uid int64
+	if err := s.DB.QueryRowContext(ctx,
+		`INSERT INTO users(username, email, display_name, pw_hash, role, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		username, email, display, pwHash, "admin", stamp, stamp).Scan(&uid); err != nil {
+		t.Fatalf("insert user: %v", err)
+	}
+	if _, err := s.DB.ExecContext(ctx,
+		`INSERT INTO user_role_bindings(user_id, role_name, namespace, cluster) VALUES (?, ?, ?, ?)`,
+		uid, "admin", "*", "local"); err != nil {
+		t.Fatalf("insert role binding: %v", err)
+	}
+	created := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	expires := time.Date(2099, 1, 1, 0, 0, 0, 0, time.UTC)
+	if _, err := s.DB.ExecContext(ctx,
+		`INSERT INTO share_links(id, cluster, namespace, server_name, created_by, can_start, token_hash, expires_at, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		linkID, "local", "default", "mc", uid, 1, hashShareLinkToken(rawToken),
+		expires.Format(time.RFC3339), created.Format(time.RFC3339)); err != nil {
+		t.Fatalf("insert share link: %v", err)
+	}
+	if _, err := s.DB.ExecContext(ctx,
+		`INSERT INTO audit_events(ts, actor, method, path, target, status, ip, prev_hash, hash, reason)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		stamp, username, "POST", auditPath, "roles/ops", 201, "10.0.0.1", "prev-hash", "row-hash", "created"); err != nil {
+		t.Fatalf("insert audit event: %v", err)
+	}
+
+	if err := s.Migrate(ctx); err != nil {
+		t.Fatalf("migrate to head: %v", err)
+	}
+
+	all, err := migrationFiles(migrations, "postgres")
+	if err != nil {
+		t.Fatalf("list head migrations: %v", err)
+	}
+	want := make([]string, 0, len(all))
+	for _, f := range all {
+		want = append(want, f.name)
+	}
+	got := queryStrings(t, s, `SELECT version FROM schema_migrations`)
+	sort.Strings(got)
+	if !slices.Equal(got, want) {
+		t.Fatalf("schema_migrations = %v, want %v", got, want)
+	}
+
+	var gotUser, gotEmail, gotDisplay, gotHash, gotRole, gotCreated, gotUpdated string
+	if err := s.DB.QueryRowContext(ctx,
+		`SELECT username, email, display_name, pw_hash, role, created_at, updated_at FROM users WHERE id = ?`, uid,
+	).Scan(&gotUser, &gotEmail, &gotDisplay, &gotHash, &gotRole, &gotCreated, &gotUpdated); err != nil {
+		t.Fatalf("read user: %v", err)
+	}
+	if gotUser != username || gotEmail != email || gotDisplay != display || gotHash != pwHash ||
+		gotRole != "admin" || gotCreated != stamp || gotUpdated != stamp {
+		t.Fatalf("user after migrate = %q %q %q %q %q %q %q", gotUser, gotEmail, gotDisplay, gotHash, gotRole, gotCreated, gotUpdated)
+	}
+
+	bindings := queryStrings(t, s,
+		`SELECT role_name || '|' || namespace || '|' || cluster FROM user_role_bindings WHERE user_id = ?`, uid)
+	if !slices.Equal(bindings, []string{"admin|*|local"}) {
+		t.Fatalf("role bindings after migrate = %v, want [admin|*|local]", bindings)
+	}
+	if ok, err := s.UserManagesUsers(ctx, uid); err != nil || !ok {
+		t.Fatalf("UserManagesUsers after migrate = %v, %v", ok, err)
+	}
+
+	link, err := s.LookupShareLink(ctx, rawToken)
+	if err != nil {
+		t.Fatalf("lookup share link after migrate: %v", err)
+	}
+	if link.ID != linkID || link.Cluster != "local" || link.Namespace != "default" || link.ServerName != "mc" ||
+		link.ServerUID != "" || link.CreatedBy != uid || !link.CanStart ||
+		link.ExpiresAt == nil || !link.ExpiresAt.Equal(expires) || !link.CreatedAt.Equal(created) ||
+		link.RevokedAt != nil || link.LastUsed != nil {
+		t.Fatalf("share link after migrate = %+v", link)
+	}
+
+	var ts, actor, method, path, target, ip, prevHash, rowHash, reason string
+	var status int
+	if err := s.DB.QueryRowContext(ctx,
+		`SELECT ts, actor, method, path, target, status, ip, prev_hash, hash, reason FROM audit_events WHERE path = ?`, auditPath,
+	).Scan(&ts, &actor, &method, &path, &target, &status, &ip, &prevHash, &rowHash, &reason); err != nil {
+		t.Fatalf("read audit event: %v", err)
+	}
+	if ts != stamp || actor != username || method != "POST" || path != auditPath || target != "roles/ops" ||
+		status != 201 || ip != "10.0.0.1" || prevHash != "prev-hash" || rowHash != "row-hash" || reason != "created" {
+		t.Fatalf("audit event after migrate = %q %q %q %q %q %d %q %q %q %q",
+			ts, actor, method, path, target, status, ip, prevHash, rowHash, reason)
 	}
 }

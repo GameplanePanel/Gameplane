@@ -40,7 +40,7 @@ func TestGameServer_FiveM_Persistence(t *testing.T) {
 			"displayName": "E2E FiveM Persistence",
 			"game":        "fivem",
 			"version":     "1.0.0",
-			"image":       "ghcr.io/valgulnecron/gameplane/fivem:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+			"image":       "ghcr.io/gameplanepanel/gameplane/fivem:latest@sha256:23d65f59793e5f207c4c4ee5c320bca5aa56003fd95be259a887f4e58f3d77b1",
 			"ports": []any{
 				map[string]any{"name": "game", "containerPort": int64(30120), "protocol": "UDP", "advertise": true},
 				map[string]any{"name": "http", "containerPort": int64(30120), "protocol": "TCP", "advertise": true},

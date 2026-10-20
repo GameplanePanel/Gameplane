@@ -1,0 +1,219 @@
+{
+  "type": "frame",
+  "id": "BHT29",
+  "x": 1394,
+  "y": 8037,
+  "name": "Gameplane/Port Overrides",
+  "reusable": true,
+  "width": "fill_container(627)",
+  "layout": "vertical",
+  "gap": 6,
+  "children": [
+    {
+      "type": "text",
+      "id": "sRTmB",
+      "name": "Label",
+      "fill": "$muted",
+      "content": "Port overrides (optional)",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "frame",
+      "id": "j10uO",
+      "name": "PortHeader",
+      "width": "fill_container",
+      "gap": 8,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "i3hy12",
+          "name": "Col",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Port name",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "d0CEbN",
+          "name": "Col",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": 120,
+          "content": "Service port",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "AaG44",
+          "name": "Col",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": 120,
+          "content": "NodePort",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "VEOXF",
+          "name": "spacer",
+          "width": 32,
+          "height": 1
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "OyS3f",
+      "name": "PortRow",
+      "width": "fill_container",
+      "gap": 8,
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "UaWOj",
+          "type": "ref",
+          "ref": "mhMaM",
+          "name": "Field",
+          "width": "fill_container",
+          "descendants": {
+            "peFYu": {
+              "opacity": 0,
+              "height": 0
+            },
+            "RflGC": {
+              "fill": "$surface/secondary",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "height": 36
+            },
+            "O0VQ2": {
+              "content": "game",
+              "fill": "$foreground/foreground"
+            },
+            "kl54d": {
+              "opacity": 0,
+              "height": 0
+            }
+          }
+        },
+        {
+          "id": "LCvMP",
+          "type": "ref",
+          "ref": "mhMaM",
+          "name": "Field",
+          "width": 120,
+          "descendants": {
+            "peFYu": {
+              "opacity": 0,
+              "height": 0
+            },
+            "RflGC": {
+              "fill": "$surface/secondary",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "height": 36
+            },
+            "O0VQ2": {
+              "content": "25565",
+              "fill": "$foreground/foreground"
+            },
+            "kl54d": {
+              "opacity": 0,
+              "height": 0
+            }
+          }
+        },
+        {
+          "id": "QkUmx",
+          "type": "ref",
+          "ref": "mhMaM",
+          "name": "Field",
+          "width": 120,
+          "descendants": {
+            "peFYu": {
+              "opacity": 0,
+              "height": 0
+            },
+            "RflGC": {
+              "fill": "$surface/secondary",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "height": 36
+            },
+            "O0VQ2": {
+              "content": "31565",
+              "fill": "$foreground/foreground"
+            },
+            "kl54d": {
+              "opacity": 0,
+              "height": 0
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "xrIYj",
+          "name": "BtnRemove",
+          "width": 32,
+          "height": 32,
+          "cornerRadius": 6,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "ebT8c",
+              "name": "x",
+              "width": 12,
+              "height": 12,
+              "icon": "x",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "k2WWvp",
+      "type": "ref",
+      "ref": "J09iP",
+      "name": "AddButton",
+      "descendants": {
+        "eWkIT/WtPjS": {
+          "icon": "plus"
+        },
+        "eWkIT/r4VbAi": {
+          "content": "Add port override"
+        }
+      }
+    },
+    {
+      "type": "text",
+      "id": "X4KoT",
+      "name": "Helper",
+      "fill": "$muted",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "Pin a NodePort or override the Service port for a named template port.",
+      "lineHeight": 1.4,
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    }
+  ]
+}

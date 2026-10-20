@@ -130,7 +130,7 @@ type KeylessVerifySpec struct {
 // "<url>/<name>:<version>".
 type OCISourceSpec struct {
 	// URL is the registry/repository prefix that holds module bundles
-	// (e.g. "ghcr.io/valgulnecron/gameplane-modules").
+	// (e.g. "ghcr.io/gameplanepanel/gameplane-modules").
 	// +kubebuilder:validation:MinLength=1
 	URL string `json:"url"`
 
@@ -280,7 +280,7 @@ type ModuleEntry struct {
 	Icon string `json:"icon,omitempty"`
 
 	// Reference locates this module within its source: the registry
-	// repo path for oci (e.g. "ghcr.io/valgulnecron/gameplane-modules/minecraft-java"),
+	// repo path for oci (e.g. "ghcr.io/gameplanepanel/gameplane-modules/minecraft-java"),
 	// or "<type>:<location>/<dir>" for the other source types.
 	Reference string `json:"reference"`
 

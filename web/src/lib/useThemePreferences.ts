@@ -6,7 +6,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { defineMessages } from "react-intl";
 import { APIError } from "@/lib/api";
+import { useOptionalIntl } from "@/lib/i18n/format";
 import { Users, type UserPreferencesUpdate } from "@/lib/endpoints";
 import { customThemeTokensToCss, deriveCustomThemeTokens, surfaceAppearance } from "@/lib/theme-derivation";
 import type {
@@ -54,6 +56,14 @@ const HEX_COLOR_RE = /^#([0-9a-fA-F]{6})$/;
 // (contracts/theme-ui.md §4). The sessionStorage flag below is a separate,
 // pre-existing entry point (keyboard shortcut, login-page safe-mode link).
 let urlSafeModeSeen = false;
+
+const THEME_MESSAGES = defineMessages({
+  update_failed: {
+    id: "web.lib.use_theme_preferences.update_failed",
+    defaultMessage: "Theme update failed",
+    description: "Error shown when saving theme preferences fails for an unknown reason",
+  },
+});
 
 /** Test-only: clears the in-memory URL safe-mode latch, simulating a fresh page load. */
 export function resetUrlSafeModeForTests(): void {
@@ -333,6 +343,7 @@ export function useThemePreferences(
     readThemePreferences(),
   );
   const [error, setError] = useState<string | null>(null);
+  const intl = useOptionalIntl();
   const pendingRetryRef = useRef<UpdateVars | null>(null);
   // Pulled into its own binding (rather than the optional-chain expression
   // inline) so the memo has a single, stable dependency to key off.
@@ -412,10 +423,14 @@ export function useThemePreferences(
       }
       const message =
         err instanceof APIError
-          ? err.body || `Request failed (${err.status})`
+          ? err.body || intl.formatMessage({
+              id: "web.lib.use_theme_preferences.request_failed",
+              defaultMessage: "Request failed ({status})",
+              description: "Error shown when saving theme preferences fails with an HTTP error that has no message; {status} is the HTTP status code",
+            }, { status: String(err.status) })
           : err instanceof Error
             ? err.message
-            : "Theme update failed";
+            : intl.formatMessage(THEME_MESSAGES.update_failed);
       reportError(message);
       // Offline resilience: queue the PUT and replay it when connectivity
       // returns; onSuccess then re-reconciles cache and DOM from the

@@ -10,10 +10,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/notify"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/notify"
 )
 
 // sinkSecretPrefix derives the managed Secret's name from the sink name.
@@ -37,9 +38,9 @@ func MountNotifications(r chi.Router, n *notify.Notifier, k *kube.Client, contro
 			case err == nil:
 				writeJSON(w, map[string]any{"delivered": true})
 			case errors.Is(err, notify.ErrUnknownSink):
-				http.Error(w, err.Error(), http.StatusNotFound)
+				httperr.WriteCode(w, req, http.StatusNotFound, err)
 			case errors.Is(err, notify.ErrSinkNotConfigured):
-				http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+				httperr.WriteCode(w, req, http.StatusUnprocessableEntity, err)
 			default:
 				// Sink exists and is configured but delivery failed — relay
 				// the (URL-sanitized) cause so the admin can fix the endpoint
@@ -125,27 +126,27 @@ func sinkSecretData(b sinkSecretBody) (map[string]string, error) {
 func (h notificationsHandler) putSecret(w http.ResponseWriter, req *http.Request) {
 	name := chi.URLParam(req, "name")
 	if !dnsLabelRE.MatchString(name) {
-		http.Error(w, "sink name must be a DNS label (lowercase, digits, hyphens)", http.StatusUnprocessableEntity)
+		httperr.WriteMessage(w, req, messages.New("server.notifications.sink_name_not_dns_label", nil))
 		return
 	}
 	secretName := sinkSecretPrefix + name
 	if len(secretName) > 63 {
-		http.Error(w, fmt.Sprintf("sink name too long: %q must fit a DNS label with the %q prefix", name, sinkSecretPrefix), http.StatusUnprocessableEntity)
+		httperr.WriteCode(w, req, http.StatusUnprocessableEntity, fmt.Errorf("sink name too long: %q must fit a DNS label with the %q prefix", name, sinkSecretPrefix))
 		return
 	}
 	var body sinkSecretBody
 	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-		http.Error(w, "invalid json", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.common.invalid_json", nil))
 		return
 	}
 	data, err := sinkSecretData(body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		httperr.WriteCode(w, req, http.StatusUnprocessableEntity, err)
 		return
 	}
 	if err := upsertLabelledSecret(req.Context(), h.k, h.ns, secretName, notify.SinkSecretLabel, data); err != nil {
 		if errors.Is(err, errNotManagedSecret) {
-			http.Error(w, err.Error(), http.StatusConflict)
+			httperr.WriteCode(w, req, http.StatusConflict, err)
 			return
 		}
 		httperr.Write(w, req, err)
@@ -164,7 +165,7 @@ func (h notificationsHandler) putSecret(w http.ResponseWriter, req *http.Request
 func (h notificationsHandler) deleteSecret(w http.ResponseWriter, req *http.Request) {
 	name := chi.URLParam(req, "name")
 	if !dnsLabelRE.MatchString(name) {
-		http.Error(w, "sink name must be a DNS label (lowercase, digits, hyphens)", http.StatusUnprocessableEntity)
+		httperr.WriteMessage(w, req, messages.New("server.notifications.sink_name_not_dns_label", nil))
 		return
 	}
 	if err := deleteManagedSecret(req.Context(), h.k, h.ns, sinkSecretPrefix+name, notify.SinkSecretLabel); err != nil {

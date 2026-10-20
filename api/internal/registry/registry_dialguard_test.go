@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/netguard"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 // TestSet_RegistryFetchesDialOnlyPublicAddresses checks that the client

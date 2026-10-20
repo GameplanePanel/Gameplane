@@ -12,8 +12,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/ValgulNecron/gameplane/api/internal/gatewayprotocol"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 type gatewayErrorTransport struct{ err error }

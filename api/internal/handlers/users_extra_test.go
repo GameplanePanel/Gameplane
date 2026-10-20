@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 )
 
 func TestUsers_Me_Authenticated(t *testing.T) {

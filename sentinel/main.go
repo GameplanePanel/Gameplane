@@ -39,7 +39,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/gameproto"
+	"github.com/GameplanePanel/gameplane/gameproto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"

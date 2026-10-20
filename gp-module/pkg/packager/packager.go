@@ -2,7 +2,7 @@
 package packager
 
 import (
-	internalpack "github.com/ValgulNecron/gameplane/gp-module/internal/packager"
+	internalpack "github.com/GameplanePanel/gameplane/gp-module/internal/packager"
 )
 
 // PackageLimits defines resource thresholds for packager operations.

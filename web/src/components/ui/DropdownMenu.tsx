@@ -8,6 +8,7 @@ import {
   DropdownSection,
 } from "@heroui/react";
 import { Separator } from "react-aria-components";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 // Root wrapper for dropdown — uses HeroUI Dropdown (which is MenuTriggerPrimitive-based)
 export function DropdownMenu({ children }: { children: ReactNode }) {
@@ -55,6 +56,7 @@ export function DropdownMenuItem({
   disabled?: boolean;
   hint?: string;
 }) {
+  const intl = useOptionalIntl();
   return (
     <DropdownItem
       key={label}
@@ -63,7 +65,7 @@ export function DropdownMenuItem({
       className={`flex gap-2 ${
         destructive ? "text-danger" : "text-foreground"
       } ${disabled ? "opacity-50" : ""}`}
-      aria-label={hint ? `${label}: ${hint}` : label}
+      aria-label={hint ? intl.formatMessage({ id: "web.components.ui.dropdown_menu.label_with_hint", defaultMessage: "{label}: {hint}", description: "Dropdown menu item: accessible name combining the item label and its hint; {label} is the item text and {hint} the hint text" }, { label, hint }) : label}
     >
       <div className="flex items-center gap-2 w-full" title={hint}>
         {icon}
@@ -86,19 +88,26 @@ type DropdownMenuCheckboxItemProps = Omit<
 export const DropdownMenuCheckboxItem = forwardRef<
   HTMLDivElement,
   DropdownMenuCheckboxItemProps
->(({ checked, children, className, ...props }, ref) => (
-  <DropdownItem
-    ref={ref}
-    {...props}
-    className={`flex gap-2 text-foreground ${className ?? ""}`}
-  >
-    <div className="flex items-center gap-2 w-full">
-      {checked && <span className="flex items-center justify-center w-4 h-4">✓</span>}
-      {!checked && <span className="w-4 h-4" />}
-      <span>{children}</span>
-    </div>
-  </DropdownItem>
-));
+>(({ checked, children, className, ...props }, ref) => {
+  const intl = useOptionalIntl();
+  return (
+    <DropdownItem
+      ref={ref}
+      {...props}
+      className={`flex gap-2 text-foreground ${className ?? ""}`}
+    >
+      <div className="flex items-center gap-2 w-full">
+        {checked && (
+          <span className="flex items-center justify-center w-4 h-4">
+            {intl.formatMessage({ id: "web.components.ui.dropdown_menu.checked_mark", defaultMessage: "✓", description: "Check mark shown beside a checked menu item" })}
+          </span>
+        )}
+        {!checked && <span className="w-4 h-4" />}
+        <span>{children}</span>
+      </div>
+    </DropdownItem>
+  );
+});
 DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
 
 // Section — group items with optional title

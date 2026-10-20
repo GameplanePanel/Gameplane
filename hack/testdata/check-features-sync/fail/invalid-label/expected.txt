@@ -1,0 +1,2 @@
+features-sync: hack/testdata/check-features-sync/fail/invalid-label/FEATURES.md:10: invalid maturity "Beta"
+features-sync: hack/testdata/check-features-sync/fail/invalid-label/features.mdx:20: invalid maturity "Beta"

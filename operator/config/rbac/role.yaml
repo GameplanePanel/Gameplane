@@ -8,16 +8,13 @@ rules:
   - ""
   resources:
   - configmaps
-  - persistentvolumeclaims
-  - pods
-  - pods/ephemeralcontainers
-  - pods/log
-  - secrets
-  - serviceaccounts
-  - services
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - ""
@@ -28,6 +25,20 @@ rules:
   - get
   - list
   - patch
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - pods
+  - pods/ephemeralcontainers
+  - pods/log
+  - secrets
+  - serviceaccounts
+  - services
+  verbs:
+  - get
+  - list
   - watch
 - apiGroups:
   - apps

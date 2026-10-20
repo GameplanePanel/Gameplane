@@ -77,7 +77,7 @@ Method: I tried to refute each of the 13 candidates in `notes.md` (reviewer: opu
 
 ### C-gp-module-06
 
-**Location (corrected):** `docs/module-authoring.md:102` and `docs/module-authoring.md:139-141`. They conflict with `specs/010-easy-module-building/contracts/archetypes-contract.md:214-222` (§3) and its implementation at `gp-module/internal/validator/schema.go:294-309`.
+**Location (corrected):** `docs/module-authoring.md:102` and `docs/module-authoring.md:139-141`. They conflict with `specs/done_010-easy-module-building/contracts/archetypes-contract.md:214-222` (§3) and its implementation at `gp-module/internal/validator/schema.go:294-309`.
 
 **Repro / observation:**
 1. `docs/module-authoring.md:139-141` says "`template.yaml` is the same `GameTemplate` you would write today, with one difference: omit `metadata.name`". The directory sketch at `:102` says "template.yaml   # GameTemplate spec (no metadata.name)".
@@ -148,7 +148,7 @@ Method: I tried to refute each of the 13 candidates in `notes.md` (reviewer: opu
 **Repro / observation:**
 1. Copy a scaffolded module and append `gameplaneMinVersion: 9.0.0` to `module.yaml`. `validate` prints `OK (no findings)`.
 2. `gp-module --version` prints `1.0.0` (`cmd/gp-module/main.go:9`). No other version is available to compare against.
-3. `specs/010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author of potential version discrepancies."
+3. `specs/done_010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author of potential version discrepancies."
 4. The operator does refuse a bundle that needs a newer operator at install (`operator/internal/controller/module_controller.go:144-147`). The gap is only the early warning the spec asks for.
 
 **Expected:** A warning when `gameplaneMinVersion` is above the version the tool represents. That also requires deciding which version that is, since the hard-coded `1.0.0` is unrelated to the Gameplane release line.

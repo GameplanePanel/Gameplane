@@ -12,11 +12,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/registry"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/registry"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // AgentModLister fetches JSON from a server's agent sidecar; satisfied by

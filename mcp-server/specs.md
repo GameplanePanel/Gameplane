@@ -1,7 +1,7 @@
 # mcp-server — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/mcp-server`
+**Module / package:** `github.com/GameplanePanel/gameplane/mcp-server`
 
 ## Purpose
 

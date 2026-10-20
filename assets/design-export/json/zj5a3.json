@@ -1,0 +1,184 @@
+{
+  "type": "frame",
+  "id": "zj5a3",
+  "x": 4920,
+  "y": 12822,
+  "name": "Screen/Dashboard Home — Telemetry notice (default)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1380,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "PxCc3",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container"
+    },
+    {
+      "type": "frame",
+      "id": "bp3OL",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "vSp7k",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gb27k": {
+              "fontFamily": "$typography/font-sans"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "fz58Y",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "children": [
+            {
+              "id": "hCjBQ",
+              "type": "ref",
+              "ref": "lh8p8",
+              "name": "Telemetry Notice",
+              "width": "fill_container",
+              "descendants": {
+                "dzZwq": {
+                  "content": "telemetry.gameplane.net",
+                  "name": "host"
+                },
+                "jCJTc": {
+                  "content": ", the Gameplane project's telemetry service."
+                }
+              }
+            },
+            {
+              "id": "xh7ww",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "VbHwU": {
+                  "content": "Your game servers and resources across authorized locations."
+                },
+                "TgdLz": {
+                  "children": [
+                    {
+                      "id": "mTzRU",
+                      "type": "ref",
+                      "ref": "tpKRk",
+                      "name": "Create Server Button",
+                      "descendants": {
+                        "q58In/Xpn7K": {
+                          "library": "lucide",
+                          "icon": "plus"
+                        },
+                        "q58In/U6q13B": {
+                          "content": "Create server"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "K3F7v",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Dashboard location filter",
+              "width": 240,
+              "context": "Optional location filter; All locations combines authorized inventory.",
+              "descendants": {
+                "cFsFk": {
+                  "content": "All locations",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            },
+            {
+              "id": "gz2vP",
+              "type": "ref",
+              "ref": "YF85x",
+              "name": "Stats Row",
+              "width": "fill_container",
+              "descendants": {
+                "m20CHt/QdcEm": {
+                  "fill": "#000000"
+                },
+                "pkvT2/QdcEm": {
+                  "fill": "$chart/stat"
+                },
+                "FlXsH/QdcEm": {
+                  "fill": "$chart/stat"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "cqhug",
+              "name": "Row2",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "sVoZv",
+                  "type": "ref",
+                  "ref": "rYAg3",
+                  "name": "Fleet Status Card",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "p66Jz",
+                  "type": "ref",
+                  "ref": "Y96CaE",
+                  "name": "Cluster Resources Card",
+                  "width": "fill_container"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J7ZYVN",
+              "name": "Row3",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "Oxoma",
+                  "type": "ref",
+                  "ref": "DlNh6",
+                  "name": "Central audit activity",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "Bhbv8",
+                  "type": "ref",
+                  "ref": "Vl96v",
+                  "name": "Recent Backups Card",
+                  "width": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -20,7 +20,7 @@ Every Gameplane-shipped game module is listed here with its join-protocol covera
 | `dont-starve-together` | Don't Starve Together | blocked-doc | QUERY | TestGameServer_DontStarveTogetherBot_Query | bot-heavy | — | Klei reliable-UDP frame format and handshake not documented; server credentials required at join | documentation |
 | `enshrouded` | Enshrouded | blocked-doc | QUERY | TestGameServer_EnshroudedBot_Query | bot-heavy | — | Undocumented proprietary protocol; wire format and handshake feasibility unknown | documentation |
 | `v-rising` | V Rising | blocked-doc | QUERY | TestGameServer_VRisingBot_Query | bot-heavy | — | Undocumented proprietary UDP protocol; transport layer unidentified | documentation |
-| `nuclear-option` | Nuclear Option | blocked-doc | QUERY | — | — | — | Undocumented proprietary UDP protocol; join handshake format unknown | documentation |
+| `nuclear-option` | Nuclear Option | blocked-doc | QUERY | TestGameServer_NuclearOptionBot_Query | bot-heavy | — | UDP 7777 not bound; joins route through Steam game-server networking and the join handshake requires a real-client packet capture | documentation |
 | `fivem` | FiveM | blocked-doc | QUERY | TestGameServer_FiveMBot_Query | bot-heavy | — | CitizenFX join protocol undocumented; dynamic.json query reachable but ENet connection format requires packet capture | documentation |
 | `team-fortress-2` | Team Fortress 2 | blocked-doc | QUERY | TestGameServer_TeamFortress2Bot_Query | bot-heavy | — | Source engine C2S_CONNECT field offsets and Steam auth ticket format incomplete in public documentation | documentation |
 | `farming-simulator-25` | Farming Simulator 25 | blocked-doc | QUERY | TestGameServer_FarmingSimulator25Bot_Query | bot-heavy | — | Undocumented proprietary UDP protocol; GIANTS web API health reachable but game join handshake unknown | documentation |
@@ -32,7 +32,6 @@ Every Gameplane-shipped game module is listed here with its join-protocol covera
 | `the-isle` | The Isle | blocked-doc | QUERY | TestGameServer_TheIsleBot_Query | bot-heavy | — | Unreal Engine 4 network protocol variant partially documented; stateless connect handshake requires packet capture | documentation |
 | `ark-survival-evolved` | ARK: Survival Evolved | blocked-doc | QUERY | TestGameServer_ArkSurvivalEvolvedBot_Query | bot-heavy | — | Unreal Engine 4 custom net driver; A2S query verified but ShooterGame client login handshake requires reverse-engineering | documentation |
 | `arma-reforger` | Arma Reforger | blocked-doc | QUERY | TestGameServer_ArmaReforgerBot_Query | bot-heavy | — | Bohemia Interactive Enfusion engine proprietary network protocol; A2S query verified but backend authentication format undocumented | documentation |
-| `hell-let-loose` | Hell Let Loose | blocked-doc | QUERY | TestGameServer_HellLetLooseBot_Query | bot-heavy | — | Unreal Engine 4 network stack; Steam query verified but join handshake and Easy Anti-Cheat integration require reverse-engineering | documentation |
 | `squad` | Squad | blocked-doc | QUERY | TestGameServer_SquadBot_Query | bot-heavy | — | Unreal Engine 4 network stack; Steam A2S query verified but client connection handshake format undocumented | documentation |
 
 ## Covered (in CI)
@@ -71,11 +70,11 @@ These modules lack a join-protocol client. The reason is documented as temporary
 - **mount-and-blade-2-bannerlord**: Undocumented TaleWorlds UDP protocol. Steam A2S query verified but custom server authentication token format is undocumented.
 - **tmodloader**: Terraria TCP message framing and mod synchronization handshake require reverse-engineering against active modpacks.
 - **beammp**: Undocumented custom TCP/UDP bridge protocol. Auth handshake verified but client vehicle synchronization protocol format is unknown.
+- **nuclear-option**: UDP 7777 is not bound and joins route through Steam game-server networking. The QUERY probe targets the UDP 7778 query port; the join handshake requires a real-client packet capture.
 - **left-4-dead-2**: Source engine connection challenge verified but C2S_CONNECT field offsets and Steam auth ticket format are incomplete in documentation.
 - **the-isle**: Unreal Engine 4 network protocol variant partially documented. Stateless connect handshake requires packet capture.
 - **ark-survival-evolved**: Unreal Engine 4 custom net driver. A2S query verified but ShooterGame client login handshake requires reverse-engineering.
 - **arma-reforger**: Bohemia Interactive Enfusion engine proprietary network protocol. A2S query verified but backend authentication format is undocumented.
-- **hell-let-loose**: Unreal Engine 4 network stack. Steam query verified but join handshake and Easy Anti-Cheat integration require reverse-engineering.
 - **squad**: Unreal Engine 4 network stack. Steam A2S query verified but client connection handshake format is undocumented.
 
 ## Out of Scope by Design

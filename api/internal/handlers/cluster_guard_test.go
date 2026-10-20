@@ -13,14 +13,14 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
 
-	"github.com/ValgulNecron/gameplane/api/internal/audit"
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/notify"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
-	"github.com/ValgulNecron/gameplane/api/internal/ws"
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/notify"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
 
 // TestRejectRemoteCluster_TableDriven is the guard's core logic in
@@ -274,7 +274,6 @@ func mountHomeClientRoutes(t *testing.T, r chi.Router, home *kube.Client, reg *k
 	MountClusterActions(r, home, true, "")
 	MountClusters(r, reg, home, controlNS)
 	MountSystemLogs(r, home, controlNS)
-	MountModules(r, home, controlNS)
 	MountRegistrySecrets(r, home, controlNS)
 }
 
@@ -299,6 +298,7 @@ func TestHomeClientMounts_ServeHomeClusterOnly(t *testing.T) {
 	r := chi.NewRouter()
 	r.Use(rbac.Middleware(reg))
 	mountHomeClientRoutes(t, r, home, reg)
+	MountModulesWithRegistry(r, reg, "gameplane-system")
 	MountCluster(r, reg, newTestStore(t), "test", true, "")
 	MountRegistryWithRegistry(r, reg, fakeSet{p: &fakeProvider{}})
 	MountModIDsWithRegistry(r, reg)

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_MinecraftJavaBot_Joined is the most end-to-end test in the
@@ -45,9 +45,14 @@ import (
 func TestGameServer_MinecraftJavaBot_Joined(t *testing.T) {
 	skipUnlessGameInScope(t, "minecraft-java")
 
-	expectedDepth := joindepth.JOINED
+	runGameBotTest(t, minecraftBotSpec())
+}
 
-	runGameBotTest(t, gameBotSpec{
+// minecraftBotSpec is the trimmed vanilla Minecraft Java 1.21.4 GameServer used by
+// TestGameServer_MinecraftJavaBot_Joined. It is shared so other tests can boot the
+// same server.
+func minecraftBotSpec() gameBotSpec {
+	return gameBotSpec{
 		Game:        "minecraft-java",
 		Template:    "e2e-minecraft",
 		DisplayName: "E2E Minecraft",
@@ -81,7 +86,7 @@ func TestGameServer_MinecraftJavaBot_Joined(t *testing.T) {
 		ReadyTimeout:  10 * time.Minute,
 		ProbePort:     25565,
 		ProbeDeadline: 4 * time.Minute,
-		ExpectDepth:   expectedDepth,
+		ExpectDepth:   joindepth.JOINED,
 		ProbeArgs:     []string{"-user", "gameplane-bot"},
 		Probes: map[string]any{
 			"readiness": map[string]any{
@@ -132,5 +137,5 @@ func TestGameServer_MinecraftJavaBot_Joined(t *testing.T) {
 			Action:    "save-world",
 			ExpectRaw: "Saved the game",
 		},
-	})
+	}
 }

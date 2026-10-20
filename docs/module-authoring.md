@@ -29,7 +29,7 @@ make module-new NAME=cs2-match ARCHETYPE=steamcmd
 bin/gp-module init cs2-match \
   --archetype=steamcmd \
   --display-name="Counter-Strike 2 Match" \
-  --image="ghcr.io/valgulnecron/cs2:latest@sha256:4b9a8e23f0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7" \
+  --image="ghcr.io/gameplanepanel/cs2:latest@sha256:4b9a8e23f0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7" \
   --ports="27015/udp" \
   --categories="Shooter,Co-op"
 ```
@@ -74,7 +74,7 @@ make module-package MODULE=cs2-match OUTPUT=dist/cs2-match.tar.gz
 
 # Push OCI artifact to registry
 bin/gp-module package modules/cs2-match \
-  --registry=ghcr.io/valgulnecron/gameplane-modules \
+  --registry=ghcr.io/gameplanepanel/gameplane-modules \
   --tag=1.0.0 \
   --tag-latest
 ```
@@ -93,7 +93,7 @@ In the Gameplane web dashboard:
 
 ## Source layout
 
-The official modules live in the standalone **`gameplane-module`** repo, which
+The official modules live in the standalone **`GameplanePanel/module`** repo, which
 the main repo checks out as the `modules/` submodule. Whether you work in that
 repo directly or through the submodule, a module lives on disk as a directory:
 
@@ -106,7 +106,7 @@ modules/<name>/
 ```
 
 `modules/build.sh` and `make modules-push` are unchanged by the split — the
-submodule mounts the `gameplane-module` repo root at `modules/`, so the paths
+submodule mounts the `GameplanePanel/module` repo root at `modules/`, so the paths
 below still resolve.
 
 ### Module documentation (`specs.md`)
@@ -120,7 +120,7 @@ game-specific implementation notes (workarounds, quirks, gotchas the template
 handles). Follow the structure documented in
 `../specs/done_011-add-missing-module-specs/contracts/specs-md-structure.md`. Enforcement
 (validation that specs.md exists and conforms to the structure) lives in the
-gameplane-module repo's own CI, not in this repo's `make check-specs`.
+GameplanePanel/module repo's own CI, not in this repo's `make check-specs`.
 
 ### Editor schemas
 
@@ -194,6 +194,41 @@ A module bundle is a single OCI artifact:
 | `template.yaml`  | yes      | `application/vnd.gameplane.module.template.v1+yaml`     |
 | `README.md`      | no       | `application/vnd.gameplane.module.readme.v1+md`         |
 | `icon.png`       | no       | `image/png`                                           |
+| `locales/<tag>.json` | no   | `application/vnd.gameplane.module.locale.v1+json`       |
+
+Translations live in a `locales/` directory next to `module.yaml`. Each
+`locales/<tag>.json` (for example `fr.json` or `pt-BR.json`) maps message ids to
+`{"defaultMessage": "..."}` entries and becomes one layer titled
+`locales/<tag>.json`. Run `gp-module i18n extract` to write the English
+reference `locales/en.json` (every id with a translator description); it is
+not shipped. `gp-module validate` checks translations against it. On install
+the operator keeps the valid entries, drops invalid ones, and reports them on
+the GameTemplate as the `LocalesValid` condition and a Warning event; they never
+fail the install.
+
+Every module source carries the same files:
+
+| Source | Where `locales/<tag>.json` lives |
+| --- | --- |
+| OCI | one layer per file (title `locales/<tag>.json`) |
+| directory, local, git, HTTP archive | `locales/<tag>.json` in the module directory |
+| upload | ConfigMap key `locales.<tag>.json`; an uploaded archive may contain `locales/<tag>.json`, counted in the 900 KiB bundle limit |
+| `gp-module package --output` | the `.tar.gz` contains `locales/<tag>.json` (`en.json` excluded) |
+
+A translation file larger than 900 KiB is not read, and neither is a
+language that would take all of a bundle's translation files past 4 MiB
+together (languages count in file-name order); the install still
+succeeds and the `LocalesValid` condition shows `LocalesTooLarge` naming the
+language. The condition reasons are `Valid`, `InvalidEntries`,
+`LocalesTooLarge` and `WriteFailed`; when several apply, `WriteFailed` wins,
+then `LocalesTooLarge`, then `InvalidEntries`. Warning
+events fire only when the list of problems changes, not on every re-pull.
+
+Message ids may contain upper case letters (for example
+`config.MAX_PLAYERS.displayName`) and `~` as the reversible escapes `~0` and
+`~1`. Run `gp-module i18n stamp` after translating to record the English text
+each entry was made from (`sourceHash`); if the English text changes later,
+`gp-module validate` warns with `locale-needs-review`.
 
 Manifest:
 
@@ -224,7 +259,7 @@ Then:
 
 ```sh
 # push every bundle in modules/ to a registry
-make modules-push REGISTRY=ghcr.io/valgulnecron/gameplane-modules
+make modules-push REGISTRY=ghcr.io/gameplanepanel/gameplane-modules
 
 # push a single module to a local kind registry
 modules/build.sh push --registry localhost:5001 --name minecraft-java
@@ -235,11 +270,12 @@ Under the hood `build.sh` runs:
 ```sh
 oras push \
   --artifact-type application/vnd.gameplane.module.v1+json \
-  ghcr.io/valgulnecron/gameplane-modules/minecraft-java:1.0.0 \
+  ghcr.io/gameplanepanel/gameplane-modules/minecraft-java:1.0.0 \
   module.yaml:application/vnd.gameplane.module.metadata.v1+yaml \
   template.yaml:application/vnd.gameplane.module.template.v1+yaml \
   README.md:application/vnd.gameplane.module.readme.v1+md \
-  icon.png:image/png
+  icon.png:image/png \
+  locales/fr.json:application/vnd.gameplane.module.locale.v1+json
 ```
 
 Private registries: log in once with `oras login <registry>`. The cluster
@@ -310,7 +346,7 @@ binaryData:        # or stringData for plain YAML
 ## Installing a module
 
 Once a `ModuleSource` is configured (Helm chart ships a default one
-pointing at `ghcr.io/valgulnecron/gameplane-modules`), modules show up in the
+pointing at `ghcr.io/gameplanepanel/gameplane-modules`), modules show up in the
 **Modules** page of the dashboard. Click **Install** to create a
 `Module` resource:
 
@@ -365,7 +401,7 @@ kind: ModuleSource
 metadata: { name: trusted }
 spec:
   type: oci
-  oci: { url: ghcr.io/valgulnecron/gameplane-modules, modules: [{ name: minecraft-java }] }
+  oci: { url: ghcr.io/gameplanepanel/gameplane-modules, modules: [{ name: minecraft-java }] }
   verify:
     key: { name: cosign-pub }    # Secret in the operator namespace,
                                  # public key under data "cosign.pub"
@@ -429,7 +465,7 @@ public key ships to users:
 cosign generate-key-pair                 # writes cosign.key (private) + cosign.pub
 # CI secrets (Settings → Environments → release-signing): paste each file
 #   COSIGN_PRIVATE_KEY = <cosign.key>    COSIGN_PASSWORD = <the passphrase>
-# Commit cosign.pub at the repo root — CI drift-checks it against the
+# Commit cosign.pub as signing/cosign.pub — CI drift-checks it against the
 # private key on every publish, and it ships as a release asset.
 ```
 
@@ -453,7 +489,7 @@ defaultModuleSource:
     verify:
       enabled: true
       # cosignPublicKey ships with the chart (the official ECDSA P-256 key,
-      # same as the repo-root cosign.pub);
+      # same as signing/cosign.pub);
       # override it only to pin a different signer.
 ```
 
@@ -483,7 +519,7 @@ wizard-managed server-settings.json, portal registry), **palworld**
 catalog also includes 7-days-to-die, ark-survival-ascended,
 ark-survival-evolved, arma-reforger, beammp, cs2, dayz, dont-starve-together,
 enshrouded, euro-truck-simulator-2, farming-simulator-25, fivem, garrys-mod,
-hell-let-loose, left-4-dead-2, mount-and-blade-2-bannerlord, nuclear-option,
+left-4-dead-2, mount-and-blade-2-bannerlord, nuclear-option,
 project-zomboid, rust, satisfactory, squad, team-fortress-2, the-isle,
 tmodloader, and v-rising (see [Game Coverage](game-coverage.md) for full protocol and testing status).
 
@@ -615,7 +651,7 @@ index digest covering every published platform, so a pinned module still runs
 on both amd64 and arm64.
 
 Because pinning stops upstream releases from arriving on their own, the
-`gameplane-module` repo runs `refresh-pins.yml` monthly to re-resolve every
+`GameplanePanel/module` repo runs `refresh-pins.yml` monthly to re-resolve every
 pin and open a PR. It never auto-merges: each changed digest is a game binary
 that changes for every server on its next restart, which is exactly the event
 worth a human's attention.
@@ -1001,6 +1037,14 @@ Secret) > `passwordFile` (game-managed) > operator-generated Secret (default).
 | operator-generated (default) | Operator controls the password | Yes (auto-created) | Via `passwordEnv` | Minecraft with `RCON_PASSWORD` |
 | `passwordSecretRef` | Use external credentials | Yes (external) | Via `passwordEnv` | Any game with your own Secret |
 | `passwordFile` | Game manages the password | No | No | Factorio with `config/rconpw` |
+
+`authentication` (default `true`) says whether the console requires a password at
+all. Set `authentication: false` for a console with no authentication, such as
+Nuclear Option's loopback-only remote-command port: the operator then mints no
+password Secret, mounts nothing for the agent, and injects no password env var.
+It cannot be combined with `passwordSecretRef`, `passwordEnv` or `passwordFile`
+(the API rejects the combination). Modules that relied on the old implicit
+no-password behaviour for `protocol: nuclearoption` must now set it explicitly.
 
 For games without usable RCON set `protocol: none`. Real cases from the
 official modules:

@@ -35,7 +35,7 @@ func TestTail_OpenError(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(path, 0o600); _ = os.Remove(path) })
 
-	url := mountServer(t, path)
+	url := mountServer(t, dir, path)
 	wsURL := "ws" + strings.TrimPrefix(url, "http") + "/logs/tail"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -71,7 +71,7 @@ func TestTail_NonWebSocketRequestRejected(t *testing.T) {
 	if err := os.WriteFile(path, []byte("line\n"), 0o600); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	url := mountServer(t, path)
+	url := mountServer(t, dir, path)
 
 	resp, err := testGet(t, url+"/logs/tail")
 	if err != nil {
@@ -110,7 +110,7 @@ func TestStreamFile_CtxCanceledImmediately(t *testing.T) {
 	}
 	defer cli.Close(websocket.StatusNormalClosure, "")
 
-	if err := streamFile(ctx, cli, path, false, 0); !errors.Is(err, context.Canceled) {
+	if err := streamFile(ctx, cli, testSource(t, dir, path), false, 0); !errors.Is(err, context.Canceled) {
 		t.Fatalf("got %v want %v", err, context.Canceled)
 	}
 }

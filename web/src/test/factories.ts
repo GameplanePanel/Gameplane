@@ -17,6 +17,7 @@ import type {
   CatalogEntry,
   Module,
   ModuleSource,
+  PlayerEntry,
   PlayersResp,
   Restore,
   NetworkCapture,
@@ -108,7 +109,7 @@ export function makeTemplate(over: TemplateOverride = {}): GameTemplate {
       displayName: "Minecraft (Vanilla)",
       game: "minecraft",
       version: "1.21",
-      image: "ghcr.io/valgulnecron/gameplane/minecraft:1.21",
+      image: "ghcr.io/gameplanepanel/gameplane/minecraft:1.21",
       consoleMode: "rcon",
       rcon: { protocol: "source" },
       logPath: "/data/logs/latest.log",
@@ -252,7 +253,7 @@ export function makeModuleSource(over: Partial<ModuleSource> = {}): ModuleSource
     spec: {
       type: "oci",
       oci: {
-        url: "ghcr.io/valgulnecron/gameplane/modules",
+        url: "ghcr.io/gameplanepanel/gameplane/modules",
         modules: [{ name: "minecraft-vanilla" }],
       },
     },
@@ -268,6 +269,15 @@ export function makePlayers(over: Partial<PlayersResp> = {}): PlayersResp {
     players: ["alice", "bob"],
     asOf: "2026-05-07T12:00:00Z",
     capabilities: { kick: true, ban: true, unban: true, whitelist: true },
+    ...over,
+  };
+}
+
+export function makePlayerEntry(over: Partial<PlayerEntry> = {}): PlayerEntry {
+  return {
+    steamId: "76561198000000001",
+    faction: "Boscali",
+    displayName: "Pilot_Vance",
     ...over,
   };
 }
@@ -302,7 +312,7 @@ export function makeConfig(over: Partial<AllConfig> = {}): AllConfig {
     },
     auth: { providers: [{ name: "local", kind: "local", enabled: true }] },
     notifications: { sinks: [] },
-    telemetry: { sendMetrics: false },
+    telemetry: { sendMetrics: false, extended: false },
     ...over,
   };
 }

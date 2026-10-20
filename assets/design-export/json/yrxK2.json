@@ -1,0 +1,575 @@
+{
+  "type": "frame",
+  "id": "yrxK2",
+  "x": 9840,
+  "y": 87233,
+  "name": "Screen/Admin Settings — Telemetry (Reset ID confirm)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1031,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "SyZg9",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB": {
+          "fill": "$accent/soft"
+        },
+        "ya5KB/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "ya5KB/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "qv0OX",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "h84EC",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Settings"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "GcIdA",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "b1lOS",
+              "type": "ref",
+              "ref": "xCDF7",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Admin settings"
+                },
+                "VbHwU": {
+                  "content": "Platform-wide configuration for this Gameplane instance."
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "Ibs1J",
+              "name": "Settings Layout",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "MNnEE",
+                  "type": "ref",
+                  "ref": "Mp7Ep",
+                  "name": "Settings Nav",
+                  "width": 220,
+                  "descendants": {
+                    "eIjoV": {
+                      "fill": "#00000000"
+                    },
+                    "XuGUZ": {
+                      "fill": "$muted"
+                    },
+                    "DpMnt": {
+                      "fill": "$muted"
+                    },
+                    "ZPLSA": {
+                      "fill": "$surface/secondary"
+                    },
+                    "w6pwjZ": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "gAe7m": {
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "id": "vGL2p",
+                  "type": "ref",
+                  "ref": "XDZ0E",
+                  "name": "Settings Panel",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "Mtz0y",
+                      "type": "ref",
+                      "ref": "FRpsu",
+                      "name": "Card Header",
+                      "descendants": {
+                        "fuZHB": {
+                          "content": "Telemetry"
+                        },
+                        "BZG9o": {
+                          "content": "Anonymous usage metrics help us prioritize work."
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VTiD2",
+                      "name": "Card Content",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ORKLU",
+                          "name": "destinationRow",
+                          "width": "fill_container",
+                          "fill": "$surface/secondary",
+                          "cornerRadius": 8,
+                          "gap": 12,
+                          "padding": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "HbRz7",
+                              "name": "destIcon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "globe",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$accent/soft-foreground"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "wHkVS",
+                              "name": "destText",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "zBl0v",
+                                  "name": "destTitle",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Sending to telemetry.gameplane.net",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "e4DXS",
+                                  "name": "destDetail",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "The Gameplane project's telemetry service.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "nJfig",
+                              "type": "ref",
+                              "ref": "kGH2O",
+                              "name": "destChip",
+                              "descendants": {
+                                "O1PqF5": {
+                                  "content": "Project default"
+                                }
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "id": "dpfwv",
+                              "name": "destStatement",
+                              "fill": "$foreground/link",
+                              "content": "Data-handling statement",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "s3NIhS",
+                          "name": "telemetryRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "go2el",
+                              "name": "labelCol",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "whKB6",
+                                  "name": "Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Send basic usage metrics",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "EGc8u",
+                                  "name": "Description",
+                                  "fill": "$muted",
+                                  "content": "Gameplane version, number of servers and number of templates.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "ZbFLM",
+                              "type": "ref",
+                              "ref": "hl7R3",
+                              "name": "basicSwitch"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PBYzs",
+                          "name": "extendedRow",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "sCZf3",
+                              "name": "extRowInner",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Mfuhy",
+                                  "name": "extLabelCol",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "aWWNb",
+                                      "name": "extLabel",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Send extended usage metrics",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "UMdYk",
+                                      "name": "extDescription",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Adds Kubernetes version, distribution, CPU architecture, node-count band, servers per official game module, which optional features are in use, and a random install ID.",
+                                      "lineHeight": 1.5,
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "tOUx0",
+                                  "type": "ref",
+                                  "ref": "hl7R3",
+                                  "name": "extendedSwitch"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CVSFy",
+                          "name": "installIdRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            24
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "H3mIM",
+                              "name": "installIdCol",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "zYBBg",
+                                  "name": "installIdLabel",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Install ID",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "T8oP2F",
+                                  "name": "installIdValue",
+                                  "fill": "$foreground/foreground",
+                                  "content": "3f1c2a9e-8b4d-4e57-9a61-0c2d7e5b9f10",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "bjBd7",
+                                  "name": "installIdHelp",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Random and anonymous. Reset it to start reporting under a new ID; the old ID is never sent again.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "iAK13",
+                              "type": "ref",
+                              "ref": "d5N3W3",
+                              "name": "resetIdBtn",
+                              "descendants": {
+                                "X3iEI": {
+                                  "enabled": false
+                                },
+                                "i3zB62/zMNkR": {
+                                  "content": "Reset ID"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "qfypH",
+                          "name": "previewBlock",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "c4Gkg",
+                              "name": "previewLabel",
+                              "fill": "$foreground/foreground",
+                              "content": "Next report preview",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "UWltB",
+                              "name": "previewHelp",
+                              "fill": "$muted",
+                              "content": "Exactly what the next report contains. Read-only.",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "DW45f",
+                              "name": "previewCode",
+                              "width": "fill_container",
+                              "fill": "$surface/secondary",
+                              "cornerRadius": 8,
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "layout": "vertical",
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "OxLcj",
+                                  "name": "previewJson",
+                                  "fill": "$foreground/foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "{\n  \"version\": \"0.3.0\",\n  \"servers\": 3,\n  \"templates\": 7,\n  \"ext\": {\n    \"schema\": 1,\n    \"installId\": \"3f1c2a9e-8b4d-4e57-9a61-0c2d7e5b9f10\",\n    \"env\": { \"k8s\": \"1.31\", \"distro\": \"k3s\", \"arch\": [\"amd64\"], \"nodes\": \"1\" },\n    \"games\": { \"official\": { \"minecraft-java\": 2, \"terraria\": 1 }, \"custom\": 0 },\n    \"features\": {\n      \"wakeOnConnect\": true, \"tunnels\": [\"playit\"], \"capture\": false,\n      \"backups\": true, \"sso\": false, \"auditForwarding\": false,\n      \"clusters\": \"1\", \"db\": \"sqlite\", \"language\": \"en\"\n    },\n    \"key\": \"pV0mY3Qn8wK2b7cXlR4sTt9uJ1eHaZ6dFgQmNoP5rSk\",\n    \"sentAt\": \"2026-10-06T09:12:44Z\"\n  }\n}",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "FpkUc",
+                          "name": "statusRow",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "Hb6X1",
+                              "name": "statusIcon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "circle-check",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$success/soft-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "oIV6b",
+                              "name": "statusText",
+                              "fill": "$foreground/foreground",
+                              "content": "Last report sent successfully on Oct 6, 2026, 09:12 UTC.",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qIBwu",
+                      "name": "Card Actions",
+                      "width": "fill_container",
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "K2cB7L",
+                          "type": "ref",
+                          "ref": "tpKRk",
+                          "name": "Btn Save Changes",
+                          "descendants": {
+                            "q58In/Xpn7K": {
+                              "enabled": false
+                            },
+                            "q58In/U6q13B": {
+                              "content": "Save changes"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "PWcdt",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 0,
+      "name": "resetScrim",
+      "width": 1440,
+      "height": 1031,
+      "fill": "#00000066",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "g69jZL",
+          "type": "ref",
+          "ref": "TzRet",
+          "name": "Reset ID confirm",
+          "descendants": {
+            "ocSbw": {
+              "content": "Reset install ID?"
+            },
+            "rs23G": {
+              "content": "This replaces your random install ID 3f1c2a9e-8b4d-4e57-9a61-0c2d7e5b9f10 with a new one. The old ID is never sent again, and the destination cannot link the old and new IDs. The next report is sent under the new ID."
+            },
+            "RAlJp": {
+              "content": "Cancel"
+            },
+            "i56eAy": {
+              "content": "Reset ID"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

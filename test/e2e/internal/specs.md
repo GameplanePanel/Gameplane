@@ -215,8 +215,8 @@ package main
 
 import (
     "context"
-    "github.com/ValgulNecron/gameplane/test/e2e/internal/probe"
-    "github.com/ValgulNecron/gameplane/test/e2e/internal/minecraft-java/minecraftproto"
+    "github.com/GameplanePanel/gameplane/test/e2e/internal/probe"
+    "github.com/GameplanePanel/gameplane/test/e2e/internal/minecraft-java/minecraftproto"
 )
 
 func main() {
@@ -239,7 +239,7 @@ func main() {
 
 1. **Depth is a measured outcome, not a planning input.** The `ExpectDepth` in `GameProbe` is not a guess or a target — it is the *exact depth the real server reaches*, measured via a previous probe run against a known-good server. If a game's depth shifts (credential gate moves, protocol access lost), the test must fail to alert the maintainer that something changed.
 
-2. **Probe binaries import stdlib only.** The Dockerfile builds with `GOWORK=off` against `test/e2e/go.mod`. Any import of `k8s.io/*`, `github.com/ValgulNecron/gameplane/operator`, or external modules not in `test/e2e/go.mod` will compile fine locally and fail silently at docker-build time. Shared protocol families and the `probe` package itself live in `test/e2e/internal/` (OK); everything else must be stdlib.
+2. **Probe binaries import stdlib only.** The Dockerfile builds with `GOWORK=off` against `test/e2e/go.mod`. Any import of `k8s.io/*`, `github.com/GameplanePanel/gameplane/operator`, or external modules not in `test/e2e/go.mod` will compile fine locally and fail silently at docker-build time. Shared protocol families and the `probe` package itself live in `test/e2e/internal/` (OK); everything else must be stdlib.
 
 3. **The probe is the single source of truth for join depth.** A game's `spec.md` documents the depth and cites the protocol reference (e.g., "Minecraft protocol § Login, § Encryption Request"). Tests read `ExpectDepth` from `spec.md`; `spec.md` is *not* a guess but a summary of what the probe actually measured against a reference server.
 
@@ -305,7 +305,7 @@ The `buckets.sh verify` step fails CI if any test is unbucketed or double-bucket
 ### Per-game depth table
 
 The canonical, up-to-date per-game join-protocol coverage table — covering
-all 29 probe packages under `internal/` (30 modules including
+all 28 probe packages under `internal/` (29 modules including
 `nuclear-option`, which has no probe package yet) — lives in
 [`docs/game-coverage.md`](../../../docs/game-coverage.md). It lists each
 module's transport, status, depth, test name, bucket, last-verified date and

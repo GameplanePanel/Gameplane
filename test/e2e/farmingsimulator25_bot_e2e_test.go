@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_FarmingSimulator25Bot_Query boots a Farming Simulator 25 dedicated server
@@ -25,7 +25,7 @@ func TestGameServer_FarmingSimulator25Bot_Query(t *testing.T) {
 		Game:        "farming-simulator-25",
 		Template:    fmt.Sprintf("e2e-fs25-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E Farming Simulator 25",
-		Image:       "ghcr.io/valgulnecron/gameplane/farming-simulator-25:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/farming-simulator-25:latest@sha256:a19a825612a2a77b5a27224bcd4c3362e604ec4b962d4f77e1cbb22c71f2773f",
 		Env: map[string]string{
 			"ADMIN_PASSWORD": "adminpassword",
 			"SERVER_NAME":    "Gameplane E2E FS25",

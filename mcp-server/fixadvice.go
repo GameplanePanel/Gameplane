@@ -12,7 +12,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/mcp-server/internal/kube"
+	"github.com/GameplanePanel/gameplane/mcp-server/internal/kube"
 )
 
 // fixRule matches a propose_fix symptom against a set of keywords and

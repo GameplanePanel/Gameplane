@@ -18,7 +18,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // There is no Job controller in envtest, so these tests drive the forget Job to

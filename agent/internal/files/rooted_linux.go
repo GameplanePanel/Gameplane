@@ -355,15 +355,40 @@ func createTemp(dirFD int, prefix string) (*os.File, string, error) {
 	return nil, "", fmt.Errorf("create temp file: %w", unix.EEXIST)
 }
 
-// storeFile writes name inside dirFD atomically: fill streams the content
-// into a temp file created in dirFD, which is chmodded, fsynced and renamed
-// over name with renameat in the same directory. On any failure only the temp
-// file is removed; an existing name is left untouched. renameat replaces a
-// symlink that appears at name in the meantime instead of following it.
-func (h *handler) storeFile(dirFD int, parents []string, name, prefix string, fill func(io.Writer) error) error {
-	access, err := h.destAccess(dirFD, parents, name)
-	if err != nil {
-		return err
+type storeMode uint8
+
+const (
+	storeReplace storeMode = iota
+	storeCreate
+)
+
+// storeFile fills, applies access metadata, syncs and closes a temporary file
+// in dirFD before committing it. Create uses RENAME_NOREPLACE to atomically
+// refuse any existing entry, including a symlink or concurrent creator.
+// Replace keeps the existing access-preserving renameat behavior. Failures
+// remove only the temporary entry; no unsupported no-replace fallback exists.
+func (h *handler) storeFile(dirFD int, parents []string, name, prefix string, mode storeMode, fill func(io.Writer) error) error {
+	var access fileAccess
+	var err error
+	if mode == storeCreate {
+		// This probe avoids copying a body for an existing name. It never
+		// opens the entry or inspects a symlink target; the commit syscall,
+		// rather than this probe, enforces absence against concurrent writes.
+		h.fire("stat", parents, name)
+		var st unix.Stat_t
+		err = unix.Fstatat(dirFD, name, &st, unix.AT_SYMLINK_NOFOLLOW)
+		if err == nil {
+			return errFileExists
+		}
+		if !errors.Is(err, unix.ENOENT) {
+			return err
+		}
+		// The empty access policy applies 0644 and removes inherited access ACLs.
+	} else {
+		access, err = h.destAccess(dirFD, parents, name)
+		if err != nil {
+			return err
+		}
 	}
 	tmp, tmpName, err := createTemp(dirFD, prefix)
 	if err != nil {
@@ -392,6 +417,15 @@ func (h *handler) storeFile(dirFD int, parents []string, name, prefix string, fi
 		return abort(fmt.Errorf("close %q: %w", name, err))
 	}
 	h.fire("commit", parents, name)
+	if mode == storeCreate {
+		if err = unix.Renameat2(dirFD, tmpName, dirFD, name, unix.RENAME_NOREPLACE); err != nil {
+			if errors.Is(err, unix.EEXIST) {
+				return abort(errFileExists)
+			}
+			return abort(fmt.Errorf("create %q: %w", name, err))
+		}
+		return nil
+	}
 	if !access.unchanged(dirFD, name) {
 		return abort(fmt.Errorf("%w: destination changed during upload", errPreserveAccess))
 	}
@@ -403,7 +437,7 @@ func (h *handler) storeFile(dirFD int, parents []string, name, prefix string, fi
 
 // storeIn opens the directory comps (creating missing ancestors when create is
 // set) and stores name in it atomically via storeFile.
-func (h *handler) storeIn(comps []string, name, prefix string, create bool, fill func(io.Writer) error) error {
+func (h *handler) storeIn(comps []string, name, prefix string, create bool, mode storeMode, fill func(io.Writer) error) error {
 	rootFD, err := openRoot(h.root)
 	if err != nil {
 		return err
@@ -414,7 +448,7 @@ func (h *handler) storeIn(comps []string, name, prefix string, create bool, fill
 		return err
 	}
 	defer closeFD(dirFD)
-	return h.storeFile(dirFD, comps, name, prefix, fill)
+	return h.storeFile(dirFD, comps, name, prefix, mode, fill)
 }
 
 // writeFile atomically writes the file comps, creating missing ancestors.
@@ -422,7 +456,15 @@ func (h *handler) writeFile(comps []string, fill func(io.Writer) error) error {
 	if len(comps) == 0 {
 		return fmt.Errorf("write root: %w", unix.EISDIR)
 	}
-	return h.storeIn(parentsOf(comps), comps[len(comps)-1], ".write-", true, fill)
+	return h.storeIn(parentsOf(comps), comps[len(comps)-1], ".write-", true, storeReplace, fill)
+}
+
+// createFile atomically creates the file comps, refusing any existing entry.
+func (h *handler) createFile(comps []string, fill func(io.Writer) error) error {
+	if len(comps) == 0 {
+		return errFileExists
+	}
+	return h.storeIn(parentsOf(comps), comps[len(comps)-1], ".create-", true, storeCreate, fill)
 }
 
 // removeEntry removes the single entry name in dirFD like os.Remove: unlink,

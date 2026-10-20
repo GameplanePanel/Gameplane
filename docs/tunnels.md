@@ -490,7 +490,7 @@ changes.
 - **Tunnel images are signed.** The tunnel relay clients (frp, Tailscale,
   playit) run as container images published and cosign-signed alongside other
   Gameplane images. Verify them the same way: with `cosign verify --key
-  cosign.pub`.
+  signing/cosign.pub`.
 - **Relay trust model.** When you route traffic through a relay, you are
   trusting the relay operator (whether it's your own frps VPS, Tailscale Inc.,
   or playit.gg) not to inspect or modify player connections. For production

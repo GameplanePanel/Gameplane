@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/rcon"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 // fakeErrRcon always fails Exec with a plain (non-ErrDisabled) error, to

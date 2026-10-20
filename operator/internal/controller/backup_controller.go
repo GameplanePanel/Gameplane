@@ -25,8 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/recorder"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
-	"github.com/ValgulNecron/gameplane/operator/internal/agent"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/agent"
 )
 
 // Annotations the BackupReconciler maintains on each Backup to track

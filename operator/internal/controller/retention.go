@@ -8,17 +8,20 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // trimBackups enforces the schedule's retention policy by deleting
 // Backups that fall outside all keep-* buckets. Backup objects still
-// in-flight (Phase != Succeeded) are never deleted.
+// in-flight (Phase != Succeeded) are never deleted. Without a positive
+// keep rule, retention is disabled.
 func (r *BackupScheduleReconciler) trimBackups(
 	ctx context.Context, sched *gameplanev1alpha1.BackupSchedule,
 ) error {
 	ret := sched.Spec.Retention
-	if ret == nil {
+	if ret == nil || (ret.KeepLast <= 0 && ret.KeepHourly <= 0 &&
+		ret.KeepDaily <= 0 && ret.KeepWeekly <= 0 &&
+		ret.KeepMonthly <= 0 && ret.KeepYearly <= 0) {
 		return nil
 	}
 

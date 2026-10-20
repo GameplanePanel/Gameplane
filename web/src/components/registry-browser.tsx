@@ -17,16 +17,24 @@ import {
 
 import type { RegistryProject } from "@/types";
 import { useResourceTarget, useResourceClient, resourceKey } from "@/lib/resourceTarget";
-import { errorText } from "@/lib/errors";
+import { errorTextIntl } from "@/lib/errors";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
 
 const PAGE = 24;
 
 export type RegistrySort = "downloads" | "updated" | "newest";
 
-const SORTS: { value: RegistrySort; label: string }[] = [
-  { value: "downloads", label: "Downloads" },
-  { value: "updated", label: "Recently updated" },
-  { value: "newest", label: "Newest" },
+const SORT_LABELS = defineMessages({
+  downloads: { id: "web.components.registry_browser.sort_downloads", defaultMessage: "Downloads", description: "Registry browser: sort option that orders results by download count" },
+  updated: { id: "web.components.registry_browser.sort_updated", defaultMessage: "Recently updated", description: "Registry browser: sort option that orders results by last update" },
+  newest: { id: "web.components.registry_browser.sort_newest", defaultMessage: "Newest", description: "Registry browser: sort option that orders results by release date" },
+});
+
+const SORTS: { value: RegistrySort; label: MessageDescriptor }[] = [
+  { value: "downloads", label: SORT_LABELS.downloads },
+  { value: "updated", label: SORT_LABELS.updated },
+  { value: "newest", label: SORT_LABELS.newest },
 ];
 
 // Display labels for the provider switch.
@@ -80,6 +88,7 @@ export function RegistryBrowser({
   renderItem: (project: RegistryProject, provider: string) => ReactNode;
   pillButtons?: boolean;
 }) {
+  const intl = useOptionalIntl();
   const target = useResourceTarget({ name, namespace: ns });
   const client = useResourceClient(target);
   const [term, setTerm] = useState("");
@@ -139,7 +148,7 @@ export function RegistryBrowser({
 
   // No usable provider (none declared, or all need config like a CurseForge key).
   if (!providersQ.isLoading && available.length === 0) {
-    return <p className="text-xs text-muted">In-app browse isn’t available for this server.</p>;
+    return <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.in_app_browse_isn_t_available_for_this", defaultMessage: "In-app browse isn’t available for this server.", description: "Registry browser: message shown instead of the results when no usable registry provider exists for this server, so in-app browsing is unavailable" })}</p>;
   }
 
   return (
@@ -148,7 +157,7 @@ export function RegistryBrowser({
         <Tabs
           selectedKey={provider}
           onSelectionChange={(key) => setPicked(key as string)}
-          aria-label={type === "modpack" ? "Modpack registry" : "Mod registry"}
+          aria-label={type === "modpack" ? intl.formatMessage({ id: "web.components.registry_browser.modpack_registry_aria", defaultMessage: "Modpack registry", description: "Registry browser: aria-label for the modpack registry" }) : intl.formatMessage({ id: "web.components.registry_browser.mod_registry_aria", defaultMessage: "Mod registry", description: "Registry browser: aria-label for the mod registry" })}
         >
           <Tabs.List className="w-fit">
             {available.map((p) => (
@@ -164,7 +173,7 @@ export function RegistryBrowser({
         <Input
           autoFocus
           className="flex-1"
-          placeholder={type === "modpack" ? "Search modpacks…" : "Search mods…"}
+          placeholder={type === "modpack" ? intl.formatMessage({ id: "web.components.registry_browser.search_modpacks", defaultMessage: "Search modpacks…", description: "Registry browser: search field placeholder for modpacks" }) : intl.formatMessage({ id: "web.components.registry_browser.search_mods", defaultMessage: "Search mods…", description: "Registry browser: search field placeholder for mods" })}
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           spellCheck={false}
@@ -173,7 +182,7 @@ export function RegistryBrowser({
           selectedKey={sort}
           onSelectionChange={(key) => setSort(key as RegistrySort)}
           isDisabled={!!debounced}
-          aria-label={debounced ? "Sort (disabled, sorted by relevance while searching)" : "Sort"}
+          aria-label={debounced ? intl.formatMessage({ id: "web.components.registry_browser.sort_disabled_aria", defaultMessage: "Sort (disabled, sorted by relevance while searching)", description: "Registry browser: aria-label of the sort control while it is disabled during search" }) : intl.formatMessage({ id: "web.components.registry_browser.sort_aria", defaultMessage: "Sort", description: "Registry browser: aria-label of the sort control" })}
           className="w-[220px]"
         >
           <SelectTrigger>
@@ -185,9 +194,7 @@ export function RegistryBrowser({
               items={SORTS}
             >
               {(s) => (
-                <ListBoxItem key={s.value} id={s.value} textValue={`Sort: ${s.label}`}>
-                  Sort: {s.label}
-                </ListBoxItem>
+                <ListBoxItem key={s.value} id={s.value} textValue={intl.formatMessage({ id: "web.components.registry_browser.sort_label", defaultMessage: "Sort: {label}", description: "Registry browser: sort option text, {label} is the sort option name" }, { label: intl.formatMessage(s.label) })}>{intl.formatMessage({ id: "web.components.registry_browser.sort_label", defaultMessage: "Sort: {label}", description: "Registry browser: sort option text, {label} is the sort option name" }, { label: intl.formatMessage(s.label) })}</ListBoxItem>
               )}
             </ListBox>
           </SelectPopover>
@@ -196,7 +203,7 @@ export function RegistryBrowser({
 
       {showChips && (
         <div className="flex flex-wrap gap-2 modpack-categories">
-          {[{ value: "", label: "All" }, ...(categories ?? [])].map((c) => {
+          {[{ value: "", label: intl.formatMessage({ id: "web.components.registry_browser.all_categories", defaultMessage: "All", description: "Registry browser: category chip that clears the category filter" }) }, ...(categories ?? [])].map((c) => {
             const active = category === c.value;
             if (!chipsInteractive) {
               return (
@@ -206,7 +213,7 @@ export function RegistryBrowser({
                   variant="soft"
                   aria-disabled="true"
                   className="cursor-not-allowed rounded-full opacity-50"
-                  title={`Category filtering isn't available for ${providerLabel(provider ?? "")}.`}
+                  title={intl.formatMessage({ id: "web.components.registry_browser.category_unavailable", defaultMessage: "Category filtering isn't available for {provider}.", description: "Registry browser: tooltip when a provider has no category filter; {provider} is the provider label" }, { provider: providerLabel(provider ?? "") })}
                 >
                   {c.label}
                 </Chip>
@@ -244,11 +251,11 @@ export function RegistryBrowser({
 
       <div className="min-h-0 flex-1 overflow-auto">
         {q.isLoading || providersQ.isLoading ? (
-          <p className="text-xs text-muted">Loading…</p>
+          <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.loading", defaultMessage: "Loading…", description: "Registry browser: loading text shown while registry results are being fetched" })}</p>
         ) : q.isError ? (
-          <p className="text-xs text-danger">{errText(q.error)}</p>
+          <p className="text-xs text-danger">{errText(q.error, intl)}</p>
         ) : items.length === 0 ? (
-          <p className="text-xs text-muted">No results.</p>
+          <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.no_results", defaultMessage: "No results.", description: "Registry browser: empty-state text shown when the registry search returns nothing" })}</p>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -264,7 +271,7 @@ export function RegistryBrowser({
                 onPress={() => void q.fetchNextPage()}
                 isDisabled={!q.hasNextPage || q.isFetchingNextPage || q.isPlaceholderData}
               >
-                {q.isFetchingNextPage ? "Loading…" : "Load more"}
+                {q.isFetchingNextPage ? intl.formatMessage({ id: "web.components.registry_browser.load_more_loading", defaultMessage: "Loading…", description: "Registry browser: load-more button label while the next page loads" }) : intl.formatMessage({ id: "web.components.registry_browser.load_more", defaultMessage: "Load more", description: "Registry browser: button label to load the next page of results" })}
               </Button>
             </div>
           </>
@@ -274,8 +281,8 @@ export function RegistryBrowser({
   );
 }
 
-function errText(err: unknown): string {
-  return errorText(err, "request failed");
+function errText(err: unknown, intl: IntlShape): string {
+  return errorTextIntl(intl, err, intl.formatMessage({ id: "web.components.registry_browser.request_failed", defaultMessage: "request failed", description: "Registry browser: fallback error text when a registry request fails without a server message" }));
 }
 
 // compactNum formats large download counts (e.g. 1.2M).

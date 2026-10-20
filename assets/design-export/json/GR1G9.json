@@ -1,0 +1,184 @@
+{
+  "type": "frame",
+  "id": "GR1G9",
+  "x": 6560,
+  "y": 12822,
+  "name": "Screen/Dashboard Home — Telemetry notice (bundled)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1380,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "O7GOL",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container"
+    },
+    {
+      "type": "frame",
+      "id": "q8Uej",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "F9uobE",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gb27k": {
+              "fontFamily": "$typography/font-sans"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "RrWXd",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "children": [
+            {
+              "id": "rj03O",
+              "type": "ref",
+              "ref": "lh8p8",
+              "name": "Telemetry Notice",
+              "width": "fill_container",
+              "descendants": {
+                "dzZwq": {
+                  "content": "gameplane-telemetry-receiver.gameplane.svc",
+                  "name": "host (SAMPLE)"
+                },
+                "jCJTc": {
+                  "content": ", the receiver bundled with this install. Reports stay inside your cluster."
+                }
+              }
+            },
+            {
+              "id": "VyEYQ",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "VbHwU": {
+                  "content": "Your game servers and resources across authorized locations."
+                },
+                "TgdLz": {
+                  "children": [
+                    {
+                      "id": "bI3je",
+                      "type": "ref",
+                      "ref": "tpKRk",
+                      "name": "Create Server Button",
+                      "descendants": {
+                        "q58In/Xpn7K": {
+                          "library": "lucide",
+                          "icon": "plus"
+                        },
+                        "q58In/U6q13B": {
+                          "content": "Create server"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "Dc5TC",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Dashboard location filter",
+              "width": 240,
+              "context": "Optional location filter; All locations combines authorized inventory.",
+              "descendants": {
+                "cFsFk": {
+                  "content": "All locations",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            },
+            {
+              "id": "A5HcX",
+              "type": "ref",
+              "ref": "YF85x",
+              "name": "Stats Row",
+              "width": "fill_container",
+              "descendants": {
+                "m20CHt/QdcEm": {
+                  "fill": "#000000"
+                },
+                "pkvT2/QdcEm": {
+                  "fill": "$chart/stat"
+                },
+                "FlXsH/QdcEm": {
+                  "fill": "$chart/stat"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "Z6jyj",
+              "name": "Row2",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "qyMsC",
+                  "type": "ref",
+                  "ref": "rYAg3",
+                  "name": "Fleet Status Card",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "qEIU7",
+                  "type": "ref",
+                  "ref": "Y96CaE",
+                  "name": "Cluster Resources Card",
+                  "width": "fill_container"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sW8cJ",
+              "name": "Row3",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "yTaGo",
+                  "type": "ref",
+                  "ref": "DlNh6",
+                  "name": "Central audit activity",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "spX4E",
+                  "type": "ref",
+                  "ref": "Vl96v",
+                  "name": "Recent Backups Card",
+                  "width": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

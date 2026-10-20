@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 )
 
 // TestRun_RenderErrorReturnsBadRequest covers run's c.Render error branch:

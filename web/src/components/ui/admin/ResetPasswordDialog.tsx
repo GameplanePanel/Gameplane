@@ -13,6 +13,7 @@ import {
   Label,
   Description,
 } from "@heroui/react";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 const MIN_PASSWORD_LEN = 12;
 
@@ -42,24 +43,25 @@ export function ResetPasswordDialog({
   isLoading = false,
   disableSubmitUntilValid = false,
   apiError,
-  submitLabel = "Reset password",
+  submitLabel,
 }: ResetPasswordDialogProps) {
+  const intl = useOptionalIntl();
   const [password, setPassword] = useState("");
   const [validationError, setValidationError] = useState<string>("");
 
   const submitDisabled =
     isLoading || (disableSubmitUntilValid && password.length < MIN_PASSWORD_LEN);
 
-  const liveError = disableSubmitUntilValid && password.length > 0 && password.length < MIN_PASSWORD_LEN ? `At least ${MIN_PASSWORD_LEN} characters.` : "";
+  const liveError = disableSubmitUntilValid && password.length > 0 && password.length < MIN_PASSWORD_LEN ? intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.at_least_characters", defaultMessage: "At least {min} characters.", description: "Reset password dialog: live validation under the password field while it is shorter than the minimum; {min} is the minimum password length" }, { min: MIN_PASSWORD_LEN }) : "";
 
   const handleReset = () => {
     setValidationError("");
     if (!password.trim()) {
-      setValidationError("Password is required");
+      setValidationError(intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.password_is_required", defaultMessage: "Password is required", description: "Reset password dialog: validation error when the password is empty" }));
       return;
     }
     if (password.length < MIN_PASSWORD_LEN) {
-      setValidationError(`Must be at least ${MIN_PASSWORD_LEN} characters.`);
+      setValidationError(intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.must_be_at_least_characters", defaultMessage: "Must be at least {min} characters.", description: "Reset password dialog: validation error when the password is shorter than the minimum; {min} is the minimum password length" }, { min: MIN_PASSWORD_LEN }));
       return;
     }
     onReset?.(password);
@@ -79,20 +81,18 @@ export function ResetPasswordDialog({
         <ModalContainer>
           <ModalDialog className="w-[480px] max-w-[480px]">
             <ModalHeader>
-              <ModalHeading>Reset password for {username}</ModalHeading>
-              <Description className="text-sm leading-[21px] text-muted">They will need to sign in again with the new password.</Description>
+              <ModalHeading>{intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.reset_password_for_username", defaultMessage: "Reset password for {username}", description: "Reset password dialog: heading; {username} is the account whose password is being reset" }, { username: username })}</ModalHeading>
+              <Description className="text-sm leading-[21px] text-muted">{intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.they_will_need_to_sign_in_again_with", defaultMessage: "They will need to sign in again with the new password.", description: "Reset password dialog: explanation under the Reset password title saying the user must sign in again with the new password" })}</Description>
             </ModalHeader>
 
             <ModalBody className="gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="reset-password" className="text-xs">
-                New password
-              </Label>
+              <Label htmlFor="reset-password" className="text-xs">{intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.new_password", defaultMessage: "New password", description: "Reset password dialog: label above the new password field" })}</Label>
               <Input
                 id="reset-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={`At least ${MIN_PASSWORD_LEN} characters`}
+                placeholder={intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.password_hint", defaultMessage: "At least {min} characters", description: "Reset password dialog: password field placeholder; {min} is the minimum password length" }, { min: MIN_PASSWORD_LEN })}
                 type="password"
                 disabled={isLoading}
               />
@@ -103,9 +103,7 @@ export function ResetPasswordDialog({
           </ModalBody>
 
           <ModalFooter className="flex items-center justify-end gap-2">
-            <Button variant="ghost" size="sm" className="text-xs" onPress={handleClose} isDisabled={isLoading}>
-              Cancel
-            </Button>
+            <Button variant="ghost" size="sm" className="text-xs" onPress={handleClose} isDisabled={isLoading}>{intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.cancel", defaultMessage: "Cancel", description: "Reset password dialog: button that closes the dialog without resetting the password; keep it short" })}</Button>
             <Button
               size="sm"
               variant="primary"
@@ -113,7 +111,7 @@ export function ResetPasswordDialog({
               isDisabled={submitDisabled}
               onPress={handleReset}
             >
-              {isLoading ? "Resetting…" : submitLabel}
+              {isLoading ? intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.resetting", defaultMessage: "Resetting…", description: "Reset password dialog: submit button label while the reset is in progress" }) : (submitLabel ?? intl.formatMessage({ id: "web.components.ui.admin.reset_password_dialog.reset_password", defaultMessage: "Reset password", description: "Reset password dialog: default submit button label" }))}
             </Button>
             </ModalFooter>
           </ModalDialog>

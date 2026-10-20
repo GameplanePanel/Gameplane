@@ -22,7 +22,7 @@ LOCAL_BIN_DIR="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN_DIR"
 case ":$PATH:" in *":$LOCAL_BIN_DIR:"*) ;; *) export PATH="$LOCAL_BIN_DIR:$PATH" ;; esac
 
-# ---------- submodules (modules/ lives in the gameplane-module repo) ----------
+# ---------- submodules (modules/ lives in the GameplanePanel/module repo) ----------
 # The game-module bundles are a git submodule at modules/; init them so
 # `make modules-push` / `make dev-up` find modules/build.sh and the bundles.
 if [ -f .gitmodules ]; then
@@ -76,7 +76,7 @@ log "fetching envtest binaries for K8s 1.36.2"
 # ---------- Go module cache warmup ----------
 # Go modules from go.work. Derived from 'use' entries in go.work.
 # Keep in sync with go.work when adding/removing modules.
-for m in agent api audit-syslog-bridge capture-sidecar gameaction gameproto mcp-server netguard operator sentinel svcutil telemetry-receiver test/e2e tunnel; do
+for m in agent api audit-syslog-bridge capture-sidecar gameaction gameproto i18n mcp-server netguard operator sentinel svcutil telemetry-receiver telemetryschema test/e2e tunnel; do
 	log "go mod download ($m)"
 	( cd "$m" && go mod download )
 done

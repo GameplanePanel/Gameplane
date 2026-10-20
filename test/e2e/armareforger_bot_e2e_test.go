@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_ArmaReforgerBot_Query boots an Arma Reforger dedicated server
@@ -25,16 +25,18 @@ func TestGameServer_ArmaReforgerBot_Query(t *testing.T) {
 		Game:        "arma-reforger",
 		Template:    fmt.Sprintf("e2e-arma-reforger-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E Arma Reforger",
-		Image:       "ghcr.io/valgulnecron/gameplane/arma-reforger:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/acemod/arma-reforger:latest@sha256:beb50bcaebbc3b3124363ed1c0a5729b514493d72b3cadd52a204ade6105fecd",
 		Env: map[string]string{
-			"SERVER_NAME": "Gameplane E2E Arma Reforger",
+			"GAME_NAME":         "Gameplane E2E Arma Reforger",
+			"ARMA_PROFILE":      "/reforger/profile",
+			"ARMA_WORKSHOP_DIR": "/reforger/workshop",
 		},
 		Ports: []gamePort{
 			{Name: "game", Port: 2001, Protocol: "UDP"},
 			{Name: "query", Port: 17777, Protocol: "UDP"},
 		},
 		StorageSize: "25Gi",
-		MountPath:   "/home/steam/.local/share/ArmaReforgerServer",
+		MountPath:   "/reforger",
 		Resources: gameResources{
 			ReqCPU: "2", ReqMem: "8Gi",
 			LimCPU: "6", LimMem: "16Gi",

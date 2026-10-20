@@ -11,7 +11,7 @@
 - **Blocker Class**: —
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/terraria`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/terraria`  
 **Dependencies:** stdlib only (Go 1.25+)
 
 ## Purpose

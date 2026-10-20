@@ -13,8 +13,8 @@ import (
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	kubetesting "k8s.io/client-go/testing"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 )
 
 func TestClusterDiscovery_FiltersRegistrationsAndInventoryCapability(t *testing.T) {

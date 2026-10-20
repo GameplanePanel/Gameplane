@@ -24,8 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
-	"github.com/ValgulNecron/gameplane/operator/internal/agent"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/agent"
 )
 
 // SidecarCaptureClient abstracts the sidecar's :9091 HTTP control endpoint.

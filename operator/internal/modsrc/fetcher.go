@@ -7,8 +7,8 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
-	"github.com/ValgulNecron/gameplane/operator/internal/oci"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
 
 // Fetcher is one ModuleSource's view of its backing store. Index builds

@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 
@@ -9,12 +10,27 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
-	remoteconfig "github.com/ValgulNecron/gameplane/api/internal/kubeconfig"
+	remoteconfig "github.com/GameplanePanel/gameplane/api/internal/kubeconfig"
 )
 
 // ClusterKubeconfigLabel marks a Secret as containing a kubeconfig for a remote cluster.
 // The label must have the value "true".
 const ClusterKubeconfigLabel = "gameplane.local/cluster-kubeconfig"
+
+// A retrieval failure leaves the payload unknown; validation failures below
+// establish that the stored credentials cannot be used. Only transient reads
+// may retain a client with the same registration/credential reference.
+type credentialReadError struct{ error }
+
+func (e *credentialReadError) Unwrap() error { return e.error }
+
+func transientCredentialRead(err error) bool {
+	var readErr *credentialReadError
+	var permanent interface{ PermanentCredentialFailure() bool }
+	return errors.As(err, &readErr) &&
+		(!errors.As(err, &permanent) || !permanent.PermanentCredentialFailure()) &&
+		!apierrors.IsNotFound(err) && !apierrors.IsForbidden(err) && !apierrors.IsUnauthorized(err)
+}
 
 // ConfigFromKubeconfig parses self-contained kubeconfig bytes and returns a rest.Config.
 func ConfigFromKubeconfig(data []byte) (*rest.Config, error) {
@@ -32,9 +48,9 @@ func ClientFromSecret(ctx context.Context, home *Client, ns, name, key string) (
 	if key == "" {
 		key = "kubeconfig"
 	}
-	secret, err := home.Typed.CoreV1().Secrets(ns).Get(ctx, name, metav1.GetOptions{})
+	secret, err := home.Secrets(ns).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("get secret: %w", err)
+		return nil, &credentialReadError{fmt.Errorf("get secret: %w", err)}
 	}
 	// Verify the secret has the required label to prevent loading arbitrary secrets.
 	if secret.Labels == nil || secret.Labels[ClusterKubeconfigLabel] != "true" {
@@ -44,7 +60,16 @@ func ClientFromSecret(ctx context.Context, home *Client, ns, name, key string) (
 	if !ok {
 		return nil, fmt.Errorf("secret data missing key %q", key)
 	}
-	cfg, err := ConfigFromKubeconfig(data)
+	var cfg *rest.Config
+	if home.IsStandalone() {
+		cfg, err = ValidateStandaloneKubeconfig(data)
+		if err == nil {
+			err = home.RemoteAccess.ValidateURL(cfg.Host)
+			ApplyStandaloneRemotePolicy(cfg, home.RemoteAccess)
+		}
+	} else {
+		cfg, err = ConfigFromKubeconfig(data)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("load kubeconfig from secret: %w", err)
 	}
@@ -52,6 +77,7 @@ func ClientFromSecret(ctx context.Context, home *Client, ns, name, key string) (
 	if err != nil {
 		return nil, fmt.Errorf("create client from config: %w", err)
 	}
+	c.kubeconfigDigest = sha256.Sum256(data)
 	return c, nil
 }
 

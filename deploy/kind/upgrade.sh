@@ -33,6 +33,8 @@ REPO="$(cd "${HERE}/../.." && pwd)"
 # operator/api/agent images exist on GHCR — so this is the genuine upgrade
 # path that users take to v0.3.0.
 FROM_VERSION="${GAMEPLANE_UPGRADE_FROM:-0.2.0-beta.8}"
+# Releases up to v0.3.0 were published before the repo moved to the
+# GameplanePanel org, so they live under the original owner on GHCR.
 CHART_REF="oci://ghcr.io/valgulnecron/charts/gameplane"
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }

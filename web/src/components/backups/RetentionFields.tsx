@@ -1,4 +1,6 @@
 import { Input, Label } from "@heroui/react";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { defineMessages, type MessageDescriptor } from "react-intl";
 
 export interface RetentionForm {
   keepLast?: number;
@@ -14,17 +16,27 @@ interface Props {
   onChange: (v: RetentionForm) => void;
 }
 
+const RETENTION_LABELS = defineMessages({
+  keepLast: { id: "web.components.backups.retention_fields.keep_last", defaultMessage: "Keep last", description: "Retention field: label of the keep-last-N snapshots input" },
+  hourly: { id: "web.components.backups.retention_fields.hourly", defaultMessage: "Hourly", description: "Retention field: label of the hourly snapshot count input" },
+  daily: { id: "web.components.backups.retention_fields.daily", defaultMessage: "Daily", description: "Retention field: label of the daily snapshot count input" },
+  weekly: { id: "web.components.backups.retention_fields.weekly", defaultMessage: "Weekly", description: "Retention field: label of the weekly snapshot count input" },
+  monthly: { id: "web.components.backups.retention_fields.monthly", defaultMessage: "Monthly", description: "Retention field: label of the monthly snapshot count input" },
+  yearly: { id: "web.components.backups.retention_fields.yearly", defaultMessage: "Yearly", description: "Retention field: label of the yearly snapshot count input" },
+});
+
 export function RetentionFields({ value, onChange }: Props) {
+  const intl = useOptionalIntl();
   const buckets: Array<{
     key: keyof RetentionForm;
-    label: string;
+    label: MessageDescriptor;
   }> = [
-    { key: "keepLast", label: "Keep last" },
-    { key: "keepHourly", label: "Hourly" },
-    { key: "keepDaily", label: "Daily" },
-    { key: "keepWeekly", label: "Weekly" },
-    { key: "keepMonthly", label: "Monthly" },
-    { key: "keepYearly", label: "Yearly" },
+    { key: "keepLast", label: RETENTION_LABELS.keepLast },
+    { key: "keepHourly", label: RETENTION_LABELS.hourly },
+    { key: "keepDaily", label: RETENTION_LABELS.daily },
+    { key: "keepWeekly", label: RETENTION_LABELS.weekly },
+    { key: "keepMonthly", label: RETENTION_LABELS.monthly },
+    { key: "keepYearly", label: RETENTION_LABELS.yearly },
   ];
 
   const handleChange = (key: keyof RetentionForm, input: string) => {
@@ -40,7 +52,7 @@ export function RetentionFields({ value, onChange }: Props) {
       {buckets.map(({ key, label }) => (
         <div key={key} className="space-y-1">
           <Label htmlFor={`retention-${key}`} className="text-xs">
-            {label}
+            {intl.formatMessage(label)}
           </Label>
           <Input
             id={`retention-${key}`}
@@ -48,7 +60,7 @@ export function RetentionFields({ value, onChange }: Props) {
             min={0}
             value={value[key] ?? ""}
             onChange={(e) => handleChange(key, e.target.value)}
-            placeholder="0"
+            placeholder={intl.formatMessage({ id: "web.components.backups.retention_fields.placeholder_zero", defaultMessage: "0", description: "Retention field: placeholder example value of zero" })}
             className="h-9"
           />
         </div>

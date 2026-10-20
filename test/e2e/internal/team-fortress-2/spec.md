@@ -19,7 +19,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 ```
 
 **Status:** pre-v1; probe depth measured: **QUERY** (A2S query response received)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/team-fortress-2`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/team-fortress-2`  
 **Dependencies:** `test/e2e/internal/protocol/{a2sproto,sourceproto,joindepth}`  
 **Heavy game:** Yes (>15GB disk download)
 

@@ -1,0 +1,425 @@
+{
+  "type": "frame",
+  "id": "Y96CaE",
+  "x": 3889,
+  "y": 7617,
+  "name": "Gameplane/Cluster Resources Card",
+  "reusable": true,
+  "width": "fill_container(546)",
+  "fill": "$surface/surface",
+  "cornerRadius": "$radius/3xl",
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "effect": {
+    "type": "shadow",
+    "shadowType": "outer",
+    "color": "#0000000A",
+    "offset": {
+      "x": 0,
+      "y": 2
+    },
+    "blur": 4
+  },
+  "layout": "vertical",
+  "gap": 12,
+  "padding": 16,
+  "children": [
+    {
+      "type": "frame",
+      "id": "sI6iz",
+      "name": "Header",
+      "width": "fill_container",
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "R7J1e",
+          "name": "title",
+          "fill": "$foreground/foreground",
+          "content": "Cluster resources",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "RD2NC",
+          "name": "link",
+          "fill": "$accent/accent",
+          "content": "View cluster",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "tKRLF",
+      "name": "Content",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "RqkZo",
+          "name": "Meters",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "pzDG8",
+              "name": "CPU Meter",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "X6EUu7",
+                  "name": "CPU Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "bLSjO",
+                      "name": "CPU Label",
+                      "fill": "$muted",
+                      "content": "CPU",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Q7CVQo",
+                      "name": "CPU Pct",
+                      "fill": "$foreground/foreground",
+                      "content": "0%",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OsMde",
+                  "name": "CPU Bar",
+                  "clip": true,
+                  "width": "fill_container",
+                  "height": 6,
+                  "fill": "$default/default",
+                  "cornerRadius": 999,
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 999,
+                      "id": "nzvV9",
+                      "name": "CPU Fill",
+                      "fill": "$accent/accent",
+                      "width": 0,
+                      "height": 6
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "RP7po",
+                  "name": "CPU Sub",
+                  "fill": "$muted",
+                  "content": "0 / 12 cores",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Y8JNX",
+              "name": "Memory Meter",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "FvrMj",
+                  "name": "Memory Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w7nZJM",
+                      "name": "Memory Label",
+                      "fill": "$muted",
+                      "content": "Memory",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "eWSCY",
+                      "name": "Memory Pct",
+                      "fill": "$foreground/foreground",
+                      "content": "0%",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ZfCpq",
+                  "name": "Memory Bar",
+                  "clip": true,
+                  "width": "fill_container",
+                  "height": 6,
+                  "fill": "$default/default",
+                  "cornerRadius": 999,
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 999,
+                      "id": "f5sn4J",
+                      "name": "Memory Fill",
+                      "fill": "$accent/accent",
+                      "width": 0,
+                      "height": 6
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "SKL9U",
+                  "name": "Memory Sub",
+                  "fill": "$muted",
+                  "content": "0 B / 41 GB",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "z118i",
+              "name": "Storage Meter",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "s7GkP",
+                  "name": "Storage Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xykS3",
+                      "name": "Storage Label",
+                      "fill": "$muted",
+                      "content": "Storage",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wBz1e",
+                      "name": "Storage Pct",
+                      "fill": "$foreground/foreground",
+                      "content": "25%",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "E4qV4",
+                  "name": "Storage Bar",
+                  "clip": true,
+                  "width": "fill_container",
+                  "height": 6,
+                  "fill": "$default/default",
+                  "cornerRadius": 999,
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 999,
+                      "id": "Y7ppG",
+                      "name": "Storage Fill",
+                      "fill": "$success/success",
+                      "width": 110,
+                      "height": 6
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ChqHl",
+          "name": "Nodes Section",
+          "width": "fill_container",
+          "stroke": "$border/border",
+          "strokeWidth": {
+            "top": 1
+          },
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "avGKy",
+              "name": "nodesLabel",
+              "fill": "$muted",
+              "content": "NODES",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 10,
+              "fontWeight": "500",
+              "letterSpacing": 1
+            },
+            {
+              "type": "frame",
+              "id": "zon6q",
+              "name": "Node kubelab-control",
+              "width": "fill_container",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "u4rEE",
+                  "name": "dot",
+                  "fill": "$success/success",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "jlAs3",
+                  "name": "name",
+                  "fill": "$foreground/foreground",
+                  "content": "kubelab-control",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Y3H2rj",
+                  "name": "meta",
+                  "fill": "$muted",
+                  "content": "0 pods · cpu 0%",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "k8hwd",
+              "name": "Node kubelab-worker-1",
+              "width": "fill_container",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "v6SfXR",
+                  "name": "dot",
+                  "fill": "$success/success",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "EvMRp",
+                  "name": "name",
+                  "fill": "$foreground/foreground",
+                  "content": "kubelab-worker-1",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "u2IWp",
+                  "name": "meta",
+                  "fill": "$muted",
+                  "content": "0 pods · cpu 0%",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "wGZWK",
+              "name": "Node kubelab-worker-2",
+              "width": "fill_container",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "le32g",
+                  "name": "dot",
+                  "fill": "$success/success",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "WetSC",
+                  "name": "name",
+                  "fill": "$foreground/foreground",
+                  "content": "kubelab-worker-2",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "QzLoB",
+                  "name": "meta",
+                  "fill": "$muted",
+                  "content": "0 pods · cpu 0%",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

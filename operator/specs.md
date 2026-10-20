@@ -1,7 +1,7 @@
 # operator — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** github.com/ValgulNecron/gameplane/operator  
+**Module / package:** github.com/GameplanePanel/gameplane/operator  
 **Go version:** 1.26.0
 
 ## Purpose
@@ -11,7 +11,7 @@ The operator is a Kubernetes controller-runtime-based process that reconciles Ga
 ## Responsibilities
 
 - **GameServer lifecycle:** reconcile GameServer CRs into StatefulSets, Services, PVCs, and pod-injected agent sidecars; manage pod affinity, RCON/console integration, file I/O, and graceful stop sequences.
-- **Module installation:** pull OCI module bundles from remote or local sources, verify signatures (cosign), and materialize GameTemplate CRs; refresh source indexes periodically.
+- **Module installation:** pull OCI module bundles from remote or local sources, verify signatures (cosign), and materialize GameTemplate CRs; refresh source indexes periodically. Translation files (`locales/<tag>.json`) are carried by every module source (OCI layers, directory, git, HTTP archive, upload, `gp-module package` tarball) and validated against the ids derived from the module (`i18n/modlocale`); valid entries are written to the `<template>-locales` ConfigMap (owned by the GameTemplate, in the operator namespace) and problems surface as the GameTemplate `LocalesValid` condition (reasons `Valid`, `InvalidEntries`, `LocalesTooLarge`, `WriteFailed`) and Warning events, never as an install failure. A file over 900 KiB, or a language that would push the bundle's locale files past 4 MiB together (counted in file-name order), is not read but reported by language tag as `LocalesTooLarge`. Events fire only when the problem list changes (fingerprint annotation `gameplane.local/locales-problems`). The ConfigMap is rewritten on each apply, not recreated if deleted while the Module stays converged.
 - **Backup & restore:** coordinate application-level quiesce with agent, spawn restic backup/restore Jobs, track snapshot IDs, and enforce retention policies.
 - **Scheduled backups:** parse cron expressions, create Backup objects on schedule, apply retention rules (keep-daily, keep-hourly, etc.), and report schedule validity and retention status.
 - **Remote cluster health:** periodically probe Kubernetes clusters reachable via kubeconfig Secrets, report connectivity and API-server health.
@@ -72,7 +72,8 @@ operator/
 │   │   ├── restore_controller.go           Drives Restore → restic Job with GameServer suspend
 │   │   ├── restore_volumesnapshot.go       Snapshot recovery for restore strategy
 │   │   ├── modulesource_controller.go      Indexes module sources, refreshes catalog
-│   │   ├── module_controller.go            Pulls OCI bundle, verifies signature, creates GameTemplate
+│   │   ├── module_controller.go            Pulls OCI bundle, verifies signature, creates GameTemplate, publishes module translations
+│   │   ├── module_locales.go               Validates module translations, writes the <template>-locales ConfigMap, LocalesValid condition + events
 │   │   ├── cluster_controller.go           Health checks remote clusters via kubeconfig
 │   │   ├── networkcapture_controller.go    Drives NetworkCapture → sidecar injection + retention/expiry
 │   │   ├── agent_certs.go                  Generates per-GameServer agent mTLS certs
@@ -81,6 +82,7 @@ operator/
 │   │   ├── retention.go                    Backup retention logic (keep-daily, keep-hourly, etc.)
 │   │   ├── restic_summary.go               Parses restic JSON output from container logs
 │   │   ├── semver.go                       Semantic versioning helpers
+│   │   ├── gameserver_condition_args.go    conditionArgs derivation and localized-reason arguments (GameServer status)
 │   │   ├── helpers.go                      Utility functions shared across reconcilers
 │   │   └── *_envtest_test.go               Co-located integration tests (envtest tier)
 │   │
@@ -110,7 +112,7 @@ Nine CRD kinds under `gameplane.local/v1alpha1`:
 
 | Kind | File | Purpose |
 |------|------|---------|
-| **GameTemplate** | `gametemplate_types.go` | Reusable blueprint for a game server (image, ports, probes, RCON protocol, mod loaders, etc.). Cluster-wide catalog; instances are created via GameServer references. Status tracks in-use count. |
+| **GameTemplate** | `gametemplate_types.go` | Reusable blueprint for a game server (image, ports, probes, RCON protocol, mod loaders, etc.). Cluster-wide catalog; instances are created via GameServer references. Status tracks in-use count and the `LocalesValid` condition (module translations). |
 | **Module** | `module_types.go` | User request to pull and install a module (OCI bundle) from a ModuleSource. Creates a child GameTemplate on success; delete cascades to the template via owner reference. |
 | **ModuleSource** | `modulesource_types.go` | Registry of module bundles (OCI, git, HTTP, or local). Declares source location, refresh interval, optional credentials Secret, and optional cosign verification policy. Status lists available modules. |
 | **Cluster** | `cluster_types.go` | Metadata for a remote Kubernetes cluster (displayName, kubeconfig Secret ref). Cluster-scoped so multiple control planes can discover each other. Status tracks health (Unknown/Healthy/Unhealthy), lastCheckTime, conditions. |
@@ -156,7 +158,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
   - `gameserver_modcreds.go`: mount mod credentials Secrets.
   - `gameserver_rcon.go`: RCON port exposure, lifecycle sequences.
   - `gameserver_restart.go`: restart action, pod deletion.
-  - `gameserver_wipe.go`: data wipe sequence. Request idempotency: token-based (request token acked once Job succeeds, same token never re-runs). Wipe gate: requires spec.suspend=true (API sets this); waits for StatefulSet scaled to 0 replicas AND game pod object deleted (pod by name `<gs>-0`) before starting the destructive Job. Restart: ackWipe sets spec.suspend=false after successful Job completion to resume the server on the fresh world. Job: runs rm against the existing PVC (never deleted/recreated); carries BackoffLimit 2 and no ActiveDeadlineSeconds.
+  - `gameserver_wipe.go` / `gameserver_wipe_guard.go`: data wipe sequence. Request idempotency is token-based: the current request is acknowledged only after its Job succeeds and all live/terminating workers drain. A durable `gameplane.local/wipe-owner` guard is acquired with a resourceVersion-checked GameServer update that also sets suspend=true for pending wipes; workload creates and updates honor the live guard even after a direct start request. Before launching, the operator fences the owned StatefulSet, requires both desired and observed replica counts to be zero with observedGeneration current, and waits for game/target-mounting pods and writer Jobs to drain. Cancellation or token replacement foreground-deletes owned Jobs with UID preconditions and retains exclusion until Jobs and independently inventoried orphan/terminating worker pods disappear; a replacement then acquires the guard for its own token. Success is recorded under the guard in `gameplane.local/wipe-succeeded` before foreground cleanup, so restart during drain cannot recreate the worker. Matching success clears the guard/proof, acknowledges the token, and resumes automatically in one checked update after Job and pod cleanup. Recovery of an already-acknowledged success keeps the current power intent while fencing remaining cleanup. Failure retains suspension, the guard, the DataWipe failure condition, and the Job/logs until canceled or replaced. Restore cannot acquire the volume while a wipe guard, pending request, or attributable live worker remains, even if the request annotation was removed. Active wipe and worker-drain waits poll at most every five seconds. A retained failed Job for the current guarded request drops this extra poll only after attributable workers drain; its guard, failure status and logs remain. Owned Job and GameServer watches, the ordinary status refresh and any graceful-stop deadline still apply. The Job empties and verifies the existing PVC (never deleted/recreated), carries BackoffLimit 2 and no ActiveDeadlineSeconds, and labels both Job and worker pods with the server UID and request token.
   - `gameserver_version.go`: track/propagate game version.
   - `gameserver_node.go`: node affinity, pod anti-affinity.
   - `gameserver_status.go`: phase computation from StatefulSet/Pod state + agent heartbeat, AddressAssignment condition.
@@ -205,6 +207,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
     - Precedence when several apply: `IgnoredForExposureMode` → `InvalidAddress` → `NoAddressManagerConfigured` → direct-conflict `AddressInUse` → event-derived failure → `ServiceNotReady` → `AssignmentPending` → `Assigned`.
   - **Endpoint population:** `endpointsFromService()` populates `GameServerEndpoint.pool` only when a pool request was actually translated (outcome == Assigned and Manager supports it); never claims a pool for the ClusterIP address shown while assignment is pending, for an ignored request, or for a cluster without an address manager.
   - **status.startedAt:** while the server is Running, `status.startedAt` follows the start time of the running game container, matched by container name (`gameContainerStartedAt` in `gameserver_status.go`). Uptime therefore resets when the game container restarts inside the same pod. When that time is unavailable, `startedAt` is set once to the current time and kept. Test: `TestGameContainerStartedAt` (`gameserver_status_test.go`).
+  - **conditionArgs:** `status.conditionArgs[<ConditionType>]` carries the values interpolated into the English `message` of the condition's current reason, recomputed on every `reconcileStatus` pass by `deriveConditionArgs` (`gameserver_condition_args.go`); `setPhase`, `setTunnelCredentialRefused` and `clearTunnelCredentialRefused` maintain their own entry. The `message` is unchanged. Translation ids are `condition.<type>.<reason>` (lower-cased) and are listed in `i18n/locales/en/app.json`.
   - **TunnelReady condition:** Reports tunnel pod readiness when `spec.networking.tunnel.enabled=true` (absent when disabled). Computed in `computeTunnelConditions` (`gameserver_status.go`) each pass reconcileStatus runs, with reasons `InvalidConfig`, `DeploymentNotReady`, `PortNotMapped` (frp, unmapped advertised ports), `NoCredentials` (tailscale/playit missing `credentialsSecretRef`), `UnknownProvider`, and `Ready`. **Credential ownership:** `reconcileTunnel` refuses to mount a `credentialsSecretRef` Secret that has no `ownerReference` matching the GameServer's name and UID (including a stale reference from a deleted same-name GameServer) (`isServerOwnedSecret`) — supported credential paths are the dashboard, the `PUT /servers/{name}:tunnel-credentials` API (which sets the ownerReference), or a manually-created Secret with an explicit ownerReference. A refused Secret is never mounted: `reconcileTunnel` still writes the tunnel Deployment, with no credential volume and zero replicas, so a tunnel already running with that Secret stops. It also writes `TunnelReady=False/TunnelCredentialRefused` (naming the Secret, never its data) directly from `reconcileTunnel` before `Reconcile` returns its error — this bypasses the normal `reconcileStatus` pass since Reconcile returns early on that error — The condition carries its own current `observedGeneration`, but `status.observedGeneration` is not advanced on a refused pass (the rest of status is not recomputed). Once the credential becomes acceptable (or the tunnel is no longer wanted), `reconcileTunnel` removes the refusal condition itself (`clearTunnelCredentialRefused`) before returning, so it does not linger if a later step (NetworkPolicy, Service, StatefulSet) fails; reconcileStatus then writes the real TunnelReady. The refusal message points at the dashboard/API, except when the refused Secret is the canonical `<server>-tunnel-auth` name, where the API answers 409 and the message says to fix the ownerReference or delete the Secret first.
 
 ### GameTemplateReconciler
@@ -220,7 +223,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
   - VolumeSnapshot API availability is checked before quiescing. Snapshot creation errors fail the Backup and run unquiesce cleanup immediately instead of retrying creation indefinitely with saving disabled. API/creation failures persist `backup.gameplane.local/snapshot-aborted` to allow cleanup without waiting for a failed/nonrestorable capture. Failed unquiesce remains visible and retried. A transport failure can leave a CSI snapshot object despite a Failed Backup; this does not make that Backup restorable.
   - Restic Job: mount data PVC, run restic backup to configured destination (S3, B2, rest-server, local fs). Job carries BackoffLimit and ActiveDeadlineSeconds from the reconciler's JobBackoffLimit / JobActiveDeadlineSeconds fields (operator flags --backup-job-backoff-limit / --backup-job-active-deadline-seconds, Helm operator.backupJobBackoffLimit / operator.backupJobActiveDeadlineSeconds; defaults 2 and 86400, applied when unset; spec 018 OD-027); only a Failed=True Job condition (set by jobPermanentlyFailed check) marks the Backup Failed. Pod SecurityContext takes FSGroup from the target GameTemplate's spec.security.fsGroup (fallback 65532 if template missing).
   - Snapshot tracking: parse restic JSON output from container logs to extract snapshot ID.
-  - Snapshot cleanup on delete (`backup_forget.go`): restic-strategy Backups carry `BackupSnapshotFinalizer` (`gameplane.local/backup-snapshot-finalizer`, added on first reconcile, also for pre-existing non-Failed Backups; not added for volume-snapshot or Failed Backups). `finalizeDelete` runs the unquiesce stage (`BackupFinalizer`) first, then `finalizeSnapshot`: it deletes the Backup's own still-running Job (foreground, awaited), waits while a non-terminal Restore pins the Backup or its snapshot id, then runs Job `<backup>-forget` (`restic unlock || true; restic forget <id> --prune --retry-lock 10m`, backoff 3, deadline 1800s, 50m/128Mi requests and 512Mi memory limit, no PVC; the snapshot id is passed through env `FORGET_SNAPSHOT_ID` and must match `^[0-9a-f]{8,64}$`). Success sets `SnapshotForgotten=True` and a Normal `SnapshotForgotten` event; a Failed Job, a missing/incomplete repo Secret, a terminating namespace, or `maxSnapshotForgetWait` (45m, from annotation `backup.gameplane.local/forget-started-at`) sets `SnapshotForgotten=False` with a Warning `SnapshotForgetAbandoned` event and releases the Backup, leaving the snapshot in the repository. A Backup with no recorded snapshot id is released with `SnapshotForgetSkipped` when it may have written one. Backup Jobs run `restic backup /data --json --retry-lock 10m ...`. RBAC markers on `backup_controller.go` grant `backups` update/patch, `backups/status`, `backups/finalizers` and `jobs` create/update/patch/delete. Tests: `backup_forget_test.go`, `backup_forget_envtest_test.go`, `retention_terminating_test.go`; e2e `TestBackup_DeleteForgetsSnapshot` and the extended `TestBackupSchedule_RetentionTrimsPast`. Spec: `specs/020-backup-snapshot-forget/`.
+  - Snapshot cleanup on delete (`backup_forget.go`): restic-strategy Backups carry `BackupSnapshotFinalizer` (`gameplane.local/backup-snapshot-finalizer`, added on first reconcile, also for pre-existing non-Failed Backups; not added for volume-snapshot or Failed Backups). `finalizeDelete` runs the unquiesce stage (`BackupFinalizer`) first, then `finalizeSnapshot`: it deletes the Backup's own still-running Job (foreground, awaited), waits while a non-terminal Restore pins the Backup or its snapshot id, then runs Job `<backup>-forget` (`restic unlock || true; restic forget <id> --prune --retry-lock 10m`, backoff 3, deadline 1800s, 50m/128Mi requests and 512Mi memory limit, no PVC; the snapshot id is passed through env `FORGET_SNAPSHOT_ID` and must match `^[0-9a-f]{8,64}$`). Success sets `SnapshotForgotten=True` and a Normal `SnapshotForgotten` event; a Failed Job, a missing/incomplete repo Secret, a terminating namespace, or `maxSnapshotForgetWait` (45m, from annotation `backup.gameplane.local/forget-started-at`) sets `SnapshotForgotten=False` with a Warning `SnapshotForgetAbandoned` event and releases the Backup, leaving the snapshot in the repository. A Backup with no recorded snapshot id is released with `SnapshotForgetSkipped` when it may have written one. Backup Jobs run `restic backup /data --json --retry-lock 10m ...`. RBAC markers on `backup_controller.go` grant `backups` update/patch, `backups/status`, `backups/finalizers` and `jobs` create/update/patch/delete. Tests: `backup_forget_test.go`, `backup_forget_envtest_test.go`, `retention_terminating_test.go`; e2e `TestBackup_DeleteForgetsSnapshot` and the extended `TestBackupSchedule_RetentionTrimsPast`. Spec: `specs/done_020-backup-snapshot-forget/`.
   - Status: report phase (Pending/Running/Succeeded/Failed), error details.
 - **Integrations:** Agent client (quiesce), Kubernetes Pod logs (restic output), VolumeSnapshot API (CSI backups).
 
@@ -229,7 +232,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 - **Key functions:**
   - Parse spec.Schedule cron expression; report ScheduleValid condition.
   - Compute next firing time (a schedule that has never fired counts missed runs from its `metadata.creationTimestamp`, so a new schedule waits for its first real tick); create Backup CR when due. Scheduled Backups carry no ownerReference to the BackupSchedule; instead, they are tracked by the label `gameplane.local/backup-schedule: <schedule-name>` stamped at creation (same namespace). This allows Backups to persist when their BackupSchedule is deleted.
-  - Retention trimming: list Backups by label, apply keep-hourly/keep-daily/keep-weekly/keep-monthly/keep-yearly rules, delete excess. Backups already being deleted (non-zero `deletionTimestamp`, still held by their snapshot finalizer) are skipped when selecting candidates and computing the keep set. Deleting a restic Backup also forgets its snapshot (see BackupReconciler, "Snapshot cleanup on delete"), so a trimmed Backup stays `Terminating` until its forget Job finishes.
+  - Retention trimming: when at least one keep-last/keep-hourly/keep-daily/keep-weekly/keep-monthly/keep-yearly rule is positive, list Backups by label, apply the rules, and delete excess. Omitted retention or all nonpositive keep rules disable trimming before any API lists or deletes. Backups already being deleted (non-zero `deletionTimestamp`, still held by their snapshot finalizer) are skipped when selecting candidates and computing the keep set. Deleting a restic Backup also forgets its snapshot (see BackupReconciler, "Snapshot cleanup on delete"), so a trimmed Backup stays `Terminating` until its forget Job finishes.
   - Report RetentionTrimmed condition (success) or retention failure (TrimFailed).
 
 ### RestoreReconciler
@@ -301,7 +304,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 - **Default filter (FR-003):** when `spec.filter` is nil or empty, the reconciler builds the filter it sends to `StartCapture` from the GameServer's template (`networkcapture_filter.go`): one `<tcp|udp> port <containerPort>` term per advertised port (`advertise: true`), in template order, duplicates dropped, joined with `or`. A port with no protocol is TCP. When the template advertises no port, or the template is missing, the capture goes `Failed` with a message and the sidecar is never called. The sidecar keeps refusing an empty filter, so a capture never records unfiltered traffic. A filter set on the capture is sent unchanged.
 - **Ephemeral container injection:** Inject into game pod's spec.ephemeralContainers subresource with:
   - **Name:** "capture"
-  - **Image:** operator CLI flag `--capture-sidecar-image` (default `ghcr.io/valgulnecron/gameplane/capture-sidecar:dev`)
+  - **Image:** operator CLI flag `--capture-sidecar-image` (default `ghcr.io/gameplanepanel/gameplane/capture-sidecar:dev`)
   - **TargetContainerName:** "game" (shares pid/network/ipc namespaces with the game container for packet capture)
   - **VolumeMounts:**
     - `captures` (emptyDir pre-provisioned by gameserver_controller.go) mounted at `/tmp/captures` (read-write)
@@ -363,6 +366,8 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 - **restic_summary.go:** Parse restic container logs, extract final JSON summary (snapshot ID, duration, size).
 - **semver.go:** Semantic versioning utilities (compare version strings against gameplaneMinVersion).
 - **helpers.go:** Shared utilities (updateCondition, upsertCondition, phase transition helpers).
+- **gameserver_condition_args.go:** `deriveConditionArgs` rebuilds `status.conditionArgs` from the final GameServer conditions on every `reconcileStatus` pass (the values each reason's English message interpolates); `setConditionArgs` maintains the entries written out of band; `provisioningArgs` reads the pod's container states for CrashLoopBackOff and ContainerExited.
+- **hack/condition-ids (generator):** `go run ./hack/condition-ids -app ../i18n/locales/en/app.json` writes every `condition.<type>.<reason>` id from its table into the English reference (`make i18n-sync`); `-check` (run by `make check-i18n`) reports drift and exits 1. Its coverage guard parses the non-test controller sources with `go/parser` and fails when a reason literal they set has no table entry, or when a non-dynamic table reason is set nowhere; it reports the mismatch rather than editing the table. Rows marked dynamic (Backup `Pending`/`Running`, which come from the phase string) are exempt from the second check.
 
 ## External interface / contracts
 
@@ -375,7 +380,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 | `--metrics-bind-address` | string | `:8080` | Prometheus metrics endpoint address. |
 | `--health-probe-bind-address` | string | `:8081` | Liveness/readiness probes address. |
 | `--leader-elect` | bool | `false` | Enable leader election (multi-replica deployments). |
-| `--agent-image` | string | `ghcr.io/valgulnecron/gameplane/agent:dev` | Container image for injected agent sidecar. |
+| `--agent-image` | string | `ghcr.io/gameplanepanel/gameplane/agent:dev` | Container image for injected agent sidecar. |
 | `--agent-image-pull-policy` | string | `` | ImagePullPolicy override (Always/IfNotPresent/Never); empty leaves unset. |
 | `--config-init-image` | string | `controller.DefaultConfigInitImage` | Init container for rendering config files onto data volume. |
 | `--restic-image` | string | `controller.DefaultResticImage` | restic backup/restore Job image. |
@@ -404,7 +409,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 | `--capture-max-retention-seconds` | int64 | `604800` | Maximum retention period (seconds) for captures; clamps any higher retention request. 7-day default, a storage-limitation-informed constraint. |
 | `--capture-default-max-duration-seconds` | int64 | `300` | Default maximum duration (seconds) for a single capture when the request does not provide an explicit `maxDuration`. 5-minute default. |
 | `--capture-default-max-size-bytes` | int64 | `5368709120` | Default maximum file size (bytes) for a single capture when the request does not provide an explicit `maxSize`. 5 GiB default. |
-| `--capture-sidecar-image` | string | `ghcr.io/valgulnecron/gameplane/capture-sidecar:dev` | Container image for the network capture sidecar injected when capture is enabled. |
+| `--capture-sidecar-image` | string | `ghcr.io/gameplanepanel/gameplane/capture-sidecar:dev` | Container image for the network capture sidecar injected when capture is enabled. |
 
 **Manager configuration:**
 - CacheSyncTimeout: 5 minutes (extended from default 2m to tolerate slow apiservers on resource-constrained nodes).
@@ -422,7 +427,8 @@ Regenerates and commits atomically:
 - `operator/api/v1alpha1/zz_generated.deepcopy.go` — struct deepcopy methods (includes CaptureConfiguration, CaptureStatus, NetworkCapture, NetworkCaptureList, NetworkCaptureSpec, NetworkCaptureStatus deepcopy functions).
 - `operator/config/crd/gameplane.local_*.yaml` — 9 CRD manifests (includes gameplane.local_networkcaptures.yaml; gameplane.local_gameservers.yaml extended with capture spec/status schemas).
 - `operator/config/rbac/*.yaml` — ServiceAccount, Roles, RoleBindings, ClusterRoles, ClusterRoleBindings (includes pods/ephemeralcontainers and networkcaptures CRUD permissions).
-- `charts/gameplane/crds/*.yaml` — copy of CRDs for Helm integration (Helm `crds/` directory + pre-upgrade hook for `kubectl apply --server-side`).
+- `charts/gameplane/charts/gameplane-crds/crds/*.yaml` — native Helm CRDs in the bundled subchart, gated by `operator.enabled`.
+- `charts/gameplane/crd-manifests/*.yaml` — CRD copies used by the pre-upgrade hook for `kubectl apply --server-side`.
 
 Forgetting codegen leaves the YAML out of sync with types — CI's `make manifests` verify gate will catch it, but envtest runs will fail mysteriously first.
 
@@ -434,7 +440,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 
 3. **Codegen is mandatory after CRD type edits.** Generated deepcopy + YAML must ship in the same commit as type changes.
 
-4. **CRDs are owned by the control plane, not Helm.** Helm's `crds/` is applied only on first install; updates come from a pre-upgrade hook running `kubectl apply --server-side --server-side-apply-manager=gameplane` on every `helm upgrade`, which also fires on a `helm install` over leftover CRDs whose `gameplane.local/crd-bundle-sha256` stamp (written by `make manifests` via `hack/sync-chart-crds.sh`) differs from the chart's (F-218). CRDs are never owned or deleted by Helm.
+4. **CRDs use Helm's native lifecycle.** The bundled CRD subchart is enabled by `operator.enabled`. Helm 3 installs missing native CRDs and skips existing ones; Helm 4 server-side applies native CRDs with field manager `helm`. When `crds.autoApply.enabled=true` and `api.standalone=false`, the pre-upgrade hook updates CRDs using `kubectl apply --server-side --force-conflicts --field-manager=helm`. The hook also runs on installs with leftover CRDs whose `gameplane.local/crd-bundle-sha256` stamp (written by `make manifests` via `hack/sync-chart-crds.sh`) differs from the chart's (F-218). Native CRDs remain outside Helm's release-owned resources and survive uninstall.
 
 5. **Agent mTLS is optional but recommended.** Operator boots without `--agent-ca-bundle`/`--agent-client-cert`/`--agent-client-key` (client.Disabled=true); Agent methods silently no-op. Production installs should supply all three.
 
@@ -460,7 +466,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 | k8s.io/apimachinery | v0.37.1 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
 | k8s.io/client-go | v0.37.1 | Kubernetes client (for exec, logs, discovery). |
 | sigs.k8s.io/controller-runtime | v0.25.1 | Reconciler framework (Manager, Builder, Reconciler interface). |
-| github.com/ValgulNecron/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries). |
+| github.com/GameplanePanel/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries). |
 | github.com/go-git/go-git/v5 | v5.19.2 | Git operations (clone, fetch) for ModuleSources. |
 | github.com/go-git/go-billy/v5 | v5.9.1 | VCS filesystem abstraction for go-git. |
 | github.com/google/go-containerregistry | v0.22.1 | OCI image operations (push, pull, digest). |
@@ -536,4 +542,4 @@ CI run: `make cover` generates merged profile (unit + envtest), `make cover-ratc
 - **`go.mod` / `go.sum`** — dependency lock files.
 - **CRD YAML:** `operator/config/crd/gameplane.local_*.yaml` (generated from types).
 - **RBAC YAML:** `operator/config/rbac/*.yaml` (generated, defines operator ServiceAccount + permissions).
-- **Helm integration:** `charts/gameplane/crds/` + `charts/gameplane/templates/crd-apply-hook.yaml` (pre-upgrade CRD sync).
+- **Helm integration:** `charts/gameplane/charts/gameplane-crds/crds/` (native CRDs) + `charts/gameplane/crd-manifests/` and `charts/gameplane/templates/crd-apply-hook.yaml` (pre-upgrade CRD sync).

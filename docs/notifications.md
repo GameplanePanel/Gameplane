@@ -99,7 +99,10 @@ connection, so `tls: none` only works for unauthenticated relays.
     "namespace": "gameplane-games",
     "message": "restic exited with code 1",
     "instance": "prod",
-    "test": false
+    "test": false,
+    "language": "en",
+    "title": "[prod] backup failed: gameplane-games/nightly",
+    "text": "[prod] backup failed: gameplane-games/nightly — restic exited with code 1"
   }
   ```
 
@@ -107,6 +110,22 @@ connection, so `tls: none` only works for unauthenticated relays.
 
 `instance` is **Admin Settings → General → Instance name**, so alerts from
 different Gameplane installs are tellable apart.
+
+## Language
+
+Each destination can have its own language. Set `"language": "<tag>"` on the
+sink in `PUT /admin/config/notifications`, or pick it in the destination form
+when that is available. Leave it out to use the instance default language
+(**Admin Settings → Language**, the `i18n` config section), which falls back to
+English. A tag that this release does not offer is rejected with `400` and the
+message id `server.i18n.unknown_language`. The headline (`title`) and the fixed
+sentences (for example the test-send body) are translated; the Kubernetes
+`reason` and `message` of an event are quoted verbatim in English. The test
+send (`POST /admin/notifications/sinks/{name}/test`) uses the destination's
+language.
+
+`language`, `title` and `text` are additive: every other field keeps its name
+and value. `language` is the language the text was rendered in.
 
 ## Testing a sink
 

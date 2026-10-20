@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_EuroTruckSimulator2Bot_Query boots an ETS2 dedicated server
@@ -25,7 +25,7 @@ func TestGameServer_EuroTruckSimulator2Bot_Query(t *testing.T) {
 		Game:        "euro-truck-simulator-2",
 		Template:    fmt.Sprintf("e2e-ets2-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E Euro Truck Simulator 2",
-		Image:       "ghcr.io/valgulnecron/gameplane/euro-truck-simulator-2:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/euro-truck-simulator-2:latest@sha256:170562b495bca0535830ada89d9d01b52d94e79c99a2354b2cffcb72103a19f5",
 		Env: map[string]string{
 			"SERVER_LOGON_TOKEN": "test-logon-token",
 			"SERVER_NAME":        "Gameplane E2E ETS2",

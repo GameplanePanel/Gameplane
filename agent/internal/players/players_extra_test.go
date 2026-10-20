@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/rcon"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 func newSrv(t *testing.T, game string, rc Rcon) *httptest.Server {

@@ -1,7 +1,7 @@
 # api — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** github.com/ValgulNecron/gameplane/api
+**Module / package:** github.com/GameplanePanel/gameplane/api
 
 ## Purpose
 
@@ -18,7 +18,7 @@ The api module is the REST + WebSocket gateway for Gameplane, serving the web da
 - **Module registries:** pluggable providers (CurseForge, Modrinth, Spigot, Hangar, Nexus, Steam, Thunderstore, Factorio, GitHub, UMod); live lookup + caching
 - **Multi-cluster dispatch:** `?cluster=` selector routes requests to remote clusters via registered kubeconfigs; home cluster is `local`
 - **Unified reads:** `/fleet/*` aggregates only the caller's authorized resources across registered clusters, with explicit target identities, target permissions, partial failures and bounded work; it does not schedule or mutate resources.
-- **Telemetry:** opt-in anonymous daily usage metrics (version, server count, template count) POSTed to admin-configured endpoint
+- **Telemetry:** daily usage reports POSTed to the resolved destination (operator hard-off, bundled receiver, custom endpoint, or the project's default receiver). Two admin-consented tiers: basic (`version`, `servers`, `templates`) and extended (random install ID, environment categories, game and feature counts, signing key, send time; reports are signed). Counts cover every managed cluster: each cluster in the registry except a standalone panel's own client, each read with a 10 s timeout; a cluster whose GameServer, GameTemplate or (extended only) backup schedule list fails is left out of that report. Servers, templates and game counts are summed; extended `env.k8s` and `env.distro` are sets over the reachable clusters, `env.arch` their union, `env.nodes` one band over their total node count, and `env.deployment` is `standalone` or `cluster` (extended schema 2). New installs share both tiers by default once the first-login notice has been shown to an admin; nothing is sent before then. The schedule and consent source live in `telemetry_state` (migration 015), so restarts never send early and replicas share one schedule. When the destination offers proof-of-work challenges (`GET /v1/challenge`), the reporter solves one per request (a challenge above 26 bits is refused)
 
 ## Non-goals / boundaries
 
@@ -48,6 +48,7 @@ api/
 │   ├── steam/            # Steam Workshop ID resolver: cache + singleflight-deduped upstream lookups
 │   ├── scope/            # namespace + cluster resolution from request context
 │   ├── telemetry/        # optional anonymous usage metrics collection
+│   ├── messages/         # localizable error registry (ids, English ICU, status)
 │   ├── httperr/          # error -> HTTP status classification (safe message for client, full error logged)
 │   └── [test files]
 └── go.mod, go.sum
@@ -58,15 +59,15 @@ api/
 - **handlers:** 23+ route groups (Audit, AuthProviderSecrets, Capture, Cluster, ClusterActions, Clusters, Config, Destinations, Events, Lifecycle, ModIDs, ModSources, Modules, ModUpdates, Notifications, Ownership, PodEvents, Registry, RegistrySecrets, Resources, Roles, SystemLogs, Users, WebSocket Mount)
 - **auth:** SessionStore (CSRF + expiry), Local (argon2id password check), OIDC (provider registry + claim mapping), Registry (auth provider discovery per request)
 - **rbac:** Middleware (namespace/cluster-scoped permission check + owner/collaborator fallback), rule table (method/path -> permission), catalog (permission definitions)
-- **db:** driver-selectable (modernc.org/sqlite or pgx/v5 via postgres build tag), migrations (001-012 per dialect in `migrations/sqlite/` and `migrations/postgres/`; 013+ shared and portable in `migrations/common/`), Store (query interface); queries use `?` placeholders, rebound to `$n` by the Postgres connection (`db.Rebind`)
+- **db:** driver-selectable (modernc.org/sqlite or pgx/v5 via postgres build tag), migrations (001-012 per dialect in `migrations/sqlite/` and `migrations/postgres/`; 013+ shared and portable in `migrations/common/`), Store (query interface); queries use `?` placeholders, rebound to `$n` by the Postgres connection (`db.Rebind`); migration 015 (`migrations/common/015_telemetry_state.sql`) adds `telemetry_state` (singleton row: consent source, install ID, notice shown time, report schedule `next_due_at`/`last_attempt_at`/`last_success_at`, `last_outcome`, `consecutive_failures`, extended-fallback fields `ext_unsupported_until`/`ext_unsupported_endpoint`, `signing_secret`, `last_id_rotation_at`; seeded in Go by `Store.Migrate` from the existing `telemetry` config value) and `telemetry_notice_acks` (one row per admin who dismissed the notice: `user_id`, `acked_at`, `action`; rows are removed in Go when the user is deleted)
 - **kube:** Client (K8s API wrapper), Registry (per-cluster clients from Cluster CRDs), watch (cluster-config sync)
 - **audit:** Auditor (insert to DB + distribute to sinks), webhook sink (POST JSON to URL), S3 sink (object storage), hash-chain (detect tampering)
-- **notify:** Notifier (watch GameServer/Backup/Restore status, format + deliver to sinks), sinks (Discord, Slack, SMTP, webhook)
+- **notify:** Notifier (watch GameServer/Backup/Restore status, format + deliver to sinks), sinks (Discord, Slack, SMTP, webhook, ntfy); per-sink `language` (BCP 47, optional), rendered from the `notify.*` entries of the language packs; webhook payloads add `language`, `title`, `text`
 - **ws:** Mount (WebSocket router), agent-client (JSON agent reads), transport (shared HTTP/WebSocket agent connection), actions (RCON/PTY execution), attach (SPDY proxy), podlogs (live pod logs)
 - **registry:** provider types (each implements Search, Details, Manifest, Download), Set (versioned provider pool with key fallback)
 - **scope:** ResolveNamespace (extract from path or default), ResolveCluster (validate `?cluster=` against registry)
 - **httperr:** classify error type to safe HTTP status + message; preserve full error server-side
-- **telemetry:** daily metrics reporter (version, server/template counts)
+- **telemetry:** destination resolution (`ResolveDestination`), consent, report collection and preview (`BuildReport`), the scheduled reporter (Ed25519 signing, proof-of-work solving, install-ID rotation on `409 id_claimed`)
 
 ## External interface / contracts
 
@@ -78,8 +79,8 @@ Two subcommands:
    - **Core flags:** `--addr`, `--metrics-addr`, `--db-driver`, `--db-dsn`, `--log-level`
    - **OIDC flags** (install-time, Helm-seeded): `--oidc-issuer`, `--oidc-client-id`, `--oidc-client-secret`, `--oidc-redirect-url`, `--oidc-display-name` (login button label, no hostname — pre-auth surface), `--oidc-groups-claim` (configurable claim name, defaults to "groups"), `--oidc-default-role` (default for unmapped users: "", "viewer", "operator", "admin", or "deny"), `--oidc-role-mapping-admin` (comma-separated group names for admin role), `--oidc-role-mapping-operator`, `--oidc-role-mapping-viewer`. All have `GAMEPLANE_OIDC_*` env fallbacks (preferred over flags for credentials).
    - **Storage class (report-only):** `--game-data-storage-class` — echoed in `GET /admin/config`'s `installTimeSettings.gameDataStorageClass`, read-only, unaffected by overrides.
-   - **Other flags:** `--audit-*`, `--agent-*`, `--namespace`, `--cluster-ops`, `--cluster-external-address` (node-routable API server address used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; empty = in-cluster address), `--update-channel`, `--curseforge-api-key`, `--telemetry-*`, `--capture-enabled`, `--capture-default-max-duration` (only these two are CLI flags; default/max retention and default max size are `GAMEPLANE_CAPTURE_*`-env-only, no flag)
-   - Env overrides via GAMEPLANE_* vars (credentials come from env only, never flags)
+   - **Other flags:** `--audit-*`, `--agent-*`, `--namespace`, `--cluster-ops`, `--cluster-external-address` (node-routable API server address used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; empty = in-cluster address), `--update-channel`, `--curseforge-api-key`, `--telemetry-endpoint` (empty = the project's default receiver), `--telemetry-disabled` (hard off, whatever the admin toggles say), `--telemetry-interval` (default 24h, minimum 1m), `--official-module-source` (name of the official ModuleSource, so telemetry can tell official modules from custom ones; empty = every module counts as custom), `--capture-enabled`, `--capture-default-max-duration` (only these two are CLI flags; default/max retention and default max size are `GAMEPLANE_CAPTURE_*`-env-only, no flag)
+   - Env overrides via GAMEPLANE_* vars (credentials come from env only, never flags); telemetry also reads env-only `GAMEPLANE_TELEMETRY_AUTH` (ingest token sent verbatim as the Authorization header) and `GAMEPLANE_TELEMETRY_BUNDLED` (set only by the chart when it wires the bundled receiver)
    - Initialize: database + migrations, K8s client, auth (local + OIDC with Helm-seeded provider synthesis), audit (sinks), notifier, cluster watch, telemetry, session GC, capture config
    - Routes all mounted at startup; chi router with security middleware (secure headers, body limit, audit, session auth, RBAC, rate limiting); MountCapture wires capture endpoints
 
@@ -95,6 +96,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 
 **Public (pre-auth):**
 - `/auth/providers` — GET: list enabled login methods (no version/host/count, login privacy)
+- `/auth/locale` — GET: the instance default language tag for the login page, `{"defaultLanguage": "<tag>"}` and nothing else (spec 019; see [Language and localizable errors](#language-and-localizable-errors-spec-019))
 - `/auth/login` — POST: argon2id auth + session creation (rate-limited per IP + user)
 - `/auth/logout` — POST: session deletion
 - `/auth/oidc/{provider}/start` — GET: IdP authorization flow start
@@ -147,6 +149,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/modules/sources/{name}` — GET, PUT, DELETE: manage ModuleSource CRDs (cluster-scoped)
 - `/modules/sources/{name}/upload`, `/modules/sources/{name}/upload/{module}` — bundle upload/delete
 - `/modules/catalog` — GET: merged catalog across sources, with installation state
+- `/modules/{name}/locales/{tag}` — GET: the module's translated messages for a language as a flat id → message map, read from the operator-written `<name>-locales` ConfigMap. The tag falls back to its base language; an unknown or malformed tag, or a module without translations, returns `200 {}`; values are the validated ICU message strings, uncompiled. 404 only when the Module does not exist. Requires `modules:read`.
 - `/modules/builder/{archetypes,scaffold,validate,preview,export}` — module builder workflow
 - `/registry/{provider}/search`, `/{id}` — live mod registry queries (CurseForge, Modrinth, Spigot, etc.)
 - `/mod-updates/{name}` — GET: available updates for a mod
@@ -160,6 +163,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/users/me/servers` — GET: own GameServers (owner/collaborator)
 - `/users/me/preferences` — GET/PUT: own theme/styling preferences (feature 016)
 - `/users/me/preferences/reset` — POST: reset own theme preferences to defaults (feature 016)
+- `/users/me/language` — PUT: set or clear own language choice (spec 019; see below)
 - `/users` — GET, POST: list and create users
 - `/users/{id}` — PATCH, DELETE: manage users (admin only). DELETE runs `db.Store.DeleteUser`: one transaction deletes the user's `oidc_links`, `user_preferences`, `sessions`, `api_tokens` and role bindings, revokes the share links the user created (sets `revoked_at`), then deletes the `users` row. It does not rely on FK cascades (off on SQLite). An SSO subject whose user was deleted is provisioned as a new user on its next login
 - **User list, lookup and create (`POST /users`) responses** include a `createdAt` field: `db.NormalizeTimestamp` passes RFC3339 values through unchanged, converts the legacy "YYYY-MM-DD HH:MM:SS" format from older migrations to RFC3339 UTC, and passes through unrecognized stored values unchanged.
@@ -171,7 +175,11 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/admin/audit/export` — GET: streams the full matching audit trail as a download, `?format=csv` (default) or `?format=json`; optional filters `since`/`until` (RFC3339 timestamps, inclusive), `actor` (case-insensitive substring), `method` (`GET`/`POST`/`PUT`/`PATCH`/`DELETE`), and `status` (class `2xx`/`4xx`/`5xx`); an unrecognised `format`, `method`, or `status` value returns 400. CSV header, in column order: `id, ts, actor, method, path, target, status, ip, reason`. JSON is a top-level array of the same `audit.Event` objects `/admin/audit` returns.
 - `/admin/config` — GET/PATCH: global settings (OIDC, notifications, telemetry, module upload limits, etc.)
 - **instanceName field:** The `instanceName` field on `/admin/config` is optional; when omitted or empty, notifications fall back to "Gameplane" as the instance identifier.
-- `/admin/notifications` — PATCH config + test-send to sinks
+- `/admin/telemetry` — GET (`config:read`): destination (`kind` default|custom|bundled|disabled|none, `host` only, null for disabled/none), `operatorDisabled`, stored `consent` (`basic`, `extended`, `source`), `installId` (null while extended is off), `preview` (the exact report the reporter would send now, built by `telemetry.BuildReport`; null when basic is off or nothing would be sent) and delivery `status` (`lastAttemptAt`, `lastSuccessAt`, `lastOutcome` never|ok|failed, `lastIdRotationAt`). The signing secret and failure details are never returned
+- `/admin/telemetry/install-id` — POST (`config:manage`): replace the install ID, keep the signing secret and schedule; returns `{"installId"}`; 409 when extended is off or the operator disabled telemetry
+- `/admin/telemetry/notice` — GET (`config:read`; returns `{"pending":false}` unless the caller also holds `config:manage`): whether the first-login notice is pending for the caller, with destination host and the exact basic/extended field lists; POST (`config:manage`) `{"action": "seen"|"keep"|"extended-off"|"all-off"}` records the caller's dismissal (`seen` only sets the notice-shown time and opens the report schedule, recording no ack), 204 on success, 409 when not pending (except `seen`) or the operator disabled telemetry. RBAC entries sit before the `/admin/*` fallback in `rbac.go`
+- The telemetry consent itself is saved through `PUT /admin/config/telemetry` (`{"sendMetrics": bool, "extended": bool}`; `sendMetrics:false` forces `extended:false`; 409 when the operator disabled telemetry). The save runs in one transaction with the consent source, install ID and schedule updates
+- `/admin/notifications` — PATCH config + test-send to sinks; per-sink `language` (BCP 47, optional), rendered from the `notify.*` entries of the language packs; webhook payloads add `language`, `title`, `text`
 - `/admin/auth` — PATCH identity-provider secrets
 - `/admin/registries/{provider}/secret` — PATCH mod-registry API keys
 - `/admin/system-logs` — GET: control-plane pod logs
@@ -278,7 +286,7 @@ trust assumptions, rotation behavior and surfaces outside this protocol.
 
 - **DELETE `/servers/{name}:capture`** — Remove a completed or failed capture. Remote deletion confirms sidecar file cleanup before deleting the NetworkCapture with its UID precondition; gateway failure retains the resource for retry. A stale or replaced capture cannot delete another capture's bytes.
 
-- **Error responses:** All errors are plain text via `httperr.WriteCode()`, no JSON envelope. Status codes include 400 (validation), 404 (not found or stale identity), 409 (conflict/wrong state), 501 (capture feature or required gateway capability unavailable), 502/504 (gateway transport failure), 503 (sidecar unavailable), and 500 (internal error).
+- **Error responses:** All errors are plain text via `httperr.WriteCode()`, no JSON envelope; callers that send `Accept: application/problem+json` get RFC 9457 documents (see Problem document negotiation). Status codes include 400 (validation), 404 (not found or stale identity), 409 (conflict/wrong state), 501 (capture feature or required gateway capability unavailable), 502/504 (gateway transport failure), 503 (sidecar unavailable), and 500 (internal error).
 
 **Fully implemented endpoints (all routing registered, RBAC gated, handlers complete):**
 
@@ -504,8 +512,8 @@ audit:read, config:read, config:manage (cluster-scoped)
 ## Dependencies
 
 **Internal (same workspace via go.work):**
-- `github.com/ValgulNecron/gameplane/netguard` — dial-time address guard for outbound HTTP: mod-registry browse/search and the Steam name resolver use `IsPublic`; notification sinks use `IsAllowed`
-- `github.com/ValgulNecron/gameplane/gameaction` — console-injection guard + command-template renderer
+- `github.com/GameplanePanel/gameplane/netguard` — dial-time address guard for outbound HTTP: mod-registry browse/search and the Steam name resolver use `IsPublic`; notification sinks use `IsAllowed`
+- `github.com/GameplanePanel/gameplane/gameaction` — console-injection guard + command-template renderer
 
 **External (go.mod):**
 - `github.com/go-chi/chi/v5` v5.1.0 — HTTP router, middleware
@@ -661,6 +669,24 @@ Foreign keys are enforced only on Postgres (modernc-sqlite runs with FK OFF); th
 
 ### Upload limits
 - **Module bundle upload** (`POST /modules/sources/{name}/upload`): the compressed body is capped at 900 KiB (413 above it). Extraction caps each member at 900 KiB, the archive at 256 distinct paths, the running total of extracted bytes at 4 MiB (`maxUploadExtractedBytes`, repeated member names included), and the whole decompressed tar stream (including headers and entries extraction skips) at 5 MiB (`maxUploadDecompressedBytes`, covering tar framing). Extraction stops at the first member that crosses a limit, and the request gets 400. The four kept bundle files must together stay under 900 KiB.
+
+### Language and localizable errors (spec 019)
+
+**Storage (migration `018_user_language.sql`):** `user_preferences.language` is a nullable BCP 47 tag. `NULL` means the user has no saved choice and follows the instance default. Preference writes never touch the column: `UpsertPreferences` and `ResetPreferences` leave it alone, and `db.Store.SetLanguage` owns it. `SetLanguage` inserts a default row when the user has none.
+
+**Endpoints:**
+- **PUT `/users/me/language`** — body `{"language": "<tag>" | null}`. A tag must be one `catalog.IsListed` reports for this release (`i18n/catalog`). `null` clears the choice. Success is `204 No Content`. A missing `language` key is `400 language is required`. An unlisted tag is `400` with the message `server.i18n.unknown_language`, so `args.language` carries the tag sent. 401 when unauthenticated.
+- **GET/PUT `/users/me/preferences`** — the preferences object always carries `language` (`string | null`, `null` when unset). `PUT /users/me/preferences` accepts and ignores a `language` key, so it cannot change the saved language.
+- **POST `/users/me/preferences/reset`** — clears the styling only; the saved language is kept.
+- **GET `/auth/locale`** — public and pre-auth, so it returns only the tag. It reads the config section `i18n`. An absent, unparsable or unlisted default, or a database read failure (logged at warn, never echoed), gives `"en"`.
+
+**Config section `i18n`** (`PUT /admin/config/i18n`): body `{"defaultLanguage": "<tag>"}`. Unknown keys and an empty tag are `422`. A tag that is not offered (missing, or below the completeness threshold) is `400` with `server.i18n.unlisted_language` (`args.language` is the tag). Together with the `notifications` validator below, this is one of the config validators that return a localizable `httperr.Message`; the `put` handler checks `errors.As(*httperr.Message)` before its generic `422` line.
+
+**Config section `notifications`, sink `language`:** optional per sink; validated with `catalog.IsListed`; an unknown tag is `400` with `server.i18n.unknown_language` (`args.language`). Rendering order is sink language, then the instance default language (config section `i18n`), then `en`. `Event` carries the resolved language in an unexported field so the formatter signatures are unchanged.
+
+**Localizable error ids (`api/internal/messages`):** `server.i18n.unknown_language` (`unknown language: {language}`, 400) and `server.i18n.unlisted_language` (`language is not available: {language}`, 400). The registry lives in `internal/messages/messages.go` and `entries_server.go`; the `notify.*` entries live in `internal/notify/messages.go`. Both reach `i18n/locales/en/app.json` through `make i18n-sync`, which runs `messages-export` (both sets) into `i18n-check --sync-server`. Every 4xx `http.Error` in `internal/handlers`, `internal/auth`, `internal/ws` and `internal/rbac` now goes through `httperr.WriteMessage` (registry id) or `httperr.WriteCode` (`server.generic.<status>`, used on the unauthenticated login and OIDC paths and for dynamic messages). Plain-text bodies are byte-identical, and 5xx responses stay `http.Error`. The only 4xx exceptions are the three calls in the `secretName` helper (auth_provider_secret.go, registry_secret.go), which have no request. The migrated ids are in `internal/messages/entries_server.go`, and `internal/messages/usage_test.go` fails when a `messages.New("...")` literal is not registered.
+
+**Problem document negotiation:** a caller that sends `Accept: application/problem+json` gets an RFC 9457 document from `httperr.WriteMessage` / `httperr.WriteCode` with `messageId` (the registry id) and `args`. Every other caller gets the byte-identical plain-text body (`text/plain`, `http.Error` form) that the endpoint has always returned. 5xx responses never carry internal text. The `Message.English` text is the plain body.
 
 ### Error handling
 - **httperr package:** internal errors (K8s 404, DB constraint, FS path) mapped to safe HTTP status + generic message
@@ -846,3 +872,25 @@ Kubernetes clients. Gateway loss does not inherently disable those clients.
 The protocol does not provide storage replication, workload migration, or
 central database availability. Deployment guidance is in
 [`docs/gateway-install.md`](../docs/gateway-install.md).
+
+## Standalone management mode
+
+`--standalone` / `GAMEPLANE_STANDALONE=true` skips Kubernetes credential discovery and does not register `local`. Management secrets and remote registrations persist in the API database through narrow `kube.Client.Secrets`/`Clusters` interfaces; workloads still use explicit Kubernetes registry clients. Credential payloads use AES-GCM with a durable 32-byte key selected by `--panel-key-file` / `GAMEPLANE_PANEL_KEY_FILE` (legacy default `/data/panel.key`; supplied deployment profiles use separate storage at `/keys/panel.key`). `--panel-key-provisioned` / `GAMEPLANE_PANEL_KEY_PROVISIONED=true` requires an existing protected key and performs no key-file writes. Startup validates ownership, permissions, file type, size and existing ciphertext; unsafe/missing/wrong keys fail closed. Database and key backups need separate protection. Existing Kubernetes management objects are not imported automatically.
+
+Offline `rotate-panel-key --old-key-file PATH --new-key-file PATH` durably creates or reuses a separate key and re-encrypts management secrets atomically, retaining both files. `--new-key-provisioned` requires an existing operator-durable read-only replacement. Versioned `gpk1` ciphertext authenticates its key identity and object identity/version; legacy ciphertext remains readable and is upgraded by rotation. A singleton database key state serializes rotation with all credential mutations, including atomic registration, rejecting stale writers. Exact retries of the immediately preceding rotation authenticate the new state and succeed. Stop every API process first and retain each historical key with separately protected matching backups.
+
+`GET /admin/installation` is authenticated and reports `{standalone,localCluster,version}`; `version` identifies the panel build without requiring a workload cluster. Empty standalone `/clusters` and `/fleet/*` responses contain no synthesized local cluster. A bounded API poller loads registrations and maintains safe connectivity status, independent of an operator on the panel host. Notifications observe registered remote workloads while credentials remain central.
+
+Registry loads serialize per registration; storage and remote probes never hold the global registry lock. Publication checks registration UID and credential reference and is invalidated by removal/rotation. Status-only resource-version changes do not reject an otherwise unchanged registration. A transient credential read preserves the last client only while that registration identity/reference still matches; missing, denied or invalid credentials remove it. An unavailable read cannot prove that an external writer has not changed the Secret; the next successful read revalidates its contents.
+
+Standalone remote clients require verified HTTPS and reject kubeconfig proxies and redirects. Direct dial-time resolution rejects every unsafe address before connecting to a pinned literal IP; optional `--remote-allowed-cidrs` / `GAMEPLANE_REMOTE_ALLOWED_CIDRS` further restricts destinations for both Kubernetes and gateway connections. Private workload networks remain supported. Finite decompressed responses are bounded to 8 MiB (`/version`: 64 KiB), JSON watch frames to 1 MiB, and notification snapshots to 1,024 objects per resource. Notification polling every five seconds is enabled only with a configured enabled sink; failed/oversized snapshots do not manufacture transitions. User log and interactive streams are not subject to the finite-response cap.
+
+The version cap also applies behind API path prefixes. SPDY TLS/header negotiation has a ten-second deadline, removed after successful upgrade. Gateway dial guards apply in combined installations too. Notification snapshots collect allowed namespaces before applying the aggregate resource limit, retain their baseline on failures, and emit rate-limited warnings. After the first successful baseline, newly observed terminal objects produce events. Transient sink-configuration failures preserve existing observers.
+
+`POST /clusters` accepts a raw, self-contained kubeconfig string; existing kubeconfig validation rejects executable/file-backed credential references. `PUT /clusters/{name}/gateway` accepts `{url,caCert,clientCert,clientKey}` with an HTTPS origin and PEM TLS material. It persists only labelled management credentials and returns 204 without exposing secrets. `DELETE /clusters/{name}/gateway` clears the reference and only removes API-managed credentials. Existing central `cluster:manage` authorization applies to registration and gateway mutations.
+
+`PUT /clusters/{name}/kubeconfig` accepts `{kubeconfig:string}` and requires central `cluster:manage`. It publishes an immutable labelled credential, updates the existing registration with UID and previous-pointer conflict checks, invalidates the previous workload client and attempts immediate refresh. Registration UID, gateway settings and grants are preserved. The 204 response contains no credentials and does not imply remote connectivity; conflicting rotations return 409. Cleanup uses secret identity/version preconditions and preserves externally managed credentials. Standalone initial registration commits the credential and registration atomically; an exact matching API-owned legacy orphan can be adopted without changing it.
+
+Standalone `/modules/*` requests require one explicit registered remote `cluster` selector and cluster-wide module permission on that target. The selected remote operator owns module reconciliation; upload ConfigMaps use the configured operator namespace. Combined installs retain local module ownership and reject remote selectors on this surface. Local node credential minting is incompatible with standalone startup; Kubernetes system-log endpoints return 501 and the dashboard directs administrators to container logs.
+
+See [standalone installation](../docs/standalone-panel.md) and [design](../specs/025-standalone-panel/spec.md).

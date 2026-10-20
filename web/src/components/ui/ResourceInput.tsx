@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
+import { defineMessages, type MessageDescriptor } from "react-intl";
 import { cn } from "@/lib/utils";
+import { useOptionalIntl } from "@/lib/i18n/format";
 import {
   formatCpuQuantity,
   convertCpu,
@@ -28,8 +30,14 @@ export interface ResourceInputProps {
 
 interface SelectOption {
   value: string;
-  label: string;
+  // Plain strings are unit symbols (mCPU, GiB) shown as-is; descriptors are
+  // translatable words formatted at render.
+  label: string | MessageDescriptor;
 }
+
+const unitWordMessages = defineMessages({
+  cores: { id: "web.components.ui.resource_input.unit_cores", defaultMessage: "cores", description: "Resource input: CPU unit option in the unit select, meaning whole CPU cores (not millicores)" },
+});
 
 // Sliders step in the base unit (cores / GiB). Fine floors + steps so the
 // slider can reach small, realistic sizes — 100m CPU (0.1 core) in 50m
@@ -39,7 +47,7 @@ const CPU_DEFAULTS = { min: 0.1, max: 16, step: 0.05 };
 const MEM_DEFAULTS = { min: 0.25, max: 64, step: 0.25 };
 
 const CPU_UNIT_OPTIONS: SelectOption[] = [
-  { value: "cores", label: "cores" },
+  { value: "cores", label: unitWordMessages.cores },
   { value: "m", label: "mCPU" },
 ];
 
@@ -161,7 +169,11 @@ export function ResourceInput({
     setDisplayUnit(next as CpuUnit | MemUnit);
   };
 
-  const ariaLabel = kind === "cpu" ? "CPU cores" : "Memory (GiB)";
+  const intl = useOptionalIntl();
+  const ariaLabel =
+    kind === "cpu"
+      ? intl.formatMessage({ id: "web.components.ui.resource_input.cpu_cores", defaultMessage: "CPU cores", description: "Resource input: accessible name of the CPU slider and its fields" })
+      : intl.formatMessage({ id: "web.components.ui.resource_input.memory_gib", defaultMessage: "Memory (GiB)", description: "Resource input: accessible name of the memory slider and its fields" });
   const unitOptions = kind === "cpu" ? CPU_UNIT_OPTIONS : MEM_UNIT_OPTIONS;
 
   return (
@@ -187,7 +199,7 @@ export function ResourceInput({
         onBlur={handleInputBlur}
         disabled={disabled}
         step={stepBase}
-        aria-label={`${ariaLabel} value`}
+        aria-label={intl.formatMessage({ id: "web.components.ui.resource_input.value_label", defaultMessage: "{name} value", description: "Resource input: accessible name of the number field; {name} is the resource name, e.g. CPU cores" }, { name: ariaLabel })}
         className={cn(
           "h-9 w-16 rounded-md border border-border bg-surface px-3 text-sm text-fg",
           "placeholder:text-muted focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary",
@@ -199,12 +211,12 @@ export function ResourceInput({
         value={displayUnit}
         disabled={disabled}
         onChange={(e) => handleUnitChange(e.target.value)}
-        aria-label={`${ariaLabel} unit`}
+        aria-label={intl.formatMessage({ id: "web.components.ui.resource_input.unit_label", defaultMessage: "{name} unit", description: "Resource input: accessible name of the unit select; {name} is the resource name, e.g. CPU cores" }, { name: ariaLabel })}
         className="h-9 w-24 rounded-md border border-border bg-surface px-3 text-sm text-fg focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary disabled:opacity-50"
       >
         {unitOptions.map((o) => (
           <option key={o.value} value={o.value}>
-            {o.label}
+            {typeof o.label === "string" ? o.label : intl.formatMessage(o.label)}
           </option>
         ))}
       </select>

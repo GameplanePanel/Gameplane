@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/validator"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/validator"
 )
 
 // version is the gp-module release, surfaced via --version and compared by
@@ -23,6 +23,7 @@ Commands:
   validate  Offline validation and linting of module manifests
   preview   Dry-run manifest rendering and dynamic config preview
   package   Package module directory into an OCI artifact bundle
+  i18n      Extract and manage module translations
 
 Options:
   -h, --help     Show this help message
@@ -56,6 +57,8 @@ func main() {
 		runPreview(args)
 	case "package", "build", "bundle":
 		runPackage(args)
+	case "i18n":
+		runI18n(args)
 	default:
 		fmt.Fprintf(os.Stderr, "error: unknown command %q\n\n", cmd)
 		printUsage()

@@ -1,0 +1,27 @@
+{
+  "type": "frame",
+  "id": "eJFRe",
+  "x": 412,
+  "y": 3977,
+  "name": "Gameplane/Filter Pill/Selected",
+  "reusable": true,
+  "fill": "$accent/soft",
+  "cornerRadius": 4,
+  "padding": [
+    6,
+    12
+  ],
+  "justifyContent": "center",
+  "alignItems": "center",
+  "children": [
+    {
+      "type": "text",
+      "id": "Ul7IG",
+      "fill": "$accent/accent",
+      "content": "All sources",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal"
+    }
+  ]
+}

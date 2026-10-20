@@ -37,6 +37,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { createResourceClient, type FileEntry } from "@/lib/endpoints";
 import { cn, formatBytes } from "@/lib/utils";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import type { IntlShape } from "react-intl";
 
 const ROOT = "/";
 
@@ -64,6 +66,7 @@ interface FileSave {
 }
 
 function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
+  const intl = useOptionalIntl();
   const canControl = useResourceAccess()?.canControl === true;
   const { name, namespace: ns } = resourceTarget;
   const resourceClient = useResourceClient(resourceTarget);
@@ -148,7 +151,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
   }
 
   function navigateTo(path: string) {
-    if (dirty && !confirmDiscard()) return;
+    if (dirty && !confirmDiscard(intl)) return;
     clearSelection();
     setCwd(path);
     // Navigating (breadcrumbs, "..") is a browsing action — show the tree
@@ -165,7 +168,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
       setPane("view");
       return;
     }
-    if (dirty && !confirmDiscard()) return;
+    if (dirty && !confirmDiscard(intl)) return;
     selectFile(e);
   }
 
@@ -221,7 +224,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
   const newFileMutation = useMutation({
     mutationFn: async (fileName: string) => {
       const path = joinPath(cwd, fileName);
-      await Files.write(name, path, "", ns);
+      await Files.create(name, path, "", ns);
       return path;
     },
     onSuccess: async (path) => {
@@ -270,15 +273,13 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
             size="sm"
             isDisabled={!canControl} onPress={() => setNewFileOpen(true)}
           >
-            <FilePlus className="h-4 w-4" /> New file
-          </Button>
+            <FilePlus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.files.new_file", defaultMessage: "New file", description: "Files tab: button that opens the prompt to create a new file, and the title of that prompt dialog; keep it short" })}</Button>
           <Button
             variant="secondary"
             size="sm"
             isDisabled={!canControl} onPress={() => setMkdirOpen(true)}
           >
-            <FolderPlus className="h-4 w-4" /> New folder
-          </Button>
+            <FolderPlus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.files.new_folder", defaultMessage: "New folder", description: "Files tab: button that opens the prompt to create a new folder, and the title of that prompt dialog; keep it short" })}</Button>
           <Button
             variant="secondary"
             size="sm"
@@ -289,9 +290,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Upload className="h-4 w-4" />
-            )}{" "}
-            Upload
-          </Button>
+            )} {intl.formatMessage({ id: "web.routes.tabs.files.upload", defaultMessage: "Upload", description: "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short" })}</Button>
           <input
             ref={uploadInputRef}
             type="file"
@@ -304,7 +303,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
             isIconOnly
             variant="ghost"
             size="sm"
-            aria-label="Refresh"
+            aria-label={intl.formatMessage({ id: "web.routes.tabs.files.refresh", defaultMessage: "Refresh", description: "Files tab: icon-only button that reloads the file list; read by screen readers; keep it short" })}
             onPress={() => refetch()}
           >
             <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
@@ -330,13 +329,11 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                 className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-default-500 hover:bg-default-100"
                 onClick={() => navigateTo(parentOf(cwd))}
               >
-                <Folder className="h-3 w-3" /> ..
+                <Folder className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.files.parent_directory", defaultMessage: "..", description: "Files: row that opens the parent folder of the current folder" })}
               </li>
             )}
             {entries?.length === 0 && (
-              <li className="px-3 py-4 text-center text-xs text-default-500">
-                Empty folder
-              </li>
+              <li className="px-3 py-4 text-center text-xs text-default-500">{intl.formatMessage({ id: "web.routes.tabs.files.empty_folder", defaultMessage: "Empty folder", description: "Files tab: text shown in the file list when the current folder has no entries" })}</li>
             )}
             {entries?.map((e) => (
               <li
@@ -352,7 +349,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                 ) : (
                   <FileIcon className="h-3 w-3 text-default-500" />
                 )}
-                <span className="truncate">{e.name}</span>
+                <span className="truncate" title={e.name}>{e.name}</span>
                 {e.dir ? (
                   // Folders open on click, so the delete action sits in its own
                   // button and the wrapper keeps its click from reaching the row.
@@ -361,7 +358,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                       isIconOnly
                       variant="ghost"
                       size="sm"
-                      aria-label={`Delete ${e.name}`}
+                      aria-label={intl.formatMessage({ id: "web.routes.tabs.files.delete_entry_aria", defaultMessage: "Delete {name}", description: "Files: aria-label of the delete button on a file or folder row; {name} is the file or folder name" }, { name: e.name })}
                       isDisabled={!canControl}
                       onPress={() => setConfirmDelete(e)}
                       className="h-6 w-6 min-w-6 text-danger md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
@@ -391,12 +388,12 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
               variant="ghost"
               size="sm"
               onPress={() => setPane("tree")}
-              aria-label="Back to files"
+              aria-label={intl.formatMessage({ id: "web.routes.tabs.files.back_to_files", defaultMessage: "Back to files", description: "Files tab: icon-only button that returns from a file view to the file tree; read by screen readers" })}
               className="text-default-500"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-xs text-default-500 ml-1">Files</span>
+            <span className="text-xs text-default-500 ml-1">{intl.formatMessage({ id: "web.routes.tabs.files.files", defaultMessage: "Files", description: "Files tab: label beside the back button in the file pane header, naming the files area" })}</span>
           </div>
           {selected && !selected.dir ? (
             <>
@@ -405,7 +402,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                   <FileIcon className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground">{selected.name}</span>
                   {dirty && (
-                    <span className="text-xs text-warning">· modified</span>
+                    <span className="text-xs text-warning">{intl.formatMessage({ id: "web.routes.tabs.files.modified", defaultMessage: "· modified", description: "Files tab: warning marker shown beside the open file name when it has unsaved edits" })}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -414,15 +411,13 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                     size="sm"
                     onPress={downloadSelected}
                   >
-                    <Download className="h-3 w-3" /> Download
-                  </Button>
+                    <Download className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.files.download", defaultMessage: "Download", description: "Files tab: button that downloads the selected file to the user's computer; keep it short" })}</Button>
                   <Button
                     variant="danger"
                     size="sm"
                     isDisabled={!canControl} onPress={() => setConfirmDelete(selected)}
                   >
-                    <Trash2 className="h-3 w-3" /> Delete
-                  </Button>
+                    <Trash2 className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.files.delete", defaultMessage: "Delete", description: "Files tab: red button that deletes the selected file or folder, and the confirm button of the delete dialog; keep it short" })}</Button>
                   <Button
                     size="sm"
                     isDisabled={!canControl || !loadedFile || !dirty || saveMutation.isPending}
@@ -436,9 +431,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       <Save className="h-3 w-3" />
-                    )}{" "}
-                    Save
-                  </Button>
+                    )} {intl.formatMessage({ id: "web.routes.tabs.files.save", defaultMessage: "Save", description: "Files tab: button that saves edits to the open file; shows a spinner while saving; keep it short" })}</Button>
                 </div>
               </div>
               <div className="min-h-0 flex-1 bg-background">
@@ -466,9 +459,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
               </div>
             </>
           ) : (
-            <div className="grid h-full place-items-center text-sm text-default-500">
-              Select a file to edit.
-            </div>
+            <div className="grid h-full place-items-center text-sm text-default-500">{intl.formatMessage({ id: "web.routes.tabs.files.select_a_file_to_edit", defaultMessage: "Select a file to edit.", description: "Files tab: empty-state text in the editor pane shown when no file is selected" })}</div>
           )}
         </main>
       </div>
@@ -477,14 +468,14 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
         <ConfirmDialog
           open={!!confirmDelete}
           onOpenChange={(open) => !open && setConfirmDelete(null)}
-          title={`Delete ${confirmDelete.name}?`}
+          title={intl.formatMessage({ id: "web.routes.tabs.files.delete_entry_title", defaultMessage: "Delete {name}?", description: "Files: title of the confirm dialog for deleting a file or folder; {name} is the file or folder name" }, { name: confirmDelete.name })}
           description={
             confirmDelete.dir
-              ? `This permanently removes the folder and everything inside it from the server's data volume. This action cannot be undone.`
-              : `This permanently removes the file from the server's data volume. This action cannot be undone.`
+              ? intl.formatMessage({ id: "web.routes.tabs.files.delete_folder_body", defaultMessage: "This permanently removes the folder and everything inside it from the server's data volume. This action cannot be undone.", description: "Files: body of the confirm dialog for deleting a folder" })
+              : intl.formatMessage({ id: "web.routes.tabs.files.delete_file_body", defaultMessage: "This permanently removes the file from the server's data volume. This action cannot be undone.", description: "Files: body of the confirm dialog for deleting a file" })
           }
           destructive
-          confirmLabel="Delete"
+          confirmLabel={intl.formatMessage({ id: "web.routes.tabs.files.delete", defaultMessage: "Delete", description: "Files tab: red button that deletes the selected file or folder, and the confirm button of the delete dialog; keep it short" })}
           busy={deleteMutation.isPending}
           onConfirm={() => deleteMutation.mutate(confirmDelete)}
         />
@@ -493,20 +484,20 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
       <NamePromptDialog
         open={mkdirOpen}
         onOpenChange={setMkdirOpen}
-        title="New folder"
-        label="Folder name"
-        placeholder="my-folder"
-        confirmLabel="Create"
+        title={intl.formatMessage({ id: "web.routes.tabs.files.new_folder", defaultMessage: "New folder", description: "Files tab: button that opens the prompt to create a new folder, and the title of that prompt dialog; keep it short" })}
+        label={intl.formatMessage({ id: "web.routes.tabs.files.folder_name", defaultMessage: "Folder name", description: "Files tab: field label for the name of a new folder in the new folder prompt" })}
+        placeholder={intl.formatMessage({ id: "web.routes.tabs.files.my_folder", defaultMessage: "my-folder", description: "Files tab: example placeholder in the new folder name field; an example name, not a default" })}
+        confirmLabel={intl.formatMessage({ id: "web.routes.tabs.files.create", defaultMessage: "Create", description: "Files tab: confirm button of the new file and new folder prompts that creates the item; keep it short" })}
         busy={mkdirMutation.isPending}
         onSubmit={(value) => mkdirMutation.mutate(value)}
       />
       <NamePromptDialog
         open={newFileOpen}
         onOpenChange={setNewFileOpen}
-        title="New file"
-        label="File name"
-        placeholder="config.yaml"
-        confirmLabel="Create"
+        title={intl.formatMessage({ id: "web.routes.tabs.files.new_file", defaultMessage: "New file", description: "Files tab: button that opens the prompt to create a new file, and the title of that prompt dialog; keep it short" })}
+        label={intl.formatMessage({ id: "web.routes.tabs.files.file_name", defaultMessage: "File name", description: "Files tab: field label for the name of a new file in the new file prompt" })}
+        placeholder={intl.formatMessage({ id: "web.routes.tabs.files.config_yaml", defaultMessage: "config.yaml", description: "Files tab: example placeholder in the new file name field; an example name, not a default" })}
+        confirmLabel={intl.formatMessage({ id: "web.routes.tabs.files.create", defaultMessage: "Create", description: "Files tab: confirm button of the new file and new folder prompts that creates the item; keep it short" })}
         busy={newFileMutation.isPending}
         onSubmit={(value) => newFileMutation.mutate(value)}
       />
@@ -521,6 +512,7 @@ function BreadcrumbsNav({
   cwd: string;
   onNavigate: (p: string) => void;
 }): ReactNode {
+  const intl = useOptionalIntl();
   const segments = cwd === ROOT ? [] : cwd.split("/").filter(Boolean);
   return (
     <div className="flex items-center gap-0.5 rounded-lg border border-divider bg-background px-3 py-1.5">
@@ -529,7 +521,7 @@ function BreadcrumbsNav({
         className="text-default-500 hover:text-foreground text-xs font-mono"
         onClick={() => onNavigate(ROOT)}
       >
-        /
+        {intl.formatMessage({ id: "web.routes.tabs.files.root_crumb", defaultMessage: "/", description: "Files: breadcrumb button that jumps to the server data root, shown as a slash" })}
       </button>
       {segments.map((seg, i) => {
         const path = "/" + segments.slice(0, i + 1).join("/");
@@ -548,7 +540,7 @@ function BreadcrumbsNav({
             >
               {seg}
             </button>
-            {!isLast && <span className="text-default-500">/</span>}
+            {!isLast && <span className="text-default-500">{intl.formatMessage({ id: "web.routes.tabs.files.path_separator", defaultMessage: "/", description: "Files: slash drawn between breadcrumb segments" })}</span>}
           </span>
         );
       })}
@@ -577,6 +569,7 @@ function NamePromptDialog({
   busy,
   onSubmit,
 }: NamePromptProps) {
+  const intl = useOptionalIntl();
   const [value, setValue] = useState("");
   // Clear the input whenever the dialog transitions to open. Adjusted
   // directly during render (not in an effect), gated on the previous
@@ -619,9 +612,7 @@ function NamePromptDialog({
                     className={cn(showError && "border-danger")}
                   />
                   {showError && (
-                    <p id="name-prompt-error" className="pt-1 text-xs text-danger">
-                      {'Names can\'t contain "/" or be "." or "..".'}
-                    </p>
+                    <p id="name-prompt-error" className="pt-1 text-xs text-danger">{intl.formatMessage({ id: "web.routes.tabs.files.names_can_t_contain_or_be_or", defaultMessage: "Names can't contain \"/\" or be \".\" or \"..\".", description: "Files tab: validation error under a file or folder name field when the name contains a slash or is a single or double dot" })}</p>
                   )}
                 </div>
               </form>
@@ -631,9 +622,7 @@ function NamePromptDialog({
                 variant="ghost"
                 onPress={() => onOpenChange(false)}
                 isDisabled={busy}
-              >
-                Cancel
-              </Button>
+              >{intl.formatMessage({ id: "web.routes.tabs.files.cancel", defaultMessage: "Cancel", description: "Files tab: button in the name prompt dialog that closes it without creating anything; keep it short" })}</Button>
               <Button
                 variant="primary"
                 isDisabled={!valid || busy}
@@ -641,7 +630,7 @@ function NamePromptDialog({
                   if (valid && !busy) onSubmit(trimmed);
                 }}
               >
-                {busy ? "Working…" : confirmLabel}
+                {busy ? intl.formatMessage({ id: "web.routes.tabs.files.working", defaultMessage: "Working…", description: "Files: label of the dialog submit button while the request is running" }) : confirmLabel}
               </Button>
             </ModalFooter>
           </ModalDialog>
@@ -663,9 +652,9 @@ function parentOf(p: string): string {
   return idx <= 0 ? ROOT : trimmed.slice(0, idx);
 }
 
-function confirmDiscard(): boolean {
+function confirmDiscard(intl: IntlShape): boolean {
   return window.confirm(
-    "You have unsaved changes. Discard them and continue?",
+    intl.formatMessage({ id: "web.routes.tabs.files.discard_unsaved_changes", defaultMessage: "You have unsaved changes. Discard them and continue?", description: "Files: confirm prompt shown before discarding unsaved file edits" }),
   );
 }
 

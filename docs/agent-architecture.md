@@ -27,6 +27,7 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | **Tunnel** | `tunnel/specs.md` | Relay client supervisor for integrating with external tunnels (frp, Tailscale, playit). |
 | **Audit-Syslog-Bridge** | `audit-syslog-bridge/specs.md` | Relay forwarding HTTP JSON audit events to external syslog servers. |
 | **Telemetry-Receiver** | `telemetry-receiver/specs.md` | Ingests and processes anonymous usage telemetry from the API. |
+| **Telemetryschema** | `telemetryschema/specs.md` | Shared telemetry report contract (types, enumerations, strict decode, official module catalog, report signing) used by the API and the telemetry-receiver. |
 | **MCP-Server** | `mcp-server/specs.md` | Read-only Model Context Protocol server exposing cluster state to AI tools. |
 | **Svcutil** | `svcutil/specs.md` | Shared stdlib-only env and graceful-shutdown helpers used by backend components. |
 
@@ -35,11 +36,17 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | Component | `specs.md` location | Primary Responsibilities |
 | --- | --- | --- |
 | **Web Dashboard** | `web/specs.md` | The React SPA frontend. |
-| **Design Export** | `design-export/MANIFEST.md` | Plain-file snapshot of the Pencil source for the product's designed screens. |
+| **Design Export** | `assets/design-export/MANIFEST.md` | Plain-file snapshot of the Pencil source for the product's designed screens. |
 | **Images** | `docs/img/` | Screenshot gallery for documentation and testing. |
 | **Website** | `website/` (submodule) | Public marketing and documentation site. |
 | **Modules** | `modules/<game>/specs.md` | OCI bundle templates for deploying specific games (e.g., Minecraft, Rust). |
 | **Test e2e** | `test/e2e/specs.md` | E2E integration test suite covering operator and API flows. |
+
+## Task to doc map
+
+| Task | Read |
+| --- | --- |
+| Translations, language packs, localized server or module messages (i18n) | `docs/translating.md`, `specs/019-localization-language-packs/contracts/` (`pack-format.md`, `server-messages.md`, `i18n-api.md`, `module-locales.md`, `check-tool.md`), and the Internationalization section of `web/specs.md` |
 
 ## How to use this index
 1. Identify the domain of your task (e.g., "Add an auth provider").

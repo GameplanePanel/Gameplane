@@ -5,6 +5,65 @@
        condition in api.yaml). */ -}}
 {{- if and (eq (include "gameplane.apiEnabled" .) "true") .Values.api.telemetry.receiver.enabled (not .Values.api.telemetry.endpoint) }}
 {{- $r := .Values.api.telemetry.receiver }}
+{{- /*
+  Every key added after v0.2.0-beta.8 may be absent after `helm upgrade
+  --reuse-values` (F-214), so each is read through a guard: a missing block
+  becomes an empty dict, and hasKey (not `default`) keeps an explicit 0 or
+  false the operator set. Absent keys fall back to the values.yaml defaults.
+  In particular: an absent persistence block (an upgrade with --reuse-values
+  from beta.8) counts as disabled, so the upgrade adds no PVC.
+*/}}
+{{- $persistence := $r.persistence | default dict }}
+{{- $persistenceEnabled := ternary $persistence.enabled false (hasKey $persistence "enabled") }}
+{{- $dashboard := $r.dashboard | default dict }}
+{{- $dashboardToken := $dashboard.tokenSecretRef | default dict }}
+{{- $pepper := $r.pepperSecretRef | default dict }}
+{{- $publicSummary := $r.publicSummary | default dict }}
+{{- if and $persistenceEnabled (gt (int $r.replicas) 1) }}
+{{- fail "api.telemetry.receiver.replicas must be 1 while api.telemetry.receiver.persistence.enabled is true: the SQLite store has a single writer" }}
+{{- end }}
+{{- if and (hasKey $r "retentionDays") (lt (int $r.retentionDays) 365) }}
+{{- fail "api.telemetry.receiver.retentionDays must be at least 365 (spec 022 OD-3)" }}
+{{- end }}
+{{- if and (hasKey $r "activityExpiryDays") (lt (int $r.activityExpiryDays) 31) }}
+{{- fail "api.telemetry.receiver.activityExpiryDays must be at least 31 (spec 022 OD-4)" }}
+{{- end }}
+{{- /*
+  Proof-of-work (spec 022 FR-039, R21, OD-5). The whole block may be absent
+  after --reuse-values from a release before it (F-214); absent keys fall
+  back to the values.yaml defaults, with proof-of-work off.
+*/}}
+{{- $pow := $r.ingestPow | default dict }}
+{{- $powEnabled := ternary $pow.enabled false (hasKey $pow "enabled") }}
+{{- $powTarget := ternary $pow.targetPerMinute 60 (hasKey $pow "targetPerMinute") }}
+{{- $powMin := ternary $pow.minBits 0 (hasKey $pow "minBits") }}
+{{- $powMax := ternary $pow.maxBits 22 (hasKey $pow "maxBits") }}
+{{- if lt (int64 $powTarget) 1 }}
+{{- fail "api.telemetry.receiver.ingestPow.targetPerMinute must be at least 1 (spec 022 OD-5)" }}
+{{- end }}
+{{- if gt (int64 $powMax) 26 }}
+{{- fail "api.telemetry.receiver.ingestPow.maxBits must be at most 26, the hardest challenge an install solves (spec 022 OD-5)" }}
+{{- end }}
+{{- if lt (int64 $powMax) (int64 $powMin) }}
+{{- fail "api.telemetry.receiver.ingestPow.maxBits must be at least minBits (spec 022 OD-5)" }}
+{{- end }}
+{{- if $persistenceEnabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gameplane-telemetry-receiver-data
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  accessModes: [ReadWriteOnce]
+  {{- with $persistence.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $persistence.size | default "1Gi" | quote }}
+---
+{{- end }}
 # Anonymous-usage-telemetry collector. The API POSTs its daily
 # {version, servers, templates} report here; this validates it and
 # exposes aggregate Prometheus metrics. It touches no Kubernetes API, so
@@ -17,6 +76,10 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   replicas: {{ $r.replicas }}
+  # One writer owns the SQLite file, so a rollout must stop the old pod
+  # before the new one starts.
+  strategy:
+    type: Recreate
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-telemetry-receiver }
   template:
@@ -28,6 +91,9 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
+        # The image is distroless nonroot (UID 65532); fsGroup makes the
+        # PVC (or emptyDir) mounted at /data writable by that user.
+        fsGroup: 65532
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: receiver
@@ -35,6 +101,42 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - { name: LISTEN_ADDR, value: ":8080" }
+            - { name: DATA_DIR, value: "/data" }
+            - name: PUBLIC_SUMMARY
+              value: {{ ($publicSummary.enabled | default false) | quote }}
+            - name: RETENTION_DAYS
+              value: {{ (ternary $r.retentionDays 730 (hasKey $r "retentionDays")) | int64 | quote }}
+            - name: ACTIVITY_EXPIRY_DAYS
+              value: {{ (ternary $r.activityExpiryDays 90 (hasKey $r "activityExpiryDays")) | int64 | quote }}
+            - name: INGEST_SOURCE_DAILY_LIMIT
+              value: {{ (ternary $r.ingestSourceDailyLimit 20 (hasKey $r "ingestSourceDailyLimit")) | int64 | quote }}
+            {{- with $r.trustedProxyCIDRs }}
+            - name: TRUSTED_PROXY_CIDRS
+              value: {{ join "," . | quote }}
+            {{- end }}
+            - name: INGEST_POW
+              value: {{ $powEnabled | quote }}
+            - name: INGEST_POW_TARGET_PER_MIN
+              value: {{ $powTarget | int64 | quote }}
+            - name: INGEST_POW_MIN_BITS
+              value: {{ $powMin | int64 | quote }}
+            - name: INGEST_POW_MAX_BITS
+              value: {{ $powMax | int64 | quote }}
+            {{- if $dashboardToken.name }}
+            # The dashboard listener only starts when this is set.
+            - name: DASHBOARD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $dashboardToken.name }}
+                  key:  {{ $dashboardToken.key | default "token" }}
+            {{- end }}
+            {{- if $pepper.name }}
+            - name: ID_PEPPER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $pepper.name }}
+                  key:  {{ $pepper.key | default "pepper" }}
+            {{- end }}
             {{- if .Values.api.telemetry.authSecretRef.name }}
             # Require the same shared token the API sends as its
             # Authorization header, so the receiver rejects POSTs from
@@ -48,6 +150,9 @@ spec:
             {{- end }}
           ports:
             - { name: http, containerPort: 8080 }
+            {{- if $dashboardToken.name }}
+            - { name: dashboard, containerPort: 8081 }
+            {{- end }}
           livenessProbe:  { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 5 }
           readinessProbe: { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 2 }
           resources: {{ toYaml $r.resources | nindent 12 }}
@@ -55,6 +160,17 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: data
+          {{- if $persistenceEnabled }}
+          persistentVolumeClaim:
+            claimName: gameplane-telemetry-receiver-data
+          {{- else }}
+          # Persistence is disabled: aggregates are lost when the pod restarts.
+          emptyDir: {}
+          {{- end }}
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets: {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -71,6 +187,9 @@ spec:
   selector: { app.kubernetes.io/name: gameplane-telemetry-receiver }
   ports:
     - { name: http, port: 8080, targetPort: http }
+    {{- if $dashboardToken.name }}
+    - { name: dashboard, port: 8081, targetPort: dashboard }
+    {{- end }}
 {{- if .Values.networkPolicies.enabled }}
 ---
 apiVersion: networking.k8s.io/v1
@@ -93,17 +212,20 @@ spec:
         - protocol: TCP
           port: 8080
     {{- /*
-      F-217: /metrics shares this listener/port with /ingest, and until now
-      the only ingress rule was "from the API pod", so no in-cluster
-      Prometheus could ever reach /metrics regardless of the ServiceMonitor
-      above. /ingest still requires AUTH_TOKEN (see the receiver's
-      Deployment env above), so widening this rule to the operator's
-      configured Prometheus namespace doesn't expose it to unauthenticated
-      writes — it only lets that namespace's pods reach the port at all.
-      Rendered only once an operator actually names their Prometheus
-      namespace via serviceMonitors.scrapeNamespaceSelector; left empty,
-      this stays exactly as restrictive as before.
+      Port 8080 (/ingest) admits only the API pod. /metrics lives on the
+      dashboard listener (8081) behind Bearer auth, so the dashboard port is
+      opened only when a dashboard token is named: first to the operator's
+      dashboard.ingressFrom peers, then (F-217) to the Prometheus namespace
+      named via serviceMonitors.scrapeNamespaceSelector. With no peers
+      configured, port-forward still works.
     */}}
+    {{- if $dashboardToken.name }}
+    {{- with $dashboard.ingressFrom }}
+    - from: {{- toYaml . | nindent 8 }}
+      ports:
+        - protocol: TCP
+          port: 8081
+    {{- end }}
     {{- with .Values.serviceMonitors.scrapeNamespaceSelector }}
     {{- if $.Values.serviceMonitors.enabled }}
     - from:
@@ -111,7 +233,8 @@ spec:
             {{- toYaml . | nindent 12 }}
       ports:
         - protocol: TCP
-          port: 8080
+          port: 8081
+    {{- end }}
     {{- end }}
     {{- end }}
 {{- end }}

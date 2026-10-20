@@ -1,0 +1,131 @@
+{
+  "type": "frame",
+  "id": "y49Ie",
+  "x": 3567.959083557127,
+  "y": 2040.8789062499995,
+  "name": "Telemetry components",
+  "theme": {
+    "semantic": "dark"
+  },
+  "fill": "$background/background",
+  "gap": 48,
+  "padding": 32,
+  "children": [
+    {
+      "type": "frame",
+      "id": "sDDfo",
+      "name": "Telemetry/Stat tile",
+      "reusable": true,
+      "width": 280,
+      "fill": "$surface/surface",
+      "cornerRadius": "$radius/3xl",
+      "stroke": "$border",
+      "strokeWidth": 1,
+      "strokeAlignment": "inner",
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#0000000A",
+        "offset": {
+          "x": 0,
+          "y": 2
+        },
+        "blur": 4
+      },
+      "layout": "vertical",
+      "gap": 6,
+      "padding": 16,
+      "children": [
+        {
+          "type": "text",
+          "id": "yia1E",
+          "name": "Label",
+          "fill": "$foreground/secondary",
+          "content": "Reports, today",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 13,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "tZRdh",
+          "name": "Value",
+          "fill": "$foreground/foreground",
+          "content": "1,284",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 28,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "oPQEN",
+          "name": "Note",
+          "fill": "$foreground/muted",
+          "content": "2026-10-06 (UTC, in progress)",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "wPbIp",
+      "name": "Telemetry/Share row",
+      "reusable": true,
+      "width": 420,
+      "gap": 12,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "j1J75",
+          "name": "Label",
+          "fill": "$foreground/foreground",
+          "textGrowth": "fixed-width",
+          "width": 128,
+          "content": "k3s",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 13,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "L6Z5jA",
+          "name": "Track",
+          "width": "fill_container",
+          "height": 12,
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": [
+                0,
+                4,
+                4,
+                0
+              ],
+              "id": "dMFUm",
+              "name": "Bar",
+              "fill": "$chart/series-1",
+              "width": 140,
+              "height": 12
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "uTqdm",
+          "name": "Value",
+          "fill": "$foreground/secondary",
+          "textGrowth": "fixed-width",
+          "width": 48,
+          "content": "48%",
+          "textAlign": "right",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 13,
+          "fontWeight": "normal"
+        }
+      ]
+    }
+  ]
+}

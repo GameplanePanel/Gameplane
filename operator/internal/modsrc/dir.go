@@ -9,8 +9,10 @@ import (
 	"io/fs"
 	"path"
 	"sort"
+	"strings"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
 
 // newFSFetcher builds a Fetcher over any filesystem-shaped source —
@@ -148,6 +150,7 @@ func bundleFromDir(fsys fs.FS, dir, digest string) (*Bundle, error) {
 		}
 		files[name] = data
 	}
+	readLocaleFiles(fsys, dir, files)
 	if digest == "" {
 		var err error
 		if digest, err = contentDigest(fsys, dir); err != nil {
@@ -155,6 +158,61 @@ func bundleFromDir(fsys fs.FS, dir, digest string) (*Bundle, error) {
 		}
 	}
 	return FromFiles(digest, files)
+}
+
+// readLocaleFiles adds locales/<tag>.json (regular files only) to files under
+// the key "locales/<tag>.json", the same names an OCI bundle uses. A file over
+// oci.MaxLocaleLayerSize is not read: oci.OversizedLocale is stored in its
+// place so the reconciler reports the language instead of dropping it. The
+// files together are also bounded by oci.MaxLocaleTotalSize: languages are
+// counted in name order, and one that would exceed the total is recorded as
+// oversized the same way.
+func readLocaleFiles(fsys fs.FS, dir string, files map[string][]byte) {
+	entries, err := fs.ReadDir(fsys, path.Join(dir, "locales"))
+	if err != nil {
+		return
+	}
+	var budget oci.LocaleBudget
+	for _, e := range entries {
+		name := e.Name()
+		if !e.Type().IsRegular() || !strings.HasSuffix(name, ".json") {
+			continue
+		}
+		key := oci.LocaleLayerPrefix + name
+		info, err := e.Info()
+		if err != nil {
+			continue
+		}
+		if info.Size() > oci.MaxLocaleLayerSize || !budget.Take(info.Size()) {
+			files[key] = oci.OversizedLocale
+			continue
+		}
+		data, err := readFileCapped(fsys, path.Join(dir, key), oci.MaxLocaleLayerSize)
+		if err != nil {
+			continue
+		}
+		if len(data) > oci.MaxLocaleLayerSize {
+			// The file grew after the size check; the cap still holds.
+			files[key] = oci.OversizedLocale
+			continue
+		}
+		files[key] = data
+	}
+}
+
+// readFileCapped reads at most limit+1 bytes of name, so a caller can tell a file
+// over limit apart without holding more than that in memory.
+func readFileCapped(fsys fs.FS, name string, limit int64) ([]byte, error) {
+	f, err := fsys.Open(name)
+	if err != nil {
+		return nil, fmt.Errorf("open %s: %w", name, err)
+	}
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(io.LimitReader(f, limit+1))
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", name, err)
+	}
+	return data, nil
 }
 
 // contentDigest hashes every regular file under dir — relative path

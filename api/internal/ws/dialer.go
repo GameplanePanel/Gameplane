@@ -18,13 +18,19 @@ import (
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // Mount attaches the WS/file proxy routes under /ws and /servers/:name/files.
 func Mount(r chi.Router, reg *kube.Registry, caBundle, clientCert, clientKey string, gatewayOptions ...AgentGatewayOptions) {
+	MountWithPlayerNames(r, reg, caBundle, clientCert, clientKey, nil, gatewayOptions...)
+}
+
+// MountWithPlayerNames is Mount plus an optional Steam display-name resolver
+// for the player list. A nil names resolver leaves the list as raw Steam IDs.
+func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert, clientKey string, names PlayerNameResolver, gatewayOptions ...AgentGatewayOptions) {
 	var k *kube.Client
 	if reg != nil {
 		k = reg.Default()
@@ -40,7 +46,7 @@ func Mount(r chi.Router, reg *kube.Registry, caBundle, clientCert, clientKey str
 		transport = newDirectAgentTransport(tlsCfg, 0)
 	}
 
-	p := &proxy{k: k, transport: transport, stdin: k}
+	p := &proxy{k: k, transport: transport, stdin: k, playerNames: names}
 	if len(gatewayOptions) > 0 && gatewayOptions[0].Namespace != "" && reg != nil {
 		p.gateway = &agentGatewayResolver{registry: reg, namespace: gatewayOptions[0].Namespace}
 	}
@@ -60,12 +66,15 @@ func Mount(r chi.Router, reg *kube.Registry, caBundle, clientCert, clientKey str
 		r.Get("/read", p.agentHTTP("/files/read"))
 		r.Get("/download", p.agentHTTP("/files/download"))
 		r.Post("/write", p.agentHTTP("/files/write"))
+		r.Post("/create", p.agentHTTP("/files/create"))
 		r.Post("/upload", p.agentHTTP("/files/upload"))
 		r.Post("/mkdir", p.agentHTTP("/files/mkdir"))
 		r.Delete("/delete", p.agentHTTP("/files/delete"))
 	})
 	r.Route("/servers/{name}/players", func(r chi.Router) {
-		r.Get("/", p.agentHTTP("/players"))
+		// Hydrated with Steam display names when a resolver is configured;
+		// every other case is the agent's bytes verbatim (players_hydrate.go).
+		r.Get("/", p.agentRoute(func(selected *proxy) http.HandlerFunc { return selected.hydratedPlayers("/players") }))
 		r.Get("/banned", p.agentHTTP("/players/banned"))
 		r.Post("/kick", p.agentHTTP("/players/kick"))
 		r.Post("/ban", p.agentHTTP("/players/ban"))
@@ -140,6 +149,9 @@ type proxy struct {
 	// k (see Mount) but is a separate interface field so tests can inject
 	// a fake that records writes instead of attaching to a real pod.
 	stdin stdinWriter
+	// playerNames, when non-nil, hydrates structured player lists with
+	// display names. It never reaches a moderation route (kick/ban/unban).
+	playerNames PlayerNameResolver
 }
 
 func (p *proxy) wsProxy(agentPath string) http.HandlerFunc {

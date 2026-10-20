@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CloneServerDialog } from "./CloneServerDialog";
+import { APIError } from "@/lib/api";
 
 // Mock the endpoints
 vi.mock("@/lib/endpoints", async (importOriginal) => {
@@ -230,5 +231,102 @@ describe("CloneServerDialog", () => {
       params: { name: "source-copy" },
       search: { cluster: "local", ns: "team-a" },
     });
+  });
+
+  it("keeps the dialog open and shows the conflict message when the name already exists", async () => {
+    const { Servers } = await import("@/lib/endpoints");
+    vi.mocked(Servers.clone).mockRejectedValue(new APIError(409, "conflict"));
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <CloneServerDialog
+        open
+        onOpenChange={onOpenChange}
+        sourceName="source"
+      />,
+      { wrapper: Wrapper },
+    );
+
+    await user.click(screen.getByRole("button", { name: "Clone server" }));
+
+    expect(await screen.findByText("A server named source-copy already exists.")).toBeInTheDocument();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { status: 403, body: "", message: "Your role does not allow cloning servers." },
+    { status: 500, body: "", message: "Clone failed (500)." },
+    { status: 500, body: "disk full", message: "disk full" },
+  ])("shows '$message' when the API answers $status", async ({ status, body, message }) => {
+    const { Servers } = await import("@/lib/endpoints");
+    vi.mocked(Servers.clone).mockRejectedValue(new APIError(status, body));
+    const user = userEvent.setup();
+    render(
+      <CloneServerDialog
+        open
+        onOpenChange={() => {}}
+        sourceName="source"
+      />,
+      { wrapper: Wrapper },
+    );
+
+    await user.click(screen.getByRole("button", { name: "Clone server" }));
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("shows the error text when the request fails without an API response", async () => {
+    const { Servers } = await import("@/lib/endpoints");
+    vi.mocked(Servers.clone).mockRejectedValue(new Error("network down"));
+    const user = userEvent.setup();
+    render(
+      <CloneServerDialog
+        open
+        onOpenChange={() => {}}
+        sourceName="source"
+      />,
+      { wrapper: Wrapper },
+    );
+
+    await user.click(screen.getByRole("button", { name: "Clone server" }));
+
+    expect(await screen.findByText("network down")).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("discards an edited name when the dialog is cancelled and reopened", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <CloneServerDialog
+        open
+        onOpenChange={() => {}}
+        sourceName="source"
+      />,
+      { wrapper: Wrapper },
+    );
+    const input = screen.getByDisplayValue("source-copy") as HTMLInputElement;
+    await user.clear(input);
+    await user.type(input, "edited-name");
+    expect(input.value).toBe("edited-name");
+
+    rerender(
+      <CloneServerDialog
+        open={false}
+        onOpenChange={() => {}}
+        sourceName="source"
+      />,
+    );
+    rerender(
+      <CloneServerDialog
+        open
+        onOpenChange={() => {}}
+        sourceName="source"
+      />,
+    );
+
+    expect(await screen.findByDisplayValue("source-copy")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("edited-name")).not.toBeInTheDocument();
   });
 });

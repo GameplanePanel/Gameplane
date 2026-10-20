@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/rest"
 	k8stesting "k8s.io/client-go/testing"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 func TestRenderKubeconfig(t *testing.T) {

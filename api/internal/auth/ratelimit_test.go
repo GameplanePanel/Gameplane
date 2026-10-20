@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -150,5 +151,28 @@ func TestTokenBucket_GC(t *testing.T) {
 	b.mu.Unlock()
 	if exists {
 		t.Fatal("stale bucket should have been GC'd")
+	}
+}
+
+func TestTokenBucketMiddleware_429IsGenericProblem(t *testing.T) {
+	b := newTokenBucket(0, 0)
+	h := b.Middleware(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequestWithContext(context.Background(), "POST", "/login", nil)
+	req.RemoteAddr = "10.0.0.1:1234"
+	req.Header.Set("Accept", "application/problem+json")
+	h.ServeHTTP(rr, req)
+	if rr.Code != http.StatusTooManyRequests {
+		t.Fatalf("code=%d", rr.Code)
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != "application/problem+json" {
+		t.Fatalf("Content-Type=%q", ct)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &doc); err != nil {
+		t.Fatalf("decode problem: %v", err)
+	}
+	if doc["messageId"] != "server.generic.429" {
+		t.Fatalf("messageId=%v, want server.generic.429", doc["messageId"])
 	}
 }

@@ -1,0 +1,5 @@
+features-sync: area mismatch at position 2: "Operations" vs "Platform"
+features-sync: only in FEATURES.md: Operations / Audit export
+features-sync: only in FEATURES.md: Operations / Backups
+features-sync: only in features.mdx: Platform / Audit export
+features-sync: only in features.mdx: Platform / Backups

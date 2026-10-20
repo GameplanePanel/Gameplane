@@ -10,7 +10,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/common"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/common"
 )
 
 var (

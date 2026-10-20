@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 )
 
 func TestWhitelistCommander_Minecraft(t *testing.T) {

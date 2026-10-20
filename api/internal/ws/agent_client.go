@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // AgentClient makes one-shot JSON GETs against agent sidecars over the same

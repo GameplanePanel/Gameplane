@@ -1,0 +1,54 @@
+{{define "content"}}
+{{template "topbar" .}}
+<main class="page">
+<header class="page-head">
+<div>
+<p class="eyebrow">Provider overview</p>
+<h1 class="title">Usage across reporting installs</h1>
+<p class="lede">Daily aggregates from self-reported, anonymous reports. Every figure is approximate: installs choose to report, and nothing is verified beyond the report signature.</p>
+</div>
+<nav class="segment" aria-label="Range">
+{{range .Ranges}}<a class="segment-item{{if .Active}} is-active{{end}}" href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}>{{.Days}} days</a>
+{{end}}</nav>
+</header>
+{{if .Empty}}
+<section class="card empty">
+<h2 class="card-title">No reports yet</h2>
+<p class="muted">Figures appear as soon as this receiver accepts a report; today's figures are in progress and update as reports arrive. Installs send to POST /ingest on the public port; nothing is shown until there is data, so no chart is drawn from zeros.</p>
+</section>
+{{else}}
+{{with .Basic}}
+<section class="section" aria-labelledby="basic-h">
+<h2 class="section-title" id="basic-h">Basic reports</h2>
+<p class="muted">Version, server count and template count from every report, basic or extended.</p>
+<div class="kpis kpis-4">
+<div class="card tile"><p class="tile-label">Reports, today</p><p class="tile-value">{{num $.LatestReports}}</p><p class="tile-sub">{{$.AsOf}} (UTC, in progress)</p></div>
+<div class="card tile"><p class="tile-label">Reports, last {{$.Range}} days</p><p class="tile-value">{{num $.RangeReports}}</p><p class="tile-sub">Accepted reports</p></div>
+<div class="card tile"><p class="tile-label">Reports since collection began</p><p class="tile-value">{{num $.ReportsTotal}}</p><p class="tile-sub">{{if $.Since}}Since {{$.Since}}{{end}}</p></div>
+<div class="card tile"><p class="tile-label">Median servers per install</p><p class="tile-value">{{.Fleet.Servers.Median}}</p><p class="tile-sub">Last {{$.Range}} days</p></div>
+</div>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Reports per day</span><span class="muted block">Accepted reports per UTC day, last {{$.Range}} days, ending today (in progress)</span></span>
+{{if $.Table}}<a class="link" href="{{$.ChartHref}}">View as chart</a>{{else}}<a class="link" href="{{$.TableHref}}">View as table</a>{{end}}</figcaption>
+{{template "columns" $.PerDay}}
+</figure>
+<div class="grid-2">
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Reports by version</span><span class="muted block">Reports in range by reported version. Top 10, then Other and Invalid.</span></span></figcaption>
+{{template "bars" $.VersionsChart}}
+</figure>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Servers per install</span><span class="muted block">Reports by game-server count. Median {{.Fleet.Servers.Median}}.</span></span></figcaption>
+{{template "columns" $.ServersChart}}
+</figure>
+</div>
+</section>
+{{end}}
+{{template "extended" .}}
+{{end}}
+<footer class="foot muted">
+<p>All figures are approximate and self-reported. Reports are anonymous; extended reports are signed by a key the install derives locally, which stops impersonation but not invented figures.</p>
+<p>Install IDs are stored only as keyed hashes. Activity records expire after the configured inactivity period, and daily aggregates are kept for the configured retention. No IP address or raw report is stored.</p>
+</footer>
+</main>
+{{end}}

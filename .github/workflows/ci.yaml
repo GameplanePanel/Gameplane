@@ -33,6 +33,10 @@ on:
       - "CLAUDE.md"
       - "LICENSE"
       - "specs/**/outreach.md"
+      - "specs/**/coverage-gaps.md"
+      # Feature catalog and the website gitlink feed the features sync gate (spec 024).
+      - "FEATURES.md"
+      - "website"
 # Cancel superseded runs so rapid pushes to the same ref don't waste
 # runner minutes on stale commits.
 concurrency:
@@ -79,6 +83,7 @@ jobs:
       go: ${{ steps.combine.outputs.go }}
       web: ${{ steps.combine.outputs.web }}
       charts: ${{ steps.combine.outputs.charts }}
+      standalone: ${{ steps.combine.outputs.standalone }}
       e2e: ${{ steps.combine.outputs.e2e }}
       weblive: ${{ steps.combine.outputs.weblive }}
       images: ${{ steps.combine.outputs.images }}
@@ -92,6 +97,9 @@ jobs:
       go-exclude: ${{ steps.scope.outputs.go-exclude }}
       e2e-unit: ${{ steps.scope.outputs.e2e-unit }}
       bot-matrix: ${{ steps.bots.outputs.matrix }}
+      capture_overhead: ${{ steps.combine.outputs.capture_overhead }}
+      submodules: ${{ steps.combine.outputs.submodules }}
+      codegen: ${{ steps.combine.outputs.codegen }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -118,6 +126,8 @@ jobs:
               - 'agent/**'
               - 'audit-syslog-bridge/**'
               - 'telemetry-receiver/**'
+              - 'telemetryschema/**'
+              - 'i18n/**'
               - 'sentinel/**'
               - 'mcp-server/**'
               - 'capture-sidecar/**'
@@ -130,21 +140,40 @@ jobs:
               - '**/go.mod'
               - '**/go.sum'
               - '**/Dockerfile'
+              - 'hack/govulncheck-all.sh'
+              - 'hack/check-govulncheck_test.sh'
+              - 'hack/testdata/govulncheck/**'
             web:
+              # Language packs feed the dashboard build and the i18n checks in the web job.
               - 'web/**'
+              - 'i18n/**'
             charts:
               - 'charts/**'
               # The chart embeds a copy of the root signing key; the drift
               # check in `chart render` has to run when either side moves.
-              - 'cosign.pub'
+              - 'signing/cosign.pub'
               # The CRD bundle-hash stamp check regenerates the chart CRDs
               # from these; an edit to either must re-run it.
               - 'operator/config/crd/**'
               - 'hack/sync-chart-crds.sh'
+            # Compose builds only API, its local module dependencies, and web.
+            # Deployment prose and unrelated Go/chart changes need no smoke VM.
+            standalone:
+              - 'api/**'
+              - 'netguard/**'
+              - 'gameaction/**'
+              - 'gp-module/**'
+              - 'telemetryschema/**'
+              - 'web/**'
+              - 'deploy/standalone/compose*.yaml'
+              - 'deploy/standalone/smoke.py'
+              - '.dockerignore'
             e2etree:
               - 'test/e2e/**'
               - 'deploy/kind/**'
-              - 'docker-bake.hcl'
+              - 'containers/docker-bake.hcl'
+              - 'hack/trivy-scan-images.sh'
+              - 'hack/check-image-scan_test.sh'
             # Narrower than e2etree on purpose: this backs a job that only
             # smoke-tests deploy/kind/**'s pinned dev ingress-nginx manifest
             # on a real Kind cluster, and must NOT run on every e2e-affecting
@@ -158,6 +187,33 @@ jobs:
               - 'modules'
               - 'modules/**'
               - 'docs/game-coverage.md'
+            # Gates the non-blocking e2e-capture-overhead job on PRs (OD-2 in
+            # specs/done_007-capture-overhead-guard/OPEN-DECISIONS.md). Master pushes
+            # run it through the e2e gate instead.
+            capture_overhead:
+              - 'capture-sidecar/**'
+              - 'operator/internal/controller/networkcapture*'
+              - 'api/internal/handlers/capture*'
+              - 'test/e2e/internal/minecraft-java/**'
+              - 'test/e2e/capture_overhead_e2e_test.go'
+              - 'test/e2e/gameprobe_job.go'
+            # Gate scope for submodule freshness (spec 013 T007).
+            submodules:
+              - 'modules'
+              - 'website'
+              - 'hack/check-submodule-freshness.sh'
+              - 'hack/check-submodule-freshness_test.sh'
+            # Gate scope for codegen drift (spec 013 T007).
+            codegen:
+              - 'operator/api/v1alpha1/**'
+              - '**/go.mod'
+              - '**/go.sum'
+              - 'Makefile'
+              - 'hack/sync-chart-crds.sh'
+              - 'operator/config/**'
+              - 'charts/gameplane/charts/gameplane-crds/**'
+              - 'charts/gameplane/crd-manifests/**'
+              - 'hack/check-codegen-drift_test.sh'
             ci:
               - '.github/workflows/ci.yaml'
               - '.github/actions/**'
@@ -186,12 +242,23 @@ jobs:
               - 'hack/check-publish-edge-paths.sh'
               - 'hack/test-check-publish-edge-paths.sh'
               - 'hack/testdata/check-publish-edge-paths/**'
+              - '**/Dockerfile*'
+              - '.hadolint.yaml'
+              - 'hack/check-hadolint_test.sh'
+              - 'hack/testdata/hadolint/**'
             specs:
               - '**/specs.md'
               - 'hack/check-specs.sh'
+              - 'hack/check-telemetry-catalog.sh'
+              - 'telemetryschema/catalog.txt'
+              - 'charts/gameplane/values.yaml'
               - 'hack/check-dev-load-images.sh'
               - 'hack/test-up-registry.sh'
               - 'deploy/kind/up.sh'
+              - 'specs/**/coverage-gaps.md'
+              - 'hack/check-coverage-gaps.sh'
+              - 'hack/check-coverage-gaps_test.sh'
+              - 'hack/testdata/coverage-gaps/**'
             docs:
               - 'README.md'
               - 'docs/architecture.md'
@@ -211,12 +278,16 @@ jobs:
               - 'mcp-server/README.md'
               - 'telemetry-receiver/README.md'
               - 'docs/comparison-sources.md'
+              - 'FEATURES.md'
               - 'hack/check-links.sh'
               - 'hack/check-doc-versions.sh'
               - 'hack/test-check-doc-versions.sh'
               - 'hack/testdata/check-doc-versions/**'
+              - 'hack/check-features-sync.sh'
+              - 'hack/test-check-features-sync.sh'
+              - 'hack/testdata/check-features-sync/**'
               # `docs/**` broadly: check-links resolves relative links from
-              # the 18 audited files against ANY file under docs/ (e.g.
+              # the 19 audited files against ANY file under docs/ (e.g.
               # docs/architecture.md -> docs/agent-architecture.md), not
               # just the other audited files, so renaming a non-audited doc
               # must still run the gate.
@@ -227,15 +298,17 @@ jobs:
               # Non-docs/ link targets referenced from the audited files
               # (docs/dependencies.md -> CHANGELOG.md, docs/contributing.md
               # -> CLAUDE.md and specs/012-.../outreach.md, README.md ->
-              # LICENSE/cosign.pub, docs/key-rotation.md -> the legacy key
+              # LICENSE, signing/cosign.pub, docs/key-rotation.md -> the legacy key
               # files) — renaming or moving any of these must run check-links.
               - 'CHANGELOG.md'
               - 'CLAUDE.md'
               - 'LICENSE'
-              - 'cosign.pub'
-              - 'cosign-legacy.pub'
-              - 'cosign.pub.legacy-sig'
+              - 'signing/cosign.pub'
+              - 'signing/2026-07-24-cosign-legacy.pub'
+              - 'signing/cosign.pub.legacy-sig'
               - 'specs/**/outreach.md'
+              # website/ features page is checked against FEATURES.md by check-features-sync.
+              - 'website'
       - id: combine
         # Fold the raw filters into single-token booleans so every downstream
         # `if:` is one expression (fewer chances to get wrong when the only way
@@ -246,9 +319,13 @@ jobs:
           GO: ${{ steps.scope.outputs.go }}
           WEB: ${{ steps.filter.outputs.web }}
           CHARTS: ${{ steps.filter.outputs.charts }}
+          STANDALONE: ${{ steps.filter.outputs.standalone }}
           E2ETREE: ${{ steps.filter.outputs.e2etree }}
           GAMECOVERAGE: ${{ steps.filter.outputs.gamecoverage }}
           CI: ${{ steps.filter.outputs.ci == 'true' || steps.scope.outputs.all == 'true' }}
+          CAPTURE: ${{ steps.filter.outputs.capture_overhead }}
+          SUBMODULES: ${{ steps.filter.outputs.submodules }}
+          CODEGEN: ${{ steps.filter.outputs.codegen }}
           GITHUB: ${{ steps.filter.outputs.github }}
           SPECS: ${{ steps.filter.outputs.specs }}
           DOCS: ${{ steps.filter.outputs.docs }}
@@ -257,11 +334,15 @@ jobs:
           gov=false;  { [ "$GO" = true ]     || [ "$CI" = true ]; } && gov=true
           webv=false; { [ "$WEB" = true ]    || [ "$CI" = true ]; } && webv=true
           chv=false;  { [ "$CHARTS" = true ] || [ "$CI" = true ]; } && chv=true
+          standalonev=false; { [ "$STANDALONE" = true ] || [ "$CI" = true ]; } && standalonev=true
           e2ev=false; { [ "$GO" = true ] || [ "$CHARTS" = true ] || [ "$E2ETREE" = true ] || [ "$GAMECOVERAGE" = true ] || [ "$CI" = true ]; } && e2ev=true
           wlv=false;  { [ "$e2ev" = true ] || [ "$WEB" = true ] || [ "$CI" = true ]; } && wlv=true
           ghv=false;  { [ "$GITHUB" = true ] || [ "$CI" = true ]; } && ghv=true
           specsv=false; { [ "$SPECS" = true ] || [ "$CI" = true ]; } && specsv=true
           docsv=false; { [ "$DOCS" = true ] || [ "$CI" = true ]; } && docsv=true
+          capov=false; { [ "$CAPTURE" = true ] || [ "$CI" = true ]; } && capov=true
+          subv=false; { [ "$SUBMODULES" = true ] || [ "$CI" = true ]; } && subv=true
+          cgv=false; { [ "$CODEGEN" = true ] || [ "$CI" = true ]; } && cgv=true
           # Keep this gate narrow on PRs; KINDSMOKE also enables it for every
           # master push, independently of its file filter.
           ksv=false; [ "$KINDSMOKE" = true ] && ksv=true
@@ -269,6 +350,7 @@ jobs:
             echo "go=$gov"
             echo "web=$webv"
             echo "charts=$chv"
+            echo "standalone=$standalonev"
             echo "e2e=$e2ev"
             echo "weblive=$wlv"
             echo "images=$wlv"
@@ -276,6 +358,9 @@ jobs:
             echo "specs=$specsv"
             echo "docs=$docsv"
             echo "kindsmoke=$ksv"
+            echo "capture_overhead=$capov"
+            echo "submodules=$subv"
+            echo "codegen=$cgv"
           } >> "$GITHUB_OUTPUT"
 
   # Build the operator/api/agent (+ gameprobe) images ONCE and publish them as
@@ -442,6 +527,41 @@ jobs:
           echo "The sidecar will fail at runtime when it tries to open AF_PACKET sockets." >&2
           exit 1
 
+  # Spec 013 G2: fail on any fixed HIGH/CRITICAL vulnerability in a built e2e
+  # image. hack/check-image-scan_test.sh first proves the gate rejects an
+  # end-of-life alpine. Fix findings with a base-image digest or dependency
+  # bump, never an ignore file.
+  vuln-images:
+    name: vuln (images)
+    needs: [changes, build-images]
+    if: needs.changes.outputs.images == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: load images
+        uses: ./.github/actions/e2e-images
+      - name: week of year
+        id: week
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+      - name: cache trivy db
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db-${{ steps.week.outputs.week }}
+      - name: install trivy
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.74.0
+      - name: prove the gate rejects a vulnerable image
+        run: ./hack/check-image-scan_test.sh
+      - name: scan every e2e image
+        run: |
+          mapfile -t images < <(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '^gameplane-test/[^:]+:e2e(-postgres)?$' | sort -u)
+          ./hack/trivy-scan-images.sh "${images[@]}"
+
   # Repository-wide gates run once, including on documentation-only changes.
   docs:
     name: docs and repository checks
@@ -453,6 +573,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init website submodule
+        run: git submodule update --init website
       - name: verify lint gate configuration
         run: ./test/e2e/lint-gate-verify.sh verify
       - name: check documentation links
@@ -461,12 +583,112 @@ jobs:
         run: make check-doc-versions
       - name: test documentation version checker
         run: make test-doc-versions
+      - name: check features sync
+        run: make check-features-sync
+      - name: test features sync checker
+        run: make test-features-sync
       - name: check specs compliance
         run: make check-specs
+      - name: check coverage gap record
+        run: make check-coverage-gaps
+      - name: check telemetry catalog
+        run: make check-telemetry-catalog
       - name: check dev-load image coverage
         run: make check-dev-load-images
       - name: test up.sh registry/context bootstrap
         run: make test-up-registry
+
+  # Spec 013 G5: regenerated files (deepcopy, operator/config/{crd,rbac}, chart
+  # CRDs, go.mod/go.sum) must be committed with the change that needs them. The
+  # proof step shows the gate goes red on a types edit committed without regenerating.
+  codegen-drift:
+    name: codegen drift
+    needs: [changes]
+    if: needs.changes.outputs.codegen == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: codegen-drift
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - name: regenerate deepcopy, CRDs, RBAC and chart CRD copies
+        run: make generate manifests
+      - name: go mod tidy across modules
+        run: make tidy
+      - name: fail on drift
+        run: git diff --exit-code
+      - name: prove the gate fails on a stale types edit
+        run: ./hack/check-codegen-drift_test.sh
+
+  # Spec 013 G6 (OD-1): the modules/ and website/ gitlinks must point at
+  # commits already on each submodule's main branch, so a pointer bump never
+  # lands before its submodule PR merges.
+  submodule-freshness:
+    name: submodule freshness
+    needs: [changes]
+    if: needs.changes.outputs.submodules == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          submodules: false
+          persist-credentials: false
+      - name: prove the freshness check can fail
+        run: ./hack/check-submodule-freshness_test.sh
+      - name: submodule pointers are on upstream main
+        run: ./hack/check-submodule-freshness.sh
+
+  # Spec 013 G4: block a PR that adds a dependency with a known high or
+  # critical advisory. PR-only; on push it is skipped, which the report
+  # already counts as neutral. No failure-proof fixture by ruling (OD-4).
+  dependency-review:
+    name: dependency review
+    needs: [changes]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  # Spec 013 G1: fail on any reachable Go vulnerability in any go.work module.
+  # The proof step first shows the gate goes red on a synthetic reachable
+  # advisory (hack/testdata/govulncheck). Fix findings by bumping, never excluding.
+  vuln-go:
+    name: vuln (go)
+    needs: [changes]
+    if: needs.changes.outputs.go == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: vuln-go
+      - name: install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+      - name: prove the gate fails on a reachable vulnerable symbol
+        run: ./hack/check-govulncheck_test.sh
+      - name: govulncheck every go.work module
+        run: ./hack/govulncheck-all.sh
 
   lint:
     name: lint (${{ matrix.module }})
@@ -479,7 +701,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, operator, agent, api, sentinel, audit-syslog-bridge, telemetry-receiver, mcp-server, capture-sidecar, svcutil, tunnel, gp-module, test/e2e]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, audit-syslog-bridge, telemetry-receiver, mcp-server, capture-sidecar, svcutil, tunnel, gp-module, test/e2e]
         exclude: ${{ fromJSON(needs.changes.outputs.lint-exclude) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -529,6 +751,21 @@ jobs:
           version: v2.12.2
           working-directory: ${{ matrix.module }}
 
+  # Merge gate for spec 022: the project default telemetry destination
+  # (DefaultEndpoint in api/internal/telemetry/destination.go) must be an https
+  # URL. OPEN-DECISIONS OD-1 is ruled, so it passes; it keeps FR-002 enforced. Deliberately
+  # separate: not part of `make lint`, and not in the `report` job's needs.
+  telemetry-default-gate:
+    name: telemetry default gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: check the default telemetry destination
+        run: sh hack/check-telemetry-default.sh
+
   go:
     name: go (${{ matrix.module }} / ${{ matrix.arch }})
     needs: [changes]
@@ -543,7 +780,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, operator, api, agent, audit-syslog-bridge, telemetry-receiver, sentinel, mcp-server, capture-sidecar, svcutil, tunnel, gp-module]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, audit-syslog-bridge, telemetry-receiver, sentinel, mcp-server, capture-sidecar, svcutil, tunnel, gp-module]
         exclude: ${{ fromJSON(needs.changes.outputs.go-exclude) }}
         arch: [amd64, arm64]
     steps:
@@ -637,6 +874,18 @@ jobs:
           fetch
       - name: merge profiles + threshold gate
         run: make cover-go-merge && make cover-go-check
+      - name: per-file coverage of secrets_managed.go (spec 013 G-19)
+        # The threshold gate checks package totals only. Print this one file's
+        # statement coverage from the merged profile so coverage-gaps.md can
+        # cite a measured figure.
+        if: matrix.module == 'api' && matrix.arch == 'amd64'
+        run: |
+          awk '$1 ~ /\/internal\/handlers\/secrets_managed\.go:/ { total += $2; if ($3 > 0) covered += $2; else { split($1, pos, ":"); missed = missed " " pos[2] } }
+               END { if (total == 0) { print "secrets_managed.go not found in profile"; exit 1 }
+                     printf "G-19 coverage of secrets_managed.go = %d/%d statements (%.1f%%)\n", covered, total, 100 * covered / total
+                     printf "G-19 uncovered blocks (startLine.col,endLine.col):%s\n", missed }' \
+            api/coverage/merged.out
+          (cd api && go tool cover -func=coverage/merged.out | grep -F 'internal/handlers/secrets_managed.go')
 
   web:
     name: web
@@ -653,9 +902,70 @@ jobs:
       - name: dashboard nginx accepts default mod uploads within API request limit
         working-directory: .
         run: python3 web/test-mod-upload-proxy.py
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - run: npm ci
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: web-i18n
+      - name: i18n language manifest
+        # The listing rule (80% complete, ltr, not en-XA) lives in the shared
+        # Go checker, so the manifest the dashboard build reads comes from it.
+        run: npm run i18n:manifest
+      - name: i18n checks
+        working-directory: .
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          (cd web && npm run i18n:extract-only)
+          (cd api && go run ./cmd/messages-export > "$RUNNER_TEMP/registry.json")
+          (cd operator && go run ./hack/condition-ids -check -app ../i18n/locales/en/app.json -ids "$RUNNER_TEMP/condition-ids.txt")
+          {
+            jq -r 'keys[]' web/src/generated/i18n/extracted.json
+            jq -r '.[].id' "$RUNNER_TEMP/registry.json"
+            cat "$RUNNER_TEMP/condition-ids.txt"
+          } | sort -u > "$RUNNER_TEMP/used-ids.txt"
+          base_flag=()
+          if [ -n "${BASE_SHA:-}" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            if git fetch --no-tags --depth=1 origin "$BASE_SHA" 2>/dev/null \
+              && git cat-file -e "$BASE_SHA:i18n/locales" 2>/dev/null; then
+              mkdir -p "$RUNNER_TEMP/base"
+              git archive "$BASE_SHA" i18n/locales | tar -x -C "$RUNNER_TEMP/base"
+              base_flag=(--base "$RUNNER_TEMP/base/i18n/locales")
+            fi
+          fi
+          cd i18n
+          go run ./cmd/i18n-check \
+            --extracted ../web/src/generated/i18n/extracted.json \
+            --registry "$RUNNER_TEMP/registry.json" --check-server \
+            --used-ids "$RUNNER_TEMP/used-ids.txt" \
+            "${base_flag[@]}" \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            locales
+      - name: i18n-check self-test on seeded defective packs
+        # SC-007: every fixture must make the checker fail with exactly its
+        # own finding code (needs-review is a notice, so it passes).
+        working-directory: i18n
+        run: |
+          set -euo pipefail
+          go build -o "$RUNNER_TEMP/i18n-check" ./cmd/i18n-check
+          for dir in testdata/defective/*/; do
+            code=$(basename "$dir")
+            args=()
+            if [ -f "$dir/args" ]; then
+              read -r -a args < <(sed "s#{dir}#${dir%/}#g" "$dir/args")
+            fi
+            set +e
+            out=$("$RUNNER_TEMP/i18n-check" "${args[@]}" "${dir%/}")
+            status=$?
+            set -e
+            want=1; [ "$code" = needs-review ] && want=0
+            if [ "$status" -ne "$want" ] || ! grep -q "\[$code\]" <<<"$out"; then
+              echo "::error::fixture $code: exit $status (want $want), output:"; echo "$out"; exit 1
+            fi
+            echo "ok $code"
+          done
       - name: eslint
         run: npm run lint
       - run: npm run build
@@ -690,7 +1000,7 @@ jobs:
       - name: upload web coverage
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-web
           path: web/coverage
@@ -708,7 +1018,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - run: npm ci
       - name: playwright browser cache
@@ -723,7 +1033,7 @@ jobs:
         run: npm run test:e2e:mock
       - name: upload playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-mock
           path: web/playwright-report
@@ -743,6 +1053,52 @@ jobs:
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - run: helm lint charts/gameplane
 
+  standalone-compose:
+    name: standalone Compose smoke
+    needs: [changes]
+    if: needs.changes.outputs.standalone == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      # Match Compose's image names for its fixed gameplane-panel project.
+      # Separate cache scopes prevent the API/web exports overwriting each other.
+      - name: build standalone API
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: api/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: gameplane-panel-gameplane-api:latest
+          cache-from: type=gha,scope=standalone-api
+          cache-to: type=gha,mode=max,scope=standalone-api
+      - name: build standalone dashboard
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: web/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: gameplane-panel-web:latest
+          cache-from: type=gha,scope=standalone-web
+          cache-to: type=gha,mode=max,scope=standalone-web
+      - name: start standalone panel
+        run: docker compose -f deploy/standalone/compose.yaml up -d --no-build --pull never
+      - name: bootstrap and verify persistent standalone panel
+        run: python3 deploy/standalone/smoke.py
+      - name: container logs
+        if: failure()
+        run: docker compose -f deploy/standalone/compose.yaml logs
+      - name: remove smoke containers and volume
+        if: always()
+        run: docker compose -f deploy/standalone/compose.yaml down --volumes
+
   chart-template:
     name: chart render
     needs: [changes]
@@ -757,6 +1113,8 @@ jobs:
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
       - name: gateway isolation and API-disabled chart renders
         run: python3 charts/tests/check_gateway.py
+      - name: standalone panel isolation and persistence chart renders
+        run: python3 charts/tests/check_standalone.py
       - name: sanity-check rendered manifests
         run: |
           grep -q 'kind: Deployment' /tmp/rendered.yaml
@@ -774,12 +1132,16 @@ jobs:
         # telemetry-receiver needs its own ServiceMonitor, and both it and
         # the agent PodMonitor need a NetworkPolicy exception for the
         # configured Prometheus namespace once one is set via
-        # serviceMonitors.scrapeNamespaceSelector.
+        # serviceMonitors.scrapeNamespaceSelector. Spec 022: the receiver
+        # serves /metrics only on its dashboard port 8081 behind a Bearer
+        # token, so its ServiceMonitor and NetworkPolicy rule need
+        # api.telemetry.receiver.dashboard.tokenSecretRef.name.
         run: |
           scrape_ns='serviceMonitors.scrapeNamespaceSelector={"matchLabels":{"kubernetes.io/metadata.name":"monitoring"}}'
           helm template gameplane charts/gameplane \
             --set serviceMonitors.enabled=true \
             --set api.telemetry.receiver.enabled=true \
+            --set api.telemetry.receiver.dashboard.tokenSecretRef.name=receiver-dashboard \
             --set-json "$scrape_ns" \
             --show-only templates/servicemonitors.yaml > /tmp/servicemonitors.yaml
           awk '/kind: PodMonitor/,0' /tmp/servicemonitors.yaml | grep -q 'port: metrics'
@@ -792,6 +1154,24 @@ jobs:
             exit 1
           fi
           grep -q 'name: gameplane-telemetry-receiver' /tmp/servicemonitors.yaml
+          # The receiver serves /metrics only on its dashboard listener (8081)
+          # behind the dashboard token, so the ServiceMonitor scrapes that
+          # port with the token Secret as bearerTokenSecret.
+          awk '/name: gameplane-telemetry-receiver/,/^---$/' /tmp/servicemonitors.yaml > /tmp/receiver-servicemonitor.yaml
+          grep -q 'port: dashboard' /tmp/receiver-servicemonitor.yaml
+          grep -q 'bearerTokenSecret:' /tmp/receiver-servicemonitor.yaml
+          grep -q 'name: receiver-dashboard' /tmp/receiver-servicemonitor.yaml
+          # No dashboard token: no receiver ServiceMonitor (it could only scrape
+          # a permanently-down target); NOTES.txt carries the warning.
+          helm template gameplane charts/gameplane \
+            --set serviceMonitors.enabled=true \
+            --set api.telemetry.receiver.enabled=true \
+            --set-json "$scrape_ns" \
+            --show-only templates/servicemonitors.yaml > /tmp/servicemonitors-notoken.yaml
+          if grep -q 'name: gameplane-telemetry-receiver' /tmp/servicemonitors-notoken.yaml; then
+            echo "::error::receiver ServiceMonitor rendered without api.telemetry.receiver.dashboard.tokenSecretRef.name"
+            exit 1
+          fi
           helm template gameplane charts/gameplane \
             --set serviceMonitors.enabled=true \
             --set-json "$scrape_ns" \
@@ -801,12 +1181,24 @@ jobs:
           helm template gameplane charts/gameplane \
             --set serviceMonitors.enabled=true \
             --set api.telemetry.receiver.enabled=true \
+            --set api.telemetry.receiver.dashboard.tokenSecretRef.name=receiver-dashboard \
             --set-json "$scrape_ns" \
             --show-only templates/telemetry-receiver.yaml > /tmp/telemetry-receiver-scrape.yaml
-          awk '/kind: NetworkPolicy/,0' /tmp/telemetry-receiver-scrape.yaml \
+          awk '/kind: NetworkPolicy/,/^---$/' /tmp/telemetry-receiver-scrape.yaml > /tmp/telemetry-receiver-netpol.yaml
+          # The Prometheus namespace is admitted on the dashboard port 8081,
+          # not on the public ingest port 8080 (which admits only the API).
+          awk '/namespaceSelector:/,0' /tmp/telemetry-receiver-netpol.yaml \
             | grep -q 'kubernetes.io/metadata.name: monitoring'
+          awk '/namespaceSelector:/,0' /tmp/telemetry-receiver-netpol.yaml \
+            | grep -q 'port: 8081'
+          if awk '/namespaceSelector:/,0' /tmp/telemetry-receiver-netpol.yaml | grep -q 'port: 8080'; then
+            echo "::error::the Prometheus namespace must not be admitted on the receiver ingest port 8080"
+            exit 1
+          fi
           awk '/kind: Service/,/^---$/' /tmp/telemetry-receiver-scrape.yaml \
             | grep -q 'app.kubernetes.io/name: gameplane-telemetry-receiver'
+          awk '/kind: Service/,/^---$/' /tmp/telemetry-receiver-scrape.yaml \
+            | grep -q 'name: dashboard'
           # scrapeNamespaceSelector unset (the chart default): neither
           # exception renders, matching the pre-fix behavior.
           helm template gameplane charts/gameplane \
@@ -816,6 +1208,94 @@ jobs:
             echo "::error::allow-prometheus-to-agent rendered without serviceMonitors.scrapeNamespaceSelector set"
             exit 1
           fi
+      - name: telemetry install values render (spec 022 FR-005, FR-006)
+        # api.telemetry.enabled=false renders --telemetry-disabled; the bundled
+        # receiver auto-wires the API and marks it bundled; a custom endpoint
+        # is used as-is without the bundled marker; defaults render no endpoint.
+        run: |
+          # api.telemetry.enabled=false is the hard off switch.
+          helm template gameplane charts/gameplane \
+            --set api.telemetry.enabled=false \
+            --show-only templates/api.yaml > /tmp/api-telemetry-off.yaml
+          grep -q -- '--telemetry-disabled' /tmp/api-telemetry-off.yaml
+          # The bundled receiver auto-wires the API and marks it bundled.
+          helm template gameplane charts/gameplane \
+            --set api.telemetry.receiver.enabled=true \
+            --show-only templates/api.yaml > /tmp/api-telemetry-bundled.yaml
+          grep -q -- '--telemetry-endpoint=http://gameplane-telemetry-receiver' /tmp/api-telemetry-bundled.yaml
+          grep -q 'GAMEPLANE_TELEMETRY_BUNDLED' /tmp/api-telemetry-bundled.yaml
+          if grep -q -- '--telemetry-disabled' /tmp/api-telemetry-bundled.yaml; then
+            echo "::error::--telemetry-disabled rendered with api.telemetry.enabled left at its default"
+            exit 1
+          fi
+          # A custom endpoint is used as-is and is never marked bundled.
+          helm template gameplane charts/gameplane \
+            --set api.telemetry.endpoint=https://telemetry.example.com/ingest \
+            --set api.telemetry.receiver.enabled=true \
+            --show-only templates/api.yaml > /tmp/api-telemetry-custom.yaml
+          grep -q -- '--telemetry-endpoint=https://telemetry.example.com/ingest' /tmp/api-telemetry-custom.yaml
+          if grep -q 'GAMEPLANE_TELEMETRY_BUNDLED' /tmp/api-telemetry-custom.yaml; then
+            echo "::error::GAMEPLANE_TELEMETRY_BUNDLED rendered for a custom telemetry endpoint"
+            exit 1
+          fi
+          # Defaults render no endpoint (the API falls back to its compiled-in default).
+          helm template gameplane charts/gameplane \
+            --show-only templates/api.yaml > /tmp/api-telemetry-default.yaml
+          if grep -q -- '--telemetry-endpoint' /tmp/api-telemetry-default.yaml; then
+            echo "::error::default values rendered a --telemetry-endpoint"
+            exit 1
+          fi
+          grep -q -- '--official-module-source=default' /tmp/api-telemetry-default.yaml
+      - name: telemetry receiver proof-of-work render (spec 022 FR-039, OD-5)
+        # api.telemetry.receiver.ingestPow renders INGEST_POW*: off with the
+        # OD-5 defaults, the configured values when enabled, and a failed
+        # render for a value the receiver would refuse to start with (the
+        # difficulty cap is the hardest challenge an install solves).
+        run: |
+          pow_env() {
+            # pow_env FILE WANT...: INGEST_POW, _TARGET_PER_MIN, _MIN_BITS and
+            # _MAX_BITS of the rendered receiver Deployment must equal WANT.
+            python3 - "$@" <<'PY'
+          import sys, yaml
+          path, *want = sys.argv[1:]
+          docs = [d for d in yaml.safe_load_all(open(path)) if d]
+          env = {e['name']: e['value'] for d in docs if d['kind'] == 'Deployment'
+                 for e in d['spec']['template']['spec']['containers'][0]['env'] if 'value' in e}
+          got = [env[k] for k in ('INGEST_POW', 'INGEST_POW_TARGET_PER_MIN', 'INGEST_POW_MIN_BITS', 'INGEST_POW_MAX_BITS')]
+          assert got == want, f"INGEST_POW env = {got}, want {want}"
+          PY
+          }
+          pow_fails() {
+            # pow_fails MESSAGE --set ...: the render must fail with MESSAGE.
+            message="$1"; shift
+            if helm template gameplane charts/gameplane --set api.telemetry.receiver.enabled=true "$@" \
+                 --show-only templates/telemetry-receiver.yaml > /dev/null 2> /tmp/pow-fail.err; then
+              echo "::error::receiver rendered for $*"
+              exit 1
+            fi
+            if ! grep -q -- "$message" /tmp/pow-fail.err; then
+              echo "::error::render for $* failed without '$message'"
+              cat /tmp/pow-fail.err
+              exit 1
+            fi
+          }
+          pow=api.telemetry.receiver.ingestPow
+          # Defaults: proof-of-work off, with the OD-5 values.
+          helm template gameplane charts/gameplane \
+            --set api.telemetry.receiver.enabled=true \
+            --show-only templates/telemetry-receiver.yaml > /tmp/pow-default.yaml
+          pow_env /tmp/pow-default.yaml false 60 0 22
+          # Enabled with its own values.
+          helm template gameplane charts/gameplane \
+            --set api.telemetry.receiver.enabled=true \
+            --set $pow.enabled=true --set $pow.targetPerMinute=30 \
+            --set $pow.minBits=8 --set $pow.maxBits=26 \
+            --show-only templates/telemetry-receiver.yaml > /tmp/pow-enabled.yaml
+          pow_env /tmp/pow-enabled.yaml true 30 8 26
+          # Values the receiver would refuse to start with fail the render.
+          pow_fails 'ingestPow.targetPerMinute must be at least 1' --set $pow.targetPerMinute=0
+          pow_fails 'ingestPow.maxBits must be at most 26' --set $pow.maxBits=27
+          pow_fails 'ingestPow.maxBits must be at least minBits' --set $pow.minBits=10 --set $pow.maxBits=9
       - name: games Namespace carries the keep policy
         # F-212: `helm uninstall` used to delete the games Namespace and
         # every GameServer/StatefulSet/PVC in it. Assert the Namespace is
@@ -878,7 +1358,7 @@ jobs:
           trap 'cp /tmp/values.yaml.orig charts/gameplane/values.yaml' EXIT
           cp charts/gameplane/values.yaml /tmp/values.yaml.orig
           cp charts/gameplane/testdata/upgrade-from-v0.2.0-beta.8-values.yaml charts/gameplane/values.yaml
-          helm template gameplane charts/gameplane > /tmp/rendered-reuse-values.yaml
+          helm template gameplane charts/gameplane --include-crds > /tmp/rendered-reuse-values.yaml
           python3 - <<'PY'
           import yaml
           docs = [d for d in yaml.safe_load_all(open('/tmp/rendered-reuse-values.yaml')) if d]
@@ -886,15 +1366,44 @@ jobs:
           required = {('Deployment', 'gameplane-api'), ('Deployment', 'gameplane-web'),
                       ('PersistentVolumeClaim', 'gameplane-api-data')}
           assert required <= resources, f"reuse-values removed existing resources: {required - resources}"
+          crds = {name for kind, name in resources if kind == 'CustomResourceDefinition'}
+          assert len(crds) == 9, f"reuse-values disabled the bundled CRDs: {crds}"
           assert ('Deployment', 'gameplane-gateway') not in resources
           assert ('NetworkPolicy', 'allow-api-to-agent') in resources
           assert ('NetworkPolicy', 'allow-api-to-capture') not in resources, "legacy values without capture enabled its ingress"
+          PY
+          # Spec 022: with the bundled receiver and ServiceMonitors switched on
+          # over beta.8's values (no persistence, dashboard, interval or enabled
+          # keys), the chart still renders: no receiver PVC is added, no
+          # receiver ServiceMonitor renders without a token, and the API
+          # keeps working without api.telemetry.enabled.
+          helm template gameplane charts/gameplane \
+            --set api.telemetry.receiver.enabled=true \
+            --set serviceMonitors.enabled=true > /tmp/rendered-reuse-values-receiver.yaml
+          python3 - <<'PY'
+          import yaml
+          docs = [d for d in yaml.safe_load_all(open('/tmp/rendered-reuse-values-receiver.yaml')) if d]
+          resources = {(d['kind'], d['metadata']['name']) for d in docs}
+          assert ('Deployment', 'gameplane-telemetry-receiver') in resources
+          assert ('PersistentVolumeClaim', 'gameplane-telemetry-receiver-data') not in resources, "--reuse-values added receiver storage"
+          assert ('ServiceMonitor', 'gameplane-telemetry-receiver') not in resources, "receiver ServiceMonitor rendered without a dashboard token"
+          PY
+          # Spec 022 FR-039: beta.8's values have no ingestPow block, so the
+          # receiver renders the OD-5 defaults, with proof-of-work off.
+          python3 - <<'PY'
+          import yaml
+          docs = [d for d in yaml.safe_load_all(open('/tmp/rendered-reuse-values-receiver.yaml')) if d]
+          env = {e['name']: e['value'] for d in docs
+                 if d['kind'] == 'Deployment' and d['metadata']['name'] == 'gameplane-telemetry-receiver'
+                 for e in d['spec']['template']['spec']['containers'][0]['env'] if 'value' in e}
+          got = [env[k] for k in ('INGEST_POW', 'INGEST_POW_TARGET_PER_MIN', 'INGEST_POW_MIN_BITS', 'INGEST_POW_MAX_BITS')]
+          assert got == ['false', '60', '0', '22'], f"--reuse-values changed the INGEST_POW defaults: {got}"
           PY
       - name: crd-manifests in sync with crds
         # The CRD-apply hook serves CRDs from crd-manifests/ (crds/ isn't
         # readable by Helm .Files). make manifests keeps both in sync; guard
         # against a drift that would apply stale CRDs on upgrade.
-        run: diff -r charts/gameplane/crds charts/gameplane/crd-manifests
+        run: diff -r charts/gameplane/charts/gameplane-crds/crds charts/gameplane/crd-manifests
       - name: chart CRDs carry the current bundle-hash stamp (F-218)
         # crd-apply-hook.yaml fires on pre-install only when the live CRDs'
         # gameplane.local/crd-bundle-sha256 differs from the chart's. A stale
@@ -904,8 +1413,8 @@ jobs:
         # difference.
         run: |
           hack/sync-chart-crds.sh
-          git diff --exit-code -- charts/gameplane/crds charts/gameplane/crd-manifests
-      - name: chart cosign key matches root cosign.pub
+          git diff --exit-code -- charts/gameplane/charts/gameplane-crds/crds charts/gameplane/crd-manifests
+      - name: chart cosign key matches signing/cosign.pub
         # values.yaml embeds a copy of the signing public key so the operator
         # can verify official module bundles. Nothing regenerates it, so a key
         # rotation that updates only the root file leaves the chart verifying
@@ -926,11 +1435,11 @@ jobs:
               data = base64.b64decode((d.get('data') or {})['cosign.pub']).decode()
           sys.stdout.write(data if data.endswith('\n') else data + '\n')
           PY
-          if ! diff -u cosign.pub /tmp/chart-cosign.pub; then
-            echo "::error::charts/gameplane/values.yaml cosignPublicKey does not match the root cosign.pub — update both when rotating the signing key"
+          if ! diff -u signing/cosign.pub /tmp/chart-cosign.pub; then
+            echo "::error::charts/gameplane/values.yaml cosignPublicKey does not match signing/cosign.pub — update both when rotating the signing key"
             exit 1
           fi
-          echo "chart cosign key matches root cosign.pub"
+          echo "chart cosign key matches signing/cosign.pub"
       - name: docs/oidc.md example values render (F-252)
         # docs/oidc.md's Keycloak "Or in values.yaml" example is meant to be
         # copy-pasteable. Render it as a real -f values file (with
@@ -979,6 +1488,24 @@ jobs:
           # so run it from the checkout root.
           cd "$GITHUB_WORKSPACE"
           "$tmp/actionlint"
+      # Spec 013 G3: hadolint over every tracked Dockerfile, at warning and
+      # above (.hadolint.yaml). Same pinned-download pattern as actionlint.
+      - name: hadolint (download and verify)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hadolint"
+          cd "$RUNNER_TEMP/hadolint"
+          curl -fsSL -o hadolint \
+            https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-x86_64
+          echo "6bf226944684f56c84dd014e8b979d27425c0148f61b3bd99bcc6f39e9dc5a47  hadolint" | sha256sum -c -
+          chmod +x hadolint
+          echo "$RUNNER_TEMP/hadolint" >> "$GITHUB_PATH"
+      - name: prove the Dockerfile lint gate can fail
+        run: ./hack/check-hadolint_test.sh
+      - name: hadolint
+        run: |
+          mapfile -t files < <(git ls-files '*Dockerfile*' ':!:hack/testdata/**' ':!:*.dockerignore')
+          hadolint --config .hadolint.yaml "${files[@]}"
       - name: ci report job coverage (F-238)
         run: ./hack/check-ci-report-coverage.sh
       - name: test ci report job coverage checker
@@ -993,7 +1520,7 @@ jobs:
       - name: CI scope regression tests
         run: make test-ci-scope
       - name: zizmor
-        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
         with:
           inputs: .github
           advanced-security: false
@@ -1027,8 +1554,8 @@ jobs:
 
   # The api's PostgreSQL backend (--db-driver=postgres) is compiled only
   # with -tags postgres, so the `go` matrix and `lint` never build it. This
-  # job builds and vets api with the tag and runs api/internal/db's tests
-  # against a real PostgreSQL service; the db_postgres_test.go tests skip
+  # job builds and vets api with the tag and runs database and standalone
+  # management storage tests against a real PostgreSQL service; these tests skip
   # unless GAMEPLANE_TEST_POSTGRES_DSN is set. The server keeps the image's
   # default (non-C) locale on purpose: TestPostgres_TextOrderingIsByteWise
   # checks the migrations' COLLATE "C" columns sort byte-wise regardless.
@@ -1079,11 +1606,11 @@ jobs:
       - name: go vet -tags postgres
         working-directory: api
         run: go vet -tags postgres ./...
-      - name: test api/internal/db against PostgreSQL
+      - name: test database and standalone management storage against PostgreSQL
         working-directory: api
         env:
           GAMEPLANE_TEST_POSTGRES_DSN: postgres://postgres@localhost:5432/gameplane_test?sslmode=disable
-        run: go test -tags postgres -count=1 ./internal/db/...
+        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/...
 
   # ---------------------------------------------------------------------
   # kind e2e — one job per suite, each with its own throwaway cluster on
@@ -1137,7 +1664,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # The arm64 job below uses the same steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components]
         arch: [amd64]
         include:
           - bucket: operator
@@ -1165,6 +1692,14 @@ jobs:
             parallel: 2
             test_timeout: 15m
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: telemetry
+            parallel: 1
+            test_timeout: 45m # the lifecycle test waits on 1m report intervals for every subtest
+            job_timeout: 75 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: optional-components
+            parallel: 1
+            test_timeout: 20m # one lifecycle test: helm upgrade, then mcp, syslog, frp tunnel and core checks in order
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -1175,7 +1710,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1228,7 +1763,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # Mirrors e2e-go's steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components]
         arch: [arm64]
         include:
           - bucket: operator
@@ -1255,6 +1790,14 @@ jobs:
           - bucket: api-mods
             parallel: 2
             test_timeout: 15m
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: telemetry
+            parallel: 1
+            test_timeout: 45m # the lifecycle test waits on 1m report intervals for every subtest
+            job_timeout: 75 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: optional-components
+            parallel: 1
+            test_timeout: 20m # one lifecycle test: helm upgrade, then mcp, syslog, frp tunnel and core checks in order
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
@@ -1290,7 +1833,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1383,7 +1926,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1448,11 +1991,11 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1470,6 +2013,14 @@ jobs:
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 5m -v -run '^TestAPI_BootstrapAndLogin$' ./...
+      - name: restic repo ready
+        # backup-restic-secret.yaml + restic-server.yaml + warm-up Job persist in the
+        # cluster (no cleanup), so backup-restore.spec.ts can back up to the shared repo.
+        run: |
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 10m -v -run '^TestE2E_ResticRepoReady$' ./...
       - name: playwright browser cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -1492,7 +2043,7 @@ jobs:
           include-operator-logs: "false"
       - name: upload playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-live-${{ matrix.arch }}
           path: web/playwright-report
@@ -1545,7 +2096,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: load images
@@ -1572,6 +2123,149 @@ jobs:
         with:
           context: ${{ env.CTX }}
           namespaces: "gameplane-system,gameplane-games"
+
+  # Capture-overhead regression guard (spec 007, FR-006..FR-008). This is a
+  # gross-regression guard, NOT SC-002 certification: the certified number is
+  # the live-cluster manual benchmark in
+  # specs/done_003-network-capture-sidecar/sc-002-benchmark.md. It never blocks
+  # a merge (OD-1, maintainer ruling 2026-10-09): job-level continue-on-error
+  # keeps the workflow and PRs mergeable. A detected regression turns this job
+  # red and is recorded in capture-overhead-metrics.json (uploaded below).
+  # Runs on master pushes, and on PRs only when the diff touches the capture
+  # path or the probe (OD-2, changes.outputs.capture_overhead).
+  e2e-capture-overhead:
+    name: e2e capture overhead (kind)
+    needs: [changes, build-images]
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.changes.outputs.e2e == 'true') ||
+      (github.event_name == 'pull_request' && needs.changes.outputs.capture_overhead == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    permissions:
+      contents: read
+    env:
+      CLUSTER: gameplane-e2e
+      CTX: kind-gameplane-e2e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: e2e
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - name: install kind
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        with:
+          install_only: true
+      - name: load images
+        uses: ./.github/actions/e2e-images
+      - name: bring up cluster + helm install
+        run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
+      - name: run go e2e (capture overhead)
+        # Sustained-mode probes against the real itzg/minecraft-server image.
+        # The bucket (test/e2e/buckets.sh, capture-overhead) owns the test list;
+        # it is deliberately not in bot-fast, whose legs block merges.
+        env:
+          GAMEPLANE_E2E_ARTIFACT_DIR: ${{ runner.temp }}/capture-overhead
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex capture-overhead)"
+          mkdir -p "$GAMEPLANE_E2E_ARTIFACT_DIR"
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            GAMEPLANE_E2E_GAME_BOT=1 \
+            go test -tags=e2e -timeout 40m -v -run "$RUN_REGEX" ./...
+      - name: upload capture overhead metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: capture-overhead-metrics
+          path: ${{ runner.temp }}/capture-overhead/capture-overhead-metrics.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: dump cluster state on failure (e2e-capture-overhead)
+        if: failure()
+        uses: ./.github/actions/dump-cluster-state
+        with:
+          context: ${{ env.CTX }}
+          namespaces: "gameplane-system,gameplane-games"
+
+  # Re-runs the api-auth, api-roles and api-rbac buckets against a
+  # Postgres-backed API (spec 013 US5, OD-3). amd64 only. The API is restarted
+  # between buckets: its login rate limiter lives in memory and each bucket is
+  # sized to one fresh limiter's budget (see test/e2e/buckets.sh). The restart
+  # also means each later bucket runs on data the earlier ones left in Postgres.
+  e2e-postgres:
+    name: e2e postgres / amd64 (kind)
+    needs: [changes, build-images]
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75 # Boots a kind cluster with PostgreSQL, installs the chart, runs three buckets.
+    permissions:
+      contents: read
+    env:
+      CLUSTER: gameplane-e2e
+      CTX: kind-gameplane-e2e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/go-cache
+        with:
+          key-suffix: e2e
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - name: install kind
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        with:
+          install_only: true
+      - name: load images
+        uses: ./.github/actions/e2e-images
+      - name: bring up cluster + helm install (postgres)
+        run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e postgres
+      - name: assert the API runs on postgres
+        run: |
+          args="$(kubectl --context "$CTX" --namespace gameplane-system get deployment gameplane-api \
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="api")].args}')"
+          echo "api args: ${args}"
+          if ! grep -q -- '--db-driver=postgres' <<<"${args}"; then
+            echo "the gameplane-api Deployment does not run with --db-driver=postgres" >&2
+            exit 1
+          fi
+      - name: run go e2e (api-auth on postgres)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex api-auth)"
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 15m -v -parallel 4 -run "$RUN_REGEX" ./...
+      - name: restart the API (fresh login limiter)
+        run: |
+          kubectl --context "$CTX" --namespace gameplane-system rollout restart deployment/gameplane-api
+          kubectl --context "$CTX" --namespace gameplane-system rollout status deployment/gameplane-api --timeout=180s
+      - name: run go e2e (api-roles on postgres)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex api-roles)"
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 10m -v -parallel 3 -run "$RUN_REGEX" ./...
+      - name: restart the API again (fresh login limiter)
+        run: |
+          kubectl --context "$CTX" --namespace gameplane-system rollout restart deployment/gameplane-api
+          kubectl --context "$CTX" --namespace gameplane-system rollout status deployment/gameplane-api --timeout=180s
+      - name: run go e2e (api-rbac on postgres)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex api-rbac)"
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 10m -v -parallel 4 -run "$RUN_REGEX" ./...
+      - name: dump cluster state on failure (e2e-postgres)
+        if: failure()
+        uses: ./.github/actions/dump-cluster-state
+        with:
+          context: ${{ env.CTX }}
+          namespaces: "gameplane-system,gameplane-games"
+          include-previous-logs: "true"
 
   # Smoke-tests the dev ingress-nginx manifest pin (deploy/kind/up.sh,
   # INGRESS_NGINX_VERSION) on the same Kind node config `make dev-up` uses
@@ -1601,7 +2295,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: install kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
       - name: read ingress-nginx version pin from up.sh
@@ -1667,14 +2361,20 @@ jobs:
         changes,
         build-images,
         build-images-arm64,
+        vuln-images,
         capture-sidecar-setcap-proof,
         docs,
+        codegen-drift,
+        submodule-freshness,
+        dependency-review,
+        vuln-go,
         lint,
         go,
         web,
         web-e2e-mock,
         helm,
         chart-template,
+        standalone-compose,
         workflow-lint,
         go-e2e-unit,
         api-postgres,
@@ -1688,6 +2388,8 @@ jobs:
         e2e-web-live,
         e2e-web-live-arm64,
         e2e-game-bot,
+        e2e-capture-overhead,
+        e2e-postgres,
         e2e-kind-ingress-smoke,
       ]
     if: always()
@@ -1778,12 +2480,12 @@ jobs:
             const files = readJSON('/tmp/files.json', []);
 
             const NEEDS_ORDER = [
-              'changes', 'build-images', 'build-images-arm64',
-              'capture-sidecar-setcap-proof', 'docs', 'lint', 'go',
-              'web', 'web-e2e-mock', 'helm', 'chart-template', 'workflow-lint', 'go-e2e-unit',
+              'changes', 'build-images', 'build-images-arm64', 'vuln-images',
+              'capture-sidecar-setcap-proof', 'docs', 'codegen-drift', 'submodule-freshness', 'dependency-review', 'vuln-go', 'lint', 'go',
+              'web', 'web-e2e-mock', 'helm', 'chart-template', 'standalone-compose', 'workflow-lint', 'go-e2e-unit',
               'api-postgres',
               'e2e-buckets', 'e2e-go', 'e2e-go-arm64', 'e2e-multicluster', 'e2e-multicluster-arm64', 'e2e-upgrade', 'e2e-upgrade-arm64',
-              'e2e-web-live', 'e2e-web-live-arm64', 'e2e-game-bot', 'e2e-kind-ingress-smoke',
+              'e2e-web-live', 'e2e-web-live-arm64', 'e2e-game-bot', 'e2e-capture-overhead', 'e2e-postgres', 'e2e-kind-ingress-smoke',
             ];
 
             // Maps each workflow job id to how its `name:` field (as reported by
@@ -1793,20 +2495,23 @@ jobs:
               changes: (n) => n === 'detect changes',
               'build-images': (n) => n === 'build e2e images',
               'build-images-arm64': (n) => n === 'build e2e images (arm64)',
+              'vuln-images': (n) => n === 'vuln (images)',
               'capture-sidecar-setcap-proof': (n) => n === 'capture-sidecar CAP_NET_RAW survival',
               docs: (n) => n === 'docs and repository checks',
+              'codegen-drift': (n) => n === 'codegen drift',
               lint: (n) => n.startsWith('lint ('),
               go: (n) => n.startsWith('go (') && n !== 'go (test/e2e)',
               web: (n) => n === 'web',
               'web-e2e-mock': (n) => n === 'web e2e (mock)',
               helm: (n) => n === 'helm lint',
               'chart-template': (n) => n === 'chart render',
+              'standalone-compose': (n) => n === 'standalone Compose smoke',
               'workflow-lint': (n) => n === 'workflow lint',
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods) \//.test(n) && n.includes('/ amd64 '),
-              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods) \//.test(n) && n.includes('/ arm64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
               'e2e-upgrade': (n) => n.startsWith('e2e upgrade /') && n.includes('/ amd64 '),
@@ -1814,7 +2519,12 @@ jobs:
               'e2e-web-live': (n) => n.startsWith('e2e web live /') && n.includes('/ amd64 '),
               'e2e-web-live-arm64': (n) => n.startsWith('e2e web live /') && n.includes('/ arm64 '),
               'e2e-game-bot': (n) => n.startsWith('e2e game bot /'),
+              'e2e-capture-overhead': (n) => n === 'e2e capture overhead (kind)',
+              'e2e-postgres': (n) => n === 'e2e postgres / amd64 (kind)',
               'e2e-kind-ingress-smoke': (n) => n === 'ingress-nginx smoke (kind)',
+              'submodule-freshness': (n) => n === 'submodule freshness',
+              'dependency-review': (n) => n === 'dependency review',
+              'vuln-go': (n) => n === 'vuln (go)',
             };
 
             let passed = 0, failed = 0, skipped = 0, cancelled = 0;
@@ -1953,7 +2663,7 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods) \//);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//);
               if (m) bucketSet.add(m[1]);
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');

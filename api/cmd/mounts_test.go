@@ -19,7 +19,6 @@ var homeClientMounts = []string{
 	"handlers.MountAuthProviderSecrets",
 	"handlers.MountClusterActions",
 	"handlers.MountClusters",
-	"handlers.MountModules",
 	"handlers.MountNotifications",
 	"handlers.MountRegistrySecrets",
 	"handlers.MountSystemLogs",

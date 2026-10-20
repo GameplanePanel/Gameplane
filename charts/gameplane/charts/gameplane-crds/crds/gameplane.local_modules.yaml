@@ -1,0 +1,237 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    gameplane.local/crd-bundle-sha256: 181aeee1d52a9cb178b0f8a8a862dc5959e772facf11817d5e70e5196574cd4c
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: modules.gameplane.local
+spec:
+  group: gameplane.local
+  names:
+    kind: Module
+    listKind: ModuleList
+    plural: modules
+    shortNames:
+    - mod
+    singular: module
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.source.name
+      name: Source
+      type: string
+    - jsonPath: .spec.name
+      name: Module
+      type: string
+    - jsonPath: .status.appliedVersion
+      name: Version
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          Module is an installed instance of a Gameplane module bundle. The
+          reconciler maintains a GameTemplate owned by this object.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: |-
+              ModuleSpec is the user-facing install request for a module. The
+              reconciler pulls the referenced OCI artifact and materializes a
+              GameTemplate owned by this Module.
+            properties:
+              digest:
+                description: |-
+                  Digest, when set, pins the exact bundle content (an OCI manifest
+                  digest like "sha256:…", "git:<sha>", or a sha256 content hash).
+                  Install fails with a DigestMismatch if the resolved bundle's digest
+                  differs, defeating a tag that was moved to point at new content.
+                type: string
+              name:
+                description: |-
+                  Name is the module's logical name within the source. Must match
+                  one of Source.spec.modules[].name. The created GameTemplate is
+                  always named after the Module's metadata.name (not this field), so
+                  a single module can be installed twice under different names.
+                minLength: 1
+                type: string
+              source:
+                description: Source references the ModuleSource this module is pulled
+                  from.
+                properties:
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
+              version:
+                description: |-
+                  Version pins a specific bundle version (semver). When empty the
+                  reconciler tracks the source's LatestVersion and re-pulls when a
+                  new version appears.
+                type: string
+            required:
+            - name
+            - source
+            type: object
+          status:
+            description: ModuleStatus reports the state of a module install.
+            properties:
+              appliedDigest:
+                description: |-
+                  AppliedDigest is the OCI manifest digest of the bundle that
+                  produced the current GameTemplate, for auditability.
+                type: string
+              appliedTemplate:
+                description: |-
+                  AppliedTemplate is the name of the GameTemplate this Module owns.
+                  Equal to Module.metadata.name on success.
+                type: string
+              appliedVersion:
+                description: |-
+                  AppliedVersion is the bundle version currently materialized into
+                  the GameTemplate. May lag spec.version during reconcile.
+                type: string
+              conditions:
+                description: Conditions tracks Ready, Pulling, and any uninstall blockers.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              lastError:
+                description: |-
+                  LastError is a short human-readable message for the most recent
+                  failed reconcile. Cleared on success.
+                type: string
+              observedGeneration:
+                format: int64
+                type: integer
+              phase:
+                description: |-
+                  Phase is a coarse, UI-friendly summary.
+
+                    - Pending: source not yet indexed, or version unresolved
+                    - Pulling: artifact pull in progress
+                    - Ready:   GameTemplate is current with the desired bundle
+                    - Failed:  see Conditions / LastError
+                enum:
+                - Pending
+                - Pulling
+                - Ready
+                - Failed
+                type: string
+              previousDigest:
+                description: PreviousDigest is the bundle digest that backed PreviousVersion.
+                type: string
+              previousVersion:
+                description: |-
+                  PreviousVersion is the version that was applied before the current
+                  AppliedVersion. It records the last-known-good to roll back to (by
+                  re-pinning spec.version) and is updated only when AppliedVersion
+                  actually changes. A failed upgrade leaves AppliedVersion — and so the
+                  running GameTemplate — untouched, so this is not overwritten then.
+                type: string
+              verifiedDigest:
+                description: |-
+                  VerifiedDigest is the bundle digest that was actually
+                  signature-checked by cosign.Verify, recorded at install time. Empty
+                  when the source declared no verify policy (nothing to check) or when
+                  the Module was installed before this field existed. The UI shows its
+                  solid "verified" badge only when this is set — never from the
+                  source's current policy alone, which could have been added after
+                  this Module was installed.
+                type: string
+              verifyPolicy:
+                description: |-
+                  VerifyPolicy is the verification mode ("keyed" or "keyless") that
+                  produced VerifiedDigest. Empty whenever VerifiedDigest is empty.
+                enum:
+                - keyed
+                - keyless
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

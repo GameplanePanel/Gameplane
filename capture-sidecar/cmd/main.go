@@ -22,8 +22,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/capture-sidecar/internal/auth"
-	"github.com/ValgulNecron/gameplane/capture-sidecar/internal/httpserver"
+	"github.com/GameplanePanel/gameplane/capture-sidecar/internal/auth"
+	"github.com/GameplanePanel/gameplane/capture-sidecar/internal/httpserver"
 )
 
 // Version is overridden at build time via -ldflags (see Dockerfile).

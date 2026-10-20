@@ -58,7 +58,7 @@ The probe builds to `/probe/satisfactory` via `test/e2e/Dockerfile` (GOWORK=off)
 
 **Endpoint:** `POST https://<host>:7777/api/v1`  
 **Wire format (reference):** [satisfactory-oas/spec](https://github.com/satisfactory-oas/spec) (community OpenAPI spec)  
-**Agent documentation:** [agent/internal/rcon/satisfactory.go](https://github.com/ValgulNecron/gameplane/blob/main/agent/internal/rcon/satisfactory.go) — documents the wire format, auth flow (PasswordLogin → bearer token → RunCommand), and self-signed certificate handling.
+**Agent documentation:** [agent/internal/rcon/satisfactory.go](https://github.com/GameplanePanel/gameplane/blob/main/agent/internal/rcon/satisfactory.go) — documents the wire format, auth flow (PasswordLogin → bearer token → RunCommand), and self-signed certificate handling.
 
 ### Unauthenticated surface (forward-looking)
 
@@ -140,8 +140,8 @@ None yet (QueryServerState is unauthenticated and does not require mock fixtures
 
 ## References
 
-- **Agent implementation:** [agent/internal/rcon/satisfactory.go](https://github.com/ValgulNecron/gameplane/blob/main/agent/internal/rcon/satisfactory.go) — authoritative wire format and rationale for TLS skipping
-- **Module template:** [modules/satisfactory/template.yaml](https://github.com/ValgulNecron/gameplane/blob/main/modules/satisfactory/template.yaml) — port config, admin password seeding, in-game claim requirement
+- **Agent implementation:** [agent/internal/rcon/satisfactory.go](https://github.com/GameplanePanel/gameplane/blob/main/agent/internal/rcon/satisfactory.go) — authoritative wire format and rationale for TLS skipping
+- **Module template:** [modules/satisfactory/template.yaml](https://github.com/GameplanePanel/gameplane/blob/main/modules/satisfactory/template.yaml) — port config, admin password seeding, in-game claim requirement
 - **Satisfactory API spec:** https://github.com/satisfactory-oas/spec (community reverse-engineered OpenAPI)
 - **Wolveix Satisfactory Docker:** https://github.com/wolveix/satisfactory-server (the image used by the module)
-- **Probe harness:** [test/e2e/internal/probe/probe.go](https://github.com/ValgulNecron/gameplane/blob/main/test/e2e/internal/probe/probe.go)
+- **Probe harness:** [test/e2e/internal/probe/probe.go](https://github.com/GameplanePanel/gameplane/blob/main/test/e2e/internal/probe/probe.go)

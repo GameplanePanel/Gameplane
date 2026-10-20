@@ -1,0 +1,262 @@
+{
+  "type": "frame",
+  "id": "X405l",
+  "x": 1640,
+  "y": 27607,
+  "name": "Screen/Server Detail — Console (not running – Stopped/Suspended)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "bLqzW",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "ItEf5",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Q1qab1",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "id": "OFIN0",
+          "type": "ref",
+          "ref": "S4k0x",
+          "name": "Detail Header",
+          "width": "fill_container",
+          "descendants": {
+            "N3nc2n": {
+              "id": "tBSsy",
+              "type": "ref",
+              "ref": "KmZnF",
+              "name": "statusBadge",
+              "descendants": {
+                "xZ9ah": {
+                  "content": "Stopped"
+                }
+              }
+            },
+            "UpnRk": {
+              "content": "minecraft-java · 1.21.4-fabric · ns: gameplane-games"
+            },
+            "fXzP0": {
+              "id": "U5PT0",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "Btn Start",
+              "descendants": {
+                "FCYQ9": {
+                  "icon": "play"
+                },
+                "GqVun": {
+                  "content": "Start"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "VfpSB",
+          "type": "ref",
+          "ref": "I9kvlZ",
+          "name": "Tabs Bar",
+          "width": "fill_container",
+          "padding": [
+            0,
+            24
+          ],
+          "descendants": {
+            "Wp6q1": {
+              "fill": "#00000000"
+            },
+            "Wp6q1/YUR8N": {
+              "fill": "$muted"
+            },
+            "jcWsD": {
+              "fill": "$segment"
+            },
+            "jcWsD/VcxMI": {
+              "fill": "$foreground/segment"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "nnJ4K",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "JWjJo",
+              "type": "ref",
+              "ref": "qYOZe",
+              "name": "Console Toolbar",
+              "width": "fill_container",
+              "descendants": {
+                "ztP8w": {
+                  "fill": "$muted"
+                },
+                "IJEZB": {
+                  "fill": "$muted",
+                  "content": "OFFLINE"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "AyDW2",
+              "name": "Terminal Wrap",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "padding": 16,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "LsLYC",
+                  "name": "Not Running Card",
+                  "width": 480,
+                  "fill": "$surface/surface",
+                  "cornerRadius": 10,
+                  "stroke": "$border/border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RMH9f",
+                      "name": "Icon Wrap",
+                      "width": 56,
+                      "height": 56,
+                      "fill": "#94949426",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "g4uHI",
+                          "name": "Pause Icon",
+                          "width": 28,
+                          "height": 28,
+                          "icon": "pause",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "oIPzm",
+                      "name": "Status",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Server is stopped.",
+                      "textAlign": "center",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gPhaV",
+                      "name": "Info",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Start it to access the console.",
+                      "lineHeight": 1.5,
+                      "textAlign": "center",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "F3mik",
+                      "name": "Btn Row",
+                      "padding": [
+                        8,
+                        0,
+                        0,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "id": "XOEKt",
+                          "type": "ref",
+                          "ref": "cb4rt",
+                          "name": "Btn Start Server",
+                          "descendants": {
+                            "Xpn7K": {
+                              "icon": "play"
+                            },
+                            "U6q13B": {
+                              "content": "Start Server"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

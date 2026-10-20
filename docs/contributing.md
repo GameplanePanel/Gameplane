@@ -61,6 +61,17 @@ Every job in every workflow must have:
 
 Documented exceptions with longer timeouts are the five e2e jobs (60 minutes each) and the image build in `publish-edge.yaml` (35 minutes).
 
+### Security and drift gates
+
+These jobs block merging. Each gate with a fixture has a `hack/*_test.sh` self-test that proves it can fail; dependency review is validated by configuration review only. Fix the cause: never add an ignore file, a suppression comment or a looser threshold.
+
+- **`vuln (go)`** runs `hack/govulncheck-all.sh`, which runs govulncheck over every module in `go.work`. It fails when a module reaches a symbol with a known vulnerability, and also when govulncheck itself hits a build or tool error. For a vulnerability, bump the affected dependency (or the Go toolchain) in that module's `go.mod`, run `make tidy`, and commit both. For any other error, fix the build or tool problem it reports.
+- **`vuln (images)`** runs `hack/trivy-scan-images.sh` over the e2e images CI builds (`gameplane-test/<name>:e2e` and `:e2e-postgres`). It fails on any HIGH or CRITICAL vulnerability that has a fix, and on a scan error. For a vulnerability, bump the base-image digest, or bump the Go or npm dependency the finding names in that image's module. For a scan error, fix what Trivy reports and re-run.
+- **`workflow lint`** also runs hadolint over every tracked Dockerfile, failing on any warning (`.hadolint.yaml`). Fix the Dockerfile: pin `apk`/`apt` package versions, and set a `SHELL` with `-o pipefail` before any piped `RUN` step.
+- **`dependency review`** runs on pull requests only. It fails when the PR adds a dependency with a HIGH or CRITICAL advisory. Pick a version without the advisory, or drop the dependency.
+- **`codegen drift`** runs `make generate manifests` and `make tidy`, then fails if `git diff` is not empty. Run the same commands locally and commit what they change (CLAUDE.md rule 7).
+- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when the `modules` or `website` pointer names a commit that is not on that repo's `main`, when a gitlink is missing, or when the script cannot fetch that repo's `main`. For a pointer that is not on `main`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run.
+
 ## Testing
 
 Run the whole suite:
@@ -123,6 +134,20 @@ the dev ingress-nginx manifest pinned in `deploy/kind/up.sh`
 to finish (its replica available).
 It only runs when `deploy/kind/**` or the CI workflow file itself changes.
 
+The `optional-components` bucket (`TestOptionalComponents_Lifecycle`) owns its
+cluster because it runs `helm upgrade`. It checks that the MCP server, the
+audit-syslog bridge and the tunnel are absent by default, then enables them
+and checks each one. Its fixtures are `test/e2e/fixtures/frps.yaml` and
+`test/e2e/fixtures/syslog-sink.yaml`.
+
+The `e2e postgres / amd64 (kind)` job runs the API against PostgreSQL. It
+boots the cluster with `./deploy/kind/e2e.sh up "$CLUSTER" e2e postgres`,
+which applies `deploy/kind/postgres.yaml` and installs the chart with
+`api.db.driver=postgres`. It then runs the `api-auth`, `api-roles` and
+`api-rbac` buckets, restarting the API between them to reset the in-memory
+login rate limiter. The frozen 001–012 upgrade path is covered separately by
+`TestPostgres_MigrateFromFrozenBaseline` in the `api (postgres)` job.
+
 ## AI-assisted development
 
 Much of this codebase is developed with AI coding assistants (Claude
@@ -141,15 +166,24 @@ the same review, lint, and test gates below.
 4. Sign commits (`git commit -s`)
 5. **PR labels**: every PR must carry at least one `type:` and one `area:` label. CodeRabbit (see Code review below) applies them automatically, and the `auto-label` workflow (`hack/auto_label.py`, every 15 minutes) fills in a missing `type:` from the conventional-commit title prefix and a missing `area:` from the changed paths; `type: security` is never derived. You are responsible for verifying they are correct. The `type:` taxonomy is `feature` / `fix` / `refactor` / `test` / `ci` / `chore` / `docs` / `security`. The `area:` taxonomy is `operator` / `api` / `agent` / `web` / `modules` / `chart` / `e2e` / `specs` / `shared` / `optional-components`. A breaking CRD, API, or chart-value change also takes `breaking`. The `status:` labels (`blocked`, `needs-maintainer`, `in-progress`) are optional. A PR spanning several components takes several `area:` labels rather than being left unlabelled.
 
-Game-module changes (`modules/`) belong in the separate **`gameplane-module`**
+Game-module changes (`modules/`) belong in the separate **`GameplanePanel/module`**
 repo, which this repo vendors as a submodule. Open the module PR there; once it
 merges, bump the submodule pointer here (`git add modules`) in a follow-up PR.
 
 `.gitmodules` points both submodules (`modules/`, `website/`) at the upstream
 GitHub URLs, so a fork of this repo clones them without forking them too. To
 work on your own fork of a submodule, repoint it locally:
-`git submodule set-url modules https://github.com/<you>/gameplane-module.git`
+`git submodule set-url modules https://github.com/<you>/module.git`
 (don't commit that change).
+
+## Translating
+
+Language packs live in `i18n/locales/<tag>/`. Adding a language or
+improving one does not need code changes. See
+[`docs/translating.md`](translating.md) for the folder layout, the message
+rules, the 80% listing threshold, and how to check a pack. A PR that touches
+only `i18n/locales/**` and has no type prefix in its title is labelled
+`type: docs` and `area: shared`.
 
 ## Code review
 
@@ -167,7 +201,7 @@ Signing is **mandatory and fail-closed**: if `COSIGN_PRIVATE_KEY` is not
 configured, the release job fails before anything is pushed. A one-time key
 setup is required: run `cosign generate-key-pair`, set
 `COSIGN_PRIVATE_KEY`/`COSIGN_PASSWORD` as secrets of the `release-signing`
-environment, and publish `cosign.pub` at the repo root. See
+environment, and publish `signing/cosign.pub`. See
 [`module-authoring.md`](module-authoring.md#signing-official-bundles) for details.
 
 Every job that signs (`release.yaml`, `publish-edge.yaml`, `images.yaml` and
@@ -182,7 +216,7 @@ so inspect the image's tags before re-running the failed jobs.
 
 ## Community Visibility & Outreach
 
-[External Directory Submissions](../specs/012-docs-refresh-and-outreach/outreach.md)
+[External Directory Submissions](../specs/done_012-docs-refresh-and-outreach/outreach.md)
 
 The project maintains a tracked list of external directory submissions
 (AlternativeTo, Awesome-Selfhosted, Awesome-Kubernetes) to grow

@@ -1,0 +1,31 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Gameplane telemetry</title>
+<link rel="icon" type="image/png" href="/static/gameplane-icon.png">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{{template "content" .}}
+</body>
+</html>
+{{end}}
+
+{{define "topbar"}}
+<header class="topbar">
+<div class="brand">
+<img class="logo" src="/static/gameplane-icon.png" width="24" height="24" alt="">
+<span class="wordmark">gameplane</span>
+<span class="crumb-sep" aria-hidden="true">/</span>
+<span class="crumb">Telemetry</span>
+{{if .Empty}}<span class="pill">No data yet</span>{{else}}<span class="pill">Approximate &middot; self-reported</span>{{end}}
+</div>
+<div class="topbar-end">
+{{if not .Empty}}<span class="asof">Data through {{.AsOf}} (UTC, today in progress)</span>{{end}}
+<form method="post" action="/logout"><button type="submit" class="btn btn-quiet">Sign out</button></form>
+</div>
+</header>
+{{end}}

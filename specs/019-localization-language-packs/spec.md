@@ -190,10 +190,10 @@ An administrator chooses the instance's default language, used for users with no
 - **FR-014**: Adding or updating a language MUST NOT require any change to application code.
 - **FR-015**: Every contribution MUST be checked automatically for: well-formed pack; each translation using exactly the placeholders of its English entry; no markup or script beyond designated safe placeholders; no entries for unknown identifiers; valid metadata. Failures MUST name the entry and the problem in plain language.
 - **FR-016**: Completeness per language and per text source MUST be computed automatically and shown to contributors (on pull requests and on the translation site) and to users (in the language list).
-- **FR-017**: Languages below the listing threshold MUST NOT be offered to end users.
+- **FR-017**: Languages below the listing threshold (80% complete, adjustable by maintainers; OD-003) MUST NOT be offered to end users.
 - **FR-018**: When English reference text changes, existing translations MUST be flagged as needing review; a flagged translation whose placeholders no longer match MUST NOT be shown.
 - **FR-019**: A contributor guide MUST explain both contribution paths, how to preview a pack in a running dashboard, and translation style guidance (tone, glossary of Gameplane terms that stay untranslated or have fixed translations).
-- **FR-020**: The project MUST offer a community web translation site where translators work in the browser with per-text context; only translations approved by a human reviewer MUST ship; approved work MUST reach the repository as pull requests subject to FR-015; new or changed English text MUST become available there within 24 hours without manual steps.
+- **FR-020**: The project MUST offer a community web translation site (Hosted Weblate; OD-002) where translators work in the browser with per-text context; only translations approved by a human reviewer MUST ship; approved work MUST reach the repository as pull requests subject to FR-015; new or changed English text MUST become available there within 24 hours without manual steps.
 - **FR-021**: Language packs MUST ship as part of each Gameplane release; installing or replacing packs on a running installation is out of scope.
 
 **Developer experience**
@@ -207,7 +207,7 @@ An administrator chooses the instance's default language, used for users with no
 - **FR-025**: Every user-facing message produced by the Gameplane server (errors, validation failures, confirmations, and game server status reasons produced by Gameplane components) MUST carry a stable message identifier and its parameters alongside the existing English text.
 - **FR-026**: The existing English message text MUST remain in every response so current integrations keep working.
 - **FR-027**: The dashboard MUST show server messages in the user's language using the identifier, falling back to the English text when no translation exists.
-- **FR-028**: Each notification destination MUST have a language setting (default: the instance default language), and notifications MUST be rendered in it.
+- **FR-028**: Each notification destination MUST have its own language setting (per-destination, not instance-wide only; OD-004) (default: the instance default language), and notifications MUST be rendered in it.
 - **FR-029**: Audit records MUST be stored independent of language and displayed in the viewer's language; records created before this feature MUST remain readable.
 - **FR-030**: Sign-in and other unauthenticated messages MUST stay generic in every language and never reveal whether an account exists.
 
@@ -225,7 +225,7 @@ An administrator chooses the instance's default language, used for users with no
 
 **Launch content**
 
-- **FR-037**: At launch Gameplane MUST ship English plus one pilot language (to be chosen — see OPEN-DECISIONS.md OD-001) that is 100% complete for dashboard text and server messages, plus complete pilot-language translations for the reference modules Minecraft (Java), Terraria and Valheim.
+- **FR-037**: At launch Gameplane MUST ship English plus one pilot language, French (OD-001, decided 2026-10-10), that is 100% complete for dashboard text and server messages, plus complete pilot-language translations for the reference modules Minecraft (Java), Terraria and Valheim.
 - **FR-038**: A pseudo-language for testing (lengthened, accented text) MUST be available to maintainers and never offered to end users.
 
 ### Key Entities
@@ -268,14 +268,36 @@ An administrator chooses the instance's default language, used for users with no
 - **Q3 (Languages at launch)**: English plus one pilot language, fully translated. The specific pilot language is not yet chosen (OPEN-DECISIONS.md OD-001).
   - **Decision**: English plus one pilot language, fully translated. The specific pilot language is not yet chosen (OPEN-DECISIONS.md OD-001).
 
+### Session 2026-10-10
+
+Decided by valgul; recorded as settled in OPEN-DECISIONS.md.
+
+- **Q4 (Pilot language, OD-001)**: Which language ships with English at launch?
+  - **Decision**: French.
+- **Q5 (Community translation site, OD-002)**: Which service hosts browser translation?
+  - **Decision**: Hosted Weblate.
+- **Q6 (Listing threshold, OD-003)**: How complete must a language be before users can pick it?
+  - **Decision**: 80% complete (adjustable by maintainers).
+- **Q7 (Notification language, OD-004)**: Per destination or instance-wide only?
+  - **Decision**: Per notification destination, defaulting to the instance default language.
+
+### Session 2026-10-12
+
+Decided by valgul; recorded as settled in OPEN-DECISIONS.md (OD-005 to OD-017).
+
+- **Q8 (Module translations, US6)**: Where do they live and how are they reported?
+  - **Decision**: ConfigMap in the operator namespace; ids derived in `i18n/modlocale`; module id rule allows upper case and `~0`/`~1` escapes; `i18n-check --module` requires `en.json` to equal the derived ids; `LocalesValid` reports Valid, InvalidEntries, LocalesTooLarge and WriteFailed, with oversized files named by language; every module source (OCI, directory, git, HTTP, upload, tarball) carries `locales/*.json`; the locales endpoint returns `200 {}` for a malformed tag with ICU message strings; module translations carry `sourceHash`; Warning events fire only when the problem list changes.
+- **Q9 (Design placement, OD-015 to OD-017)**: Where do the language controls sit?
+  - **Decision**: A sink's language is edited in the Add sink form and on each sink row; the Language card is the first card of the personal settings page; the compact picker sits in the top-right corner of the card on the login and share pages.
+
 Existence check 2026-09-23: Confirmed no localization exists in the dashboard, server, modules, website, design source, specifications, issues or pull requests.
 
 ## Assumptions
 
 - English is the reference language and the final fallback.
 - Language packs are bundled in releases; administrators cannot install packs on a running system (not selected in Q2; possible future feature).
-- The community translation site is a hosted service free for open-source projects, owned by the maintainers; the specific service is chosen during planning (OD-002).
-- Listing threshold for end users: 50% completeness, adjustable by maintainers (OD-003).
+- The community translation site is a hosted service free for open-source projects, owned by the maintainers; the service is Hosted Weblate (OD-002, decided 2026-10-10).
+- Listing threshold for end users: 80% completeness, adjustable by maintainers (OD-003, decided 2026-10-10).
 - Per-user language storage builds on the personal preferences from spec 016 (PR #415, open at time of writing). If 016 has not merged when this is implemented, this feature provides equivalent storage for the language preference.
 - Right-to-left layout mirroring is out of scope for v1 (edge cases).
 - Out of scope: the public website and documentation (spec 012 keeps them English), logs and command-line output of Gameplane components, the read-only MCP server's output, Helm chart text, Kubernetes resource messages, and game console/log output.

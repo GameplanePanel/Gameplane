@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/preview"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/preview"
 	"gopkg.in/yaml.v3"
 )
 

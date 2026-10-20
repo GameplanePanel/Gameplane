@@ -34,6 +34,9 @@ import { ModpacksTab } from "./tabs/Modpacks";
 import { PlayersTab } from "./tabs/Players";
 import { BackupsTab } from "./tabs/Backups";
 import { SettingsTab } from "./tabs/Settings";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { conditionMessageText } from "@/lib/i18n/conditionMessage";
+import { defineMessages, type MessageDescriptor } from "react-intl";
 
 // Console (xterm) and Files (Monaco) bring in heavy vendor deps; load on demand.
 const ConsoleTab = lazy(() =>
@@ -46,18 +49,32 @@ const FilesTab = lazy(() =>
 type TabKey =
   | "overview" | "events" | "console" | "logs" | "files" | "mods" | "modpacks" | "players" | "backups" | "capture" | "settings";
 
-const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "overview", label: "Overview" },
-  { key: "events",   label: "Events" },
-  { key: "console",  label: "Console" },
-  { key: "logs",     label: "Logs" },
-  { key: "files",    label: "Files" },
-  { key: "mods",     label: "Mods" },
-  { key: "modpacks", label: "Modpacks" },
-  { key: "players",  label: "Players" },
-  { key: "backups",  label: "Backups" },
-  { key: "capture",  label: "Capture" },
-  { key: "settings", label: "Settings" },
+const TAB_LABELS = defineMessages({
+  overview: { id: "web.routes.server_detail.tab_overview", defaultMessage: "Overview", description: "Server detail: label of the Overview tab" },
+  events: { id: "web.routes.server_detail.tab_events", defaultMessage: "Events", description: "Server detail: label of the Events tab" },
+  console: { id: "web.routes.server_detail.tab_console", defaultMessage: "Console", description: "Server detail: label of the Console tab" },
+  logs: { id: "web.routes.server_detail.tab_logs", defaultMessage: "Logs", description: "Server detail: label of the Logs tab" },
+  files: { id: "web.routes.server_detail.tab_files", defaultMessage: "Files", description: "Server detail: label of the Files tab" },
+  mods: { id: "web.routes.server_detail.tab_mods", defaultMessage: "Mods", description: "Server detail: label of the Mods tab" },
+  modpacks: { id: "web.routes.server_detail.tab_modpacks", defaultMessage: "Modpacks", description: "Server detail: label of the Modpacks tab" },
+  players: { id: "web.routes.server_detail.tab_players", defaultMessage: "Players", description: "Server detail: label of the Players tab" },
+  backups: { id: "web.routes.server_detail.tab_backups", defaultMessage: "Backups", description: "Server detail: label of the Backups tab" },
+  capture: { id: "web.routes.server_detail.tab_capture", defaultMessage: "Capture", description: "Server detail: label of the Capture tab" },
+  settings: { id: "web.routes.server_detail.tab_settings", defaultMessage: "Settings", description: "Server detail: label of the Settings tab" },
+});
+
+const tabs: Array<{ key: TabKey; label: MessageDescriptor }> = [
+  { key: "overview", label: TAB_LABELS.overview },
+  { key: "events",   label: TAB_LABELS.events },
+  { key: "console",  label: TAB_LABELS.console },
+  { key: "logs",     label: TAB_LABELS.logs },
+  { key: "files",    label: TAB_LABELS.files },
+  { key: "mods",     label: TAB_LABELS.mods },
+  { key: "modpacks", label: TAB_LABELS.modpacks },
+  { key: "players",  label: TAB_LABELS.players },
+  { key: "backups",  label: TAB_LABELS.backups },
+  { key: "capture",  label: TAB_LABELS.capture },
+  { key: "settings", label: TAB_LABELS.settings },
 ];
 
 export function ServerDetailPage() {
@@ -67,6 +84,7 @@ export function ServerDetailPage() {
 }
 
 function ResolveServerDetail({ target }: { target: ResourceTarget }) {
+  const intl = useOptionalIntl();
   const navigate = useNavigate();
   const server = useQuery({
     queryKey: resourceKey(target, "server"),
@@ -86,11 +104,11 @@ function ResolveServerDetail({ target }: { target: ResourceTarget }) {
     }
   }, [target.cluster, target.namespace, target.name, server.data?.metadata.namespace, navigate]);
   const retry = () => { void server.refetch(); void access.refetch(); };
-  if (server.error || access.error) return <div className="p-6"><ErrorCard message="This server could not be loaded at its recorded location. Check your access and the site's connection." onRetry={retry} /></div>;
-  if (!server.data || !access.data) return <div className="p-6"><LoadingCard message="Loading server…" /></div>;
+  if (server.error || access.error) return <div className="p-6"><ErrorCard message={intl.formatMessage({ id: "web.routes.server_detail.this_server_could_not_be_loaded_at_its", defaultMessage: "This server could not be loaded at its recorded location. Check your access and the site's connection.", description: "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded location; a retry button is on the card" })} onRetry={retry} /></div>;
+  if (!server.data || !access.data) return <div className="p-6"><LoadingCard message={intl.formatMessage({ id: "web.routes.server_detail.loading_server", defaultMessage: "Loading server…", description: "Server detail: loading text shown while the server and the user's access to it are being fetched" })} /></div>;
   const authorized = access.data.target;
   if (authorized.cluster !== resolved.cluster || authorized.namespace !== resolved.namespace || authorized.name !== resolved.name || (resolved.uid && authorized.uid !== resolved.uid)) {
-    return <div className="p-6"><ErrorCard message="This server changed while it was being loaded. Reload its current identity before continuing." onRetry={retry} /></div>;
+    return <div className="p-6"><ErrorCard message={intl.formatMessage({ id: "web.routes.server_detail.this_server_changed_while_it_was_being", defaultMessage: "This server changed while it was being loaded. Reload its current identity before continuing.", description: "Server detail: error card shown when the server's identity no longer matches the one the link was for; asks the user to reload its current identity" })} onRetry={retry} /></div>;
   }
   return (
     <ResourceTargetProvider target={resolved} access={access.data}>
@@ -100,6 +118,7 @@ function ResolveServerDetail({ target }: { target: ResourceTarget }) {
 }
 
 function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
+  const intl = useOptionalIntl();
   const target = useResourceTarget(lookupTarget);
   const clusterId = target.cluster;
   const name = target.name;
@@ -148,17 +167,21 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
   // with what the pod is doing (pulling image, installing server files,
   // waiting for the agent) — surface it under the phase badge.
   const provisioning = phase === "Starting" || phase === "Pending";
-  const progressMessage = gs?.status?.conditions?.find(
-    (c) => c.type === "Progressing",
-  )?.message;
+  const progressMessage = conditionMessageText(
+    intl,
+    gs?.status?.conditions?.find((c) => c.type === "Progressing"),
+    gs?.status?.conditionArgs,
+  );
   // When startup terminally fails the operator sets phase=Failed and puts
   // the reason on the Ready condition (image pull, crash-loop, exit). Both
   // the operator's escalation and a build-error setPhase write Ready, so
   // read the failure message from there.
   const failed = phase === "Failed";
-  const failureMessage = gs?.status?.conditions?.find(
-    (c) => c.type === "Ready",
-  )?.message;
+  const failureMessage = conditionMessageText(
+    intl,
+    gs?.status?.conditions?.find((c) => c.type === "Ready"),
+    gs?.status?.conditionArgs,
+  );
   // Gate lifecycle actions on phase so they aren't fired during a
   // transition (Starting/Stopping/Pending): Start only from a stopped
   // state, Stop/Restart only while Running. act.isPending blocks
@@ -167,7 +190,7 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
   // sleep marker.
   const canStart = (phase === "Stopped" || phase === "Suspended" || phase === "Failed") && !asleep;
   const version = gs?.status?.agent?.gameVersion;
-  const uptime = formatUptime(gs?.status?.startedAt);
+  const uptime = formatUptime(gs?.status?.startedAt, intl);
 
   // Tab visibility is driven by the template: a game with no console
   // (consoleMode none / no RCON) hides the Console tab. Logs is always
@@ -245,16 +268,16 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
                 <div className="pt-1 flex items-center gap-1.5 text-xs text-danger">
                   <AlertTriangle className="h-3 w-3" />
                   <span>
-                    {failureMessage ? capitalize(failureMessage) : "The server failed to start."}
+                    {failureMessage ? capitalize(failureMessage) : intl.formatMessage({ id: "web.routes.server_detail.server_failed_to_start", defaultMessage: "The server failed to start.", description: "Server detail: shown when the server failed to start and gives no reason" })}
                   </span>
                 </div>
               )}
               <div className="pt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
-                <span>site: {target.cluster}</span><Dot />
+                <span>{intl.formatMessage({ id: "web.routes.server_detail.site_cluster", defaultMessage: "site: {cluster}", description: "Server detail: header line naming the cluster; {cluster} is the cluster name" }, { cluster: target.cluster })}</span><Dot />
                 {gs?.spec.templateRef.name && <span>{gs.spec.templateRef.name}</span>}
                 {version && <Dot />}{version && <span>{version}</span>}
-                {gs?.metadata.namespace && <><Dot /><span>ns: {gs.metadata.namespace}</span></>}
-                {uptime !== "—" && <><Dot /><span>up {uptime}</span></>}
+                {gs?.metadata.namespace && <><Dot /><span>{intl.formatMessage({ id: "web.routes.server_detail.ns_namespace", defaultMessage: "ns: {namespace}", description: "Server detail: header line naming the namespace; {namespace} is the namespace name" }, { namespace: gs.metadata.namespace })}</span></>}
+                {uptime !== "—" && <><Dot /><span>{intl.formatMessage({ id: "web.routes.server_detail.up_uptime", defaultMessage: "up {uptime}", description: "Server detail: header line with uptime; {uptime} is the formatted uptime" }, { uptime: uptime })}</span></>}
               </div>
             </div>
           </div>
@@ -265,16 +288,14 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
               onPress={() => act.mutate("restart")}
               isDisabled={!access?.canControl || !running || act.isPending}
             >
-              <RotateCw className="h-4 w-4" /> Restart
-            </Button>
+              <RotateCw className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.restart", defaultMessage: "Restart", description: "Server detail: header button that restarts the running server; disabled without control access; keep it short" })}</Button>
             <Button
               variant="outline"
               className="rounded-full"
               onPress={() => act.mutate("stop")}
               isDisabled={!access?.canControl || (!running && !asleep) || act.isPending}
             >
-              <Square className="h-4 w-4" /> Stop
-            </Button>
+              <Square className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.stop", defaultMessage: "Stop", description: "Server detail: header button that stops the running server, or puts a sleeping server to sleep fully; keep it short" })}</Button>
             {asleep && (
               <Button
                 variant="primary"
@@ -282,8 +303,7 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
                 onPress={() => act.mutate("wake")}
                 isDisabled={!access?.canControl || act.isPending}
               >
-                <Sunrise className="h-4 w-4" /> Wake
-              </Button>
+                <Sunrise className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.wake", defaultMessage: "Wake", description: "Server detail: header button that wakes a sleeping server; disabled without control access; keep it short" })}</Button>
             )}
             {canStart && (
               <Button
@@ -292,13 +312,11 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
                 onPress={() => act.mutate("start")}
                 isDisabled={act.isPending}
               >
-                <Play className="h-4 w-4" /> Start
-              </Button>
+                <Play className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.start", defaultMessage: "Start", description: "Server detail: header button that starts a stopped server; keep it short" })}</Button>
             )}
             {consoleAvailable && (
               <Button className="rounded-full" onPress={() => setTab("console")}>
-                <Terminal className="h-4 w-4" /> Open console
-              </Button>
+                <Terminal className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.open_console", defaultMessage: "Open console", description: "Server detail: header button that switches to the console tab; shown only when a console is available; keep it short" })}</Button>
             )}
             {gs && (
               <ServerActionsMenu
@@ -321,10 +339,10 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
             onSelectionChange={(key) => setTab(key as TabKey)}
             className="w-full"
           >
-            <Tabs.List aria-label="Server detail tabs" className="flex w-full gap-1 overflow-x-auto">
+            <Tabs.List aria-label={intl.formatMessage({ id: "web.routes.server_detail.server_detail_tabs", defaultMessage: "Server detail tabs", description: "Server detail: accessible label of the row of server tabs, read by screen readers; not shown as text" })} className="flex w-full gap-1 overflow-x-auto">
               {visibleTabs.map((t) => (
                 <Tab key={t.key} id={t.key}>
-                  {t.label}
+                  {intl.formatMessage(t.label)}
                 </Tab>
               ))}
             </Tabs.List>
@@ -371,13 +389,13 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
 }
 
 function Dot() {
-  return <span className="text-muted/50">·</span>;
+  const intl = useOptionalIntl();
+  return <span className="text-muted/50">{intl.formatMessage({ id: "web.common.separator", defaultMessage: "·", description: "Separator character between items in a list, such as wizard steps" })}</span>;
 }
 
 function TabFallback() {
+  const intl = useOptionalIntl();
   return (
-    <div className="flex h-full items-center justify-center text-sm text-muted">
-      Loading…
-    </div>
+    <div className="flex h-full items-center justify-center text-sm text-muted">{intl.formatMessage({ id: "web.routes.server_detail.loading", defaultMessage: "Loading…", description: "Server detail: loading text shown in the body of a tab while that tab's content is still loading" })}</div>
   );
 }

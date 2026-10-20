@@ -95,7 +95,8 @@ reviews:
         - operator/api/v1alpha1/zz_generated.deepcopy.go (regenerated)
         - operator/config/crd/*.yaml (regenerated)
         - operator/config/rbac/*.yaml (regenerated)
-        - charts/gameplane/crds/*.yaml (regenerated and synced)
+        - charts/gameplane/charts/gameplane-crds/crds/*.yaml (regenerated and synced)
+        - charts/gameplane/crd-manifests/*.yaml (regenerated hook copy)
 
         If a CRD type changed but these regenerated files are absent, the PR is incomplete.
         Run: make generate && make manifests
@@ -122,13 +123,13 @@ reviews:
         CRITICAL: Any visual change to a dashboard screen MUST be preceded by a design update.
         Flag if:
         - The route file (*.tsx) shows visual changes but no matching design.pen update in the PR
-        - design.pen or website.pen was touched but design-export/ or website-export/ was not updated
+        - design.pen or website.pen was touched but assets/design-export/ or website-export/ was not updated
           with fresh JSON dumps and screenshots of the changed frames
 
         Visual change means: added/changed components, layout shifts, color/style updates, new pages.
         Backend-only logic changes do not require a design pass.
 
-        The design-export/ snapshot is critical: a stale export actively misleads future agents.
+        The assets/design-export/ snapshot is critical: a stale export actively misleads future agents.
         Both design.pen AND the export must be committed in the same change.
 
         Reference: CLAUDE.md rule 1, Constitution Principle II.
@@ -261,7 +262,7 @@ reviews:
     - label: "area: specs"
       instructions: Apply when changes touch specs/ or spec.md files (specs/done_008-hardened-github-actions/, design contracts, decision records).
     - label: "area: shared"
-      instructions: Apply when changes touch shared Go packages (netguard/, gameaction/, gameproto/, svcutil/) used by operator, api, and agent.
+      instructions: Apply when changes touch shared Go packages (netguard/, gameaction/, gameproto/, svcutil/, telemetryschema/) used by operator, api, agent, and telemetry-receiver.
     - label: "area: optional-components"
       instructions: Apply when changes touch optional or sidecar components (sentinel/, capture-sidecar/, mcp-server/, tunnel/, audit-syslog-bridge/, telemetry-receiver/).
     - label: "breaking"

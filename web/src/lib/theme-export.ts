@@ -4,6 +4,8 @@
 // document shape client-side, then maps to the PUT payload (the server
 // re-validates and applies FR-013 sanitization as the authoritative gate).
 
+import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
+
 import type {
   AppearanceMode,
   CustomColorConfig,
@@ -13,10 +15,94 @@ import type {
   UserThemePreferences,
 } from "@/types";
 
+import { englishIntl } from "@/lib/i18n/format";
 import { MAX_CUSTOM_CSS_LEN } from "@/lib/theme-sanitize";
 
 export const THEME_EXPORT_FORMAT = "gameplane-theme";
 export const THEME_EXPORT_VERSION = 1;
+
+const MESSAGES = defineMessages({
+  not_json: {
+    id: "web.lib.theme_export.not_json",
+    defaultMessage: "invalid theme export: not valid JSON",
+    description: "Theme import error: the selected text is not valid JSON",
+  },
+  not_object: {
+    id: "web.lib.theme_export.not_object",
+    defaultMessage: "invalid theme export: expected a JSON object",
+    description: "Theme import error: the document is valid JSON but not an object",
+  },
+  bad_format: {
+    id: "web.lib.theme_export.bad_format",
+    defaultMessage: "invalid theme export: format must be \"{format}\"",
+    description: "Theme import error: the document's format field is wrong; {format} is the expected format name, gameplane-theme",
+  },
+  missing_field: {
+    id: "web.lib.theme_export.missing_field",
+    defaultMessage: "invalid theme export: missing required field \"{field}\"",
+    description: "Theme import error: a required field is missing; {field} is the field path, such as preferences.presetId",
+  },
+  version_not_number: {
+    id: "web.lib.theme_export.version_not_number",
+    defaultMessage: "invalid theme export: version must be a number",
+    description: "Theme import error: the document's version field is not a number",
+  },
+  version_newer: {
+    id: "web.lib.theme_export.version_newer",
+    defaultMessage: "invalid theme export: unsupported version {version} — this theme was exported by a newer version of Gameplane; upgrade this instance before importing",
+    description: "Theme import error: the document was exported by a newer Gameplane version; {version} is the document's version number",
+  },
+  version_must_be: {
+    id: "web.lib.theme_export.version_must_be",
+    defaultMessage: "invalid theme export: version must be {version}",
+    description: "Theme import error: the document's version is not supported; {version} is the supported version number",
+  },
+  preferences_not_object: {
+    id: "web.lib.theme_export.preferences_not_object",
+    defaultMessage: "invalid theme export: preferences must be an object",
+    description: "Theme import error: the preferences field is not an object",
+  },
+  theme_type_values: {
+    id: "web.lib.theme_export.theme_type_values",
+    defaultMessage: "invalid theme export: preferences.themeType must be \"preset\" or \"custom_colors\"",
+    description: "Theme import error: themeType has an unknown value; preset and custom_colors are the value names, keep them as written",
+  },
+  preset_id_values: {
+    id: "web.lib.theme_export.preset_id_values",
+    defaultMessage: "invalid theme export: preferences.presetId must be \"pink\" or \"legacy\"",
+    description: "Theme import error: presetId has an unknown value; pink and legacy are the value names, keep them as written",
+  },
+  appearance_mode_values: {
+    id: "web.lib.theme_export.appearance_mode_values",
+    defaultMessage: "invalid theme export: preferences.appearanceMode must be \"light\", \"dark\", or \"system\"",
+    description: "Theme import error: appearanceMode has an unknown value; light, dark and system are the value names, keep them as written",
+  },
+  custom_css_enabled_boolean: {
+    id: "web.lib.theme_export.custom_css_enabled_boolean",
+    defaultMessage: "invalid theme export: preferences.customCssEnabled must be a boolean",
+    description: "Theme import error: customCssEnabled is not true or false",
+  },
+  custom_colors_object: {
+    id: "web.lib.theme_export.custom_colors_object",
+    defaultMessage: "invalid theme export: preferences.customColors must be an object or null",
+    description: "Theme import error: customColors is neither an object nor null",
+  },
+  custom_color_hex: {
+    id: "web.lib.theme_export.custom_color_hex",
+    defaultMessage: "invalid theme export: preferences.customColors.{key} must be a #RRGGBB hex color",
+    description: "Theme import error: a custom color is not a #RRGGBB hex value; {key} is accent or surface",
+  },
+  custom_css_string: {
+    id: "web.lib.theme_export.custom_css_string",
+    defaultMessage: "invalid theme export: preferences.customCss must be a string or null",
+    description: "Theme import error: customCss is neither a string nor null",
+  },
+  custom_css_too_long: {
+    id: "web.lib.theme_export.custom_css_too_long",
+    defaultMessage: "invalid theme export: preferences.customCss exceeds the maximum length of {max} characters",
+    description: "Theme import error: the imported custom CSS is longer than the limit; {max} is the maximum number of characters",
+  },
+});
 
 const HEX_RE = /^#([0-9a-fA-F]{6})$/;
 
@@ -64,122 +150,81 @@ export type ValidateThemeExportResult =
 // validateThemeExport parses and validates a theme export document. Returns
 // a specific, field-naming error for every contract §2/§4 rejection reason;
 // documents from a newer exporter (version > 1) get an upgrade prompt.
-export function validateThemeExport(raw: string): ValidateThemeExportResult {
+// The optional intl localizes the error text; English is the default.
+export function validateThemeExport(raw: string, intl: IntlShape = englishIntl): ValidateThemeExportResult {
+  const fail = (descriptor: MessageDescriptor, values?: Record<string, string>): ValidateThemeExportResult =>
+    ({ ok: false, error: intl.formatMessage(descriptor, values) });
   let doc: unknown;
   try {
     doc = JSON.parse(raw);
   } catch {
-    return { ok: false, error: "invalid theme export: not valid JSON" };
+    return fail(MESSAGES.not_json);
   }
   if (!isRecord(doc)) {
-    return { ok: false, error: "invalid theme export: expected a JSON object" };
+    return fail(MESSAGES.not_object);
   }
   if (doc.format !== THEME_EXPORT_FORMAT) {
-    return {
-      ok: false,
-      error: `invalid theme export: format must be "${THEME_EXPORT_FORMAT}"`,
-    };
+    return fail(MESSAGES.bad_format, { format: THEME_EXPORT_FORMAT });
   }
   if (doc.version === undefined) {
-    return { ok: false, error: 'invalid theme export: missing required field "version"' };
+    return fail(MESSAGES.missing_field, { field: "version" });
   }
   if (typeof doc.version !== "number") {
-    return { ok: false, error: "invalid theme export: version must be a number" };
+    return fail(MESSAGES.version_not_number);
   }
   if (doc.version > THEME_EXPORT_VERSION) {
-    return {
-      ok: false,
-      error:
-        `invalid theme export: unsupported version ${doc.version} — this theme was exported ` +
-        "by a newer version of Gameplane; upgrade this instance before importing",
-    };
+    return fail(MESSAGES.version_newer, { version: String(doc.version) });
   }
   if (doc.version !== THEME_EXPORT_VERSION) {
-    return { ok: false, error: `invalid theme export: version must be ${THEME_EXPORT_VERSION}` };
+    return fail(MESSAGES.version_must_be, { version: String(THEME_EXPORT_VERSION) });
   }
   if (doc.preferences === undefined || doc.preferences === null) {
-    return {
-      ok: false,
-      error: 'invalid theme export: missing required field "preferences"',
-    };
+    return fail(MESSAGES.missing_field, { field: "preferences" });
   }
   if (!isRecord(doc.preferences)) {
-    return { ok: false, error: "invalid theme export: preferences must be an object" };
+    return fail(MESSAGES.preferences_not_object);
   }
   const prefs = doc.preferences;
 
   const themeType = enumValue(THEME_TYPES, prefs.themeType);
   if (themeType === null) {
     if (prefs.themeType === undefined) {
-      return {
-        ok: false,
-        error: 'invalid theme export: missing required field "preferences.themeType"',
-      };
+      return fail(MESSAGES.missing_field, { field: "preferences.themeType" });
     }
-    return {
-      ok: false,
-      error: 'invalid theme export: preferences.themeType must be "preset" or "custom_colors"',
-    };
+    return fail(MESSAGES.theme_type_values);
   }
   const presetId = enumValue(PRESET_IDS, prefs.presetId);
   if (presetId === null) {
     if (prefs.presetId === undefined) {
-      return {
-        ok: false,
-        error: 'invalid theme export: missing required field "preferences.presetId"',
-      };
+      return fail(MESSAGES.missing_field, { field: "preferences.presetId" });
     }
-    return {
-      ok: false,
-      error: 'invalid theme export: preferences.presetId must be "pink" or "legacy"',
-    };
+    return fail(MESSAGES.preset_id_values);
   }
   const appearanceMode = enumValue(APPEARANCE_MODES, prefs.appearanceMode);
   if (appearanceMode === null) {
     if (prefs.appearanceMode === undefined) {
-      return {
-        ok: false,
-        error: 'invalid theme export: missing required field "preferences.appearanceMode"',
-      };
+      return fail(MESSAGES.missing_field, { field: "preferences.appearanceMode" });
     }
-    return {
-      ok: false,
-      error: 'invalid theme export: preferences.appearanceMode must be "light", "dark", or "system"',
-    };
+    return fail(MESSAGES.appearance_mode_values);
   }
   if (prefs.customCssEnabled === undefined) {
-    return {
-      ok: false,
-      error: 'invalid theme export: missing required field "preferences.customCssEnabled"',
-    };
+    return fail(MESSAGES.missing_field, { field: "preferences.customCssEnabled" });
   }
   if (typeof prefs.customCssEnabled !== "boolean") {
-    return {
-      ok: false,
-      error: "invalid theme export: preferences.customCssEnabled must be a boolean",
-    };
+    return fail(MESSAGES.custom_css_enabled_boolean);
   }
 
   let customColors: CustomColorConfig | null = null;
   if (prefs.customColors !== undefined && prefs.customColors !== null) {
     if (!isRecord(prefs.customColors)) {
-      return {
-        ok: false,
-        error: "invalid theme export: preferences.customColors must be an object or null",
-      };
+      return fail(MESSAGES.custom_colors_object);
     }
     const cc = prefs.customColors;
     if (typeof cc.accent !== "string" || !HEX_RE.test(cc.accent)) {
-      return {
-        ok: false,
-        error: "invalid theme export: preferences.customColors.accent must be a #RRGGBB hex color",
-      };
+      return fail(MESSAGES.custom_color_hex, { key: "accent" });
     }
     if (typeof cc.surface !== "string" || !HEX_RE.test(cc.surface)) {
-      return {
-        ok: false,
-        error: "invalid theme export: preferences.customColors.surface must be a #RRGGBB hex color",
-      };
+      return fail(MESSAGES.custom_color_hex, { key: "surface" });
     }
     customColors = { accent: cc.accent, surface: cc.surface };
   }
@@ -187,16 +232,10 @@ export function validateThemeExport(raw: string): ValidateThemeExportResult {
   let customCss: string | null = null;
   if (prefs.customCss !== undefined && prefs.customCss !== null) {
     if (typeof prefs.customCss !== "string") {
-      return {
-        ok: false,
-        error: "invalid theme export: preferences.customCss must be a string or null",
-      };
+      return fail(MESSAGES.custom_css_string);
     }
     if (utf8Len(prefs.customCss) > MAX_CUSTOM_CSS_LEN) {
-      return {
-        ok: false,
-        error: `invalid theme export: preferences.customCss exceeds the maximum length of ${MAX_CUSTOM_CSS_LEN} characters`,
-      };
+      return fail(MESSAGES.custom_css_too_long, { max: String(MAX_CUSTOM_CSS_LEN) });
     }
     customCss = prefs.customCss;
   }

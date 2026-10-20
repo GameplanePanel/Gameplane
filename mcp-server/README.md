@@ -113,7 +113,7 @@ mcpServer:
 KUBECONFIG=~/.kube/config docker run --rm -i \
   --user "$(id -u):$(id -g)" --network host \
   -v ~/.kube/config:/kubeconfig:ro -e KUBECONFIG=/kubeconfig \
-  ghcr.io/valgulnecron/gameplane/mcp-server:edge serve
+  ghcr.io/gameplanepanel/gameplane/mcp-server:edge serve
 ```
 
 `serve` builds its Kubernetes client via `ctrl.GetConfig()`, so it works

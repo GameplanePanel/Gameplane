@@ -1,9 +1,9 @@
 # Dependency report
 
 This is a component-by-component inventory of Gameplane's third-party
-dependencies and why each one is there. It covers all 15 Go modules that
-share `go.work` (`netguard`, `gameaction`, `gameproto`, `svcutil`,
-`operator`, `api`, `agent`, `audit-syslog-bridge` [optional],
+dependencies and why each one is there. It covers all 16 Go modules that
+share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`,
+`svcutil`, `operator`, `api`, `agent`, `audit-syslog-bridge` [optional],
 `telemetry-receiver` [optional], `sentinel` [optional],
 `capture-sidecar` [optional], `tunnel` [optional], `gp-module`,
 `mcp-server` [optional], `test/e2e`), the
@@ -39,12 +39,13 @@ were added and verified on **2026-09-26**.
 | `netguard/` | Go | 0 (stdlib only) | Shared SSRF dial-guard used by the operator and agent |
 | `gameaction/` | Go | 0 (stdlib only) | Shared console-injection guard + command-template renderer used by the agent and API |
 | `gameproto/` | Go | 0 (stdlib only) | Shared Minecraft/Terraria handshake classifier used by sentinel |
+| `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
 | `svcutil/` | Go | 0 (stdlib only) | Shared env-parsing + graceful-shutdown helpers (no active importers yet) |
 | `operator/` | Go | 19 | controller-runtime reconciler for the 8 CRDs; module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
 | `api/` | Go | 17 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
 | `audit-syslog-bridge/` | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
-| `telemetry-receiver/` | Go | 1 | Standalone collector for the API's opt-in anonymous usage telemetry |
+| `telemetry-receiver/` | Go | 1 | Standalone collector for the API's usage telemetry (daily counts; extended reports add a random install ID and its public key; on by default for new installs; `api.telemetry.enabled=false` turns it off) |
 | `sentinel/` | Go | 2 | Wake-on-connect listener holding ports for sleeping pods |
 | `capture-sidecar/` | Go | 3 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
 | `tunnel/` | Go | 0 (stdlib only) | Relay client supervisor for frp/Tailscale/playit |
@@ -70,7 +71,7 @@ dial-time hook itself.
 - **API gateway** (`api/internal/notify/{notify,deliver}.go` and `api/internal/steam/resolver.go`): admin-configured notification sinks via `IsAllowed`; Steam name resolution via `IsPublic`.
 - **Agent** (`agent/internal/mods/mods.go` and `agent/internal/rcon/websocket.go`): user-supplied mod downloads via `IsPublic`; loopback WebSocket RCON via `IsAllowed`.
 
-It is a local `replace` module (`replace github.com/ValgulNecron/gameplane/netguard => ../netguard` in every importer's `go.mod`), not a published module — each Dockerfile that builds an importer must `COPY netguard/` into the build context alongside the component's own source.
+It is a local `replace` module (`replace github.com/GameplanePanel/gameplane/netguard => ../netguard` in every importer's `go.mod`), not a published module — each Dockerfile that builds an importer must `COPY netguard/` into the build context alongside the component's own source.
 
 ### gameaction
 
@@ -101,7 +102,23 @@ real client join before waking a sleeping pod.
 Imported by:
 - `sentinel/` — to hold a client's connection open while the sentinel wakes the target `GameServer`'s pod, replaying the buffered handshake once the pod is ready.
 
-Also a local `replace` module (`replace github.com/ValgulNecron/gameplane/gameproto => ../gameproto` in `sentinel/go.mod`); same Dockerfile `COPY` requirement as netguard.
+Also a local `replace` module (`replace github.com/GameplanePanel/gameplane/gameproto => ../gameproto` in `sentinel/go.mod`); same Dockerfile `COPY` requirement as netguard.
+
+### telemetryschema
+
+`telemetryschema/go.mod` has **no `require` block at all** — it imports only the
+Go standard library (`bytes`, `crypto/ed25519`, `crypto/hkdf`, `crypto/rand`,
+`crypto/sha256`, `embed`, `encoding/base64`, `encoding/hex`, `encoding/json`,
+`errors`, `fmt`, `io`, `math`, `regexp`, `slices`, `sort`, `strings`, `time`). It
+is the shared telemetry report contract: the basic and extended report types,
+the fixed category enumerations and band functions, the strict decoder, the
+embedded official-module catalog, and Ed25519 report signing.
+
+Imported by (spec 022, in progress):
+- `telemetry-receiver/` — to decode and validate reports (`Decode`) and to verify signatures (`Verify`).
+- `api/` — to build, encode and sign the reporter's payload and the admin preview.
+
+Both importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/telemetryschema => ../telemetryschema`); the same Dockerfile `COPY` requirement as netguard applies.
 
 ### svcutil
 
@@ -395,7 +412,7 @@ These aren't code dependencies of any component; they're invoked by
 - **`cosign` CLI v3.1.2** (`sigstore/cosign-installer@v4.1.2`) — used in `publish-edge.yaml`/`release.yaml` to sign published container images, the Helm chart, and module bundles against `COSIGN_PRIVATE_KEY`, recording each signature in the public Rekor transparency log, and to round-trip-verify against the derived public key before publishing. Signatures use the classic format (`--new-bundle-format=false --use-signing-config=false`), which is what keeps them readable by the operator's `sigstore/cosign/v2` library; cosign's newer Rekor v2 flow additionally requires an RFC3161 timestamp authority that keyed signing cannot satisfy. `modules/build.sh` gates the same behaviour behind its own `--tlog-upload` flag so local and air-gapped authoring stays offline. Distinct from `operator`'s `sigstore/cosign/v2` **library** dependency, which only ever *verifies* (never signs) at reconcile time.
 - **`kind`** v0.32.0 (devcontainer pin) / `helm/kind-action@v1.14.0` (`install_only: true` in CI) — spins up the ephemeral clusters for `make dev-up`, `make test-e2e`, and every `e2e-*` CI job. <!-- doc-versions: dependency -->
 - **`helm`** (`azure/setup-helm@v5.0.1` in CI; `kubectl-helm-minikube` devcontainer feature, `helm: latest`) — chart lint (`helm lint`), chart render sanity-check, `helm template`, and `helm upgrade --install` in `deploy/kind/*.sh`/`Makefile`'s `dev-install`.
-- **`docker buildx bake`** (`docker-bake.hcl`, `docker/bake-action@v6`) — builds the operator/api/agent e2e images concurrently with a shared GitHub Actions layer cache (`.github/actions/e2e-images`); also builds the `e2e-gameprobe` headless bot image used only by the game-bot CI job.
+- **`docker buildx bake`** (`containers/docker-bake.hcl`, `docker/bake-action@v6`) — builds the operator/api/agent e2e images concurrently with a shared GitHub Actions layer cache (`.github/actions/e2e-images`); also builds the `e2e-gameprobe` headless bot image used only by the game-bot CI job.
 - **`docker/build-push-action@v6` + `docker/metadata-action@v5`** — the actual multi-arch (`linux/amd64,linux/arm64`) image builds and GHCR tagging in `publish-edge.yaml` (main → `:edge`) and `release.yaml` (`v*` tags → versioned images + `oci://ghcr.io/<owner>/charts` Helm push).
 
 The Helm chart itself (`charts/gameplane/Chart.yaml`) declares **no chart

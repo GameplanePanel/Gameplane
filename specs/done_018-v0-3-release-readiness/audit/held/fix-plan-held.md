@@ -703,7 +703,7 @@ H27 to H30 were split out of H01, H04, H10 and H13 at the tier-up review. H31 wa
 - **Regression tests:**
   - A unit test that the scaffolded steamcmd template has a non-root `spec.security`, or a non-root image variant pinned by digest.
   - E2E: extend `TestModule_ScaffoldAndPackage` (bucket `operator`).
-- **specs.md:** yes, `gp-module/specs.md`. `specs/010-easy-module-building/contracts/archetypes-contract.md:13` is already the contract, so it doesn't change.
+- **specs.md:** yes, `gp-module/specs.md`. `specs/done_010-easy-module-building/contracts/archetypes-contract.md:13` is already the contract, so it doesn't change.
 - **design.pen:** no.
 - **Depends on:** D14: a non-root image variant, or a `spec.security` block?
 - **Overlap:**

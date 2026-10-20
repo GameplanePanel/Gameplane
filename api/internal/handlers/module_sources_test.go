@@ -13,7 +13,7 @@ func ociBody(name string) map[string]any {
 		"name": name,
 		"type": "oci",
 		"oci": map[string]any{
-			"url":     "ghcr.io/valgulnecron/gameplane-modules",
+			"url":     "ghcr.io/gameplanepanel/gameplane-modules",
 			"modules": []any{map[string]any{"name": "minecraft-java"}},
 		},
 	}
@@ -32,7 +32,7 @@ func TestSourceCreate(t *testing.T) {
 		}
 		typ, _, _ := unstructured.NestedString(created.Object, "spec", "type")
 		url, _, _ := unstructured.NestedString(created.Object, "spec", "oci", "url")
-		if typ != "oci" || url != "ghcr.io/valgulnecron/gameplane-modules" {
+		if typ != "oci" || url != "ghcr.io/gameplanepanel/gameplane-modules" {
 			t.Fatalf("spec = %v", created.Object["spec"])
 		}
 	})

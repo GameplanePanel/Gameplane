@@ -416,7 +416,7 @@ describe("RegistryBrowser", () => {
     // Handlers must be registered before the first render fires the
     // providers query — registering them afterward (as this test
     // previously did) leaves that first request unhandled, which under
-    // this suite's onUnhandledRequest:"error" config errors it out and
+    // this suite's onUnhandledFrame:"error" config errors it out and
     // the component never gets data to recover from since react-query
     // doesn't retry (retry: false) or auto-refetch on a later server.use.
     server.use(

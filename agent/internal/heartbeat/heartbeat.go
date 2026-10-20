@@ -29,10 +29,10 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
-	"github.com/ValgulNecron/gameplane/agent/internal/metrics"
-	"github.com/ValgulNecron/gameplane/agent/internal/players"
-	"github.com/ValgulNecron/gameplane/agent/internal/usage"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/metrics"
+	"github.com/GameplanePanel/gameplane/agent/internal/players"
+	"github.com/GameplanePanel/gameplane/agent/internal/usage"
 )
 
 // Rcon is the interface to the game's remote console.

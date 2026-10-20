@@ -10,8 +10,10 @@ for filtering and server navigation.
 
 The **Clusters** page (`/clusters`) lists authorized registrations with their
 display name, stable ID, Kubernetes API health, version and last check when
-available. **Local** identifies the central cluster. The administration navigation
-is available to users with cluster-management or inventory access.
+available. **Local** identifies the central cluster in combined installations;
+standalone panels have no Local entry and can start with no registrations. The
+administration navigation is available to users with cluster-management or
+inventory access.
 
 - **View servers** opens the server list filtered to that location.
 - **View nodes** opens the selected cluster's inventory when the user has its
@@ -19,8 +21,9 @@ is available to users with cluster-management or inventory access.
 - Connection health reports Kubernetes API connectivity. It does not establish
   gateway readiness or game health.
 
-Registration is an administrator-managed prerequisite and grants no user access
-by itself. See [installation](install.md) for Kubernetes registration and
+Users with `cluster:manage` can register a target through **Register cluster**.
+Registration grants no workload access by itself. See
+[standalone setup](standalone-panel.md) or [combined installation](install.md) and
 [remote agent access](multicluster-agent-gateway.md) for gateway credentials.
 
 ## Node inventory
@@ -51,10 +54,13 @@ To grant remote access in **Users & RBAC**:
    `cluster:read` with **All namespaces**.
 4. Add the grant. The user's local primary role remains separate.
 
-Remote all-namespace roles may contain `cluster:read` and namespaced permissions.
+Remote all-namespace roles may contain `cluster:read`, `modules:read`,
+`modules:manage`, `templates:read`, `templates:write`, and namespaced permissions.
 Wildcard and central-administration permissions are rejected, including when an
 existing role is edited. Namespace-only server grants do not grant node inventory
 access. Changing grants revokes the user's sessions, so they must sign in again.
 
-Accounts, roles, module catalog, audit and installation settings remain centrally
-managed. Their requests do not inherit the inventory selection.
+Accounts, roles, audit and installation settings remain centrally managed. Their
+requests do not inherit the inventory selection. Combined panels manage the local
+module catalog; standalone panels require an explicit remote target for modules
+and sources.

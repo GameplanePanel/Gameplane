@@ -17,22 +17,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/actions"
-	"github.com/ValgulNecron/gameplane/agent/internal/auth"
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
-	"github.com/ValgulNecron/gameplane/agent/internal/console"
-	"github.com/ValgulNecron/gameplane/agent/internal/files"
-	"github.com/ValgulNecron/gameplane/agent/internal/heartbeat"
-	"github.com/ValgulNecron/gameplane/agent/internal/lifecycle"
-	"github.com/ValgulNecron/gameplane/agent/internal/logs"
-	"github.com/ValgulNecron/gameplane/agent/internal/metrics"
-	"github.com/ValgulNecron/gameplane/agent/internal/mods"
-	"github.com/ValgulNecron/gameplane/agent/internal/players"
-	"github.com/ValgulNecron/gameplane/agent/internal/quiesce"
-	"github.com/ValgulNecron/gameplane/agent/internal/rcon"
-	"github.com/ValgulNecron/gameplane/agent/internal/status"
-	"github.com/ValgulNecron/gameplane/agent/internal/target"
-	"github.com/ValgulNecron/gameplane/agent/internal/usage"
+	"github.com/GameplanePanel/gameplane/agent/internal/actions"
+	"github.com/GameplanePanel/gameplane/agent/internal/auth"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/console"
+	"github.com/GameplanePanel/gameplane/agent/internal/files"
+	"github.com/GameplanePanel/gameplane/agent/internal/heartbeat"
+	"github.com/GameplanePanel/gameplane/agent/internal/lifecycle"
+	"github.com/GameplanePanel/gameplane/agent/internal/logs"
+	"github.com/GameplanePanel/gameplane/agent/internal/metrics"
+	"github.com/GameplanePanel/gameplane/agent/internal/mods"
+	"github.com/GameplanePanel/gameplane/agent/internal/players"
+	"github.com/GameplanePanel/gameplane/agent/internal/quiesce"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
+	"github.com/GameplanePanel/gameplane/agent/internal/status"
+	"github.com/GameplanePanel/gameplane/agent/internal/target"
+	"github.com/GameplanePanel/gameplane/agent/internal/usage"
 )
 
 // Version is overridden at build time via -ldflags.
@@ -187,7 +187,7 @@ func main() {
 		// middleware.Timeout (F-103): applying a request-scoped deadline to
 		// them force-closes the socket / aborts the download every time the
 		// deadline elapses, regardless of whether the stream is still healthy.
-		logs.Mount(protected, gameLogPath)
+		logs.Mount(protected, dataRoot, gameLogPath)
 		console.Mount(protected, rconClient)
 		mods.Mount(protected, dataRoot, modsSpec)
 		files.Mount(protected, dataRoot)

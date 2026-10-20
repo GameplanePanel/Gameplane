@@ -21,7 +21,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/dont-starve-together`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/dont-starve-together`  
 **Dependencies:** stdlib + shared `protocol/a2s` (Go 1.25+); tested against jamesits/dst-server:vanilla (query-port assertion UNMEASURED against a real server — see "Measured connectivity")
 
 ## Purpose
@@ -64,7 +64,7 @@ No DST-specific protocol subpackage; the probe imports the shared `protocol/a2s`
 
 ### Shared protocol families
 
-**`github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/a2sproto`**
+**`github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/a2sproto`**
 
 ```go
 type Info struct {

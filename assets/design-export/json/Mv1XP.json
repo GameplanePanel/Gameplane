@@ -1,0 +1,231 @@
+{
+  "type": "frame",
+  "id": "Mv1XP",
+  "x": 3570,
+  "y": 7617,
+  "name": "Gameplane/Module Card/Installed",
+  "reusable": true,
+  "width": "fill_container(271)",
+  "fill": "$surface/surface",
+  "cornerRadius": 10,
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "layout": "vertical",
+  "gap": 12,
+  "padding": 16,
+  "children": [
+    {
+      "type": "frame",
+      "id": "A0y5H",
+      "name": "mc2h",
+      "width": "fill_container",
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "vvjTn",
+          "name": "tile",
+          "width": 36,
+          "height": 36,
+          "fill": "$success/soft",
+          "cornerRadius": 6,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "GzbES",
+              "fill": "$success/soft-foreground",
+              "content": "MI",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "id": "cy8iR",
+          "type": "ref",
+          "ref": "UOoQW",
+          "name": "Badge",
+          "descendants": {
+            "YXoPG": {
+              "content": "INSTALLED",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "fill": "$success/soft-foreground"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "uUDV0",
+      "name": "mc2Info",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 2,
+      "children": [
+        {
+          "type": "text",
+          "id": "RTBO7",
+          "fill": "$foreground/foreground",
+          "content": "Minecraft (Bedrock)",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 16,
+          "fontWeight": "500"
+        },
+        {
+          "type": "text",
+          "id": "qQash",
+          "fill": "$muted",
+          "content": "v1.21.5 installed",
+          "fontFamily": "$typography/font-mono",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "YT4c1",
+          "name": "mc2Digest",
+          "gap": 4,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "L0SEk",
+              "width": 12,
+              "height": 12,
+              "icon": "fingerprint",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "text",
+              "id": "rLvlr",
+              "fill": "$muted",
+              "content": "sha256:5f0ab913…c47d",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "z28HZS",
+      "name": "Categories",
+      "width": "fill_container",
+      "gap": 6,
+      "children": [
+        {
+          "id": "g6Ar57",
+          "type": "ref",
+          "ref": "Y43SFn",
+          "name": "cat Sandbox",
+          "descendants": {
+            "r4GQ9": {
+              "content": "Sandbox"
+            }
+          }
+        },
+        {
+          "id": "GvHHj",
+          "type": "ref",
+          "ref": "Y43SFn",
+          "name": "cat Survival",
+          "descendants": {
+            "r4GQ9": {
+              "content": "Survival"
+            }
+          }
+        },
+        {
+          "id": "OHHGY",
+          "type": "ref",
+          "ref": "Y43SFn",
+          "name": "cat Creative",
+          "descendants": {
+            "r4GQ9": {
+              "content": "Creative"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "L5szt",
+      "fill": "$muted",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "Cross-platform edition for mobile, console and Windows clients. Allow-list and permissions managed from the wizard.",
+      "lineHeight": 1.4,
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "frame",
+      "id": "dEGvL",
+      "name": "mc2f",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 8,
+      "children": [
+        {
+          "type": "text",
+          "id": "TwQH5",
+          "fill": "$muted",
+          "content": "default (git)",
+          "fontFamily": "$typography/font-mono",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "pId4b",
+          "name": "mc2Btns",
+          "gap": 4,
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "y9Kgf",
+              "type": "ref",
+              "ref": "FIB65",
+              "name": "btnDeploy",
+              "descendants": {
+                "K8d1zg": {
+                  "icon": "external-link"
+                },
+                "zMNkR": {
+                  "content": "Deploy"
+                }
+              }
+            },
+            {
+              "id": "R5bFOn",
+              "type": "ref",
+              "ref": "FIB65",
+              "name": "btnUninstall",
+              "descendants": {
+                "K8d1zg": {
+                  "enabled": false
+                },
+                "zMNkR": {
+                  "content": "Uninstall"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

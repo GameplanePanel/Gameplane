@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 # check-links.sh: Validate internal markdown links and anchors across the
-# documentation audit's 18 files.
+# documentation audit's 19 files.
 #
 # Purpose:
 #   Ensures compliance with SC-006 (Internal Link Audit Standard) from feature 012
 #   (docs-refresh-and-outreach), contracts/docs-audit.md "Standard FR-010: Internal
 #   Links" and "Link Checking (OD-2)". Validates that every markdown link and image
-#   target `[text](target)` / `![alt](target)` in the 18 audited files resolves to
+#   target `[text](target)` / `![alt](target)` in the 19 audited files resolves to
 #   an existing file, and that any `#anchor` fragment resolves to an existing
 #   heading slug or explicit HTML anchor in the target file.
 #
-# Audited Files (18) — same fixed list as hack/check-doc-versions.sh:
+# Audited Files (19) — same fixed list as hack/check-doc-versions.sh:
 #   README.md, docs/architecture.md, docs/contributing.md, docs/dependencies.md,
 #   docs/game-coverage.md, docs/install.md, docs/key-rotation.md,
 #   docs/module-authoring.md, docs/networking.md, docs/notifications.md,
 #   docs/oidc.md, docs/roadmap.md, docs/security.md, docs/tunnels.md,
 #   audit-syslog-bridge/README.md, mcp-server/README.md,
-#   telemetry-receiver/README.md, docs/comparison-sources.md
+#   telemetry-receiver/README.md, docs/comparison-sources.md,
+#   FEATURES.md
 #
 # Scope (contracts/docs-audit.md "Standard FR-010: Internal Links"):
 #   - Markdown link targets `[text](target)` and image targets `![alt](target)`,
@@ -73,7 +74,7 @@
 #   section 9) uses explicit `<a id="...">` anchors instead.
 #
 # Exit codes:
-#   0 = all 18 audited files exist and every internal link/anchor resolves
+#   0 = all 19 audited files exist and every internal link/anchor resolves
 #   1 = an audited file is missing, or one or more links/anchors are broken
 #
 # No network access. Pure bash + grep/sed/tr, plus perl (present on Ubuntu
@@ -87,7 +88,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$REPO_ROOT"
 
-# Same fixed list of 18 audited files as hack/check-doc-versions.sh.
+# Same fixed list of 19 audited files as hack/check-doc-versions.sh.
 audited_files=(
     "README.md"
     "docs/architecture.md"
@@ -107,6 +108,7 @@ audited_files=(
     "mcp-server/README.md"
     "telemetry-receiver/README.md"
     "docs/comparison-sources.md"
+    "FEATURES.md"
 )
 
 total_issues=0
@@ -398,7 +400,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Main: verify all 18 audited files exist, then link-check every one that
+# Main: verify all 19 audited files exist, then link-check every one that
 # does (a missing file is itself a failure, but does not stop the rest of
 # the audit from running).
 # ---------------------------------------------------------------------------

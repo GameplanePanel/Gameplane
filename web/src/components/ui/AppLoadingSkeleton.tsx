@@ -11,6 +11,7 @@
 
 import { ShieldCheck } from "lucide-react";
 import { Skeleton } from "@heroui/react";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 export interface AppLoadingSkeletonProps {
   /** Number of stat-card placeholders in the content row. Defaults to 4
@@ -19,12 +20,13 @@ export interface AppLoadingSkeletonProps {
 }
 
 export function AppLoadingSkeleton({ statCount = 4 }: AppLoadingSkeletonProps) {
+  const intl = useOptionalIntl();
   return (
     <div
       className="flex h-full bg-background text-fg"
       role="status"
       aria-busy="true"
-      aria-label="Loading"
+      aria-label={intl.formatMessage({ id: "web.components.ui.app_loading_skeleton.loading", defaultMessage: "Loading", description: "App loading skeleton: screen-reader label announced while the app is loading; not visible on screen" })}
     >
       {/* Desktop sidebar — always rendered, hidden on mobile */}
       <div className="hidden lg:flex">
@@ -35,16 +37,14 @@ export function AppLoadingSkeleton({ statCount = 4 }: AppLoadingSkeletonProps) {
               <ShieldCheck className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1 leading-tight">
-              <div className="font-mono text-base font-semibold text-fg">gameplane</div>
+              <div className="font-mono text-base font-semibold text-fg">{intl.formatMessage({ id: "web.components.ui.app_loading_skeleton.gameplane", defaultMessage: "gameplane", description: "App loading skeleton: product name shown in the placeholder header while the app loads; keep the name as written" })}</div>
               <Skeleton className="h-3 w-20 rounded bg-surface/secondary" />
             </div>
           </div>
 
           {/* Nav area with skeleton items */}
           <nav className="flex-1 overflow-auto px-3 py-2 scrollbar-thin">
-            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
-              General
-            </div>
+            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-widest text-muted">{intl.formatMessage({ id: "web.components.ui.app_loading_skeleton.general", defaultMessage: "General", description: "App loading skeleton: placeholder heading above the first group of navigation items while the page loads" })}</div>
             <ul className="flex flex-col gap-0.5">
               {Array.from({ length: 4 }).map((_, i) => (
                 <li key={`general-${i}`}>
@@ -57,9 +57,7 @@ export function AppLoadingSkeleton({ statCount = 4 }: AppLoadingSkeletonProps) {
             </ul>
 
             <div className="h-3" />
-            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
-              Admin
-            </div>
+            <div className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-widest text-muted">{intl.formatMessage({ id: "web.components.ui.app_loading_skeleton.admin", defaultMessage: "Admin", description: "App loading skeleton: placeholder heading above the admin group of navigation items while the page loads" })}</div>
             <ul className="flex flex-col gap-0.5">
               {Array.from({ length: 3 }).map((_, i) => (
                 <li key={`admin-${i}`}>

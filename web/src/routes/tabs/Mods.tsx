@@ -29,11 +29,13 @@ import type {
 } from "@/types";
 
 import { APIError } from "@/lib/api";
-import { errorText } from "@/lib/errors";
+import { errorTextIntl } from "@/lib/errors";
 import { resolveModVolume } from "@/lib/capabilities";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { RegistryBrowser, RegistryIcon, compactNum, providerLabel } from "@/components/registry-browser";
 import { cn, formatBytes, formatRelative } from "@/lib/utils";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
 
 type Banner = { kind: "ok" | "err"; text: string };
 
@@ -63,6 +65,7 @@ export function ModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTempl
 // ModsTab, unchanged): lists, installs by URL, browses a registry, and
 // uploads files into the resolved mods directory.
 function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate; gs?: GameServer; ns?: string }) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { Servers } = resourceClient;
@@ -117,11 +120,13 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
     mutationFn: (body: InstallBody) => Servers.installMod(name, body, ns),
     onSuccess: (mod, body) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
-      setBanner({ kind: "ok", text: body.replaces ? `Updated to ${mod.name}` : `Installed ${mod.name}` });
+      setBanner({ kind: "ok", text: body.replaces
+        ? intl.formatMessage({ id: "web.routes.tabs.mods.banner_updated_to", defaultMessage: "Updated to {name}", description: "Mods: banner shown after a mod is updated to a new file; {name} is the mod name" }, { name: mod.name })
+        : intl.formatMessage({ id: "web.routes.tabs.mods.banner_installed", defaultMessage: "Installed {name}", description: "Mods: banner shown after a mod is installed; {name} is the mod name" }, { name: mod.name }) });
       if (body.replaces && updates.data) void updates.refetch();
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "mods", name) });
     },
-    onError: (err) => setBanner({ kind: "err", text: errMsg(err) }),
+    onError: (err) => setBanner({ kind: "err", text: errMsg(err, intl) }),
   });
 
   // upgradeBody maps one available update to the install request that
@@ -144,10 +149,10 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
     mutationFn: (file: File) => Servers.uploadMod(name, file, ns),
     onSuccess: (mod) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
-      setBanner({ kind: "ok", text: `Uploaded ${mod.name}` });
+      setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.mods.banner_uploaded", defaultMessage: "Uploaded {name}", description: "Mods: banner shown after a mod file is uploaded; {name} is the mod name" }, { name: mod.name }) });
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "mods", name) });
     },
-    onError: (err) => setBanner({ kind: "err", text: errMsg(err) }),
+    onError: (err) => setBanner({ kind: "err", text: errMsg(err, intl) }),
   });
 
   const updateAll = useMutation({
@@ -161,12 +166,12 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
     },
     onSuccess: (n) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
-      setBanner({ kind: "ok", text: `Updated ${n} mod${n === 1 ? "" : "s"}` });
+      setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.mods.banner_updated_count", defaultMessage: "Updated {count, plural, one {# mod} other {# mods}}", description: "Mods: banner shown after updating mods; {count} is the number of mods updated" }, { count: n }) });
       void updates.refetch();
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "mods", name) });
     },
     onError: (err) => {
-      setBanner({ kind: "err", text: errMsg(err) });
+      setBanner({ kind: "err", text: errMsg(err, intl) });
       void updates.refetch();
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "mods", name) });
     },
@@ -177,12 +182,12 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
     onSuccess: (_void, mod) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       setConfirmRemove(null);
-      setBanner({ kind: "ok", text: `Removed ${mod}` });
+      setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.mods.banner_removed", defaultMessage: "Removed {name}", description: "Mods: banner shown after a mod is removed; {name} is the mod file name" }, { name: mod }) });
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "mods", name) });
     },
     onError: (err) => {
       setConfirmRemove(null);
-      setBanner({ kind: "err", text: errMsg(err) });
+      setBanner({ kind: "err", text: errMsg(err, intl) });
     },
   });
 
@@ -221,21 +226,25 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
       <header className="flex items-center justify-between gap-3">
         <div className="space-y-0.5">
           <h2 className="text-sm text-muted">
-            {mods ? `${mods.length} installed` : isError ? "Couldn’t load mods" : "Loading…"}
+            {mods
+              ? intl.formatMessage({ id: "web.routes.tabs.mods.installed_count", defaultMessage: "{count} installed", description: "Mods: heading with the number of installed mods; {count} is that number" }, { count: mods.length })
+              : isError
+                ? intl.formatMessage({ id: "web.routes.tabs.mods.couldnt_load", defaultMessage: "Couldn’t load mods", description: "Mods: heading shown when the mod list fails to load" })
+                : intl.formatMessage({ id: "web.routes.tabs.mods.loading", defaultMessage: "Loading…", description: "Mods: heading shown while the mod list loads" })}
             {updates.data && updateByName.size > 0 && (
-              <span className="text-primary"> · {updateByName.size} update{updateByName.size === 1 ? "" : "s"} available</span>
+              <span className="text-primary">{intl.formatMessage({ id: "web.routes.tabs.mods.updates_available", defaultMessage: " · {count, plural, one {# update} other {# updates}} available", description: "Mods: shown beside the installed count when mods have updates; {count} is the number of mods with an update" }, { count: updateByName.size })}</span>
             )}
           </h2>
           {(activeLabel || updates.data) && (
             <p className="text-[11px] text-muted" data-testid="mods-active">
-              {[activeLabel, updates.data ? `checked ${formatRelative(updates.data.checkedAt)}` : null]
+              {[activeLabel, updates.data ? `checked ${formatRelative(updates.data.checkedAt, intl)}` : null]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onPress={() => void refetch()} isDisabled={isFetching} aria-label="Refresh">
+          <Button variant="ghost" size="sm" onPress={() => void refetch()} isDisabled={isFetching} aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.refresh", defaultMessage: "Refresh", description: "Mods tab: icon-only button that reloads the mod list and checks for updates; read by screen readers; keep it short" })}>
             <RotateCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
           </Button>
           {canInstall && (
@@ -245,8 +254,7 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
               onPress={() => void updates.refetch()}
               isDisabled={updates.isFetching || !mods?.some((m) => m.meta && m.meta.provider !== "upload")}
             >
-              <RotateCw className={cn("h-3 w-3", updates.isFetching && "animate-spin")} />{" "}
-              {updates.isFetching ? "Checking…" : "Check updates"}
+              <RotateCw className={cn("h-3 w-3", updates.isFetching && "animate-spin")} /> {updates.isFetching ? intl.formatMessage({ id: "web.routes.tabs.mods.checking", defaultMessage: "Checking…", description: "Mods: label of the check-for-updates button while checking" }) : intl.formatMessage({ id: "web.routes.tabs.mods.check_updates", defaultMessage: "Check updates", description: "Mods: label of the button that checks installed mods for updates" })}
             </Button>
           )}
           {canInstall && canManage && updateByName.size > 0 && (
@@ -256,22 +264,20 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
               onPress={() => updateAll.mutate()}
               isDisabled={updateAll.isPending || install.isPending}
             >
-              <ArrowUpCircle className="h-4 w-4" />{" "}
-              {updateAll.isPending ? "Updating…" : `Update all (${updateByName.size})`}
+              <ArrowUpCircle className="h-4 w-4" /> {updateAll.isPending ? intl.formatMessage({ id: "web.routes.tabs.mods.updating", defaultMessage: "Updating…", description: "Mods: label of the update-all button while updates run" }) : intl.formatMessage({ id: "web.routes.tabs.mods.update_all_count", defaultMessage: "Update all ({count})", description: "Mods: label of the button that updates every mod; {count} is how many mods have an update" }, { count: updateByName.size })}
             </Button>
           )}
           {/* The disabled reason lives on a wrapping element's title (not
               the Button's aria-label) so the button's accessible name
               stays its visible text, "Install mod", for role queries and
               assistive tech alike. */}
-          <span title={canManage ? undefined : "Requires operator role"} tabIndex={0}>
+          <span title={canManage ? undefined : intl.formatMessage({ id: "web.routes.tabs.mods.requires_operator_role", defaultMessage: "Requires operator role", description: "Mods: tooltip on a disabled control for users without the operator role" })} tabIndex={0}>
             <Button
               size="sm"
               onPress={() => setBrowsing(true)}
               isDisabled={!canManage}
             >
-              <Plus className="h-4 w-4" /> Install mod
-            </Button>
+              <Plus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.mods.install_mod", defaultMessage: "Install mod", description: "Mods tab: button that opens the form to add a mod; disabled for users without the operator role; keep it short" })}</Button>
           </span>
         </div>
       </header>
@@ -287,7 +293,7 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
         >
           <div className="flex items-start justify-between gap-3">
             <span className="font-mono break-all">{banner.text}</span>
-            <Button variant="ghost" size="sm" onPress={() => setBanner(null)} isIconOnly aria-label="dismiss">
+            <Button variant="ghost" size="sm" onPress={() => setBanner(null)} isIconOnly aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.dismiss", defaultMessage: "dismiss", description: "Mods tab: icon-only button that closes the message banner; read by screen readers; keep it short" })}>
               <X className="h-3 w-3" />
             </Button>
           </div>
@@ -296,24 +302,21 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
 
       {isError && !mods && (
         <div className="rounded border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {errMsg(listError)} ·{" "}
-          <Button variant="ghost" size="sm" className="underline" onPress={() => void refetch()} aria-label="retry">
-            retry
-          </Button>
+          {errMsg(listError, intl)}{intl.formatMessage({ id: "web.routes.tabs.mods.error_retry_separator", defaultMessage: " · ", description: "Mods: separator between the list error and the retry button" })}<Button variant="ghost" size="sm" className="underline" onPress={() => void refetch()} aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.retry", defaultMessage: "retry", description: "Mods: label of the retry button after a failed list load" })}>{intl.formatMessage({ id: "web.routes.tabs.mods.retry", defaultMessage: "retry", description: "Mods: label of the retry button after a failed list load" })}</Button>
         </div>
       )}
 
       {mods && mods.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-12 text-center">
           <Package className="h-6 w-6 text-muted" />
-          <p className="text-sm text-muted">No mods installed.</p>
+          <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.no_mods_installed", defaultMessage: "No mods installed.", description: "Mods tab: empty-state text shown when no mods are installed; a hint below it explains how to add one" })}</p>
           {canManage && (
             <p className="text-xs text-muted">
               {canBrowse
-                ? "Use “Install mod” to search a registry, add one from a URL, or upload a file."
+                ? intl.formatMessage({ id: "web.routes.tabs.mods.empty_hint_browse", defaultMessage: "Use “Install mod” to search a registry, add one from a URL, or upload a file.", description: "Mods: hint under the empty list when the user can browse, install from a URL and upload" })
                 : canInstall
-                  ? "Use “Install mod” to add one from a URL or upload a file."
-                  : "Use “Install mod” to upload a file."}
+                  ? intl.formatMessage({ id: "web.routes.tabs.mods.empty_hint_install", defaultMessage: "Use “Install mod” to add one from a URL or upload a file.", description: "Mods: hint under the empty list when the user can install from a URL or upload" })
+                  : intl.formatMessage({ id: "web.routes.tabs.mods.empty_hint_upload", defaultMessage: "Use “Install mod” to upload a file.", description: "Mods: hint under the empty list when the user can only upload a file" })}
             </p>
           )}
         </div>
@@ -338,15 +341,13 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
                       ) : (
                         <span
                           className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] text-muted"
-                          aria-label="Placed outside the panel — no update checks"
-                        >
-                          unmanaged
-                        </span>
+                          aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.placed_outside_the_panel_no_update", defaultMessage: "Placed outside the panel — no update checks", description: "Mods tab: accessible label of the grey tag on a mod placed outside the panel; the tag tells the user update checks do not run for it" })}
+                        >{intl.formatMessage({ id: "web.routes.tabs.mods.unmanaged", defaultMessage: "unmanaged", description: "Mods tab: grey tag on a mod that was placed outside the panel, meaning no update checks run for it; keep it short" })}</span>
                       )}
                     </div>
                     <div className="text-xs text-muted">
                       {formatBytes(m.size)}
-                      {m.modTime ? ` · ${formatRelative(m.modTime)}` : ""}
+                      {m.modTime ? intl.formatMessage({ id: "web.routes.tabs.mods.modified_relative", defaultMessage: " · {time}", description: "Mods: suffix after a mod's version showing when it was modified; {time} is how long ago" }, { time: formatRelative(m.modTime, intl) }) : ""}
                     </div>
                   </div>
                 </div>
@@ -354,16 +355,14 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
                   {update && (
                     <>
                       <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                        {update.latestVersionNumber || "new version"} available
-                      </span>
+                        {update.latestVersionNumber || intl.formatMessage({ id: "web.routes.tabs.mods.new_version", defaultMessage: "new version", description: "Mods: stand-in for the latest version number when it is unknown" })} {intl.formatMessage({ id: "web.routes.tabs.mods.available", defaultMessage: "available", description: "Mods tab: word after the latest version number in the update badge, meaning a newer version is available; keep it short" })}</span>
                       {canManage && (
                         <Button
                           size="sm"
                           onPress={() => install.mutate(upgradeBody(update))}
                           isDisabled={install.isPending || updateAll.isPending}
                         >
-                          <ArrowUpCircle className="h-3 w-3" /> Update
-                        </Button>
+                          <ArrowUpCircle className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.mods.update", defaultMessage: "Update", description: "Mods tab: button on a mod row that updates it to the newer version; keep it short" })}</Button>
                       )}
                     </>
                   )}
@@ -371,7 +370,7 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label={`Remove ${m.name}`}
+                      aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.remove_mod_aria", defaultMessage: "Remove {name}", description: "Mods: aria-label of the remove button on a mod row; {name} is the mod name" }, { name: m.name })}
                       onPress={() => setConfirmRemove(m)}
                       isDisabled={remove.isPending}
                     >
@@ -388,14 +387,11 @@ function FileModsTab({ name, tmpl, gs, ns }: { name: string; tmpl?: GameTemplate
       <ConfirmDialog
         open={confirmRemove !== null}
         onOpenChange={(o) => !o && setConfirmRemove(null)}
-        title="Remove mod"
+        title={intl.formatMessage({ id: "web.routes.tabs.mods.remove_mod", defaultMessage: "Remove mod", description: "Mods tab: title of the confirmation dialog that asks before a mod is removed from the server" })}
         description={
-          <>
-            Remove <span className="font-mono text-fg">{confirmRemove?.name}</span> from the server? It will be gone on
-            the next restart.
-          </>
+          <>{intl.formatMessage({ id: "web.routes.tabs.mods.remove", defaultMessage: "Remove", description: "Mods tab: the word Remove, used as the confirm button of the removal dialog, as the start of its sentence, and as a row button marking a mod for removal; keep it short" })} <span className="font-mono text-fg">{confirmRemove?.name}</span> {intl.formatMessage({ id: "web.routes.tabs.mods.from_the_server_it_will_be_gone_on_the", defaultMessage: "from the server? It will be gone on the next restart.", description: "Mods tab: rest of the removal confirmation sentence after the mod name, saying the mod will be gone on the next restart" })}</>
         }
-        confirmLabel="Remove"
+        confirmLabel={intl.formatMessage({ id: "web.routes.tabs.mods.remove", defaultMessage: "Remove", description: "Mods tab: the word Remove, used as the confirm button of the removal dialog, as the start of its sentence, and as a row button marking a mod for removal; keep it short" })}
         destructive
         busy={remove.isPending}
         onConfirm={() => confirmRemove && remove.mutate(confirmRemove.name)}
@@ -437,6 +433,7 @@ function ModsByIdTab({
   tmpl?: GameTemplate;
   ns?: string;
 }) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { Servers } = resourceClient;
@@ -501,11 +498,11 @@ function ModsByIdTab({
       setRows(updated.map((m) => ({ ...m, state: "kept" as const })));
       setBanner({
         kind: "ok",
-        text: `Saved — the server will restart to apply ${updated.length} mod${updated.length === 1 ? "" : "s"}.`,
+        text: intl.formatMessage({ id: "web.routes.tabs.mods.banner_saved_restart", defaultMessage: "Saved — the server will restart to apply {count, plural, one {# mod} other {# mods}}.", description: "Mods: banner shown after the mod list is saved; {count} is the number of mods applied on restart" }, { count: updated.length }),
       });
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "mod-ids", name) });
     },
-    onError: (err) => setBanner({ kind: "err", text: errMsg(err) }),
+    onError: (err) => setBanner({ kind: "err", text: errMsg(err, intl) }),
   });
 
   const discard = () => {
@@ -564,18 +561,17 @@ function ModsByIdTab({
             size="sm"
             className="text-xs"
             onPress={() => setBrowsing(false)}
-            aria-label="Back to selected mods"
+            aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.back_to_selected_mods", defaultMessage: "Back to selected mods", description: "Mods tab: accessible label of the back button that returns from the registry browser to the selected mods list; keep it short" })}
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Selected mods
-          </Button>
-          <h2 className="text-base font-semibold">Browse {providerName ?? "registry"}</h2>
+            <ArrowLeft className="h-3.5 w-3.5" /> {intl.formatMessage({ id: "web.routes.tabs.mods.selected_mods", defaultMessage: "Selected mods", description: "Mods tab: visible text of the back button in the registry browser, and the heading of the selected mods list; keep it short" })}</Button>
+          <h2 className="text-base font-semibold">{intl.formatMessage({ id: "web.routes.tabs.mods.browse", defaultMessage: "Browse", description: "Mods tab: word Browse that starts the registry browse heading and button; the registry name follows it; keep it short" })} {providerName ?? intl.formatMessage({ id: "web.routes.tabs.mods.registry", defaultMessage: "registry", description: "Mods: fallback name of the mod registry when the provider has no name" })}</h2>
         </header>
         <div className="min-h-0 flex-1">
           <RegistryBrowser
             name={name}
             ns={ns}
             type="mod"
-            categories={MOD_CATEGORIES}
+            categories={MOD_CATEGORIES.map((c) => ({ value: c.value, label: intl.formatMessage(c.label) }))}
             renderItem={(p) => (
               <IdModCard
                 project={p}
@@ -593,9 +589,13 @@ function ModsByIdTab({
     <div className="space-y-6 p-6">
       <header className="flex items-center justify-between gap-3">
         <div className="space-y-0.5">
-          <h2 className="text-sm text-muted">{saved !== undefined ? `${selectedCount} selected` : isError ? "Couldn’t load mods" : "Loading…"}</h2>
+          <h2 className="text-sm text-muted">{saved !== undefined
+            ? intl.formatMessage({ id: "web.routes.tabs.mods.selected_count", defaultMessage: "{count} selected", description: "Mods: heading with how many mods are selected; {count} is that number" }, { count: selectedCount })
+            : isError
+              ? intl.formatMessage({ id: "web.routes.tabs.mods.couldnt_load", defaultMessage: "Couldn’t load mods", description: "Mods: heading shown when the mod list fails to load" })
+              : intl.formatMessage({ id: "web.routes.tabs.mods.loading", defaultMessage: "Loading…", description: "Mods: heading shown while the mod list loads" })}</h2>
           <p className="text-[11px] text-muted">
-            {[tmpl?.spec.displayName, providerName ? `${providerName} mod IDs` : null].filter(Boolean).join(" · ")}
+            {[tmpl?.spec.displayName, providerName ? intl.formatMessage({ id: "web.routes.tabs.mods.provider_mod_ids", defaultMessage: "{provider} mod IDs", description: "Mods: subtitle line naming the mod provider whose mod IDs are listed; {provider} is the provider name" }, { provider: providerName }) : null].filter(Boolean).join(" · ")}
           </p>
         </div>
         <Button
@@ -604,7 +604,7 @@ function ModsByIdTab({
           size="sm"
           onPress={() => void refetch()}
           isDisabled={isFetching}
-          aria-label="Refresh"
+          aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.refresh", defaultMessage: "Refresh", description: "Mods tab: icon-only button that reloads the mod list and checks for updates; read by screen readers; keep it short" })}
           className="h-auto w-auto"
         >
           <RotateCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
@@ -613,10 +613,7 @@ function ModsByIdTab({
 
       <div className="flex items-start gap-2 rounded-lg border border-border bg-surface/40 p-3 text-xs text-fg">
         <Info className="h-4 w-4 shrink-0 text-muted" />
-        <p>
-          This game&rsquo;s server downloads its own mods. Select them here — Gameplane passes the list to the
-          server at launch.
-        </p>
+        <p>{intl.formatMessage({ id: "web.routes.tabs.mods.this_game_s_server_downloads_its_own", defaultMessage: "This game’s server downloads its own mods. Select them here — Gameplane passes the list to the server at launch.", description: "Mods tab: info note at the top of the by-ID mods view saying the game server downloads its own mods and Gameplane passes the list at launch" })}</p>
       </div>
 
       {banner && (
@@ -630,7 +627,7 @@ function ModsByIdTab({
         >
           <div className="flex items-start justify-between gap-3">
             <span className="font-mono break-all">{banner.text}</span>
-            <Button variant="ghost" size="sm" onPress={() => setBanner(null)} isIconOnly aria-label="dismiss">
+            <Button variant="ghost" size="sm" onPress={() => setBanner(null)} isIconOnly aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.dismiss", defaultMessage: "dismiss", description: "Mods tab: icon-only button that closes the message banner; read by screen readers; keep it short" })}>
               <X className="h-3 w-3" />
             </Button>
           </div>
@@ -639,10 +636,7 @@ function ModsByIdTab({
 
       {isError && (
         <div className="rounded border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {errMsg(listError)} ·{" "}
-          <Button variant="ghost" size="sm" className="underline" onPress={() => void refetch()} aria-label="retry">
-            retry
-          </Button>
+          {errMsg(listError, intl)}{intl.formatMessage({ id: "web.routes.tabs.mods.error_retry_separator", defaultMessage: " · ", description: "Mods: separator between the list error and the retry button" })}<Button variant="ghost" size="sm" className="underline" onPress={() => void refetch()} aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.retry", defaultMessage: "retry", description: "Mods: label of the retry button after a failed list load" })}>{intl.formatMessage({ id: "web.routes.tabs.mods.retry", defaultMessage: "retry", description: "Mods: label of the retry button after a failed list load" })}</Button>
         </div>
       )}
 
@@ -655,14 +649,16 @@ function ModsByIdTab({
               onPress={() => setBrowsing(true)}
               isDisabled={save.isPending}
             >
-              <Compass className="h-4 w-4" /> Browse {providerName ?? "registry"}
+              <Compass className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.mods.browse", defaultMessage: "Browse", description: "Mods tab: word Browse that starts the registry browse heading and button; the registry name follows it; keep it short" })} {providerName ?? intl.formatMessage({ id: "web.routes.tabs.mods.registry", defaultMessage: "registry", description: "Mods: fallback name of the mod registry when the provider has no name" })}
             </Button>
             <div className="h-6 w-px bg-border" />
           </>
         )}
         <div className="flex items-center gap-2">
           <Input
-            placeholder={`Paste a${providerName ? ` ${providerName}` : ""} mod ID…`}
+            placeholder={providerName
+              ? intl.formatMessage({ id: "web.routes.tabs.mods.paste_provider_mod_id", defaultMessage: "Paste a {provider} mod ID…", description: "Mods: placeholder of the mod ID input when the provider has a name; {provider} is the provider name" }, { provider: providerName })
+              : intl.formatMessage({ id: "web.routes.tabs.mods.paste_mod_id", defaultMessage: "Paste a mod ID…", description: "Mods: placeholder of the mod ID input when the provider has no name" })}
             value={idInput}
             onChange={(e) => setIdInput(e.target.value)}
             disabled={!canManage || save.isPending}
@@ -677,18 +673,17 @@ function ModsByIdTab({
               setIdInput("");
             }}
           >
-            <Plus className="h-4 w-4" /> Add
-          </Button>
+            <Plus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.mods.add", defaultMessage: "Add", description: "Mods: label of the button that adds a mod to the list" })}</Button>
         </div>
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Selected mods</h3>
+        <h3 className="text-sm font-semibold">{intl.formatMessage({ id: "web.routes.tabs.mods.selected_mods", defaultMessage: "Selected mods", description: "Mods tab: visible text of the back button in the registry browser, and the heading of the selected mods list; keep it short" })}</h3>
         {saved === undefined ? null : rows.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-12 text-center">
             <Package className="h-6 w-6 text-muted" />
-            <p className="text-sm text-muted">No mods selected.</p>
-            {canManage && <p className="text-xs text-muted">Browse {providerName ?? "a registry"} or add a mod ID.</p>}
+            <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.no_mods_selected", defaultMessage: "No mods selected.", description: "Mods tab: empty-state text in the selected mods list when no mods are selected" })}</p>
+            {canManage && <p className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.browse", defaultMessage: "Browse", description: "Mods tab: word Browse that starts the registry browse heading and button; the registry name follows it; keep it short" })} {providerName ?? intl.formatMessage({ id: "web.routes.tabs.mods.a_registry", defaultMessage: "a registry", description: "Mods: fallback that reads 'a registry' when the provider has no name" })} {intl.formatMessage({ id: "web.routes.tabs.mods.or_add_a_mod_id", defaultMessage: "or add a mod ID.", description: "Mods tab: end of the empty-state hint that tells the user to browse a registry or add a mod ID" })}</p>}
           </div>
         ) : (
           <ul className="space-y-2">
@@ -708,19 +703,15 @@ function ModsByIdTab({
                     <div className={cn("truncate text-sm font-semibold", r.state === "removed" && "line-through")}>
                       {r.name || r.id}
                     </div>
-                    {r.name && <div className="truncate text-xs text-muted">ID {r.id}</div>}
+                    {r.name && <div className="truncate text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.id_id", defaultMessage: "ID {id}", description: "Mods: label showing a mod's registry ID; {id} is the ID" }, { id: r.id })}</div>}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {r.state === "added" && (
-                    <Chip size="sm" color="success" variant="soft">
-                      Added
-                    </Chip>
+                    <Chip size="sm" color="success" variant="soft">{intl.formatMessage({ id: "web.routes.tabs.mods.added", defaultMessage: "Added", description: "Mods: shown when a mod is already in the list (chip or button label)" })}</Chip>
                   )}
                   {r.state === "removed" && (
-                    <Chip size="sm" color="warning" variant="soft">
-                      Marked for removal
-                    </Chip>
+                    <Chip size="sm" color="warning" variant="soft">{intl.formatMessage({ id: "web.routes.tabs.mods.marked_for_removal", defaultMessage: "Marked for removal", description: "Mods tab: badge on a mod row showing it is marked for removal and will be removed when saved; keep it short" })}</Chip>
                   )}
                   {canManage &&
                     (r.state === "removed" ? (
@@ -730,8 +721,7 @@ function ModsByIdTab({
                         onPress={() => undoRemove(r.id)}
                         isDisabled={save.isPending}
                       >
-                        <RotateCcw className="h-3 w-3" /> Undo
-                      </Button>
+                        <RotateCcw className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.mods.undo", defaultMessage: "Undo", description: "Mods tab: row button that cancels a pending removal of a mod; keep it short" })}</Button>
                     ) : (
                       <Button
                         variant="ghost"
@@ -739,8 +729,7 @@ function ModsByIdTab({
                         onPress={() => markRemoved(r.id)}
                         isDisabled={save.isPending}
                       >
-                        <X className="h-3 w-3" /> Remove
-                      </Button>
+                        <X className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.mods.remove", defaultMessage: "Remove", description: "Mods tab: the word Remove, used as the confirm button of the removal dialog, as the start of its sentence, and as a row button marking a mod for removal; keep it short" })}</Button>
                     ))}
                 </div>
               </li>
@@ -751,23 +740,20 @@ function ModsByIdTab({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
         <div className="flex items-center gap-2 text-xs text-warning">
-          <TriangleAlert className="h-4 w-4" /> Saving restarts the server to apply the new mod list.
-        </div>
+          <TriangleAlert className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.tabs.mods.saving_restarts_the_server_to_apply_the", defaultMessage: "Saving restarts the server to apply the new mod list.", description: "Mods tab: warning note above the save bar saying that saving restarts the server to apply the new mod list" })}</div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onPress={discard}
             isDisabled={!dirty || save.isPending}
-          >
-            Discard
-          </Button>
+          >{intl.formatMessage({ id: "web.routes.tabs.mods.discard", defaultMessage: "Discard", description: "Mods tab: footer button that throws away unsaved mod list changes; disabled when nothing changed; keep it short" })}</Button>
           <Button
             size="sm"
             onPress={() => save.mutate()}
             isDisabled={!dirty || save.isPending || !canManage}
           >
-            {save.isPending ? "Saving…" : "Save changes"}
+            {save.isPending ? intl.formatMessage({ id: "web.routes.tabs.mods.saving", defaultMessage: "Saving…", description: "Mods: label of the save button while the mod list is saving" }) : intl.formatMessage({ id: "web.routes.tabs.mods.save_changes", defaultMessage: "Save changes", description: "Mods: label of the button that saves the mod list" })}
           </Button>
         </div>
       </div>
@@ -788,6 +774,7 @@ function IdModCard({
   added: boolean;
   onAdd: () => void;
 }) {
+  const intl = useOptionalIntl();
   return (
     <div className="flex items-center gap-3 rounded-md border border-border bg-surface/30 p-2.5">
       <RegistryIcon url={project.iconUrl} fallback={<Package className="h-9 w-9 shrink-0 rounded p-2 text-muted" />} />
@@ -805,7 +792,7 @@ function IdModCard({
         isDisabled={added}
         onPress={onAdd}
       >
-        {added ? "Added" : "Add"}
+        {added ? intl.formatMessage({ id: "web.routes.tabs.mods.added", defaultMessage: "Added", description: "Mods: shown when a mod is already in the list (chip or button label)" }) : intl.formatMessage({ id: "web.routes.tabs.mods.add", defaultMessage: "Add", description: "Mods: label of the button that adds a mod to the list" })}
       </Button>
     </div>
   );
@@ -847,10 +834,11 @@ function InstallPage({
   onInstall: (body: InstallBody) => void;
   onUpload: (file: File) => void;
 }) {
-  const modes: { key: InstallMode; label: string }[] = [
-    ...(canBrowse ? [{ key: "search" as const, label: "Browse registry" }] : []),
-    ...(canInstall ? [{ key: "url" as const, label: "From URL" }] : []),
-    { key: "upload", label: "Upload file" },
+  const intl = useOptionalIntl();
+  const modes: { key: InstallMode; label: MessageDescriptor }[] = [
+    ...(canBrowse ? [{ key: "search" as const, label: INSTALL_MODE_LABELS.search }] : []),
+    ...(canInstall ? [{ key: "url" as const, label: INSTALL_MODE_LABELS.url }] : []),
+    { key: "upload", label: INSTALL_MODE_LABELS.upload },
   ];
   const [mode, setMode] = useState<InstallMode>(modes[0].key);
   // Prefilled by the browse view for registry files the panel can't
@@ -871,19 +859,18 @@ function InstallPage({
           size="sm"
           className="text-xs"
           onPress={onBack}
-          aria-label="Back to installed mods"
+          aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.back_to_installed_mods", defaultMessage: "Back to installed mods", description: "Mods tab: accessible label of the back button that returns to the installed mods list; read by screen readers; keep it short" })}
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Installed mods
-        </Button>
+          <ArrowLeft className="h-3.5 w-3.5" /> {intl.formatMessage({ id: "web.routes.tabs.mods.installed_mods", defaultMessage: "Installed mods", description: "Mods tab: visible text of the back button that returns to the installed mods list; keep it short" })}</Button>
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <h2 className="text-base font-semibold">Install mods</h2>
+            <h2 className="text-base font-semibold">{intl.formatMessage({ id: "web.routes.tabs.mods.install_mods", defaultMessage: "Install mods", description: "Mods tab: heading of the page for installing mods, shown above the install options" })}</h2>
             <p className="text-[11px] text-muted">
               {browsing
-                ? "Browse a registry and install for this server’s version + loader."
+                ? intl.formatMessage({ id: "web.routes.tabs.mods.install_hint_browse", defaultMessage: "Browse a registry and install for this server’s version + loader.", description: "Mods: hint under the install heading in browse mode" })
                 : mode === "upload"
-                  ? "Upload a mod file from your machine into the server’s mods directory."
-                  : "Download a mod from a URL into the server’s mods directory."}
+                  ? intl.formatMessage({ id: "web.routes.tabs.mods.install_hint_upload", defaultMessage: "Upload a mod file from your machine into the server’s mods directory.", description: "Mods: hint under the install heading in upload mode" })
+                  : intl.formatMessage({ id: "web.routes.tabs.mods.install_hint_url", defaultMessage: "Download a mod from a URL into the server’s mods directory.", description: "Mods: hint under the install heading in URL download mode" })}
             </p>
           </div>
           {modes.length > 1 && (
@@ -906,7 +893,7 @@ function InstallPage({
                       : "text-muted",
                   )}
                 >
-                  {m.label}
+                  {intl.formatMessage(m.label)}
                 </button>
               ))}
             </div>
@@ -925,7 +912,7 @@ function InstallPage({
         >
           <div className="flex items-start justify-between gap-3">
             <span className="font-mono break-all">{banner.text}</span>
-            <Button variant="ghost" size="sm" onPress={onDismiss} isIconOnly aria-label="dismiss">
+            <Button variant="ghost" size="sm" onPress={onDismiss} isIconOnly aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.dismiss", defaultMessage: "dismiss", description: "Mods tab: icon-only button that closes the message banner; read by screen readers; keep it short" })}>
               <X className="h-3 w-3" />
             </Button>
           </div>
@@ -972,6 +959,7 @@ function UrlForm({
   onInstall: (body: InstallBody) => void;
   initialUrl?: string;
 }) {
+  const intl = useOptionalIntl();
   const [url, setUrl] = useState(initialUrl);
   const [fileName, setFileName] = useState("");
   const trimmed = url.trim();
@@ -981,44 +969,38 @@ function UrlForm({
     <>
       <div className="space-y-3 pt-4">
         <div>
-          <label className="block pb-1 text-xs text-muted" htmlFor="mod-url">
-            Download URL <span className="text-danger">*</span>
+          <label className="block pb-1 text-xs text-muted" htmlFor="mod-url">{intl.formatMessage({ id: "web.routes.tabs.mods.download_url", defaultMessage: "Download URL", description: "Mods tab: field label for the download URL of a mod; the red asterisk marks the field as required" })} <span className="text-danger">{intl.formatMessage({ id: "web.routes.tabs.mods.required_marker", defaultMessage: "*", description: "Mods: marker shown after the label of a required field" })}</span>
           </label>
           <Input
             id="mod-url"
             autoFocus
-            placeholder="https://cdn.modrinth.com/…/mod.jar"
+            placeholder={intl.formatMessage({ id: "web.routes.tabs.mods.https_cdn_modrinth_com_mod_jar", defaultMessage: "https://cdn.modrinth.com/…/mod.jar", description: "Mods tab: example placeholder in the download URL field showing the expected form; an example address, not a default" })}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             spellCheck={false}
           />
           {trimmed !== "" && !validURL && (
-            <p className="pt-1 text-xs text-danger">Must be an http(s) URL.</p>
+            <p className="pt-1 text-xs text-danger">{intl.formatMessage({ id: "web.routes.tabs.mods.must_be_an_http_s_url", defaultMessage: "Must be an http(s) URL.", description: "Mods tab: validation error under the download URL field when the text is not an http or https address" })}</p>
           )}
         </div>
         <div>
-          <label className="block pb-1 text-xs text-muted" htmlFor="mod-name">
-            Filename
-          </label>
+          <label className="block pb-1 text-xs text-muted" htmlFor="mod-name">{intl.formatMessage({ id: "web.routes.tabs.mods.filename", defaultMessage: "Filename", description: "Mods tab: field label for the optional file name the mod is saved under" })}</label>
           <Input
             id="mod-name"
-            placeholder="optional — derived from the URL"
+            placeholder={intl.formatMessage({ id: "web.routes.tabs.mods.optional_derived_from_the_url", defaultMessage: "optional — derived from the URL", description: "Mods tab: placeholder in the file name field saying the name is taken from the URL when the field is left empty" })}
             value={fileName}
             onChange={(e) => setFileName(e.target.value)}
             spellCheck={false}
           />
         </div>
         {allowedHosts.length > 0 && (
-          <p className="text-[11px] text-muted">
-            Allowed hosts: <span className="font-mono">{allowedHosts.join(", ")}</span>
+          <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.allowed_hosts", defaultMessage: "Allowed hosts:", description: "Mods tab: hint under the download URL form; the list after the label shows the host names the URL may come from" })} <span className="font-mono">{allowedHosts.join(", ")}</span>
           </p>
         )}
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-5">
-        <Button variant="ghost" size="sm" onPress={onCancel} isDisabled={pending}>
-          Cancel
-        </Button>
+        <Button variant="ghost" size="sm" onPress={onCancel} isDisabled={pending}>{intl.formatMessage({ id: "web.routes.tabs.mods.cancel", defaultMessage: "Cancel", description: "Mods tab: ghost button that closes the download URL or upload form without installing; keep it short" })}</Button>
         <Button
           size="sm"
           isDisabled={!validURL || pending}
@@ -1026,7 +1008,7 @@ function UrlForm({
             onInstall({ url: trimmed, ...(fileName.trim() ? { name: fileName.trim() } : {}) })
           }
         >
-          {pending ? "Installing…" : "Install"}
+          {pending ? intl.formatMessage({ id: "web.routes.tabs.mods.installing", defaultMessage: "Installing…", description: "Mods: label of the install button while the mod installs" }) : intl.formatMessage({ id: "web.routes.tabs.mods.install", defaultMessage: "Install", description: "Mods: label of the button that installs a mod" })}
         </Button>
       </div>
     </>
@@ -1048,6 +1030,7 @@ function UploadForm({
   onCancel: () => void;
   onUpload: (file: File) => void;
 }) {
+  const intl = useOptionalIntl();
   const [file, setFile] = useState<File | null>(null);
 
   return (
@@ -1065,12 +1048,12 @@ function UploadForm({
         >
           <Upload className="h-6 w-6 text-muted" />
           <span className="text-sm font-medium">
-            {file ? file.name : "Drop a mod file here, or click to browse"}
+            {file ? file.name : intl.formatMessage({ id: "web.routes.tabs.mods.drop_mod_file", defaultMessage: "Drop a mod file here, or click to browse", description: "Mods: prompt in the upload drop zone when no file is chosen" })}
           </span>
           <span className="text-[11px] text-muted">
             {extensions.length > 0
-              ? `Accepted: ${extensions.join(", ")} · lands in the active loader’s mod volume`
-              : "Lands in the active loader’s mod volume"}
+              ? intl.formatMessage({ id: "web.routes.tabs.mods.accepted_extensions", defaultMessage: "Accepted: {extensions} · lands in the active loader’s mod volume", description: "Mods: upload hint listing the accepted file extensions; {extensions} is a comma-separated list of extensions" }, { extensions: extensions.join(", ") })
+              : intl.formatMessage({ id: "web.routes.tabs.mods.lands_in_loader_volume", defaultMessage: "Lands in the active loader’s mod volume", description: "Mods: upload hint saying the file lands in the active loader's mod volume" })}
           </span>
           <input
             id="mod-file"
@@ -1080,17 +1063,13 @@ function UploadForm({
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
-        <p className="text-[11px] text-muted">
-          Uploads are recorded as provider “upload” in the manifest — they’re never update-checked.
-        </p>
+        <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.uploads_are_recorded_as_provider_upload", defaultMessage: "Uploads are recorded as provider “upload” in the manifest — they’re never update-checked.", description: "Mods tab: note under the upload field saying uploaded mods are recorded with the upload provider and are never checked for updates" })}</p>
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-5">
-        <Button variant="ghost" size="sm" onPress={onCancel} isDisabled={pending}>
-          Cancel
-        </Button>
+        <Button variant="ghost" size="sm" onPress={onCancel} isDisabled={pending}>{intl.formatMessage({ id: "web.routes.tabs.mods.cancel", defaultMessage: "Cancel", description: "Mods tab: ghost button that closes the download URL or upload form without installing; keep it short" })}</Button>
         <Button size="sm" isDisabled={!file || pending} onPress={() => file && onUpload(file)}>
-          {pending ? "Uploading…" : "Upload"}
+          {pending ? intl.formatMessage({ id: "web.routes.tabs.mods.uploading", defaultMessage: "Uploading…", description: "Mods: label of the upload button while the file uploads" }) : intl.formatMessage({ id: "web.routes.tabs.mods.upload", defaultMessage: "Upload", description: "Mods: label of the button that uploads a mod file" })}
         </Button>
       </div>
     </>
@@ -1100,16 +1079,33 @@ function UploadForm({
 // BrowseForm searches the module's mod registry (debounced) and lets the
 // user expand a result to pick a version/file. The API filters results to
 // the server's active loader + game version, so the picker stays short.
+const INSTALL_MODE_LABELS = defineMessages({
+  search: { id: "web.routes.tabs.mods.mode_browse_registry", defaultMessage: "Browse registry", description: "Mods: install panel tab that browses a mod registry" },
+  url: { id: "web.routes.tabs.mods.mode_from_url", defaultMessage: "From URL", description: "Mods: install panel tab that installs a mod from a URL" },
+  upload: { id: "web.routes.tabs.mods.mode_upload_file", defaultMessage: "Upload file", description: "Mods: install panel tab that uploads a mod file" },
+});
+
 // Curated Modrinth categories for the mod browser's filter chips.
-const MOD_CATEGORIES: { value: string; label: string }[] = [
-  { value: "optimization", label: "Performance" },
-  { value: "utility", label: "Utility" },
-  { value: "library", label: "Library" },
-  { value: "worldgen", label: "Worldgen" },
-  { value: "adventure", label: "Adventure" },
-  { value: "storage", label: "Storage" },
-  { value: "technology", label: "Tech" },
-  { value: "magic", label: "Magic" },
+const MOD_CATEGORY_LABELS = defineMessages({
+  optimization: { id: "web.routes.tabs.mods.category_optimization", defaultMessage: "Performance", description: "Mods: category filter chip for performance mods" },
+  utility: { id: "web.routes.tabs.mods.category_utility", defaultMessage: "Utility", description: "Mods: category filter chip for utility mods" },
+  library: { id: "web.routes.tabs.mods.category_library", defaultMessage: "Library", description: "Mods: category filter chip for library mods" },
+  worldgen: { id: "web.routes.tabs.mods.category_worldgen", defaultMessage: "Worldgen", description: "Mods: category filter chip for world generation mods" },
+  adventure: { id: "web.routes.tabs.mods.category_adventure", defaultMessage: "Adventure", description: "Mods: category filter chip for adventure mods" },
+  storage: { id: "web.routes.tabs.mods.category_storage", defaultMessage: "Storage", description: "Mods: category filter chip for storage mods" },
+  technology: { id: "web.routes.tabs.mods.category_technology", defaultMessage: "Tech", description: "Mods: category filter chip for technology mods" },
+  magic: { id: "web.routes.tabs.mods.category_magic", defaultMessage: "Magic", description: "Mods: category filter chip for magic mods" },
+});
+
+const MOD_CATEGORIES: { value: string; label: MessageDescriptor }[] = [
+  { value: "optimization", label: MOD_CATEGORY_LABELS.optimization },
+  { value: "utility", label: MOD_CATEGORY_LABELS.utility },
+  { value: "library", label: MOD_CATEGORY_LABELS.library },
+  { value: "worldgen", label: MOD_CATEGORY_LABELS.worldgen },
+  { value: "adventure", label: MOD_CATEGORY_LABELS.adventure },
+  { value: "storage", label: MOD_CATEGORY_LABELS.storage },
+  { value: "technology", label: MOD_CATEGORY_LABELS.technology },
+  { value: "magic", label: MOD_CATEGORY_LABELS.magic },
 ];
 
 // BrowseForm is the full mod browser inside the install dialog: the shared
@@ -1128,13 +1124,14 @@ function BrowseForm({
   onInstall: (body: InstallBody) => void;
   onUseUrl: (url: string) => void;
 }) {
+  const intl = useOptionalIntl();
   return (
     <div className="flex min-h-0 flex-1 flex-col pt-3">
       <RegistryBrowser
         name={name}
         ns={ns}
         type="mod"
-        categories={MOD_CATEGORIES}
+        categories={MOD_CATEGORIES.map((c) => ({ value: c.value, label: intl.formatMessage(c.label) }))}
         renderItem={(p, provider) => (
           <ModCard
             name={name}
@@ -1170,6 +1167,7 @@ function ModCard({
   onInstall: (body: InstallBody) => void;
   onUseUrl: (url: string) => void;
 }) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const [open, setOpen] = useState(false);
@@ -1209,24 +1207,24 @@ function ModCard({
       {open && (
         <div className="flex items-center gap-2 border-t border-border p-2.5">
           {versions.isLoading ? (
-            <span className="text-xs text-muted">Loading versions…</span>
+            <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.loading_versions", defaultMessage: "Loading versions…", description: "Mods tab: loading text in a mod row's version area while the list of versions is fetched" })}</span>
           ) : versions.isError ? (
-            <span className="text-xs text-danger">{errMsg(versions.error)}</span>
+            <span className="text-xs text-danger">{errMsg(versions.error, intl)}</span>
           ) : list.length === 0 ? (
-            <span className="text-xs text-muted">No compatible files.</span>
+            <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.mods.no_compatible_files", defaultMessage: "No compatible files.", description: "Mods tab: text in a mod row's version area when no file fits the server's version and loader" })}</span>
           ) : (
             <>
               <select
                 value={selId}
                 onChange={(e) => setSelId(e.target.value)}
                 className="h-8 min-w-0 flex-1 rounded border border-border bg-surface px-2 text-xs"
-                aria-label="Version"
+                aria-label={intl.formatMessage({ id: "web.routes.tabs.mods.version", defaultMessage: "Version", description: "Mods tab: accessible label of the version dropdown in a mod row; not shown as text" })}
               >
                 {list.map((v) => {
                   const f = v.files.find((x) => x.primary) ?? v.files[0];
                   return (
                     <option key={v.id} value={v.id}>
-                      {(v.versionNumber ?? v.name ?? v.id) + (f ? ` · ${f.filename}` : "")}
+                      {(v.versionNumber ?? v.name ?? v.id) + (f ? intl.formatMessage({ id: "web.routes.tabs.mods.version_file_suffix", defaultMessage: " · {filename}", description: "Mods: suffix on a version option naming its file; {filename} is the file name" }, { filename: f.filename }) : "")}
                     </option>
                   );
                 })}
@@ -1238,14 +1236,12 @@ function ModCard({
                 // hint lives on a wrapping element's title (not the
                 // Button's aria-label) so the button's accessible name
                 // stays its visible text, "Use URL form".
-                <span title="This registry's downloads need your own account credentials appended to the URL">
+                <span title={intl.formatMessage({ id: "web.routes.tabs.mods.this_registry_s_downloads_need_your_own", defaultMessage: "This registry's downloads need your own account credentials appended to the URL", description: "Mods tab: tooltip on the Use URL form button explaining the registry needs the user's own account credentials appended to the URL" })}>
                   <Button
                     size="sm"
                     variant="outline"
                     onPress={() => onUseUrl(file.downloadUrl)}
-                  >
-                    Use URL form
-                  </Button>
+                  >{intl.formatMessage({ id: "web.routes.tabs.mods.use_url_form", defaultMessage: "Use URL form", description: "Mods tab: button that moves a mod to the URL form so the user can add their own credentials; it is not a one-click install; keep it short" })}</Button>
                 </span>
               ) : (
                 <Button
@@ -1268,7 +1264,7 @@ function ModCard({
                     })
                   }
                 >
-                  <Download className="h-3 w-3" /> {pending ? "Installing…" : "Install"}
+                  <Download className="h-3 w-3" /> {pending ? intl.formatMessage({ id: "web.routes.tabs.mods.installing", defaultMessage: "Installing…", description: "Mods: label of the install button while the mod installs" }) : intl.formatMessage({ id: "web.routes.tabs.mods.install", defaultMessage: "Install", description: "Mods: label of the button that installs a mod" })}
                 </Button>
               )}
             </>
@@ -1279,7 +1275,7 @@ function ModCard({
   );
 }
 
-function errMsg(err: unknown): string {
+function errMsg(err: unknown, intl: IntlShape): string {
   if (err instanceof APIError) {
     try {
       const parsed = JSON.parse(err.body) as { error?: string };
@@ -1287,8 +1283,8 @@ function errMsg(err: unknown): string {
     } catch {
       // fall through
     }
-    if (err.status === 403) return "Your role does not allow managing mods.";
-    return err.body || `request failed (${err.status})`;
+    if (err.status === 403) return intl.formatMessage({ id: "web.routes.tabs.mods.error_not_permitted", defaultMessage: "Your role does not allow managing mods.", description: "Mods: error shown when the user's role cannot manage mods" });
+    return err.body || intl.formatMessage({ id: "web.routes.tabs.mods.error_request_failed_status", defaultMessage: "request failed ({status})", description: "Mods: fallback error text for an API error with no body; {status} is the HTTP status code" }, { status: String(err.status) });
   }
-  return errorText(err, "request failed");
+  return errorTextIntl(intl, err, intl.formatMessage({ id: "web.routes.tabs.mods.error_request_failed", defaultMessage: "request failed", description: "Mods: fallback error text when the error has no message" }));
 }

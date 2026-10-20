@@ -1,0 +1,37 @@
+{{- /*
+  Spec 022 install notes. Both warnings read the receiver keys through
+  guards (F-214): after `helm upgrade --reuse-values` from beta.8 the
+  persistence and dashboard blocks are absent.
+*/ -}}
+{{- $r := .Values.api.telemetry.receiver }}
+{{- if .Values.api.standalone }}
+
+Standalone central panel: no local game cluster or Kubernetes API credentials.
+Register remote clusters through the panel API after bootstrapping an admin.
+Back up the database and matching encryption key separately. SQLite uses the
+API data PVC; generated keys use the separate API key PVC mounted at /keys.
+If using api.panelKey.existingSecret, protect and back up that Secret instead.
+Restrict access to key backups; do not include them in database backup jobs.
+operator.enabled=false excludes bundled native CRDs. Standalone mode also
+skips the CRD apply hook and its RBAC; no --skip-crds argument is required.
+{{- end }}
+{{- $receiverDeployed := and (eq (include "gameplane.apiEnabled" .) "true") $r.enabled (not .Values.api.telemetry.endpoint) }}
+{{- $persistence := $r.persistence | default dict }}
+{{- $persistenceEnabled := ternary $persistence.enabled false (hasKey $persistence "enabled") }}
+{{- $dashboard := $r.dashboard | default dict }}
+{{- $dashboardToken := $dashboard.tokenSecretRef | default dict }}
+{{- if and $receiverDeployed .Values.serviceMonitors.enabled (not $dashboardToken.name) }}
+
+WARNING: serviceMonitors.enabled and the bundled telemetry receiver are on,
+but api.telemetry.receiver.dashboard.tokenSecretRef.name is empty. The
+receiver serves /metrics only on its dashboard listener, behind a Bearer
+token, so no receiver ServiceMonitor was rendered. Create a Secret holding
+the token and set api.telemetry.receiver.dashboard.tokenSecretRef.name to
+scrape the receiver.
+{{- end }}
+{{- if and $receiverDeployed (not $persistenceEnabled) }}
+
+WARNING: api.telemetry.receiver.persistence.enabled is false. The bundled
+telemetry receiver stores its aggregates in an emptyDir, so all of them are
+lost whenever its pod restarts.
+{{- end }}

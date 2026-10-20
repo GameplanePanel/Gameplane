@@ -1,7 +1,7 @@
 # gameproto — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/gameproto`  
+**Module / package:** `github.com/GameplanePanel/gameplane/gameproto`  
 **Dependencies:** stdlib only (Go 1.26+)
 
 ## Purpose
@@ -276,7 +276,7 @@ To add a new game protocol (e.g., "factorio"):
    - Unit tests for Classify() and response builders
    - Comparison/equivalence tests if migrating from an existing implementation
 
-5. **Register the protocol with the operator's API too.** The steps above only make the sentinel able to classify the new protocol; a `GameTemplate`'s `wakeProtocol` field is a Kubernetes CRD enum (`operator/api/v1alpha1/gametemplate_types.go`, `+kubebuilder:validation:Enum=...`) that must list the new protocol name before any `GameTemplate` can select it. Add the name to that enum, then run `make generate && make manifests` and commit the regenerated `zz_generated.deepcopy.go`, `operator/config/crd/*.yaml`, and `charts/gameplane/crds/*.yaml` (an enum change does not touch RBAC). Without this step, `kubectl apply` on a template using the new `wakeProtocol` value is rejected with `Unsupported value`, even though the sentinel recognizes it.
+5. **Register the protocol with the operator's API too.** The steps above only make the sentinel able to classify the new protocol; a `GameTemplate`'s `wakeProtocol` field is a Kubernetes CRD enum (`operator/api/v1alpha1/gametemplate_types.go`, `+kubebuilder:validation:Enum=...`) that must list the new protocol name before any `GameTemplate` can select it. Add the name to that enum, then run `make generate && make manifests` and commit the regenerated `zz_generated.deepcopy.go`, `operator/config/crd/*.yaml`, `charts/gameplane/charts/gameplane-crds/crds/*.yaml`, and `charts/gameplane/crd-manifests/*.yaml` (an enum change does not touch RBAC). Without this step, `kubectl apply` on a template using the new `wakeProtocol` value is rejected with `Unsupported value`, even though the sentinel recognizes it.
 
 6. **That's it for shared Go code.** No further changes to sentinel/main.go, gameproto.go, or any other shared package are needed beyond the CRD enum update above.
 

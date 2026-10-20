@@ -32,9 +32,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
-	"github.com/ValgulNecron/gameplane/agent/internal/httpjson"
-	"github.com/ValgulNecron/gameplane/netguard"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/httpjson"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 const (

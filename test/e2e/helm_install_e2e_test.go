@@ -69,7 +69,7 @@ func TestHelmInstall_AllPodsReady(t *testing.T) {
 
 // TestHelmInstall_AllCRDsPresent — every Gameplane CRD declared by the
 // chart is reachable via discovery. Catches a missing CRD YAML in
-// `charts/gameplane/crds/` from a future refactor.
+// `charts/gameplane/charts/gameplane-crds/crds/` from a future refactor.
 func TestHelmInstall_AllCRDsPresent(t *testing.T) {
 	t.Parallel()
 
@@ -82,6 +82,8 @@ func TestHelmInstall_AllCRDsPresent(t *testing.T) {
 		"restores.gameplane.local",
 		"modules.gameplane.local",
 		"modulesources.gameplane.local",
+		"clusters.gameplane.local",
+		"networkcaptures.gameplane.local",
 	}
 	for _, name := range want {
 		ok, err := envInstance.CRDExists(ctx, name)

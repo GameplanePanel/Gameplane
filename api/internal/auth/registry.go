@@ -13,8 +13,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 // ProviderSecretLabel must be set to "true" on a Secret before the
@@ -103,7 +103,7 @@ type SecretReader func(ctx context.Context, name string) (map[string][]byte, err
 // ProviderSecretLabel=true.
 func NewK8sSecretReader(k *kube.Client, ns string) SecretReader {
 	return func(ctx context.Context, name string) (map[string][]byte, error) {
-		sec, err := k.Typed.CoreV1().Secrets(ns).Get(ctx, name, metav1.GetOptions{})
+		sec, err := k.Secrets(ns).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("get provider secret %s/%s: %w", ns, name, err)
 		}

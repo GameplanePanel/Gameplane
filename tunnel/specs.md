@@ -1,7 +1,7 @@
 # tunnel — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / command:** `github.com/ValgulNecron/gameplane/tunnel`  
+**Module / command:** `github.com/GameplanePanel/gameplane/tunnel`  
 **Dependencies:** stdlib only
 
 ## Purpose
@@ -167,9 +167,9 @@ The operator's `reconcileTunnel` reconciler materializes these fields into the t
 ## Operator Integration
 
 **Image Flags** (set at operator startup via `cmd/main.go`):
-- `--tunnel-frp-image` (default: `ghcr.io/valgulnecron/gameplane/tunnel-frp:dev`)
-- `--tunnel-tailscale-image` (default: `ghcr.io/valgulnecron/gameplane/tunnel-tailscale:dev`)
-- `--tunnel-playit-image` (default: `ghcr.io/valgulnecron/gameplane/tunnel-playit:dev`)
+- `--tunnel-frp-image` (default: `ghcr.io/gameplanepanel/gameplane/tunnel-frp:dev`)
+- `--tunnel-tailscale-image` (default: `ghcr.io/gameplanepanel/gameplane/tunnel-tailscale:dev`)
+- `--tunnel-playit-image` (default: `ghcr.io/gameplanepanel/gameplane/tunnel-playit:dev`)
 
 **Deployment Structure** (per GameServer):
 - Name: `<gameserver-name>-tunnel`

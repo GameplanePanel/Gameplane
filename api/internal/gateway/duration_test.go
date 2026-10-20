@@ -16,7 +16,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/ValgulNecron/gameplane/api/internal/gatewayprotocol"
+	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
 )
 
 func TestGatewayAcceptsOptionalRequestDuration(t *testing.T) {

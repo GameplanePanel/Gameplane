@@ -1,0 +1,18 @@
+{
+  "files.count": {
+    "defaultMessage": "{n, plural, one {# file} other {# files}}",
+    "description": "Number of files in a folder"
+  },
+  "greeting": {
+    "defaultMessage": "Hello",
+    "description": "Greeting on the home page"
+  },
+  "server.motd": {
+    "defaultMessage": "Message of the day",
+    "description": "Shown on the server page"
+  },
+  "welcome": {
+    "defaultMessage": "Welcome to <b>Gameplane</b>",
+    "description": "Welcome line under the logo"
+  }
+}

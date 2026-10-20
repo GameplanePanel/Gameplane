@@ -109,6 +109,22 @@
         } catch (e) { /* localStorage unavailable — keep the dark default already in markup */ }
       })();
     </script>
+    <script id="i18n-boot">
+      (function () {
+        // Pre-React language boot (spec 019): reuse the language applied last
+        // time so <html lang> is right before the bundle mounts. v1 never lists
+        // right-to-left languages, so dir is always ltr here.
+        try {
+          var raw = window.localStorage.getItem("gameplane-language");
+          if (!raw) return;
+          var applied = JSON.parse(raw).applied;
+          if (typeof applied === "string" && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(applied)) {
+            document.documentElement.lang = applied;
+            document.documentElement.dir = "ltr";
+          }
+        } catch (e) { /* localStorage unavailable or corrupt — keep the en default */ }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

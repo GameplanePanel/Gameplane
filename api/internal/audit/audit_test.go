@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 func newStore(t *testing.T) *db.Store {

@@ -2,7 +2,7 @@
 
 - **Date**: 2026-09-24
 - **Reviewer tier**: opus (verification pending)
-- **Checked against**: `specs/010-easy-module-building/contracts/archetypes-contract.md:13,54`; `gp-module/specs.md`; `operator/api/v1alpha1/gametemplate_types.go:166-171` (`spec.security`)
+- **Checked against**: `specs/done_010-easy-module-building/contracts/archetypes-contract.md:13,54`; `gp-module/specs.md`; `operator/api/v1alpha1/gametemplate_types.go:166-171` (`spec.security`)
 - **Companion notes**: `audit/evidence/review-gp-module/notes.md` (it links here only as "held candidates: 1")
 
 This candidate concerns the privilege a scaffolded module runs with. The description is defensive: the control, where it lives, what correct behaviour is, and how a maintainer confirms it holds. It comes from reading the code and scaffolding into a scratch directory. Nothing was run against a cluster.
@@ -15,7 +15,7 @@ This candidate concerns the privilege a scaffolded module runs with. The descrip
 - **Category**: correctness (security control: privilege defaults)
 - **Suggested severity**: S3. It affects modules authors scaffold with `gp-module init --archetype steamcmd` or the dashboard builder's "SteamCMD Dedicated" preset. Shipped modules are not affected.
 - **Control and its stated promise**:
-  - `specs/010-easy-module-building/contracts/archetypes-contract.md:13`: `steamcmd` archetype characteristics include "non-root security defaults".
+  - `specs/done_010-easy-module-building/contracts/archetypes-contract.md:13`: `steamcmd` archetype characteristics include "non-root security defaults".
   - `archetypes.go:121` (the preset's own description, shown in the builder's archetype list via `api/internal/handlers/modules_builder.go:439-476`): "(Valve UDP ports, save volume, non-root user)".
   - How the operator decides the game container's user: `gametemplate_types.go:166-171` says that without `spec.security`, the game runs as "the image's own default user".
 - **Observation**:

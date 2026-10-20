@@ -1,3 +1,7 @@
+import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
+
+import { englishIntl } from "@/lib/i18n/format";
+
 // Category grouping for the module catalog + Create-Server template picker.
 // A module may declare several categories (GameTemplate.spec.categories /
 // CatalogEntry.categories) — Minecraft is reasonably Sandbox, Survival and
@@ -5,8 +9,49 @@
 // best-effort heuristic on the game slug, so third-party modules that
 // predate the field still group sensibly. The dashboard builds its filter
 // chips from the categories actually present rather than a fixed list.
+// Category values stay English for matching; categoryLabel() gives the display text.
 
 export const OTHER_CATEGORY = "Other";
+
+const CATEGORY_MESSAGES = defineMessages({
+  survival: {
+    id: "web.lib.games.category.survival",
+    defaultMessage: "Survival",
+    description: "Module category name shown as a filter chip and badge: survival games",
+  },
+  sandbox: {
+    id: "web.lib.games.category.sandbox",
+    defaultMessage: "Sandbox",
+    description: "Module category name shown as a filter chip and badge: sandbox games",
+  },
+  shooter: {
+    id: "web.lib.games.category.shooter",
+    defaultMessage: "Shooter",
+    description: "Module category name shown as a filter chip and badge: shooter games",
+  },
+  other: {
+    id: "web.lib.games.category.other",
+    defaultMessage: "Other",
+    description: "Module category name shown as a filter chip and badge: modules that fit no other category",
+  },
+});
+
+// Known category values, spelled exactly as the heuristic emits them, mapped to
+// their message. Any other value (including a module's own spelling) is shown as
+// the module wrote it, so English output is unchanged.
+const CATEGORY_LABELS = new Map<string, MessageDescriptor>([
+  ["Survival", CATEGORY_MESSAGES.survival],
+  ["Sandbox", CATEGORY_MESSAGES.sandbox],
+  ["Shooter", CATEGORY_MESSAGES.shooter],
+  ["Other", CATEGORY_MESSAGES.other],
+]);
+
+// categoryLabel returns the display text for a category value. The value itself
+// is unchanged, so matching keeps working; only the shown text is localized.
+export function categoryLabel(category: string, intl: IntlShape = englishIntl): string {
+  const descriptor = CATEGORY_LABELS.get(category);
+  return descriptor ? intl.formatMessage(descriptor) : category;
+}
 
 // gameCategory is the heuristic fallback used when a module declares no
 // explicit category. Unknown games map to "Other".

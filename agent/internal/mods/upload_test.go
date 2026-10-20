@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 )
 
 // postUpload sends a multipart upload with the given filename + payload.

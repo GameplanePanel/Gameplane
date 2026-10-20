@@ -31,7 +31,7 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 	uid := time.Now().UnixNano() % 100000
 	tmplName := fmt.Sprintf("e2e-ark-cluster-%d", uid)
 	gsName := fmt.Sprintf("ark-shard-01-%d", uid)
-	const mountPath = "/serverdata/ShooterGame/Saved"
+	const mountPath = "/data"
 	clusterID := fmt.Sprintf("cluster-%d", uid)
 	marker := fmt.Sprintf("ark-survivor-payload-%d", uid)
 
@@ -43,7 +43,7 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 			"displayName": "E2E ARK Cluster Shard",
 			"game":        "ark-survival-evolved",
 			"version":     "1.0.0",
-			"image":       "ghcr.io/valgulnecron/gameplane/ark-survival-evolved:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+			"image":       "ghcr.io/gameplanepanel/gameplane/ark-survival-evolved:latest@sha256:2a4298f8055dbff4107c49c961cace1f2bed42809e6b93fb4924371ae4484e58",
 			"ports": []any{
 				map[string]any{"name": "game", "containerPort": int64(7777), "protocol": "UDP", "advertise": true},
 				map[string]any{"name": "query", "containerPort": int64(27015), "protocol": "UDP", "advertise": true},
@@ -105,7 +105,7 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 	waitPVCBound(t, ns, gsName+"-data", 2*time.Minute)
 	waitGameContainerReady(t, ns, gsName+"-0", 5*time.Minute)
 
-	clusterDir := fmt.Sprintf("%s/clusters/%s", mountPath, clusterID)
+	clusterDir := fmt.Sprintf("%s/ShooterGame/Saved/clusters/%s", mountPath, clusterID)
 	markerFile := fmt.Sprintf("%s/survivor.dat", clusterDir)
 
 	writeCmd := fmt.Sprintf("mkdir -p %s && echo -n %s > %s && sync", clusterDir, marker, markerFile)

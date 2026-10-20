@@ -1,0 +1,66 @@
+{
+  "type": "frame",
+  "id": "jy9Rn",
+  "x": 8327.959083557127,
+  "y": 2040.8789062499995,
+  "name": "Receiver / Extended — none in range",
+  "theme": {
+    "semantic": "dark"
+  },
+  "width": 1440,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "gap": 16,
+  "padding": [
+    32,
+    40
+  ],
+  "children": [
+    {
+      "type": "text",
+      "id": "Xb6cp",
+      "name": "Heading",
+      "fill": "$foreground/foreground",
+      "content": "Extended reports",
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 20,
+      "fontWeight": "600"
+    },
+    {
+      "type": "frame",
+      "id": "TRz9s",
+      "name": "Message",
+      "width": "fill_container",
+      "fill": "$surface/surface",
+      "cornerRadius": "$radius/3xl",
+      "stroke": "$border",
+      "strokeWidth": 1,
+      "strokeAlignment": "inner",
+      "gap": 12,
+      "padding": 20,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "tN7f3",
+          "name": "Icon",
+          "width": 18,
+          "height": 18,
+          "icon": "info",
+          "library": "lucide",
+          "fill": "$foreground/muted"
+        },
+        {
+          "type": "text",
+          "id": "NZUcy",
+          "name": "Text",
+          "fill": "$foreground/secondary",
+          "content": "No reports in this range included extended data. Basic figures above still cover every report.",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    }
+  ]
+}

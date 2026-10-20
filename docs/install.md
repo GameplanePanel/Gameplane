@@ -1,5 +1,10 @@
 # Install
 
+For a central dashboard/API on a host without Kubernetes, use the
+[standalone panel guide](standalone-panel.md), including Docker Compose and a
+panel-only Helm profile. The instructions below describe the default combined
+installation, with an operator and a local game cluster.
+
 ## Prerequisites
 
 - Kubernetes 1.28+
@@ -14,14 +19,14 @@ as OCI artifacts — no `helm repo add` needed. Install a tagged release straigh
 from the registry (replace `<version>` with a release, e.g. `0.3.0`):
 
 ```sh
-helm upgrade --install gameplane oci://ghcr.io/valgulnecron/charts/gameplane \
+helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --version <version> \
   --namespace gameplane-system --create-namespace \
   --set ingress.host=gameplane.your-domain.test
 ```
 
 The chart's `appVersion` pins matching component images under
-`ghcr.io/valgulnecron/gameplane/<name>:<version>`, so no image overrides are
+`ghcr.io/gameplanepanel/gameplane/<name>:<version>`, so no image overrides are
 needed for a released version. A default install pulls four of them:
 `operator`, `api`, `web`, and `agent` (the last is pulled per-GameServer, on
 demand). The remaining eight — `audit-syslog-bridge`, `telemetry-receiver`,
@@ -37,7 +42,7 @@ Every push to `master` publishes rolling `:edge` images. To track them, install
 the chart and point images at the edge tag:
 
 ```sh
-helm upgrade --install gameplane oci://ghcr.io/valgulnecron/charts/gameplane \
+helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --version <version> --set image.tag=edge \
   --namespace gameplane-system --create-namespace \
   --set ingress.host=gameplane.your-domain.test
@@ -50,16 +55,16 @@ when you need reproducibility.
 
 Every published image (tagged releases and `:edge`), the Helm chart, and the
 official module bundles are signed with the project's cosign key,
-[`cosign.pub`](../cosign.pub) at the repo root, and recorded in the public
+[`signing/cosign.pub`](../signing/cosign.pub), and recorded in the public
 Sigstore Rekor transparency log:
 
 ```sh
-cosign verify --key cosign.pub \
-  ghcr.io/valgulnecron/gameplane/operator:<version>
+cosign verify --key signing/cosign.pub \
+  ghcr.io/gameplanepanel/gameplane/operator:<version>
 ```
 
 Pre-rotation releases (v0.2.0-beta.7 and earlier) used the retired Ed25519 key <!-- doc-versions: historical -->
-and lack transparency log entries — verify those with `cosign-legacy.pub` and
+and lack transparency log entries — verify those with `signing/2026-07-24-cosign-legacy.pub` and
 `--insecure-ignore-tlog=true`. See [`key-rotation.md`](key-rotation.md) for the
 trust continuity proof. Module bundles are verified the same way; the chart
 carries the key, so bundle verification is just a values flip — see
@@ -106,6 +111,9 @@ Open `https://<ingress.host>` and log in.
 Top-level knobs (see `values.yaml` for the full list):
 
 - `image.registry` / `image.tag` — container image pinning
+- `operator.enabled` — enable the workload operator and bundled native CRDs (default `true`). Set to `false` for a standalone central panel; the CRD subchart is excluded before Helm installs CRDs.
+- `api.enabled` — enable the central API and dashboard (default `true`). Set to `false` on a remote operator/gateway installation.
+- `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false` and one API replica. The standalone profile omits native CRDs and the CRD apply hook/RBAC without an additional CLI flag. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
 - `operator.configInitImage` / `operator.resticImage` — the two images the operator
   injects into workloads it creates: the config-init container on game pods
@@ -115,7 +123,7 @@ Top-level knobs (see `values.yaml` for the full list):
   `--config-init-image` / `--restic-image` flags, mirroring `operator.agentImage`
 - `operator.backupJobBackoffLimit` / `operator.backupJobActiveDeadlineSeconds` — retry limit (default `2`, must be >= 0) and wall-clock deadline in seconds (default `86400`, must be > 0) for the restic backup/restore Jobs. They map to the operator's `--backup-job-backoff-limit` / `--backup-job-active-deadline-seconds` flags. Negative or non-integer values fail the render; an unset key (e.g. `helm upgrade --reuse-values` from an older release) or a `0` deadline uses the default, while an explicit `0` backoff is honoured.
 - `operator.gameDataStorage.storageClassName` — install-time default storage class
-  for game server data volumes (unreleased; ships in the next release) (default `""`). Empty string uses the cluster's
+  for game server data volumes (since v0.3.0) (default `""`). Empty string uses the cluster's
   default StorageClass. Applies to all GameServers where neither the GameTemplate
   nor GameServer-level override specifies a class. **Precedence**: GameServer
   override > GameTemplate default > install-time default > cluster default.
@@ -127,7 +135,9 @@ Top-level knobs (see `values.yaml` for the full list):
   `--set operator.gameDataStorage.storageClassName=fast-nvme`
 - `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; not yet covered by e2e or upgrade tests)
 - `api.db.dsn` — connection string; SQLite default persists to a PVC
-- `api.storage.existingClaim` — pre-existing PVC to mount for the API's SQLite database instead of letting Helm create `gameplane-api-data` (default `""`). The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
+- `api.storage.existingClaim` — pre-existing PVC for the API's SQLite database (default `""`). PostgreSQL standalone deployments create no local database PVC or mount. The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
+- `api.panelKey.storage.existingClaim` — pre-existing key-only PVC for generated standalone encryption keys; independent of database storage. `api.panelKey.storage.size` and `storageClassName` configure a new key PVC when no existing claim is selected.
+- `api.panelKey.existingSecret` — mount an externally provisioned standalone key read-only instead of a key PVC. `api.panelKey.secretKey` selects the Secret entry (default `panel.key`); `api.panelKey.fileName` selects its mounted filename. Back up the database and matching key separately under different access policies. See [key custody](standalone-panel.md#central-panel-on-kubernetes).
 - `api.oidc.enabled` + the following settings — wire OIDC login from Helm (shows
   up as the read-only `helm` provider). Providers can also be added at runtime
   under **Admin Settings → Authentication** — no Helm values or restart needed;
@@ -135,7 +145,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - Core connection: `issuer` / `clientID` / `clientSecretRef` / `redirectURL` /
     `displayName` — OIDC provider credentials and endpoints. Per-IdP walkthroughs
     (Keycloak, Authentik, Google) live in [oidc.md](oidc.md)
-  - Role mapping (new, seeded at install time) (unreleased; ships in the next release):
+  - Role mapping (new, seeded at install time) (since v0.3.0):
     - `groupsClaim` — OIDC claim name containing group memberships (default `""`).
       Typically `"groups"` or `"roles"` depending on your IdP. Empty/omitted =
       read the `"groups"` claim. This only chooses which claim is read; it does
@@ -193,13 +203,13 @@ Top-level knobs (see `values.yaml` for the full list):
   - `defaultModuleSource.enabled` — whether to create the default `ModuleSource` (default `true`; disable when managing sources via GitOps)
   - `defaultModuleSource.name` — name of the `ModuleSource` resource (default `default`)
   - `defaultModuleSource.refreshInterval` — how often the catalog is re-indexed (default `1h`)
-  - `defaultModuleSource.type` — source type: `oci` (default, pulls pre-built bundles from a registry) or `git` (index the public `gameplane-module` repo)
+  - `defaultModuleSource.type` — source type: `oci` (default, pulls pre-built bundles from a registry) or `git` (index the public `GameplanePanel/module` repo)
   - `defaultModuleSource.git.*` — git configuration (when `type: git`)
-    - `git.url` — repository URL (default `https://github.com/ValgulNecron/gameplane-module.git`)
+    - `git.url` — repository URL (default `https://github.com/GameplanePanel/module.git`)
     - `git.ref` — git branch/tag (default `main`)
     - `git.subPath` — module subdirectory within the repository (default `""`, empty means root)
   - `defaultModuleSource.oci.*` — OCI registry configuration (when `type: oci`)
-    - `oci.url` — OCI registry URL (e.g., `ghcr.io/valgulnecron/gameplane-modules`)
+    - `oci.url` — OCI registry URL (e.g., `ghcr.io/gameplanepanel/gameplane-modules`)
     - `oci.insecure` — use plain HTTP (no TLS) for local registries such as kind/k3d; TLS verification is never skipped
     - `oci.modules` — which modules to pull from the registry
     - `oci.pullSecretName` — optional kubernetes.io/dockerconfigjson Secret for private registries
@@ -213,7 +223,7 @@ Top-level knobs (see `values.yaml` for the full list):
 - `serviceMonitors.enabled` / `prometheusRules.enabled` / `grafanaDashboards.enabled`
   — opt-in Prometheus Operator integration (see [Observability](#observability))
 - `operator.sentinelImage` — the optional sentinel [optional] component for wake-on-connect (default
-  `ghcr.io/valgulnecron/gameplane/sentinel:<version>`). The sentinel holds
+  `ghcr.io/gameplanepanel/gameplane/sentinel:<version>`). The sentinel holds
   advertised ports while a GameServer is asleep and wakes it on a genuine
   connection attempt; opt-in per server via `spec.idle.wakeOnConnect` (default
   false). Runs as a small 1-replica Deployment per armed server; costs one pod
@@ -267,7 +277,8 @@ on `:8090`. Three **off-by-default** chart toggles wire these into a
 Prometheus-Operator stack (e.g. kube-prometheus-stack):
 
 - `serviceMonitors.enabled` — `ServiceMonitor`s so Prometheus scrapes the
-  operator, API, and telemetry-receiver (when deployed), plus a `PodMonitor`
+  operator, API, and telemetry-receiver (when deployed with a dashboard
+  token; its `/metrics` needs that token), plus a `PodMonitor`
   that scrapes per-GameServer agent metrics from game pods in
   `gamesNamespace` on their plain, named `metrics` containerPort (`9090`,
   declared by the operator's `buildAgentContainer`; no TLS, no client cert —
@@ -277,8 +288,10 @@ Prometheus-Operator stack (e.g. kube-prometheus-stack):
   whenever `networkPolicies.enabled` is also `true`. Without it, both the
   games-namespace default-deny policy (agent metrics port `9090` is not
   admitted from any namespace by default) and the telemetry-receiver's
-  `NetworkPolicy` (admitted only from the API pod) leave the `PodMonitor`
-  and `ServiceMonitor` targets unreachable even though they render.
+  `NetworkPolicy` (its metrics port `8081` admits only
+  `api.telemetry.receiver.dashboard.ingressFrom` peers) leave the
+  `PodMonitor` and `ServiceMonitor` targets unreachable even though they
+  render.
 - `prometheusRules.enabled` — a `PrometheusRule` of operator alerts.
 - `grafanaDashboards.enabled` — a Grafana dashboard `ConfigMap` the Grafana
   sidecar auto-imports (relabel via `grafanaDashboards.labels` if your sidecar
@@ -422,21 +435,120 @@ a slow or down sink never blocks or fails a request.
 
 ### Telemetry
 
-Gameplane can report anonymous usage once a day: `{version, servers,
-templates}` — no names, namespaces, hostnames, or identifiers. Two
-independent gates must both open before anything is sent: the admin
-toggle (**Admin Settings → Telemetry → Send anonymous usage metrics**,
-off by default) decides *whether*, and the chart decides *where*. With no
-destination configured (the default), the reporter never runs.
+Gameplane can send two tiers of usage reports, about once a day. Both are
+described below, so you can decide before you install.
 
+**What is sent**
+
+- **Basic** — exactly three fields: `version` (the Gameplane version),
+  `servers` (how many GameServers exist) and `templates` (how many
+  GameTemplates exist), summed over the local cluster, when there is one,
+  and every registered cluster the panel can reach. No names, namespaces,
+  hostnames, or addresses.
+- **Extended** — the basic fields plus the following, and nothing else:
+  - a random **install ID** (a UUID generated on your install; it is not
+    derived from your cluster, host, network, or users)
+  - environment, over every cluster the panel can reach: the Kubernetes
+    minor versions (for example `1.31`), the distribution categories
+    (`k3s`, `rke2`, `k0s`, `eks`, `gke`, `aks`, `openshift`, `microk8s`,
+    `minikube`, `kind`, `doks`, `talos` or `other`), node CPU
+    architectures, a node-count band over all their nodes (`1`, `2-3`,
+    `4-10`, `11-50`, `51+`), and whether the panel runs on a cluster or
+    standalone (`cluster` or `standalone`)
+  - game usage: a server count for each module from the official catalog,
+    plus one combined `custom` count for every other module (custom
+    module names are never sent)
+  - feature adoption: wake-on-connect (yes/no), relay tunnel types in use
+    (`frp`, `tailscale`, `playit`), packet capture enabled (yes/no),
+    backups configured on any server (yes/no), single sign-on (yes/no),
+    audit forwarding (yes/no), a registered-cluster band (`1`, `2-3`,
+    `4-10`, `11+`), the database kind (`sqlite` or `postgres`) and the UI
+    language
+  - the install's public signing key and the time the report was sent
+
+Every extended value comes from a fixed set of categories or bands, or is
+a number, the install ID, the public key or the send time. A value that
+doesn't fit is sent as `other`. Extended reports are signed with a key
+derived from a random secret that never leaves your install combined with
+the install ID, so nobody can report under your ID with a different key.
+Signing proves which key sent a report; it does not prove the install is
+real. The install ID is pseudonymous: it lets the receiver tell that two
+reports came from the same install, and it is deleted when you turn
+extended off. See [Security](security.md#telemetry) for the threat model.
+
+**Defaults**
+
+| Install | Basic | Extended |
+|---|---|---|
+| New install with a destination in effect | on | on |
+| Existing install that saved a basic choice | keeps that choice | off |
+| Existing install that never saved a choice | off | off |
+
+On a new install, the first admin to sign in sees a notice that lists both
+tiers and names the destination. No report is sent until an admin has seen
+the notice. After that, **Admin Settings → Telemetry** shows the
+destination, a preview of the exact next report (including the install
+ID), the last attempt, separate basic and extended toggles, and an
+install-ID reset. Turning basic off turns extended off with it. The
+operator's install-time `api.telemetry.enabled=false` always wins over the
+toggles.
+
+The project's data-handling statement, including how long the project
+keeps data (daily aggregates for 24 months; per-install activity records
+expire after 90 days without a report) is at
+<https://gameplane.net/telemetry/>.
+
+> **Upgrading?** Installs that already had **Send anonymous usage
+> metrics** switched on, while no destination was configured, saved that
+> choice but it had no effect. After upgrading to the release that adds
+> the project's default receiver (`telemetry.gameplane.net`), those installs
+> start sending **basic** reports to it. Extended stays off until an admin turns it on. If you do
+> not want that, set `api.telemetry.enabled=false` before you upgrade, or
+> turn the toggle off in Admin Settings. Installs that already pointed at
+> a custom `api.telemetry.endpoint` or the bundled receiver keep sending
+> only there, never to the project's default receiver. Installs that
+> never saved a choice stay off.
+
+**Where reports go, and how to change it**
+
+- `api.telemetry.enabled` — set to `false` for a hard off: the API never
+  sends telemetry, whatever the admin toggles say, and no first-login
+  notice is shown. Use this for air-gapped and privacy-sensitive
+  clusters.
+
+  ```sh
+  helm upgrade ... --set api.telemetry.enabled=false
+  ```
+
+- `api.telemetry.endpoint` — when empty (the default), reports go to the
+  project's default receiver, `https://telemetry.gameplane.net/ingest`. Set a
+  URL to send them to your own receiver instead (e.g.
+  `https://telemetry.example.com/ingest`); it replaces the default and never
+  also sends to it. An install whose endpoint was already
+  set keeps working unchanged.
 - `api.telemetry.receiver.enabled` — deploy the bundled
-  [telemetry-receiver](../telemetry-receiver/README.md) [optional] next to the API
-  and point the API at it automatically. It logs each report and exposes
-  aggregate Prometheus metrics (`gameplane_telemetry_reports_total` by
-  version, fleet-size histograms) on its `/metrics`.
-- `api.telemetry.endpoint` — send reports to an external receiver URL
-  instead (e.g. `https://telemetry.example.com/ingest`); setting it
-  overrides the receiver auto-wiring.
+  [telemetry-receiver](../telemetry-receiver/README.md) [optional] next to
+  the API and point the API at it automatically (when `endpoint` is
+  empty). The bundled receiver stores daily aggregates in a PVC
+  (`api.telemetry.receiver.persistence.enabled`, default `true`, 1Gi; the
+  chart runs a single replica while persistence is on). It serves
+  aggregate figures on a private dashboard and, optionally, a public
+  summary; see the next two options. To run a receiver for other
+  installs, see the [provider runbook](telemetry-provider.md).
+- `api.telemetry.receiver.dashboard.tokenSecretRef` — name a Secret (key
+  `token` by default) holding the dashboard token. With a token set, the
+  receiver starts a dashboard listener on port `8081` that you reach by
+  `kubectl port-forward` (or from peers listed in
+  `api.telemetry.receiver.dashboard.ingressFrom`). Without a token there
+  is no dashboard. The same token (as a Bearer token) protects the
+  receiver's `/metrics`, which moved to this port.
+- `api.telemetry.receiver.publicSummary.enabled` — set `true` to enable
+  `GET /v1/summary`, a public, unauthenticated endpoint that returns only
+  five headline counts. Off by default.
+- `api.telemetry.receiver.retentionDays` (default `730`, minimum `365`)
+  and `api.telemetry.receiver.activityExpiryDays` (default `90`, minimum
+  `31`) — how long the receiver keeps daily aggregates and per-install
+  activity records. Lower values fail rendering.
 - `api.telemetry.authSecretRef` — optional shared ingest token, sourced
   from a Secret. The API sends it verbatim as the `Authorization` header
   and the bundled receiver requires it — recommended when the receiver is
@@ -445,10 +557,58 @@ destination configured (the default), the reporter never runs.
   ```sh
   kubectl -n gameplane-system create secret generic telemetry-ingest \
     --from-literal=token='Bearer some-long-random-string'
+  kubectl -n gameplane-system create secret generic telemetry-dashboard \
+    --from-literal=token="$(openssl rand -base64 32)"
   helm upgrade ... \
     --set api.telemetry.receiver.enabled=true \
-    --set api.telemetry.authSecretRef.name=telemetry-ingest
+    --set api.telemetry.authSecretRef.name=telemetry-ingest \
+    --set api.telemetry.receiver.dashboard.tokenSecretRef.name=telemetry-dashboard
+  kubectl -n gameplane-system port-forward svc/gameplane-telemetry-receiver 8081:8081
   ```
+
+  Then open `http://localhost:8081` and sign in with the dashboard token.
+  The receiver's session cookie is `Secure`, so use a browser that treats
+  `localhost` as a secure origin or put TLS in front.
+
+## Steam display names (optional)
+
+Nuclear Option and other Steam-ID games report only Steam IDs in their player
+lists. With a Steam Web API key set, the API server looks up each player's
+public display name (`ISteamUser/GetPlayerSummaries/v2`) and shows it next to
+the ID. The lookup runs only in the API, never in game pods, and is off by
+default. Without a key, player lists show raw Steam IDs and nothing is sent to
+Steam.
+
+Get a key at <https://steamcommunity.com/dev/apikey> (sign in with Steam; the
+domain field on that form is not used by Gameplane). Store it in a Secret in
+the release namespace and point the chart at it:
+
+```sh
+kubectl -n gameplane-system create secret generic steam-api \
+  --from-literal=api-key='<your Steam Web API key>'
+helm upgrade ... \
+  --set api.steam.apiKeySecretRef.name=steam-api
+```
+
+- `api.steam.apiKeySecretRef.name` — the Secret holding the key; empty (the
+  default) turns the lookup off.
+- `api.steam.apiKeySecretRef.key` — the key within that Secret (default
+  `api-key`).
+- `api.steam.cache.*` — optional tuning of the in-memory name cache, with
+  defaults shown: `maxEntries: 10000` (LRU bound on cached Steam IDs),
+  `ttl: 12h` (lifetime of a resolved name), `negativeTTL: 15m` (lifetime of an
+  ID Steam does not return), `timeout: 2s` (per Steam call).
+
+The key is read from the Secret into the API's environment
+(`GAMEPLANE_STEAM_API_KEY`), never a flag. It is never logged and never sent to
+the browser. The cache lives in process memory only and is rebuilt after each
+API restart; no database table, Redis or shared cache is involved. A failed
+Steam call is not cached, so the next request retries. If Steam is slow or
+unreachable, a player list waits at most about 1.5 seconds and then falls back
+to the raw Steam ID for any name it does not have. Names are display-only;
+kick, ban and unban continue to use Steam IDs. See
+[security](security.md#steam-display-name-lookup) for the egress and threat
+model.
 
 ## Installing a module
 
@@ -456,16 +616,16 @@ The chart ships two `ModuleSource`s: `default` (pulls pre-built bundles from the
 official registry) and `uploads` (dashboard bundle uploads). The default uses
 `type: oci` for zero-configuration access to versioned, optionally signed bundles;
 `type: git` is available to track an unreleased branch directly from the
-`gameplane-module` repository. Install games from the dashboard's **Modules** page,
+`GameplanePanel/module` repository. Install games from the dashboard's **Modules** page,
 or add more sources — git repositories, http archives, a local directory — under
-**Modules → Manage sources** (admin) or by applying `ModuleSource` CRs. See
+**Modules → Manage sources** (requires `modules:manage` on that cluster) or by applying `ModuleSource` CRs. Standalone panels require a selected remote cluster for these operations. See
 `docs/module-authoring.md` for the source types and the bundle format.
 
 ## Registering an additional cluster
 
 Gameplane can manage game servers across multiple Kubernetes clusters
 through a federation model. Each target cluster runs its own operator
-instance; the control-plane cluster's API dispatches requests to the
+instance; the central API dispatches requests to the
 target cluster via a `?cluster=<name>` parameter. See
 [architecture.md](architecture.md#multi-cluster-federation) for the
 design details.
@@ -517,6 +677,10 @@ The existing `Cluster` health status reports Kubernetes connectivity, not gatewa
 readiness or complete interactive feature coverage.
 
 ### Path 1: kubectl apply
+
+This path applies to a combined installation with a central Kubernetes cluster.
+A standalone panel uses the dashboard or API in Path 2 and stores registrations
+in its database.
 
 1. Create a `kubeconfig` Secret in the control-plane's `gameplane-system` namespace.
    The Secret **must** be labelled `gameplane.local/cluster-kubeconfig=true`:
@@ -584,24 +748,42 @@ in place. Delete the Secret with kubectl when you no longer need it.
 
 ### Path 2: Dashboard API
 
-POST to `/clusters` with permission `cluster:manage` (admin-only):
+In either installation mode, use **Clusters → Register cluster**, or POST to
+`/clusters` with `cluster:manage`. Supply a self-contained kubeconfig as a raw
+YAML string in JSON. The following example uses `jq` to encode it correctly.
+`PANEL_URL` is the HTTPS dashboard origin, `cookies.txt` holds your authenticated
+`gameplane_session` and `gameplane_csrf` cookies, and `CSRF_TOKEN` is the latter
+cookie's value:
 
 ```sh
-curl -X POST https://<dashboard>/api/clusters \
-  -H "Content-Type: application/json" \
-  -H "X-Gameplane-CSRF: <csrf-token>" \
-  --cookie "session=<session-cookie>" \
-  -d '{
-    "name": "my-cluster",
-    "kubeconfig": "<base64-encoded kubeconfig>"
-  }'
+jq -n --rawfile kubeconfig remote-kubeconfig.yaml \
+  '{name:"my-cluster",kubeconfig:$kubeconfig}' |
+  curl --fail-with-body --cookie cookies.txt \
+    --header "Content-Type: application/json" \
+    --header "X-Gameplane-CSRF: $CSRF_TOKEN" \
+    --data-binary @- "$PANEL_URL/clusters"
 ```
 
-The API stores the kubeconfig as a labelled Secret and creates the
-`Cluster` CRD. The kubeconfig is never returned by the API and never
-logged. Removing the cluster deletes both the `Cluster` and that Secret.
+Combined installations store the kubeconfig in a labelled Secret and create a
+`Cluster` resource. Standalone panels store the registration and encrypted
+credential in SQL. The API never returns or logs the kubeconfig. Removing an
+API-created registration also removes its managed credentials; it leaves the
+remote workloads running. Keep cookie jars and kubeconfig files private.
 
 ### Helm CRD caveat
+
+This section applies to combined and remote workload installations. A standalone
+central Helm release uses `operator.enabled=false` to exclude the bundled
+`gameplane-crds` subchart and `api.standalone=true` to skip the CRD apply hook and
+its RBAC. No `--skip-crds` argument is needed; follow its
+[panel profile](standalone-panel.md#central-panel-on-kubernetes).
+
+With the default `operator.enabled=true`, the subchart supplies CRDs through
+Helm's native `crds/` phase before the release's custom resources are installed.
+CRDs already present on the cluster remain in place when switching to a profile
+that omits them; this setting does not delete CRDs or their custom resources.
+Combined API-only installs retain the existing apply hook when
+`api.standalone=false` and `crds.autoApply.enabled=true`.
 
 **`helm upgrade` never updates CRDs.** That is a documented Helm limitation,
 not a Gameplane one: files under a chart's `crds/` directory are installed on
@@ -619,7 +801,7 @@ hook:
 
 ```sh
 # only when crds.autoApply.enabled=false
-kubectl apply --server-side -f charts/gameplane/crds/
+kubectl apply --server-side -f charts/gameplane/crd-manifests/
 ```
 
 The hook fires on pre-upgrade always. On `helm install` it fires only when
@@ -652,18 +834,29 @@ helm install gameplane charts/gameplane -n gameplane-system --create-namespace -
 
 ### RBAC and permissions
 
-Registering a cluster grants **no implicit RBAC** on it — a user who
-can start servers on the "local" cluster will not automatically be able
-to do so on a newly registered cluster. Each cluster maintains its own
-role bindings. To grant a user access to resources on the target
-cluster, create matching role bindings there, or use the dashboard to
-add cluster-scoped permissions if the target cluster's API also
-supports the same RBAC model.
+Registering a cluster grants no dashboard user access to its workloads. The
+central API stores user roles and cluster/namespace grants in its database.
+In **Users & RBAC**, create a custom workload role, then add a grant for the
+intended user and remote cluster. Use **All namespaces** for inventory, module,
+and template permissions, or a specific game namespace for namespaced access.
+Changing a user's grants ends their sessions; they must sign in again.
+
+Remote roles cannot contain central administration permissions or the built-in
+admin wildcard. Keep the user's primary panel role when adding remote grants.
+The [standalone guide](standalone-panel.md#grant-workload-access) lists the
+permissions and dashboard steps.
+
+Separately, the registered kubeconfig needs Kubernetes RBAC for the operations
+the API performs on that target. Kubernetes RoleBindings grant access to that
+credential's identity; they do not create Gameplane user grants.
 
 ## Upgrading
 
+These Helm commands upgrade a combined installation. For Compose and panel-only
+Helm releases, use [standalone upgrades](standalone-panel.md#upgrading).
+
 ```sh
-helm upgrade gameplane oci://ghcr.io/valgulnecron/charts/gameplane \
+helm upgrade gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
   --version <new-version> \
   --namespace gameplane-system \
   --reuse-values
@@ -716,7 +909,9 @@ upgrade strategy: the old pod is fully terminated before the new one starts.
 This ensures no two API processes try to write the same SQLite database file
 (which is a single-writer store on a ReadWriteOnce PVC). As a result,
 SQLite-backed installs experience a few seconds of dashboard downtime during
-an upgrade — this is expected and deliberate. Postgres-backed installs (experimental)
-would use rolling updates with no downtime, since the database is external and
-shared, but Postgres remains experimental and the API should still run as a
-single replica (see `api.replicas` in `values.yaml`).
+an upgrade. Combined PostgreSQL installs use rolling updates, but the driver
+remains experimental and the API should still run as a single replica (see
+`api.replicas` in `values.yaml`). Standalone installs use `Recreate` with either
+database driver: generated keys use a ReadWriteOnce volume, and audit-chain and
+user-management locks remain per-process. A shared provisioned key does not make
+multiple API replicas supported.

@@ -1,16 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
-import { Select, Switch, ListBox, ListBoxItem, Tabs, Tab as TabComponent, Button } from "@heroui/react";
+import { Select, Switch, ListBox, ListBoxItem, Tabs, Tab as TabComponent, Button, Card, CardContent } from "@heroui/react";
 import { APIError } from "@/lib/api";
 import { errorTextWithStatus } from "@/lib/errors";
 import { withCluster } from "@/lib/endpoints";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { LoadingCard } from "@/components/ui/LoadingCard";
+import { ErrorCard } from "@/components/ui/ErrorCard";
+import { useInstallation } from "@/lib/useInstallation";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { defineMessages, type MessageDescriptor } from "react-intl";
 
 type LogComponent = "api" | "operator";
 
-const COMPONENTS: Array<{ value: LogComponent; label: string }> = [
-  { value: "api", label: "API server" },
-  { value: "operator", label: "Operator" },
+const COMPONENT_LABELS = defineMessages({
+  api: { id: "web.routes.admin_logs.component_api", defaultMessage: "API server", description: "Admin logs: tab label for the API server log source" },
+  operator: { id: "web.routes.admin_logs.component_operator", defaultMessage: "Operator", description: "Admin logs: tab label for the operator log source" },
+});
+
+const COMPONENTS: Array<{ value: LogComponent; label: MessageDescriptor }> = [
+  { value: "api", label: COMPONENT_LABELS.api },
+  { value: "operator", label: COMPONENT_LABELS.operator },
 ];
 
 const TAIL_OPTIONS = [100, 500, 1000, 5000] as const;
@@ -76,6 +86,22 @@ async function streamSystemLogs(opts: {
 }
 
 export function AdminLogsPage() {
+  const intl = useOptionalIntl();
+  const installation = useInstallation();
+  if (installation.isPending) return <LoadingCard message={intl.formatMessage({ id: "web.routes.admin_logs.loading_installation", defaultMessage: "Loading installation…", description: "Admin logs: loading text shown in place of the page while installation details are fetched" })} />;
+  if (installation.isError) return <ErrorCard message={intl.formatMessage({ id: "web.routes.admin_logs.couldn_t_load_installation_capabilities", defaultMessage: "Couldn't load installation capabilities.", description: "Admin logs: error message shown when installation details fail to load; a retry button follows it" })} onRetry={() => void installation.refetch()} />;
+  if (installation.data.standalone) return <div className="space-y-4 p-6">
+    <PageHeader title={intl.formatMessage({ id: "web.routes.admin_logs.system_logs", defaultMessage: "System logs", description: "Admin logs: page title at the top of the system logs screen; keep it short" })} description={intl.formatMessage({ id: "web.routes.admin_logs.logs_for_this_standalone_panel", defaultMessage: "Logs for this standalone panel.", description: "Admin logs: description under the title in the standalone panel view, saying these logs belong to this panel only" })} />
+    <Card><CardContent className="space-y-2 p-6">
+      <h2 className="font-medium">{intl.formatMessage({ id: "web.routes.admin_logs.view_logs_through_your_container_runtime", defaultMessage: "View logs through your container runtime", description: "Admin logs: heading in the standalone panel view that introduces how to read logs through the container runtime" })}</h2>
+      <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.admin_logs.for_docker_compose_run", defaultMessage: "For Docker Compose, run", description: "Admin logs: opening words of the standalone hint paragraph, followed by a command in monospace and the rest of the sentence" })} <code className="font-mono">{intl.formatMessage({ id: "web.routes.admin_logs.docker_compose_logs_follow", defaultMessage: "docker compose logs --follow", description: "Admin logs: shell command shown in monospace inside the standalone hint, the Docker Compose command to stream logs; technical term, usually left untranslated" })}</code> {intl.formatMessage({ id: "web.routes.admin_logs.from_your_panel_installation_directory", defaultMessage: "from your panel installation directory. Operator logs are available on each workload cluster.", description: "Admin logs: end of the standalone hint, asking to run the command from the install directory; also notes operator logs are on each workload cluster" })}</p>
+    </CardContent></Card>
+  </div>;
+  return <ClusterSystemLogs />;
+}
+
+function ClusterSystemLogs() {
+  const intl = useOptionalIntl();
   const [component, setComponent] = useState<LogComponent>("api");
   const [tail, setTail] = useState(500);
   const [follow, setFollow] = useState(false);
@@ -114,7 +140,7 @@ export function AdminLogsPage() {
           });
         } catch (err) {
           if (ctrl.signal.aborted) return;
-          setError(errorTextWithStatus(err, String(err)));
+          setError(errorTextWithStatus(err, String(err), intl));
           return; // only clean stream ends reconnect; errors stop the loop
         }
         // A non-follow fetch is one-shot. The server caps follow streams at
@@ -170,30 +196,28 @@ export function AdminLogsPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      setError(errorTextWithStatus(err, String(err)));
+      setError(errorTextWithStatus(err, String(err), intl));
     }
   };
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
       <PageHeader
-        title="System logs"
-        description="Live logs from the Gameplane control-plane pods."
+        title={intl.formatMessage({ id: "web.routes.admin_logs.system_logs", defaultMessage: "System logs", description: "Admin logs: page title at the top of the system logs screen; keep it short" })}
+        description={intl.formatMessage({ id: "web.routes.admin_logs.live_logs_from_the_gameplane_control", defaultMessage: "Live logs from the Gameplane control-plane pods.", description: "Admin logs: description under the title of the cluster logs view, saying the lines come from the Gameplane control-plane pods" })}
       />
 
-      <Tabs selectedKey={component} onSelectionChange={(key) => setComponent(key as LogComponent)} variant="secondary" aria-label="Log source">
+      <Tabs selectedKey={component} onSelectionChange={(key) => setComponent(key as LogComponent)} variant="secondary" aria-label={intl.formatMessage({ id: "web.routes.admin_logs.log_source", defaultMessage: "Log source", description: "Admin logs: accessible name of the tab group for choosing which component's logs to show" })}>
         <Tabs.List className="w-fit">
           {COMPONENTS.map((c) => (
-            <TabComponent key={c.value} id={c.value}>{c.label}</TabComponent>
+            <TabComponent key={c.value} id={c.value}>{intl.formatMessage(c.label)}</TabComponent>
           ))}
         </Tabs.List>
       </Tabs>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 text-xs text-muted">
-          Tail
-          <Select
-            aria-label="Tail lines"
+        <div className="flex items-center gap-2 text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_logs.tail", defaultMessage: "Tail", description: "Admin logs: label in front of the line-count dropdown in the log toolbar; keep it short" })}<Select
+            aria-label={intl.formatMessage({ id: "web.routes.admin_logs.tail_lines", defaultMessage: "Tail lines", description: "Admin logs: accessible name of the dropdown that sets how many recent lines to load" })}
             selectedKey={String(tail)}
             onSelectionChange={(key) => setTail(Number(key))}
           >
@@ -202,20 +226,16 @@ export function AdminLogsPage() {
               <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
-              <ListBox aria-label="Tail lines">
+              <ListBox aria-label={intl.formatMessage({ id: "web.routes.admin_logs.tail_lines", defaultMessage: "Tail lines", description: "Admin logs: accessible name of the dropdown that sets how many recent lines to load" })}>
                 {TAIL_OPTIONS.map((n) => (
-                  <ListBoxItem key={n} id={String(n)}>
-                    {n} lines
-                  </ListBoxItem>
+                  <ListBoxItem key={n} id={String(n)}>{intl.formatMessage({ id: "web.routes.admin_logs.n_lines", defaultMessage: "{n} lines", description: "Admin logs: sentence with n in ListBoxItem" }, { n: n })}</ListBoxItem>
                 ))}
               </ListBox>
             </Select.Popover>
           </Select>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted">
-          Follow
-          <Switch isSelected={follow} onChange={setFollow} aria-label="Follow">
+        <div className="flex items-center gap-2 text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_logs.follow", defaultMessage: "Follow", description: "Admin logs: label of the switch that keeps the log view following new lines as they arrive; keep it short" })}<Switch isSelected={follow} onChange={setFollow} aria-label={intl.formatMessage({ id: "web.routes.admin_logs.follow", defaultMessage: "Follow", description: "Admin logs: label of the switch that keeps the log view following new lines as they arrive; keep it short" })}>
             <Switch.Content>
               <Switch.Control>
                 <Switch.Thumb />
@@ -226,15 +246,14 @@ export function AdminLogsPage() {
 
         <span
           className="inline-flex h-6 items-center rounded bg-primary/10 px-2 font-mono text-xs text-primary"
-          title="Pod currently streamed"
+          title={intl.formatMessage({ id: "web.routes.admin_logs.pod_currently_streamed", defaultMessage: "Pod currently streamed", description: "Admin logs: badge showing the pod whose logs are being streamed right now; keep it short" })}
         >
-          {pod || "—"}
+          {pod || intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}
         </span>
 
         <div className="ml-auto">
           <Button variant="outline" onPress={() => void downloadLogs()}>
-            <Download className="h-4 w-4" /> Download
-          </Button>
+            <Download className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.admin_logs.download", defaultMessage: "Download", description: "Admin logs: button that downloads the logs shown on screen as a file; keep it short" })}</Button>
         </div>
       </div>
 
@@ -295,7 +314,9 @@ export function AdminLogsPage() {
           </div>
         ) : (
           <div className="flex h-full items-center justify-center text-muted">
-            {error ? "No output." : "Waiting for output…"}
+            {error
+              ? intl.formatMessage({ id: "web.routes.admin_logs.no_output", defaultMessage: "No output.", description: "Admin logs: shown in the log panel when the stream failed" })
+              : intl.formatMessage({ id: "web.routes.admin_logs.waiting_for_output", defaultMessage: "Waiting for output…", description: "Admin logs: shown in the log panel while no output has arrived yet" })}
           </div>
         )}
       </div>

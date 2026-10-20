@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // TestGameServerStorage_ExplicitOverrideWins asserts that when a GameServer
@@ -263,7 +263,7 @@ func withGameServerReconcilerStorageClass(t *testing.T, ns, storageClassName str
 			Client:                  mgr.GetClient(),
 			APIReader:               mgr.GetAPIReader(),
 			Scheme:                  mgr.GetScheme(),
-			AgentImage:              "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:              "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentCASecretName:       "agent-ca",
 			AgentCASecretNamespace:  ns,
 			DefaultStorageClassName: storageClassName,

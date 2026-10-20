@@ -8,11 +8,13 @@ use (
 	./gameaction
 	./gameproto
 	./gp-module
+	./i18n
 	./mcp-server
 	./netguard
 	./operator
 	./sentinel
 	./svcutil
+	./telemetryschema
 	./telemetry-receiver
 	./test/e2e
 	./tunnel

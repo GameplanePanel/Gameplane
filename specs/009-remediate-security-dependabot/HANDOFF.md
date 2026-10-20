@@ -228,11 +228,11 @@ content therefore already requires a privileged actor.
   linters. CI is the only verifier. Registry lookups are fine — prefer
   `curl -s https://registry.npmjs.org/<pkg>/latest` over `npm view`, so no npm subcommand runs
   at all.
-- **Every `gh` command needs `-R ValgulNecron/Gameplane`.** cwd drift retargets gh at the wrong
+- **Every `gh` command needs `-R GameplanePanel/Gameplane`.** cwd drift retargets gh at the wrong
   repo, and `gh pr checks` then returns empty — which reads as success. A `cd` into the spec
   dir also broke a later `git add` in this session; prefer absolute paths.
 - **`gh run view --log` returns EMPTY here.** Use
-  `gh api repos/ValgulNecron/Gameplane/actions/jobs/<job_id>/logs`.
+  `gh api repos/GameplanePanel/Gameplane/actions/jobs/<job_id>/logs`.
 - **`mergeable: UNKNOWN` is not a failure.** GitHub recomputes merge state lazily after master
   moves; the value is computed *on query*. Just query the same PR again and it resolves to
   `MERGEABLE` or `CONFLICTING`. Do not treat the first `UNKNOWN` as a conflict.

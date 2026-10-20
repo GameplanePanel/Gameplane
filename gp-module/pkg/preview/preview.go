@@ -2,7 +2,7 @@
 package preview
 
 import (
-	internalprev "github.com/ValgulNecron/gameplane/gp-module/internal/preview"
+	internalprev "github.com/GameplanePanel/gameplane/gp-module/internal/preview"
 )
 
 // Options defines inputs for generating a dry-run preview.

@@ -9,8 +9,10 @@ import { resolveConsoleMode } from "@/lib/capabilities";
 
 import { ConsoleShell } from "./ConsoleShell";
 import { useConsoleTerminal } from "./useConsoleTerminal";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
+  const intl = useOptionalIntl();
   const target = useResourceTarget({ name, namespace: ns });
   const client = useResourceClient(target);
   const { data: gs } = useQuery({
@@ -28,7 +30,7 @@ export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
   if (!gs || !tmpl) {
     return (
       <div className="p-4">
-        <LoadingCard message="Loading console…" />
+        <LoadingCard message={intl.formatMessage({ id: "web.routes.tabs.console.loading_console", defaultMessage: "Loading console…", description: "Console tab: loading text shown while the console is being prepared" })} />
       </div>
     );
   }
@@ -36,8 +38,8 @@ export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
     return (
       <div className="p-4">
         <ErrorCard
-          title="No console available"
-          message="This game template doesn't expose a console."
+          title={intl.formatMessage({ id: "web.routes.tabs.console.no_console_available", defaultMessage: "No console available", description: "Console tab: title of the error card shown when the game template provides no console" })}
+          message={intl.formatMessage({ id: "web.routes.tabs.console.this_game_template_doesn_t_expose_a", defaultMessage: "This game template doesn't expose a console.", description: "Console tab: message under the no-console title explaining that the game template does not expose a console" })}
         />
       </div>
     );
@@ -49,13 +51,14 @@ export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
 // buffered until Enter, then sent as {kind:"cmd"}. Server replies arrive
 // as {kind:"out"|"err"} with a string body.
 function RconConsole({ name, ns }: { name: string; ns?: string }) {
+  const intl = useOptionalIntl();
   const target = useResourceTarget({ name, namespace: ns });
   const wsPath = createRequestClient(target).url(`/ws/servers/${encodeURIComponent(name)}/console`);
   const handle = useConsoleTerminal({
     wsPath,
     name,
-    connectLabel: "— connected —",
-    disconnectLabel: "— disconnected —",
+    connectLabel: intl.formatMessage({ id: "web.routes.tabs.console.rcon_connected", defaultMessage: "— connected —", description: "Console: line written into the RCON console terminal when the connection opens; the dashes are part of the text" }),
+    disconnectLabel: intl.formatMessage({ id: "web.routes.tabs.console.rcon_disconnected", defaultMessage: "— disconnected —", description: "Console: line written into the RCON console terminal when the connection closes; the dashes are part of the text" }),
     attach: (term, send) => {
       let buf = "";
       return {
@@ -109,13 +112,14 @@ function RconConsole({ name, ns }: { name: string; ns?: string }) {
 // arrive as {kind:"stdout", body:base64} (stderr merged into stdout under
 // TTY) or {kind:"err", body:string} on a teardown.
 function PtyConsole({ name, ns }: { name: string; ns?: string }) {
+  const intl = useOptionalIntl();
   const target = useResourceTarget({ name, namespace: ns });
   const wsPath = createRequestClient(target).url(`/ws/servers/${encodeURIComponent(name)}/console-pty`);
   const handle = useConsoleTerminal({
     wsPath,
     name,
-    connectLabel: "— attached —",
-    disconnectLabel: "— detached —",
+    connectLabel: intl.formatMessage({ id: "web.routes.tabs.console.pty_attached", defaultMessage: "— attached —", description: "Console: line written into the terminal console when the terminal attaches to the server; the dashes are part of the text" }),
+    disconnectLabel: intl.formatMessage({ id: "web.routes.tabs.console.pty_detached", defaultMessage: "— detached —", description: "Console: line written into the terminal console when the terminal detaches from the server; the dashes are part of the text" }),
     attach: (term, send) => {
       const sendResize = () =>
         send(JSON.stringify({ kind: "resize", cols: term.cols, rows: term.rows }));

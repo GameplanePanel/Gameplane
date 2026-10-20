@@ -1,0 +1,86 @@
+{
+  "type": "frame",
+  "id": "Vl96v",
+  "x": 2362,
+  "y": 8037,
+  "name": "Gameplane/Recent Backups Card",
+  "reusable": true,
+  "width": "fill_container(546)",
+  "height": 353,
+  "fill": "$surface/surface",
+  "cornerRadius": "$radius/3xl",
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "effect": {
+    "type": "shadow",
+    "shadowType": "outer",
+    "color": "#0000000A",
+    "offset": {
+      "x": 0,
+      "y": 2
+    },
+    "blur": 4
+  },
+  "layout": "vertical",
+  "gap": 12,
+  "padding": 16,
+  "children": [
+    {
+      "type": "frame",
+      "id": "BhL8t",
+      "name": "Header",
+      "width": "fill_container",
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "S9QW5f",
+          "name": "title",
+          "fill": "$foreground/foreground",
+          "content": "Recent backups",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "v9pDrF",
+          "name": "link",
+          "fill": "$accent/accent",
+          "content": "View all",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "F2jha0",
+      "name": "Content",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "padding": [
+        40,
+        24
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "owm2M",
+          "name": "empty",
+          "fill": "$muted",
+          "content": "No backups yet.",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    }
+  ]
+}

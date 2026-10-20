@@ -131,7 +131,7 @@ Severity follows research R3.
 3. `ociFetcher.Index` iterates `f.modules`, which the chart fills from that list (`modulesource.yaml:23-26`). Nothing lists the registry.
 4. Live: on a default install, `kubectl get modulesource default -o jsonpath='{.status.modules[*].name}'` shows 16 names, and the dashboard's Modules page shows the same 16.
 
-**Expected:** `specs/015-top-steam-game-modules/spec.md:25` (US1): an administrator selects TF2, FiveM, Squad, FS25, ETS2, BeamMP, Arma Reforger or L4D2 "via the Gameplane catalog". The default catalog lists every published module.
+**Expected:** `specs/done_015-top-steam-game-modules/spec.md:25` (US1): an administrator selects TF2, FiveM, Squad, FS25, ETS2, BeamMP, Arma Reforger or L4D2 "via the Gameplane catalog". The default catalog lists every published module.
 
 **Actual:** None of the 14 spec-015 modules appear in the default catalog. T054 changes only the git `ref`, which a default install does not use.
 

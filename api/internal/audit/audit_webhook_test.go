@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 
 	dto "github.com/prometheus/client_model/go"
 )

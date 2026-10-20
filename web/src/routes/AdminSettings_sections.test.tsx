@@ -1,11 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import type { ReactNode } from "react";
 import { http, HttpResponse } from "msw";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
 import { makeConfig } from "@/test/factories";
+import { IntlProvider } from "react-intl";
 import type { AuthProvider } from "@/lib/config";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -27,7 +28,7 @@ describe("AdminSettings sections", () => {
     const nameInput = await screen.findByDisplayValue("Gameplane (mock)");
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, "gameplane-prod");
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     expect(await screen.findByText("Saved")).toBeInTheDocument();
   });
 
@@ -39,7 +40,7 @@ describe("AdminSettings sections", () => {
     const nameInput = await screen.findByDisplayValue("Gameplane (mock)");
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, "x");
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     expect(await screen.findByText(/namespace invalid/i)).toBeInTheDocument();
   });
 
@@ -308,12 +309,21 @@ describe("AdminSettings sections", () => {
   });
 
   it("toggles telemetry and saves", async () => {
+    let body: unknown;
+    server.use(
+      http.put("/admin/config/telemetry", async ({ request }) => {
+        body = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
     renderWithQuery(<AdminSettingsPage />);
     await gotoSection(/Telemetry/i);
-    const sw = await screen.findByRole("switch", { name: /Enable telemetry/i });
+    const sw = await screen.findByRole("switch", { name: "Enable telemetry" });
     await userEvent.click(sw);
+    expect(screen.getByRole("switch", { name: "Disable telemetry" })).toHaveAttribute("aria-checked", "true");
     await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
     expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(body).toEqual({ sendMetrics: true, extended: false });
   });
 
   it("shows the read-only update channel from /cluster/info", async () => {
@@ -370,5 +380,51 @@ describe("AdminSettings sections", () => {
     await gotoSection(/About/i);
     expect(await screen.findByText("AGPL-3.0")).toBeInTheDocument();
     expect(screen.getByText("Gameplane")).toBeInTheDocument();
+  });
+
+  it("saves the instance default language to the i18n section", async () => {
+    let body: unknown;
+    server.use(
+      http.put("/admin/config/i18n", async ({ request }) => {
+        body = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderWithQuery(<AdminSettingsPage />);
+    const languageCard = await screen.findByRole("region", { name: "Language" });
+    await userEvent.click(within(languageCard).getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(body).toEqual({ defaultLanguage: "en" }));
+    expect(await within(languageCard).findByText("Saved")).toBeInTheDocument();
+  });
+
+  it("shows the catalog text for a server message id when the i18n save is refused", async () => {
+    server.use(
+      http.put("/admin/config/i18n", () =>
+        HttpResponse.json(
+          {
+            type: "about:blank",
+            status: 400,
+            title: "Bad Request",
+            detail: 'language "xx" is not available',
+            messageId: "server.i18n.unlisted_language",
+            args: { language: "xx" },
+          },
+          { status: 400, headers: { "Content-Type": "application/problem+json" } },
+        ),
+      ),
+    );
+    renderWithQuery(
+      <IntlProvider
+        locale="en"
+        messages={{ "server.i18n.unlisted_language": 'Language "{language}" is not available in this build.' }}
+      >
+        <AdminSettingsPage />
+      </IntlProvider>,
+    );
+    const languageCard = await screen.findByRole("region", { name: "Language" });
+    await userEvent.click(within(languageCard).getByRole("button", { name: /Save changes/i }));
+    expect(
+      await within(languageCard).findByText('Language "xx" is not available in this build.'),
+    ).toBeInTheDocument();
   });
 });

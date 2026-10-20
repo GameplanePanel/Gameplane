@@ -6,6 +6,7 @@ import type { GameServer } from "@/types";
 
 import { EventList } from "@/components/server/EventList";
 import { mapServerEvent, type NormalizedServerEvent } from "@/lib/events";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 type FilterType = "all" | "info" | "warnings";
 
@@ -18,6 +19,7 @@ export function EventsTab({
   ns?: string;
   gs?: GameServer;
 }) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const [filter, setFilter] = useState<FilterType>("all");
@@ -52,16 +54,16 @@ export function EventsTab({
       <Card className="border border-border bg-surface">
         <Card.Header className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground">Events</h2>
+            <h2 className="text-base font-semibold text-foreground">{intl.formatMessage({ id: "web.routes.tabs.events.events", defaultMessage: "Events", description: "Events tab: heading of the events card that lists the server's events, with filter buttons beside it" })}</h2>
             <div className="flex gap-1">
               {["all", "info", "warnings"].map((f) => {
                 const filterValue = f as FilterType;
                 const label =
                   filterValue === "all"
-                    ? "All"
+                    ? intl.formatMessage({ id: "web.routes.tabs.events.filter_all", defaultMessage: "All", description: "Events: filter button showing every event" })
                     : filterValue === "info"
-                      ? "Info"
-                      : "Warnings";
+                      ? intl.formatMessage({ id: "web.routes.tabs.events.filter_info", defaultMessage: "Info", description: "Events: filter button showing info events only" })
+                      : intl.formatMessage({ id: "web.routes.tabs.events.filter_warnings", defaultMessage: "Warnings", description: "Events: filter button showing warning and error events only" });
                 return (
                   <Button
                     key={filterValue}
@@ -82,10 +84,10 @@ export function EventsTab({
             events={filteredEvents}
             emptyMessage={
               filter === "all"
-                ? "No events yet."
+                ? intl.formatMessage({ id: "web.routes.tabs.events.empty_all", defaultMessage: "No events yet.", description: "Events: shown when the server has no events" })
                 : filter === "info"
-                  ? "No info events."
-                  : "No warnings or errors."
+                  ? intl.formatMessage({ id: "web.routes.tabs.events.empty_info", defaultMessage: "No info events.", description: "Events: shown when there are no info events" })
+                  : intl.formatMessage({ id: "web.routes.tabs.events.empty_warnings", defaultMessage: "No warnings or errors.", description: "Events: shown when there are no warning or error events" })
             }
           />
         </Card.Content>

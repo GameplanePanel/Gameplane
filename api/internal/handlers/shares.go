@@ -14,11 +14,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // MountShareLinks wires authenticated share link operations (create, list, revoke).
@@ -94,7 +95,7 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		u := auth.UserFromContext(req.Context())
 		if u == nil {
-			http.Error(w, "unauthenticated", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
 		name := chi.URLParam(req, "name")
@@ -116,13 +117,13 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 			return
 		}
 		if !isServerOwner(obj, u.ID) {
-			http.Error(w, "forbidden", http.StatusForbidden)
+			httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 			return
 		}
 
 		var body createShareReq
 		if err := json.NewDecoder(io.LimitReader(req.Body, 1<<16)).Decode(&body); err != nil {
-			http.Error(w, "bad request", http.StatusBadRequest)
+			httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
 			return
 		}
 
@@ -135,12 +136,12 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		var expiresAt *time.Time
 		switch {
 		case hasExpiresAt && hasNeverExpires:
-			http.Error(w, "expiresAt and neverExpires are mutually exclusive", http.StatusBadRequest)
+			httperr.WriteMessage(w, req, messages.New("server.shares.expiry_mutually_exclusive", nil))
 			return
 		case hasExpiresAt:
 			parsed, err := time.Parse(time.RFC3339, *body.ExpiresAt)
 			if err != nil {
-				http.Error(w, "invalid expiresAt: must be RFC3339", http.StatusBadRequest)
+				httperr.WriteMessage(w, req, messages.New("server.shares.invalid_expires_at", nil))
 				return
 			}
 			parsed = parsed.UTC()
@@ -154,14 +155,14 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 			if *body.ExpiresIn != "" {
 				d, err := time.ParseDuration(*body.ExpiresIn)
 				if err != nil {
-					http.Error(w, "invalid expiresIn", http.StatusBadRequest)
+					httperr.WriteMessage(w, req, messages.New("server.shares.invalid_expires_in", nil))
 					return
 				}
 				at = time.Now().UTC().Add(d)
 			}
 			expiresAt = &at
 		default:
-			http.Error(w, "must specify exactly one of expiresAt or neverExpires (or the deprecated expiresIn)", http.StatusBadRequest)
+			httperr.WriteMessage(w, req, messages.New("server.shares.expiry_required", nil))
 			return
 		}
 
@@ -169,7 +170,7 @@ func createShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		rawToken, link, err := store.CreateShareLinkForServer(req.Context(), cl, ns, name, string(obj.GetUID()), u.ID, body.CanStart, expiresAt)
 		if err != nil {
 			if errors.Is(err, db.ErrShareLinkExpiryInvalid) {
-				http.Error(w, "expiresAt must be in the future", http.StatusBadRequest)
+				httperr.WriteMessage(w, req, messages.New("server.shares.expires_at_in_past", nil))
 				return
 			}
 			httperr.Write(w, req, err)
@@ -194,7 +195,7 @@ func listSharesHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		u := auth.UserFromContext(req.Context())
 		if u == nil {
-			http.Error(w, "unauthenticated", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
 		name := chi.URLParam(req, "name")
@@ -216,7 +217,7 @@ func listSharesHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 			return
 		}
 		if !isServerOwner(obj, u.ID) {
-			http.Error(w, "forbidden", http.StatusForbidden)
+			httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 			return
 		}
 
@@ -248,7 +249,7 @@ func revokeShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		u := auth.UserFromContext(req.Context())
 		if u == nil {
-			http.Error(w, "unauthenticated", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
 		name := chi.URLParam(req, "name")
@@ -271,14 +272,14 @@ func revokeShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 			return
 		}
 		if !isServerOwner(obj, u.ID) {
-			http.Error(w, "forbidden", http.StatusForbidden)
+			httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 			return
 		}
 
 		cl, _ := scope.ResolveCluster(req, reg)
 		if err := store.RevokeShareLink(req.Context(), cl, ns, name, id); err != nil {
 			if errors.Is(err, db.ErrShareLinkNotFound) {
-				http.Error(w, "not found", http.StatusNotFound)
+				httperr.WriteMessage(w, req, messages.New("server.not_found", nil))
 				return
 			}
 			httperr.Write(w, req, err)

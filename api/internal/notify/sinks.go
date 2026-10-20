@@ -23,6 +23,7 @@ type Sink struct {
 	Enabled   bool     `json:"enabled"`
 	ConfigRef string   `json:"configRef"`
 	Events    []string `json:"events"`
+	Language  string   `json:"language,omitempty"` // BCP 47 tag of a listed language; empty = instance default
 }
 
 // loadSinks reads the persisted notifications config. A missing row means
@@ -65,7 +66,7 @@ func sinkMatches(s Sink, t EventType) bool {
 // sinkSecret fetches the sink's credential Secret from the control-plane
 // namespace, refusing any Secret not labelled SinkSecretLabel=true.
 func (n *Notifier) sinkSecret(ctx context.Context, name string) (map[string][]byte, error) {
-	sec, err := n.k.Typed.CoreV1().Secrets(n.controlNS).Get(ctx, name, metav1.GetOptions{})
+	sec, err := n.k.Secrets(n.controlNS).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("get sink secret %s/%s: %w", n.controlNS, name, err)
 	}

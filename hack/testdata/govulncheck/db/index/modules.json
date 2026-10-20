@@ -1,0 +1,12 @@
+[
+  {
+    "path": "example.invalid/vulnfixture",
+    "vulns": [
+      {
+        "id": "GO-0000-0001",
+        "modified": "2026-01-01T00:00:00Z",
+        "fixed": "1.0.1"
+      }
+    ]
+  }
+]

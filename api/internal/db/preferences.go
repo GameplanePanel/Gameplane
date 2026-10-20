@@ -21,6 +21,7 @@ type UserPreferences struct {
 	CustomSurface    *string // nullable #RRGGBB hex
 	CustomCSSEnabled bool    // whether the custom CSS overlay is injected
 	CustomCSS        *string // nullable sanitized CSS text (max 32 KiB)
+	Language         *string // nullable BCP 47 tag; nil = no saved choice (follow the instance default)
 	UpdatedAt        string  // RFC3339 UTC, application-generated in Go
 }
 
@@ -42,12 +43,12 @@ func DefaultUserPreferences() UserPreferences {
 // created account).
 func (s *Store) GetPreferences(ctx context.Context, userID int64) (UserPreferences, error) {
 	var p UserPreferences
-	var accent, surface, css sql.NullString
+	var accent, surface, css, language sql.NullString
 	var cssEnabled int
 	err := s.DB.QueryRowContext(ctx,
-		`SELECT theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, updated_at
+		`SELECT theme_type, preset_id, appearance_mode, custom_accent, custom_surface, custom_css_enabled, custom_css, language, updated_at
 		   FROM user_preferences WHERE user_id = ?`, userID).
-		Scan(&p.ThemeType, &p.PresetID, &p.AppearanceMode, &accent, &surface, &cssEnabled, &css, &p.UpdatedAt)
+		Scan(&p.ThemeType, &p.PresetID, &p.AppearanceMode, &accent, &surface, &cssEnabled, &css, &language, &p.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return DefaultUserPreferences(), nil
 	}
@@ -64,6 +65,9 @@ func (s *Store) GetPreferences(ctx context.Context, userID int64) (UserPreferenc
 	if css.Valid {
 		p.CustomCSS = &css.String
 	}
+	if language.Valid {
+		p.Language = &language.String
+	}
 	p.UpdatedAt = NormalizeTimestamp(p.UpdatedAt)
 	return p, nil
 }
@@ -73,7 +77,9 @@ func (s *Store) GetPreferences(ctx context.Context, userID int64) (UserPreferenc
 // written verbatim, so a caller that wants FR-012 retention must carry the
 // previously stored custom fields into p (the handler does this by reading
 // GetPreferences first and applying only the fields present in the request).
-// Enum validation and CSS sanitization live in the handlers.
+// Enum validation and CSS sanitization live in the handlers. The language
+// column is not written here (SetLanguage owns it), so the stored language
+// survives an upsert; the returned value echoes the caller's p.Language.
 func (s *Store) UpsertPreferences(ctx context.Context, userID int64, p UserPreferences) (UserPreferences, error) {
 	p.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 	cssEnabled := 0
@@ -106,7 +112,8 @@ func (s *Store) UpsertPreferences(ctx context.Context, userID int64, p UserPrefe
 // settings (FR-012): custom_accent, custom_surface and custom_css are nulled,
 // the overlay is disabled and the base mode returns to "preset". presetID
 // and appearanceMode are applied as given — the handler validates the enums
-// and resolves "omit" to the user's current values before calling.
+// and resolves "omit" to the user's current values before calling. The
+// language choice is not a custom setting and is kept (SetLanguage owns it).
 func (s *Store) ResetPreferences(ctx context.Context, userID int64, presetID, appearanceMode string) (UserPreferences, error) {
 	p := UserPreferences{
 		ThemeType:      "preset",
@@ -132,6 +139,26 @@ func (s *Store) ResetPreferences(ctx context.Context, userID int64, presetID, ap
 		return UserPreferences{}, fmt.Errorf("reset preferences: %w", err)
 	}
 	return p, nil
+}
+
+// SetLanguage stores the user's language choice. A nil language clears it
+// back to "no saved choice". A user with no preferences row gets one with the
+// default preferences; an existing row changes only its language and
+// updated_at, so the theme and custom styling are untouched.
+func (s *Store) SetLanguage(ctx context.Context, userID int64, language *string) error {
+	d := DefaultUserPreferences()
+	_, err := s.DB.ExecContext(ctx,
+		`INSERT INTO user_preferences
+		    (user_id, theme_type, preset_id, appearance_mode, custom_css_enabled, language, updated_at)
+		 VALUES (?, ?, ?, ?, 0, ?, ?)
+		 ON CONFLICT (user_id) DO UPDATE SET
+		    language = excluded.language,
+		    updated_at = excluded.updated_at`,
+		userID, d.ThemeType, d.PresetID, d.AppearanceMode, nullableString(language), d.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("set language: %w", err)
+	}
+	return nil
 }
 
 func nullableString(p *string) any {

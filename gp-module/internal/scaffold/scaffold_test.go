@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/archetypes"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/archetypes"
 	"gopkg.in/yaml.v3"
 )
 

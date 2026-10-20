@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/archetypes"
-	"github.com/ValgulNecron/gameplane/gp-module/internal/common"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/archetypes"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/common"
 	"gopkg.in/yaml.v3"
 )
 

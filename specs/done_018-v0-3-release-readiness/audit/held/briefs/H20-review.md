@@ -57,4 +57,4 @@
 
 1. uid 1000 comes from upstream's Dockerfile (`useradd -u 1000 -m steam`). The pinned digest `4d830b...` wasn't pulled. Confirm on one real steamcmd module that `/home/steam/steamcmd` is owned by 1000 in that digest (as the brief also says).
 2. The E2E requires `valReport.Clean` for a default steamcmd scaffold. That wasn't checked by running it (no tests allowed). A static read of the validator rules shows nothing the default preset would trip: the image is digest-pinned, summary and categories are defaulted, and there's no template unknown-field rule. CI's `e2e operator` job confirms it.
-3. There's an optional follow-up: add the `security` block to the `template.yaml` example in `specs/010-easy-module-building/contracts/archetypes-contract.md` section 2.1. There's also a release note for authors of steamcmd modules scaffolded earlier (see brief HELD NOTES).
+3. There's an optional follow-up: add the `security` block to the `template.yaml` example in `specs/done_010-easy-module-building/contracts/archetypes-contract.md` section 2.1. There's also a release note for authors of steamcmd modules scaffolded earlier (see brief HELD NOTES).

@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 func TestWipePreservesForeignJobs(t *testing.T) {
@@ -72,6 +72,7 @@ func TestWipePreservesForeignJobs(t *testing.T) {
 func TestWipeCleanupPreservesJobReplacedDuringDelete(t *testing.T) {
 	scheme := wipeScheme(t)
 	gs := wipeGameServer(false, "")
+	gs.Annotations[wipeGuardAnnotation] = wipeOrphanGuard
 	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-wipe", Namespace: gs.Namespace, UID: "owned-job"}}
 	if err := controllerutil.SetControllerReference(gs, job, scheme); err != nil {
 		t.Fatal(err)

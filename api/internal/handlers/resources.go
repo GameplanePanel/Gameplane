@@ -23,11 +23,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // heartbeatStaleTTL is how long the agent's reported status.agent values
@@ -390,7 +391,7 @@ func deleteHandler(reg *kube.Registry, store *db.Store, gvr schema.GroupVersionR
 				// requests; direct handler fixtures may omit the caller.
 				if u := auth.UserFromContext(req.Context()); u != nil &&
 					!u.Can("*", true, scope.RequestedCluster(req), ns) && !isServerOwner(obj, u.ID) {
-					http.Error(w, "forbidden", http.StatusForbidden)
+					httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 					return
 				}
 				options.Preconditions = objectDeletePreconditions(obj)

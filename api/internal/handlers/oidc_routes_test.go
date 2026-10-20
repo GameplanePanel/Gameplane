@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 )
 
 // minimalIssuer serves just enough OIDC discovery for NewOIDC to build a

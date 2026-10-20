@@ -28,6 +28,8 @@ on:
       - "netguard/**"
       - "gameaction/**"
       - "gameproto/**"
+      - "telemetryschema/**"
+      - "i18n/**"
       - "svcutil/**"
       - "gp-module/**"
       - "audit-syslog-bridge/**"
@@ -43,7 +45,7 @@ on:
       - ".github/workflows/publish-edge.yaml"
       - "hack/ci_scope.py"
       - ".dockerignore"
-      - "cosign.pub"
+      - "signing/cosign.pub"
   workflow_dispatch: {}
 
 permissions:
@@ -144,6 +146,18 @@ jobs:
             VERSION=edge-${{ github.sha }}
           cache-from: type=gha,scope=edge-${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=edge-${{ matrix.component }}
+      # Spec 013 G2: never sign an image that has a fixed HIGH/CRITICAL
+      # vulnerability. Same flags as the `vuln (images)` CI gate.
+      - name: install trivy
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.74.0
+      - name: scan pushed image
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TRIVY_PLATFORMS: linux/amd64,linux/arm64
+        run: ./hack/trivy-scan-images.sh "${IMAGE}@${DIGEST}"
       - name: install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         with:
@@ -198,7 +212,7 @@ jobs:
       # strictly verify the signature just pushed — no --insecure-ignore-tlog, so
       # the Rekor inclusion evidence must be present. A corrupted key or a
       # sign/verify mismatch fails the publish instead of every user's `cosign
-      # verify`. When cosign.pub is committed in the repo it must match the
+      # verify`. When signing/cosign.pub is committed in the repo it must match the
       # derived key — a mismatch means the key was rotated without updating it.
       - name: verify signature & check published key
         env:
@@ -212,8 +226,8 @@ jobs:
           # no --insecure-ignore-tlog, so the Rekor log entry must be present.
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/${{ matrix.component }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the edge tags only now that the digest carries a verified
@@ -252,7 +266,7 @@ jobs:
             fi
           done
       # Surface the verification key (job summary + artifact) so publishing or
-      # rotating the repo's cosign.pub never requires handling the private key
+      # rotating the repo's signing/cosign.pub never requires handling the private key
       # outside CI. One matrix leg is enough — the key is the same for all.
       - name: export public key
         if: matrix.component == 'operator'
@@ -265,7 +279,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: upload public key artifact
         if: matrix.component == 'operator'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cosign-pub
           path: ${{ runner.temp }}/cosign.pub

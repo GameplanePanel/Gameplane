@@ -1,0 +1,2 @@
+features-sync: hack/testdata/check-features-sync/fail/stable-off/FEATURES.md:9: stable row must have default "on"
+features-sync: hack/testdata/check-features-sync/fail/stable-off/features.mdx:19: stable row must have default "on"

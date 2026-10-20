@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // withNetworkCaptureReconciler wires a NetworkCaptureReconciler using the
@@ -35,7 +35,7 @@ func withNetworkCaptureReconciler(stub SidecarCaptureClient) setupReconciler {
 			Scheme:              mgr.GetScheme(),
 			SidecarClient:       stub,
 			CaptureEnabled:      true,
-			CaptureSidecarImage: "ghcr.io/valgulnecron/gameplane/capture-sidecar:test",
+			CaptureSidecarImage: "ghcr.io/gameplanepanel/gameplane/capture-sidecar:test",
 		}).SetupWithManager(mgr)
 	}
 }
@@ -188,7 +188,7 @@ func TestNetworkCapture_PendingToRunningToCompleted(t *testing.T) {
 		t.Fatalf("EphemeralContainers = %d, want 1", len(pod.Spec.EphemeralContainers))
 	}
 	ec := pod.Spec.EphemeralContainers[0]
-	if ec.Image != "ghcr.io/valgulnecron/gameplane/capture-sidecar:test" {
+	if ec.Image != "ghcr.io/gameplanepanel/gameplane/capture-sidecar:test" {
 		t.Errorf("ephemeral container image = %q, want the configured CaptureSidecarImage", ec.Image)
 	}
 	foundVolume := false
@@ -560,11 +560,11 @@ func withGameServerReconcilerCaptureEnabled(t *testing.T, ns string) setupReconc
 			Client:                 mgr.GetClient(),
 			APIReader:              mgr.GetAPIReader(),
 			Scheme:                 mgr.GetScheme(),
-			AgentImage:             "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:             "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentCASecretName:      "agent-ca",
 			AgentCASecretNamespace: ns,
 			CaptureEnabled:         true,
-			CaptureSidecarImage:    "ghcr.io/valgulnecron/gameplane/capture-sidecar:test",
+			CaptureSidecarImage:    "ghcr.io/gameplanepanel/gameplane/capture-sidecar:test",
 		}).SetupWithManager(mgr)
 	}
 }
@@ -637,7 +637,7 @@ func TestGameServerCapture_EnableInjectsEphemeralContainer(t *testing.T) {
 		if ec.Name != captureContainerName {
 			return false, fmt.Sprintf("ephemeral container name = %q, want %q", ec.Name, captureContainerName)
 		}
-		if ec.Image != "ghcr.io/valgulnecron/gameplane/capture-sidecar:test" {
+		if ec.Image != "ghcr.io/gameplanepanel/gameplane/capture-sidecar:test" {
 			return false, fmt.Sprintf("ephemeral container image = %q, want the configured CaptureSidecarImage", ec.Image)
 		}
 		foundVolume := false

@@ -7,13 +7,14 @@
 #   Gameplane version matches the current appVersion from charts/gameplane/Chart.yaml,
 #   or is explicitly marked as an example version or historical reference.
 #
-# Audited Files (18):
+# Audited Files (19):
 #   README.md, docs/architecture.md, docs/contributing.md, docs/dependencies.md,
 #   docs/game-coverage.md, docs/install.md, docs/key-rotation.md,
 #   docs/module-authoring.md, docs/networking.md, docs/notifications.md,
 #   docs/oidc.md, docs/roadmap.md, docs/security.md, docs/tunnels.md,
 #   audit-syslog-bridge/README.md, mcp-server/README.md,
-#   telemetry-receiver/README.md, docs/comparison-sources.md
+#   telemetry-receiver/README.md, docs/comparison-sources.md,
+#   FEATURES.md
 #
 # Allowlist Rules (OD-1, OD-11, OD-14):
 #   A version string v?0\.[0-9]+\.[0-9]+(-(beta|rc)\.[0-9]+)? passes if:
@@ -29,7 +30,7 @@
 #
 # Test overrides:
 #   DOC_VERSIONS_CHART: path to test Chart.yaml (default: charts/gameplane/Chart.yaml)
-#   DOC_VERSIONS_FILES: space-separated list of files to audit (default: 18 files below)
+#   DOC_VERSIONS_FILES: space-separated list of files to audit (default: 19 files below)
 #
 # Exit codes:
 #   0 = all version strings match current appVersion or are allowlisted
@@ -64,7 +65,7 @@ fi
 # We'll accept matches with or without leading 'v'
 current_version_pattern="(v)?${current_version//./\\.}"
 
-# List of 18 audited files
+# List of 19 audited files
 if [[ -n "${DOC_VERSIONS_FILES:-}" ]]; then
     read -r -a audited_files <<< "$DOC_VERSIONS_FILES"
 else
@@ -87,6 +88,7 @@ else
         "mcp-server/README.md"
         "telemetry-receiver/README.md"
         "docs/comparison-sources.md"
+        "FEATURES.md"
     )
 fi
 

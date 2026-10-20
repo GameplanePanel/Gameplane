@@ -2,7 +2,7 @@
 
 - **Date**: 2026-09-24
 - **Reviewer tier**: opus (verification pending)
-- **Checked against**: `docs/install.md`, `docs/networking.md`, `docs/security.md` (the parts that describe chart defaults), the comments in `charts/gameplane/values.yaml` and the templates, `specs/done_006-install-time-config/spec.md` (FR list), `specs/015-top-steam-game-modules/spec.md` (US1), and the code the chart wires up (`api/cmd/main.go`, `operator/cmd/main.go`, `agent/cmd/main.go`, `operator/internal/controller/*`). The chart has no `specs.md` of its own.
+- **Checked against**: `docs/install.md`, `docs/networking.md`, `docs/security.md` (the parts that describe chart defaults), the comments in `charts/gameplane/values.yaml` and the templates, `specs/done_006-install-time-config/spec.md` (FR list), `specs/done_015-top-steam-game-modules/spec.md` (US1), and the code the chart wires up (`api/cmd/main.go`, `operator/cmd/main.go`, `agent/cmd/main.go`, `operator/internal/controller/*`). The chart has no `specs.md` of its own.
 
 ## Scope reviewed
 
@@ -134,7 +134,7 @@ held candidates: 5 (see OD-019)
   1. `modules/` has 30 module directories. The release workflow pushes every one of them to `ghcr.io/<owner>/gameplane-modules` (`.github/workflows/release.yaml:311-313`, `modules/build.sh:206` iterates `"$MODULES_DIR"/*/`).
   2. The default `type: oci` source discovers only the names listed. values.yaml:478-479: "Each name is an OCI repo under url/ above; the operator discovers that module's versions from its tags."
   3. The list has 16 names. It omits `ark-survival-evolved`, `arma-reforger`, `beammp`, `euro-truck-simulator-2`, `farming-simulator-25`, `fivem`, `hell-let-loose`, `left-4-dead-2`, `mount-and-blade-2-bannerlord`, `nuclear-option`, `squad`, `team-fortress-2`, `the-isle` and `tmodloader`.
-- **Expected**: `specs/015-top-steam-game-modules/spec.md:25`: "An administrator selects any game from the top 100 Steam list (such as Team Fortress 2, FiveM, Squad, Farming Simulator 25, Euro Truck Simulator 2, BeamMP, Arma Reforger, or Left 4 Dead 2) via the Gameplane catalog".
+- **Expected**: `specs/done_015-top-steam-game-modules/spec.md:25`: "An administrator selects any game from the top 100 Steam list (such as Team Fortress 2, FiveM, Squad, Farming Simulator 25, Euro Truck Simulator 2, BeamMP, Arma Reforger, or Left 4 Dead 2) via the Gameplane catalog".
 - **Actual**: None of these appear in the default catalog on a default v0.3 install. Admins must add names to `oci.modules` or create a second ModuleSource. This is separate from the tracked git `ref` pin and from README/website counts; the T054 resolution updates doc counts, not this list.
 
 ### C-charts-gameplane-09: install.md's Upgrading section says CRDs are never updated on upgrade and must be applied by hand, contradicting its own CRD-hook section

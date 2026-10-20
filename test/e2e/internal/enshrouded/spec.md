@@ -21,7 +21,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/enshrouded`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/enshrouded`  
 **Dependencies:** stdlib only (Go 1.25+); tested against mornedhels/enshrouded-server:1.7.2
 
 ## Purpose
@@ -66,7 +66,7 @@ The probe imports the shared `protocol/a2s` package (used by several other games
 
 ### Shared protocol families
 
-**`github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/a2sproto`**
+**`github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/a2sproto`**
 
 ```go
 type Info struct {

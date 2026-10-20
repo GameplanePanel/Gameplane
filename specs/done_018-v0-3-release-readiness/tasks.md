@@ -71,7 +71,7 @@ description: "Task list for the v0.3 release readiness audit"
 - [X] T010 (done 2026-09-24: F-014..F-025; none held, since PR #350 fixed the SECURITY_AUDIT.md items) Import every finding in `SECURITY_AUDIT.md` into `audit/findings.md` as `imported:SECURITY_AUDIT.md#<n>`. Then import the spec-derived items:
   - Nuclear Option UDP 7777 not bound (`imported:specs/002-nuclear-option-ip-pool/spec.md`)
   - OIDC Helm role mappings sitting under CHANGELOG "Unreleased" (`imported:specs/012-docs-refresh-and-outreach/OPEN-DECISIONS.md#OD-8`)
-  - each open RCON-protocol question in `specs/015-top-steam-game-modules/OPEN-DECISIONS.md` (Factorio, Project Zomboid, `cli`, `rest`), one finding each
+  - each open RCON-protocol question in `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md` (Factorio, Project Zomboid, `cli`, `rest`), one finding each
 - [X] T011 (done 2026-09-24: F-026..F-030) Seed the drift findings found during planning into `audit/findings.md`, with origin `review:<component>` and the listed severity:
   - (a) `hack/check-doc-versions.sh:19,94,103,151` recognises only `-beta.N` versions, and uses single-digit `[0-9]` where the header comment says `[0-9]+`. S3
   - (b) `docs/install.md` has no rollback procedure. S3

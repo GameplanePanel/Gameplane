@@ -489,7 +489,7 @@ The module is assembled and distributed as an OCI artifact. The `modules/build.s
 ```sh
 oras push \
   --artifact-type application/vnd.gameplane.module.v1+json \
-  ghcr.io/valgulnecron/gameplane-modules/nuclear-option:1.0.0 \
+  ghcr.io/gameplanepanel/gameplane-modules/nuclear-option:1.0.0 \
   module.yaml:application/vnd.gameplane.module.metadata.v1+yaml \
   template.yaml:application/vnd.gameplane.module.template.v1+yaml \
   README.md:application/vnd.gameplane.module.readme.v1+md \
@@ -500,13 +500,13 @@ oras push \
 
 ```bash
 # From the repo root:
-make modules-push REGISTRY=ghcr.io/valgulnecron/gameplane-modules
+make modules-push REGISTRY=ghcr.io/gameplanepanel/gameplane-modules
 
 # Or for a single module:
-modules/build.sh push --registry ghcr.io/valgulnecron/gameplane-modules --name nuclear-option
+modules/build.sh push --registry ghcr.io/gameplanepanel/gameplane-modules --name nuclear-option
 ```
 
-The operator discovers the module via a `ModuleSource` (default: `ghcr.io/valgulnecron/gameplane-modules`) and users install it from the Modules catalog.
+The operator discovers the module via a `ModuleSource` (default: `ghcr.io/gameplanepanel/gameplane-modules`) and users install it from the Modules catalog.
 
 ---
 

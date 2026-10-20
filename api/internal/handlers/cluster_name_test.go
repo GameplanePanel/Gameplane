@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 // clusterName reads the operator-set "general" config; the existing tests

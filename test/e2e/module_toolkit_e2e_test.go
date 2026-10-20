@@ -12,10 +12,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/archetypes"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/packager"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/scaffold"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/validator"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/archetypes"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/packager"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/scaffold"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/validator"
 )
 
 // TestModule_ScaffoldAndPackage validates the entire developer toolkit pipeline:

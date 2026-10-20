@@ -19,11 +19,11 @@ import (
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/gatewayprotocol"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 func gatewayFixture(t *testing.T, endpoint string) (*agentGatewayResolver, *kube.Client, *kube.Client) {
@@ -78,6 +78,37 @@ func TestGatewayURLRejectsNonOrigins(t *testing.T) {
 	}
 }
 
+func TestStandaloneGatewayRejectsUnsafeDestinations(t *testing.T) {
+	for _, endpoint := range []string{"https://127.0.0.1:8443", "https://169.254.169.254", "https://metadata.google.internal", "https://10.1.2.3:8443"} {
+		t.Run(endpoint, func(t *testing.T) {
+			resolver, home, _ := gatewayFixture(t, endpoint)
+			// Select the existing fake Kubernetes registration/secret clients as
+			// standalone management storage, without introducing a network bypass.
+			home.ClusterStore = home.Clusters()
+			home.RemoteAccess, _ = kube.NewRemoteAccessPolicy([]string{"192.168.0.0/16"})
+			if _, _, err := resolver.resolve(t.Context(), "remote", agentTarget{name: "alpha", namespace: "gameplane-games"}); err == nil {
+				t.Fatal("unsafe gateway endpoint was accepted")
+			}
+		})
+	}
+}
+
+func TestCombinedGatewayUsesDestinationGuard(t *testing.T) {
+	for _, endpoint := range []string{"https://127.0.0.1:8443", "https://169.254.169.254", "https://metadata.google.internal"} {
+		resolver, _, _ := gatewayFixture(t, endpoint)
+		if _, _, err := resolver.resolve(t.Context(), "remote", agentTarget{name: "alpha", namespace: "gameplane-games"}); err == nil {
+			t.Fatalf("combined gateway accepted unsafe destination %s", endpoint)
+		}
+	}
+	resolver, _, _ := gatewayFixture(t, "https://10.1.2.3:8443")
+	if _, transport, err := resolver.resolve(t.Context(), "remote", agentTarget{name: "alpha", namespace: "gameplane-games"}); err != nil {
+		t.Fatalf("private workload destination rejected: %v", err)
+	} else if conn, err := transport.http.Transport.(*http.Transport).DialContext(t.Context(), "tcp", "169.254.169.254:443"); err == nil {
+		_ = conn.Close()
+		t.Fatal("combined gateway dial bypassed metadata protection")
+	}
+}
+
 func TestGatewayResolverBindsRemoteUIDAndReadsCredentialsFresh(t *testing.T) {
 	resolver, home, remote := gatewayFixture(t, "https://gateway.test:8443")
 	target := agentTarget{name: "alpha", namespace: "gameplane-games"}
@@ -111,7 +142,7 @@ func TestGatewayResolverBindsRemoteUIDAndReadsCredentialsFresh(t *testing.T) {
 }
 
 func TestGatewayTransportPreservesBoundTargetAndFiltersCredentials(t *testing.T) {
-	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	srv := newGatewayTLSTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		target, path, err := gatewayprotocol.ParsePath(req.URL.Path)
 		if err != nil || target.Cluster != "remote" || target.UID != "remote-uid" || path != "/files/write" {
 			t.Errorf("target = %+v, path = %s, error = %v", target, path, err)

@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/capture-sidecar/internal/capture"
+	"github.com/GameplanePanel/gameplane/capture-sidecar/internal/capture"
 	"github.com/gopacket/gopacket/pcapgo"
 )
 

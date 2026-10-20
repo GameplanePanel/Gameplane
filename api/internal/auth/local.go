@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
 // Local handles local (username/password) authentication.
@@ -105,7 +107,7 @@ type loginResp struct {
 func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if reg != nil && !reg.LocalEnabled(req.Context()) {
-			http.Error(w, "login method disabled", http.StatusForbidden)
+			httperr.WriteCode(w, req, http.StatusForbidden, errors.New("login method disabled"))
 			return
 		}
 		// Enforce JSON content-type — a cross-site form POST can carry
@@ -114,12 +116,12 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		// the CSRF token check on the mutation path.
 		ct := req.Header.Get("Content-Type")
 		if !strings.HasPrefix(ct, "application/json") {
-			http.Error(w, "expected application/json", http.StatusUnsupportedMediaType)
+			httperr.WriteCode(w, req, http.StatusUnsupportedMediaType, errors.New("expected application/json"))
 			return
 		}
 		var body loginReq
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-			http.Error(w, "bad request", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("bad request"))
 			return
 		}
 		// Per-username throttle layered on top of the per-IP LoginLimiter:
@@ -129,7 +131,7 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		// leak existence.
 		if body.Username != "" && !LoginUserLimiter.AllowUser(body.Username) {
 			w.Header().Set("Retry-After", "30")
-			http.Error(w, "too many requests", http.StatusTooManyRequests)
+			httperr.WriteCode(w, req, http.StatusTooManyRequests, errors.New("too many requests"))
 			return
 		}
 		// Every branch below that returns 401 must first spend the argon2
@@ -139,12 +141,12 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		u, hash, err := l.fetchUser(req.Context(), body.Username)
 		if err != nil || hash == "" {
 			VerifyDummy(req.Context(), body.Password)
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.auth.invalid_credentials", nil))
 			return
 		}
 		ok, err := VerifyPassword(req.Context(), body.Password, hash)
 		if err != nil || !ok {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.auth.invalid_credentials", nil))
 			return
 		}
 		perms, err := sessions.LoadPerms(req.Context(), u.ID)

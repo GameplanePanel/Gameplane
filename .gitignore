@@ -25,6 +25,15 @@ web/coverage/
 web/playwright-report/
 web/test-results/
 web/website-screenshots/
+# Generated i18n artifacts (compiled catalogs, extracted messages, language manifest)
+web/src/generated/
+# Registry snapshot written by `make i18n-sync` and consumed by i18n-check
+i18n/.registry.json
+# Condition ids and used-id list written by `make check-i18n` (spec 019)
+i18n/.condition-ids.txt
+i18n/.used-ids.txt
+# Filtered language packs written by i18n-check --valid-out for the dashboard build
+i18n/.valid/
 web/e2e/.portforward.pid
 *.log
 .npmrc.local

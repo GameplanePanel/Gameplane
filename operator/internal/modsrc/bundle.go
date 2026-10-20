@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 	"sigs.k8s.io/yaml"
 )
 
@@ -69,6 +70,18 @@ type Bundle struct {
 	// Currently surfaced via the API by base64-encoding into a data
 	// URI, sized down by the caller.
 	Icon []byte
+
+	// Locales holds the module's translation files, keyed by language tag
+	// (from "locales/<tag>.json" layers). It is nil for bundles that carry
+	// none. The content is unvalidated; the Module reconciler checks it
+	// against the ids derived from the template.
+	Locales map[string][]byte
+
+	// OversizedLocales lists, sorted, the tags whose locale file was larger
+	// than oci.MaxLocaleLayerSize, or did not fit oci.MaxLocaleTotalSize, and
+	// was therefore not read. Locales never
+	// holds them; the reconciler reports them as LocalesTooLarge.
+	OversizedLocales []string
 }
 
 // FromFiles assembles and validates a Bundle from its files, keyed by
@@ -94,6 +107,11 @@ func FromFiles(digest string, files map[string][]byte) (*Bundle, error) {
 	b.TemplateYAML = tmpl
 	b.Readme = files[FileReadme]
 	b.Icon = files[FileIcon]
+	locales, oversized := oci.SplitLocaleLayers(files)
+	if len(locales) > 0 {
+		b.Locales = locales
+	}
+	b.OversizedLocales = oversized
 	return b, nil
 }
 

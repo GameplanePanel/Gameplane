@@ -102,7 +102,10 @@ TestAddressPool_ChangePoolOnRunningServer
 TestAddressPool_RESTAPICarriesPool
 TestAddressPool_StatusVisibleInAddressAssignmentCondition
 TestAddressPool_ExplicitAddressRequest
+TestAddressPool_AddressInUseConflict
+TestAddressPool_PoolExhausted
 TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions
+TestE2E_ResticRepoReady
 EOF
 }
 
@@ -121,8 +124,12 @@ TestAPI_PasswordResetInvalidatesSession
 TestAPI_OIDCHelmSeeded_AdminOnFirstLogin
 TestAPI_OIDCHelmSeeded_DefaultRoleOnNoMapping
 TestAPI_OIDCHelmSeeded_RoleReevaluatedOnGroupChange
+TestAPI_I18n_AuthLocale
 EOF
 }
+
+# TestAPI_I18n_AuthLocale (spec 019, T036) reads the pre-auth GET /auth/locale
+# on a fresh install. It never logs in, so it spends no admin-login budget.
 
 # The three TestAPI_OIDCHelmSeeded_* tests above spend 0 of this bucket's
 # admin-login budget: they authenticate entirely as OIDC users against a
@@ -276,9 +283,9 @@ EOF
 #   TestGameServer_EuroTruckSimulator2Bot_Query: 5Gi storage + SteamCMD download (exceeds runner disk)
 #   TestGameServer_FarmingSimulator25Bot_Query: 20Gi storage + Wine/Xvfb overhead (exceeds runner disk)
 #   TestGameServer_FiveMBot_Query: 10Gi storage + embedded txAdmin database (exceeds runner disk)
-#   TestGameServer_HellLetLooseBot_Query: 30Gi storage + SteamCMD download (exceeds runner disk)
 #   TestGameServer_Left4Dead2Bot_Query: 15Gi storage + SteamCMD download (exceeds runner disk)
 #   TestGameServer_MountAndBlade2BannerlordBot_Query: 15Gi storage + SteamCMD download (exceeds runner disk)
+#   TestGameServer_NuclearOptionBot_Query: 8Gi memory requests (16Gi limits) + SteamCMD download
 #   TestGameServer_SquadBot_Query: 40Gi storage + SteamCMD download (exceeds runner disk)
 #   TestGameServer_TeamFortress2Bot_Query: 15Gi storage + SteamCMD download (exceeds runner disk)
 #   TestGameServer_TheIsleBot_Query: 20Gi storage + UE4 + SteamCMD download (exceeds runner disk)
@@ -299,9 +306,9 @@ TestGameServer_FactorioBot_Query
 TestGameServer_FarmingSimulator25Bot_Query
 TestGameServer_FiveMBot_Query
 TestGameServer_FiveM_Persistence
-TestGameServer_HellLetLooseBot_Query
 TestGameServer_Left4Dead2Bot_Query
 TestGameServer_MountAndBlade2BannerlordBot_Query
+TestGameServer_NuclearOptionBot_Query
 TestGameServer_PalworldBot_Query
 TestGameServer_ProjectZomboidBot_Query
 TestGameServer_RustBot_Query
@@ -324,15 +331,21 @@ EOF
 # multicluster_e2e_test.go's package doc. Its own dedicated CI job
 # (e2e-multicluster) brings up both clusters before running it.
 #
-# TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision and
-# TestAPI_ModuleUpload_ExtractionStaysWithinBudget live here for the login
-# budget, not by subject: api-mods is at its ~7 e2e-admin-login ceiling. Each
-# costs +1 e2e-admin login (account removal also uses fake-OIDC sign-ins,
-# which every e2e.sh cluster deploys), bringing this job to 3; both run
-# against the primary cluster.
+# TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision,
+# TestAPI_ModuleUpload_ExtractionStaysWithinBudget, TestAPI_I18n_ProblemJSON
+# and TestAPI_I18n_ModuleLocales live here for the login budget, not by
+# subject: api-mods is at its ~7 e2e-admin-login ceiling. Each costs +1
+# e2e-admin login (account removal also uses fake-OIDC sign-ins, which every
+# e2e.sh cluster deploys), and TestAPI_I18n_ProblemJSON costs one admin login,
+# one viewer login and one failed-login pair, bringing this job to 5 admin
+# logins (ceiling ~7). All run against the primary cluster. api-auth,
+# api-roles, api-mods, api-rbac and api-agent are at their ceilings (see their
+# comments); do not add to them.
 bucket_multicluster() { cat <<'EOF'
 TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision
 TestAPI_ModuleUpload_ExtractionStaysWithinBudget
+TestAPI_I18n_ProblemJSON
+TestAPI_I18n_ModuleLocales
 TestMultiCluster_ClusterDispatchAndScopedRBAC
 TestMultiCluster_GatewayParity
 EOF
@@ -348,13 +361,41 @@ TestUpgrade_FromPreviousRelease
 EOF
 }
 
+# One sequential lifecycle test that runs `helm upgrade --reuse-values` (1m
+# report interval, dashboard token, public summary, no per-source ingest
+# limit) on its own bucket cluster, so it must not share a cluster with other
+# tests. It makes ONE admin login (budget: 2 or fewer). Spec 022 research R17.
+bucket_telemetry() { cat <<'EOF'
+TestTelemetryLifecycle
+EOF
+}
+
+# optional-components owns its cluster: TestOptionalComponents_Lifecycle runs
+# `helm upgrade --reuse-values` to enable the MCP server and the audit-syslog
+# bridge, so it is the bucket's only test. Login budget: 2 (one admin, one
+# restricted user).
+bucket_optional_components() { cat <<'EOF'
+TestOptionalComponents_Lifecycle
+EOF
+}
+
+# capture-overhead is kept OUT of bot-fast on purpose: bot-fast's matrix legs
+# are blocking, while this bucket feeds the non-blocking e2e-capture-overhead
+# job (continue-on-error, never blocks a merge — spec 007 OD-1) and runs only
+# on master pushes or PRs that touch the capture path or the probe (OD-2). It
+# is a gross-regression guard, not SC-002 certification.
+bucket_capture_overhead() { cat <<'EOF'
+TestGameServer_CaptureOverhead_Joined
+EOF
+}
+
 # Tests that exist in the suite but deliberately run in NO bucket. Every
 # entry needs a reason; `verify` fails on any unlisted stray so additions
 # here are a conscious, reviewed act. Currently empty.
 unbucketed() { :; }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead optional-components
 }
 
 list_bucket() {
@@ -370,6 +411,9 @@ list_bucket() {
 	bot-heavy) bucket_bot_heavy ;;
 	multicluster) bucket_multicluster ;;
 	upgrade) bucket_upgrade ;;
+	telemetry) bucket_telemetry ;;
+	capture-overhead) bucket_capture_overhead ;;
+	optional-components) bucket_optional_components ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
 		exit 2

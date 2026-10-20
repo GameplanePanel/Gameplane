@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // rconAuthMountPath is where the resolved RCON password is mounted into
@@ -49,7 +49,16 @@ func resolveRCON(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameT
 	} else {
 		r.port = 25575
 	}
-	// Precedence: PasswordSecretRef > PasswordFile > operator-generated Secret
+	// Precedence: authentication=false > PasswordSecretRef > PasswordFile > operator-generated Secret
+	if !tmpl.Spec.RCON.AuthenticationEnabled() {
+		// The console has no authentication (e.g. Nuclear Option's loopback-only
+		// remote-command port): no Secret is minted, nothing is mounted for the
+		// agent, and no password env var is injected into the game container.
+		r.secretName = ""
+		r.secretKey = ""
+		r.passwordEnv = ""
+		return r
+	}
 	if ref := tmpl.Spec.RCON.PasswordSecretRef; ref != nil {
 		r.secretName = ref.Name
 		r.secretKey = ref.Key

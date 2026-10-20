@@ -1,0 +1,511 @@
+{
+  "type": "frame",
+  "id": "ZU1BG",
+  "x": 6560,
+  "y": 21112,
+  "name": "Create Server — Step 4 Network · Tunnel enabled, provider selected",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1170,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "bQ3do",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "I4WNc",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "e7XAim",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "TopBar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "New"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "c2jmBo",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 0,
+      "name": "ModalContainer",
+      "width": 1440,
+      "height": 1170,
+      "fill": "#000000B3",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Y8KXTH",
+          "name": "Modal",
+          "clip": true,
+          "width": 960,
+          "height": 1070,
+          "fill": "$surface/surface",
+          "cornerRadius": 12,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#00000080",
+            "offset": {
+              "x": 0,
+              "y": 24
+            },
+            "blur": 60
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "QP02z",
+              "type": "ref",
+              "ref": "opmcF",
+              "name": "Header",
+              "width": "fill_container",
+              "descendants": {
+                "gcM6g": {
+                  "content": "Step 4 of 5 · Network"
+                }
+              }
+            },
+            {
+              "id": "HisYn",
+              "type": "ref",
+              "ref": "oROhg",
+              "name": "Stepper",
+              "width": "fill_container",
+              "descendants": {
+                "F3Au7j": {
+                  "fill": "$success/soft",
+                  "stroke": "$success/success",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "BIQca",
+                      "name": "CheckIcon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "$success/soft-foreground"
+                    }
+                  ]
+                },
+                "bSERJ": {
+                  "fill": "$muted",
+                  "fontWeight": "normal"
+                },
+                "xpeFZ": {
+                  "fill": "$success/soft",
+                  "stroke": "$success/success",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Mboeo",
+                      "name": "CheckIcon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "$success/soft-foreground"
+                    }
+                  ]
+                },
+                "xzVlE": {
+                  "fill": "$success/soft",
+                  "stroke": "$success/success",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "gMn6W",
+                      "name": "CheckIcon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "$success/soft-foreground"
+                    }
+                  ]
+                },
+                "MntgG": {
+                  "fill": "$accent/soft",
+                  "stroke": "$accent/accent"
+                },
+                "AWo7q": {
+                  "fill": "$accent/accent"
+                },
+                "z2BJtl": {
+                  "fill": "$foreground/foreground",
+                  "fontWeight": "500"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "WCTaA",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "nkbZj",
+                  "name": "StepBody",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "id": "v9nRu8",
+                      "type": "ref",
+                      "ref": "P6el1o",
+                      "name": "Expose",
+                      "width": "fill_container"
+                    },
+                    {
+                      "id": "ueQDV",
+                      "type": "ref",
+                      "ref": "aOvvm",
+                      "name": "Checkbox Enable Tunnel",
+                      "descendants": {
+                        "rKaQI": {
+                          "content": "Enable tunnel"
+                        }
+                      }
+                    },
+                    {
+                      "id": "L3AQuf",
+                      "type": "ref",
+                      "ref": "mhMaM",
+                      "name": "Field Hostname",
+                      "width": "fill_container",
+                      "descendants": {
+                        "peFYu": {
+                          "content": "Hostname (optional)",
+                          "fill": "$muted",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "RflGC": {
+                          "fill": "$surface/secondary",
+                          "stroke": "$border/border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "height": 36
+                        },
+                        "O0VQ2": {
+                          "content": "mc.example.dev",
+                          "fill": "$field/placeholder"
+                        },
+                        "kl54d": {
+                          "opacity": 0,
+                          "height": 0
+                        }
+                      }
+                    },
+                    {
+                      "id": "HusIK",
+                      "type": "ref",
+                      "ref": "BHT29",
+                      "name": "PortOverrides",
+                      "width": "fill_container"
+                    },
+                    {
+                      "id": "V5Bj9t",
+                      "type": "ref",
+                      "ref": "LCQU3",
+                      "name": "Field IP allow-list",
+                      "width": "fill_container",
+                      "descendants": {
+                        "it5w4": {
+                          "content": "IP allow-list (CIDRs, optional)",
+                          "fill": "$muted",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "DzfNP": {
+                          "fill": "$surface/secondary",
+                          "stroke": "$border/border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "height": 72
+                        },
+                        "usWsj": {
+                          "content": "203.0.113.0/24\n10.0.0.0/8",
+                          "fill": "$field/placeholder",
+                          "fontFamily": "$typography/font-mono",
+                          "lineHeight": 1.4
+                        },
+                        "Z9i98U": {
+                          "opacity": 0,
+                          "height": 0
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "BYTNK",
+                      "name": "LoadBalancerAddress",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "B5bZmn",
+                          "name": "Label",
+                          "fill": "$muted",
+                          "content": "Load balancer address (optional)",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "O8IY1a",
+                          "name": "ColHeader",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WjwoU",
+                              "name": "Col",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Address pool",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "QBw0A",
+                              "name": "Col",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Requested address",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "scufD",
+                          "name": "Row",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "N82BwR",
+                              "type": "ref",
+                              "ref": "aRqX6",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "descendants": {
+                                "ANxU1": {
+                                  "opacity": 0,
+                                  "height": 0
+                                },
+                                "K5pqlT": {
+                                  "height": 36
+                                },
+                                "hokJ3": {
+                                  "content": "pool-us-west",
+                                  "fill": "$field/placeholder"
+                                },
+                                "OiyAM": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "aWg3u",
+                              "type": "ref",
+                              "ref": "aRqX6",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "descendants": {
+                                "ANxU1": {
+                                  "opacity": 0,
+                                  "height": 0
+                                },
+                                "K5pqlT": {
+                                  "height": 36
+                                },
+                                "hokJ3": {
+                                  "content": "203.0.113.50",
+                                  "fill": "$field/placeholder"
+                                },
+                                "OiyAM": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "G7wgoS",
+                          "name": "Helper",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Name of a load-balancer address pool configured by your cluster admin, plus an optional specific address to request. Applies only when Expose is set to LoadBalancer — ignored otherwise.",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "GVrYq",
+                          "type": "ref",
+                          "ref": "Llzos",
+                          "name": "Alert Address preference ignored",
+                          "width": "fill_container",
+                          "fill": "$warning/soft",
+                          "stroke": "$warning/soft-foreground",
+                          "strokeWidth": 1,
+                          "cornerRadius": 8,
+                          "padding": [
+                            16,
+                            20
+                          ],
+                          "descendants": {
+                            "sINBP": {
+                              "icon": "megaphone"
+                            },
+                            "BXuYr": {
+                              "content": "Address preference ignored"
+                            },
+                            "JmFhb": {
+                              "content": "Expose is set to NodePort. Address pool and requested address only take effect when Expose (above) is set to LoadBalancer."
+                            },
+                            "c0FRXZ": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "zrQdI",
+                          "type": "ref",
+                          "ref": "Llzos",
+                          "name": "Alert No address manager configured",
+                          "width": "fill_container",
+                          "fill": "$warning/soft",
+                          "stroke": "$warning/soft-foreground",
+                          "strokeWidth": 1,
+                          "cornerRadius": 8,
+                          "padding": [
+                            16,
+                            20
+                          ],
+                          "descendants": {
+                            "sINBP": {
+                              "icon": "megaphone"
+                            },
+                            "BXuYr": {
+                              "content": "No address manager configured"
+                            },
+                            "JmFhb": {
+                              "content": "This cluster has no MetalLB or Cilium address manager. Your pool and address preference will be saved but never applied."
+                            },
+                            "c0FRXZ": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "pnrgN",
+                  "type": "ref",
+                  "ref": "E9qpx",
+                  "name": "Preview",
+                  "height": "fill_container"
+                }
+              ]
+            },
+            {
+              "id": "D2Lejv",
+              "type": "ref",
+              "ref": "IoDHI",
+              "name": "Footer",
+              "width": "fill_container",
+              "descendants": {
+                "q4aClI": {
+                  "name": "BackBtn"
+                },
+                "q4aClI/bevQZ": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "q4aClI/ezEy1": {
+                  "content": "Back"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

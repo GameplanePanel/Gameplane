@@ -50,7 +50,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/ValgulNecron/gameplane/netguard"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 const (

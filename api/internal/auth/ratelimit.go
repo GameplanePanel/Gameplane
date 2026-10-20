@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net"
 	"net/http"
 	"strconv"
@@ -8,6 +9,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
 // TokenBucket is a minimal per-key rate limiter: each key has a bucket
@@ -98,7 +102,7 @@ func (t *TokenBucket) Middleware(next http.Handler) http.Handler {
 		}
 		if !t.Allow(clientIP) {
 			w.Header().Set("Retry-After", "30")
-			http.Error(w, "too many requests", http.StatusTooManyRequests)
+			httperr.WriteCode(w, req, http.StatusTooManyRequests, errors.New("too many requests"))
 			return
 		}
 		next.ServeHTTP(w, req)
@@ -144,12 +148,12 @@ func (t *TokenBucket) UserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		u := UserFromContext(req.Context())
 		if u == nil {
-			http.Error(w, "unauthenticated", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
 		if !t.AllowUser(strconv.FormatInt(u.ID, 10)) {
 			w.Header().Set("Retry-After", "1")
-			http.Error(w, "too many requests", http.StatusTooManyRequests)
+			httperr.WriteMessage(w, req, messages.New("server.common.too_many_requests", nil))
 			return
 		}
 		next.ServeHTTP(w, req)

@@ -8,7 +8,16 @@ central API still connects directly to each Kubernetes API for resource changes,
 pod logs, PTY attach, and stdin module actions. The gateway does not provide a
 Kubernetes tunnel, replicate storage, or run a second user database.
 
-## Register the gateway in the central cluster
+## Register the gateway with the central API
+
+In either installation mode, register the workload cluster through
+**Clusters → Register cluster** or `POST /clusters`. Set its gateway URL and mTLS
+credentials with `PUT /clusters/{name}/gateway`; the
+[standalone guide](standalone-panel.md#configure-remote-agent-access) shows the
+request. Standalone panels encrypt those credentials in SQL and have no central
+Kubernetes Secret or `Cluster` resource to apply.
+
+The Kubernetes manifests below are an alternative for combined installations.
 
 Install the updated operator, UID-aware agents and [optional gateway](gateway-install.md) in each game
 cluster. The gateway must have an HTTPS certificate valid for its configured URL
@@ -55,10 +64,10 @@ spec:
 The registration name must match the gateway's configured cluster ID. The URL is
 an HTTPS origin with no userinfo, path, query or fragment. Credentials are read
 only from the central API namespace and must carry the label above. Register the
-cluster through the central registration API or its `Cluster` resource, and
-configure the optional gateway field through Kubernetes. The dashboard's
-**Clusters** overview selects existing registrations; enrollment remains an
-operator-managed step.
+cluster through the dashboard, central registration API, or its `Cluster`
+resource in combined mode. Configure gateway credentials through the API above
+or these manifests. The dashboard's registration form accepts the kubeconfig;
+gateway credentials use the API or the combined installation's Kubernetes tools.
 
 ## Routing and identity
 
@@ -89,8 +98,8 @@ attach does not support atomic UID preconditions, so this is a preflight check.
 
 ## Failure and rotation behavior
 
-The central API reads the Cluster and credential Secret for every new gateway
-operation. Missing, deleted, unlabeled or malformed credentials fail closed;
+The central API reads the registration and credential from its management store
+for every new gateway operation. Missing, deleted, unlabeled or malformed credentials fail closed;
 there is no fallback to a local namesake. Removing the optional gateway reference
 removes new interactive access without removing Kubernetes management. Redirects
 are not followed and writes are not automatically retried after an ambiguous

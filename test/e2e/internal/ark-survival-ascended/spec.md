@@ -21,7 +21,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/ark-survival-ascended`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/ark-survival-ascended`  
 **Dependencies:** stdlib only (Go 1.25+); tested against mschnitzer/asa-linux-server:1.5.1
 
 ## Purpose

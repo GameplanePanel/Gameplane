@@ -1,3 +1,4 @@
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if .Values.networkPolicies.enabled }}
 # Default-deny ingress in the games namespace. Individual GameServers
 # open only the ports declared in their template (and whatever the
@@ -382,4 +383,6 @@ spec:
       # All ports; allow-sentinel-to-game above (the matching ingress half)
       # and the per-server ingress policy cover which ports are actually
       # advertised for each server.
+{{- end }}
+
 {{- end }}

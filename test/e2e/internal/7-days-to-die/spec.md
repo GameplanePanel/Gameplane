@@ -21,7 +21,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/7-days-to-die`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/7-days-to-die`  
 **Dependencies:** stdlib + shared protocol family `a2s` (Go 1.25+); tested against vinanrra/7dtd-server:v0.9.3 (UNMEASURED against a real server — see "Measured connectivity")
 
 ## Purpose
@@ -67,7 +67,7 @@ The probe imports the shared `a2s` protocol family from `test/e2e/internal/proto
 
 ### Shared protocol families
 
-**`github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/a2sproto`**
+**`github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/a2sproto`**
 
 ```go
 type Info struct {

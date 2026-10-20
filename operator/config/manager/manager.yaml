@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: manager
-          image: ghcr.io/valgulnecron/gameplane/operator:dev
+          image: ghcr.io/gameplanepanel/gameplane/operator:dev
           args:
             - "--leader-elect"
             - "--health-probe-bind-address=:8081"

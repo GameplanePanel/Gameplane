@@ -460,7 +460,9 @@ describe("SharePage", () => {
     });
 
     it("T184: waits five seconds between successful resolve requests", async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
+      // Pure fake timers, advanced with the async API: shouldAdvanceTime
+      // plus waitFor raced real time and timed out on busy CI runners.
+      vi.useFakeTimers();
 
       vi.mocked(Shares.resolve).mockResolvedValue({
         serverName: "mc-survival",
@@ -469,25 +471,22 @@ describe("SharePage", () => {
 
       renderWithRouter("test-token");
 
-      await waitFor(() => {
-        expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
-      });
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
 
       // First call on mount
       expect(vi.mocked(Shares.resolve)).toHaveBeenCalledTimes(1);
 
       // Advance time
-      vi.advanceTimersByTime(5000);
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
 
-      await waitFor(() => {
-        expect(vi.mocked(Shares.resolve)).toHaveBeenCalledTimes(2);
-      });
+      expect(vi.mocked(Shares.resolve)).toHaveBeenCalledTimes(2);
 
       vi.useRealTimers();
     });
 
     it("T184: transitions to Up when server is Running", async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
+      vi.useFakeTimers();
 
       vi.mocked(Shares.resolve)
         .mockResolvedValueOnce({
@@ -502,16 +501,13 @@ describe("SharePage", () => {
 
       renderWithRouter("test-token");
 
-      await waitFor(() => {
-        expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
-      });
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      expect(screen.getByText(/The server is starting up/)).toBeInTheDocument();
 
-      vi.advanceTimersByTime(5000);
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
 
-      await waitFor(() => {
-        expect(screen.getByText("Online")).toBeInTheDocument();
-        expect(screen.getByText("play.gameplane.example:25565")).toBeInTheDocument();
-      });
+      expect(screen.getByText("Online")).toBeInTheDocument();
+      expect(screen.getByText("play.gameplane.example:25565")).toBeInTheDocument();
 
       vi.useRealTimers();
     });

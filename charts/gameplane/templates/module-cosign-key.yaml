@@ -1,3 +1,4 @@
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if and .Values.defaultModuleSource.enabled (eq (.Values.defaultModuleSource.type | default "oci") "oci") .Values.defaultModuleSource.oci.verify.enabled }}
 {{- if not .Values.defaultModuleSource.oci.verify.cosignPublicKey }}
 {{- fail "defaultModuleSource.oci.verify.enabled is true but defaultModuleSource.oci.verify.cosignPublicKey is empty — provide the signing public key (PEM)" }}
@@ -16,4 +17,6 @@ metadata:
 type: Opaque
 data:
   cosign.pub: {{ .Values.defaultModuleSource.oci.verify.cosignPublicKey | b64enc }}
+{{- end }}
+
 {{- end }}

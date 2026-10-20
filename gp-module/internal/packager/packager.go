@@ -10,8 +10,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
+	"github.com/GameplanePanel/gameplane/i18n/pack"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,6 +24,7 @@ const (
 	MediaTemplate = "application/vnd.gameplane.module.template.v1+yaml"
 	MediaReadme   = "application/vnd.gameplane.module.readme.v1+md"
 	MediaIcon     = "image/png"
+	MediaLocale   = "application/vnd.gameplane.module.locale.v1+json"
 
 	DefaultMaxIconSize   = 512 * 1024  // 512 KiB
 	DefaultMaxBundleSize = 1024 * 1024 // 1 MiB
@@ -143,11 +146,17 @@ func CreateArchiveFromFiles(files map[string][]byte, limits PackageLimits) ([]by
 		}
 	}
 
-	for name, data := range files {
+	// Remaining files go out in sorted order so the archive is reproducible.
+	rest := make([]string, 0, len(files))
+	for name := range files {
 		if !written[name] {
-			if err := writeFile(name, data); err != nil {
-				return nil, nil, fmt.Errorf("failed to write %s to tar: %w", name, err)
-			}
+			rest = append(rest, name)
+		}
+	}
+	sort.Strings(rest)
+	for _, name := range rest {
+		if err := writeFile(name, files[name]); err != nil {
+			return nil, nil, fmt.Errorf("failed to write %s to tar: %w", name, err)
 		}
 	}
 
@@ -166,6 +175,15 @@ func CreateArchiveFromDir(dirPath string, limits PackageLimits) ([]byte, []Packa
 	files, err := ReadModuleFiles(dirPath)
 	if err != nil {
 		return nil, nil, err
+	}
+	// Translations travel in the archive at the same relative path an OCI
+	// bundle uses as layer title: locales/<tag>.json (en.json is not shipped).
+	locales, err := ReadLocaleFiles(dirPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	for name, data := range locales {
+		files[name] = data
 	}
 	return CreateArchiveFromFiles(files, limits)
 }
@@ -223,6 +241,62 @@ func ReadModuleFiles(dirPath string) (map[string][]byte, error) {
 	return files, nil
 }
 
+// ReadLocaleFiles reads the translation files of a module directory. Keys are
+// "locales/<tag>.json"; the English reference en.json is not shipped, and
+// non-JSON files are ignored. A missing locales directory yields an empty map.
+// Symbolic links and files whose name is not a valid language tag are errors.
+func ReadLocaleFiles(dirPath string) (map[string][]byte, error) {
+	dir := filepath.Join(dirPath, "locales")
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return map[string][]byte{}, nil
+		}
+		return nil, fmt.Errorf("failed to read locales directory %s: %w", dir, err)
+	}
+	out := make(map[string][]byte)
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".json") {
+			continue
+		}
+		if entry.Type()&os.ModeSymlink != 0 {
+			return nil, fmt.Errorf("symbolic link not allowed in locales directory: %s", name)
+		}
+		if !entry.Type().IsRegular() {
+			continue
+		}
+		tag := strings.TrimSuffix(name, ".json")
+		if tag == "en" {
+			continue
+		}
+		if !pack.ValidTag(tag) {
+			return nil, fmt.Errorf("locales/%s: %q is not a valid language tag", name, tag)
+		}
+		data, err := os.ReadFile(filepath.Clean(filepath.Join(dir, name)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to read locales/%s: %w", name, err)
+		}
+		out["locales/"+name] = data
+	}
+	return out, nil
+}
+
+// localeLayerArgs returns the oras layer arguments for locale files in a
+// deterministic (sorted) order. Each layer is titled with its relative path.
+func localeLayerArgs(locales map[string][]byte) []string {
+	names := make([]string, 0, len(locales))
+	for name := range locales {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	args := make([]string, 0, len(names))
+	for _, name := range names {
+		args = append(args, fmt.Sprintf("%s:%s", name, MediaLocale))
+	}
+	return args
+}
+
 // PushOCI packages and pushes a module directory to an OCI registry using ORAS.
 func PushOCI(opts PackageOptions) ([]PackageWarning, error) {
 	files, err := ReadModuleFiles(opts.ModuleDir)
@@ -238,9 +312,17 @@ func PushOCI(opts PackageOptions) ([]PackageWarning, error) {
 		}
 	}
 
+	locales, err := ReadLocaleFiles(opts.ModuleDir)
+	if err != nil {
+		return nil, err
+	}
+
 	// Size checks
 	var warnings []PackageWarning
 	var totalSize int64
+	for _, content := range locales {
+		totalSize += int64(len(content))
+	}
 	for name, content := range files {
 		size := int64(len(content))
 		totalSize += size
@@ -304,6 +386,7 @@ func PushOCI(opts PackageOptions) ([]PackageWarning, error) {
 	if _, ok := files["icon.png"]; ok {
 		layerArgs = append(layerArgs, fmt.Sprintf("icon.png:%s", MediaIcon))
 	}
+	layerArgs = append(layerArgs, localeLayerArgs(locales)...)
 	cmdArgs = append(cmdArgs, layerArgs...)
 
 	cmd := exec.CommandContext(context.Background(), "oras", cmdArgs...)

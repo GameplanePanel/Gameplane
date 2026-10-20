@@ -24,29 +24,23 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
     -ldflags="-s -w -X main.Version=${VERSION}" \
     -o /out/tunnel .
 
-# Build stage to download and verify frp binary
-FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS frp-stage
-ARG FRP_VERSION=0.70.1
+# Build frpc from source instead of using the upstream release binary: the
+# release binaries ship an older Go toolchain, golang.org/x/net and
+# golang.org/x/crypto with fixed HIGH CVEs that the image scan rejects
+# (spec 013 G2, T031). tunnel/frpc/go.mod pins frp and the newer x/net and
+# x/crypto; go.sum makes the download checksum-verified. The noweb tag leaves
+# out frpc's admin web UI, which the supervisor never enables (it runs frpc
+# with only a rendered config file).
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS frp-stage
+WORKDIR /src/frpc
+COPY tunnel/frpc/go.mod tunnel/frpc/go.sum ./
+RUN go mod download
 ARG TARGETARCH
-ARG FRP_SHA256_amd64=333da23d1b9009d7c01638e9ba38cf4600f7d37d393f854e96ee1396adefa9a6
-ARG FRP_SHA256_arm64=3990f396a9a490ee7f0e5f355287750ed41520064ed999eab443b5e9a78d773d
-
-RUN apk add --no-cache curl tar
-WORKDIR /tmp
-RUN mkdir -p /out && \
-    if [ "$TARGETARCH" = "arm64" ]; then \
-      FRP_ARCH="arm64"; \
-      FRP_SHA256="$FRP_SHA256_arm64"; \
-    else \
-      FRP_ARCH="amd64"; \
-      FRP_SHA256="$FRP_SHA256_amd64"; \
-    fi && \
-    curl -fsSL "https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_${FRP_ARCH}.tar.gz" \
-    -o frp.tar.gz && \
-    echo "${FRP_SHA256}  frp.tar.gz" | sha256sum -c - && \
-    tar xzf frp.tar.gz && \
-    mv "frp_${FRP_VERSION}_linux_${FRP_ARCH}/frpc" /out/frpc && \
-    chmod +x /out/frpc
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GOFLAGS=-mod=readonly go build \
+    -trimpath \
+    -ldflags="-s -w" \
+    -tags frpc,noweb \
+    -o /out/frpc github.com/fatedier/frp/cmd/frpc
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /

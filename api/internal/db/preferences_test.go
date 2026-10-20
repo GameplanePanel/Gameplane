@@ -93,6 +93,12 @@ func TestUserThemePreferencesMigration(t *testing.T) {
 		t.Error("index idx_user_preferences_user missing after migration 011")
 	}
 
+	// Apply the remaining migrations so GetPreferences sees the columns
+	// later migrations add (016 adds language).
+	if err := s.Migrate(ctx); err != nil {
+		t.Fatalf("apply remaining migrations: %v", err)
+	}
+
 	// A user created after the migration has no row; GetPreferences must
 	// return the pink defaults.
 	post := insertTestUser(t, s, "post-migration")
@@ -377,5 +383,143 @@ func TestUserPreferences_ResetWithoutRow(t *testing.T) {
 	}
 	if stored.PresetID != "pink" || stored.CustomAccent != nil {
 		t.Errorf("stored = %+v, want pink with nil customs", stored)
+	}
+}
+
+// strPtr returns a pointer to s, for the nullable language field in tests.
+func strPtr(s string) *string { return &s }
+
+// TestUserPreferences_SetLanguageRoundTrip checks that SetLanguage stores a
+// tag that GetPreferences returns, and that a nil language clears it.
+func TestUserPreferences_SetLanguageRoundTrip(t *testing.T) {
+	s := newShareLinksStore(t)
+	ctx := context.Background()
+	userID := insertTestUser(t, s, "lang-roundtrip")
+
+	if err := s.SetLanguage(ctx, userID, strPtr("de")); err != nil {
+		t.Fatalf("set language: %v", err)
+	}
+	prefs, err := s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if prefs.Language == nil || *prefs.Language != "de" {
+		t.Fatalf("Language = %v, want de", prefs.Language)
+	}
+
+	if err := s.SetLanguage(ctx, userID, nil); err != nil {
+		t.Fatalf("clear language: %v", err)
+	}
+	prefs, err = s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get after clear: %v", err)
+	}
+	if prefs.Language != nil {
+		t.Fatalf("Language = %q after clear, want nil", *prefs.Language)
+	}
+}
+
+// TestUserPreferences_UpsertKeepsLanguage checks that a theme save does not
+// touch the saved language, and that the returned value echoes the caller's
+// Language (the handler passes in the stored row it read first).
+func TestUserPreferences_UpsertKeepsLanguage(t *testing.T) {
+	s := newShareLinksStore(t)
+	ctx := context.Background()
+	userID := insertTestUser(t, s, "lang-upsert")
+
+	if err := s.SetLanguage(ctx, userID, strPtr("fr")); err != nil {
+		t.Fatalf("set language: %v", err)
+	}
+	stored, err := s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	stored.AppearanceMode = "dark"
+	saved, err := s.UpsertPreferences(ctx, userID, stored)
+	if err != nil {
+		t.Fatalf("upsert: %v", err)
+	}
+	if saved.Language == nil || *saved.Language != "fr" {
+		t.Fatalf("returned Language = %v, want fr", saved.Language)
+	}
+
+	prefs, err := s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get after upsert: %v", err)
+	}
+	if prefs.AppearanceMode != "dark" {
+		t.Fatalf("AppearanceMode = %q, want dark", prefs.AppearanceMode)
+	}
+	if prefs.Language == nil || *prefs.Language != "fr" {
+		t.Fatalf("stored Language = %v after upsert, want fr", prefs.Language)
+	}
+}
+
+// TestUserPreferences_UpsertNewRowLanguageNil checks that an upsert creating a
+// new row leaves the language NULL.
+func TestUserPreferences_UpsertNewRowLanguageNil(t *testing.T) {
+	s := newShareLinksStore(t)
+	ctx := context.Background()
+	userID := insertTestUser(t, s, "lang-upsert-new")
+
+	if _, err := s.UpsertPreferences(ctx, userID, DefaultUserPreferences()); err != nil {
+		t.Fatalf("upsert: %v", err)
+	}
+	prefs, err := s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if prefs.Language != nil {
+		t.Fatalf("new row Language = %q, want nil", *prefs.Language)
+	}
+}
+
+// TestUserPreferences_ResetKeepsLanguage checks that a reset clears the custom
+// styling but keeps the saved language.
+func TestUserPreferences_ResetKeepsLanguage(t *testing.T) {
+	s := newShareLinksStore(t)
+	ctx := context.Background()
+	userID := insertTestUser(t, s, "lang-reset")
+
+	if err := s.SetLanguage(ctx, userID, strPtr("ja")); err != nil {
+		t.Fatalf("set language: %v", err)
+	}
+	if _, err := s.ResetPreferences(ctx, userID, "legacy", "light"); err != nil {
+		t.Fatalf("reset: %v", err)
+	}
+	prefs, err := s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if prefs.PresetID != "legacy" || prefs.AppearanceMode != "light" {
+		t.Fatalf("reset not applied: %+v", prefs)
+	}
+	if prefs.Language == nil || *prefs.Language != "ja" {
+		t.Fatalf("Language = %v after reset, want ja", prefs.Language)
+	}
+}
+
+// TestUserPreferences_SetLanguageNoRowGetsDefaults checks that SetLanguage
+// for a user with no preferences row inserts one with the default values.
+func TestUserPreferences_SetLanguageNoRowGetsDefaults(t *testing.T) {
+	s := newShareLinksStore(t)
+	ctx := context.Background()
+	userID := insertTestUser(t, s, "lang-no-row")
+
+	if err := s.SetLanguage(ctx, userID, strPtr("en")); err != nil {
+		t.Fatalf("set language: %v", err)
+	}
+	prefs, err := s.GetPreferences(ctx, userID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if prefs.ThemeType != "preset" || prefs.PresetID != "pink" || prefs.AppearanceMode != "system" {
+		t.Fatalf("defaults not applied: %+v", prefs)
+	}
+	if prefs.CustomCSSEnabled || prefs.CustomAccent != nil || prefs.CustomSurface != nil || prefs.CustomCSS != nil {
+		t.Fatalf("customs must stay at defaults: %+v", prefs)
+	}
+	if prefs.Language == nil || *prefs.Language != "en" {
+		t.Fatalf("Language = %v, want en", prefs.Language)
 	}
 }

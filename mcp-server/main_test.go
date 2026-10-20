@@ -19,7 +19,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/ValgulNecron/gameplane/mcp-server/internal/kube"
+	"github.com/GameplanePanel/gameplane/mcp-server/internal/kube"
 )
 
 // mutatingVerbs is the denylist asserted against both kube.Client's method

@@ -1,0 +1,169 @@
+{
+  "type": "frame",
+  "id": "HBYBE",
+  "x": 3567.959083557127,
+  "y": 1020.8789062499995,
+  "name": "Receiver / Login",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "justifyContent": "center",
+  "alignItems": "center",
+  "children": [
+    {
+      "id": "f7gFY",
+      "type": "ref",
+      "ref": "f07b1",
+      "name": "Login card",
+      "width": 400,
+      "padding": 32,
+      "gap": 24,
+      "stroke": "$border",
+      "strokeWidth": 1,
+      "strokeAlignment": "inner",
+      "children": [
+        {
+          "type": "frame",
+          "id": "RFl9o",
+          "name": "Heading",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "yItF3",
+              "name": "Brand",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "Nn2ic",
+                  "name": "Logo",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "../website/design-assets/gameplane-icon.png",
+                    "mode": "contain"
+                  },
+                  "width": 24,
+                  "height": 24
+                },
+                {
+                  "type": "text",
+                  "id": "v4e5d",
+                  "name": "Wordmark",
+                  "fill": "$foreground/foreground",
+                  "content": "gameplane",
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "dsE3s",
+              "name": "Eyebrow",
+              "fill": "$accent/accent",
+              "content": "PRIVATE DASHBOARD",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 11,
+              "fontWeight": "normal",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "CC9oc",
+              "name": "Title",
+              "fill": "$foreground/foreground",
+              "content": "Gameplane telemetry",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 24,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "c0nVDt",
+              "name": "Subtitle",
+              "fill": "$foreground/secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Private dashboard. Sign in with the dashboard token.",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "MTBth",
+          "name": "Form",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "id": "w3zMra",
+              "type": "ref",
+              "ref": "Tu3H4",
+              "name": "Token field",
+              "width": "fill_container",
+              "descendants": {
+                "I4m7NO": {
+                  "content": "Dashboard token"
+                },
+                "DJsYb": {
+                  "content": "••••••••••••••••••••••••"
+                },
+                "PvRXY": {
+                  "content": "The DASHBOARD_TOKEN value from the receiver's Secret."
+                }
+              }
+            },
+            {
+              "id": "V9VTdg",
+              "type": "ref",
+              "ref": "hvQ4m",
+              "name": "Sign in",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "descendants": {
+                "UYKSN": {
+                  "enabled": false
+                },
+                "y9bBK0": {
+                  "content": "Sign in"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "eKQ9o",
+      "name": "Footer gap",
+      "width": 10,
+      "height": 24
+    },
+    {
+      "type": "text",
+      "id": "UKIoU",
+      "name": "Footnote",
+      "fill": "$foreground/muted",
+      "content": "Sessions last 12 hours. Rotating the token signs everyone out.",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal"
+    }
+  ]
+}

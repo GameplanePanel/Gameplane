@@ -17,7 +17,7 @@ Every Dependabot PR MUST satisfy:
 Each Dependabot PR is merged **individually**, not consolidated into an integration branch. The merge command is:
 
 ```bash
-gh pr merge <PR_NUMBER> -R ValgulNecron/Gameplane --admin --merge
+gh pr merge <PR_NUMBER> -R GameplanePanel/Gameplane --admin --merge
 ```
 
 **Flag requirements**:
@@ -183,7 +183,7 @@ Diagnosed 2026-08-29 from CI logs. This supersedes the "Diagnosis pending" row a
 **Failing check**: `lint (operator)` — run 32909850638, job 98001714918. It is the only
 failing check on the PR.
 
-**Verbatim log excerpt** (`gh api repos/ValgulNecron/Gameplane/actions/jobs/98001714918/logs`):
+**Verbatim log excerpt** (`gh api repos/GameplanePanel/Gameplane/actions/jobs/98001714918/logs`):
 
 ```
 ##[error]/home/runner/work/Gameplane/Gameplane/operator/internal/verify/verify.go:20:2: SA1019: "github.com/sigstore/sigstore/pkg/fulcioroots" is deprecated: Use https://pkg.go.dev/github.com/sigstore/sigstore-go@main/pkg/tuf (staticcheck)

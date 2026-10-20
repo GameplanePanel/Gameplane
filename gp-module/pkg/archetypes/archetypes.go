@@ -2,7 +2,7 @@
 package archetypes
 
 import (
-	internalarch "github.com/ValgulNecron/gameplane/gp-module/internal/archetypes"
+	internalarch "github.com/GameplanePanel/gameplane/gp-module/internal/archetypes"
 )
 
 // PortDef defines a container network port.

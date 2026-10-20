@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 const (
@@ -452,6 +452,11 @@ func (r *GameServerReconciler) setTunnelCredentialRefused(ctx context.Context, g
 		Message:            fmt.Sprintf("tunnel credentials secret %q is not owned by this GameServer (no ownerReference matching its name and UID); %s", secretName, remedy),
 		ObservedGeneration: gs.Generation,
 	})
+	remedyKind := "other"
+	if secretName == gs.Name+"-tunnel-auth" {
+		remedyKind = "defaultName"
+	}
+	setConditionArgs(&gs.Status, "TunnelReady", map[string]string{"secret": secretName, "remedy": remedyKind})
 	if err := r.Status().Patch(ctx, gs, client.MergeFrom(base)); err != nil {
 		return fmt.Errorf("patch TunnelReady condition for %s/%s: %w", gs.Namespace, gs.Name, err)
 	}
@@ -469,6 +474,7 @@ func (r *GameServerReconciler) clearTunnelCredentialRefused(ctx context.Context,
 	}
 	base := gs.DeepCopy()
 	gs.Status.Conditions = removeCondition(gs.Status.Conditions, "TunnelReady")
+	setConditionArgs(&gs.Status, "TunnelReady", nil)
 	// A GameServer that no longer exists has no status left to clear.
 	if err := r.Status().Patch(ctx, gs, client.MergeFrom(base)); err != nil && !apierrors.IsNotFound(err) {
 		return fmt.Errorf("clear TunnelCredentialRefused condition for %s/%s: %w", gs.Namespace, gs.Name, err)
@@ -735,7 +741,7 @@ func buildPlayitPortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
 
 // Tunnel image defaults.
 const (
-	DefaultTunnelFrpImage       = "ghcr.io/valgulnecron/gameplane/tunnel-frp:dev"
-	DefaultTunnelTailscaleImage = "ghcr.io/valgulnecron/gameplane/tunnel-tailscale:dev"
-	DefaultTunnelPlayitImage    = "ghcr.io/valgulnecron/gameplane/tunnel-playit:dev"
+	DefaultTunnelFrpImage       = "ghcr.io/gameplanepanel/gameplane/tunnel-frp:dev"
+	DefaultTunnelTailscaleImage = "ghcr.io/gameplanepanel/gameplane/tunnel-tailscale:dev"
+	DefaultTunnelPlayitImage    = "ghcr.io/gameplanepanel/gameplane/tunnel-playit:dev"
 )

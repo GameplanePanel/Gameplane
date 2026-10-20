@@ -280,7 +280,7 @@ test.describe("All-Screens: Settings tabs (Desktop — 1440x900) @screenshots", 
 // in the Ss0Yr/V1VhGE exports) rather than test-server-02/Valheim.
 //
 // KhYNc ("Mods (by ID)") is NOT reachable with the current mock fixtures:
-// its design frame (design-export/screenshots/KhYNc.png) shows a distinct
+// its design frame (assets/design-export/screenshots/KhYNc.png) shows a distinct
 // server "ark-island" running ModsByIdTab (Mods.tsx:56, gated on
 // tmpl.spec.capabilities.mods.idList). No template in screenshotData.ts
 // declares `idList` (grep confirms zero hits) and no "ark-island" server
@@ -336,7 +336,7 @@ test.describe("All-Screens: Mods tabs (Desktop — 1440x900) @screenshots", () =
     await expect(page.getByText(/browse a registry and install/i)).toBeVisible({
       timeout: 10_000,
     });
-    // NOTE: the design frame (design-export/screenshots/GayoL.png) shows
+    // NOTE: the design frame (assets/design-export/screenshots/GayoL.png) shows
     // Modrinth/Minecraft results ("Fabric API", "Sodium", …), but the MSW
     // registry-search handler (src/test/handlers.ts) returns
     // screenshotRegistryProjects unconditionally regardless of provider —

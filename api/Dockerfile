@@ -1,12 +1,14 @@
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 WORKDIR /src
 
-# netguard, gameaction, and gp-module are in-repo modules the API depends on via local
-# replaces (../netguard, ../gameaction, ../gp-module); copy them first so `go mod
-# download` and the build resolve them.
+# netguard, gameaction, gp-module, telemetryschema, and i18n are in-repo modules the API depends
+# on via local replaces (../netguard, ../gameaction, ../gp-module, ../telemetryschema, ../i18n);
+# copy them first so `go mod download` and the build resolve them.
 COPY netguard/ ./netguard/
 COPY gameaction/ ./gameaction/
 COPY gp-module/ ./gp-module/
+COPY telemetryschema/ ./telemetryschema/
+COPY i18n/ ./i18n/
 COPY api/go.mod api/go.sum* ./api/
 WORKDIR /src/api
 RUN go mod download
@@ -21,14 +23,22 @@ ARG VERSION=dev
 # QEMU emulation: multi-arch release builds of the arm64 image were slow
 # enough to hit the release job timeout.
 ARG TARGETARCH
+# Build tags: "postgres" for the e2e-postgres image; empty by default so the release build is unchanged.
+ARG GO_TAGS=""
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
+    -tags "${GO_TAGS}" \
     -trimpath \
     -ldflags="-s -w -X main.Version=${VERSION}" \
     -o /out/api ./cmd
 
+RUN mkdir -p /out/data /out/keys && chmod 0700 /out/keys && chown 65532:65532 /out/data /out/keys
+
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=build /out/api /api
+# Seed named Docker volumes with a directory writable by the runtime user.
+COPY --from=build --chown=65532:65532 /out/data /data
+COPY --from=build --chown=65532:65532 /out/keys /keys
 USER 65532:65532
 EXPOSE 8000
 VOLUME ["/data"]

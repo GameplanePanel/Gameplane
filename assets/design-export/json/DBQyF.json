@@ -1,0 +1,535 @@
+{
+  "type": "frame",
+  "id": "DBQyF",
+  "x": 6560,
+  "y": 87233,
+  "name": "Screen/Admin Settings — Telemetry (disabled)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 641,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "jb2it",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB": {
+          "fill": "$accent/soft"
+        },
+        "ya5KB/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "ya5KB/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "CZLXz",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "L5CeQ",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Settings"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "ZHjUq",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "WaQzQ",
+              "type": "ref",
+              "ref": "xCDF7",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Admin settings"
+                },
+                "VbHwU": {
+                  "content": "Platform-wide configuration for this Gameplane instance."
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "gnNvq",
+              "name": "Settings Layout",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "wQExX",
+                  "type": "ref",
+                  "ref": "Mp7Ep",
+                  "name": "Settings Nav",
+                  "width": 220,
+                  "descendants": {
+                    "eIjoV": {
+                      "fill": "#00000000"
+                    },
+                    "XuGUZ": {
+                      "fill": "$muted"
+                    },
+                    "DpMnt": {
+                      "fill": "$muted"
+                    },
+                    "ZPLSA": {
+                      "fill": "$surface/secondary"
+                    },
+                    "w6pwjZ": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "gAe7m": {
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "id": "jigMQ",
+                  "type": "ref",
+                  "ref": "XDZ0E",
+                  "name": "Settings Panel",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "uhp7C",
+                      "type": "ref",
+                      "ref": "FRpsu",
+                      "name": "Card Header",
+                      "descendants": {
+                        "fuZHB": {
+                          "content": "Telemetry"
+                        },
+                        "BZG9o": {
+                          "content": "Anonymous usage metrics help us prioritize work. Extended metrics include a random install ID."
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "T4JamN",
+                      "name": "Card Content",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "EGOdH",
+                          "name": "destinationRow",
+                          "width": "fill_container",
+                          "fill": "$warning/soft",
+                          "cornerRadius": 8,
+                          "gap": 12,
+                          "padding": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "ZXcWt",
+                              "name": "destIcon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "shield-off",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$warning/soft-foreground"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "ax0Ht",
+                              "name": "destText",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "MC4kp",
+                                  "name": "destTitle",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Telemetry is disabled by the operator.",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Ipare",
+                                  "name": "destDetail",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "No data of either kind is sent and no telemetry destination is contacted, whatever the switches below say. Only an operator can change this, at install time.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "Wcah8",
+                              "type": "ref",
+                              "ref": "eg3vM",
+                              "name": "destChip",
+                              "descendants": {
+                                "S2JwD": {
+                                  "content": "Disabled"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "s8V4RQ",
+                          "name": "telemetryRow",
+                          "opacity": 0.5,
+                          "width": "fill_container",
+                          "gap": 16,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "aD3WD",
+                              "name": "labelCol",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "e8KSRm",
+                                  "name": "Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Send basic usage metrics",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "UqkyC",
+                                  "name": "Description",
+                                  "fill": "$muted",
+                                  "content": "Gameplane version, number of servers and number of templates.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "pv6u1",
+                              "type": "ref",
+                              "ref": "rh2QH",
+                              "name": "basicSwitch"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "d6UNY",
+                          "name": "extendedRow",
+                          "opacity": 0.5,
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "klsL5",
+                              "name": "extRowInner",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "PksiU",
+                                  "name": "extLabelCol",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "eF5fz",
+                                      "name": "extLabel",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Send extended usage metrics",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "mFzAM",
+                                      "name": "extDescription",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Adds Kubernetes version, distribution, CPU architecture, node-count band, servers per official game module, which optional features are in use, and a random install ID.",
+                                      "lineHeight": 1.5,
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "lKdlx",
+                                  "type": "ref",
+                                  "ref": "rh2QH",
+                                  "name": "extendedSwitch"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Q5cSk8",
+                          "x": 0,
+                          "y": 218,
+                          "name": "installIdRow",
+                          "enabled": false,
+                          "width": "fill_container(856)",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            24
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "QUqUt",
+                              "name": "installIdCol",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "c62rOD",
+                                  "name": "installIdLabel",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Install ID",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Cec0C",
+                                  "name": "installIdValue",
+                                  "fill": "$foreground/foreground",
+                                  "content": "3f1c2a9e-8b4d-4e57-9a61-0c2d7e5b9f10",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "wxRQV",
+                                  "name": "installIdHelp",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Random and anonymous. Reset it to start reporting under a new ID; the old ID is never sent again.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "BnNus",
+                              "type": "ref",
+                              "ref": "d5N3W3",
+                              "name": "resetIdBtn",
+                              "descendants": {
+                                "i3zB62/zMNkR": {
+                                  "content": "Reset ID"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wyQ2s",
+                          "name": "previewBlock",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dDFBA",
+                              "name": "previewLabel",
+                              "fill": "$foreground/foreground",
+                              "content": "Next report preview",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "d791Wi",
+                              "name": "previewHelp",
+                              "fill": "$muted",
+                              "content": "Exactly what the next report contains. Read-only.",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "thVid",
+                              "name": "previewCode",
+                              "width": "fill_container",
+                              "fill": "$surface/secondary",
+                              "cornerRadius": 8,
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "layout": "vertical",
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "c1wLHW",
+                                  "name": "previewJson",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Nothing to preview: telemetry is disabled by the operator.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "h4t9WP",
+                          "x": 0,
+                          "y": 395,
+                          "name": "statusRow",
+                          "enabled": false,
+                          "width": "fill_container(856)",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "xpROA",
+                              "name": "statusIcon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "circle-check",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$success/soft-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "U0Eb0P",
+                              "name": "statusText",
+                              "fill": "$foreground/foreground",
+                              "content": "Last report sent successfully on Oct 6, 2026, 09:12 UTC.",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qHqUB",
+                      "name": "Card Actions",
+                      "width": "fill_container",
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "Eq31M",
+                          "type": "ref",
+                          "ref": "tpKRk",
+                          "name": "Btn Save Changes",
+                          "opacity": 0.5,
+                          "descendants": {
+                            "q58In/Xpn7K": {
+                              "enabled": false
+                            },
+                            "q58In/U6q13B": {
+                              "content": "Save changes"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

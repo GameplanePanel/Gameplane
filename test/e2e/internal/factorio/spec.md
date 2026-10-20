@@ -11,7 +11,7 @@
 - **Blocker Class**: documentation
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/factorio`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/factorio`  
 **Dependencies:** stdlib only (Go 1.25+); tested against factoriotools/factorio:stable (2.0.x); image: `factoriotools/factorio:stable@sha256:7052b3cca8ca7790f99f4058617d5c8089df544de736b1baa23f2c5f58fb7f48`
 
 ## Purpose
@@ -74,7 +74,7 @@ test/e2e/internal/factorio/
 - Returns the server's response bytes, or an error if the dial or send fails.
 - Timeout or no response returns error (expected behavior; Factorio silently drops unrecognized UDP packets); probe does not retry.
 
-### Shared Probe Package (`github.com/ValgulNecron/gameplane/test/e2e/internal/probe`)
+### Shared Probe Package (`github.com/GameplanePanel/gameplane/test/e2e/internal/probe`)
 
 (Defined by shared harness; app.go is coded against this contract.)
 
@@ -112,7 +112,7 @@ func Main(f Flags, run func(context.Context) (Depth, error))
 
 ## Dependencies
 
-**Internal:** `github.com/ValgulNecron/gameplane/test/e2e/internal/probe` (shared probe harness).
+**Internal:** `github.com/GameplanePanel/gameplane/test/e2e/internal/probe` (shared probe harness).
 
 **External:** stdlib only (`context`, `encoding/hex`, `fmt`, `log`, `net`, `time`).
 

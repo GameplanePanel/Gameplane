@@ -19,7 +19,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 ```
 
 **Status:** pre-v1; probe depth measured: **QUERY** (BeamMP TCP handshake success)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/beammp`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/beammp`  
 **Dependencies:** stdlib only  
 **Heavy game:** No (<5Gi storage, fast container startup)
 

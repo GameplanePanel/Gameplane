@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,11 +18,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/ValgulNecron/gameplane/api/internal/gatewayprotocol"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 const gatewayCredentialsLabel = "gameplane.local/agent-gateway-credentials"
@@ -47,11 +46,11 @@ func (r *agentGatewayResolver) resolve(ctx context.Context, cluster string, targ
 	if !ok || k == nil {
 		return nil, nil, scope.ErrForbiddenCluster
 	}
-	home := r.registry.Default()
-	if home == nil || home.Dynamic == nil || home.Typed == nil {
+	home := r.registry.Management()
+	if home == nil || home.Clusters() == nil {
 		return nil, nil, errGatewayUnavailable
 	}
-	registration, err := home.Dynamic.Resource(kube.GVRCluster).Get(ctx, cluster, metav1.GetOptions{})
+	registration, err := home.Clusters().Get(ctx, cluster, metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("get gateway registration: %w", err)
 	}
@@ -73,7 +72,11 @@ func (r *agentGatewayResolver) resolve(ctx context.Context, cluster string, targ
 	if err != nil {
 		return nil, nil, err
 	}
-	secret, err := home.Typed.CoreV1().Secrets(r.namespace).Get(ctx, secretName, metav1.GetOptions{})
+	if err := home.RemoteAccess.ValidateURL(endpoint); err != nil {
+		return nil, nil, err
+	}
+	dial := home.RemoteAccess.DialContext
+	secret, err := home.Secrets(r.namespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("read gateway credentials: %w", err)
 	}
@@ -103,7 +106,7 @@ func (r *agentGatewayResolver) resolve(ctx context.Context, cluster string, targ
 		target: gatewayprotocol.Target{Cluster: cluster, Namespace: target.namespace, Name: target.name, UID: string(server.GetUID())},
 		http: &http.Client{
 			Transport: &http.Transport{
-				DialContext:         (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+				DialContext:         dial,
 				TLSHandshakeTimeout: 10 * time.Second,
 				TLSClientConfig:     &tls.Config{Certificates: []tls.Certificate{cert}, RootCAs: roots, MinVersion: tls.VersionTLS12},
 				// One resolved transport belongs to one operation. Do not retain

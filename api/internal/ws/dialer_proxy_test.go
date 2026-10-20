@@ -89,6 +89,7 @@ func TestMount_ActionsAndStatusRouted(t *testing.T) {
 		method, path string
 	}{
 		{"POST", "/servers/alpha/actions/run"},
+		{"POST", "/servers/alpha/files/create"},
 		{"GET", "/servers/alpha/status"},
 		{"GET", "/servers/alpha/mods"},
 		{"POST", "/servers/alpha/mods/install"},

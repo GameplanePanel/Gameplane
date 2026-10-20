@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"golang.org/x/mod/semver"
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -18,11 +19,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/recorder"
 	"sigs.k8s.io/yaml"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
-	"github.com/ValgulNecron/gameplane/operator/internal/modsrc"
-	"github.com/ValgulNecron/gameplane/operator/internal/verify"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/modsrc"
+	"github.com/GameplanePanel/gameplane/operator/internal/verify"
 )
 
 // moduleFailedRetryInterval paces retries of a Failed Module. A spec change
@@ -58,6 +60,10 @@ type ModuleReconciler struct {
 	// NewVerifier is overridden in tests with an in-process fake. nil →
 	// the real cosign verifier from verify.Build.
 	NewVerifier func(ctx context.Context, src *gameplanev1alpha1.ModuleSource) (verify.Verifier, error)
+
+	// EventRecorder surfaces module translation problems as Warning events
+	// on the GameTemplate. nil disables events (unit tests).
+	EventRecorder recorder.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=gameplane.local,resources=modules,verbs=get;list;watch;update;patch
@@ -65,6 +71,7 @@ type ModuleReconciler struct {
 // +kubebuilder:rbac:groups=gameplane.local,resources=modules/finalizers,verbs=update
 // +kubebuilder:rbac:groups=gameplane.local,resources=gametemplates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=gameplane.local,resources=gameservers,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 
 func (r *ModuleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	return requeueOnConflict(r.reconcile(ctx, req))
@@ -191,8 +198,16 @@ func (r *ModuleReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	// Materialize a GameTemplate.
-	if err := r.applyTemplate(ctx, &mod, bundle, desiredVersion, src.Name); err != nil {
+	tmpl, err := r.applyTemplate(ctx, &mod, bundle, desiredVersion, src.Name)
+	if err != nil {
 		return r.markFailed(ctx, &mod, "ApplyTemplate", err)
+	}
+	// Translation problems never fail the install (FR-034). A failed
+	// ConfigMap write is retried a minute later.
+	var localesRetry time.Duration
+	if err := r.applyLocales(ctx, tmpl, bundle); err != nil {
+		log.FromContext(ctx).Error(err, "module translations not stored; will retry", "module", mod.Name)
+		localesRetry = retryLocalesAfter
 	}
 
 	// Update Status to Ready. Record the version being replaced as the
@@ -236,13 +251,13 @@ func (r *ModuleReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if err := r.Status().Update(ctx, &mod); err != nil {
 		return ctrl.Result{}, err
 	}
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: localesRetry}, nil
 }
 
-func (r *ModuleReconciler) applyTemplate(ctx context.Context, mod *gameplanev1alpha1.Module, bundle *modsrc.Bundle, version, sourceName string) error {
+func (r *ModuleReconciler) applyTemplate(ctx context.Context, mod *gameplanev1alpha1.Module, bundle *modsrc.Bundle, version, sourceName string) (*gameplanev1alpha1.GameTemplate, error) {
 	parsed := &gameplanev1alpha1.GameTemplate{}
 	if err := yaml.Unmarshal(bundle.TemplateYAML, parsed); err != nil {
-		return fmt.Errorf("parse template.yaml: %w", err)
+		return nil, fmt.Errorf("parse template.yaml: %w", err)
 	}
 
 	// Legacy bundles declare a singular spec.category; the typed GameTemplate
@@ -279,7 +294,7 @@ func (r *ModuleReconciler) applyTemplate(ctx context.Context, mod *gameplanev1al
 
 	// Set the OwnerReference so deleting the Module GCs the template.
 	if err := controllerutil.SetControllerReference(mod, desired, r.Scheme); err != nil {
-		return fmt.Errorf("set owner ref: %w", err)
+		return nil, fmt.Errorf("set owner ref: %w", err)
 	}
 
 	// Server-side apply or create-or-update via SSA-like pattern. We do
@@ -288,24 +303,30 @@ func (r *ModuleReconciler) applyTemplate(ctx context.Context, mod *gameplanev1al
 	var existing gameplanev1alpha1.GameTemplate
 	err := r.Get(ctx, types.NamespacedName{Name: desired.Name}, &existing)
 	if apierrors.IsNotFound(err) {
-		return r.Create(ctx, desired)
+		if err := r.Create(ctx, desired); err != nil {
+			return nil, err
+		}
+		return desired, nil
 	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Verify ownership before clobbering — refuse to mutate a template
 	// that wasn't created by this Module (e.g. pre-existing manual
 	// install with the same name).
 	if existing.Labels[gameplanev1alpha1.LabelManagedBy] != gameplanev1alpha1.ManagedByModule {
-		return fmt.Errorf("template %q exists and is not module-managed", desired.Name)
+		return nil, fmt.Errorf("template %q exists and is not module-managed", desired.Name)
 	}
 	if !ownedBy(&existing, mod) {
-		return fmt.Errorf("template %q is owned by a different Module", desired.Name)
+		return nil, fmt.Errorf("template %q is owned by a different Module", desired.Name)
 	}
 	existing.Spec = desired.Spec
 	existing.Labels = desired.Labels
 	existing.Annotations = mergeAnnotations(existing.Annotations, desired.Annotations)
-	return r.Update(ctx, &existing)
+	if err := r.Update(ctx, &existing); err != nil {
+		return nil, err
+	}
+	return &existing, nil
 }
 
 // finalize handles the deletion path. We refuse to release the

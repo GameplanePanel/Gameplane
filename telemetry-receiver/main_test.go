@@ -8,15 +8,42 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
 
+// testDashboardToken is the dashboard credential of every testServer.
+const testDashboardToken = "test-dashboard-token"
+
+// testDashboards maps each public test server to the dashboard handler of
+// the same receiver, because /metrics is served only on the dashboard
+// listener (FR-030, spec Q8).
+var testDashboards sync.Map
+
 func testServer(t *testing.T, cfg config) *httptest.Server {
 	t.Helper()
-	srv := httptest.NewServer(newServer(cfg).routes())
-	t.Cleanup(srv.Close)
+	if cfg.dashboardToken == "" {
+		cfg.dashboardToken = testDashboardToken
+	}
+	s := newServer(cfg)
+	srv := httptest.NewServer(s.routes())
+	testDashboards.Store(srv, s.dashboardRoutes())
+	t.Cleanup(func() {
+		testDashboards.Delete(srv)
+		srv.Close()
+	})
 	return srv
+}
+
+// dashboardHandler returns the dashboard handler paired with a test server.
+func dashboardHandler(t *testing.T, srv *httptest.Server) http.Handler {
+	t.Helper()
+	h, ok := testDashboards.Load(srv)
+	if !ok {
+		t.Fatal("no dashboard handler registered for the test server")
+	}
+	return h.(http.Handler)
 }
 
 func post(t *testing.T, srv *httptest.Server, body string, headers map[string]string) *http.Response {
@@ -37,17 +64,14 @@ func post(t *testing.T, srv *httptest.Server, body string, headers map[string]st
 
 func metrics(t *testing.T, srv *httptest.Server) string {
 	t.Helper()
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, srv.URL+"/metrics", nil)
-	if err != nil {
-		t.Fatalf("build request: %v", err)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/metrics", nil)
+	req.Header.Set("Authorization", "Bearer "+testDashboardToken)
+	rec := httptest.NewRecorder()
+	dashboardHandler(t, srv).ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("get metrics: status = %d, want 200", rec.Code)
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("get metrics: %v", err)
-	}
-	defer resp.Body.Close()
-	b, _ := io.ReadAll(resp.Body)
-	return string(b)
+	return rec.Body.String()
 }
 
 func TestIngestCountsReport(t *testing.T) {
@@ -137,17 +161,33 @@ func TestIngestMethodNotAllowed(t *testing.T) {
 
 func TestMetricsMethodNotAllowed(t *testing.T) {
 	srv := testServer(t, config{})
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, srv.URL+"/metrics", nil)
-	if err != nil {
-		t.Fatalf("build request: %v", err)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/metrics", nil)
+	rec := httptest.NewRecorder()
+	dashboardHandler(t, srv).ServeHTTP(rec, req)
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("status = %d, want 405", rec.Code)
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("post: %v", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusMethodNotAllowed {
-		t.Fatalf("status = %d, want 405", resp.StatusCode)
+}
+
+// /metrics is not served on the public listener at all (FR-030, spec Q8).
+func TestMetricsNotServedOnPublicListener(t *testing.T) {
+	srv := testServer(t, config{})
+	for _, auth := range []string{"", "Bearer " + testDashboardToken} {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, srv.URL+"/metrics", nil)
+		if err != nil {
+			t.Fatalf("build request: %v", err)
+		}
+		if auth != "" {
+			req.Header.Set("Authorization", auth)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("get: %v", err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusNotFound {
+			t.Fatalf("Authorization %q: status = %d, want 404", auth, resp.StatusCode)
+		}
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 // newTestStore opens an in-memory SQLite store and runs migrations.
@@ -65,7 +65,7 @@ func doReq(t *testing.T, method, url string, body any) (int, []byte) {
 	return resp.StatusCode, out
 }
 
-func TestConfig_GetEmpty(t *testing.T) {
+func TestConfig_GetFreshInstallDefaults(t *testing.T) {
 	srv, _ := newConfigServer(t)
 	status, body := doReq(t, "GET", srv.URL+"/admin/config", nil)
 	if status != 200 {
@@ -75,8 +75,23 @@ func TestConfig_GetEmpty(t *testing.T) {
 	if err := json.Unmarshal(body, &got); err != nil {
 		t.Fatalf("unmarshal: %v; body=%s", err, body)
 	}
-	if len(got) != 0 {
-		t.Fatalf("want empty map, got %v", got)
+	// Migrate seeds the telemetry default on a fresh install (spec 022 FR-003).
+	if len(got) != 1 {
+		t.Fatalf("want one key, got %d: %v", len(got), got)
+	}
+	raw, ok := got["telemetry"]
+	if !ok {
+		t.Fatalf("want telemetry key, got %v", got)
+	}
+	var cfg map[string]any
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		t.Fatalf("unmarshal telemetry: %v", err)
+	}
+	if sendMetrics, ok := cfg["sendMetrics"].(bool); !ok || !sendMetrics {
+		t.Fatalf("want sendMetrics=true, got %v", cfg)
+	}
+	if extended, ok := cfg["extended"].(bool); !ok || !extended {
+		t.Fatalf("want extended=true, got %v", cfg)
 	}
 }
 

@@ -81,5 +81,5 @@ The chart deploys this automatically when you set
 
 ```sh
 docker run -e SYSLOG_ADDR=syslog.example:514 \
-  ghcr.io/valgulnecron/gameplane/audit-syslog-bridge:edge
+  ghcr.io/gameplanepanel/gameplane/audit-syslog-bridge:edge
 ```

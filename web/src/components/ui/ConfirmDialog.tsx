@@ -12,6 +12,7 @@ import {
 } from "@heroui/react";
 import { Button, Input } from "@heroui/react";
 import { AlertCircle } from "lucide-react";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -32,11 +33,12 @@ export function ConfirmDialog({
   title,
   description,
   confirmPhrase,
-  confirmLabel = "Confirm",
+  confirmLabel,
   destructive,
   onConfirm,
   busy,
 }: ConfirmDialogProps) {
+  const intl = useOptionalIntl();
   const [typed, setTyped] = useState("");
   // Clear the typed confirmation whenever the dialog transitions to open.
   // Adjusted directly during render (not in an effect) — the React-endorsed
@@ -73,16 +75,13 @@ export function ConfirmDialog({
 
                 {confirmPhrase && (
                   <div>
-                    <label className="block pb-2 text-xs text-muted">
-                      Type <span className="font-mono text-foreground">{confirmPhrase}</span> to
-                      confirm
-                    </label>
+                    <label className="block pb-2 text-xs text-muted">{intl.formatMessage({ id: "web.components.ui.confirm_dialog.type_phrase_to_confirm", defaultMessage: "Type <b>{phrase}</b> to confirm", description: "Confirm dialog: label above the text input asking the user to type {phrase}, the exact phrase shown in monospace inside <b>, to enable the confirm button" }, { phrase: confirmPhrase, b: (chunks) => <span className="font-mono text-foreground">{chunks}</span> })}</label>
                     <Input
                       autoFocus
                       value={typed}
                       onChange={(e) => setTyped(e.target.value)}
                       spellCheck={false}
-                      placeholder="Type to confirm"
+                      placeholder={intl.formatMessage({ id: "web.components.ui.confirm_dialog.type_to_confirm", defaultMessage: "Type to confirm", description: "Confirm dialog: placeholder inside the field where the user retypes the phrase shown above to confirm" })}
                     />
                   </div>
                 )}
@@ -95,16 +94,14 @@ export function ConfirmDialog({
                 size="sm"
                 isDisabled={busy}
                 onPress={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
+              >{intl.formatMessage({ id: "web.components.ui.confirm_dialog.cancel", defaultMessage: "Cancel", description: "Confirm dialog: button that closes the confirmation dialog without confirming; keep it short" })}</Button>
               <Button
                 size="sm"
                 variant={destructive ? "danger" : "primary"}
                 isDisabled={!matches || busy}
                 onPress={onConfirm}
               >
-                {busy ? "Working…" : confirmLabel}
+                {busy ? intl.formatMessage({ id: "web.components.ui.confirm_dialog.working", defaultMessage: "Working…", description: "Confirm dialog: confirm button label while the action is running" }) : (confirmLabel ?? intl.formatMessage({ id: "web.components.ui.confirm_dialog.confirm", defaultMessage: "Confirm", description: "Confirm dialog: default confirm button label when the caller gives none" }))}
               </Button>
             </AlertDialogFooter>
           </AlertDialogDialog>

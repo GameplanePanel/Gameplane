@@ -65,7 +65,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/ValgulNecron/gameplane/mcp-server/internal/kube"
+	"github.com/GameplanePanel/gameplane/mcp-server/internal/kube"
 )
 
 // Version is set at build time via -ldflags "-X main.Version=...".

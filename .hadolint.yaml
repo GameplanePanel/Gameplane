@@ -1,0 +1,3 @@
+# Spec 013 G3: every finding at warning or above fails CI. No ignored rules
+# and no trustedRegistries (OD-2): fix the Dockerfile instead.
+failure-threshold: warning

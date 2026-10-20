@@ -1,0 +1,13 @@
+# Use with compose.yaml. Provision a private 32-byte key file on the host first.
+# Docker Compose file-backed secrets preserve host file permissions/ownership.
+services:
+  gameplane-api:
+    environment:
+      GAMEPLANE_PANEL_KEY_FILE: /run/secrets/panel-key
+      GAMEPLANE_PANEL_KEY_PROVISIONED: "true"
+    secrets:
+      - panel-key
+
+secrets:
+  panel-key:
+    file: ${GAMEPLANE_PANEL_KEY_SOURCE_FILE:?Set the absolute path of the protected 32-byte panel key}

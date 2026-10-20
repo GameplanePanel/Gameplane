@@ -1,7 +1,7 @@
 # svcutil — Specification
 
 **Status:** Stable  
-**Module / command:** `github.com/ValgulNecron/gameplane/svcutil`  
+**Module / command:** `github.com/GameplanePanel/gameplane/svcutil`  
 **Dependencies:** stdlib only (Go 1.26+)
 
 ## Purpose

@@ -1,3 +1,3 @@
-module github.com/ValgulNecron/gameplane/gameproto
+module github.com/GameplanePanel/gameplane/gameproto
 
 go 1.26.0

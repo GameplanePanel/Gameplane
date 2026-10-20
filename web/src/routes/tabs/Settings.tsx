@@ -20,7 +20,7 @@ import {
 
 import type { GameServer } from "@/types";
 import { APIError } from "@/lib/api";
-import { errorText } from "@/lib/errors";
+import { errorTextIntl } from "@/lib/errors";
 import { mergeDraftOntoLatest, SettingsConflictError } from "@/lib/settingsMerge";
 import { validateConfig } from "@/lib/validation";
 
@@ -37,6 +37,9 @@ import { NetworkCaptureSection } from "./settings/NetworkCapture";
 import { AccessSection } from "./settings/Access";
 import { ShareLinksSection } from "./settings/ShareLinks";
 import { DangerSection } from "./settings/Danger";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { useModuleText } from "@/lib/i18n/moduleText";
+import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
 const PlacementSection = lazy(() =>
   import("./settings/Placement").then((m) => ({ default: m.PlacementSection })),
 );
@@ -56,20 +59,36 @@ type SectionKey =
   | "sharelinks"
   | "danger";
 
-const SECTIONS: { key: SectionKey; label: string; icon: typeof SettingsIcon }[] = [
-  { key: "general",    label: "General",       icon: SettingsIcon },
-  { key: "version",    label: "Version",       icon: Layers },
-  { key: "config",     label: "Game configuration", icon: SlidersHorizontal },
-  { key: "resources",  label: "Resources",     icon: HardDrive },
-  { key: "networking", label: "Networking",    icon: Network },
-  { key: "env",        label: "Environment",   icon: Variable },
-  { key: "lifecycle",  label: "Lifecycle",     icon: Sliders },
-  { key: "backups",    label: "Scheduled backups", icon: CalendarClock },
-  { key: "capture",    label: "Network capture", icon: RadioTower },
-  { key: "placement",  label: "Placement",     icon: MapPin },
-  { key: "access",     label: "RBAC & access", icon: ShieldCheck },
-  { key: "sharelinks", label: "Share links",   icon: Link2 },
-  { key: "danger",     label: "Danger zone",   icon: AlertTriangle },
+const SECTION_LABELS = defineMessages({
+  general: { id: "web.routes.tabs.settings.section_general", defaultMessage: "General", description: "Settings: name of the General section in the settings tab list" },
+  version: { id: "web.routes.tabs.settings.section_version", defaultMessage: "Version", description: "Settings: name of the Version section in the settings tab list" },
+  config: { id: "web.routes.tabs.settings.section_game_configuration", defaultMessage: "Game configuration", description: "Settings: name of the Game configuration section in the settings tab list" },
+  resources: { id: "web.routes.tabs.settings.section_resources", defaultMessage: "Resources", description: "Settings: name of the Resources section in the settings tab list" },
+  networking: { id: "web.routes.tabs.settings.section_networking", defaultMessage: "Networking", description: "Settings: name of the Networking section in the settings tab list" },
+  env: { id: "web.routes.tabs.settings.section_environment", defaultMessage: "Environment", description: "Settings: name of the Environment section in the settings tab list" },
+  lifecycle: { id: "web.routes.tabs.settings.section_lifecycle", defaultMessage: "Lifecycle", description: "Settings: name of the Lifecycle section in the settings tab list" },
+  backups: { id: "web.routes.tabs.settings.section_scheduled_backups", defaultMessage: "Scheduled backups", description: "Settings: name of the Scheduled backups section in the settings tab list" },
+  capture: { id: "web.routes.tabs.settings.section_network_capture", defaultMessage: "Network capture", description: "Settings: name of the Network capture section in the settings tab list" },
+  placement: { id: "web.routes.tabs.settings.section_placement", defaultMessage: "Placement", description: "Settings: name of the Placement section in the settings tab list" },
+  access: { id: "web.routes.tabs.settings.section_rbac_access", defaultMessage: "RBAC & access", description: "Settings: name of the RBAC and access section in the settings tab list" },
+  sharelinks: { id: "web.routes.tabs.settings.section_share_links", defaultMessage: "Share links", description: "Settings: name of the Share links section in the settings tab list" },
+  danger: { id: "web.routes.tabs.settings.section_danger_zone", defaultMessage: "Danger zone", description: "Settings: name of the Danger zone section in the settings tab list" },
+});
+
+const SECTIONS: { key: SectionKey; label: MessageDescriptor; icon: typeof SettingsIcon }[] = [
+  { key: "general",    label: SECTION_LABELS.general,    icon: SettingsIcon },
+  { key: "version",    label: SECTION_LABELS.version,    icon: Layers },
+  { key: "config",     label: SECTION_LABELS.config,     icon: SlidersHorizontal },
+  { key: "resources",  label: SECTION_LABELS.resources,  icon: HardDrive },
+  { key: "networking", label: SECTION_LABELS.networking, icon: Network },
+  { key: "env",        label: SECTION_LABELS.env,        icon: Variable },
+  { key: "lifecycle",  label: SECTION_LABELS.lifecycle,  icon: Sliders },
+  { key: "backups",    label: SECTION_LABELS.backups,    icon: CalendarClock },
+  { key: "capture",    label: SECTION_LABELS.capture,    icon: RadioTower },
+  { key: "placement",  label: SECTION_LABELS.placement,  icon: MapPin },
+  { key: "access",     label: SECTION_LABELS.access,     icon: ShieldCheck },
+  { key: "sharelinks", label: SECTION_LABELS.sharelinks, icon: Link2 },
+  { key: "danger",     label: SECTION_LABELS.danger,     icon: AlertTriangle },
 ];
 
 export interface SettingsTabProps {
@@ -80,6 +99,7 @@ export interface SettingsTabProps {
 }
 
 export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const access = useResourceAccess();
   const resourceClient = useResourceClient(resourceTarget);
@@ -108,6 +128,10 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   // a render-time computation.
   const [dirty, setDirty] = useState(false);
   const baselineRef = useRef<GameServer | null>(null);
+  // spec.config of the baseline, as state because the Game configuration
+  // section reads it during render; it must match what the draft was cloned
+  // from, not a newer `gs` that arrived while edits are unsaved.
+  const [baselineConfig, setBaselineConfig] = useState<Record<string, string> | undefined>(undefined);
   const lastSeenRef = useRef<GameServer | undefined>(undefined);
 
   // Initialize / reset the draft whenever a fresh server arrives and
@@ -124,6 +148,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
     }
     const clone = structuredClone(gs);
     baselineRef.current = clone;
+    setBaselineConfig(clone.spec.config);
     setDraft(clone);
     setConflict(false);
     setDirty(false);
@@ -140,33 +165,35 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Templates.get(draft!.spec.templateRef.name),
     enabled: !!draft?.spec.templateRef.name,
   });
+  const moduleText = useModuleText(draft?.spec.templateRef.name, resourceTarget.cluster);
 
   // Validate config from the shared draft even when its section is unmounted.
   // Other sections retain their reported validity across navigation, including
   // invalid editor text that has not yet been committed into the draft.
   const draftValid = !!template &&
-    validateConfig(template.spec.configSchema ?? [], draft?.spec.config ?? {}).length === 0 &&
+    validateConfig(template.spec.configSchema ?? [], draft?.spec.config ?? {}, intl).length === 0 &&
     Object.values(sectionValidity).every(Boolean);
 
   const save = useMutation({
     onMutate: () => { savingRef.current = true; },
     onSettled: () => { savingRef.current = false; },
     mutationFn: async (next: GameServer) => {
-      if (!template || validateConfig(template.spec.configSchema ?? [], next.spec.config ?? {}).length > 0 ||
+      if (!template || validateConfig(template.spec.configSchema ?? [], next.spec.config ?? {}, intl).length > 0 ||
         !Object.values(sectionValidity).every(Boolean)) {
-        throw new Error("Correct invalid settings before saving.");
+        throw new Error(intl.formatMessage({ id: "web.routes.tabs.settings.correct_invalid_before_saving", defaultMessage: "Correct invalid settings before saving.", description: "Settings: error shown when saving is attempted while some settings are invalid" }));
       }
       // Re-fetch latest to merge edits onto the freshest copy. This
       // keeps fields the UI doesn't model (e.g. operator-managed status,
       // newly-added spec keys) from being clobbered.
       const latest = await Servers.get(name, ns);
-      const merged = mergeDraftOntoLatest(next, baselineRef.current!, latest);
+      const merged = mergeDraftOntoLatest(next, baselineRef.current!, latest, intl);
       return Servers.update(name, merged, ns);
     },
     onSuccess: (saved) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       const clone = structuredClone(saved);
       baselineRef.current = clone;
+      setBaselineConfig(clone.spec.config);
       setDraft(clone);
       setDirty(false);
       setConflict(false);
@@ -181,13 +208,13 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
         setConflict(true);
         setError(null);
       } else {
-        setError(errMsg(err));
+        setError(errMsg(err, intl));
       }
     },
   });
 
   if (!draft) {
-    return <div className="p-6 text-sm text-muted">Loading…</div>;
+    return <div className="p-6 text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.loading", defaultMessage: "Loading…", description: "Settings tab: loading text shown while the settings are fetched or a settings section is still loading" })}</div>;
   }
 
   const reset = () => {
@@ -206,6 +233,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       const fresh = await Servers.get(name, ns);
       const clone = structuredClone(fresh);
       baselineRef.current = clone;
+      setBaselineConfig(clone.spec.config);
       setDraft(clone);
       setDirty(false);
       setConflict(false);
@@ -214,7 +242,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       setDraftRevision((revision) => revision + 1);
       qc.setQueryData(resourceKey(resourceTarget, "server", name, ns), fresh);
     } catch (err) {
-      setError(errMsg(err));
+      setError(errMsg(err, intl));
     }
   };
 
@@ -256,7 +284,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
           <Tabs.List>
             {sections.map((s) => (
               <Tabs.Tab key={s.key} id={s.key}>
-                {s.label}
+                {intl.formatMessage(s.label)}
               </Tabs.Tab>
             ))}
           </Tabs.List>
@@ -264,10 +292,12 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <fieldset key={draftRevision} disabled={save.isPending} inert={save.isPending} className="min-w-0 flex-1 overflow-auto border-0 p-6 scrollbar-thin">
+        {/* Share dialogs own their state independently of the settings draft.
+            A status refresh must not discard a newly issued, one-time token. */}
+        <fieldset key={section === "sharelinks" ? "sharelinks" : draftRevision} disabled={save.isPending} inert={save.isPending} className="min-w-0 flex-1 overflow-auto border-0 p-6 scrollbar-thin">
           {section === "general"    && <GeneralSection    draft={draft} onChange={onChangeDraft} template={template} />}
-          {section === "version"    && <VersionSection    draft={draft} onChange={onChangeDraft} template={template} />}
-          {section === "config"     && <GameConfigSection draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.config} />}
+          {section === "version"    && <VersionSection    draft={draft} onChange={onChangeDraft} template={template} moduleText={moduleText} />}
+          {section === "config"     && <GameConfigSection draft={draft} onChange={onChangeDraft} template={template} moduleText={moduleText} storedConfig={baselineConfig} onValidityChange={validityCallbacks.config} />}
           {section === "resources"  && <ResourcesSection  draft={draft} onChange={onChangeDraft} template={template} />}
           {section === "networking" && <NetworkingSection draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.networking} />}
           {section === "env"        && <EnvVarsSection    draft={draft} onChange={onChangeDraft} template={template} />}
@@ -275,7 +305,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
           {section === "backups"    && <BackupsSection    draft={draft} onChange={onChangeDraft} template={template} />}
           {section === "capture"    && <NetworkCaptureSection draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.capture} />}
           {section === "placement"  && (
-            <Suspense fallback={<div className="text-sm text-muted">Loading…</div>}>
+            <Suspense fallback={<div className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.loading", defaultMessage: "Loading…", description: "Settings tab: loading text shown while the settings are fetched or a settings section is still loading" })}</div>}>
               <PlacementSection
                 draft={draft}
                 onChange={onChangeDraft}
@@ -293,37 +323,25 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
           <footer className="flex items-center justify-between gap-4 border-t border-border bg-surface/30 px-6 py-3">
             <div className="min-w-0 text-xs">
               {conflict && !error && (
-                <span className="text-warning">
-                  Server changed since you opened this page.{" "}
-                  <button onClick={() => void reload()} className="underline hover:text-fg">
-                    Reload
-                  </button>{" "}
-                  to discard your edits and load the latest.
-                </span>
+                <span className="text-warning">{intl.formatMessage({ id: "web.routes.tabs.settings.server_changed_since_you_opened_this", defaultMessage: "Server changed since you opened this page.", description: "Settings tab: warning in the footer saying the server changed after the page was opened; followed by a Reload button and the sentence after it" })} <button onClick={() => void reload()} className="underline hover:text-fg">{intl.formatMessage({ id: "web.routes.tabs.settings.reload", defaultMessage: "Reload", description: "Settings tab: inline button in the footer warning that reloads the latest server settings; keep it short" })}</button> {intl.formatMessage({ id: "web.routes.tabs.settings.to_discard_your_edits_and_load_the", defaultMessage: "to discard your edits and load the latest.", description: "Settings tab: sentence after the Reload button in the footer warning, saying reloading discards edits and loads the latest settings" })}</span>
               )}
               {error && (
                 <span className="text-danger">
                   {error}
                   {conflict && (
-                    <>
-                      {" "}
-                      <button onClick={() => void reload()} className="underline hover:text-fg">
-                        Retry reload
-                      </button>
+                    <> <button onClick={() => void reload()} className="underline hover:text-fg">{intl.formatMessage({ id: "web.routes.tabs.settings.retry_reload", defaultMessage: "Retry reload", description: "Settings tab: inline button shown after a failed reload that tries the reload again; keep it short" })}</button>
                     </>
                   )}
                 </span>
               )}
               {!conflict && !error && dirty && (
-                <span className="text-muted">Unsaved changes</span>
+                <span className="text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.unsaved_changes", defaultMessage: "Unsaved changes", description: "Settings tab: footer status text shown when the settings form has edits that are not saved yet" })}</span>
               )}
               {!conflict && !error && !dirty && savedAt && (
-                <span className="text-muted">Saved.</span>
+                <span className="text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.saved", defaultMessage: "Saved.", description: "Settings tab: footer status text shown briefly after the settings are saved" })}</span>
               )}
               {readOnlyConfig && (
-                <span className="text-muted">
-                  You need permission to change this server&apos;s settings.
-                </span>
+                <span className="text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.you_need_permission_to_change_this", defaultMessage: "You need permission to change this server's settings.", description: "Settings tab: footer text shown to users who can view but not change this server's settings" })}</span>
               )}
             </div>
             {!readOnlyConfig && (
@@ -333,15 +351,15 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
                 size="sm"
                 onPress={reset}
                 isDisabled={!dirty || save.isPending}
-              >
-                Discard
-              </Button>
+              >{intl.formatMessage({ id: "web.routes.tabs.settings.discard", defaultMessage: "Discard", description: "Settings tab: footer button that throws away unsaved settings edits; disabled when nothing changed; keep it short" })}</Button>
               <Button
                 size="sm"
                 onPress={() => save.mutate(draft)}
                 isDisabled={!access?.canWrite || !dirty || !draftValid || save.isPending}
               >
-                {save.isPending ? "Saving…" : "Save changes"}
+                {save.isPending
+                  ? intl.formatMessage({ id: "web.routes.tabs.settings.saving", defaultMessage: "Saving…", description: "Settings: label of the save button while the save is running" })
+                  : intl.formatMessage({ id: "web.routes.tabs.settings.save_changes", defaultMessage: "Save changes", description: "Settings: label of the button that saves the server settings" })}
               </Button>
             </div>
             )}
@@ -364,6 +382,6 @@ function serializeForDiff(gs: GameServer) {
   return { metadata: meta, spec: gs.spec };
 }
 
-function errMsg(err: unknown): string {
-  return errorText(err, "save failed");
+function errMsg(err: unknown, intl: IntlShape): string {
+  return errorTextIntl(intl, err, intl.formatMessage({ id: "web.routes.tabs.settings.save_failed", defaultMessage: "save failed", description: "Settings: error shown when saving the server settings fails and the error has no message" }));
 }

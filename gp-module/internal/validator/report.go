@@ -33,6 +33,9 @@ const (
 	RuleInsecureAuthField       = "credential-field-not-password"
 	RuleExcessiveAssetSize      = "excessive-asset-size"
 	RuleMinVersionExceedsTool   = "gameplane-min-version-exceeds-tool"
+	RuleLocaleInvalid           = "locale-invalid"
+	RuleLocaleIDInvalid         = "locale-id-invalid"
+	RuleLocaleNeedsReview       = "locale-needs-review"
 )
 
 // ToolVersion is the gp-module release. cmd/gp-module surfaces it via

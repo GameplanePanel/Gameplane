@@ -1,0 +1,147 @@
+{
+  "type": "frame",
+  "id": "nyU5X",
+  "x": 160,
+  "y": 7617,
+  "name": "Gameplane/Game Status Card",
+  "reusable": true,
+  "width": "fill_container(360)",
+  "fill": "$surface/surface",
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "effect": {
+    "type": "shadow",
+    "shadowType": "outer",
+    "color": "#0000000d",
+    "offset": {
+      "x": 0,
+      "y": 1
+    },
+    "blur": 1.75
+  },
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "X2CqBT",
+      "name": "Card Header",
+      "width": "fill_container",
+      "padding": [
+        20,
+        24,
+        12,
+        24
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "g7jFP",
+          "fill": "$muted",
+          "content": "GAME STATUS",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 11,
+          "fontWeight": "600",
+          "letterSpacing": 1
+        },
+        {
+          "type": "icon",
+          "id": "aGZJV",
+          "width": 16,
+          "height": 16,
+          "icon": "activity",
+          "library": "lucide",
+          "fill": "$muted"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Z76K2I",
+      "name": "Card Content",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 12,
+      "padding": [
+        0,
+        24,
+        20,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "e6h0m",
+          "width": "fill_container",
+          "fill": "$default/default",
+          "cornerRadius": 8,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "padding": [
+            10,
+            14
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "w1MXV9",
+              "fill": "$muted",
+              "content": "World seed",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "C1qvX",
+              "fill": "$foreground/foreground",
+              "content": "3825002917346286791",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KtidQ",
+          "width": "fill_container",
+          "fill": "$default/default",
+          "cornerRadius": 8,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "padding": [
+            10,
+            14
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "bWjEc",
+              "fill": "$muted",
+              "content": "Difficulty",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "b0gfl",
+              "fill": "$foreground/foreground",
+              "content": "Easy",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

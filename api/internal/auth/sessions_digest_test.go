@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 // storedSessionToken returns the sessions.token value stored for userID's

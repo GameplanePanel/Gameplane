@@ -1,9 +1,18 @@
 import type { GameServer, GameTemplate } from "@/types";
+import type { ModuleText } from "@/lib/i18n/moduleText";
 
 export interface SectionProps {
   draft: GameServer;
   onChange: (next: GameServer) => void;
   template?: GameTemplate;
+  /** Module-translated text accessor for the template; the template's own text when omitted. */
+  moduleText?: ModuleText;
+  /**
+   * spec.config of the last saved server (stored passwords are the redaction
+   * marker). Lets the game-config section tell "will be removed" from "unset"
+   * across remounts.
+   */
+  storedConfig?: Record<string, string>;
   onValidityChange?: (valid: boolean) => void;
 }
 

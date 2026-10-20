@@ -19,11 +19,11 @@ import (
 	ktesting "k8s.io/client-go/testing"
 	"k8s.io/client-go/util/retry"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/registry"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/registry"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // Both clusters deliberately contain identical names but different identities,

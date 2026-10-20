@@ -15,10 +15,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func mountServer(t *testing.T, path string) string {
+func mountServer(t *testing.T, root, path string) string {
 	t.Helper()
 	r := chi.NewRouter()
-	Mount(r, path)
+	Mount(r, root, path)
 	srv := httptest.NewServer(r)
 	t.Cleanup(srv.Close)
 	return srv.URL
@@ -34,7 +34,7 @@ func testGet(t *testing.T, url string) (*http.Response, error) {
 }
 
 func TestTail_NotConfigured(t *testing.T) {
-	url := mountServer(t, "")
+	url := mountServer(t, t.TempDir(), "")
 	resp, err := testGet(t, url+"/logs/tail")
 	if err != nil {
 		t.Fatalf("get: %v", err)
@@ -46,7 +46,7 @@ func TestTail_NotConfigured(t *testing.T) {
 }
 
 func TestDownload_NotConfigured(t *testing.T) {
-	url := mountServer(t, "")
+	url := mountServer(t, t.TempDir(), "")
 	resp, err := testGet(t, url+"/logs/download")
 	if err != nil {
 		t.Fatalf("get: %v", err)
@@ -59,7 +59,7 @@ func TestDownload_NotConfigured(t *testing.T) {
 
 func TestDownload_FileMissing(t *testing.T) {
 	dir := t.TempDir()
-	url := mountServer(t, filepath.Join(dir, "latest.log"))
+	url := mountServer(t, dir, filepath.Join(dir, "latest.log"))
 	resp, err := testGet(t, url+"/logs/download")
 	if err != nil {
 		t.Fatalf("get: %v", err)
@@ -77,7 +77,7 @@ func TestDownload_ServesFileAsAttachment(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	url := mountServer(t, logPath)
+	url := mountServer(t, dir, logPath)
 	resp, err := testGet(t, url+"/logs/download")
 	if err != nil {
 		t.Fatalf("get: %v", err)
@@ -105,7 +105,7 @@ func TestTail_StreamsLinesAndRotates(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	url := mountServer(t, logPath)
+	url := mountServer(t, dir, logPath)
 	wsURL := "ws" + strings.TrimPrefix(url, "http") + "/logs/tail?from=start"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -168,7 +168,7 @@ func TestTail_StreamsLinesAndRotates(t *testing.T) {
 func TestTail_FileMissingThenAppears(t *testing.T) {
 	dir := t.TempDir()
 	logPath := filepath.Join(dir, "latest.log")
-	url := mountServer(t, logPath)
+	url := mountServer(t, dir, logPath)
 	wsURL := "ws" + strings.TrimPrefix(url, "http") + "/logs/tail?from=start"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -215,7 +215,7 @@ func TestCheckRotation(t *testing.T) {
 	defer f.Close()
 
 	t.Run("same file", func(t *testing.T) {
-		rot, err := checkRotation(f)
+		rot, err := checkRotation(testSource(t, dir, path), f)
 		if err != nil || rot {
 			t.Fatalf("rot=%v err=%v", rot, err)
 		}
@@ -223,7 +223,7 @@ func TestCheckRotation(t *testing.T) {
 
 	t.Run("file deleted", func(t *testing.T) {
 		_ = os.Remove(path)
-		rot, err := checkRotation(f)
+		rot, err := checkRotation(testSource(t, dir, path), f)
 		if err != nil || !rot {
 			t.Fatalf("rot=%v err=%v", rot, err)
 		}
@@ -233,7 +233,7 @@ func TestCheckRotation(t *testing.T) {
 		if err := os.WriteFile(path, []byte("b"), 0o600); err != nil {
 			t.Fatalf("recreate: %v", err)
 		}
-		rot, err := checkRotation(f)
+		rot, err := checkRotation(testSource(t, dir, path), f)
 		if err != nil || !rot {
 			t.Fatalf("rot=%v err=%v", rot, err)
 		}
@@ -265,7 +265,7 @@ func TestTail_DefaultFromEndSkipsExistingContent(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	url := mountServer(t, logPath)
+	url := mountServer(t, dir, logPath)
 	wsURL := "ws" + strings.TrimPrefix(url, "http") + "/logs/tail"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -302,9 +302,9 @@ func TestTail_DefaultFromEndSkipsExistingContent(t *testing.T) {
 	}
 }
 
-// TestCheckRotation_StatError exercises the os.Stat error branch (not the
+// TestCheckRotation_StatError exercises the rotation probe error branch (not the
 // NotExist branch, which TestCheckRotation already covers): make the
-// parent directory unsearchable so os.Stat(f.Name()) fails with EACCES
+// parent directory unsearchable so the descriptor walk fails with EACCES
 // while the already-open file handle's own Stat still succeeds.
 func TestCheckRotation_StatError(t *testing.T) {
 	if os.Geteuid() == 0 {
@@ -330,7 +330,7 @@ func TestCheckRotation_StatError(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(sub, 0o755) })
 
-	rot, err := checkRotation(f)
+	rot, err := checkRotation(testSource(t, dir, path), f)
 	if err == nil {
 		t.Fatal("expected a stat error, got nil")
 	}
@@ -348,7 +348,7 @@ func TestTail_TailParameterReplaysLastNLines(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	url := mountServer(t, logPath)
+	url := mountServer(t, dir, logPath)
 	wsURL := "ws" + strings.TrimPrefix(url, "http") + "/logs/tail?tail=2"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -408,7 +408,7 @@ func TestTail_InvalidTailParameterIgnored(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	url := mountServer(t, logPath)
+	url := mountServer(t, dir, logPath)
 	wsURL := "ws" + strings.TrimPrefix(url, "http") + "/logs/tail?tail=invalid"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

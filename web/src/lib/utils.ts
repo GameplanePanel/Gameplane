@@ -1,5 +1,17 @@
 import { clsx, type ClassValue } from "clsx";
+import { defineMessages, type IntlShape } from "react-intl";
 import { twMerge } from "tailwind-merge";
+
+import { englishIntl } from "@/lib/i18n/format";
+
+// Descriptors with placeholders are passed inline to formatMessage (typed values).
+const MESSAGES = defineMessages({
+  due: {
+    id: "web.lib.utils.due",
+    defaultMessage: "due",
+    description: "Schedule timing: the next scheduled run time has already passed",
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,30 +43,63 @@ export function formatBytes(n: number): string {
   return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
-export function formatRelative(iso?: string): string {
+// Numbers are passed as strings so English keeps plain digits (no grouping separators).
+export function formatRelative(iso?: string, intl: IntlShape = englishIntl): string {
   if (!iso) return "—";
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return iso;
   const s = Math.max(0, Math.floor((Date.now() - t) / 1000));
-  if (s < 60)       return `${s}s ago`;
-  if (s < 3600)     return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400)    return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
+  if (s < 60)       return intl.formatMessage({
+    id: "web.lib.utils.seconds_ago",
+    defaultMessage: "{count}s ago",
+    description: "Relative time: a moment ago in seconds, e.g. 45s ago; {count} is a number of seconds",
+  }, { count: String(s) });
+  if (s < 3600)     return intl.formatMessage({
+    id: "web.lib.utils.minutes_ago",
+    defaultMessage: "{count}m ago",
+    description: "Relative time in minutes, e.g. 5m ago; {count} is a number of minutes",
+  }, { count: String(Math.floor(s / 60)) });
+  if (s < 86400)    return intl.formatMessage({
+    id: "web.lib.utils.hours_ago",
+    defaultMessage: "{count}h ago",
+    description: "Relative time in hours, e.g. 2h ago; {count} is a number of hours",
+  }, { count: String(Math.floor(s / 3600)) });
+  return intl.formatMessage({
+    id: "web.lib.utils.days_ago",
+    defaultMessage: "{count}d ago",
+    description: "Relative time in days, e.g. 3d ago; {count} is a number of days",
+  }, { count: String(Math.floor(s / 86400)) });
 }
 
 // formatRelativeFuture renders a forward-looking interval ("in 45m") for a
 // timestamp expected to be in the future (e.g. a schedule's next run). Past
 // or now reads as "due".
-export function formatRelativeFuture(iso?: string): string {
+export function formatRelativeFuture(iso?: string, intl: IntlShape = englishIntl): string {
   if (!iso) return "—";
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return iso;
   const s = Math.floor((t - Date.now()) / 1000);
-  if (s <= 0)       return "due";
-  if (s < 60)       return `in ${s}s`;
-  if (s < 3600)     return `in ${Math.floor(s / 60)}m`;
-  if (s < 86400)    return `in ${Math.floor(s / 3600)}h`;
-  return `in ${Math.floor(s / 86400)}d`;
+  if (s <= 0)       return intl.formatMessage(MESSAGES.due);
+  if (s < 60)       return intl.formatMessage({
+    id: "web.lib.utils.seconds_until",
+    defaultMessage: "in {count}s",
+    description: "Relative time until a future event in seconds; {count} is a number of seconds",
+  }, { count: String(s) });
+  if (s < 3600)     return intl.formatMessage({
+    id: "web.lib.utils.minutes_until",
+    defaultMessage: "in {count}m",
+    description: "Relative time until a future event in minutes; {count} is a number of minutes",
+  }, { count: String(Math.floor(s / 60)) });
+  if (s < 86400)    return intl.formatMessage({
+    id: "web.lib.utils.hours_until",
+    defaultMessage: "in {count}h",
+    description: "Relative time until a future event in hours; {count} is a number of hours",
+  }, { count: String(Math.floor(s / 3600)) });
+  return intl.formatMessage({
+    id: "web.lib.utils.days_until",
+    defaultMessage: "in {count}d",
+    description: "Relative time until a future event in days; {count} is a number of days",
+  }, { count: String(Math.floor(s / 86400)) });
 }
 
 // parseQuantityToBytes parses a size string into bytes. Accepts plain byte
@@ -102,6 +147,7 @@ export interface StorageReading {
 export function describeStorageProvisioned(
   usedBytes?: number,
   totalBytes?: number,
+  intl: IntlShape = englishIntl,
 ): StorageReading {
   const used = usedBytes ?? 0;
   const total = totalBytes ?? 0;
@@ -109,12 +155,20 @@ export function describeStorageProvisioned(
   const valueText = formatBytes(used);
   if (!total) return { valueText, overcommitted: false };
   const subText = overcommitted
-    ? `of ${formatBytes(total)} physical — overcommitted`
-    : `of ${formatBytes(total)} physical`;
+    ? intl.formatMessage({
+      id: "web.lib.utils.storage_overcommitted",
+      defaultMessage: "of {total} physical — overcommitted",
+      description: "Storage capacity line when provisioned storage exceeds physical disk; {total} is a formatted size such as 40 GB",
+    }, { total: formatBytes(total) })
+    : intl.formatMessage({
+      id: "web.lib.utils.storage_of_physical",
+      defaultMessage: "of {total} physical",
+      description: "Storage capacity line: provisioned storage out of node physical disk; {total} is a formatted size such as 40 GB",
+    }, { total: formatBytes(total) });
   return { valueText, subText, overcommitted };
 }
 
-export function formatUptime(startedAt?: string): string {
+export function formatUptime(startedAt?: string, intl: IntlShape = englishIntl): string {
   if (!startedAt) return "—";
   const t = new Date(startedAt).getTime();
   if (Number.isNaN(t)) return "—";
@@ -122,7 +176,19 @@ export function formatUptime(startedAt?: string): string {
   const d = Math.floor(s / 86400);
   const h = Math.floor((s % 86400) / 3600);
   const m = Math.floor((s % 3600) / 60);
-  if (d) return `${d}d ${h}h`;
-  if (h) return `${h}h ${m}m`;
-  return `${m}m`;
+  if (d) return intl.formatMessage({
+    id: "web.lib.utils.uptime_days_hours",
+    defaultMessage: "{days}d {hours}h",
+    description: "Server uptime in days and hours, e.g. 2d 5h; {days} and {hours} are numbers",
+  }, { days: String(d), hours: String(h) });
+  if (h) return intl.formatMessage({
+    id: "web.lib.utils.uptime_hours_minutes",
+    defaultMessage: "{hours}h {minutes}m",
+    description: "Server uptime in hours and minutes, e.g. 3h 12m; {hours} and {minutes} are numbers",
+  }, { hours: String(h), minutes: String(m) });
+  return intl.formatMessage({
+    id: "web.lib.utils.uptime_minutes",
+    defaultMessage: "{minutes}m",
+    description: "Server uptime in minutes, e.g. 12m; {minutes} is a number",
+  }, { minutes: String(m) });
 }

@@ -233,4 +233,94 @@ describe("AdminSettings notifications", () => {
     expect(await screen.findByText(/No notification sinks configured/i)).toBeInTheDocument();
     expect(deleteCalled).toBe(false);
   });
+
+  it("sends no language key for a new sink left on Instance default", async () => {
+    const user = userEvent.setup();
+    let saved: NotificationsCfg | undefined;
+    server.use(
+      http.put("/admin/notifications/sinks/:name/secret", ({ params }) =>
+        HttpResponse.json({ name: `gameplane-notify-${String(params.name)}`, keys: ["url", "authorization"] }),
+      ),
+      http.put("/admin/config/notifications", async ({ request }) => {
+        saved = (await request.json()) as NotificationsCfg;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoNotifications();
+    await user.click(await screen.findByRole("button", { name: /Add sink/i }));
+    await user.type(screen.getByPlaceholderText("team-alerts"), "ops-hook");
+    await user.click(screen.getByRole("button", { name: /Sink kind/i }));
+    await user.click(await screen.findByRole("option", { name: /slack/i }));
+    await user.type(
+      screen.getByPlaceholderText(/hooks\.slack\.com/i),
+      "https://hooks.slack.com/services/T00/B00/xyz",
+    );
+    await user.click(screen.getByRole("button", { name: /^Add sink$/i }));
+    expect(await screen.findByText(/slack · Secret: gameplane-notify-ops-hook/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(saved).toBeDefined());
+    expect(saved?.sinks).toHaveLength(1);
+    expect(saved?.sinks[0]).not.toHaveProperty("language");
+  });
+
+  it("sets a sink's language from its row and saves it with the sink", async () => {
+    const user = userEvent.setup();
+    let saved: NotificationsCfg | undefined;
+    seedSinks({
+      sinks: [
+        {
+          name: "team-alerts",
+          kind: "discord",
+          enabled: true,
+          configRef: "gameplane-notify-team-alerts",
+          events: ["server.unhealthy"],
+        },
+      ],
+    });
+    server.use(
+      http.put("/admin/config/notifications", async ({ request }) => {
+        saved = (await request.json()) as NotificationsCfg;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoNotifications();
+    await user.click(await screen.findByRole("button", { name: /Language for team-alerts/i }));
+    await user.click(await screen.findByRole("option", { name: /English/i }));
+    await user.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(saved).toBeDefined());
+    expect(saved?.sinks[0]).toMatchObject({ name: "team-alerts", language: "en" });
+  });
+
+  it("removes a sink's language key when its row goes back to Instance default", async () => {
+    const user = userEvent.setup();
+    let saved: NotificationsCfg | undefined;
+    seedSinks({
+      sinks: [
+        {
+          name: "team-alerts",
+          kind: "discord",
+          enabled: true,
+          configRef: "gameplane-notify-team-alerts",
+          events: ["server.unhealthy"],
+          language: "en",
+        },
+      ],
+    });
+    server.use(
+      http.put("/admin/config/notifications", async ({ request }) => {
+        saved = (await request.json()) as NotificationsCfg;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoNotifications();
+    await user.click(await screen.findByRole("button", { name: /Language for team-alerts/i }));
+    await user.click(await screen.findByRole("option", { name: /Instance default/i }));
+    await user.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(saved).toBeDefined());
+    expect(saved?.sinks[0]).toMatchObject({ name: "team-alerts" });
+    expect(saved?.sinks[0]).not.toHaveProperty("language");
+  });
 });

@@ -21,7 +21,7 @@ import (
 	"github.com/coder/websocket/wsjson"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/rcon"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 // Rcon is the interface to the game's remote console.

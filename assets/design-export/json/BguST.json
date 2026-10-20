@@ -1,0 +1,729 @@
+{
+  "type": "frame",
+  "id": "BguST",
+  "x": 6560,
+  "y": 40607,
+  "name": "Screen/Server Detail — Settings · Game configuration (Password will be removed)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "LuUN8",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "name": "Restored ref",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "aoYjR",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "qVEH5",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "name": "Restored ref",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "j6OM5",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "B5Wr9y",
+              "type": "ref",
+              "ref": "S4k0x",
+              "name": "Detail Header",
+              "width": "fill_container"
+            },
+            {
+              "id": "pMkLK",
+              "type": "ref",
+              "ref": "I9kvlZ",
+              "name": "Tabs Bar",
+              "width": "fill_container",
+              "padding": [
+                0,
+                0,
+                0,
+                24
+              ],
+              "descendants": {
+                "Wp6q1": {
+                  "fill": "#00000000"
+                },
+                "Wp6q1/YUR8N": {
+                  "fill": "$muted"
+                },
+                "Y4QES": {
+                  "fill": "$segment"
+                },
+                "Y4QES/VcxMI": {
+                  "fill": "$foreground/segment"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "EKV1P",
+              "name": "Settings Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "children": [
+                {
+                  "id": "NVuLp",
+                  "type": "ref",
+                  "ref": "EV8mp",
+                  "name": "Settings Sub Nav",
+                  "width": 224,
+                  "height": "fill_container",
+                  "descendants": {
+                    "oXEaP": {
+                      "fill": "#00000000"
+                    },
+                    "K2QiS9": {
+                      "fill": "#000000"
+                    },
+                    "KfnMt": {
+                      "fill": "$muted"
+                    },
+                    "axMXL": {
+                      "fill": "#00000000"
+                    },
+                    "P8u2Kj": {
+                      "fill": "$muted"
+                    },
+                    "VQPTx": {
+                      "fill": "$muted"
+                    },
+                    "p3HCVj": {
+                      "fill": "$surface/secondary"
+                    },
+                    "nbQNd": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "nnoXy": {
+                      "fill": "#00000000"
+                    },
+                    "F1IWTf": {
+                      "fill": "$muted"
+                    },
+                    "bHNH0": {
+                      "fill": "$muted"
+                    },
+                    "QrhqW": {
+                      "fill": "#00000000"
+                    },
+                    "b0WSG": {
+                      "fill": "$muted"
+                    },
+                    "J4128": {
+                      "fill": "$muted"
+                    },
+                    "DnXAN": {
+                      "fill": "#00000000"
+                    },
+                    "RK6jY": {
+                      "fill": "$muted"
+                    },
+                    "rWM9D": {
+                      "fill": "$muted"
+                    },
+                    "tv3iR": {
+                      "fill": "#00000000"
+                    },
+                    "nfFt4": {
+                      "fill": "$muted"
+                    },
+                    "Y2PGH": {
+                      "fill": "$muted"
+                    },
+                    "bLFiu": {
+                      "fill": "#00000000"
+                    },
+                    "S7IwYB": {
+                      "fill": "$muted"
+                    },
+                    "IUddK": {
+                      "fill": "$muted"
+                    },
+                    "hNpsj": {
+                      "fill": "#00000000"
+                    },
+                    "lU1pD": {
+                      "fill": "$muted"
+                    },
+                    "Fkfhz": {
+                      "fill": "$muted"
+                    },
+                    "faW0l": {
+                      "fill": "#00000000"
+                    },
+                    "dDJ3f": {
+                      "fill": "$muted"
+                    },
+                    "v3XCDT": {
+                      "fill": "$muted"
+                    },
+                    "LktID": {
+                      "fill": "#00000000"
+                    },
+                    "OdmLx": {
+                      "fill": "$muted"
+                    },
+                    "paOZA": {
+                      "fill": "$muted"
+                    },
+                    "JlFDJ": {
+                      "fill": "#00000000"
+                    },
+                    "Hw7vh": {
+                      "fill": "$muted"
+                    },
+                    "Qbxnz": {
+                      "fill": "$muted"
+                    },
+                    "WLobW": {
+                      "fill": "#00000000"
+                    },
+                    "zpxa4": {
+                      "fill": "$danger/danger"
+                    },
+                    "xlVdh": {
+                      "fill": "$danger/danger"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "aBxfM",
+                  "name": "Settings Panel Wrap",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WR2kZ",
+                      "name": "Settings Form",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "EGZKP",
+                          "name": "Form Body",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": 24,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "NruaW",
+                              "name": "Section Header",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Y52c9",
+                                  "name": "Section Title",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Game configuration",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 18,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "D4JKs",
+                                  "name": "Section Description",
+                                  "fill": "$muted",
+                                  "content": "Settings from this server's game template. Saving restarts the server.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "c0F4nN",
+                              "type": "ref",
+                              "ref": "uJ3KZ",
+                              "name": "Restart Alert",
+                              "width": "fill_container",
+                              "descendants": {
+                                "xzGxP": {
+                                  "content": "Saving changes restarts the server so they apply."
+                                },
+                                "yLGJ9": {
+                                  "enabled": false
+                                }
+                              }
+                            },
+                            {
+                              "type": "frame",
+                              "id": "AiAbk",
+                              "name": "Field World name",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "wXEkG",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "agibC",
+                                      "name": "Label",
+                                      "fill": "$foreground/foreground",
+                                      "content": "World name",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Bv61i",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "id": "VXtHn",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "Gameplane",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "V0JLk",
+                              "name": "Field Difficulty",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Nx9st",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "n2J6yD",
+                                      "name": "Label",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Difficulty",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "jYBxI",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "id": "RuWUk",
+                                      "type": "ref",
+                                      "ref": "AT7ya",
+                                      "name": "Select",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "cFsFk": {
+                                          "content": "Expert",
+                                          "fill": "$foreground/foreground"
+                                        },
+                                        "mULN8": {
+                                          "fill": "$muted"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "g4qdfR",
+                              "name": "Field Max players",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "mxs97",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "f3RaF",
+                                      "name": "Label",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Max players",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "bDhXp",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "id": "o8uLNg",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "8",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "OYF4O",
+                              "name": "Field PvP",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "rh0jC",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "mmwLw",
+                                      "name": "Label",
+                                      "fill": "$foreground/foreground",
+                                      "content": "PvP",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "RrUyM",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "id": "KdXb9",
+                                      "type": "ref",
+                                      "ref": "AT7ya",
+                                      "name": "Select",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "cFsFk": {
+                                          "content": "false",
+                                          "fill": "$foreground/foreground"
+                                        },
+                                        "mULN8": {
+                                          "fill": "$muted"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "KhtIr",
+                              "name": "Field Server password",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "g0AGoR",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "o2MKya",
+                                      "name": "Label",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Server password",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "LtCR3",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "swOk7",
+                                      "name": "Input row",
+                                      "width": "fill_container",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "kxEL9",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": "fill_container",
+                                          "stroke": "$danger/danger",
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "Password will be removed",
+                                              "fill": "$danger/danger"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "JkJXW",
+                                          "type": "ref",
+                                          "ref": "J09iP",
+                                          "name": "Remove password button",
+                                          "descendants": {
+                                            "eWkIT/r4VbAi": {
+                                              "content": "Undo"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "JWDSU",
+                                      "name": "Helper",
+                                      "fill": "$danger/danger",
+                                      "content": "Removed when you save. Undo to keep the stored password.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "feyyB",
+                              "name": "Field MOTD",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "LPPW6",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "oFik0",
+                                      "name": "Label",
+                                      "fill": "$foreground/foreground",
+                                      "content": "MOTD",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "z7eB6e",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "id": "QMXDP",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "Welcome to Gameplane",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "m0bl6",
+                                      "name": "Helper",
+                                      "fill": "$muted",
+                                      "content": "Written to serverconfig.txt",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "n007q",
+                          "name": "Form Footer",
+                          "width": "fill_container",
+                          "stroke": "$border/border",
+                          "strokeWidth": {
+                            "top": 1
+                          },
+                          "strokeAlignment": "inner",
+                          "strokeLinejoin": "round",
+                          "gap": 12,
+                          "padding": [
+                            12,
+                            24
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "I0wipM",
+                              "type": "ref",
+                              "ref": "J09iP",
+                              "name": "Btn Discard",
+                              "descendants": {
+                                "eWkIT/WtPjS": {
+                                  "icon": "pencil"
+                                }
+                              }
+                            },
+                            {
+                              "id": "bAJYA",
+                              "type": "ref",
+                              "ref": "z9ShNE",
+                              "name": "Btn Save Changes",
+                              "descendants": {
+                                "nWTJb": {
+                                  "enabled": false
+                                },
+                                "IVgQ8/U1xvSo": {
+                                  "content": "Save changes"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

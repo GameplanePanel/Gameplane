@@ -16,11 +16,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // Owner annotations record which user a GameServer belongs to. Ownership
@@ -63,7 +64,7 @@ func stampOwner(obj *unstructured.Unstructured, req *http.Request) {
 func requireOwnerOrAdmin(w http.ResponseWriter, req *http.Request, reg *kube.Registry, k *kube.Client, ns, name string) (*unstructured.Unstructured, bool) {
 	u := auth.UserFromContext(req.Context())
 	if u == nil {
-		http.Error(w, "unauthenticated", http.StatusUnauthorized)
+		httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 		return nil, false
 	}
 	cl, err := scope.ResolveCluster(req, reg)
@@ -76,7 +77,7 @@ func requireOwnerOrAdmin(w http.ResponseWriter, req *http.Request, reg *kube.Reg
 		return nil, false
 	}
 	if !u.Can("*", true, cl, ns) && !isServerOwner(obj, u.ID) {
-		http.Error(w, "forbidden", http.StatusForbidden)
+		httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 		return nil, false
 	}
 	return obj, true
@@ -170,14 +171,14 @@ func (h *ownershipHandler) transfer(w http.ResponseWriter, req *http.Request) {
 	}
 	var body transferReq
 	if err := json.NewDecoder(io.LimitReader(req.Body, 1<<16)).Decode(&body); err != nil || body.UserID <= 0 {
-		http.Error(w, "userId required", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.ownership.user_id_required", nil))
 		return
 	}
 	var username string
 	err := h.db.DB.QueryRowContext(req.Context(),
 		`SELECT username FROM users WHERE id = ?`, body.UserID).Scan(&username)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "user not found", http.StatusNotFound)
+		httperr.WriteMessage(w, req, messages.New("server.common.user_not_found", nil))
 		return
 	}
 	if err != nil {
@@ -220,7 +221,7 @@ func (h *ownershipHandler) setCollaborators(w http.ResponseWriter, req *http.Req
 	}
 	var body setCollaboratorsReq
 	if err := json.NewDecoder(io.LimitReader(req.Body, 1<<16)).Decode(&body); err != nil {
-		http.Error(w, "invalid request", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.ownership.invalid_request", nil))
 		return
 	}
 
@@ -238,7 +239,7 @@ func (h *ownershipHandler) setCollaborators(w http.ResponseWriter, req *http.Req
 		err := h.db.DB.QueryRowContext(req.Context(),
 			`SELECT id FROM users WHERE username = ?`, name).Scan(&id)
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "user not found: "+name, http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("user not found: "+name))
 			return
 		}
 		if err != nil {
@@ -255,7 +256,7 @@ func (h *ownershipHandler) setCollaborators(w http.ResponseWriter, req *http.Req
 		err := h.db.DB.QueryRowContext(req.Context(),
 			`SELECT username FROM users WHERE id = ?`, id).Scan(&username)
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "user not found", http.StatusBadRequest)
+			httperr.WriteMessage(w, req, messages.New("server.ownership.user_not_found_400", nil))
 			return
 		}
 		if err != nil {
@@ -316,7 +317,7 @@ func (h *ownershipHandler) getOwnedServers(w http.ResponseWriter, req *http.Requ
 	}
 	u := auth.UserFromContext(req.Context())
 	if u == nil {
-		http.Error(w, "unauthenticated", http.StatusUnauthorized)
+		httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 		return
 	}
 

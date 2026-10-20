@@ -2,7 +2,7 @@
 
 - **Date**: 2026-09-24
 - **Reviewer tier**: opus (verification pending)
-- **Checked against**: `gp-module/specs.md`; `specs/010-easy-module-building/spec.md` (FR-008, FR-012, FR-016, edge cases, SC-002); `specs/010-easy-module-building/contracts/cli-contract.md`; `specs/010-easy-module-building/contracts/diagnostics-contract.md`; `specs/010-easy-module-building/contracts/archetypes-contract.md`; `docs/module-authoring.md:13-141`; the GameTemplate CRD `operator/config/crd/gameplane.local_gametemplates.yaml` and `operator/api/v1alpha1/gametemplate_types.go`; `modules/.schema/module.schema.json`
+- **Checked against**: `gp-module/specs.md`; `specs/done_010-easy-module-building/spec.md` (FR-008, FR-012, FR-016, edge cases, SC-002); `specs/done_010-easy-module-building/contracts/cli-contract.md`; `specs/done_010-easy-module-building/contracts/diagnostics-contract.md`; `specs/done_010-easy-module-building/contracts/archetypes-contract.md`; `docs/module-authoring.md:13-141`; the GameTemplate CRD `operator/config/crd/gameplane.local_gametemplates.yaml` and `operator/api/v1alpha1/gametemplate_types.go`; `modules/.schema/module.schema.json`
 
 ## Scope reviewed
 
@@ -45,7 +45,7 @@ Results of `gp-module validate --json` over all 30 shipped modules: 13 errors, 2
   2. The GameTemplate CRD's `ConfigField` has `Enum []string json:"enum,omitempty"` (`gametemplate_types.go:1081-1083`, line 1083). The generated CRD schema has an `enum` property and no `options` property (`operator/config/crd/gameplane.local_gametemplates.yaml`, `spec.configSchema.items.properties`). The operator validates against `f.Enum` (`gameserver_config.go:151-155`).
   3. `gp-module validate modules/terraria modules/7-days-to-die` gives 7 errors such as `ERROR [invalid-config-type] template.yaml:211:7: configSchema enum field "AUTOCREATE" must specify a non-empty options list`, for fields declared as `enum: ["1", "2", "3"]`. Across all shipped modules there are 12 such errors in 5 modules (see Method).
   4. The dashboard builder export (`api/internal/handlers/modules_builder.go:358-368`) returns 400 "module validation failed" whenever the report is not clean. A builder template with a CRD-correct enum field therefore can't be exported or installed. A template written with `options:` passes the validator, but `options` isn't a CRD field: the API server prunes it, `f.Enum` stays empty, and the operator rejects every value.
-- **Expected**: `specs/010-easy-module-building/spec.md` FR-008: validate "against … `GameTemplate` CRD schemas". FR-012: validate "enum lists". The validator should check the CRD's `enum:` list (non-empty, default among the values).
+- **Expected**: `specs/done_010-easy-module-building/spec.md` FR-008: validate "against … `GameTemplate` CRD schemas". FR-012: validate "enum lists". The validator should check the CRD's `enum:` list (non-empty, default among the values).
 - **Actual**: CRD-valid enum fields fail validation, and the only spelling that passes produces a broken template at runtime.
 
 ### C-gp-module-02: The validator accepts `type: boolean`, which the CRD rejects, and its error message leaves out `bool`, the only accepted spelling
@@ -173,7 +173,7 @@ Results of `gp-module validate --json` over all 30 shipped modules: 13 errors, 2
 - **Observation / repro**:
   1. `module.yaml` with `gameplaneMinVersion: 9.0.0` validates clean. The rule checks only that the value is semver.
   2. There is also no Gameplane version for it to compare against: the CLI version is a hard-coded `"1.0.0"` (`main.go:9`), unrelated to the Gameplane release line.
-- **Expected**: `specs/010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author of potential version discrepancies."
+- **Expected**: `specs/done_010-easy-module-building/spec.md:102` (Edge Cases): "If a module references a `gameplaneMinVersion` higher than the current tooling version, validation must notify the author of potential version discrepancies."
 - **Actual**: No notification.
 
 ### C-gp-module-13: `gp-module/go.sum` is missing `/go.mod` hashes, so a normal build dirties the tree and a standalone read-only build fails

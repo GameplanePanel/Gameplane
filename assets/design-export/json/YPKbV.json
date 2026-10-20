@@ -1,0 +1,225 @@
+{
+  "type": "frame",
+  "id": "YPKbV",
+  "x": 3280,
+  "y": 12822,
+  "name": "Screen/Dashboard — Partial location coverage",
+  "context": "Counts cover returned resources only. Unknown inventory and player metrics use an em dash, never zero.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1220,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "RdFAV",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container"
+    },
+    {
+      "type": "frame",
+      "id": "d3S3i7",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "cAbsf",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gb27k": {
+              "fontFamily": "$typography/font-sans"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "N835Eh",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "children": [
+            {
+              "id": "R1Pieq",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "VbHwU": {
+                  "content": "Your game servers and resources across authorized locations."
+                },
+                "TgdLz": {
+                  "children": [
+                    {
+                      "id": "QuiZX",
+                      "type": "ref",
+                      "ref": "tpKRk",
+                      "name": "Create Server Button",
+                      "descendants": {
+                        "q58In/Xpn7K": {
+                          "library": "lucide",
+                          "icon": "plus"
+                        },
+                        "q58In/U6q13B": {
+                          "content": "Create server"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "hsyln",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Dashboard location filter",
+              "width": 240,
+              "context": "Optional location filter; All locations combines authorized inventory.",
+              "descendants": {
+                "cFsFk": {
+                  "content": "All locations",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "qVXvl",
+              "name": "Partial server coverage",
+              "width": "fill_container",
+              "fill": "$warning/soft",
+              "cornerRadius": 8,
+              "stroke": "$warning/warning",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FU86N",
+                  "name": "Coverage notice",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Server totals are partial. Counts cover only returned resources.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "T5NcmM",
+                  "name": "Coverage notice",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "remote-lab / gameplane-games: Unavailable.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "jpaZu",
+              "type": "ref",
+              "ref": "YF85x",
+              "name": "Stats Row",
+              "width": "fill_container",
+              "descendants": {
+                "m20CHt/QdcEm": {
+                  "fill": "#000000"
+                },
+                "m20CHt/h0n7zo": {
+                  "content": "of 1 returned"
+                },
+                "T0vNbN/vj2Ru": {
+                  "content": "—"
+                },
+                "T0vNbN/h0n7zo": {
+                  "content": "player status unavailable"
+                },
+                "pkvT2/QdcEm": {
+                  "fill": "$chart/stat"
+                },
+                "pkvT2/vj2Ru": {
+                  "content": "12"
+                },
+                "pkvT2/h0n7zo": {
+                  "content": "authorized inventory cores"
+                },
+                "FlXsH/QdcEm": {
+                  "fill": "$chart/stat"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "WAbIC",
+              "name": "Row2",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "a1Pmw",
+                  "type": "ref",
+                  "ref": "rYAg3",
+                  "name": "Fleet Status Card",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "j7iEJo",
+                  "type": "ref",
+                  "ref": "Y96CaE",
+                  "name": "Cluster Resources Card",
+                  "width": "fill_container"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "z14QLD",
+              "name": "Row3",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "tNWuB",
+                  "type": "ref",
+                  "ref": "DlNh6",
+                  "name": "Central audit activity",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "QVxMu",
+                  "type": "ref",
+                  "ref": "Vl96v",
+                  "name": "Recent Backups Card",
+                  "width": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

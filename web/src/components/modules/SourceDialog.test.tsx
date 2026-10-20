@@ -218,7 +218,7 @@ describe("SourceDialog", () => {
     fireEvent.change(screen.getByPlaceholderText("community"), { target: { value: "up" } });
     expect(submitBtn).toBeDisabled();
 
-    fireEvent.change(screen.getByPlaceholderText("ghcr.io/valgulnecron/gameplane-modules"), {
+    fireEvent.change(screen.getByPlaceholderText("ghcr.io/gameplanepanel/gameplane-modules"), {
       target: { value: "ghcr.io/x" },
     });
     expect(submitBtn).toBeDisabled();
@@ -228,7 +228,7 @@ describe("SourceDialog", () => {
   it("submits the typed payload", async () => {
     const onConfirm = renderDialog();
     fireEvent.change(screen.getByPlaceholderText("community"), { target: { value: "upstream" } });
-    fireEvent.change(screen.getByPlaceholderText("ghcr.io/valgulnecron/gameplane-modules"), {
+    fireEvent.change(screen.getByPlaceholderText("ghcr.io/gameplanepanel/gameplane-modules"), {
       target: { value: "ghcr.io/x" },
     });
     fireEvent.change(screen.getByPlaceholderText("minecraft-java, valheim"), {
@@ -251,7 +251,7 @@ describe("SourceDialog", () => {
     expect(submitBtn).toBeDisabled();
 
     fireEvent.change(screen.getByPlaceholderText("community"), { target: { value: "upstream" } });
-    fireEvent.change(screen.getByPlaceholderText("ghcr.io/valgulnecron/gameplane-modules"), {
+    fireEvent.change(screen.getByPlaceholderText("ghcr.io/gameplanepanel/gameplane-modules"), {
       target: { value: "ghcr.io/x" },
     });
     fireEvent.change(screen.getByPlaceholderText("minecraft-java, valheim"), {
@@ -266,7 +266,7 @@ describe("SourceDialog", () => {
   it("reveals keyless verify fields and validates them", async () => {
     const onConfirm = renderDialog();
     fireEvent.change(screen.getByPlaceholderText("community"), { target: { value: "upstream" } });
-    fireEvent.change(screen.getByPlaceholderText("ghcr.io/valgulnecron/gameplane-modules"), {
+    fireEvent.change(screen.getByPlaceholderText("ghcr.io/gameplanepanel/gameplane-modules"), {
       target: { value: "ghcr.io/x" },
     });
     fireEvent.change(screen.getByPlaceholderText("minecraft-java, valheim"), {
@@ -340,7 +340,7 @@ describe("SourceDialog", () => {
   it("reveals keyed verify fields and validates them", async () => {
     const onConfirm = renderDialog();
     fireEvent.change(screen.getByPlaceholderText("community"), { target: { value: "signed-upstream" } });
-    fireEvent.change(screen.getByPlaceholderText("ghcr.io/valgulnecron/gameplane-modules"), {
+    fireEvent.change(screen.getByPlaceholderText("ghcr.io/gameplanepanel/gameplane-modules"), {
       target: { value: "ghcr.io/x" },
     });
     fireEvent.change(screen.getByPlaceholderText("minecraft-java, valheim"), {
@@ -467,7 +467,7 @@ describe("SourceDialog", () => {
       />,
     );
     fireEvent.change(screen.getByPlaceholderText("community"), { target: { value: "src" } });
-    fireEvent.change(screen.getByPlaceholderText("ghcr.io/valgulnecron/gameplane-modules"), {
+    fireEvent.change(screen.getByPlaceholderText("ghcr.io/gameplanepanel/gameplane-modules"), {
       target: { value: "ghcr.io/x" },
     });
     fireEvent.change(screen.getByPlaceholderText("minecraft-java, valheim"), {

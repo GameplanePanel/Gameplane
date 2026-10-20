@@ -1,7 +1,7 @@
 # gp-module — Specification
 
 **Status:** Active Development  
-**Module / command:** `github.com/ValgulNecron/gameplane/gp-module`  
+**Module / command:** `github.com/GameplanePanel/gameplane/gp-module`  
 **Dependencies:** `gopkg.in/yaml.v3`, `k8s.io/apimachinery` (Go 1.26+)
 
 ## Purpose
@@ -10,7 +10,8 @@
 1. **Scaffolding (`init`)**: Interactive and non-interactive generation of schema-compliant module directories across `steamcmd`, `java`, and `generic` archetypes with DNS-1123 validation.
 2. **Offline Validation (`validate`)**: Static offline checking of `module.yaml` metadata, CRD schemas, image digest pinning, canonical categories, port bounds/collisions, and configuration rules with exact source line-number diagnostics via `yaml.v3`.
 3. **Dry-Run Preview (`preview`)**: Simulation of runtime server creation from `template.yaml`, evaluating dynamic memory limits (`autoFromMemoryLimit`) and environment variable precedence using native Kubernetes resource types.
-4. **OCI Packaging (`package`)**: Asset size sanity checking (icon $\le$ 512 KiB, bundle $\le$ 1 MiB) and automated bundle export via ORAS or local `.tar.gz` archive.
+4. **OCI Packaging (`package`)**: Asset size sanity checking (icon $\le$ 512 KiB, bundle $\le$ 1 MiB) and automated bundle export via ORAS or local `.tar.gz` archive. A `locales/<tag>.json` translation file becomes one extra OCI layer (media type `application/vnd.gameplane.module.locale.v1+json`, title `locales/<tag>.json`); the English reference `locales/en.json` is not shipped. The local `.tar.gz` export carries `locales/<tag>.json` at the same relative path (`en.json` excluded), so it also works as an HTTP or upload source.
+5. **Translations (`i18n extract`, `i18n stamp`, and `validate`)**: `gp-module i18n extract [MODULE_PATH] [--output <file>]` derives the translatable message ids from `module.yaml` and `template.yaml` (shared `i18n/modlocale` package, also used by the operator) and writes the English reference with translator descriptions to `locales/en.json`. `validate` checks every `locales/<tag>.json` against the derived ids and reports rule `locale-invalid` for bad tags, malformed files, unknown ids and placeholder or markup mismatches. Each id derived from `module.yaml` and `template.yaml` that fails `modlocale.ValidID` (for example a config key with a space) is reported as an `ERROR` with rule `locale-id-invalid`, whether or not a `locales/` directory exists. `gp-module i18n stamp [MODULE_PATH]` records `sourceHash` (as in app packs) on translated entries that lack one; when the English text later changes, `validate` reports a `WARN` with rule `locale-needs-review` (it does not fail validation).
 
 ## Responsibilities
 
@@ -40,7 +41,8 @@ gp-module/
 │       ├── init.go               # 'init' command flags and interactive prompts
 │       ├── validate.go           # 'validate' command flags and reporting
 │       ├── preview.go            # 'preview' command flags and formatting
-│       └── package.go            # 'package' command flags and packaging
+│       ├── package.go            # 'package' command flags and packaging
+│       └── i18n.go               # 'i18n extract' command
 ├── pkg/                          # Public Go API exported to api/ and other modules
 │   ├── archetypes/               # Archetypes and icon helpers
 │   ├── packager/                 # Archive creation and size limits
@@ -62,13 +64,17 @@ gp-module/
 │   │   ├── rules.go              # Lint rules implementation
 │   │   ├── schema.go             # Schema conformance verification
 │   │   ├── report.go             # Diagnostic formatter and JSON reporter
+│   │   ├── locales.go            # locales/<tag>.json validation (rule locale-invalid)
 │   │   └── validator_test.go     # Validator unit tests
+│   ├── i18n/
+│   │   ├── ids.go                # Extract: derive and write the English reference pack
+│   │   └── stamp.go              # Stamp: record sourceHash on translated entries
 │   ├── preview/
 │   │   ├── preview.go            # Manifest simulator and env merger
 │   │   ├── memory.go             # autoFromMemoryLimit calculator
 │   │   └── preview_test.go       # Preview unit tests
 │   └── packager/
-│       ├── packager.go           # OCI bundle packager and size checker
+│       ├── packager.go           # OCI bundle packager, size checker and locale layers
 │       └── packager_test.go      # Packager unit tests
 ├── go.mod                        # Go module declaration
 ├── specs.md                      # Architecture and boundaries specification

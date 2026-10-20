@@ -155,6 +155,14 @@ describe("ClusterSelector", () => {
     expect(getCurrentCluster()).toBe("removed-site");
   });
 
+  it("prompts for a cluster when the selection was explicitly cleared", async () => {
+    setCurrentCluster("");
+    server.use(http.get("/clusters", () => HttpResponse.json({ items: [{ name: "east", displayName: "East", phase: "Healthy" }] })));
+    renderWithQuery(<ClusterSelector />);
+    expect(await screen.findByRole("button", { name: "Select cluster" })).toHaveTextContent("Select cluster");
+    expect(getCurrentCluster()).toBe("");
+  });
+
   it("includes an 'View all clusters' option at the bottom of the dropdown", async () => {
     const clusters: ClusterRegistry[] = [
       { name: "local", displayName: "Local", phase: "Healthy" },
@@ -181,17 +189,18 @@ describe("ClusterSelector", () => {
 
     renderWithQuery(<ClusterSelector />);
 
-    // Should render "local" as fallback
+    // An empty registry must not advertise a nonexistent local cluster.
     await waitFor(() => {
-      expect(screen.getByText("local")).toBeInTheDocument();
+      expect(screen.getByText("Select cluster")).toBeInTheDocument();
     });
+    expect(screen.queryByText("local")).not.toBeInTheDocument();
 
     const trigger = screen.getByRole("button", { name: /select cluster/i });
     await userEvent.click(trigger);
 
     // Should show a helpful message
     await waitFor(() => {
-      expect(screen.getByText("No clusters available")).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: /Manage clusters/ })).toBeEnabled();
     });
   });
 

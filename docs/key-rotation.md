@@ -17,18 +17,18 @@ the key type cosign generates by default, so it works cleanly with Rekor.
 
 | File | Key | Role |
 | --- | --- | --- |
-| [`cosign.pub`](../cosign.pub) | ECDSA P-256 | **Current** key. Verifies everything signed from the rotation onward. |
-| [`cosign-legacy.pub`](../cosign-legacy.pub) | Ed25519 | Retired key. Verifies releases published **before** the rotation, and the cross-signature below. |
-| [`cosign.pub.legacy-sig`](../cosign.pub.legacy-sig) | — | The old key's signature over the new `cosign.pub` (trust continuity). |
+| [`signing/cosign.pub`](../signing/cosign.pub) | ECDSA P-256 | **Current** key. Verifies everything signed from the rotation onward. |
+| [`signing/2026-07-24-cosign-legacy.pub`](../signing/2026-07-24-cosign-legacy.pub) | Ed25519 | Retired key. Verifies releases published **before** the rotation, and the cross-signature below. |
+| [`signing/cosign.pub.legacy-sig`](../signing/cosign.pub.legacy-sig) | — | The old key's signature over the new `signing/cosign.pub` (trust continuity). |
 
 ## Verify the cross-signature
 
 Confirm the retired key endorsed the current key. With openssl (portable):
 
 ```sh
-base64 -d cosign.pub.legacy-sig > /tmp/xsig.bin
-openssl pkeyutl -verify -pubin -inkey cosign-legacy.pub -rawin \
-  -in cosign.pub -sigfile /tmp/xsig.bin
+base64 -d signing/cosign.pub.legacy-sig > /tmp/xsig.bin
+openssl pkeyutl -verify -pubin -inkey signing/2026-07-24-cosign-legacy.pub -rawin \
+  -in signing/cosign.pub -sigfile /tmp/xsig.bin
 # → Signature Verified Successfully
 ```
 
@@ -36,14 +36,14 @@ Or with cosign (needs a version ≤ v2.4.3 — newer cosign has Ed25519
 `verify-blob` regressions):
 
 ```sh
-cosign verify-blob --key cosign-legacy.pub --insecure-ignore-tlog \
-  --signature cosign.pub.legacy-sig cosign.pub
+cosign verify-blob --key signing/2026-07-24-cosign-legacy.pub --insecure-ignore-tlog \
+  --signature signing/cosign.pub.legacy-sig signing/cosign.pub
 ```
 
 ## Verifying artifacts
 
-- **From the rotation onward:** use `cosign.pub` (see
+- **From the rotation onward:** use `signing/cosign.pub` (see
   [`install.md`](install.md#verifying-image-signatures)). New signatures are
   recorded in the public Rekor log.
-- **Before the rotation:** use `cosign-legacy.pub` with
+- **Before the rotation:** use `signing/2026-07-24-cosign-legacy.pub` with
   `--insecure-ignore-tlog=true` (those were offline/keyed, unlogged).

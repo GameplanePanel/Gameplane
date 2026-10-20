@@ -1,0 +1,13 @@
+# Coverage threshold gate for the shared telemetryschema module.
+# Enforced by `make cover-go-check` via go-test-coverage/v2.
+#
+# telemetryschema is the stdlib-only report contract shared by api and
+# telemetry-receiver: types, enumerations, strict decoding, the official module
+# catalog and report signing. All of it is unit-testable, so the gate is 90%.
+profile: coverage/unit.out
+github-action-output: false
+
+threshold:
+  file: 0
+  package: 0
+  total: 90

@@ -15,6 +15,7 @@ import {
 import { Auth } from "@/lib/endpoints";
 import type { User } from "@/types";
 import type { JSX } from "react";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 export interface TopBarProps {
   /** Breadcrumb navigation slot — typically <Breadcrumbs items={...} /> */
@@ -48,7 +49,8 @@ export function TopBar({
   user,
   onMenuClick,
 }: TopBarProps): JSX.Element {
-  const name = user?.displayName || user?.username || "guest";
+  const intl = useOptionalIntl();
+  const name = user?.displayName || user?.username || intl.formatMessage({ id: "web.components.ui.top_bar.guest", defaultMessage: "guest", description: "Top bar: name shown for a user with no display name or username" });
   const initials = name.slice(0, 2).toUpperCase();
   const navigate = useNavigate();
 
@@ -68,7 +70,7 @@ export function TopBar({
           isIconOnly
           variant="ghost"
           size="sm"
-          aria-label="Open navigation"
+          aria-label={intl.formatMessage({ id: "web.components.ui.top_bar.open_navigation", defaultMessage: "Open navigation", description: "Top bar: icon-only button that opens the navigation on small screens; screen-reader name, not visible on screen" })}
           onClick={onMenuClick}
           className="shrink-0 lg:hidden"
         >
@@ -96,7 +98,7 @@ export function TopBar({
         {/* User avatar dropdown menu */}
         <Dropdown>
           <DropdownTrigger
-            aria-label="User menu"
+            aria-label={intl.formatMessage({ id: "web.components.ui.top_bar.user_menu", defaultMessage: "User menu", description: "Top bar: screen-reader name of the user avatar dropdown menu; not visible on screen" })}
             className="cursor-pointer"
           >
             <Avatar
@@ -111,7 +113,7 @@ export function TopBar({
               <UserCircle className="h-4 w-4 text-muted" />
               <div className="flex flex-col">
                 <span className="font-semibold text-foreground">{name}</span>
-                <span className="text-xs text-muted">{user?.role ?? "—"}</span>
+                <span className="text-xs text-muted">{user?.role ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</span>
               </div>
             </div>
             <DropdownMenu className="w-48">
@@ -122,9 +124,7 @@ export function TopBar({
                   onClick={() => void navigate({ to: "/settings/theme" })}
                 >
                   <div className="flex items-center gap-2">
-                    <Palette className="h-4 w-4" />
-                    Theme & Appearance
-                  </div>
+                    <Palette className="h-4 w-4" />{intl.formatMessage({ id: "web.components.ui.top_bar.theme_appearance", defaultMessage: "Theme & Appearance", description: "Top bar: user menu item that opens the Theme and Appearance settings; keep it short" })}</div>
                 </DropdownItem>
                 <DropdownItem
                   key="logout"
@@ -132,9 +132,7 @@ export function TopBar({
                   className="text-danger"
                 >
                   <div className="flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </div>
+                    <LogOut className="h-4 w-4" />{intl.formatMessage({ id: "web.components.ui.top_bar.sign_out", defaultMessage: "Sign out", description: "Top bar: user menu item that signs the user out; keep it short" })}</div>
                 </DropdownItem>
               </DropdownSection>
             </DropdownMenu>

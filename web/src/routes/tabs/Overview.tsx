@@ -12,6 +12,14 @@ import { ServerSleepCard } from "@/components/server/ServerSleepCard";
 import { EventList } from "@/components/server/EventList";
 import { formatBytes } from "@/lib/utils";
 import { mapServerEvent, type NormalizedServerEvent } from "@/lib/events";
+import { playerRows } from "@/lib/players";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { conditionMessageText } from "@/lib/i18n/conditionMessage";
+import { defineMessages } from "react-intl";
+
+const OVERVIEW_TEXT = defineMessages({
+  empty_value: { id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" },
+});
 
 export function OverviewTab({
   gs,
@@ -28,6 +36,7 @@ export function OverviewTab({
   onViewAllEvents?: () => void;
   onOpenConsole?: () => void;
 }) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { data: roster } = useQuery({
@@ -55,7 +64,7 @@ export function OverviewTab({
     return (Array.isArray(rawEvents) ? rawEvents : []).map(mapServerEvent);
   }, [rawEvents]);
 
-  if (!gs) return <div className="p-6 text-muted">Loading…</div>;
+  if (!gs) return <div className="p-6 text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.loading", defaultMessage: "Loading…", description: "Overview tab: loading text shown until the server status is available" })}</div>;
 
   const status = gs.status ?? {};
   const running = status.phase === "Running";
@@ -116,28 +125,24 @@ export function OverviewTab({
             <AlertCircle className="h-5 w-5 shrink-0 text-warning" />
           </Alert.Indicator>
           <Alert.Content className="flex flex-1 flex-col gap-1">
-            <Alert.Title className="font-semibold text-sm">
-              Waiting on storage — the server can&apos;t provision yet
-            </Alert.Title>
-            <Alert.Description className="text-sm">
-              Ready condition: {provisioningFailure.reason} — {provisioningFailure.message}
-            </Alert.Description>
+            <Alert.Title className="font-semibold text-sm">{intl.formatMessage({ id: "web.routes.tabs.overview.waiting_on_storage_the_server_can_t", defaultMessage: "Waiting on storage — the server can't provision yet", description: "Overview tab: title of the alert shown while the server waits for storage before it can be created; the line below gives the ready condition" })}</Alert.Title>
+            <Alert.Description className="text-sm">{intl.formatMessage({ id: "web.routes.tabs.overview.ready_condition_reason_message", defaultMessage: "Ready condition: {reason} — {message}", description: "Overview: alert text for the Ready condition; {reason} is the condition reason and {message} the condition message" }, { reason: provisioningFailure.reason, message: conditionMessageText(intl, provisioningFailure, status.conditionArgs) })}</Alert.Description>
           </Alert.Content>
         </Alert>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
             <ResourceCard
-              label="CPU"
+              label={intl.formatMessage({ id: "web.routes.tabs.overview.cpu", defaultMessage: "CPU", description: "Overview tab: label of the CPU usage card; technical term, usually left untranslated" })}
               icon={<Cpu className="h-4 w-4" />}
               value={
-                cpuKnown ? (cpuLimitMilli ? `${cpuPct.toFixed(0)}%` : `${(cpuMilli / 1000).toFixed(2)} cores`) : "—"
+                cpuKnown ? (cpuLimitMilli ? `${cpuPct.toFixed(0)}%` : intl.formatMessage({ id: "web.routes.tabs.overview.cpu_cores", defaultMessage: "{cores} cores", description: "Overview: CPU value in cores when no CPU limit is set; {cores} is the cores in use" }, { cores: (cpuMilli / 1000).toFixed(2) })) : intl.formatMessage(OVERVIEW_TEXT.empty_value)
               }
               sub={
                 cpuKnown && cpuLimitMilli
-                  ? `${(cpuMilli / 1000).toFixed(1)} / ${(cpuLimitMilli / 1000).toFixed(1)} cores`
+                  ? intl.formatMessage({ id: "web.routes.tabs.overview.cpu_of_cores", defaultMessage: "{used} / {total} cores", description: "Overview: CPU usage against its limit in cores; {used} is the cores in use, {total} the CPU limit" }, { used: (cpuMilli / 1000).toFixed(1), total: (cpuLimitMilli / 1000).toFixed(1) })
                   : undefined
               }
               progress={cpuKnown && cpuLimitMilli ? cpuPct : undefined}
@@ -145,22 +150,22 @@ export function OverviewTab({
               accent="primary"
             />
             <ResourceCard
-              label="Memory"
+              label={intl.formatMessage({ id: "web.routes.tabs.overview.memory", defaultMessage: "Memory", description: "Overview tab: label of the memory usage card" })}
               icon={<MemoryStick className="h-4 w-4" />}
-              value={memKnown ? (memLimit ? `${memPct.toFixed(0)}%` : formatBytes(memUsed)) : "—"}
+              value={memKnown ? (memLimit ? `${memPct.toFixed(0)}%` : formatBytes(memUsed)) : intl.formatMessage(OVERVIEW_TEXT.empty_value)}
               sub={
-                memKnown ? `${formatBytes(memUsed)} / ${memLimit ? formatBytes(memLimit) : "—"}` : undefined
+                memKnown ? intl.formatMessage({ id: "web.routes.tabs.overview.used_of_total", defaultMessage: "{used} / {total}", description: "Overview: memory or disk usage against its limit; {used} is the amount in use, {total} the limit" }, { used: formatBytes(memUsed), total: memLimit ? formatBytes(memLimit) : intl.formatMessage(OVERVIEW_TEXT.empty_value) }) : undefined
               }
               progress={memKnown && memLimit ? memPct : undefined}
               trend={memKnown && memLimit ? memPct : undefined}
               accent="violet"
             />
             <ResourceCard
-              label="Disk"
+              label={intl.formatMessage({ id: "web.routes.tabs.overview.disk", defaultMessage: "Disk", description: "Overview tab: label of the disk usage card" })}
               icon={<HardDrive className="h-4 w-4" />}
-              value={diskKnown ? (diskTotal ? `${diskPct.toFixed(0)}%` : formatBytes(diskUsed)) : "—"}
+              value={diskKnown ? (diskTotal ? `${diskPct.toFixed(0)}%` : formatBytes(diskUsed)) : intl.formatMessage(OVERVIEW_TEXT.empty_value)}
               sub={
-                diskKnown ? `${formatBytes(diskUsed)} / ${diskTotal ? formatBytes(diskTotal) : "—"}` : undefined
+                diskKnown ? intl.formatMessage({ id: "web.routes.tabs.overview.used_of_total", defaultMessage: "{used} / {total}", description: "Overview: memory or disk usage against its limit; {used} is the amount in use, {total} the limit" }, { used: formatBytes(diskUsed), total: diskTotal ? formatBytes(diskTotal) : intl.formatMessage(OVERVIEW_TEXT.empty_value) }) : undefined
               }
               progress={diskKnown && diskTotal ? diskPct : undefined}
               trend={diskKnown && diskTotal ? diskPct : undefined}
@@ -168,61 +173,62 @@ export function OverviewTab({
             />
           </div>
 
-          <Card className="border border-border bg-surface">
-            <CardHeader className="flex flex-col gap-3 border-b border-border p-4">
+          <Card className="border border-border bg-card p-0">
+            <CardHeader className="flex flex-col gap-0 border-b border-border px-6 pb-5 pt-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-foreground">Recent events</h3>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.recent_events", defaultMessage: "Recent events", description: "Overview tab: small uppercase heading of the recent events card" })}</h3>
                 <button
-                  className="text-xs font-medium text-accent hover:underline"
+                  className="text-xs text-accent hover:underline"
                   onClick={onViewAllEvents}
-                >
-                  View all
-                </button>
+                >{intl.formatMessage({ id: "web.routes.tabs.overview.view_all", defaultMessage: "View all", description: "Overview tab: link-style button in the recent events heading that opens the full events list; keep it short" })}</button>
               </div>
             </CardHeader>
             <CardContent className="px-0">
               <EventList
                 events={events}
-                emptyMessage="No events yet. Lifecycle, backup, and agent activity will appear here."
+                emptyMessage={intl.formatMessage({ id: "web.routes.tabs.overview.no_events_yet_lifecycle_backup_and", defaultMessage: "No events yet. Lifecycle, backup, and agent activity will appear here.", description: "Overview tab: empty-state text in the recent events card shown when there are no events yet" })}
               />
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-5">
-          <Card className="border border-border bg-surface">
-            <CardHeader className="border-b border-border px-4 py-3">
-              <h3 className="text-lg font-semibold text-foreground">Connection</h3>
+        <div className="space-y-6">
+          <ServerSleepCard gs={gs} />
+
+          <Card className="border border-border bg-card p-0">
+            <CardHeader className="px-6 pb-3 pt-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.connection", defaultMessage: "Connection", description: "Overview tab: small uppercase heading of the connection card that lists the server's addresses" })}</h3>
             </CardHeader>
-            <CardContent className="space-y-3 px-4 py-3 text-sm">
+            <CardContent className="space-y-3 px-6 pb-5 text-[13px]">
               {/* Tunnel row — only when a tunnel endpoint actually exists;
                   per design (EZFW0) this row doesn't appear at all otherwise. */}
               {primary?.tunnelProvider && (
-                <EndpointRow label="Tunnel">
+                <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.tunnel", defaultMessage: "Tunnel", description: "Overview tab: label of the tunnel address row, shown only when a tunnel endpoint exists" })}>
                   {primary.host ? (
                     <>
                       <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="truncate font-mono text-foreground">
+                        <span
+                          className="truncate font-mono text-foreground"
+                          title={primary.host + (primary.port !== undefined ? intl.formatMessage({ id: "web.routes.tabs.overview.host_port_suffix", defaultMessage: ":{port}", description: "Overview: port shown after the host of an endpoint; {port} is the port number" }, { port: primary.port }) : "")}
+                        >
                           {primary.host}
-                          {primary.port !== undefined ? `:${primary.port}` : ""}
+                          {primary.port !== undefined ? intl.formatMessage({ id: "web.routes.tabs.overview.host_port_suffix", defaultMessage: ":{port}", description: "Overview: port shown after the host of an endpoint; {port} is the port number" }, { port: primary.port }) : ""}
                         </span>
                         {primary.private && (
-                          <span className="shrink-0 rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-medium text-warning">
-                            Tailnet only
-                          </span>
+                          <span className="shrink-0 rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-medium text-warning">{intl.formatMessage({ id: "web.routes.tabs.overview.tailnet_only", defaultMessage: "Tailnet only", description: "Overview tab: warning badge beside a tunnel address meaning it is reachable only inside the tailnet; keep it short" })}</span>
                         )}
                       </div>
                       <button
                         className="rounded p-1 text-muted hover:bg-border hover:text-foreground"
                         onClick={() => navigator.clipboard?.writeText(primary.host)}
-                        title="Copy"
+                        title={intl.formatMessage({ id: "web.routes.tabs.overview.copy", defaultMessage: "Copy", description: "Overview tab: icon-only button tooltip that copies the address to the clipboard; keep it short" })}
                       >
                         <Copy className="h-3.5 w-3.5" />
                       </button>
                     </>
                   ) : (
                     <span className="text-muted italic">
-                      {tunnelReady?.message ?? "Waiting for tunnel address…"}
+                      {conditionMessageText(intl, tunnelReady, status.conditionArgs) ?? intl.formatMessage({ id: "web.routes.tabs.overview.waiting_for_tunnel_address", defaultMessage: "Waiting for tunnel address…", description: "Overview: endpoint text shown while the tunnel has not yet published an address" })}
                     </span>
                   )}
                 </EndpointRow>
@@ -231,25 +237,25 @@ export function OverviewTab({
               {/* External Address row — bare host, no port; a "pool: <name>"
                   annotation underneath when the address was allocated from a
                   pool (EZFW0: "Address 172.18.255.203" / "pool: pool-us-west"). */}
-              <EndpointRow label="External Address">
+              <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.external_address", defaultMessage: "External Address", description: "Overview tab: label of the row with the public address of the server, shown without a port" })}>
                 {primary?.host ? (
                   <>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate font-mono text-foreground">{primary.host}</span>
+                      <span className="truncate font-mono text-foreground" title={primary.host}>{primary.host}</span>
                       {primary.pool && (
-                        <span className="text-xs text-muted">pool: {primary.pool}</span>
+                        <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.pool_pool", defaultMessage: "pool: {pool}", description: "Overview: load balancer address pool line; {pool} is the pool name" }, { pool: primary.pool })}</span>
                       )}
                     </div>
                     <button
                       className="rounded p-1 text-muted hover:bg-border hover:text-foreground"
                       onClick={() => navigator.clipboard?.writeText(primary.host)}
-                      title="Copy"
+                      title={intl.formatMessage({ id: "web.routes.tabs.overview.copy", defaultMessage: "Copy", description: "Overview tab: icon-only button tooltip that copies the address to the clipboard; keep it short" })}
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </button>
                   </>
                 ) : (
-                  <span className="text-muted italic">—</span>
+                  <span className="text-muted italic">{intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</span>
                 )}
               </EndpointRow>
 
@@ -261,19 +267,19 @@ export function OverviewTab({
                   service address in status to fall back to yet. */}
               {clusterEndpoint && clusterEndpoint !== primary && clusterEndpoint.host && (
                 <div className="space-y-2">
-                  <div className="px-1 text-xs font-medium text-muted">Cluster Address</div>
-                  <EndpointRow label="Host">
-                    <span className="truncate font-mono text-foreground">{clusterEndpoint.host}</span>
+                  <div className="px-1 text-xs font-medium text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.cluster_address", defaultMessage: "Cluster Address", description: "Overview tab: small heading above the cluster-internal address group, shown when it differs from the external address" })}</div>
+                  <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.host", defaultMessage: "Host", description: "Overview tab: label of the host name row in an address group" })}>
+                    <span className="truncate font-mono text-foreground" title={clusterEndpoint.host}>{clusterEndpoint.host}</span>
                     <button
                       className="rounded p-1 text-muted hover:bg-border hover:text-foreground"
                       onClick={() => navigator.clipboard?.writeText(clusterEndpoint.host)}
-                      title="Copy"
+                      title={intl.formatMessage({ id: "web.routes.tabs.overview.copy", defaultMessage: "Copy", description: "Overview tab: icon-only button tooltip that copies the address to the clipboard; keep it short" })}
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </button>
                   </EndpointRow>
                   {clusterEndpoint.port !== undefined && (
-                    <EndpointRow label="Port">
+                    <EndpointRow label={intl.formatMessage({ id: "web.routes.tabs.overview.port", defaultMessage: "Port", description: "Overview tab: label of the port number row in the cluster address group" })}>
                       <span className="truncate font-mono text-foreground">{clusterEndpoint.port}</span>
                     </EndpointRow>
                   )}
@@ -285,8 +291,6 @@ export function OverviewTab({
           <PlayersCard roster={roster} fallbackOnline={players} />
 
           <ServerStatusCard name={name} ns={ns} tmpl={tmpl} running={running} gs={gs} />
-
-          <ServerSleepCard gs={gs} />
 
           <ServerActionsCard name={name} tmpl={tmpl} gs={gs} ns={ns} onOpenConsole={onOpenConsole} />
         </div>
@@ -332,45 +336,45 @@ function ResourceCard({
 }) {
   const accentClass = {
     primary: "bg-accent",
-    success: "bg-success",
+    success: "bg-success-soft-foreground",
     warning: "bg-warning",
     violet: "bg-violet",
   }[accent ?? "primary"];
   const accentText = {
     primary: "text-accent",
-    success: "text-success",
+    success: "text-success-soft-foreground",
     warning: "text-warning",
     violet: "text-violet",
   }[accent ?? "primary"];
   const history = useMetricHistory(trend);
   return (
-    <Card className="border border-border bg-surface p-4">
-      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted">
+    <Card className="flex flex-col gap-2 border border-border bg-card p-4">
+      <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.5px] text-muted">
         <span>{label}</span>
         <span className="text-muted">{icon}</span>
       </div>
-      <div className="pt-2 font-mono text-2xl font-bold text-foreground">{value}</div>
-      <Sparkline data={history} className={`mt-2 ${accentText}`} />
+      <div className="font-mono text-2xl font-bold text-foreground">{value}</div>
+      <Sparkline data={history} className={accentText} />
       {progress !== undefined && (
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface/60">
+        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--default)]">
           <div
             className={`h-full ${accentClass}`}
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
       )}
-      {sub && <div className="pt-2 text-xs text-muted">{sub}</div>}
+      {sub && <div className="text-xs text-muted">{sub}</div>}
     </Card>
   );
 }
 
-// 8px address rows per design (design-export/screenshots/EZFW0.png): compact
+// 8px address rows per design (assets/design-export/screenshots/EZFW0.png): compact
 // bordered rows for each connection value, most with a copy affordance.
 function EndpointRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-[8px] border border-border bg-surface/60 px-3 py-2">
-      <span className="w-16 shrink-0 pt-1 text-xs font-medium text-muted">{label}</span>
-      <div className="flex min-w-0 flex-1 items-center gap-2">{children}</div>
+    <div className="flex items-center justify-between gap-2 rounded-[8px] border border-border bg-[var(--default)] px-3.5 py-2.5">
+      <span className="shrink-0 text-[13px] text-muted">{label}</span>
+      <div className="flex min-w-0 items-center justify-end gap-2">{children}</div>
     </div>
   );
 }
@@ -382,54 +386,47 @@ function PlayersCard({
   roster?: PlayersResp;
   fallbackOnline: number;
 }) {
+  const intl = useOptionalIntl();
   const online = roster?.online ?? fallbackOnline;
   // A negative online count is the agent's "unknown" sentinel (RCON
   // unavailable or a stale heartbeat) — render "—", matching the Players tab.
   const onlineUnknown = online < 0;
-  const names = roster?.players ?? [];
+  const rows = playerRows(roster);
   const supported =
     roster === undefined || roster.capabilities !== undefined;
 
   return (
-    <Card className="border border-border bg-surface">
-      <CardHeader className="border-b border-border px-4 py-3">
+    <Card className="border border-border bg-card p-0">
+      <CardHeader className="px-6 pb-3 pt-5">
         <div className="flex flex-col gap-1">
-          <h3 className="text-lg font-semibold text-foreground">
-            Players online ·{" "}
-            <span className="font-mono">{onlineUnknown ? "—" : online}</span>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.players_online", defaultMessage: "Players online ·", description: "Overview tab: heading of the players card, followed by the online player count or a dash when the count is unknown" })} <span>{onlineUnknown ? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" }) : online}</span>
           </h3>
-          {names.length > 0 && (
-            <span className="text-xs text-muted">{names.length} listed</span>
+          {rows.length > 0 && (
+            <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.length_listed", defaultMessage: "{length} listed", description: "Overview: count of listed items in a section heading; {length} is how many items are listed" }, { length: rows.length })}</span>
           )}
         </div>
       </CardHeader>
-      <CardContent className="px-4 py-3">
+      <CardContent className="px-6 pb-6">
         {!supported ? (
-          <p className="text-sm text-muted">
-            Player list not supported for this game.
-          </p>
+          <p className="text-[13px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.player_list_not_supported_for_this_game", defaultMessage: "Player list not supported for this game.", description: "Overview tab: text in the players card saying this game does not provide a player list" })}</p>
         ) : onlineUnknown ? (
-          <p className="text-sm text-muted">Player count unknown.</p>
+          <p className="text-[13px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.player_count_unknown", defaultMessage: "Player count unknown.", description: "Overview tab: text in the players card shown when the online player count cannot be read" })}</p>
         ) : online === 0 ? (
-          <p className="text-sm text-muted">No players connected.</p>
-        ) : names.length === 0 ? (
-          <p className="text-sm text-muted">
-            {online} online · names not yet available.
-          </p>
+          <p className="text-[13px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.no_players_connected", defaultMessage: "No players connected.", description: "Overview tab: text in the players card shown when no player is connected" })}</p>
+        ) : rows.length === 0 ? (
+          <p className="text-[13px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.online_online_names_not_yet_available", defaultMessage: "{online} online · names not yet available.", description: "Overview: note under the players card; {online} is the number of players online" }, { online: online })}</p>
         ) : (
           <ul className="space-y-2 text-sm">
-            {names.slice(0, 5).map((n) => (
-              <li key={n} className="flex items-center gap-2">
+            {rows.slice(0, 5).map((r) => (
+              <li key={r.id} className="flex items-center gap-2">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface font-mono text-[10px] text-muted">
-                  {n.slice(0, 2).toUpperCase()}
+                  {r.label.slice(0, 2).toUpperCase()}
                 </div>
-                <span className="truncate font-mono text-foreground">{n}</span>
+                <span className="truncate font-mono text-foreground">{r.label}</span>
               </li>
             ))}
-            {names.length > 5 && (
-              <li className="pl-8 text-xs text-muted">
-                + {names.length - 5} more
-              </li>
+            {rows.length > 5 && (
+              <li className="pl-8 text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.overview.length_more", defaultMessage: "+ {length} more", description: "Overview: list footer showing hidden items; {length} is how many more items exist" }, { length: rows.length - 5 })}</li>
             )}
           </ul>
         )}

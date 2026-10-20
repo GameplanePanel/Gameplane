@@ -9,10 +9,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
-	"github.com/ValgulNecron/gameplane/api/internal/ws"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/ws"
 )
 
 type captureProbeFunc func(context.Context, string, string, string) (ws.CaptureGatewayCapabilities, error)

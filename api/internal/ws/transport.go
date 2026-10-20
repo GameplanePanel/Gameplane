@@ -11,8 +11,8 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/ValgulNecron/gameplane/api/internal/gatewayprotocol"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // agentTarget identifies a server within the cluster served by a transport.

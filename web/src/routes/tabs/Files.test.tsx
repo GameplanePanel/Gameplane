@@ -603,12 +603,13 @@ describe("FilesTab", () => {
     fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
       if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
       if (
-        url === "/servers/mc-survival/files/write?path=%2Fnew-file.txt" &&
+        url === "/servers/mc-survival/files/create?path=%2Fnew-file.txt" &&
         init?.method === "POST"
       ) {
         createCalled = true;
         return new Response(null, { status: 204 });
       }
+      if (url === "/servers/mc-survival/files/read?path=%2Fnew-file.txt") return textRes("");
       throw new Error(`unexpected fetch: ${url}`);
     });
     renderWithQuery(<FilesTab name="mc-survival" />);
@@ -620,6 +621,31 @@ describe("FilesTab", () => {
       fireEvent.click(screen.getByRole("button", { name: /^Create$/ }));
     });
     await waitFor(() => expect(createCalled).toBe(true));
+    expect(await screen.findByTestId("monaco")).toHaveValue("");
+    expect(screen.queryByPlaceholderText("config.yaml")).not.toBeInTheDocument();
+  });
+
+  it.each([409, 404])("keeps the new-file dialog open after create fails with %s", async (status) => {
+    const error = status === 409 ? "file already exists" : "not found";
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
+      if (url === "/servers/mc-survival/files/create?path=%2Fserver.properties") return textRes(error, status);
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    renderWithQuery(<FilesTab name="mc-survival" />);
+    await screen.findByText("server.properties");
+    const initialLists = fetchMock.mock.calls.filter(([url]) => String(url).includes("/files/list")).length;
+    fireEvent.click(screen.getByRole("button", { name: /New file/ }));
+    const input = await screen.findByPlaceholderText("config.yaml");
+    fireEvent.change(input, { target: { value: "server.properties" } });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /^Create$/ })); });
+    await screen.findByText(`${status}: ${error}`);
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveValue("server.properties");
+    expect(screen.getByRole("button", { name: /^Create$/ })).toBeEnabled();
+    expect(screen.queryByTestId("monaco")).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/files/write") || String(url).includes("/files/read"))).toBe(false);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/files/list"))).toHaveLength(initialLists);
   });
 
   it("deletes a folder from its row button without opening it", async () => {
@@ -1100,7 +1126,7 @@ describe("FilesTab", () => {
         return jsonRes(ROOT_ENTRIES);
       }
       if (
-        url === "/servers/mc-survival/files/write?path=%2Fnew.txt" &&
+        url === "/servers/mc-survival/files/create?path=%2Fnew.txt" &&
         init?.method === "POST"
       ) {
         return new Response(null, { status: 204 });

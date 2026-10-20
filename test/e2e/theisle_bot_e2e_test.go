@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_TheIsleBot_Query boots a The Isle dedicated server
@@ -25,7 +25,7 @@ func TestGameServer_TheIsleBot_Query(t *testing.T) {
 		Game:        "the-isle",
 		Template:    fmt.Sprintf("e2e-the-isle-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E The Isle",
-		Image:       "ghcr.io/valgulnecron/gameplane/the-isle:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/the-isle:latest@sha256:229ec85c92f8f722beb0b7c735cfdb5dbe40e6782d537a6c56b32c6baa57d5a8",
 		Env: map[string]string{
 			"SERVER_NAME":   "Gameplane E2E The Isle",
 			"RCON_PASSWORD": "secret-rcon-password",
@@ -36,7 +36,7 @@ func TestGameServer_TheIsleBot_Query(t *testing.T) {
 			{Name: "rcon", Port: 8888, Protocol: "TCP"},
 		},
 		StorageSize: "20Gi",
-		MountPath:   "/serverdata/TheIsle/Saved",
+		MountPath:   "/data",
 		Resources: gameResources{
 			ReqCPU: "2", ReqMem: "4Gi",
 			LimCPU: "4", LimMem: "8Gi",

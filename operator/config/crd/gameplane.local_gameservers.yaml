@@ -2441,6 +2441,20 @@ spec:
                     format: int32
                     type: integer
                 type: object
+              conditionArgs:
+                additionalProperties:
+                  additionalProperties:
+                    type: string
+                  type: object
+                description: |-
+                  ConditionArgs carries, per condition Type, the values interpolated into
+                  that condition's English message, so clients can render the localized
+                  message for the condition's current Reason (translation id
+                  condition.<type>.<reason>, lower-cased). The English Message is
+                  unchanged and stays the fallback. An entry exists only while the
+                  condition's current Reason has arguments; it is removed when the Reason
+                  changes to one without.
+                type: object
               conditions:
                 description: |-
                   Conditions carry detailed state transitions. Standard Ready,

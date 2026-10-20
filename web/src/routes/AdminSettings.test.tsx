@@ -40,7 +40,7 @@ describe("AdminSettingsPage", () => {
     const name = await screen.findByDisplayValue("old-name");
     await userEvent.clear(name);
     await userEvent.type(name, "submitted-name");
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     if (editDuringSave) {
       const url = screen.getByDisplayValue("https://example.com");
@@ -57,13 +57,13 @@ describe("AdminSettingsPage", () => {
       await userEvent.type(url, "https://later.example.com");
     }
     // A failed read cannot validate a whole-section write against old cache.
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     expect(await screen.findByText(/Could not refresh configuration/i)).toBeInTheDocument();
     expect(save).toHaveBeenCalledTimes(1);
     failReads = false;
     await act(async () => { await client.refetchQueries({ queryKey: ["config"] }); });
     expect(screen.getByDisplayValue("https://later.example.com")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
     expect(general).toEqual({ instanceName: "submitted-name", externalURL: "https://later.example.com", defaultNamespace: "gameplane-games" });
   });
@@ -86,7 +86,7 @@ describe("AdminSettingsPage", () => {
     await userEvent.type(await screen.findByDisplayValue("old-name"), "-edited");
     await userEvent.click(screen.getByRole("button", { name: /^General$/i }));
     await waitFor(() => expect(reads).toBe(2));
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     await act(async () => { release(); });
     expect(await screen.findByText(/Could not refresh configuration/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue("old-name-edited")).toBeInTheDocument();
@@ -111,7 +111,7 @@ describe("AdminSettingsPage", () => {
     const input = await screen.findByDisplayValue("old-name");
     await userEvent.clear(input);
     await userEvent.type(input, "submitted-name");
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     if (editDuringSave) {
       await userEvent.clear(input);
@@ -121,7 +121,7 @@ describe("AdminSettingsPage", () => {
     await waitFor(() => expect(client.isMutating()).toBe(0));
     expect(screen.getByDisplayValue(editDuringSave ? "later-draft" : "submitted-name")).toBeInTheDocument();
     if (editDuringSave) {
-      await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+      await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
       await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
       expect(general.instanceName).toBe("later-draft");
     } else {
@@ -163,13 +163,13 @@ describe("AdminSettingsPage", () => {
     await waitFor(() => expect(client.isFetching({ queryKey: ["config"] })).toBe(0));
     if (dirty) {
       expect(screen.getByDisplayValue("my-draft")).toBeInTheDocument();
-      await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+      await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
       expect(await screen.findByText(/Configuration changed.*reopen this section/i)).toBeInTheDocument();
       expect(save).not.toHaveBeenCalled();
     } else {
       expect(await screen.findByDisplayValue("https://fresh.example.com")).toBeInTheDocument();
       await userEvent.type(screen.getByDisplayValue("cached-name"), "-edited");
-      await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+      await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
       await waitFor(() => expect(save).toHaveBeenCalled());
       expect(body).toEqual({ ...freshGeneral, instanceName: "cached-name-edited" });
     }
@@ -288,7 +288,7 @@ describe("AdminSettingsPage", () => {
     const input = await screen.findByDisplayValue("old-name");
     await userEvent.clear(input);
     await userEvent.type(input, "new-name");
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     await waitFor(() => expect(screen.getByText("Saved")).toBeInTheDocument());
     expect(saveHandler).toHaveBeenCalled();
   });
@@ -312,33 +312,40 @@ describe("AdminSettingsPage", () => {
     // All three General fields are blank in this fixture, so
     // findByDisplayValue("") would match all of them ambiguously — wait
     // for the section's own Save button to render instead.
-    await screen.findByRole("button", { name: /Save changes/i });
-    await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await within(await screen.findByRole("region", { name: "General" })).findByRole("button", { name: /Save changes/i });
+    await userEvent.click(within(screen.getByRole("region", { name: "General" })).getByRole("button", { name: /Save changes/i }));
     await waitFor(() =>
       expect(screen.getByText(/Validation error/i)).toBeInTheDocument(),
     );
   });
 
   it("shows telemetry toggle and saves setting", async () => {
+    let body: unknown;
     server.use(
       http.get("/admin/config", () =>
         HttpResponse.json({
           general: { instanceName: "", externalURL: "", defaultNamespace: "" },
-          telemetry: { sendMetrics: false },
+          telemetry: { sendMetrics: false, extended: false },
         }),
       ),
-      http.put("/admin/config/telemetry", () => new HttpResponse(null, { status: 204 })),
+      http.put("/admin/config/telemetry", async ({ request }) => {
+        body = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
     );
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Telemetry/i }));
     // The Switch component renders role="switch" (a <button>), not a
     // native checkbox input; assert via aria-checked, matching
-    // switch.test.tsx's own convention for this component.
-    const toggle = await screen.findByRole("switch");
+    // switch.test.tsx's own convention for this component. There are two
+    // switches now (basic and extended), so select by accessible name.
+    expect(await screen.findAllByRole("switch")).toHaveLength(2);
+    const toggle = screen.getByRole("switch", { name: "Enable telemetry" });
     expect(toggle).toHaveAttribute("aria-checked", "false");
     await userEvent.click(toggle);
     await userEvent.click(screen.getByRole("button", { name: /Save changes/i }));
     await waitFor(() => expect(screen.getByText("Saved")).toBeInTheDocument());
+    expect(body).toEqual({ sendMetrics: true, extended: false });
   });
 
   it("navigates to Updates section and shows update channel", async () => {

@@ -106,7 +106,7 @@ Phase 0 of the plan. On 2026-09-23 four read-only scouts gathered facts on the f
   - Every finding in `SECURITY_AUDIT.md`.
   - `specs/002-nuclear-option-ip-pool`: Nuclear Option UDP 7777 isn't bound; traffic goes through Steam networking.
   - `specs/012-docs-refresh-and-outreach/OPEN-DECISIONS.md` OD-8: OIDC Helm role mappings are documented but still sit under CHANGELOG "Unreleased".
-  - `specs/015-top-steam-game-modules/OPEN-DECISIONS.md`: RCON protocol-correctness questions (Factorio, Project Zomboid, `cli`, `rest`).
+  - `specs/done_015-top-steam-game-modules/OPEN-DECISIONS.md`: RCON protocol-correctness questions (Factorio, Project Zomboid, `cli`, `rest`).
   - Doc drift: the CLAUDE.md repo map omits `gp-module`; `docs/install.md` has no rollback procedure.
 
   There are no open GitHub issues right now (checked 2026-09-23 with `gh issue list --state open`).

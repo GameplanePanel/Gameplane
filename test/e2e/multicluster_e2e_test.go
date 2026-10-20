@@ -266,9 +266,79 @@ func TestMultiCluster_ClusterDispatchAndScopedRBAC(t *testing.T) {
 		return false, "cluster not yet healthy: " + string(body)
 	})
 
+	const ns = "gameplane-games"
+
+	// Give the dedicated user explicit target permissions. Template permissions
+	// require a cluster-wide grant; the admin's local wildcard and the user's
+	// namespace grant must not authorize remote templates.
+	templateRole := fmt.Sprintf("e2e-mc-templates-%d", time.Now().UnixNano())
+	resp, body, err = admin.Post("/roles", map[string]any{
+		"name":        templateRole,
+		"permissions": []string{"templates:read", "templates:write"},
+	})
+	if err != nil {
+		t.Fatalf("create remote template role: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("create remote template role: status=%d body=%s", resp.StatusCode, body)
+	}
+	t.Cleanup(func() {
+		r, _, _ := admin.Delete("/roles/" + templateRole)
+		if r != nil {
+			r.Body.Close()
+		}
+	})
+	opUsername, opPassword, opID := envInstance.CreateUser(t, admin, "operator", "e2e-mc-operator")
+	t.Cleanup(func() {
+		r, _, _ := admin.Delete("/users/" + opID)
+		if r != nil {
+			r.Body.Close()
+		}
+	})
+	resp, body, err = admin.Post("/users/"+opID+"/bindings", map[string]any{
+		"roleName":  "admin",
+		"cluster":   clusterID,
+		"namespace": ns,
+	})
+	if err != nil {
+		t.Fatalf("POST /users/%s/bindings: %v", opID, err)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("POST /users/%s/bindings: status=%d body=%s", opID, resp.StatusCode, string(body))
+	}
+	resp.Body.Close()
+	resp, body, err = admin.Post("/users/"+opID+"/bindings", map[string]any{
+		"roleName":  templateRole,
+		"cluster":   clusterID,
+		"namespace": "*",
+	})
+	if err != nil {
+		t.Fatalf("grant remote template role: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("grant remote template role: status=%d body=%s", resp.StatusCode, body)
+	}
+	// addBinding invalidates the target user's existing sessions (see
+	// userHandler.invalidateSessions) so a bound-in-flight session wouldn't
+	// see the new grant anyway — log in AFTER granting the binding, not
+	// before, so the resulting session is minted post-binding instead of
+	// being torn down by it.
+	operatorClient := envInstance.APIClient(t, opUsername, opPassword)
+	defer operatorClient.Close()
+
+	resp, body, err = admin.Post("/templates?cluster="+clusterID, map[string]any{})
+	if err != nil {
+		t.Fatalf("local admin remote template write: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("local admin remote template write: status=%d want=403 body=%s", resp.StatusCode, body)
+	}
 	// --- Create a GameTemplate + GameServer directly on cluster B -----------
 	tmplName := fmt.Sprintf("e2e-mc-tmpl-%d", time.Now().UnixNano())
-	resp, body, err = admin.Post("/templates?cluster="+clusterID, map[string]any{
+	resp, body, err = operatorClient.Post("/templates?cluster="+clusterID, map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
 		"kind":       "GameTemplate",
 		"metadata":   map[string]any{"name": tmplName},
@@ -292,58 +362,11 @@ func TestMultiCluster_ClusterDispatchAndScopedRBAC(t *testing.T) {
 	}
 	resp.Body.Close()
 	t.Cleanup(func() {
-		r, _, _ := admin.Delete("/templates/" + tmplName + "?cluster=" + clusterID)
+		r, _, _ := operatorClient.Delete("/templates/" + tmplName + "?cluster=" + clusterID)
 		if r != nil {
 			r.Body.Close()
 		}
 	})
-
-	const ns = "gameplane-games"
-
-	// --- A dedicated operator user for cluster-B's namespaced writes --------
-	// servers:read/servers:write are NAMESPACED perms: auth.User.Can gates
-	// them on the request's target cluster (or an explicit cluster="*"
-	// binding) — a binding on some OTHER cluster never confers them, by
-	// design (see the cluster-gating comment on Can). The bootstrap admin's
-	// only binding is (cluster=local, namespace=*, role=admin), so
-	// admin.Post("/servers?cluster="+clusterID, ...) would 403, not 201.
-	// (POST /templates above is unaffected: templates:* is cluster-scoped,
-	// not namespaced, so it's granted by admin's cluster-wide binding on ANY
-	// cluster.)
-	//
-	// Grant a dedicated user an explicit (cluster=B, namespace=gameplane-
-	// games) binding instead of widening the admin's own grants, so this
-	// test doesn't depend on (or risk masking a regression in) cross-cluster
-	// admin scoping. It's an "operator" primary role, not another admin, to
-	// keep the elevated grant scoped to exactly the namespace/cluster this
-	// test needs.
-	opUsername, opPassword, opID := envInstance.CreateUser(t, admin, "operator", "e2e-mc-operator")
-	t.Cleanup(func() {
-		r, _, _ := admin.Delete("/users/" + opID)
-		if r != nil {
-			r.Body.Close()
-		}
-	})
-	resp, body, err = admin.Post("/users/"+opID+"/bindings", map[string]any{
-		"roleName":  "admin",
-		"cluster":   clusterID,
-		"namespace": ns,
-	})
-	if err != nil {
-		t.Fatalf("POST /users/%s/bindings: %v", opID, err)
-	}
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("POST /users/%s/bindings: status=%d body=%s", opID, resp.StatusCode, string(body))
-	}
-	resp.Body.Close()
-	// addBinding invalidates the target user's existing sessions (see
-	// userHandler.invalidateSessions) so a bound-in-flight session wouldn't
-	// see the new grant anyway — log in AFTER granting the binding, not
-	// before, so the resulting session is minted post-binding instead of
-	// being torn down by it.
-	operatorClient := envInstance.APIClient(t, opUsername, opPassword)
-	defer operatorClient.Close()
-
 	gsName := fmt.Sprintf("e2e-mc-gs-%d", time.Now().UnixNano())
 	resp, body, err = operatorClient.Post("/servers?cluster="+clusterID, map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
@@ -666,7 +689,7 @@ func checkClusterRemoval(t *testing.T, admin, operatorClient *APIClient, cluster
 	if resp.StatusCode >= 300 {
 		t.Fatalf("DELETE /servers/%s?cluster=%s: status=%d body=%s", gsName, clusterID, resp.StatusCode, string(body))
 	}
-	resp, body, err = admin.Delete("/templates/" + tmplName + "?cluster=" + clusterID)
+	resp, body, err = operatorClient.Delete("/templates/" + tmplName + "?cluster=" + clusterID)
 	if err != nil {
 		t.Fatalf("DELETE /templates/%s?cluster=%s: %v", tmplName, clusterID, err)
 	}

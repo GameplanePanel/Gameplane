@@ -1,7 +1,7 @@
 # gameaction — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/gameaction`  
+**Module / package:** `github.com/GameplanePanel/gameplane/gameaction`  
 **Dependencies:** stdlib only (Go 1.26+)
 
 ## Purpose

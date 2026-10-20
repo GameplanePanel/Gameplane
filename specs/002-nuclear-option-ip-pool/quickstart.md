@@ -558,7 +558,7 @@ kind: GameTemplate
 metadata:
   name: nuclear-option
 spec:
-  image: "ghcr.io/valgulnecron/gameplane/nuclear-option:latest"  # Build this image
+  image: "ghcr.io/gameplanepanel/gameplane/nuclear-option:latest"  # Build this image
   resources:
     requests:
       cpu: "2"

@@ -173,6 +173,34 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "gomod"
+    directory: "/telemetryschema"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    open-pull-requests-limit: 5
+    groups:
+      telemetryschema-minor-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "gomod"
+    directory: "/i18n"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    open-pull-requests-limit: 5
+    groups:
+      i18n-minor-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "gomod"
     directory: "/telemetry-receiver"
     schedule:
       interval: "weekly"
@@ -212,6 +240,21 @@ updates:
     open-pull-requests-limit: 5
     groups:
       tunnel-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # frpc build module (tunnel/Dockerfile.frp builds frpc from these pins)
+  - package-ecosystem: "gomod"
+    directory: "/tunnel/frpc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    open-pull-requests-limit: 5
+    groups:
+      tunnel-frpc-minor-patch:
         update-types: ["minor", "patch"]
 
   # npm — 1 entry (React dashboard)
@@ -287,7 +330,7 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
-    directory: "/images/common/steamcmd"
+    directory: "/containers/common/steamcmd"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -301,7 +344,7 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
-    directory: "/images/games/nuclear-option"
+    directory: "/containers/games/nuclear-option"
     schedule:
       interval: "weekly"
       day: "monday"

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/netguard"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 // errPermanent marks a delivery failure that retrying cannot fix — a 4xx

@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url";
 // T118 (specs/done_014-heroui-web-rebuild/tasks.md): Slice 2b — Mods/Modpacks/
 // Backups tabs, every Settings sub-tab, and the backup detail drawer.
 // Screenshot verification tests for the HeroUI rebuild, capturing the
-// design frames listed in design-export/MANIFEST.md's "Incremental export
+// design frames listed in assets/design-export/MANIFEST.md's "Incremental export
 // 2026-09-05 — Slice 2b design wave" section at 1440px, for comparison
-// against design-export/screenshots/<id>.png per
+// against assets/design-export/screenshots/<id>.png per
 // specs/done_014-heroui-web-rebuild/contracts/screen-verification.md.
 //
 // Mirrors slice2a.spec.ts's structure (viewport, capture() helper,
@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 // when GAMEPLANE_SCREENSHOTS=1 (via playwright.config.ts's grep/grepInvert
 // on the @screenshots tag).
 //
-// ID mapping to design-export (from design-export/MANIFEST.md's Slice 2b
+// ID mapping to design-export (from assets/design-export/MANIFEST.md's Slice 2b
 // table):
 //   Mods tab          -> sZtDi  (Screen/Server Detail — Mods)
 //   Modpacks tab      -> tY6RD  (Screen/Server Detail — Modpacks)
@@ -98,7 +98,7 @@ test.describe("Slice 2b: Mods/Modpacks/Backups + Settings (Desktop — 1440x900)
     // Same template's registry.providers[].modpacks (added for this task)
     // is what makes the Modpacks tab visible.
     // Freeze the clock so the header's formatUptime(status.startedAt) reads
-    // "up 13d 4h" (design-export/json/tY6RD.json). test-server-02's
+    // "up 13d 4h" (assets/design-export/json/tY6RD.json). test-server-02's
     // startedAt is 2026-09-03T14:20:00Z (screenshotData.ts); any fixed "now"
     // in [2026-09-16T18:20:00Z, 2026-09-16T19:20:00Z) floors to 13d 4h.
     // setFixedTime must run before navigation so the first render sees it.
@@ -147,7 +147,7 @@ test.describe("Slice 2b: Mods/Modpacks/Backups + Settings (Desktop — 1440x900)
   });
 
   test("J5pjJ3: Server Detail — Settings · Networking", async ({ page }) => {
-    // J5pjJ3's design frame (design-export/MANIFEST.md:64, :441) is a
+    // J5pjJ3's design frame (assets/design-export/MANIFEST.md:64, :441) is a
     // documentation-style composite stacking five AddressAssignment status
     // treatments (plus ignored/no-manager alert states) vertically in one
     // 2880x4140 export — a single live render can only ever show one of

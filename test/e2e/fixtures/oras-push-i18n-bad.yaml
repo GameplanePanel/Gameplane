@@ -1,0 +1,86 @@
+# Module bundle with a French translation layer, pushed to the in-cluster
+# registry by TestAPI_I18n_ModuleLocales. ConfigMap keys cannot contain "/", so
+# the locale file is stored as locales-fr.json and mounted at locales/fr.json:
+# oras then records the layer title "locales/fr.json".
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gameplane-test-module-bundle-i18n-bad
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/component: e2e-fixture
+data:
+  module.yaml: |
+    apiVersion: gameplane.local/module/v1
+    name: e2e-i18n-bad
+    displayName: E2E I18n Bad
+    version: 0.1.0
+    game: e2e-i18n-bad
+    summary: Module with an invalid French entry
+    license: MIT
+    gameplaneMinVersion: 0.1.0
+  template.yaml: |
+    apiVersion: gameplane.local/v1alpha1
+    kind: GameTemplate
+    metadata:
+      name: e2e-i18n-bad
+      labels:
+        gameplane.local/module: e2e-i18n-bad
+    spec:
+      displayName: E2E I18n Bad
+      game: e2e-i18n-bad
+      version: "0.1.0"
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 100000"]
+      ports:
+        - name: noop
+          containerPort: 12345
+          advertise: true
+          protocol: TCP
+  locales-fr.json: |
+    {
+      "template.displayName": {"defaultMessage": "Jeu de test"},
+      "module.summary": {"defaultMessage": "Module {extra}"}
+    }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: oras-push-i18n-bad
+  namespace: gameplane-system
+  labels:
+    app.kubernetes.io/component: e2e-fixture
+spec:
+  backoffLimit: 4
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: e2e-fixture
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: push
+          image: ghcr.io/oras-project/oras:v1.3.3
+          command: ["oras"]
+          args:
+            - push
+            - --plain-http
+            - --artifact-type=application/vnd.gameplane.module.v1+json
+            - gameplane-test-registry.gameplane-system.svc:5000/e2e-i18n-bad:0.1.0
+            - module.yaml:application/vnd.gameplane.module.metadata.v1+yaml
+            - template.yaml:application/vnd.gameplane.module.template.v1+yaml
+            - locales/fr.json:application/vnd.gameplane.module.locale.v1+json
+          workingDir: /workspace
+          volumeMounts:
+            - { name: bundle, mountPath: /workspace }
+            - { name: tmp,    mountPath: /tmp }
+      volumes:
+        - name: bundle
+          configMap:
+            name: gameplane-test-module-bundle-i18n-bad
+            items:
+              - { key: module.yaml, path: module.yaml }
+              - { key: template.yaml, path: template.yaml }
+              - { key: locales-fr.json, path: locales/fr.json }
+        - name: tmp
+          emptyDir: {}

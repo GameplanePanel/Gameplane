@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -924,6 +925,19 @@ func TestHttpErr_PermissionMappedTo403(t *testing.T) {
 	httpErr(rr, os.ErrPermission)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("got %d", rr.Code)
+	}
+}
+
+func TestHttpErr_BodyLimitMappedTo413(t *testing.T) {
+	for _, err := range []error{
+		&http.MaxBytesError{Limit: maxWriteBytes},
+		fmt.Errorf("write /private/data/file: %w", &http.MaxBytesError{Limit: maxWriteBytes}),
+	} {
+		rr := httptest.NewRecorder()
+		httpErr(rr, err)
+		if rr.Code != http.StatusRequestEntityTooLarge || rr.Body.String() != "request body too large\n" {
+			t.Fatalf("body limit response: status=%d body=%q", rr.Code, rr.Body.String())
+		}
 	}
 }
 

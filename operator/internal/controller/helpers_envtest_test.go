@@ -35,7 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // ---------------------------------------------------------------------
@@ -97,7 +97,7 @@ func withGameServerReconciler(t *testing.T, ns string) setupReconciler {
 			Client:                 mgr.GetClient(),
 			APIReader:              mgr.GetAPIReader(),
 			Scheme:                 mgr.GetScheme(),
-			AgentImage:             "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:             "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentCASecretName:      "agent-ca",
 			AgentCASecretNamespace: ns,
 		}).SetupWithManager(mgr)
@@ -117,7 +117,7 @@ func withGameServerReconcilerAgentPullPolicy(t *testing.T, ns, policy string) se
 			Client:                 mgr.GetClient(),
 			APIReader:              mgr.GetAPIReader(),
 			Scheme:                 mgr.GetScheme(),
-			AgentImage:             "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:             "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentImagePullPolicy:   policy,
 			AgentCASecretName:      "agent-ca",
 			AgentCASecretNamespace: ns,
@@ -136,7 +136,7 @@ func withGameServerReconcilerAddressManager(t *testing.T, ns, addressManager str
 			Client:                 mgr.GetClient(),
 			APIReader:              mgr.GetAPIReader(),
 			Scheme:                 mgr.GetScheme(),
-			AgentImage:             "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:             "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentCASecretName:      "agent-ca",
 			AgentCASecretNamespace: ns,
 			AddressManager:         addressManager,

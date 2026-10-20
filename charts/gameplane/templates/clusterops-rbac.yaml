@@ -1,4 +1,4 @@
-{{- if and (eq (include "gameplane.apiEnabled" .) "true") .Values.clusterOps.enabled }}
+{{- if and (not .Values.api.standalone) (eq (include "gameplane.apiEnabled" .) "true") .Values.clusterOps.enabled }}
 # RBAC for the credential-minting cluster operations (Add node, Download
 # kubeconfig). Granted ONLY when clusterOps.enabled — these are powerful
 # (create bootstrap tokens; approve client-cert CSRs), so they are opt-in

@@ -1,0 +1,533 @@
+{
+  "type": "frame",
+  "id": "K5XinZ",
+  "x": 8200,
+  "y": 87233,
+  "name": "Screen/Admin Settings — Telemetry (none)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 605,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "vrJqn",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB": {
+          "fill": "$accent/soft"
+        },
+        "ya5KB/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "ya5KB/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "ZDPAQ",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "aaM6h",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Settings"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "MSfvx",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "K6vVa",
+              "type": "ref",
+              "ref": "xCDF7",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Admin settings"
+                },
+                "VbHwU": {
+                  "content": "Platform-wide configuration for this Gameplane instance."
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "M4Uamg",
+              "name": "Settings Layout",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "KnZmD",
+                  "type": "ref",
+                  "ref": "Mp7Ep",
+                  "name": "Settings Nav",
+                  "width": 220,
+                  "descendants": {
+                    "eIjoV": {
+                      "fill": "#00000000"
+                    },
+                    "XuGUZ": {
+                      "fill": "$muted"
+                    },
+                    "DpMnt": {
+                      "fill": "$muted"
+                    },
+                    "ZPLSA": {
+                      "fill": "$surface/secondary"
+                    },
+                    "w6pwjZ": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "gAe7m": {
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "id": "jXdYm",
+                  "type": "ref",
+                  "ref": "XDZ0E",
+                  "name": "Settings Panel",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "ZjXwf",
+                      "type": "ref",
+                      "ref": "FRpsu",
+                      "name": "Card Header",
+                      "descendants": {
+                        "fuZHB": {
+                          "content": "Telemetry"
+                        },
+                        "BZG9o": {
+                          "content": "Anonymous usage metrics help us prioritize work. Extended metrics include a random install ID."
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "usPX3",
+                      "name": "Card Content",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FR1sB",
+                          "name": "destinationRow",
+                          "width": "fill_container",
+                          "fill": "$surface/secondary",
+                          "cornerRadius": 8,
+                          "gap": 12,
+                          "padding": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "Lf5Va",
+                              "name": "destIcon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "circle-slash",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$accent/soft-foreground"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Irbib",
+                              "name": "destText",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "t67L2",
+                                  "name": "destTitle",
+                                  "fill": "$foreground/foreground",
+                                  "content": "No telemetry destination configured.",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "NHeZ1",
+                                  "name": "destDetail",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Nothing is sent. An operator can set a custom or bundled destination at install time.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "TGqWC",
+                              "type": "ref",
+                              "ref": "KmZnF",
+                              "name": "destChip",
+                              "descendants": {
+                                "xZ9ah": {
+                                  "content": "No destination"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "u5uN6",
+                          "name": "telemetryRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "qKiFo",
+                              "name": "labelCol",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "E3CsS",
+                                  "name": "Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Send basic usage metrics",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "w7LUN",
+                                  "name": "Description",
+                                  "fill": "$muted",
+                                  "content": "Gameplane version, number of servers and number of templates.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "L9Gg2H",
+                              "type": "ref",
+                              "ref": "rh2QH",
+                              "name": "basicSwitch"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YZ8M5",
+                          "name": "extendedRow",
+                          "opacity": 0.5,
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "MEKOs",
+                              "name": "extRowInner",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "G8uxgg",
+                                  "name": "extLabelCol",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "yop7K",
+                                      "name": "extLabel",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Send extended usage metrics",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "DT5P1",
+                                      "name": "extDescription",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Turn on basic usage metrics to enable extended usage metrics.",
+                                      "lineHeight": 1.5,
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "dy9DZ",
+                                  "type": "ref",
+                                  "ref": "rh2QH",
+                                  "name": "extendedSwitch"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "j18F4n",
+                          "x": 0,
+                          "y": 182,
+                          "name": "installIdRow",
+                          "enabled": false,
+                          "width": "fill_container(856)",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            0,
+                            0,
+                            24
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Y1pNB",
+                              "name": "installIdCol",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "VY8NU",
+                                  "name": "installIdLabel",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Install ID",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "a9Y6S",
+                                  "name": "installIdValue",
+                                  "fill": "$foreground/foreground",
+                                  "content": "3f1c2a9e-8b4d-4e57-9a61-0c2d7e5b9f10",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "KNGZo",
+                                  "name": "installIdHelp",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Random and anonymous. Reset it to start reporting under a new ID; the old ID is never sent again.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "Xe5vb",
+                              "type": "ref",
+                              "ref": "d5N3W3",
+                              "name": "resetIdBtn",
+                              "descendants": {
+                                "i3zB62/zMNkR": {
+                                  "content": "Reset ID"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "a13SoT",
+                          "name": "previewBlock",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "acf1z",
+                              "name": "previewLabel",
+                              "fill": "$foreground/foreground",
+                              "content": "Next report preview",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "kjTTh",
+                              "name": "previewHelp",
+                              "fill": "$muted",
+                              "content": "Exactly what the next report contains. Read-only.",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "o5GCW",
+                              "name": "previewCode",
+                              "width": "fill_container",
+                              "fill": "$surface/secondary",
+                              "cornerRadius": 8,
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "layout": "vertical",
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ZZcKL",
+                                  "name": "previewJson",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Nothing to preview: no destination is configured.",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Q3IStt",
+                          "x": 0,
+                          "y": 359,
+                          "name": "statusRow",
+                          "enabled": false,
+                          "width": "fill_container(856)",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "U6DNh",
+                              "name": "statusIcon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "circle-check",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$success/soft-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Vlhfy",
+                              "name": "statusText",
+                              "fill": "$foreground/foreground",
+                              "content": "Last report sent successfully on Oct 6, 2026, 09:12 UTC.",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MxFTb",
+                      "name": "Card Actions",
+                      "width": "fill_container",
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "oHhoP",
+                          "type": "ref",
+                          "ref": "tpKRk",
+                          "name": "Btn Save Changes",
+                          "descendants": {
+                            "q58In/Xpn7K": {
+                              "enabled": false
+                            },
+                            "q58In/U6q13B": {
+                              "content": "Save changes"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

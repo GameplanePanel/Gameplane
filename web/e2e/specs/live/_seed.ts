@@ -25,7 +25,7 @@ export { loginIfNeeded } from "../../pages/LoginPage";
 //     text/html navigations on collision paths like /servers, and forwards
 //     everything else to the API. Pinning Accept keeps the seed request on
 //     the API side of that bypass regardless of Playwright's default.
-async function seedHeaders(request: APIRequestContext): Promise<Record<string, string>> {
+export async function seedHeaders(request: APIRequestContext): Promise<Record<string, string>> {
   const state = await request.storageState();
   const token = state.cookies.find((c) => c.name === "gameplane_csrf")?.value ?? "";
   return { "X-Gameplane-CSRF": token, Accept: "application/json" };
@@ -121,4 +121,118 @@ export async function seedServer(request: APIRequestContext, opts: SeedServerOpt
         .catch(() => undefined);
     },
   };
+}
+
+// Generic mutating call with the CSRF header. Path is relative to the request's baseURL.
+export async function apiSend(
+  request: APIRequestContext,
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  path: string,
+  data?: unknown,
+): Promise<APIResponse> {
+  return request.fetch(path, {
+    method,
+    headers: await seedHeaders(request),
+    ...(data === undefined ? {} : { data }),
+  });
+}
+
+export interface SeededUser extends Seeded {
+  id: number;
+  username: string;
+  password: string;
+}
+
+// POST /users (users.go:113). password must be >= 12 chars (auth.MinPasswordLen, password.go:61);
+// username must match ^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}$ (validate.go:17); role must exist
+// (default "viewer"). Response JSON includes numeric `id`.
+export async function seedUser(
+  request: APIRequestContext,
+  opts: { username: string; password?: string; role?: string; displayName?: string },
+): Promise<SeededUser> {
+  const password = opts.password ?? `E2e-${Math.random().toString(36).slice(2, 12)}-Pw1`;
+  const res = await apiSend(request, "POST", "/users", {
+    username: opts.username,
+    password,
+    role: opts.role ?? "viewer",
+    ...(opts.displayName ? { displayName: opts.displayName } : {}),
+  });
+  if (!res.ok()) {
+    throw new Error(`seed user ${opts.username} failed: ${res.status()} ${await res.text().catch(() => "")}`);
+  }
+  const { id } = (await res.json()) as { id: number };
+  return {
+    name: opts.username,
+    username: opts.username,
+    password,
+    id,
+    cleanup: (req) => deleteUser(req, id),
+  };
+}
+
+// DELETE /users/{id}; best-effort, safe if already gone. Also removes the user's bindings.
+export async function deleteUser(request: APIRequestContext, id: number): Promise<void> {
+  await apiSend(request, "DELETE", `/users/${id}`).catch(() => undefined);
+}
+
+// POST /roles {name, description, permissions} (roles.go:116). Permission keys must exist in
+// api/internal/rbac/catalog.go (e.g. "servers:read"); "*" is rejected.
+export async function seedRole(
+  request: APIRequestContext,
+  opts: { name: string; description?: string; permissions: string[] },
+): Promise<Seeded> {
+  const res = await apiSend(request, "POST", "/roles", {
+    name: opts.name,
+    description: opts.description ?? "",
+    permissions: opts.permissions,
+  });
+  await expectSeedOk(res, `seed role ${opts.name}`);
+  return {
+    name: opts.name,
+    cleanup: async (req) => {
+      await apiSend(req, "DELETE", `/roles/${encodeURIComponent(opts.name)}`).catch(() => undefined);
+    },
+  };
+}
+
+export const RESTIC_REPO_URL = "rest:http://gameplane-test-restic.gameplane-system.svc:8000/";
+export const RESTIC_REPO_PASSWORD = "e2e-test-password-not-secret";
+// Same values as test/e2e/fixtures/backup-restic-secret.yaml (stringData repo/password), so the
+// repository initialised by TestE2E_ResticRepoReady is reused.
+
+// POST /backup-destinations {name,url,password} (destinations.go:97-). Creates a Secret in
+// gameplane-games labelled gameplane.local/backup-destination=true with keys repo+password.
+// 400 unless name is a DNS label.
+export async function seedBackupDestination(
+  request: APIRequestContext,
+  name: string,
+): Promise<Seeded> {
+  const res = await apiSend(request, "POST", "/backup-destinations", {
+    name,
+    url: RESTIC_REPO_URL,
+    password: RESTIC_REPO_PASSWORD,
+  });
+  await expectSeedOk(res, `seed backup destination ${name}`);
+  return {
+    name,
+    cleanup: async (req) => {
+      await apiSend(req, "DELETE", `/backup-destinations/${name}`).catch(() => undefined);
+    },
+  };
+}
+
+// Best-effort: delete every Backup and Restore (default namespace) whose spec.serverRef.name === serverName.
+export async function cleanupServerBackups(request: APIRequestContext, serverName: string): Promise<void> {
+  for (const kind of ["backups", "restores"] as const) {
+    const res = await request.get(`/${kind}`, { headers: { Accept: "application/json" } }).catch(() => null);
+    if (!res || !res.ok()) continue;
+    const list = (await res.json()) as {
+      items?: Array<{ metadata: { name: string }; spec: { serverRef: { name: string } } }>;
+    };
+    for (const it of list.items ?? []) {
+      if (it.spec.serverRef.name === serverName) {
+        await apiSend(request, "DELETE", `/${kind}/${it.metadata.name}`).catch(() => undefined);
+      }
+    }
+  }
 }

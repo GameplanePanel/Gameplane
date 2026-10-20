@@ -18,9 +18,9 @@ import (
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	ggcrremote "github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/sigstore/cosign/v2/pkg/cosign"
-	ociremote "github.com/sigstore/cosign/v2/pkg/oci/remote"
-	cosignsig "github.com/sigstore/cosign/v2/pkg/signature"
+	"github.com/sigstore/cosign/v3/pkg/cosign"
+	ociremote "github.com/sigstore/cosign/v3/pkg/oci/remote"
+	cosignsig "github.com/sigstore/cosign/v3/pkg/signature"
 	"github.com/sigstore/sigstore-go/pkg/root"
 	sgtuf "github.com/sigstore/sigstore-go/pkg/tuf"
 	corev1 "k8s.io/api/core/v1"
@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // cosignPubKey is the Secret data key holding a keyed-verification public key.

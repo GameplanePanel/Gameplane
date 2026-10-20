@@ -21,7 +21,7 @@ Track B is unblocked and independently shippable; it should ship FIRST. Track A'
 **Primary Dependencies**: 
 - Operator/Agent/API: controller-runtime v0.19.0, client-go v0.35.0, chi v5, coder/websocket v1.8.12
 - Web: TanStack Router, TanStack Query, Radix + shadcn/ui, Tailwind 3.4, lucide-react, Monaco editor, xterm.js
-- **In-repo shared module `netguard`** (Track A, Steam display-name lookup — see Decision 9): the API server's Steam Web API resolver dials through `netguard` using the strict `IsPublic` policy. Wiring status verified: `api/go.mod` already declares `require github.com/ValgulNecron/gameplane/netguard v0.0.0` with a local `replace` (lines 5–9), and `api/` is **already** a netguard importer via `api/internal/notify/notify.go:17` and `api/internal/notify/deliver.go:18` — so no new `go.work` / `go.mod` wiring is needed and the earlier planning assumption that this would be netguard's first API-side importer is superseded. What *is* in scope: `netguard`'s coverage gate (`netguard/.testcoverage.yml`, total 91%) applies to any change made inside that package for this feature, and the new resolver's own coverage lands under the `api` gate (80%).
+- **In-repo shared module `netguard`** (Track A, Steam display-name lookup — see Decision 9): the API server's Steam Web API resolver dials through `netguard` using the strict `IsPublic` policy. Wiring status verified: `api/go.mod` already declares `require github.com/GameplanePanel/gameplane/netguard v0.0.0` with a local `replace` (lines 5–9), and `api/` is **already** a netguard importer via `api/internal/notify/notify.go:17` and `api/internal/notify/deliver.go:18` — so no new `go.work` / `go.mod` wiring is needed and the earlier planning assumption that this would be netguard's first API-side importer is superseded. What *is* in scope: `netguard`'s coverage gate (`netguard/.testcoverage.yml`, total 91%) applies to any change made inside that package for this feature, and the new resolver's own coverage lands under the `api` gate (80%).
 
 **Storage**: N/A for this feature (no new database tables). Existing GameServer CRD status fields carry pool/address state.
 
@@ -258,9 +258,9 @@ Design, as decided:
 
 Rationale: it keeps the promised UX (FR-007 / US3-AC1) intact, confines a third-party dependency and a credential to a single control-plane component that already has an egress path, and reuses the repo's existing SSRF dial-guard instead of inventing a second outbound-HTTP policy.
 
-**Decision 10: Players Capability Parsing Strategy for JSON Response — PENDING MAINTAINER CONFIRMATION**
+**Decision 10: Players Capability Parsing Strategy for JSON Response — DECIDED 2026-10-09: Option 2**
 
-*Status: **RECOMMENDATION pending maintainer confirmation.** Protocol's per-command response shapes are marked UNVERIFIED (13 of 19 commands in contracts/nuclear-option-remote-command.md); exact behavior contingent on live-server testing. Implementation choice deferred until protocol is verified.*
+*Status: **DECIDED** by the maintainer on 2026-10-09 (project thread decision card "Names + faction"). Implemented additively so no existing client breaks: when the list command's output is a JSON object with a `Players` array, the agent's `/players` snapshot keeps `players` as the flat list of Steam IDs and adds `entries: [{steamId, faction}]` (`agent/internal/players/players.go`); the API adds `displayName` to those entries (`api/internal/ws/players_hydrate.go`). The dashboard rendering (T095/T096/T102) waits for the Pencil design pass.*
 
 The agent's player-list capability (agent/internal/caps/caps.go, type `PlayerList`, lines 115–123) is currently structured around text-based RCON output: it declares a `Command` (the RCON command to run) and an optional `EntryRegex` (regex applied over the console text output to extract player names). The `Snapshot` struct returned by the `/players` endpoint (agent/internal/players/players.go, lines 57–64) carries a `Players []string` field populated by this regex-parsing flow.
 
@@ -276,9 +276,9 @@ Nuclear Option's remote-command protocol returns structured JSON instead: `{"Pla
 
 **Alternative (if Option 2 proves too complex during implementation)**: Fall back to Option 3 (no players capability v1). This is safe for the module's core gameplay (the operator can still run remote commands by Steam ID), but leaves the dashboard's Players tab and idle auto-sleep at reduced capability for this game until the protocol-aware parser is implemented in a follow-up release.
 
-**Decision 11: RCON Password Secret Minting for Unauthenticated Protocols — PENDING MAINTAINER CONFIRMATION**
+**Decision 11: RCON Password Secret Minting for Unauthenticated Protocols — DECIDED 2026-10-09: template switch**
 
-*Status: **RECOMMENDATION pending maintainer confirmation.***
+*Status: **DECIDED** by the maintainer on 2026-10-09: instead of a protocol check, GameTemplate gains `spec.rcon.authentication` (default `true`, today's behaviour). `false` means the console has no authentication, so the operator mints no `<gs>-rcon` Secret, mounts nothing for the agent and injects no password env; a CEL rule rejects `false` together with `passwordSecretRef`, `passwordEnv` or `passwordFile` (`operator/api/v1alpha1/gametemplate_types.go`, `operator/internal/controller/gameserver_rcon.go`). The Nuclear Option template sets `authentication: false`. The options below are kept for history.*
 
 The operator's `reconcileRCONSecret` function (operator/internal/controller/gameserver_rcon.go, lines 66–100) ensures that whenever a template declares an RCON interface, a per-GameServer Secret is minted (unless the template references an external PasswordSecretRef or uses a game-managed password file). The Secret holds a randomly-generated password, mounted into the agent sidecar at `/etc/gameplane/rcon` for use over the RCON protocol.
 

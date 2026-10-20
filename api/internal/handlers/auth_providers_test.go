@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
 // providersRegistry builds a registry over a fresh store, optionally
@@ -105,5 +105,76 @@ func TestAuthProviders_LabelFallsBackToName(t *testing.T) {
 		if p.Name == "corp-sso" && p.Label != "corp-sso" {
 			t.Fatalf("label = %q, want the provider name", p.Label)
 		}
+	}
+}
+
+// seedI18nConfig stores the i18n config section as the admin config handler
+// would, with the raw JSON value given.
+func seedI18nConfig(t *testing.T, store *db.Store, blob string) {
+	t.Helper()
+	if _, err := store.DB.ExecContext(context.Background(),
+		`INSERT INTO config(key, value, updated_at) VALUES ('i18n', ?, datetime('now'))
+		 ON CONFLICT(key) DO UPDATE SET value = excluded.value`, blob); err != nil {
+		t.Fatalf("seed i18n config: %v", err)
+	}
+}
+
+func getLocale(t *testing.T, store *db.Store) (map[string]any, string) {
+	t.Helper()
+	rr := httptest.NewRecorder()
+	AuthLocaleHandler(store)(rr, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/auth/locale", nil))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body=%s", rr.Code, rr.Body.String())
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	return resp, rr.Body.String()
+}
+
+func TestAuthLocale_AbsentIsEnglish(t *testing.T) {
+	resp, _ := getLocale(t, newTestStore(t))
+	if resp["defaultLanguage"] != "en" {
+		t.Fatalf("defaultLanguage = %v, want en", resp["defaultLanguage"])
+	}
+}
+
+func TestAuthLocale_StoredEnglish(t *testing.T) {
+	store := newTestStore(t)
+	seedI18nConfig(t, store, `{"defaultLanguage":"en"}`)
+	resp, _ := getLocale(t, store)
+	if resp["defaultLanguage"] != "en" {
+		t.Fatalf("defaultLanguage = %v, want en", resp["defaultLanguage"])
+	}
+}
+
+func TestAuthLocale_UnlistedFallsBackToEnglish(t *testing.T) {
+	store := newTestStore(t)
+	seedI18nConfig(t, store, `{"defaultLanguage":"xx"}`)
+	resp, _ := getLocale(t, store)
+	if resp["defaultLanguage"] != "en" {
+		t.Fatalf("defaultLanguage = %v, want en for an unlisted tag", resp["defaultLanguage"])
+	}
+}
+
+func TestAuthLocale_UnparsableFallsBackToEnglish(t *testing.T) {
+	store := newTestStore(t)
+	seedI18nConfig(t, store, `not json`)
+	resp, _ := getLocale(t, store)
+	if resp["defaultLanguage"] != "en" {
+		t.Fatalf("defaultLanguage = %v, want en for unparsable config", resp["defaultLanguage"])
+	}
+}
+
+func TestAuthLocale_ResponseHasExactlyOneKey(t *testing.T) {
+	store := newTestStore(t)
+	seedI18nConfig(t, store, `{"defaultLanguage":"en"}`)
+	resp, raw := getLocale(t, store)
+	if len(resp) != 1 {
+		t.Fatalf("keys = %d, want exactly one; body=%s", len(resp), raw)
+	}
+	if _, ok := resp["defaultLanguage"]; !ok {
+		t.Fatalf("missing defaultLanguage key; body=%s", raw)
 	}
 }

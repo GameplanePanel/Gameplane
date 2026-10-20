@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
 
 // newUpload builds a Fetcher over uploaded module bundles: ConfigMaps
@@ -101,7 +103,7 @@ func (f *uploadFetcher) scan(ctx context.Context) ([]uploadedBundle, []string, e
 				files[name] = []byte(s)
 			}
 		}
-		bundle, err := FromFiles(digestFiles(files), files)
+		bundle, err := FromFiles(digestFiles(files), uploadBundleFiles(files))
 		if err != nil {
 			warnings = append(warnings, fmt.Sprintf("upload:%s: %v", cm.Name, err))
 			continue
@@ -119,6 +121,35 @@ func (f *uploadFetcher) scan(ctx context.Context) ([]uploadedBundle, []string, e
 		bundles = append(bundles, uploadedBundle{configMap: cm.Name, bundle: bundle})
 	}
 	return bundles, warnings, nil
+}
+
+// uploadLocaleKeyPrefix and uploadLocaleKeySuffix frame the ConfigMap key of
+// an uploaded translation file: "locales.<tag>.json". ConfigMap keys cannot
+// contain "/", so this stands for the bundle path "locales/<tag>.json".
+const (
+	uploadLocaleKeyPrefix = "locales."
+	uploadLocaleKeySuffix = ".json"
+)
+
+// uploadBundleFiles returns files with the locales.<tag>.json ConfigMap keys
+// renamed to the canonical locales/<tag>.json names FromFiles reads. A file over
+// oci.MaxLocaleLayerSize is replaced by oci.OversizedLocale so the reconciler
+// reports it. The input map is not modified (the digest covers the original).
+func uploadBundleFiles(files map[string][]byte) map[string][]byte {
+	out := make(map[string][]byte, len(files))
+	for name, data := range files {
+		if strings.HasPrefix(name, uploadLocaleKeyPrefix) && strings.HasSuffix(name, uploadLocaleKeySuffix) &&
+			len(name) > len(uploadLocaleKeyPrefix)+len(uploadLocaleKeySuffix) {
+			tag := name[len(uploadLocaleKeyPrefix) : len(name)-len(uploadLocaleKeySuffix)]
+			if len(data) > oci.MaxLocaleLayerSize {
+				data = oci.OversizedLocale
+			}
+			out[oci.LocaleLayerPrefix+tag+oci.LocaleLayerSuffix] = data
+			continue
+		}
+		out[name] = data
+	}
+	return out
 }
 
 // digestFiles is the map-shaped sibling of contentDigest: a

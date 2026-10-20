@@ -1,0 +1,106 @@
+{{define "extended"}}
+<section class="section" aria-labelledby="ext-h">
+<div class="section-head">
+<div>
+<h2 class="section-title" id="ext-h">Extended reports</h2>
+<p class="muted">Installs that also share the extended tier. Each install counts once per day; shares are weighted by install-days in the range.</p>
+</div>
+{{with .Extended}}{{with $.Ext}}
+<div class="coverage">
+<span>Coverage: {{pct $.Extended.Coverage}} of reports in range include extended data</span>
+<svg class="coverage-track" viewBox="0 0 100 6" preserveAspectRatio="none" role="img" aria-label="Coverage {{pct $.Extended.Coverage}}">
+<rect class="track" x="0" y="0" width="100" height="6" rx="3"/>
+<rect class="bar s1" x="0" y="0" width="{{.CoverageW}}" height="6" rx="3"/>
+</svg>
+</div>
+{{end}}{{end}}
+</div>
+{{if .Extended}}{{with .Ext}}
+<div class="kpis kpis-5">
+<div class="card tile"><p class="tile-label">Active installs, today</p><p class="tile-value">{{num $.Extended.Installs.Active1d}}</p><p class="tile-sub">{{$.AsOf}} (UTC, in progress)</p></div>
+<div class="card tile"><p class="tile-label">Active, last 7 days</p><p class="tile-value">{{num $.Extended.Installs.Active7d}}</p><p class="tile-sub">Unique installs</p></div>
+<div class="card tile"><p class="tile-label">Active, last 30 days</p><p class="tile-value">{{num $.Extended.Installs.Active30d}}</p><p class="tile-sub">Unique installs</p></div>
+<div class="card tile"><p class="tile-label">New installs, last {{$.Range}} days</p><p class="tile-value">{{num .NewTotal}}</p><p class="tile-sub">First report in range</p></div>
+<div class="card tile"><p class="tile-label">Lapsed, last {{$.Range}} days</p><p class="tile-value">{{num .LapsedTotal}}</p><p class="tile-sub">No report for 30 days</p></div>
+</div>
+<div class="grid-2">
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">New installs per day</span><span class="muted block">First accepted report from an install ID</span></span></figcaption>
+{{template "columns" .New}}
+</figure>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Lapsed installs per day</span><span class="muted block">Installs whose last report was 30 days earlier. Today's bar is final after the UTC day closes.</span></span></figcaption>
+{{template "columns" .Lapsed}}
+</figure>
+</div>
+<div class="grid-2">
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Kubernetes version</span><span class="muted block">Share of install-days reporting each minor version across their managed clusters. Installs with several report each, so shares can add up to more than 100%.</span></span></figcaption>
+{{template "bars" .K8s}}
+</figure>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Distribution</span><span class="muted block">Share of install-days reporting each detected distribution across their managed clusters. Installs with several report each, so shares can add up to more than 100%.</span></span></figcaption>
+{{template "bars" .Distro}}
+</figure>
+</div>
+<div class="grid-2">
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Architecture</span><span class="muted block">Share of install-days reporting each node architecture. Mixed clusters report several, so shares add up to more than 100%.</span></span></figcaption>
+{{template "bars" .Arch}}
+</figure>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Cluster nodes</span><span class="muted block">Share of install-days by node-count band.</span></span></figcaption>
+{{template "bars" .Nodes}}
+</figure>
+</div>
+<div class="grid-2">
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Deployment</span><span class="muted block">Share of install-days by how the panel runs: on a cluster, or standalone. Other is installs on an older version that doesn't report it.</span></span></figcaption>
+{{template "bars" .Deployment}}
+</figure>
+</div>
+<div class="grid-2">
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Games</span><span class="muted block">Share of install-days running at least one server of each official module. Uploaded and third-party modules count as Custom.</span></span></figcaption>
+{{template "bars" .Games}}
+</figure>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Feature adoption</span><span class="muted block">Share of install-days with each feature in use.</span></span></figcaption>
+{{template "bars" .Features}}
+</figure>
+</div>
+<figure class="card chart-card">
+<figcaption class="card-head"><span><span class="card-title">Versions by install</span><span class="muted block">Installs by their last reported version, over the last {{.WindowDays}} days (the shorter of the range and the activity-record expiry).</span></span></figcaption>
+{{if .VersionsInstall.Table}}{{template "bars" .VersionsInstall}}{{else}}<div class="only-wide">{{template "bars" .VersionsWide}}</div>
+<div class="only-narrow">{{template "bars" .VersionsInstall}}</div>{{end}}
+</figure>
+<figure class="card chart-card trend" id="version-trend">
+<figcaption class="card-head"><span><span class="card-title">Version trend</span><span class="muted block">Installs per day that upgraded, downgraded, changed between versions that can't be ordered, or stayed behind the newest version seen in the range{{with .Trend.Newest}} ({{.}}){{end}}. Extended reports only.</span></span>
+{{if $.Table}}<a class="link" href="{{$.ChartHref}}#version-trend">View as chart</a>{{else}}<a class="link" href="{{$.TableHref}}#version-trend">View as table</a>{{end}}</figcaption>
+{{if .Trend.Table}}
+<table class="data">
+<caption class="sr">Version trend</caption>
+<thead><tr><th scope="col">Day</th><th scope="col" class="num">Upgraded</th><th scope="col" class="num">Downgraded</th><th scope="col" class="num">Changed (unordered)</th><th scope="col" class="num">Stale</th></tr></thead>
+<tbody>
+{{range .Trend.Rows}}<tr><td>{{.Day}}</td><td class="num">{{.Upgraded}}</td><td class="num">{{.Downgraded}}</td><td class="num">{{.Unordered}}</td><td class="num">{{.Stale}}</td></tr>
+{{end}}</tbody>
+</table>
+{{else}}
+<div class="grid-3">
+{{range .Trend.Panels}}<div class="panel">
+<p class="panel-head"><span class="swatch {{.Class}}"></span>{{.Label}}</p>
+{{template "columns" .Chart}}
+</div>
+{{end}}</div>
+{{with .Trend.Stale}}<div class="panel">
+<p class="panel-head"><span class="swatch {{.Class}}"></span>{{.Label}} <span class="muted">{{.Note}}</span></p>
+<div class="only-wide">{{template "columns" .Chart}}</div>
+<div class="only-narrow">{{template "columns" .Narrow}}</div>
+</div>{{end}}
+{{end}}
+</figure>
+{{end}}{{else}}
+<p class="card muted">No reports in this range included extended data. Basic figures above still cover every report.</p>
+{{end}}
+</section>
+{{end}}

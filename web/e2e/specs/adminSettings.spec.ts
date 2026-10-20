@@ -67,7 +67,7 @@ test.describe("admin settings page", () => {
 
     // Click Telemetry — its toggle row appears.
     await page.getByRole("button", { name: /^telemetry$/i }).click();
-    await expect(page.getByText(/send anonymous usage metrics/i)).toBeVisible();
+    await expect(page.getByText(/send basic usage metrics/i)).toBeVisible();
 
     // Click About — version metadata appears.
     await page.getByRole("button", { name: /^about$/i }).click();

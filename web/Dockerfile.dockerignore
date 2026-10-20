@@ -9,7 +9,11 @@
 # local copies must never leak in.
 *
 !web
+!i18n
 web/node_modules
 web/dist
 web/.vite
 web/coverage
+# Locally generated i18n output (fixtures, pseudo-language en-XA) must never
+# reach an image; the build regenerates the catalogs and copies languages.json.
+web/src/generated

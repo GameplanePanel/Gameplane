@@ -89,6 +89,18 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ github.ref_name }}
+      # Spec 013 G2: never sign an image that has a fixed HIGH/CRITICAL
+      # vulnerability. Same flags as the `vuln (images)` CI gate.
+      - name: install trivy
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.74.0
+      - name: scan pushed image
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TRIVY_PLATFORMS: linux/amd64,linux/arm64
+        run: ./hack/trivy-scan-images.sh "${IMAGE}@${DIGEST}"
       - name: install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         with:
@@ -121,7 +133,7 @@ jobs:
           exit 1
       # Round-trip check, mirroring publish-edge.yaml: strictly verify the
       # signature just pushed (no --insecure-ignore-tlog, so the Rekor evidence
-      # must be present), and fail the release if the committed cosign.pub no
+      # must be present), and fail the release if the committed signing/cosign.pub no
       # longer matches the signing key.
       - name: verify signature & check published key
         env:
@@ -133,8 +145,8 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/${{ matrix.component }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the release tags only now that the digest carries a verified
@@ -223,7 +235,7 @@ jobs:
           HELM_REGISTRY_CONFIG: ${{ runner.temp }}/helm.json
         run: |
           # OCI references must be lowercase; github.repository_owner keeps the
-          # account's original casing (ValgulNecron), so fold it down.
+          # account's original casing (GameplanePanel), so fold it down.
           owner_lc="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           helm registry login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
           # `helm push` prints "Digest: sha256:…" for the pushed chart manifest;
@@ -307,7 +319,7 @@ jobs:
           # Ship the signature-verification key with the release once it is
           # committed in the repo.
           assets=()
-          if [ -f cosign.pub ]; then assets=(cosign.pub); fi
+          if [ -f signing/cosign.pub ]; then assets=(signing/cosign.pub); fi
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
             "${args[@]}" "${assets[@]}"
 
@@ -320,7 +332,7 @@ jobs:
       packages: write
     environment: release-signing
     steps:
-      # The module bundles live in the gameplane-module submodule at modules/,
+      # The module bundles live in the GameplanePanel/module submodule at modules/,
       # so this job needs a recursive checkout to read their source. The
       # submodule is public, so the default GITHUB_TOKEN clones it (no PAT).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

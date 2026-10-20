@@ -78,7 +78,7 @@ test.describe("live: agent-backed screens render real pod data", () => {
     await tablist.getByRole("tab", { name: /^Overview$/i }).click();
     await expect(page.getByText("Recent events")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("Connection")).toBeVisible();
-    await expect(page.getByText("CPU")).toBeVisible();
+    await expect(page.getByText("CPU", { exact: true })).toBeVisible();
 
     // Walk the remaining agent-backed tabs; real data must render without a
     // client crash. (busybox has no RCON, so Players shows the genuine

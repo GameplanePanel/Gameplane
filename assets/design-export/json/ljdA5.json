@@ -1,0 +1,39 @@
+{
+  "type": "frame",
+  "id": "ljdA5",
+  "x": 4920,
+  "y": 10222,
+  "name": "Screen/Login — SSO only",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "KFMwT",
+      "type": "ref",
+      "ref": "fjQjb",
+      "name": "loginL",
+      "width": "fill_container",
+      "height": "fill_container",
+      "descendants": {
+        "KkNQA": {
+          "id": "bwHis",
+          "type": "ref",
+          "ref": "vp8BJ"
+        }
+      }
+    },
+    {
+      "id": "B7L9d9",
+      "type": "ref",
+      "ref": "T8Hug",
+      "name": "loginR",
+      "width": "fill_container",
+      "height": "fill_container"
+    }
+  ]
+}

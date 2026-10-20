@@ -32,30 +32,75 @@ func title(e Event) string {
 	if inst == "" {
 		inst = "Gameplane"
 	}
-	what := strings.ReplaceAll(string(e.Type), ".", " ")
-	if e.Test {
-		what = "test notification"
-	}
+	what := eventName(e)
 	if e.Name == "" {
-		return fmt.Sprintf("[%s] %s", inst, what)
+		return render(e.lang, "notify.title.unnamed", map[string]any{"instance": inst, "event": what})
 	}
-	return fmt.Sprintf("[%s] %s: %s/%s", inst, what, e.Namespace, e.Name)
+	if e.Cluster != "" {
+		return render(e.lang, "notify.title.cluster", map[string]any{
+			"instance":  inst,
+			"event":     what,
+			"cluster":   e.Cluster,
+			"namespace": e.Namespace,
+			"name":      e.Name,
+		})
+	}
+	return render(e.lang, "notify.title.named", map[string]any{
+		"instance":  inst,
+		"event":     what,
+		"namespace": e.Namespace,
+		"name":      e.Name,
+	})
+}
+
+// eventName returns the translated event name used inside the headline. An
+// event type without a notify.event.* entry keeps the raw dotted name spelled
+// with spaces, as before the catalog existed.
+func eventName(e Event) string {
+	if e.Test {
+		return render(e.lang, "notify.event.test", nil)
+	}
+	id := "notify.event." + string(e.Type)
+	if !hasMessage(id) {
+		return strings.ReplaceAll(string(e.Type), ".", " ")
+	}
+	return render(e.lang, id, nil)
+}
+
+// hasMessage reports whether id is one of the notify.* catalog entries.
+func hasMessage(id string) bool {
+	for _, m := range Messages() {
+		if string(m.ID) == id {
+			return true
+		}
+	}
+	return false
 }
 
 // detail composes the reason/message pair into one line; test events get
-// fixed copy so a test send never renders an empty body.
+// fixed copy so a test send never renders an empty body. Kubernetes reason
+// and message text is quoted verbatim.
 func detail(e Event) string {
 	switch {
 	case e.Reason != "" && e.Message != "":
-		return e.Reason + " — " + e.Message
+		return render(e.lang, "notify.detail.reason_message", map[string]any{"reason": e.Reason, "message": e.Message})
 	case e.Message != "":
 		return e.Message
 	case e.Reason != "":
 		return e.Reason
 	case e.Test:
-		return "This is a test notification from Gameplane. Your sink is wired up correctly."
+		return render(e.lang, "notify.detail.test", nil)
 	}
 	return ""
+}
+
+// text is the one-line sentence Slack shows, without the emoji: the headline,
+// then the detail after an em dash when there is one.
+func text(e Event) string {
+	if d := detail(e); d != "" {
+		return title(e) + " — " + d
+	}
+	return title(e)
 }
 
 // formatDiscord renders e as a Discord webhook execute payload: one embed,
@@ -106,7 +151,27 @@ func formatSlack(e Event) ([]byte, error) {
 // formatWebhook ships the full structured event so generic consumers can
 // route on any field.
 func formatWebhook(e Event) ([]byte, error) {
-	return json.Marshal(e)
+	lang := e.lang
+	if lang == "" {
+		lang = "en"
+	}
+	// Embedding Event flattens its fields, so every existing key keeps its
+	// name, order and value; the three additive fields come last.
+	return json.Marshal(webhookPayload{
+		Event:    e,
+		Language: lang,
+		Title:    title(e),
+		Text:     text(e),
+	})
+}
+
+// webhookPayload is the generic webhook body: the Event fields plus the
+// language the text was rendered in and the rendered headline and sentence.
+type webhookPayload struct {
+	Event
+	Language string `json:"language"`
+	Title    string `json:"title"`
+	Text     string `json:"text"`
 }
 
 // formatNtfy renders e for an ntfy topic POST: the detail is the
@@ -153,7 +218,7 @@ func formatEmail(e Event) (subject, body string) {
 		fmt.Fprintf(&b, "Instance:  %s\r\n", e.Instance)
 	}
 	if e.Test {
-		b.WriteString("\r\nThis is a test notification from Gameplane. Your sink is wired up correctly.\r\n")
+		b.WriteString("\r\n" + render(e.lang, "notify.detail.test", nil) + "\r\n")
 	}
 	return subject, b.String()
 }

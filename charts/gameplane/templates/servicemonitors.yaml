@@ -1,4 +1,5 @@
 {{- if .Values.serviceMonitors.enabled }}
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -28,6 +29,7 @@ spec:
   endpoints:
     - { port: metrics, interval: 30s }
 ---
+{{- end }}
 {{- if (eq (include "gameplane.apiEnabled" .) "true") }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -46,16 +48,18 @@ spec:
     - { port: metrics, interval: 30s, path: /metrics }
 ---
 {{- /*
-  F-217: the telemetry-receiver renders no ServiceMonitor at all today
-  (its /ingest+/metrics listener is otherwise only reachable from the API
-  pod, see the NetworkPolicy in telemetry-receiver.yaml). Only render this
-  when the receiver itself is actually deployed (same condition as
-  telemetry-receiver.yaml) — a ServiceMonitor for a Service that doesn't
-  exist just leaves Prometheus with a permanently-down target. The
+  F-217: the telemetry-receiver serves /metrics only on its dashboard
+  listener (port 8081, Bearer auth with the dashboard token), so this
+  renders only when the receiver itself is deployed (same condition as
+  telemetry-receiver.yaml) AND dashboard.tokenSecretRef.name is set: without
+  a token Prometheus would hold a permanently-down target (NOTES.txt warns).
+  The key is read through guards (F-214). The
   trailing `---` stays inside this block (not after it) so skipping it
   doesn't leave a stray empty document ahead of the PodMonitor below.
 */}}
-{{- if and .Values.api.telemetry.receiver.enabled (not .Values.api.telemetry.endpoint) }}
+{{- $receiverDashboard := .Values.api.telemetry.receiver.dashboard | default dict }}
+{{- $receiverToken := $receiverDashboard.tokenSecretRef | default dict }}
+{{- if and .Values.api.telemetry.receiver.enabled (not .Values.api.telemetry.endpoint) $receiverToken.name }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -70,7 +74,12 @@ spec:
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-telemetry-receiver }
   endpoints:
-    - { port: http, interval: 30s, path: /metrics }
+    - port: dashboard
+      interval: 30s
+      path: /metrics
+      bearerTokenSecret:
+        name: {{ $receiverToken.name }}
+        key: {{ $receiverToken.key | default "token" }}
 ---
 {{- end }}
 {{- end }}
@@ -80,6 +89,7 @@ spec:
   rationale (rejected client-cert approach, containerPort naming) lives in
   agent/specs.md's /metrics section — this is a pointer, not a copy.
 */}}
+{{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
@@ -97,4 +107,6 @@ spec:
     - port: metrics
       interval: 30s
       path: /metrics
+{{- end }}
+
 {{- end }}

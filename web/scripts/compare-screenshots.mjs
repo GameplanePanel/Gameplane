@@ -4,7 +4,7 @@
  * Visual regression comparison script for Gameplane dashboard.
  *
  * Compares Playwright browser captures (web/e2e/screenshots/*.png) against
- * reference baseline screenshots exported from Pencil (design-export/screenshots/*.png).
+ * reference baseline screenshots exported from Pencil (assets/design-export/screenshots/*.png).
  *
  * Key features:
  * - Scale normalization: when a capture's width differs from its reference's width
@@ -26,7 +26,7 @@
  * its reference's width class, and for a full screen that's a real fidelity
  * problem worth failing on. But a handful of ids are intentionally captured
  * as tight element crops (a single badge/chip/dialog via captureLocator())
- * at the component's actual implementation size, while their design-export
+ * at the component's actual implementation size, while their assets/design-export
  * reference PNG was exported at a different crop size — for those, a
  * non-unity scale factor is the expected, accepted shape of the comparison,
  * not a regression (maintainer ruling: chips/badges keep implementation
@@ -68,7 +68,7 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const WEB_ROOT = path.resolve(__dirname, '..');
 
 // Default configurations
-const DEFAULT_REF_DIR = path.join(REPO_ROOT, 'design-export/screenshots');
+const DEFAULT_REF_DIR = path.join(REPO_ROOT, 'assets/design-export/screenshots');
 const DEFAULT_CURR_DIR = path.join(WEB_ROOT, 'e2e/screenshots');
 const DEFAULT_OUT_DIR = path.join(WEB_ROOT, 'test-results/visual-diff');
 const DEFAULT_MAX_DIFF_FACTOR = 0.04; // 4.0% maximum allowed global difference
@@ -144,7 +144,7 @@ const SCALE_ALLOWLIST = {
   // 1.1455 (= 1008px shadow-inclusive export / 880px capture).
 };
 
-// Ids whose design-export/screenshots/<id>.png includes the frame's outer
+// Ids whose assets/design-export/screenshots/<id>.png includes the frame's outer
 // drop shadow as transparent bleed around the opaque panel (Pencil exports
 // the shadow's bounding box). A captureLocator() element crop has no such
 // margin, so the reference is cropped to its opaque panel before the scale
@@ -158,7 +158,7 @@ const REFERENCE_CROP_ALLOWLIST = {
   // (88,64)-(968,1584) => 880x1520).
   zhLZN: { left: 88, top: 64, width: 880, height: 1520 },
   // Add module source dialog: 480x882 panel at 2x, bounding box re-verified
-  // via PIL alpha>=250 scan of design-export/screenshots/DMnEi.png (now
+  // via PIL alpha>=250 scan of assets/design-export/screenshots/DMnEi.png (now
   // 1088x1898, bbox (64,40)-(1024,1810) => 960x1770).
   DMnEi: { left: 64, top: 40, width: 960, height: 1770 },
   // Create Share Link dialog: feature 017 / OD-9's redesign deleted the
@@ -167,33 +167,33 @@ const REFERENCE_CROP_ALLOWLIST = {
   // round-10 1088x772 export) and would have cropped 40 rows of empty canvas
   // into the reference, scoring them as a full-width mismatch, had it reached
   // CI unfixed. Bounding box re-verified via PIL alpha>=250 scan of
-  // design-export/screenshots/atqRh.png (now 1088x732, bbox
+  // assets/design-export/screenshots/atqRh.png (now 1088x732, bbox
   // (64,40)-(1024,644) => 960x604).
   atqRh: { left: 64, top: 40, width: 960, height: 604 },
   // Create Share Link dialog, "No expiry" state (OD-9 T024/T025 new frame):
   // same 480px-wide panel as atqRh but with the FR-002 warning line
   // ("This link works until you revoke it.") in place of the custom-date
   // fields, one text row taller than atqRh. Bounding box re-verified via PIL
-  // alpha>=250 scan of design-export/screenshots/tr6cE.png (1088x772, bbox
+  // alpha>=250 scan of assets/design-export/screenshots/tr6cE.png (1088x772, bbox
   // (64,40)-(1024,684) => 960x644).
   tr6cE: { left: 64, top: 40, width: 960, height: 644 },
   // Create Share Link dialog, "Custom" date state (OD-9 T024/T025 new
   // frame): adds the "Expires on" date field plus the OD-6 long-lived
   // warning line, two rows taller than atqRh. Bounding box re-verified via
-  // PIL alpha>=250 scan of design-export/screenshots/oPF1n.png (1088x892,
+  // PIL alpha>=250 scan of assets/design-export/screenshots/oPF1n.png (1088x892,
   // bbox (64,40)-(1024,804) => 960x764).
   oPF1n: { left: 64, top: 40, width: 960, height: 764 },
   // Share Link Created dialog: OD-27 round-12 (qzcst lineHeight 1.4286,
   // Hp206 padding 14, SICns padding [11,14]) re-export grew the panel by the
   // net +3 CSS px those three overrides add; bounding box re-verified via PIL
-  // alpha>=250 scan of design-export/screenshots/VM7ro.png (now 1088x816,
+  // alpha>=250 scan of assets/design-export/screenshots/VM7ro.png (now 1088x816,
   // bbox (64,40)-(1024,728) => 960x688, which is exactly the browser
   // capture's 960x688 — the two halves now agree on height).
   VM7ro: { left: 64, top: 40, width: 960, height: 688 },
   // Revoke Share Link dialog: OD-26 round-10 HARNESS clause. Design side is
   // unchanged (S7SCDc references master WwNlX, not touched this round);
   // opaque-panel bbox re-verified via PIL alpha>=250 scan of
-  // design-export/screenshots/S7SCDc.png (1008x508, bbox
+  // assets/design-export/screenshots/S7SCDc.png (1008x508, bbox
   // (64,40)-(944,420) => 880x380). Per OD-26, captureLocator() keeps 2 CSS px
   // (4 device px) of modal backdrop in the browser capture and capture.ts is
   // intentionally left unchanged — the reference crop absorbs the difference

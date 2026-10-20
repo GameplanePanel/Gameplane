@@ -523,6 +523,16 @@ type GameServerStatus struct {
 	// +patchStrategy=merge
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 
+	// ConditionArgs carries, per condition Type, the values interpolated into
+	// that condition's English message, so clients can render the localized
+	// message for the condition's current Reason (translation id
+	// condition.<type>.<reason>, lower-cased). The English Message is
+	// unchanged and stays the fallback. An entry exists only while the
+	// condition's current Reason has arguments; it is removed when the Reason
+	// changes to one without.
+	// +optional
+	ConditionArgs map[string]map[string]string `json:"conditionArgs,omitempty"`
+
 	// Endpoints lists the externally reachable addresses advertised for
 	// this server (populated once the Service is reconciled).
 	// +optional

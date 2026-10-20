@@ -614,7 +614,7 @@ func TestConnect_MeasuredVersionRejection_0x39(t *testing.T) {
 // The actual regression guard for this bug class is the e2e tier: the e2e game
 // bot CI job dials a real Kubernetes Service ClusterIP (an off-host, routed
 // destination) and did catch this bug once in production.
-// See: https://github.com/ValgulNecron/gameplane/issues/197
+// See: https://github.com/GameplanePanel/gameplane/issues/197
 func TestChallenge_NonLoopbackServer(t *testing.T) {
 	// Find a non-loopback IPv4 address on the host.
 	nonLoopbackAddr := findNonLoopbackIPv4Source()

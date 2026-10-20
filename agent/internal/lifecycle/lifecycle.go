@@ -18,8 +18,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
-	"github.com/ValgulNecron/gameplane/agent/internal/httpjson"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/httpjson"
 )
 
 // Rcon is the subset of *rcon.Client we use, as an interface so tests can

@@ -1,7 +1,7 @@
 # netguard — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** github.com/ValgulNecron/gameplane/netguard
+**Module / package:** github.com/GameplanePanel/gameplane/netguard
 
 ## Purpose
 

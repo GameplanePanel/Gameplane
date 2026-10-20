@@ -1,0 +1,48 @@
+{
+  "type": "frame",
+  "id": "z3mtgc",
+  "x": 3588,
+  "y": 2089,
+  "name": "Gameplane/Language Picker Compact",
+  "reusable": true,
+  "height": 32,
+  "cornerRadius": "$radius/3xl",
+  "gap": 6,
+  "padding": [
+    6,
+    10
+  ],
+  "alignItems": "center",
+  "children": [
+    {
+      "type": "icon",
+      "id": "RJSp4",
+      "name": "lpGlobe",
+      "width": 14,
+      "height": 14,
+      "icon": "globe",
+      "library": "lucide",
+      "fill": "$muted"
+    },
+    {
+      "type": "text",
+      "id": "h0q9DF",
+      "name": "lpLabel",
+      "fill": "$foreground/foreground",
+      "content": "English",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 13,
+      "fontWeight": "500"
+    },
+    {
+      "type": "icon",
+      "id": "D2Bk2",
+      "name": "lpChevron",
+      "width": 14,
+      "height": 14,
+      "icon": "chevron-down",
+      "library": "lucide",
+      "fill": "$muted"
+    }
+  ]
+}

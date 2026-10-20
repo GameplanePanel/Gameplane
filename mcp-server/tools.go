@@ -19,7 +19,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/ValgulNecron/gameplane/mcp-server/internal/kube"
+	"github.com/GameplanePanel/gameplane/mcp-server/internal/kube"
 )
 
 // maxListEvents is the maximum number of events to include in list responses.

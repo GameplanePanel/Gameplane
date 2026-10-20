@@ -1,10 +1,42 @@
 import { defineConfig } from "vite";
+import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 // __dirname isn't defined in ESM; derive it from import.meta.url.
 const here = path.dirname(fileURLToPath(import.meta.url));
+
+// i18nFixtures: VITE_I18N_FIXTURES=1 writes the fixture language "zz" (spec 019,
+// T046) so the E2E i18n specs have a language with 0% completeness to switch to.
+// Fixtures are written only on request; release builds never request them, and
+// web/src/generated/ is gitignored, so a clean checkout never contains them.
+function i18nFixtures(): Plugin {
+  return {
+    name: "gameplane-i18n-fixtures",
+    configResolved() {
+      if (process.env.VITE_I18N_FIXTURES === "1") {
+        execFileSync(process.execPath, [path.resolve(here, "scripts/i18n-fixtures.mjs")], { stdio: "inherit" });
+      }
+    },
+  };
+}
+
+// i18nPseudo: VITE_I18N_PSEUDO=1 writes the pseudo-language "en-XA" (spec 019,
+// T099, FR-038) for the dev server (and the planned Playwright en-XA project,
+// T100). Release builds never set the flag, so en-XA never reaches a release
+// languages.json.
+function i18nPseudo(): Plugin {
+  return {
+    name: "gameplane-i18n-pseudo",
+    configResolved() {
+      if (process.env.VITE_I18N_PSEUDO === "1") {
+        execFileSync(process.execPath, [path.resolve(here, "scripts/i18n-pseudo.mjs")], { stdio: "inherit" });
+      }
+    },
+  };
+}
 
 // API target for the dev server's proxy. Defaults to the standard local
 // process; Playwright live-mode points it at a kubectl port-forward by
@@ -23,9 +55,12 @@ function htmlBypass(req: { headers: Record<string, string | string[] | undefined
 }
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), i18nFixtures(), i18nPseudo()],
   resolve: {
-    alias: { "@": path.resolve(here, "./src") },
+    alias: {
+      "@": path.resolve(here, "./src"),
+      "@i18n": path.resolve(here, "../i18n/locales"),
+    },
   },
   server: {
     port: 5173,

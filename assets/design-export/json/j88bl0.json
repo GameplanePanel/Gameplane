@@ -1,0 +1,224 @@
+{
+  "type": "frame",
+  "id": "j88bl0",
+  "x": 3280,
+  "y": 27607,
+  "name": "Screen/Server Detail — Console (not running – Pod failure)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "sgTXK",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "hhKTJ",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "M0h7P",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "id": "GJyCe",
+          "type": "ref",
+          "ref": "S4k0x",
+          "name": "Detail Header",
+          "width": "fill_container",
+          "descendants": {
+            "N3nc2n": {
+              "id": "BTH9Y",
+              "type": "ref",
+              "ref": "Yeemi",
+              "name": "statusBadge",
+              "descendants": {
+                "fRdhX": {
+                  "content": "Failed"
+                }
+              }
+            },
+            "UpnRk": {
+              "content": "minecraft-java · 1.21.4-fabric · ns: gameplane-games"
+            },
+            "fXzP0": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "id": "FsFJw",
+          "type": "ref",
+          "ref": "I9kvlZ",
+          "name": "Tabs Bar",
+          "width": "fill_container",
+          "padding": [
+            0,
+            24
+          ],
+          "descendants": {
+            "Wp6q1": {
+              "fill": "#00000000"
+            },
+            "Wp6q1/YUR8N": {
+              "fill": "$muted"
+            },
+            "jcWsD": {
+              "fill": "$segment"
+            },
+            "jcWsD/VcxMI": {
+              "fill": "$foreground/segment"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "x9l9P",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "yoY9K",
+              "type": "ref",
+              "ref": "qYOZe",
+              "name": "Console Toolbar",
+              "width": "fill_container",
+              "descendants": {
+                "ztP8w": {
+                  "fill": "$danger/danger"
+                },
+                "IJEZB": {
+                  "fill": "$danger/danger",
+                  "content": "FAILED"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "JyAuH",
+              "name": "Terminal Wrap",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "padding": 16,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "UZWqt",
+                  "name": "Failure Card",
+                  "width": 480,
+                  "fill": "$surface/surface",
+                  "cornerRadius": 10,
+                  "stroke": "$danger/danger",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "vuf6N",
+                      "name": "Icon Wrap",
+                      "width": 56,
+                      "height": 56,
+                      "fill": "$danger/soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "fsaNc",
+                          "name": "Alert Icon",
+                          "width": 28,
+                          "height": 28,
+                          "icon": "triangle-alert",
+                          "library": "lucide",
+                          "fill": "$danger/danger"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "H2Tst",
+                      "name": "Status",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Server failed to start: ImagePullBackOff",
+                      "textAlign": "center",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "GOpvw",
+                      "name": "Info",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Check the Events tab for details.",
+                      "lineHeight": 1.5,
+                      "textAlign": "center",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

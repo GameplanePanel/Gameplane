@@ -20,6 +20,10 @@ runs:
       id: go
       with:
         go-version: ${{ inputs.go-version }}
+        # Resolve '1.26' to the newest 1.26.x patch instead of the runner's
+        # preinstalled one, so stdlib fixes (spec 013 G1, govulncheck) land
+        # without a manual pin bump.
+        check-latest: true
         cache: false
     - name: Go dependency cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

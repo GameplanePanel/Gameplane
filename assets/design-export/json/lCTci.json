@@ -1,0 +1,99 @@
+{
+  "type": "frame",
+  "id": "lCTci",
+  "x": 3280,
+  "y": 75369,
+  "name": "Screen/Mobile — Theme Settings · Language",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 390,
+  "height": 972,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "children": [
+    {
+      "id": "IVqV8",
+      "type": "ref",
+      "ref": "fGbVF",
+      "name": "Mobile TopBar",
+      "width": "fill_container",
+      "descendants": {
+        "WOloN": {
+          "content": "Settings"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "p8758s",
+      "name": "Body",
+      "width": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 16,
+      "children": [
+        {
+          "id": "gBeWz",
+          "type": "ref",
+          "ref": "xCDF7",
+          "name": "Page Header",
+          "width": "fill_container",
+          "descendants": {
+            "fLVEl": {
+              "width": "fill_container"
+            },
+            "spCmk": {
+              "content": "Theme & Appearance",
+              "fontSize": 20
+            },
+            "VbHwU": {
+              "content": "Personal theme presets, colors, custom CSS, and theme portability.",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            },
+            "TgdLz": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "id": "ngv6t",
+          "type": "ref",
+          "ref": "Mp7Ep",
+          "name": "Settings Nav",
+          "width": "fill_container",
+          "descendants": {
+            "eIjoV": {
+              "fill": "#00000000"
+            },
+            "XuGUZ": {
+              "fill": "$muted"
+            },
+            "DpMnt": {
+              "fill": "$muted"
+            },
+            "vbQ98": {
+              "fill": "$surface/secondary"
+            },
+            "dY0be": {
+              "fill": "$foreground/foreground"
+            },
+            "qeqG6": {
+              "fill": "$foreground/foreground"
+            }
+          }
+        },
+        {
+          "id": "SUO59",
+          "type": "ref",
+          "ref": "Ii9Hy",
+          "name": "Language Card",
+          "width": "fill_container"
+        }
+      ]
+    }
+  ]
+}

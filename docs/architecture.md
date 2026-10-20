@@ -4,6 +4,11 @@ Gameplane is split across long-lived components — dashboard, API, operator,
 and [optional] audit-syslog-bridge / telemetry-receiver satellites — plus a
 short-lived per-pod agent sidecar.
 
+The default Helm installation runs the panel and operator together. A
+[standalone panel](standalone-panel.md) runs the dashboard and API without local
+Kubernetes; registered remote clusters run the operators and game workloads.
+The diagram and direct-agent examples below describe the combined installation.
+
 > **For AI Agents & Developers:** This document provides a high-level human-readable overview. For deep technical details, specifications, and boundaries of individual components, read the respective `specs.md` files located in each component directory (e.g., `api/specs.md`, `operator/specs.md`). AI Agents should consult [`agent-architecture.md`](agent-architecture.md) as their primary index.
 
 ```
@@ -80,7 +85,7 @@ manage Gameplane with `kubectl apply` — the operator is authoritative.
 4. StatefulSet starts the game pod (game container + agent sidecar)
 5. Agent starts heartbeating → sets `status.agent.lastHeartbeat`
 6. Operator observes heartbeat → sets `status.phase=Running`
-7. Dashboard SSE stream receives the status update, re-renders
+7. Dashboard receives the status update through local SSE or resource polling and re-renders
 
 > **What `Running` means.** The phase flips to `Running` once the pod is
 > Ready *and* the agent heartbeat is fresh. That signals the pod and
@@ -289,19 +294,32 @@ bundle upload) only reads and writes these CRs/ConfigMaps; the
 operator owns all reconciliation, so the dashboard and kubectl always
 converge on the same outcome. Format spec: `docs/module-authoring.md`.
 
+Combined panels manage the local module catalog. Standalone panels require an
+explicit registered cluster for module and source operations; that cluster's
+operator reconciles the changes.
+
+## Internationalization
+
+Language packs are shared: `i18n/locales/<tag>/{app.json,meta.json}` is embedded in Go (`i18n/catalog`, used by the API and operator) and compiled for the dashboard (`web/scripts/i18n-compile.mjs`). One checker (`i18n/cmd/i18n-check`) validates packs and computes the manifest (`languages.json`), including the listing rule (completeness at least 80%, left-to-right, never `en-XA`), so every component agrees on which languages exist. Contributor guide: `docs/translating.md`.
+
+- **API.** Error responses stay English plain text unless the request lists `application/problem+json` in `Accept` (opt-in); then the body is RFC 9457 with a stable `messageId` and `args` extensions and the English text in `detail`. Users save a language (`PUT /users/me/language`), admins set the instance default (`GET /auth/locale` exposes only that), and each notification destination can carry its own language.
+- **Operator.** Conditions keep their English `message`; the arguments interpolated into it are written to `status.conditionArgs[<Type>]`, and the dashboard translates `condition.<type>.<reason>` with them. The operator never depends on a UI language.
+- **Module translations.** The Module reconciler validates a bundle's `locales/<tag>.json` against ids derived from its templates and writes the valid entries to the `<template>-locales` ConfigMap; the API serves them at `GET /modules/{name}/locales/{tag}`. Invalid or oversized files are reported by the `LocalesValid` condition and never fail an install.
+- **Dashboard runtime.** `I18nProvider` resolves the language (saved choice, browser choice, `navigator.languages`, instance default, `en`), lazy-loads the compiled catalog chunk and re-renders without remounting routes. Missing messages fall back to English. Details: `web/specs.md`.
+
 ## Multi-cluster (federation)
 
 Gameplane scales across multiple Kubernetes clusters through a
 federation model: each target cluster runs its own operator and agents,
-while the API server (on the control-plane cluster) holds a pool of
+while the central API server holds a pool of
 Kubernetes clients keyed by cluster ID and dispatches requests via a
-`?cluster=` URL parameter. The built-in "local" cluster targets the
-same cluster as the API; any additional cluster is registered through
-a cluster-scoped CRD.
+`?cluster=` URL parameter. Combined installations have a built-in `local`
+cluster targeting the same cluster as the API. Standalone panels have no local
+workload client and start with an empty registry.
 
 **Cluster registration and health:**
 
-- A `Cluster` CRD (group `gameplane.local/v1alpha1`) is the source of
+- In combined mode, a `Cluster` CRD (group `gameplane.local/v1alpha1`) is the source of
   truth for additional clusters. Each `Cluster` references a
   `kubeconfig` Secret via a selector, and the API watches `Cluster`
   updates to populate its client pool live.
@@ -309,9 +327,13 @@ a cluster-scoped CRD.
   `gameplane.local/cluster-kubeconfig=true` in the control-plane
   namespace — the label guard prevents pointing at arbitrary Secrets
   (see "Kubeconfig Secret handling" in `docs/security.md`).
-- The operator health-checks each registered `Cluster` and reconciles
+- In combined mode, the operator health-checks each registered `Cluster` and reconciles
   `status.phase` (Unknown/Healthy/Unhealthy), so Kubernetes connectivity
   is visible in the dashboard. This status does not probe an optional gateway.
+- Standalone panels persist registrations and labelled credentials in SQL.
+  Credential payloads use AES-GCM with a persistent key outside the database.
+  The API polls registrations and remote Kubernetes health every 30 seconds;
+  it needs no central operator. See [storage and recovery](standalone-panel.md#storage-and-recovery).
 
 **Deployment model:**
 
@@ -320,11 +342,13 @@ a cluster-scoped CRD.
   Optional remote agent access also runs a private gateway from the API image,
   with no user database or browser/admin routes. Upgrade the operator and agents
   for the UID-bound agent protocol before enabling this path.
-- The **control-plane cluster** hosts the API and dashboard; it may or
-  may not have game pods itself (if `cluster=local`).
+- The **central panel** hosts the API and dashboard. A combined installation
+  can also host local game pods. A standalone panel manages registered remote
+  workloads and can run on a host without Kubernetes.
 - A **resource request** made to the API with `?cluster=<name>` is dispatched to
   the named cluster's Kubernetes client. Omitting the selector targets
-  the built-in "local" cluster. Collection reads under `/fleet/*` instead combine
+  the built-in `local` cluster in combined mode and fails in standalone mode.
+  Collection reads under `/fleet/*` combine
   authorized scopes by default, with optional cluster and namespace filters.
   Each returned resource retains its target identity and permissions; partial
   results report unavailable or truncated scopes. See the
@@ -362,13 +386,12 @@ a cluster-scoped CRD.
 
 **RBAC and permissions:**
 
-Registering an additional cluster grants **no implicit RBAC** on it.
-Each cluster's role bindings are independent; existing bindings
-created before federation was enabled are pinned to "local". To grant
-a user access to resources on a newly registered cluster, create
-matching role bindings on that target cluster or add cluster-scoped
-permissions through the API. See `docs/install.md#registering-an-additional-cluster`
-for the registration flow.
+Registering a cluster grants no implicit workload access. The central API stores
+user roles and grants by cluster and namespace in its database. Existing primary
+roles remain pinned to `local`; in standalone mode they grant panel administration
+without remote workload access. Add remote grants through **Users & RBAC** or the
+user bindings API. The registered kubeconfig separately needs Kubernetes RBAC on
+the target. See [registration and permissions](install.md#rbac-and-permissions).
 
 ## Security boundaries
 
@@ -405,9 +428,18 @@ for the registration flow.
   sentinel uses a generic packets-in-window heuristic instead. See `gameproto/`.
 - **API → audit-syslog-bridge**: HTTP-JSON webhook; the bridge forwards plaintext or TLS syslog to the collector
   for the audit trail, enabled via `api.audit.webhook.syslogBridge.enabled`.
-- **API → telemetry-receiver**: the anonymous daily usage report
-  (admin-toggle gated), auto-wired via `api.telemetry.receiver.enabled` or
-  aimed at an external URL via `api.telemetry.endpoint`.
+- **API → telemetry-receiver**: the daily usage report, in a basic tier
+  (version, server and template counts) and an extended tier (adds a random
+  install ID, environment, game and feature categories, and an Ed25519
+  signature). New installs send both by default after a first-login notice;
+  each tier has its own admin toggle, and `api.telemetry.enabled=false`
+  disables sending entirely. An empty `api.telemetry.endpoint` means the
+  project's default receiver (`telemetry.gameplane.net`); the bundled receiver
+  (`api.telemetry.receiver.enabled`) and any other URL replace it. The
+  receiver keeps daily aggregates in SQLite, serves a token-protected
+  dashboard on a separate port, and can expose a public five-count summary.
+  See [install.md](install.md#telemetry) and
+  [telemetry-provider.md](telemetry-provider.md).
 - **Operator → capture-sidecar [optional]**: network packet capture sidecar
   injected into game pods as an ephemeral container; captures AF_PACKET frames
   matching a BPF filter to PCAPNG output, exposed via mTLS on port `:9091`.

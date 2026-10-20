@@ -160,6 +160,21 @@ The server registers 20 commands at startup. This document previously listed 19.
 
 Where the live capture covers a command, that observed behavior is marked **VERIFIED**. Where the capture did not reach a command (no player was connected to test player-list hydration, no error scenarios were exhaustively probed), it remains **UNVERIFIED**.
 
+**Second live capture (2026-10-11, T019, no player connected)**: run against a server from the repo template on kubelab, over TCP 7779 from inside the game container (4-byte LE length prefix + JSON; response 4-byte LE status + 4-byte LE body length + body). Observed:
+
+| Command | Status | Body | Server log |
+|---|---|---|---|
+| `get-player-list` | 2000 | `{"Players":[]}` | none notable |
+| `send-chat-message "hello from gameplane"` | 2000 | empty | `Error running send-chat-message on main thread: System.NullReferenceException` in `RunSendChatMessage` |
+| `banlist-add 76561198000000001` | 2000 | empty | `Adding … to list`; appends to `ban_list.txt` only if the file already exists (see `modules/nuclear-option/specs.md` §4) |
+| `banlist-remove 76561198000000001` | 2000 | empty | `Removed … from list`; removes the line from `ban_list.txt` if the file exists |
+| `kick-player 76561198000000002` (not connected) | 2000 | empty | `RunKickPlayer failed to find user …, but adding them to kicked list so they can not rejoin` |
+| `set-next-mission BuiltIn Escalation 3600` | 2000 | empty | none |
+| `set-next-mission Bogus Nope 10` | 2000 | empty | none |
+| unknown command name | 4004 | empty | none |
+
+Consequences: (1) status 2000 does not mean the action worked: `send-chat-message` returned 2000 while the server threw a `NullReferenceException` (cause unknown; it may be only the no-player case, and chat with a player connected was **not observed**); (2) `kick-player` for an ID that is not connected still puts the ID on the kicked list. Per-entry `get-player-list` shape with a player, and the `kick-player`/`send-chat-message` effects on a connected client, remain **UNVERIFIED** (no client available).
+
 ### 1. `update-ready`
 
 **Purpose**: Notifies the server that a component is ready, likely to progress a startup sequence.
@@ -317,7 +332,7 @@ Where the live capture covers a command, that observed behavior is marked **VERI
     "faction": "Boscali"
 }
 ```
-However, **this per-entry schema remains UNVERIFIED**. The wrapper key `"Players"` (capital P) is confirmed; the per-entry contents are not. A real join test with a connected player is required to confirm the exact field set.
+However, **this per-entry schema remains UNVERIFIED**. The wrapper key `"Players"` (capital P) is confirmed (re-confirmed 2026-10-11, status 2000, `{"Players":[]}`, 14 bytes); the per-entry contents are not. Not observed on 2026-10-11 either: no game client was available to connect a player, and the join test is skipped awaiting a packet capture (spec FR-004 amendment). The exact field set stays UNVERIFIED until a player connects.
 
 **RESOLVED — display names are hydrated outside this protocol**: Spec 002 FR-007 and User Story 3 AC1 promise a player list with display names in the dashboard. Those requirements **stand as written and are not amended**. This protocol cannot supply display names, and it is not being extended to do so: the resolution is a Steam Web API display-name lookup performed in the **API server** (`api/internal/...`), layered on top of the wire response. The question is closed; no further spec-owner decision is pending.
 
@@ -368,7 +383,7 @@ The presentation-layer entities (wire vs. presentation player entry, the resolut
 
 **CRITICAL CONTRADICTION**: The contract previously assumed a single mission-name argument. Live observation on 2026-08-22 shows the server rejects a single-argument invocation with error status **4005**: `{"message":"Expected Arguments [string Group, string Name, float MaxTime]"}`. The signature is **three arguments** (group, name, duration), as now listed above. Any client implementation must provide all three.
 
-**Response**: Status 2000, body: **UNVERIFIED — response body shape not specified upstream; confirm against a live server**.
+**Response**: Status 2000, **body is empty** (VERIFIED 2026-10-11: `set-next-mission BuiltIn Escalation 3600` returned status 2000, bodylen 0). The same empty 2000 came back for a nonexistent group and name (`Bogus Nope 10`), so the server does not validate the mission against its mission list at command time. A rejected mission, if any, shows only in the server log; the response cannot confirm the mission exists.
 
 ---
 

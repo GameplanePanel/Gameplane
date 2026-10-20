@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/packager"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/packager"
 )
 
 func runPackage(args []string) {

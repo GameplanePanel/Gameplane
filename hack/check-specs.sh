@@ -9,7 +9,7 @@
 # Note on modules/:
 #   Game module directories (modules/minecraft-java, modules/valheim, etc.) are
 #   deliberately excluded from this check. Game module specifications are enforced
-#   in the separate gameplane-module repository's own CI (ruling D2).
+#   in the separate GameplanePanel/module repository's own CI (ruling D2).
 #
 # Exit codes:
 #   0 = all modules have valid specs.md

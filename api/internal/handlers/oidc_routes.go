@@ -14,7 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
 )
 
 // resolveOIDC maps registry errors to pre-auth-safe responses: one

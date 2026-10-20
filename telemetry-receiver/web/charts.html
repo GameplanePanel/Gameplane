@@ -1,0 +1,39 @@
+{{define "columns"}}{{if .Table}}
+<table class="data">
+<caption class="sr">{{.Name}}</caption>
+<thead><tr><th scope="col">{{.Head1}}</th><th scope="col" class="num">{{.Head2}}</th></tr></thead>
+<tbody>
+{{range .Rows}}<tr><td>{{.Label}}</td><td class="num">{{.Value}}</td></tr>
+{{end}}</tbody>
+</table>
+{{else}}
+<svg class="chart" viewBox="0 0 {{.W}} {{.H}}" role="img" aria-label="{{.Name}}">
+<title>{{.Name}}</title>
+{{range .Ticks}}<line class="grid" x1="{{$.PlotLeft}}" x2="{{$.PlotRight}}" y1="{{.Y}}" y2="{{.Y}}"/>
+<text class="axis" x="{{$.LabelX}}" y="{{.Y}}" text-anchor="end" dominant-baseline="middle">{{.Label}}</text>
+{{end}}<line class="baseline" x1="{{.PlotLeft}}" x2="{{.PlotRight}}" y1="{{.BaseY}}" y2="{{.BaseY}}"/>
+{{range .Cols}}<rect class="bar {{$.Class}}" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="2"><title>{{.Title}}</title></rect>
+{{end}}{{range .XLabels}}<text class="axis" x="{{.X}}" y="{{$.AxisY}}" text-anchor="middle">{{.Label}}</text>
+{{end}}{{if .LastText}}<text class="last" x="{{.LastX}}" y="{{.LastY}}" text-anchor="middle">{{.LastText}}</text>{{end}}
+</svg>
+{{end}}{{end}}
+
+{{define "bars"}}{{if .Table}}
+<table class="data">
+<caption class="sr">{{.Name}}</caption>
+<thead><tr><th scope="col">{{.Head1}}</th><th scope="col" class="num">{{.Head2}}</th></tr></thead>
+<tbody>
+{{range .Rows}}<tr><td>{{.Label}}</td><td class="num">{{.Value}}</td></tr>
+{{end}}</tbody>
+</table>
+{{else}}
+<svg class="chart bars" viewBox="0 0 {{.W}} {{.H}}" role="img" aria-label="{{.Name}}">
+<title>{{.Name}}</title>
+{{range .Bars}}<g>
+<text class="axis label" x="0" y="{{.TextY}}">{{.Label}}</text>
+{{if $.Track}}<rect class="track" x="{{$.BarX}}" y="{{.RectY}}" width="{{$.TrackW}}" height="{{$.BarH}}" rx="2"/>{{end}}
+<rect class="bar {{$.Class}}" x="{{$.BarX}}" y="{{.RectY}}" width="{{.Bar}}" height="{{$.BarH}}" rx="2"><title>{{.Title}}</title></rect>
+<text class="axis value" x="{{$.ValueX}}" y="{{.TextY}}" text-anchor="end">{{.Value}}</text>
+</g>
+{{end}}</svg>
+{{end}}{{end}}

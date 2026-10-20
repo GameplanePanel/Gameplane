@@ -7,8 +7,8 @@ Every test/lint/build result is observed via GitHub Actions CI runs, queried wit
 ## Prerequisites
 
 - `gh` authenticated with `security_events` scope to read and dismiss code-scanning alerts
-- Write access to `ValgulNecron/Gameplane`
-- Most `gh` invocations include `-R ValgulNecron/Gameplane` (cwd drift into `modules/` submodule silently retargets `gh` at the wrong repo). **Exception**: `gh api` commands do NOT accept `-R`; the endpoint path already specifies the repo.
+- Write access to `GameplanePanel/Gameplane`
+- Most `gh` invocations include `-R GameplanePanel/Gameplane` (cwd drift into `modules/` submodule silently retargets `gh` at the wrong repo). **Exception**: `gh api` commands do NOT accept `-R`; the endpoint path already specifies the repo.
 - The feature branch `009-remediate-security-dependabot` is checked out and has received commits for the fixes
 - GitHub Actions CI is running and accessible
 
@@ -21,7 +21,7 @@ Record the starting state before any changes merge to master.
 List all open code-scanning alerts:
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/code-scanning/alerts \
+gh api repos/GameplanePanel/Gameplane/code-scanning/alerts \
   --jq '.[].number' \
   --paginate
 ```
@@ -31,7 +31,7 @@ gh api repos/ValgulNecron/Gameplane/code-scanning/alerts \
 For details on each alert, query individually:
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/code-scanning/alerts/N \
+gh api repos/GameplanePanel/Gameplane/code-scanning/alerts/N \
   --jq '{number: .number, rule: .rule.id, state: .state, location: .most_recent_instance.location}'
 ```
 
@@ -43,7 +43,7 @@ List all open Dependabot PRs:
 
 ```bash
 gh pr list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --author='dependabot[bot]' \
   --state=open \
   --json number \
@@ -72,7 +72,7 @@ Watch the CI run on `009-remediate-security-dependabot` to confirm the fixes do 
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch=009-remediate-security-dependabot \
   --workflow=ci.yaml \
   -L 1 \
@@ -93,7 +93,7 @@ Once the fixes are merged to master, CodeQL's default-branch analysis must run. 
 **Within ~48 hours of merge to master**, query alert state again:
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/code-scanning/alerts \
+gh api repos/GameplanePanel/Gameplane/code-scanning/alerts \
   --jq '.[] | select(.state != "open") | {number: .number, rule: .rule.id, state: .state}'
 ```
 
@@ -102,7 +102,7 @@ gh api repos/ValgulNecron/Gameplane/code-scanning/alerts \
 If alerts remain `open` after the next CodeQL run (force a manual run via the Actions UI if needed), query alert details to diagnose:
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/code-scanning/alerts/N
+gh api repos/GameplanePanel/Gameplane/code-scanning/alerts/N
 ```
 
 ## Scenario B: TLS Verification Fix Verified
@@ -117,7 +117,7 @@ gh api repos/ValgulNecron/Gameplane/code-scanning/alerts/N
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch=009-remediate-security-dependabot \
   --workflow=ci.yaml \
   -L 1 \
@@ -153,7 +153,7 @@ These tests MUST be added to a bucket in test/e2e/buckets.sh or the e2e-buckets 
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch=009-remediate-security-dependabot \
   --workflow=ci.yaml \
   -L 1 \
@@ -185,7 +185,7 @@ The handler now clamps the limit parameter before calling `Auditor.Page`. Verify
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch=009-remediate-security-dependabot \
   --workflow=ci.yaml \
   -L 1 \
@@ -232,7 +232,7 @@ For each Dependabot PR (except #272):
 
 ```bash
 gh pr view PR_NUMBER \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --json number,title,state,statusCheckRollup \
   --jq '{number: .number, title: .title, state: .state, checks: .statusCheckRollup}'
 ```
@@ -243,7 +243,7 @@ Expected: `state` is `OPEN`, `checks` shows all required CI checks green (or blu
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch="dependabot/go_modules_..." \
   --workflow=ci.yaml \
   -L 1 \
@@ -257,7 +257,7 @@ Expected: `conclusion` is `success`.
 
 ```bash
 gh pr merge PR_NUMBER \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --admin \
   --merge
 ```
@@ -269,14 +269,14 @@ The `--admin` flag is required because master has a ruleset with an "update" rul
 After merge, query the master branch. Note: this repository is a Go workspace (go.work at the root) with no root go.mod, so you must specify a module directory in the path.
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/contents/<module>/go.mod \
+gh api repos/GameplanePanel/Gameplane/contents/<module>/go.mod \
   --jq '.content' | base64 -d | grep "<library-name>"
 ```
 
 Example for #281 (sqlite 1.55.0 → 1.57.0):
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/contents/api/go.mod \
+gh api repos/GameplanePanel/Gameplane/contents/api/go.mod \
   --jq '.content' | base64 -d | grep "modernc.org/sqlite"
 ```
 
@@ -321,7 +321,7 @@ Expected: line shows `modernc.org/sqlite v1.57.0` (or a compatible indirect vers
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch=master \
   --workflow=ci.yaml \
   -L 1 \
@@ -340,7 +340,7 @@ Once all commits are merged to master and CI has run, verify the feature is comp
 Query open alerts:
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/code-scanning/alerts \
+gh api repos/GameplanePanel/Gameplane/code-scanning/alerts \
   --jq '[.[] | select(.state == "open")] | length'
 ```
 
@@ -357,7 +357,7 @@ Query open Dependabot PRs:
 
 ```bash
 gh pr list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --author='dependabot[bot]' \
   --state=open \
   --json title,number \
@@ -370,7 +370,7 @@ If 1 is open, confirm it is #272:
 
 ```bash
 gh pr list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --author='dependabot[bot]' \
   --state=open \
   --json number \
@@ -389,7 +389,7 @@ Query the master branch's latest CI run:
 
 ```bash
 gh run list \
-  -R ValgulNecron/Gameplane \
+  -R GameplanePanel/Gameplane \
   --branch=master \
   --workflow=ci.yaml \
   -L 1 \
@@ -429,7 +429,7 @@ git diff master...009-remediate-security-dependabot -- '*.go' '*.ts' '*.tsx' \
 Query the master CI run's total duration:
 
 ```bash
-gh api repos/ValgulNecron/Gameplane/actions/runs \
+gh api repos/GameplanePanel/Gameplane/actions/runs \
   --jq '.workflow_runs[0] | {run_number: .run_number, run_time_minutes: ((.run_number * 0) + 42)}'  # Placeholder; actual query varies by run metadata
 ```
 

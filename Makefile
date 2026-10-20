@@ -5,7 +5,7 @@
 SHELL          := /bin/bash
 .DEFAULT_GOAL  := help
 
-REGISTRY       ?= ghcr.io/valgulnecron/gameplane
+REGISTRY       ?= ghcr.io/gameplanepanel/gameplane
 TAG            ?= dev
 KIND_CLUSTER   ?= gameplane-dev
 CHART_DIR      ?= charts/gameplane
@@ -40,7 +40,7 @@ KUBECONFIG_ENV :=
 KUBE_CONTEXT   := kind-$(KIND_CLUSTER)
 endif
 
-GO_MODULES     := netguard gameaction gameproto gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel mcp-server capture-sidecar svcutil tunnel
+GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel mcp-server capture-sidecar svcutil tunnel
 GO_INTEGRATION_MODULES := operator api
 
 # test/e2e is a separate module (its own go.mod, excluded from the coverage
@@ -187,6 +187,7 @@ e2e-images: ## Build operator/api/agent/fakeoidc images tagged for e2e
 	docker build -t gameplane-test/operator:$(KIND_E2E_TAG) -f operator/Dockerfile .
 	docker build -t gameplane-test/api:$(KIND_E2E_TAG)      -f api/Dockerfile      .
 	docker build -t gameplane-test/agent:$(KIND_E2E_TAG)    -f agent/Dockerfile    .
+	docker build -t gameplane-test/telemetry-receiver:$(KIND_E2E_TAG) -f telemetry-receiver/Dockerfile .
 	docker build -t gameplane-test/fakeoidc:$(KIND_E2E_TAG) -f test/e2e/Dockerfile.fakeoidc .
 
 .PHONY: test-e2e
@@ -194,22 +195,22 @@ test-e2e: ## Run E2E tests (CLUSTER=kind spins an ephemeral cluster; CLUSTER=rem
 ifeq ($(CLUSTER),remote)
 	cd test/e2e && GAMEPLANE_E2E_REUSE_CLUSTER=1 \
 		GAMEPLANE_E2E_CONTEXT=$(REMOTE_CONTEXT) KUBECONFIG=$(REMOTE_KUBECONFIG) \
-		go test -tags=e2e -timeout 35m -v ./...
+		go test -tags=e2e -timeout 50m -v ./...
 else
 	$(MAKE) e2e-images
 	cd test/e2e && GAMEPLANE_E2E_CLUSTER=$(KIND_E2E_CLUSTER) GAMEPLANE_E2E_TAG=$(KIND_E2E_TAG) \
-		go test -tags=e2e -timeout 35m -v ./...
+		go test -tags=e2e -timeout 50m -v ./...
 endif
 
 .PHONY: test-e2e-keep
 test-e2e-keep: ## Re-run E2E tests against an already-up cluster (skip create/destroy)
 	cd test/e2e && GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER=$(KIND_E2E_CLUSTER) \
-		go test -tags=e2e -timeout 35m -v ./...
+		go test -tags=e2e -timeout 50m -v ./...
 
 .PHONY: test-e2e-bucket
 test-e2e-bucket: ## Run one CI e2e bucket against an already-up cluster (BUCKET=operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade). BUCKET=multicluster additionally needs a second kind cluster up and GAMEPLANE_E2E_CLUSTER_B set to its name (default gameplane-e2e-b).
 	cd test/e2e && GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER=$(KIND_E2E_CLUSTER) \
-		go test -tags=e2e -timeout 35m -v -run "$$(./buckets.sh regex $(BUCKET))" ./...
+		go test -tags=e2e -timeout 50m -v -run "$$(./buckets.sh regex $(BUCKET))" ./...
 
 .PHONY: e2e-up
 e2e-up: e2e-images ## Bring up the e2e kind cluster + install chart (no tests)
@@ -254,16 +255,48 @@ test-doc-versions: ## Run the fixture tests for hack/check-doc-versions.sh
 check-links: ## Verify internal documentation links and anchors resolve
 	hack/check-links.sh
 
+.PHONY: check-features-sync
+check-features-sync: ## Verify FEATURES.md and the website features page carry the same capability catalog
+	bash hack/check-features-sync.sh
+
+.PHONY: test-features-sync
+test-features-sync: ## Run the fixture tests for hack/check-features-sync.sh
+	bash hack/test-check-features-sync.sh
+
+.PHONY: check-telemetry-catalog
+check-telemetry-catalog: ## Verify telemetryschema/catalog.txt matches the chart's official module list
+	hack/check-telemetry-catalog.sh
+
+.PHONY: i18n-sync
+i18n-sync: ## Write the API message registry (server.* and notify.*) and the operator condition.* ids into the English reference (i18n/locales/en/app.json)
+	cd api && go run ./cmd/messages-export > ../i18n/.registry.json
+	cd i18n && go run ./cmd/i18n-check --registry .registry.json --sync-server locales
+	rm -f i18n/.registry.json
+	cd operator && go run ./hack/condition-ids -app ../i18n/locales/en/app.json
+
+.PHONY: check-i18n
+check-i18n: ## Verify language packs, server.*, notify.*, operator condition.* drift, dashboard extraction drift and unused reference ids (spec 019)
+	cd web && npm run i18n:extract-only
+	cd operator && go run ./hack/condition-ids -check -app ../i18n/locales/en/app.json -ids ../i18n/.condition-ids.txt
+	cd api && go run ./cmd/messages-export > ../i18n/.registry.json
+	cd i18n && { jq -r 'keys[]' ../web/src/generated/i18n/extracted.json; jq -r '.[].id' .registry.json; cat .condition-ids.txt; } | sort -u > .used-ids.txt
+	cd i18n && status=0; go run ./cmd/i18n-check --extracted ../web/src/generated/i18n/extracted.json --registry .registry.json --check-server --used-ids .used-ids.txt locales || status=$$?; rm -f .registry.json .condition-ids.txt .used-ids.txt; exit $$status
+
 .PHONY: check-dev-load-images
 check-dev-load-images: ## Verify `dev-load` loads every image `images` builds
 	hack/check-dev-load-images.sh
+
+.PHONY: check-coverage-gaps
+check-coverage-gaps: ## Validate spec 013's coverage gap record and prove the validator can fail
+	hack/check-coverage-gaps.sh
+	hack/check-coverage-gaps_test.sh
 
 .PHONY: test-up-registry
 test-up-registry: ## Run the fixture tests for deploy/kind/up.sh's registry/context bootstrap
 	hack/test-up-registry.sh
 
 .PHONY: lint
-lint: check-doc-versions check-links check-specs check-dev-load-images test-up-registry lint-go lint-web ## Run all linters
+lint: check-doc-versions check-links check-features-sync check-specs check-telemetry-catalog check-i18n check-dev-load-images check-coverage-gaps test-up-registry lint-go lint-web ## Run all linters
 
 .PHONY: lint-go
 lint-go: ## Run golangci-lint across all modules
@@ -321,7 +354,7 @@ manifests: ## Regenerate CRDs + RBAC manifests (and sync chart CRD copies)
 		paths=./... \
 		output:crd:artifacts:config=config/crd \
 		output:rbac:artifacts:config=config/rbac
-	# Copy the CRDs into the chart's crds/ and crd-manifests/ (the same CRDs
+	# Copy the CRDs into the conditional CRD subchart and crd-manifests/ (the same CRDs
 	# where Helm's .Files can read them -- it can't read the special crds/
 	# dir -- so the crds.autoApply hook can apply them), stamping each copy
 	# with a bundle hash the hook compares against the live CRDs to tell
@@ -330,7 +363,7 @@ manifests: ## Regenerate CRDs + RBAC manifests (and sync chart CRD copies)
 
 module-schema: ## Regenerate the editor JSON Schema for module template.yaml from the CRD
 	python3 hack/gen-module-schema.py
-	@echo "commit modules/.schema/gametemplate.schema.json in the gameplane-module repo + bump the submodule pointer"
+	@echo "commit modules/.schema/gametemplate.schema.json in the GameplanePanel/module repo + bump the submodule pointer"
 
 module-pin: ## Re-resolve every module image tag to its current digest (rewrites modules/*/template.yaml)
 	# Module images are pinned by digest so an upstream retag can never change a
@@ -338,9 +371,9 @@ module-pin: ## Re-resolve every module image tag to its current digest (rewrites
 	# someone runs this. Each changed digest is a game binary that changes for
 	# every server on its next restart -- read the diff before committing.
 	# Entries marked `# gameplane:floating` are skipped on purpose.
-	# The gameplane-module repo also runs this monthly via refresh-pins.yml.
+	# The GameplanePanel/module repo also runs this monthly via refresh-pins.yml.
 	python3 modules/validate.py --pin
-	@echo "commit the rewritten modules/*/template.yaml in the gameplane-module repo + bump the submodule pointer"
+	@echo "commit the rewritten modules/*/template.yaml in the GameplanePanel/module repo + bump the submodule pointer"
 
 BIN_DIR ?= bin
 GP_MODULE ?= $(BIN_DIR)/gp-module
@@ -413,12 +446,15 @@ dev-install: ## Install Gameplane Helm chart into the selected cluster
 	# not just this target. On a first install the hook also fires on
 	# pre-install, but only over leftover CRDs whose bundle stamp is stale or
 	# missing (an earlier, uninstalled release's); fresh CRDs come from crds/.
+	# Deploy the bundled telemetry receiver and point the API at it: never let
+	# CI or dev installs reach the project provider (spec 022 R17).
 	$(KUBECONFIG_ENV) helm upgrade --install $(CHART_RELEASE) $(CHART_DIR) \
 		--kube-context $(KUBE_CONTEXT) \
 		--namespace $(NAMESPACE) --create-namespace \
 		--set image.tag=$(TAG) \
 		--set image.registry=$(REGISTRY) \
 		--set operator.addressManager=$(ADDRESS_MANAGER) \
+		--set api.telemetry.receiver.enabled=true \
 		--set defaultModuleSource.type=oci \
 		--set defaultModuleSource.oci.url=$(MODULE_SOURCE_URL) \
 		--set defaultModuleSource.oci.insecure=$(MODULE_SOURCE_INSECURE)

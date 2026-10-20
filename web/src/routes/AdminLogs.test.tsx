@@ -3,6 +3,12 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminLogsPage, capBuffer } from "./AdminLogs";
 
+// Stream behavior tests use the combined-installation capability; standalone
+// capability loading and absence of log requests are covered in Standalone.test.
+vi.mock("@/lib/useInstallation", () => ({
+  useInstallation: () => ({ data: { standalone: false, localCluster: true }, isPending: false, isError: false }),
+}));
+
 const fetchMock = vi.fn();
 
 beforeEach(() => {

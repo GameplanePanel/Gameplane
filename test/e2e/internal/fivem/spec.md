@@ -19,7 +19,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 ```
 
 **Status:** pre-v1; probe depth measured: **QUERY** (HTTP info.json query success)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/fivem`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/fivem`  
 **Dependencies:** stdlib only  
 **Heavy game:** Yes (>5Gi storage and embedded database supervision)
 

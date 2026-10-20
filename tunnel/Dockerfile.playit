@@ -31,8 +31,10 @@ ARG TARGETARCH
 ARG PLAYIT_SHA256_amd64=2df7d9f10227ab312b1ad341853db4e8a8243df5cfcdbae58713a4271711c339
 ARG PLAYIT_SHA256_aarch64=4c0db3e7b3a8158e249441c2f0b73f54e83429395890c7b1ca45fd7a6303d763
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl~=8.22.0
 WORKDIR /tmp
+# DL4006: fail the RUN if any command in a pipe fails.
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 RUN mkdir -p /out && \
     if [ "$TARGETARCH" = "arm64" ]; then \
       PLAYIT_ARCH="aarch64"; \

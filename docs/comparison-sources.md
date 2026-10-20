@@ -5,24 +5,27 @@ README comparison table. Each product has a section below. Entries are organized
 by row (dimension a–i) and include the source URL, date checked, and what was
 verified.
 
-**Last Updated**: 2026-10-02
+**Last Updated**: 2026-10-08
 
 ---
 
 ## Gameplane
 
 **License**: GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)  
-**Documentation Root**: https://github.com/ValgulNecron/Gameplane/tree/master/docs  
-**Repository**: https://github.com/ValgulNecron/Gameplane
+**Documentation Root**: https://github.com/GameplanePanel/Gameplane/tree/master/docs  
+**Repository**: https://github.com/GameplanePanel/Gameplane
 
 <a id="gameplane-row-a"></a>
 ### Row (a): Deployment/runtime model
 
 **Source ID**: G-a  
-**Evidence**: README.md:8; operator/api/v1alpha1/gameserver_types.go:1–50  
-**Checked on**: 2026-09-02  
-**What was verified**: README status line confirms project is a pre-v1 release (`v0.3.0`; status line re-checked 2026-10-05); GameServer CRD types and controller-runtime operator documented in operator module with support for k3s and multi-node clusters.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane
+**Evidence**: docs/standalone-panel.md; deploy/standalone/compose.yaml; api/cmd/management.go; operator/api/v1alpha1/gameserver_types.go
+
+**Checked on**: 2026-10-08 (source review)
+
+**What was verified**: The default install combines the panel and operator on Kubernetes. The standalone Compose deployment runs the API and dashboard without a local Kubernetes cluster; games still use GameServer CRDs and an operator on registered Kubernetes clusters. The README identifies Gameplane as a pre-v1 release. Standalone setup requires a checkout or release containing this feature.
+
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane
 
 <a id="gameplane-row-b"></a>
 ### Row (b): Scaling & auto-sleep
@@ -31,7 +34,7 @@ verified.
 **Evidence**: operator/api/v1alpha1/gameserver_types.go:152, 173–219 (`IdleSpec`); CLAUDE.md § Repository Map (`gameproto/`, `sentinel/`)  
 **Checked on**: 2026-09-26 (re-verified)  
 **What was verified**: GameServer CRD specifies `spec.idle` (line 152, `IdleSpec` at lines 173–219) with configurable wake windows, manual wake, and the WakeOnConnect boolean flag (line 218) for sentinel-based wake on join. Minecraft/Terraria protocol support documented in sentinel and gameproto modules.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/tree/master/operator/api/v1alpha1
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
 
 <a id="gameplane-row-c"></a>
 ### Row (c): Inbound connectivity (NAT traversal, relay)
@@ -40,7 +43,7 @@ verified.
 **Evidence**: CLAUDE.md § Repository Map (`tunnel/`); operator/api/v1alpha1/gameserver_types.go:359–406  
 **Checked on**: 2026-09-26 (re-verified)  
 **What was verified**: Tunnel is documented in CLAUDE.md repo map as "Relay client supervisor (frp, Tailscale, playit)". Relay is configured per-GameServer via `spec.networking.tunnel.enabled` (GameServerTunnel), not a Helm value; the chart only carries `operator.tunnelImages` (charts/gameplane/values.yaml:88).  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/tree/master/tunnel
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/tunnel
 
 <a id="gameplane-row-d"></a>
 ### Row (d): Backup and restore
@@ -49,7 +52,7 @@ verified.
 **Evidence**: operator/api/v1alpha1/backup_types.go:22; CLAUDE.md architecture section  
 **Checked on**: 2026-09-02  
 **What was verified**: Backup CRD type defined with support for Restic snapshots to S3-compatible storage; BackupSchedule CRD supports cron-scheduled backups; one-click restore via Restore CRD.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/tree/master/operator/api/v1alpha1
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
 
 <a id="gameplane-row-e"></a>
 ### Row (e): Access control & authentication
@@ -58,7 +61,7 @@ verified.
 **Evidence**: api/internal/db/migrations/sqlite/003_roles.sql:39–51  
 **Checked on**: 2026-09-02  
 **What was verified**: Three built-in roles defined: admin (full access), operator (servers/backups/templates), viewer (read-only). Local argon2id authentication and OIDC support documented in api module.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/tree/master/api/internal/auth
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/api/internal/auth
 
 <a id="gameplane-row-f"></a>
 ### Row (f): Game template distribution
@@ -66,21 +69,21 @@ verified.
 **Source ID**: G-f  
 **Evidence**: docs/module-authoring.md § Verifying and pinning bundles (lines 340–414); CLAUDE.md § Repository Map (`modules/`)  
 **Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: OCI bundles via ModuleSource CRD supporting git/http/oci/local/upload sources; cosign signature verification documented at lines 340–414; 30 ready-to-use templates in gameplane-module repository.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/tree/master/modules
+**What was verified**: OCI bundles via ModuleSource CRD supporting git/http/oci/local/upload sources; cosign signature verification documented at lines 340–414; 29 ready-to-use templates in gameplane-module repository.  
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/modules
 
 <a id="gameplane-row-g"></a>
 ### Row (g): Multi-tenancy & multi-cluster
 
 **Source ID**: G-g
 
-**Evidence**: operator/api/v1alpha1/cluster_types.go; api/internal/gateway/server.go; api/internal/handlers/capture_remote.go; api/internal/handlers/mod_target.go; docs/architecture.md
+**Evidence**: operator/api/v1alpha1/cluster_types.go; api/internal/controlplane/store.go; api/internal/gateway/server.go; api/internal/handlers/capture_remote.go; api/internal/handlers/mod_target.go; docs/standalone-panel.md; docs/architecture.md
 
-**Checked on**: 2026-10-02 (source review)
+**Checked on**: 2026-10-08 (source review)
 
-**What was verified**: Cluster CRD for remote registration/monitoring; Pod logs and PTY attach use registered Kubernetes clients. An optional private gateway routes agent operations to UID-aware agents and provides capture downloads/cleanup bound to server and capture identity. Modpack and ID-list configuration use the selected Kubernetes client and template. Direct Kubernetes connectivity and matching component versions remain required. Cluster health reports Kubernetes connectivity, not gateway health.
+**What was verified**: Combined mode stores remote registrations in Cluster CRDs; standalone mode stores them in SQL and encrypts their credentials. User grants remain central and identify the remote cluster and namespace. Pod logs and PTY attach use registered Kubernetes clients. An optional private gateway routes agent operations to UID-aware agents and provides capture downloads/cleanup bound to server and capture identity. Modpack and ID-list configuration use the selected Kubernetes client and template. Direct Kubernetes connectivity and matching component versions remain required. Cluster health reports Kubernetes connectivity, not gateway health.
 
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/tree/master/operator/api/v1alpha1
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/tree/master/operator/api/v1alpha1
 
 <a id="gameplane-row-h"></a>
 ### Row (h): Licensing
@@ -89,16 +92,19 @@ verified.
 **Evidence**: LICENSE:1  
 **Checked on**: 2026-09-02  
 **What was verified**: LICENSE file header confirms GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane/blob/master/LICENSE
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane/blob/master/LICENSE
 
 <a id="gameplane-row-i"></a>
 ### Row (i): Target operator scope (self-hosted vs. managed SaaS)
 
 **Source ID**: G-i  
-**Evidence**: README.md § Why Gameplane? (line 50 onward); CLAUDE.md § Repository Map  
-**Checked on**: 2026-09-26 (re-verified)  
-**What was verified**: README "Why Gameplane?" section states self-hosted Kubernetes deployments (k3s, kubeadm, managed services); no managed SaaS offering documented.  
-**Last-known URL**: https://github.com/ValgulNecron/Gameplane
+**Evidence**: docs/standalone-panel.md; deploy/standalone/compose.yaml; api/cmd/management.go; README.md § Installation
+
+**Checked on**: 2026-10-08 (source review)
+
+**What was verified**: The panel can run on a Docker host or Kubernetes. Game workloads require Kubernetes, including k3s, kubeadm, or managed services. These are self-hosted deployments; no managed SaaS offering is documented.
+
+**Last-known URL**: https://github.com/GameplanePanel/Gameplane
 
 ---
 

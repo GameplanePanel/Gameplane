@@ -125,8 +125,8 @@ if (typeof window !== "undefined") {
   });
 }
 
-// MSW lifecycle. onUnhandledRequest:"error" makes a missed handler fail
+// MSW lifecycle. onUnhandledFrame:"error" makes a missed handler fail
 // loudly rather than the test hanging on a real network call.
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

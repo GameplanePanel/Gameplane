@@ -2,7 +2,7 @@
 package validator
 
 import (
-	internalval "github.com/ValgulNecron/gameplane/gp-module/internal/validator"
+	internalval "github.com/GameplanePanel/gameplane/gp-module/internal/validator"
 )
 
 // Severity indicates finding severity level.

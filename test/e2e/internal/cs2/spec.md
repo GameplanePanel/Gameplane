@@ -21,7 +21,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
 **Status:** pre-v1 (v0.3.0); probe depth measured: **QUERY** (A2S query success)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/cs2`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/cs2`  
 **Dependencies:** stdlib only (Go 1.25+); tested against CS2 Image 4.0.1 (joedwards32/cs2); image pin required (floating tag drifts)  
 **Heavy game (never runs in CI):** See "Why CS2 is heavy and never in CI" section below
 
@@ -142,9 +142,9 @@ type ConnectResult struct {
 ## Dependencies
 
 **Internal:** 
-- `github.com/ValgulNecron/gameplane/test/e2e/internal/probe` (shared probe harness)
-- `github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/a2sproto` (concurrent agent)
-- `github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/sourceproto` (concurrent agent)
+- `github.com/GameplanePanel/gameplane/test/e2e/internal/probe` (shared probe harness)
+- `github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/a2sproto` (concurrent agent)
+- `github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/sourceproto` (concurrent agent)
 
 **External:** stdlib only (`context`, `encoding/hex`, `errors`, `fmt`, `log`, `time`).
 

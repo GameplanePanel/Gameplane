@@ -978,6 +978,7 @@ type GameDataSource struct {
 }
 
 // RCONSpec describes the remote-console protocol used by the game.
+// +kubebuilder:validation:XValidation:rule="!has(self.authentication) || self.authentication || (!has(self.passwordSecretRef) && (!has(self.passwordEnv) || size(self.passwordEnv) == 0) && (!has(self.passwordFile) || size(self.passwordFile) == 0))",message="authentication: false cannot be combined with passwordSecretRef, passwordEnv or passwordFile"
 type RCONSpec struct {
 	// Protocol is the wire protocol the agent speaks to the game's console
 	// port. Multiple protocols are supported: "source" is the Valve/Minecraft
@@ -1037,6 +1038,23 @@ type RCONSpec struct {
 	// +kubebuilder:validation:MaxLength=255
 	// +optional
 	PasswordFile string `json:"passwordFile,omitempty"`
+
+	// Authentication reports whether the console requires a password. Defaults to true.
+	// When false the operator generates no RCON Secret and injects no password; use it
+	// for consoles with no authentication, such as Nuclear Option's loopback-only
+	// remote-command port.
+	// +kubebuilder:default=true
+	// +optional
+	Authentication *bool `json:"authentication,omitempty"`
+}
+
+// AuthenticationEnabled reports whether the RCON console requires a password.
+// A nil receiver or unset field means true (the default).
+func (r *RCONSpec) AuthenticationEnabled() bool {
+	if r == nil || r.Authentication == nil {
+		return true
+	}
+	return *r.Authentication
 }
 
 // GameProbesSpec are the default probes for the game container.
@@ -1195,7 +1213,18 @@ type GameTemplateStatus struct {
 	// this template.
 	// +optional
 	InUseCount int32 `json:"inUseCount,omitempty"`
+
+	// Conditions carry detailed state. LocalesValid reports whether the
+	// translations shipped with the module bundle were all valid.
+	// +optional
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
+
+// GameTemplateConditionLocalesValid is the GameTemplate condition that reports
+// the validity of the module's translations.
+const GameTemplateConditionLocalesValid = "LocalesValid"
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster,shortName=gtmpl;gametmpl

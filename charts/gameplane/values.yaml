@@ -15,14 +15,17 @@ image:
   # Component images are published to {registry}/{operator,api,agent} by the
   # release workflow. The release matches this default; override only to pin a
   # mirror or fork.
-  registry: ghcr.io/valgulnecron/gameplane
+  registry: ghcr.io/gameplanepanel/gameplane
   # Empty tag => the chart's appVersion (so chart vX pulls images vX). Set to a
   # channel like "edge" to track the rolling images published on every master push.
   tag: ""
   pullPolicy: IfNotPresent
   pullSecrets: []
 
-# CRD lifecycle. Helm installs the files under crds/ only on the FIRST install
+# Native CRDs live in the bundled gameplane-crds subchart, enabled by
+# operator.enabled. Dependency gating happens before Helm installs CRDs, so
+# operator.enabled=false omits them from a standalone central panel install.
+# CRD lifecycle. Helm installs the files under the subchart's crds/ on first install
 # and NEVER updates them on `helm upgrade` (a documented Helm limitation). This
 # hook closes that gap: a pre-UPGRADE Job runs `kubectl apply --server-side`
 # over the CRDs, so a plain `helm upgrade` always brings the CRD schema up to
@@ -47,6 +50,8 @@ crds:
     pullPolicy: IfNotPresent
 
 operator:
+  # Disable the operator and bundled native CRDs for a standalone central panel.
+  enabled: true
   replicas: 1
   logLevel: info     # zap log level: debug|info|error (warn not supported by zap's --zap-log-level)
   agentLogLevel: ""  # injected into every agent sidecar as GAMEPLANE_LOG_LEVEL (debug|info|warn|error); empty injects nothing, avoiding StatefulSet rollouts on upgrade
@@ -116,13 +121,17 @@ operator:
     # empty string (default) = use cluster's default StorageClass
     # "fast-nvme", "gpu-attached", etc. = use named StorageClass
     # If the named class doesn't exist, PVC provisioning fails and GameServer
-    # status.conditions surfaces "StorageClassNotFound" reason.
+    # status.conditions surfaces the "PVCProvisioningFailed" reason.
     storageClassName: ""
 
 api:
   # Disable the central API, its database/RBAC, dashboard, ingress and API-only
   # integrations on remote operator+gateway installs. Agent mTLS is preserved.
   enabled: true
+  # Central panel only: SQL-backed settings and credentials, no local cluster.
+  # Requires operator.enabled=false, which excludes bundled native CRDs.
+  # Standalone mode also skips the CRD apply hook and its RBAC.
+  standalone: false
   replicas: 1        # Keep at 1. SQLite is single-writer on a RWO volume; with db.driver=postgres the user-management lock and audit hash chain are still per-process
   logLevel: info     # API log verbosity (debug|info|warn|error), passed as GAMEPLANE_LOG_LEVEL
   # Port of the API's Prometheus metrics listener. It is separate from the
@@ -154,7 +163,24 @@ api:
     # image is built without it). Example:
     # dsn: "postgres://gameplane:***@postgres/gameplane?sslmode=require"
 
-  # PVC attached to the API for SQLite storage. Only used when db.driver=sqlite.
+  # Standalone encryption keys use separate storage configured under panelKey.
+  panelKey:
+    # Select a new filename after offline master-key rotation on the generated PVC.
+    fileName: panel.key
+    # Mount a pre-provisioned 32-byte key read-only. No key is generated in this mode.
+    # Use a separate Secret and backup/access policy from the database.
+    existingSecret: ""
+    secretKey: panel.key
+    storage:
+      size: 1Mi
+      storageClassName: ""
+      existingClaim: ""
+
+  # Optional destination CIDRs for standalone Kubernetes APIs and agent gateways.
+  # Empty permits safe public/private addresses; unsafe address classes stay blocked.
+  remoteAllowedCIDRs: []
+
+  # Database PVC. Back up its contents separately from the encryption key.
   storage:
     size: 2Gi
     storageClassName: ""
@@ -234,15 +260,44 @@ api:
         accessKeyKey: access-key   # key containing the access key ID
         secretKeyKey: secret-key    # key containing the secret access key
 
-  # Anonymous usage telemetry ({version, servers, templates} once a day —
-  # see docs/install.md). Two independent gates: the admin toggle in the
-  # dashboard decides WHETHER anything is sent, this block decides WHERE.
-  # With endpoint empty and receiver.enabled false (the defaults),
-  # telemetry is off entirely.
+  # Steam display names for the player list (Nuclear Option and other
+  # Steam-ID games). Optional and off by default: with no key set, player
+  # lists show raw Steam IDs and nothing is sent to Steam.
+  steam:
+    # Steam Web API key, sourced from a Secret (never a flag). Create the
+    # Secret out-of-band in the release namespace, e.g.
+    #   kubectl -n <release-namespace> create secret generic steam-api \
+    #     --from-literal=api-key=<your key>
+    # then set name below. Leave name empty and player lists show raw Steam IDs.
+    apiKeySecretRef:
+      name: ""
+      key: api-key
+    # Optional tuning of the in-memory display-name cache. It is in-memory
+    # only: nothing is stored on disk or in the database, and it is rebuilt
+    # after every API restart. Uncomment to override the defaults shown.
+    # cache:
+    #   maxEntries: 10000     # LRU bound on cached Steam IDs
+    #   ttl: 12h              # lifetime of a resolved display name
+    #   negativeTTL: 15m      # lifetime of an unresolvable Steam ID
+    #   timeout: 2s           # timeout for each Steam Web API call
+
+  # Anonymous usage telemetry (see docs/install.md). Two independent gates:
+  # the admin switches in the dashboard decide WHETHER anything is sent, this
+  # block decides WHETHER it may be sent at all (enabled) and WHERE it goes
+  # (endpoint, receiver).
   telemetry:
-    # External receiver URL, e.g. https://telemetry.example.com/ingest.
-    # Setting it disables the receiver auto-wiring below.
+    # false = hard off: the API never sends telemetry, whatever the admin
+    # switches say. This is the single setting for air-gapped and
+    # privacy-sensitive clusters. The bundled receiver, if enabled below, is
+    # still deployed.
+    enabled: true
+    # Where reports are sent. Empty means the project's default provider
+    # (https://telemetry.gameplane.net/ingest, compiled into the API); set a URL such as
+    # https://telemetry.example.com/ingest to send reports to your own
+    # receiver instead. Setting it disables the receiver auto-wiring below.
     endpoint: ""
+    # Testing only: the spacing between reports. Don't change in production.
+    interval: 24h
     # Optional shared ingest token, sourced from a Secret (never a flag).
     # The API sends it verbatim as the Authorization header and the
     # bundled receiver requires it — recommended when the receiver is
@@ -256,8 +311,56 @@ api:
     # pointed at it automatically.
     receiver:
       enabled: false
+      # Must stay 1 while persistence is enabled: the SQLite file on the PVC
+      # has a single writer, so the template fails the render otherwise.
       replicas: 1
       resources: {}
+      # Aggregate storage (SQLite on a PVC mounted at /data). With
+      # persistence disabled an emptyDir is used instead and every
+      # aggregate is lost when the pod restarts.
+      persistence:
+        enabled: true
+        size: 1Gi
+        storageClassName: ""
+      # Private dashboard (spec 022). The dashboard listener only starts when
+      # tokenSecretRef.name names a Secret holding the dashboard token.
+      dashboard:
+        tokenSecretRef:
+          name: ""
+          key: token
+        # Extra NetworkPolicy peers allowed to reach the dashboard port
+        # (port-forward works without any). Each item is a NetworkPolicyPeer,
+        # e.g. {namespaceSelector: {matchLabels: {team: ops}}}.
+        ingressFrom: []
+      # Serve the public aggregate counters on GET /v1/summary.
+      publicSummary:
+        enabled: false
+      # Optional HMAC pepper for install IDs, sourced from a Secret. Empty
+      # name = the receiver generates one and keeps it in its database.
+      pepperSecretRef:
+        name: ""
+        key: pepper
+      # Daily aggregate retention in days. Minimum 365 (the receiver
+      # refuses to start below that).
+      retentionDays: 730
+      # Per-install activity record expiry in days. Minimum 31.
+      activityExpiryDays: 90
+      # Accepted reports per source address per UTC day; 0 = unlimited.
+      ingestSourceDailyLimit: 20
+      # CIDRs whose X-Forwarded-For header is trusted for the source address.
+      trustedProxyCIDRs: []
+      # Proof-of-work on report ingestion (spec 022 FR-039, OD-5). Off by
+      # default; a provider turns it on for a public endpoint. While on,
+      # every report must carry a solved challenge from GET /v1/challenge.
+      # The difficulty is 0 bits (or minBits) up to targetPerMinute
+      # challenges a minute, rises with the request rate up to maxBits, and
+      # falls one bit every 5 minutes. Installs refuse challenges above 26
+      # bits, so maxBits may not exceed 26.
+      ingestPow:
+        enabled: false
+        targetPerMinute: 60
+        minBits: 0
+        maxBits: 22
 
   oidc:
     enabled: false
@@ -521,8 +624,11 @@ serviceMonitors:
   # expressions/labels) identifying the namespace your Prometheus runs in.
   # Only used, when non-empty, to open NetworkPolicy exceptions so that
   # Prometheus can reach the agent's metrics port 9090 (F-216; rationale in
-  # agent/specs.md) and the telemetry-receiver's /metrics on its normal
-  # port (F-217) when networkPolicies.enabled is also true. Required
+  # agent/specs.md) and the telemetry-receiver's /metrics on its
+  # dashboard port 8081 (F-217; /metrics is served there with Bearer auth,
+  # so the receiver ServiceMonitor also needs
+  # api.telemetry.receiver.dashboard.tokenSecretRef.name) when
+  # networkPolicies.enabled is also true. Required
   # alongside enabled: true whenever networkPolicies.enabled is also true;
   # left empty, both stay unreachable to Prometheus even though their
   # ServiceMonitor/PodMonitor objects are rendered. Example:
@@ -563,7 +669,7 @@ defaultModuleSource:
   #         version history: you can pin, roll back, and a new release ADDS a
   #         version rather than replacing one. The official bundles are pushed
   #         and signed by the release workflow.
-  #   git — index the gameplane-module repository directly. Simpler (nothing to
+  #   git — index the GameplanePanel/module repository directly. Simpler (nothing to
   #         publish), but SINGLE-VERSION by construction: a git ref has exactly
   #         one module.yaml, so it offers exactly one version. Bumping a module
   #         REPLACES the old version rather than adding to it, and any Module
@@ -571,7 +677,7 @@ defaultModuleSource:
   #         track an unreleased branch, not for a stable install.
   type: oci
   git:
-    url: https://github.com/ValgulNecron/gameplane-module.git
+    url: https://github.com/GameplanePanel/module.git
     # Pinned to the module-repo tag validated against this chart's backend
     # release, not "main": a git source only ever offers the module version
     # present at its ref, so tracking main means a module version bump
@@ -584,7 +690,7 @@ defaultModuleSource:
     ref: v0.3.0
     subPath: ""           # module directories live at the repo root
   oci:
-    url: ghcr.io/valgulnecron/gameplane-modules
+    url: ghcr.io/gameplanepanel/gameplane-modules
     insecure: false       # set true for plain-HTTP local registries
     # The official catalog. Each name is an OCI repo under url/ above; the
     # operator discovers that module's versions from its tags.
@@ -612,7 +718,7 @@ defaultModuleSource:
     # module-signing public key (ECDSA P-256) ships below; set enabled: true
     # (with type: oci) to refuse any official bundle not signed by the matching
     # private key. Module-bundle verification is keyed and offline (no Rekor) by
-    # default. Keep this key byte-identical to the repo-root cosign.pub. See
+    # default. Keep this key byte-identical to signing/cosign.pub. See
     # docs/module-authoring.md "Signing official bundles".
     verify:
       enabled: false

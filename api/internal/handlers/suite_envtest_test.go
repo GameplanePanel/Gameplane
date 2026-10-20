@@ -22,10 +22,10 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	"github.com/ValgulNecron/gameplane/api/internal/audit"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // envtest fires up a real kube-apiserver+etcd in-process. We then build

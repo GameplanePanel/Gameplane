@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_FiveMBot_Query boots a FiveM FXServer instance
@@ -25,7 +25,7 @@ func TestGameServer_FiveMBot_Query(t *testing.T) {
 		Game:        "fivem",
 		Template:    fmt.Sprintf("e2e-fivem-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E FiveM",
-		Image:       "ghcr.io/valgulnecron/gameplane/fivem:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/fivem:latest@sha256:23d65f59793e5f207c4c4ee5c320bca5aa56003fd95be259a887f4e58f3d77b1",
 		Env: map[string]string{
 			"CFX_LICENSE_KEY": "test-cfx-license-key",
 			"SV_HOSTNAME":     "Gameplane E2E FiveM",

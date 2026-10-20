@@ -3,6 +3,7 @@
 // instead of legacy aliases. Pure SVG component with no HeroUI counterpart.
 
 import { cn } from "@/lib/utils";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 const accentClass = {
   primary: "bg-accent",
@@ -30,12 +31,15 @@ export function Meter({
   // meter reading 0% otherwise reads as "measured idle", not "unmeasured".
   unknown?: boolean;
 }) {
+  const intl = useOptionalIntl();
   return (
     <div>
       <div className="flex items-center justify-between text-[11px]">
         <span className="text-muted">{label}</span>
         <span className={cn("font-mono", unknown ? "text-muted" : "text-foreground")}>
-          {unknown ? "—" : `${Math.max(0, Math.round(pct))}%`}
+          {unknown
+            ? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })
+            : intl.formatMessage({ id: "web.components.ui.meter.percent", defaultMessage: "{value}%", description: "Meter: usage percentage shown beside the bar; {value} is the whole-number percentage" }, { value: String(Math.max(0, Math.round(pct))) })}
         </span>
       </div>
       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface">

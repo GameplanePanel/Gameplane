@@ -86,7 +86,7 @@ For each requirement or claim you audit, return a structured finding:
 ## Your Constraints
 
 - **Read-only.** You do not commit, push, branch, or modify files. Report only.  
-- **Cite file paths.** Every artifact you read gets a path: `specs/013-expand-test-coverage/data-model.md`, not "the data model."  
+- **Cite file paths.** Every artifact you read gets a path: `specs/done_013-expand-test-coverage/data-model.md`, not "the data model."  
 - **Distinguish spec from implementation.** You audit alignment; you do not judge whether the spec itself is good. If a spec is vague or incomplete, surface that as a finding ("spec underspecifies X; cannot audit without clarification").  
 - **Flag incomplete checks.** If a folder is missing an artifact (e.g., no `data-model.md`), note it: "data-model.md not found; checked only spec.md, plan.md, tasks.md; exemption check incomplete."  
 - **Handle done_ folders.** They carry binding artifacts. Apply rule 15 in full even for finished features.

@@ -1,0 +1,1503 @@
+{
+  "type": "frame",
+  "id": "uMiwd",
+  "x": 0,
+  "y": 78259,
+  "name": "Screen/Admin Settings — Authentication",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1636,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "WrwBN",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "layout": "vertical",
+      "name": "Restored ref",
+      "descendants": {
+        "Sci9k": {
+          "height": 70,
+          "padding": [
+            16,
+            20
+          ]
+        },
+        "A42yg4": {
+          "gap": 8
+        },
+        "t4vZR": {
+          "width": 32,
+          "height": 32
+        },
+        "BuhAS": {
+          "content": "Central management"
+        },
+        "ijsQu": {
+          "type": "frame",
+          "id": "YmdpQ",
+          "name": "Nav Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 2,
+          "padding": [
+            8,
+            12
+          ],
+          "children": [
+            {
+              "id": "ZxAJ8",
+              "type": "ref",
+              "ref": "uFDbF",
+              "name": "Section General",
+              "width": "fill_container",
+              "descendants": {
+                "gY8Nr": {
+                  "content": "GENERAL"
+                }
+              }
+            },
+            {
+              "id": "HdjOv",
+              "type": "ref",
+              "ref": "B5sYje",
+              "name": "navDashboard",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "ghUsw": {
+                  "icon": "layout-dashboard",
+                  "fill": "$muted"
+                },
+                "bpSQ7": {
+                  "content": "Dashboard",
+                  "fill": "$muted"
+                }
+              }
+            },
+            {
+              "id": "untri",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navServers",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "server"
+                },
+                "Ra9NK": {
+                  "content": "Servers"
+                }
+              }
+            },
+            {
+              "id": "E3ZmBl",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navModules",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "package"
+                },
+                "Ra9NK": {
+                  "content": "Modules"
+                }
+              }
+            },
+            {
+              "id": "WFFAr",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navBackups",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "archive"
+                },
+                "Ra9NK": {
+                  "content": "Backups"
+                }
+              }
+            },
+            {
+              "id": "HaMLJ",
+              "type": "ref",
+              "ref": "uFDbF",
+              "name": "Section Admin",
+              "width": "fill_container",
+              "descendants": {
+                "gY8Nr": {
+                  "content": "ADMIN"
+                }
+              }
+            },
+            {
+              "id": "Pqt7v",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navCluster",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "network"
+                },
+                "Ra9NK": {
+                  "content": "Clusters"
+                }
+              }
+            },
+            {
+              "id": "r7g6W",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "Cluster inventory navigation",
+              "width": "fill_container",
+              "height": 36,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "cornerRadius": 6,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "server"
+                },
+                "Ra9NK": {
+                  "content": "Cluster"
+                }
+              }
+            },
+            {
+              "id": "AjxXL",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navUsers",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "users"
+                },
+                "Ra9NK": {
+                  "content": "Users & RBAC"
+                }
+              }
+            },
+            {
+              "id": "Q7mRuA",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navAudit",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "scroll-text"
+                },
+                "Ra9NK": {
+                  "content": "Audit log"
+                }
+              }
+            },
+            {
+              "id": "sA0m2",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navLogs",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "#00000000",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "terminal"
+                },
+                "Ra9NK": {
+                  "content": "System logs"
+                }
+              }
+            },
+            {
+              "id": "XoxKL",
+              "type": "ref",
+              "ref": "W8XiN",
+              "name": "navSettings",
+              "width": "fill_container",
+              "cornerRadius": 6,
+              "padding": [
+                8,
+                12
+              ],
+              "gap": 12,
+              "height": 36,
+              "alignItems": "center",
+              "fill": "$accent/soft",
+              "descendants": {
+                "Sr2Q5": {
+                  "icon": "settings",
+                  "fill": "$accent/soft-foreground"
+                },
+                "Ra9NK": {
+                  "content": "Settings",
+                  "fill": "$accent/soft-foreground"
+                }
+              }
+            }
+          ]
+        },
+        "NmfQu": {
+          "layout": "vertical"
+        },
+        "oByLP": {
+          "type": "frame",
+          "id": "UFIkp",
+          "name": "Toggle Row",
+          "width": "fill_container",
+          "gap": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "HzR8S",
+              "type": "ref",
+              "ref": "iA2C8",
+              "name": "Appearance Toggle",
+              "fill": "$surface/secondary"
+            },
+            {
+              "id": "T21hit",
+              "type": "ref",
+              "ref": "owgrI",
+              "name": "Customize Theme",
+              "descendants": {
+                "FOBKk": {
+                  "icon": "palette"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "TH80h",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "rShJh",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Settings"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "svJe1",
+          "name": "Central management notice",
+          "width": "fill_container",
+          "height": 45,
+          "fill": "$surface/surface",
+          "stroke": "$border/border",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "strokeAlignment": "inner",
+          "gap": 4,
+          "padding": [
+            12,
+            24
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "LnYBB",
+              "name": "Central management label",
+              "fill": "$foreground/foreground",
+              "content": "Central management.",
+              "lineHeight": 1.4285714286,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "LLHgj",
+              "name": "Central management explanation",
+              "fill": "$muted",
+              "content": "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
+              "lineHeight": 1.4285714286,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OSCt7",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "R9XZN",
+              "type": "ref",
+              "ref": "xCDF7",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Admin settings"
+                },
+                "VbHwU": {
+                  "content": "Platform-wide configuration for this Gameplane instance."
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "ahtOc",
+              "name": "Settings Layout",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "QDWF0",
+                  "type": "ref",
+                  "ref": "Mp7Ep",
+                  "name": "Settings Nav",
+                  "width": 220,
+                  "descendants": {
+                    "eIjoV": {
+                      "fill": "#00000000"
+                    },
+                    "XuGUZ": {
+                      "fill": "$muted"
+                    },
+                    "DpMnt": {
+                      "fill": "$muted"
+                    },
+                    "XEjdq": {
+                      "fill": "$surface/secondary"
+                    },
+                    "i7B23P": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "BW5lA": {
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "klk20",
+                  "name": "Settings Column",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "id": "gwUX5",
+                      "type": "ref",
+                      "ref": "XDZ0E",
+                      "name": "Authentication Panel",
+                      "width": "fill_container",
+                      "padding": 0,
+                      "gap": 0,
+                      "children": [
+                        {
+                          "id": "obGwE",
+                          "type": "ref",
+                          "ref": "FRpsu",
+                          "name": "Card Header",
+                          "width": "fill_container",
+                          "padding": [
+                            20,
+                            20,
+                            16,
+                            20
+                          ],
+                          "gap": 4,
+                          "descendants": {
+                            "fuZHB": {
+                              "content": "Authentication"
+                            },
+                            "BZG9o": {
+                              "content": "Built-in local accounts plus federated identity providers. Changes take effect on save — no restart needed.",
+                              "width": "fill_container",
+                              "textGrowth": "fixed-width"
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "N8oepI",
+                          "name": "Card Fields",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "vmRxD",
+                              "name": "providerList",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "u3Krq",
+                                  "name": "provLocal",
+                                  "width": "fill_container",
+                                  "gap": 12,
+                                  "padding": [
+                                    12,
+                                    0
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "rUcqz",
+                                      "name": "iconBox",
+                                      "width": 32,
+                                      "height": 32,
+                                      "fill": "$surface/secondary",
+                                      "cornerRadius": 6,
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "icon",
+                                          "id": "J1ifv0",
+                                          "name": "key icon",
+                                          "width": 16,
+                                          "height": 16,
+                                          "icon": "key-round",
+                                          "library": "lucide",
+                                          "fill": "$muted"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "G1SwK",
+                                      "name": "textCol",
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 2,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "z7DIG",
+                                          "name": "Provider Name",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Local accounts",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "JxTJl",
+                                          "name": "Provider Id",
+                                          "fill": "$muted",
+                                          "content": "local",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "ZV8sJ",
+                                      "type": "ref",
+                                      "ref": "UOoQW",
+                                      "name": "Enabled Chip",
+                                      "descendants": {
+                                        "YXoPG": {
+                                          "content": "ENABLED"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "vANdc",
+                              "name": "Provider Helper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "At least one identity provider must stay enabled — the last enabled provider can't be turned off.",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "id": "dQkaL",
+                              "type": "ref",
+                              "ref": "FIB65",
+                              "name": "Add Provider Btn",
+                              "descendants": {
+                                "zMNkR": {
+                                  "content": "Add provider"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "KHXLD",
+                          "name": "Card Actions",
+                          "width": "fill_container",
+                          "padding": [
+                            8,
+                            20,
+                            20,
+                            20
+                          ],
+                          "justifyContent": "end",
+                          "children": [
+                            {
+                              "id": "t5rRuf",
+                              "type": "ref",
+                              "ref": "tpKRk",
+                              "name": "Btn Save Changes",
+                              "descendants": {
+                                "q58In/Xpn7K": {
+                                  "enabled": false
+                                },
+                                "q58In/U6q13B": {
+                                  "content": "Save changes"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cijmy",
+                      "type": "ref",
+                      "ref": "XDZ0E",
+                      "name": "Helm OIDC Provider Card",
+                      "width": "fill_container",
+                      "padding": 0,
+                      "gap": 0,
+                      "children": [
+                        {
+                          "id": "OENCv",
+                          "type": "ref",
+                          "ref": "FRpsu",
+                          "name": "Card Header",
+                          "width": "fill_container",
+                          "padding": [
+                            20,
+                            20,
+                            16,
+                            20
+                          ],
+                          "gap": 4,
+                          "descendants": {
+                            "fuZHB": {
+                              "content": "Helm-seeded OIDC provider"
+                            },
+                            "BZG9o": {
+                              "content": "Read-only snapshot of the identity provider configured via api.oidc.* Helm values at install time. Connection settings are not editable here; role mappings can be overridden below.",
+                              "width": "fill_container",
+                              "textGrowth": "fixed-width"
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bKxIm",
+                          "name": "Card Fields",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": [
+                            0,
+                            20,
+                            20,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "of3dt",
+                              "name": "oidcHeaderCol",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "KAxck",
+                                  "name": "Provider",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Provider",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Ye5di",
+                                  "name": "Provider Hint",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Groups claim and default role are seeded from the same Helm values and are not editable here.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "W4j5PQ",
+                              "name": "rowGroupsClaim",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "g0uUV4",
+                                  "name": "Claim Label",
+                                  "fill": "$muted",
+                                  "content": "Groups claim",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "QbJPD",
+                                  "name": "Claim Value",
+                                  "fill": "$foreground/foreground",
+                                  "content": "teams",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "KZP54",
+                              "name": "rowDefaultRole",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "B1X3mr",
+                                  "name": "Role Label",
+                                  "fill": "$muted",
+                                  "content": "Default role",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "id": "J4Pbu4",
+                                  "type": "ref",
+                                  "ref": "KmZnF",
+                                  "name": "Default Role Chip",
+                                  "descendants": {
+                                    "xZ9ah": {
+                                      "content": "viewer",
+                                      "fontFamily": "$typography/font-mono"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Fpx59",
+                              "name": "roleMappingsCol",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 10,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "MTyGR",
+                                  "name": "Role Mappings Label",
+                                  "fill": "$muted",
+                                  "content": "Helm-seeded role mappings",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "oYzSu",
+                                  "name": "roleRow_Admin",
+                                  "width": "fill_container",
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "YAMBO",
+                                      "name": "Role Name",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 70,
+                                      "content": "Admin",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "vJigy",
+                                      "name": "chips_Admin",
+                                      "gap": 6,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "MktNY",
+                                          "type": "ref",
+                                          "ref": "eg3vM",
+                                          "name": "chip_gameplane-admins",
+                                          "descendants": {
+                                            "S2JwD": {
+                                              "content": "gameplane-admins",
+                                              "fontFamily": "$typography/font-mono"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "YP20u",
+                                  "name": "roleRow_Operator",
+                                  "width": "fill_container",
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "H6xP5r",
+                                      "name": "Role Name",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 70,
+                                      "content": "Operator",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "D28FS",
+                                      "name": "chips_Operator",
+                                      "gap": 6,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "p2Dwz0",
+                                          "type": "ref",
+                                          "ref": "kGH2O",
+                                          "name": "chip_gameplane-ops",
+                                          "descendants": {
+                                            "O1PqF5": {
+                                              "content": "gameplane-ops",
+                                              "fontFamily": "$typography/font-mono"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "v135p",
+                                  "name": "roleRow_Viewer",
+                                  "width": "fill_container",
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "EmByk",
+                                      "name": "Role Name",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 70,
+                                      "content": "Viewer",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "yJqlC",
+                                      "name": "chips_Viewer",
+                                      "gap": 6,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "YObo7",
+                                          "type": "ref",
+                                          "ref": "KmZnF",
+                                          "name": "chip_gameplane-members",
+                                          "descendants": {
+                                            "xZ9ah": {
+                                              "content": "gameplane-members",
+                                              "fontFamily": "$typography/font-mono"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": "nejzQ",
+                              "type": "ref",
+                              "ref": "Llzos",
+                              "name": "HelmAdminMappingWarning",
+                              "width": "fill_container",
+                              "descendants": {
+                                "BXuYr": {
+                                  "content": "Helm-configured admin mapping"
+                                },
+                                "JmFhb": {
+                                  "content": "The group(s) on the Admin row above were mapped to admin via Helm values, not the dashboard, so there is no confirmation step here. Verify they contain only trusted accounts — anyone in them gets full admin access."
+                                },
+                                "c0FRXZ": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "EOReq",
+                      "type": "ref",
+                      "ref": "XDZ0E",
+                      "name": "Role Mapping Overrides Card",
+                      "width": "fill_container",
+                      "padding": 0,
+                      "gap": 0,
+                      "children": [
+                        {
+                          "id": "e0StbR",
+                          "type": "ref",
+                          "ref": "FRpsu",
+                          "name": "Card Header",
+                          "width": "fill_container",
+                          "padding": [
+                            20,
+                            20,
+                            16,
+                            20
+                          ],
+                          "gap": 4,
+                          "descendants": {
+                            "fuZHB": {
+                              "content": "Role mapping overrides"
+                            },
+                            "BZG9o": {
+                              "content": "Override the Helm-seeded OIDC group mappings per role from here. A change takes effect the next time an affected user logs in — no restart or reinstall needed.",
+                              "width": "fill_container",
+                              "textGrowth": "fixed-width"
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Ipjvx",
+                          "name": "Card Fields",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": [
+                            0,
+                            20,
+                            20,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "LCoVY",
+                              "name": "roleBlock_admin",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 8,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "uBkcQ",
+                                  "name": "headerRow_admin",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "e3Dy0",
+                                      "name": "leftGroup_admin",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "mK41Y",
+                                          "name": "Role Name",
+                                          "fill": "$foreground/foreground",
+                                          "textGrowth": "fixed-width",
+                                          "width": 70,
+                                          "content": "Admin",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 13,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "id": "f8nRs4",
+                                          "type": "ref",
+                                          "ref": "R65Xyx",
+                                          "name": "provenance_admin"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "mI0Uq",
+                                      "type": "ref",
+                                      "ref": "d5N3W3",
+                                      "name": "btnReset_admin",
+                                      "descendants": {
+                                        "X3iEI": {
+                                          "icon": "rotate-ccw"
+                                        },
+                                        "i3zB62/zMNkR": {
+                                          "content": "Reset to Helm default"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "j6Z2A",
+                                  "name": "chipsRow_admin",
+                                  "width": "fill_container",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "z9JAoG",
+                                      "type": "ref",
+                                      "ref": "XL5ZU",
+                                      "name": "chip_admin_gameplane-admins",
+                                      "fill": "$warning/soft",
+                                      "descendants": {
+                                        "v68RDf": {
+                                          "content": "gameplane-admins",
+                                          "fill": "$warning/soft-foreground"
+                                        },
+                                        "sYR1u": {
+                                          "fill": "$warning/soft-foreground"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "Ezgwq",
+                                      "type": "ref",
+                                      "ref": "XL5ZU",
+                                      "name": "chip_admin_gameplane-sre",
+                                      "fill": "$warning/soft",
+                                      "descendants": {
+                                        "v68RDf": {
+                                          "content": "gameplane-sre",
+                                          "fill": "$warning/soft-foreground"
+                                        },
+                                        "sYR1u": {
+                                          "fill": "$warning/soft-foreground"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "kaAMd",
+                                  "name": "addRow_admin",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "OjWGm",
+                                      "type": "ref",
+                                      "ref": "qvQPg",
+                                      "name": "inputAddGroup_admin",
+                                      "descendants": {
+                                        "tK3VZ": {
+                                          "content": "Add IdP group name…"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "nWhfz",
+                                      "type": "ref",
+                                      "ref": "d5N3W3",
+                                      "name": "btnAdd_admin",
+                                      "descendants": {
+                                        "X3iEI": {
+                                          "icon": "plus"
+                                        },
+                                        "i3zB62/zMNkR": {
+                                          "content": "Add"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "H5G1y",
+                              "name": "divider_operator",
+                              "width": "fill_container",
+                              "height": 1,
+                              "fill": "$border/border"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "JRDeB",
+                              "name": "roleBlock_operator",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 8,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "V7uZU",
+                                  "name": "headerRow_operator",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "BMPdc",
+                                      "name": "leftGroup_operator",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "l5s29",
+                                          "name": "Role Name",
+                                          "fill": "$foreground/foreground",
+                                          "textGrowth": "fixed-width",
+                                          "width": 70,
+                                          "content": "Operator",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 13,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "id": "yhbWl",
+                                          "type": "ref",
+                                          "ref": "Rwnu3",
+                                          "name": "provenance_operator"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "VCOWq",
+                                      "type": "ref",
+                                      "ref": "d5N3W3",
+                                      "name": "btnReset_operator",
+                                      "descendants": {
+                                        "X3iEI": {
+                                          "icon": "rotate-ccw"
+                                        },
+                                        "i3zB62/zMNkR": {
+                                          "content": "Reset to Helm default"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Sbkmo",
+                                  "name": "chipsRow_operator",
+                                  "width": "fill_container",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "E7yW29",
+                                      "type": "ref",
+                                      "ref": "vStkb",
+                                      "name": "chip_operator_gameplane-ops",
+                                      "fill": "$default/default",
+                                      "descendants": {
+                                        "RNxys": {
+                                          "content": "gameplane-ops",
+                                          "fill": "$foreground/link"
+                                        },
+                                        "KDOjY": {
+                                          "fill": "$foreground/link"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "w2FSki",
+                                  "name": "addRow_operator",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "i6SXVx",
+                                      "type": "ref",
+                                      "ref": "qvQPg",
+                                      "name": "inputAddGroup_operator",
+                                      "descendants": {
+                                        "tK3VZ": {
+                                          "content": "Add IdP group name…"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "Q3y5d",
+                                      "type": "ref",
+                                      "ref": "d5N3W3",
+                                      "name": "btnAdd_operator",
+                                      "descendants": {
+                                        "X3iEI": {
+                                          "icon": "plus"
+                                        },
+                                        "i3zB62/zMNkR": {
+                                          "content": "Add"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "giUeh",
+                              "name": "divider_viewer",
+                              "width": "fill_container",
+                              "height": 1,
+                              "fill": "$border/border"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "nqA0c",
+                              "name": "roleBlock_viewer",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 8,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "wb6ns",
+                                  "name": "headerRow_viewer",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "jd7Re",
+                                      "name": "leftGroup_viewer",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "d8xMTt",
+                                          "name": "Role Name",
+                                          "fill": "$foreground/foreground",
+                                          "textGrowth": "fixed-width",
+                                          "width": 70,
+                                          "content": "Viewer",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 13,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "id": "WXZV0",
+                                          "type": "ref",
+                                          "ref": "R65Xyx",
+                                          "name": "provenance_viewer"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "W55iC7",
+                                      "type": "ref",
+                                      "ref": "d5N3W3",
+                                      "name": "btnReset_viewer",
+                                      "descendants": {
+                                        "X3iEI": {
+                                          "icon": "rotate-ccw"
+                                        },
+                                        "i3zB62/zMNkR": {
+                                          "content": "Reset to Helm default"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "wgd9o",
+                                  "name": "emptyState_viewer",
+                                  "width": "fill_container",
+                                  "cornerRadius": 6,
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "gap": 8,
+                                  "padding": [
+                                    6,
+                                    10
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "P7ONwd",
+                                      "name": "emptyIcon",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "circle-slash-2",
+                                      "library": "lucide",
+                                      "fill": "$muted"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "LeTyT",
+                                      "name": "emptyText",
+                                      "fill": "$muted",
+                                      "content": "No groups mapped — nobody signs in as viewer via OIDC.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal",
+                                      "fontStyle": "italic"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "O6dVvZ",
+                                  "name": "addRow_viewer",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "G40RR1",
+                                      "type": "ref",
+                                      "ref": "qvQPg",
+                                      "name": "inputAddGroup_viewer",
+                                      "descendants": {
+                                        "tK3VZ": {
+                                          "content": "Add IdP group name…"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "uPsmR",
+                                      "type": "ref",
+                                      "ref": "d5N3W3",
+                                      "name": "btnAdd_viewer",
+                                      "descendants": {
+                                        "X3iEI": {
+                                          "icon": "plus"
+                                        },
+                                        "i3zB62/zMNkR": {
+                                          "content": "Add"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "E2GIFw",
+                          "name": "Card Actions",
+                          "width": "fill_container",
+                          "padding": [
+                            8,
+                            20,
+                            20,
+                            20
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mkhfq",
+                              "name": "saveHelper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Saved changes take effect on next login for affected users — no restart or reinstall needed.",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "id": "kFILh",
+                              "type": "ref",
+                              "ref": "rNhll",
+                              "name": "Btn Save Role Mappings",
+                              "descendants": {
+                                "wDXFJ/K8d1zg": {
+                                  "enabled": false
+                                },
+                                "wDXFJ/zMNkR": {
+                                  "content": "Save role mappings"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

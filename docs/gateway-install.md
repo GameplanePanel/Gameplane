@@ -7,6 +7,10 @@ management, Pod logs and PTY attach; a gateway does not replace those credential
 See [central registration and request routing](multicluster-agent-gateway.md) for
 the matching central API configuration.
 
+The central panel can run in Kubernetes or on a separate Docker host. Use the
+[standalone setup guide](standalone-panel.md) when the panel has no local game
+cluster. The remote operator/gateway installation below is the same in both cases.
+
 ## Prepare the remote cluster
 
 Use matching API, operator and agent versions. The gateway uses the API image's
@@ -52,6 +56,9 @@ Adapt the [example values](../charts/gameplane/examples/gateway-values.yaml):
 ```yaml
 api:
   enabled: false
+  standalone: false
+operator:
+  enabled: true
 gateway:
   enabled: true
   clusterID: remote-1
@@ -64,7 +71,7 @@ gateway:
     apiServerCIDRs: [10.96.0.1/32, 10.0.0.10/32]
 ```
 
-`clusterID` must equal the `Cluster` resource name in the central installation.
+`clusterID` must equal the registered cluster name in the central installation.
 An empty namespace list selects only `gamesNamespace`; additional namespaces must
 already exist. The chart creates a Role/RoleBinding in each configured namespace. When
 `networkPolicies.enabled` is true, it also creates matching agent ingress rules.
@@ -178,8 +185,9 @@ inventory access only to that cluster; the user's local primary role and existin
 game-namespace grants remain separate. Changing a user's grants revokes their
 sessions, so that user must sign in again.
 
-Remote all-namespace roles may contain only `cluster:read` and namespaced
-permissions. Wildcard or central-administration permissions are rejected, and a
+Remote all-namespace roles may contain `cluster:read`, `modules:read`,
+`modules:manage`, `templates:read`, `templates:write`, and namespaced permissions.
+Wildcard or central-administration permissions are rejected, and a
 role cannot gain them later while it has remote all-namespace bindings.
 
 ## Private networking

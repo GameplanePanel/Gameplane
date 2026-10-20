@@ -9,11 +9,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // MountRoles wires the role-management surface: the permission catalog
@@ -116,15 +117,15 @@ type roleCreateReq struct {
 func (h *roleHandler) create(w http.ResponseWriter, req *http.Request) {
 	var body roleCreateReq
 	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
 		return
 	}
 	if !identifierRE.MatchString(body.Name) {
-		http.Error(w, "invalid role name", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.roles.invalid_role_name", nil))
 		return
 	}
 	if msg, ok := validatePermissions(body.Permissions); !ok {
-		http.Error(w, msg, http.StatusBadRequest)
+		httperr.WriteCode(w, req, http.StatusBadRequest, errors.New(msg))
 		return
 	}
 
@@ -139,7 +140,7 @@ func (h *roleHandler) create(w http.ResponseWriter, req *http.Request) {
 		`INSERT INTO roles(name, description, builtin) VALUES (?, ?, 0)`,
 		body.Name, body.Description); err != nil {
 		// A duplicate name is a client error, not a 500.
-		http.Error(w, "role already exists", http.StatusConflict)
+		httperr.WriteMessage(w, req, messages.New("server.roles.role_already_exists", nil))
 		return
 	}
 	if err := insertPermissions(req, tx, body.Name, body.Permissions); err != nil {
@@ -166,24 +167,24 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if !found {
-		http.Error(w, "role not found", http.StatusNotFound)
+		httperr.WriteMessage(w, req, messages.New("server.roles.role_not_found", nil))
 		return
 	}
 	// The admin role is the cluster's last-resort authority — its wildcard
 	// must stay intact, so it can't be edited. operator/viewer are editable.
 	if builtin && name == rbac.RoleAdmin {
-		http.Error(w, "the admin role cannot be edited", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.roles.admin_not_editable", nil))
 		return
 	}
 
 	var body roleUpdateReq
 	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
 		return
 	}
 	if body.Permissions != nil {
 		if msg, ok := validatePermissions(*body.Permissions); !ok {
-			http.Error(w, msg, http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New(msg))
 			return
 		}
 		// Lock to serialize with writes so the last-user-manager check can't race.
@@ -198,7 +199,7 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			if remoteBindings > 0 {
-				http.Error(w, "remove remote cluster-wide bindings before adding control-plane permissions", http.StatusBadRequest)
+				httperr.WriteMessage(w, req, messages.New("server.roles.remote_bindings_block_control_plane", nil))
 				return
 			}
 		}
@@ -206,7 +207,7 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 			httperr.Write(w, req, err)
 			return
 		} else if msg != "" {
-			http.Error(w, msg, http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New(msg))
 			return
 		}
 	}
@@ -258,7 +259,7 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	http.Error(w, "role not found", http.StatusNotFound)
+	httperr.WriteMessage(w, req, messages.New("server.roles.role_not_found", nil))
 }
 
 func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
@@ -273,11 +274,11 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if !found {
-		http.Error(w, "role not found", http.StatusNotFound)
+		httperr.WriteMessage(w, req, messages.New("server.roles.role_not_found", nil))
 		return
 	}
 	if builtin {
-		http.Error(w, "built-in roles cannot be deleted", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.roles.builtin_not_deletable", nil))
 		return
 	}
 	var inUse int
@@ -287,7 +288,7 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if inUse > 0 {
-		http.Error(w, "role is assigned to one or more users", http.StatusConflict)
+		httperr.WriteMessage(w, req, messages.New("server.roles.role_in_use", nil))
 		return
 	}
 

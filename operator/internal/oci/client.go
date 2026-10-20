@@ -124,10 +124,30 @@ func (c *Client) Pull(ctx context.Context, ref, reference string) (string, map[s
 	}
 
 	files := map[string][]byte{}
-	for _, layer := range manifest.Layers {
+	// Locale layers are budgeted in title order so the languages that fit do
+	// not depend on the manifest's layer order.
+	layers := append([]ocispec.Descriptor(nil), manifest.Layers...)
+	sort.SliceStable(layers, func(i, j int) bool {
+		return layers[i].Annotations[AnnotationTitle] < layers[j].Annotations[AnnotationTitle]
+	})
+	var budget LocaleBudget
+	for _, layer := range layers {
 		title := layer.Annotations[AnnotationTitle]
 		if title == "" {
 			continue
+		}
+		if _, isLocale := LocaleTag(title); isLocale {
+			// A locale layer with another media type is ignored, not
+			// trusted. One over the size bound, or one that would exceed the
+			// bundle's total locale budget, is never read (memory cap); the
+			// marker records its language so the reconciler can report it.
+			if layer.MediaType != MediaTypeLocale {
+				continue
+			}
+			if layer.Size > MaxLocaleLayerSize || !budget.Take(layer.Size) {
+				files[title] = OversizedLocale
+				continue
+			}
 		}
 		blob, err := readBlob(ctx, r, layer)
 		if err != nil {

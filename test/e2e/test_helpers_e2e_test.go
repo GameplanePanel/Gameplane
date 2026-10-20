@@ -76,11 +76,10 @@ func applyBusyboxGameServer(t *testing.T, ns, gsName, tmplName string) {
 }
 
 // applyBusyboxGameServerWithCapture is applyBusyboxGameServer but with
-// spec.capture.enabled=true set at creation time. US2 (the
-// :capture-enable/:capture-disable HTTP routes that would flip this
-// flag post-creation) is not yet built, so tests exercising capture
-// opt in via the spec directly rather than through the API — see
-// TestGameServer_NetworkCaptureStartStopDownload.
+// spec.capture.enabled=true set at creation time. Tests exercising capture
+// opt in via the spec at creation, so the sidecar is injected on the first
+// reconcile, rather than flipping the flag post-creation through the
+// :capture-enable route — see TestGameServer_NetworkCaptureStartStopDownload.
 func applyBusyboxGameServerWithCapture(t *testing.T, ns, gsName, tmplName string) {
 	t.Helper()
 	applyBusyboxGameServerSpec(t, ns, gsName, tmplName, true)
@@ -548,4 +547,25 @@ func runResticWarmupJob(e *Env, jobAbs string) error {
 		}
 		time.Sleep(2 * time.Second)
 	}
+}
+
+// TestE2E_ResticRepoReady warms the shared restic repository and asserts the
+// warm-up Job succeeded. It is idempotent with every other ensureResticRepo
+// caller and is also run by the e2e-web-live CI job before Playwright
+// (backup-restore.spec.ts needs the restic server + initialised repo).
+func TestE2E_ResticRepoReady(t *testing.T) {
+	t.Parallel()
+	ensureResticRepo(t)
+
+	envInstance.Eventually(t, 30*time.Second, func() (bool, string) {
+		j, err := envInstance.K8s.BatchV1().Jobs("gameplane-games").
+			Get(context.Background(), "e2e-restic-warmup", metav1.GetOptions{})
+		if err != nil {
+			return false, "get warm-up job: " + err.Error()
+		}
+		if j.Status.Succeeded < 1 {
+			return false, fmt.Sprintf("job e2e-restic-warmup succeeded=%d, want >= 1", j.Status.Succeeded)
+		}
+		return true, ""
+	})
 }

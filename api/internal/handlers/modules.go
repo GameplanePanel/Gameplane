@@ -5,6 +5,7 @@
 //                                         across sources, with installation state
 //   - GET    /modules                   — list installed Module CRs
 //   - POST   /modules                   — install: create a Module CR
+//   - GET    /modules/{name}/locales/{tag} — module translations for a language
 //   - PATCH  /modules/{name}            — upgrade: patch spec.version
 //   - DELETE /modules/{name}            — uninstall: delete the Module CR
 //
@@ -27,8 +28,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 // MountModules wires the /modules surface onto r. namespace is the
@@ -52,6 +53,7 @@ func MountModules(r chi.Router, k *kube.Client, namespace string) {
 			r.Post("/preview", h.builderPreview)
 			r.Post("/export", h.builderExport)
 		})
+		r.Get("/{name}/locales/{tag}", h.getLocales)
 		r.Get("/{name}", h.getInstalled)
 		r.Patch("/{name}", h.upgrade)
 		r.Delete("/{name}", h.uninstall)

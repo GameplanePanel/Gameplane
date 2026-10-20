@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/scaffold"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/scaffold"
 )
 
 func TestValidate_ValidScaffoldedModule(t *testing.T) {

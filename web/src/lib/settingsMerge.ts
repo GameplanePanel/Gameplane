@@ -1,8 +1,19 @@
+import { defineMessages, type IntlShape } from "react-intl";
+
+import { englishIntl } from "@/lib/i18n/format";
 import type { GameServer } from "@/types";
 
+const MESSAGES = defineMessages({
+  conflict: {
+    id: "web.lib.settings_merge.conflict",
+    defaultMessage: "Server changed since you opened this page.",
+    description: "Error shown when saving server settings after the server was changed elsewhere",
+  },
+});
+
 export class SettingsConflictError extends Error {
-  constructor() {
-    super("Server changed since you opened this page.");
+  constructor(intl: IntlShape = englishIntl) {
+    super(intl.formatMessage(MESSAGES.conflict));
     this.name = "SettingsConflictError";
   }
 }
@@ -13,9 +24,10 @@ export function mergeDraftOntoLatest(
   draft: GameServer,
   baseline: GameServer,
   latest: GameServer,
+  intl: IntlShape = englishIntl,
 ): GameServer {
   // Never carry edits from a deleted server onto a namesake replacement.
-  if (baseline.metadata.uid !== latest.metadata.uid) throw new SettingsConflictError();
+  if (baseline.metadata.uid !== latest.metadata.uid) throw new SettingsConflictError(intl);
   const out = structuredClone(latest);
   // These maps use absence and an empty object interchangeably. Clearing the
   // last baseline key must still preserve keys another writer added meanwhile.

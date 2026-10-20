@@ -35,7 +35,7 @@ function withNS(path: string, ns?: string): string {
 export function isCentralAPI(path: string): boolean {
   const pathname = path.split("?")[0];
   if (pathname === "/users/me/servers") return false;
-  return ["/auth", "/users", "/roles", "/admin", "/modules", "/clusters", "/fleet", "/shares"].some(
+  return ["/auth", "/users", "/roles", "/admin", "/clusters", "/fleet", "/shares"].some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
   );
 }
@@ -56,19 +56,72 @@ export function csrfHeaders(): Record<string, string> {
   return { [CSRF_HEADER]: csrfToken() };
 }
 
+// ProblemFields is the subset of an RFC 9457 problem+json body the dashboard
+// reads: the English detail plus the stable message identifier and its args.
+interface ProblemFields {
+  detail: string;
+  messageId?: string;
+  args?: Record<string, string | number>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+// parseProblem returns the problem fields when the response is an
+// application/problem+json body with a string detail; anything else (other
+// content types, unparsable JSON, missing detail) yields null.
+function parseProblem(body: string, contentType?: string): ProblemFields | null {
+  if (!contentType?.toLowerCase().includes("application/problem+json")) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return null;
+  }
+  if (!isRecord(parsed) || typeof parsed.detail !== "string") return null;
+  const fields: ProblemFields = { detail: parsed.detail };
+  if (typeof parsed.messageId === "string") fields.messageId = parsed.messageId;
+  if (isRecord(parsed.args)) {
+    const args: Record<string, string | number> = {};
+    for (const [key, value] of Object.entries(parsed.args)) {
+      if (typeof value === "string" || typeof value === "number") args[key] = value;
+    }
+    fields.args = args;
+  }
+  return fields;
+}
+
 export class APIError extends Error {
   status: number;
   body: string;
   isHTML: boolean;
   retryAfter: string | null;
+  /** English detail from a problem+json body; undefined for other responses. */
+  detail?: string;
+  /** Stable message identifier (problem+json `messageId`), used for translation. */
+  messageId?: string;
+  /** Interpolation arguments for `messageId` (problem+json `args`). */
+  args?: Record<string, string | number>;
   constructor(status: number, body: string, statusText?: string, contentType?: string, retryAfter: string | null = null) {
     const isHTML = body.trimStart().startsWith("<") || (contentType?.includes("text/html") ?? false);
-    const message = isHTML ? `${status} ${statusText || ""}`.trim() : `${status}: ${body}`;
+    const problem = parseProblem(body, contentType);
+    const message = problem
+      ? `${status}: ${problem.detail}`
+      : isHTML ? `${status} ${statusText || ""}`.trim() : `${status}: ${body}`;
     super(message);
     this.status = status;
     this.body = body;
     this.isHTML = isHTML;
     this.retryAfter = retryAfter;
+    if (problem) {
+      // body carries the English sentence so existing callers that display
+      // err.body keep showing the same text they showed before problem+json.
+      this.body = problem.detail;
+      this.detail = problem.detail;
+      this.messageId = problem.messageId;
+      this.args = problem.args;
+    }
   }
 }
 
@@ -84,7 +137,7 @@ export interface Options {
 export async function api<T>(path: string, opts: Options = {}): Promise<T> {
   const method = opts.method ?? "GET";
   const headers: Record<string, string> = {
-    Accept: "application/json",
+    Accept: "application/json, application/problem+json",
     "Content-Type": "application/json",
     ...(opts.headers ?? {}),
   };
@@ -223,6 +276,93 @@ export const Config = {
       `/admin/config/auth/role-mappings/${encodeURIComponent(role)}`,
       { method: "DELETE" },
     ),
+};
+
+// Telemetry notice types mirror contracts/api-telemetry-http.md (spec 022).
+export type TelemetryNoticeAction = "seen" | "keep" | "extended-off" | "all-off";
+
+export interface TelemetryDestination {
+  kind: "default" | "custom" | "bundled" | "disabled" | "none";
+  // The URL host only; null for the disabled and none kinds.
+  host: string | null;
+}
+
+// GET /admin/telemetry/notice. When pending is false the other keys are
+// omitted, so a caller without config:manage gets exactly {"pending":false}.
+export interface TelemetryNotice {
+  pending: boolean;
+  destination?: TelemetryDestination;
+  fields?: { basic: string[]; extended: string[] };
+}
+
+// GET /admin/telemetry (contracts/api-telemetry-http.md; api/internal/handlers/telemetry.go).
+export interface TelemetryConsent {
+  basic: boolean;
+  extended: boolean;
+  source: "default" | "legacy" | "admin";
+}
+
+export interface TelemetryStatus {
+  lastAttemptAt: string | null;
+  lastSuccessAt: string | null;
+  lastOutcome: "never" | "ok" | "failed";
+  lastIdRotationAt: string | null;
+}
+
+export interface TelemetryPreviewExt {
+  schema: number;
+  installId: string;
+  env: { k8s: string[]; distro: string[]; arch: string[]; nodes: string; deployment: string };
+  games: { official: Record<string, number>; custom: number };
+  features: {
+    wakeOnConnect: boolean;
+    tunnels: string[];
+    capture: boolean;
+    backups: boolean;
+    sso: boolean;
+    auditForwarding: boolean;
+    clusters: string;
+    db: string;
+    language: string;
+  };
+  key: string;
+  sentAt: string;
+}
+
+// The exact report the reporter would send now (telemetryschema.Report).
+export interface TelemetryPreview {
+  version: string;
+  servers: number;
+  templates: number;
+  ext?: TelemetryPreviewExt;
+}
+
+export interface TelemetryInfo {
+  destination: TelemetryDestination;
+  // When true the stored consent is reported but has no effect.
+  operatorDisabled: boolean;
+  consent: TelemetryConsent;
+  // null whenever extended is off.
+  installId: string | null;
+  // null when basic is off or the destination is disabled/none.
+  preview: TelemetryPreview | null;
+  status: TelemetryStatus;
+}
+
+export const Telemetry = {
+  // GET /admin/telemetry (config:read).
+  get: () => api<TelemetryInfo>("/admin/telemetry"),
+  // POST /admin/telemetry/install-id (config:manage) — rotates the install ID.
+  // 409 when extended is off or the operator disabled telemetry.
+  resetInstallId: () =>
+    api<{ installId: string }>("/admin/telemetry/install-id", { method: "POST" }),
+  // GET /admin/telemetry/notice — the first-login notice for the caller.
+  notice: () => api<TelemetryNotice>("/admin/telemetry/notice"),
+  // POST /admin/telemetry/notice — "seen" records that the notice was rendered
+  // (no ack, idempotent); the other actions dismiss it. Every action answers
+  // 204, and a 409 means the notice was not pending.
+  ack: (action: TelemetryNoticeAction) =>
+    api<void>("/admin/telemetry/notice", { method: "POST", body: { action } }),
 };
 
 // ShareLinkCreateBody is the discriminated create-request shape callers

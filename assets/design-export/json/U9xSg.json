@@ -1,0 +1,551 @@
+{
+  "type": "frame",
+  "id": "U9xSg",
+  "x": 1640,
+  "y": 34107,
+  "name": "Screen/Server Detail — Players (Nuclear Option)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "kb3SP",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "ORz62",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "qCr4C",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "id": "y982W",
+          "type": "ref",
+          "ref": "S4k0x",
+          "name": "Detail Header",
+          "width": "fill_container"
+        },
+        {
+          "id": "bgz6L",
+          "type": "ref",
+          "ref": "I9kvlZ",
+          "name": "Tabs Bar",
+          "width": "fill_container",
+          "padding": [
+            0,
+            24
+          ],
+          "descendants": {
+            "Wp6q1": {
+              "fill": "#00000000"
+            },
+            "Wp6q1/YUR8N": {
+              "fill": "$muted"
+            },
+            "hNitQ": {
+              "fill": "$segment"
+            },
+            "hNitQ/VcxMI": {
+              "fill": "$foreground/segment"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "lbWu7",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "RA5cq",
+              "name": "Stat Cards Row",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "avKiV",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "Stat Online",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "ONLINE"
+                    },
+                    "QdcEm": {
+                      "icon": "users",
+                      "fill": "$success/success",
+                      "library": "lucide",
+                      "enabled": false
+                    },
+                    "vj2Ru": {
+                      "content": "3 / 16"
+                    },
+                    "h0n7zo": {
+                      "enabled": false
+                    }
+                  }
+                },
+                {
+                  "id": "vEoPm",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "Stat Whitelisted",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "WHITELISTED"
+                    },
+                    "QdcEm": {
+                      "icon": "list-checks",
+                      "fill": "$accent/accent",
+                      "library": "lucide",
+                      "enabled": false
+                    },
+                    "vj2Ru": {
+                      "content": "1"
+                    },
+                    "h0n7zo": {
+                      "enabled": false
+                    }
+                  }
+                },
+                {
+                  "id": "K8TBF",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "Stat Banned",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "BANNED"
+                    },
+                    "QdcEm": {
+                      "icon": "ban",
+                      "fill": "#DC2626",
+                      "library": "lucide",
+                      "enabled": false
+                    },
+                    "vj2Ru": {
+                      "content": "0"
+                    },
+                    "h0n7zo": {
+                      "enabled": false
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "a8WBd",
+              "name": "Online Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uKEOF",
+                  "name": "onlineCount",
+                  "fill": "$muted",
+                  "content": "3 / 16 online",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "tskEG",
+                  "type": "ref",
+                  "ref": "J09iP",
+                  "name": "Btn Refresh",
+                  "descendants": {
+                    "eWkIT/WtPjS": {
+                      "icon": "refresh-cw"
+                    },
+                    "eWkIT/r4VbAi": {
+                      "content": "Refresh"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Y1qaR",
+              "name": "Player Rows",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "zs5Pr",
+                  "name": "Player Row — Pilot_Vance",
+                  "width": "fill_container",
+                  "fill": "$surface/surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border/border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "SfNlc",
+                      "name": "Identity",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "b3MDFM",
+                          "name": "Player Name",
+                          "fill": "$foreground/foreground",
+                          "content": "Pilot_Vance",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "JadTR",
+                          "type": "ref",
+                          "ref": "A0msT5",
+                          "name": "Faction Chip",
+                          "descendants": {
+                            "mlfxU": {
+                              "content": "Boscali"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "g7WUX",
+                      "name": "Actions",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "voATz",
+                          "name": "Kick",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "user-minus",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "tbcjp",
+                          "name": "Ban",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "ban",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "xqdRG",
+                  "name": "Player Row — 76561198012345678",
+                  "width": "fill_container",
+                  "fill": "$surface/surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border/border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O3r5Kq",
+                      "name": "Identity",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LDVpd",
+                          "name": "Player Name",
+                          "fill": "$muted",
+                          "content": "76561198012345678",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "QCgzB",
+                          "type": "ref",
+                          "ref": "Qou47",
+                          "name": "Faction Chip",
+                          "descendants": {
+                            "z0QlNZ": {
+                              "content": "Primeva"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IjDVg",
+                      "name": "Actions",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "gGdB5",
+                          "name": "Kick",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "user-minus",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "o0R69j",
+                          "name": "Ban",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "ban",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EDOQ8",
+                  "name": "Player Row — Corvus",
+                  "width": "fill_container",
+                  "fill": "$surface/surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border/border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wb55l",
+                      "name": "Identity",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "NwVkL",
+                          "name": "Player Name",
+                          "fill": "$foreground/foreground",
+                          "content": "Corvus",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cjUkD",
+                      "name": "Actions",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "uf3OA",
+                          "name": "Kick",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "user-minus",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "P53mLy",
+                          "name": "Ban",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "ban",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OJpx1",
+              "name": "Whitelist Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MG8Zl",
+                  "name": "Whitelist Header",
+                  "width": "fill_container",
+                  "stroke": "$border/border",
+                  "strokeAlignment": "inner",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "C5nK6",
+                      "name": "Whitelist Chevron",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Y694nU",
+                      "name": "Whitelist Icon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "list-checks",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ICjzI",
+                      "name": "Whitelist Label",
+                      "fill": "$muted",
+                      "content": "Whitelist (1)",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "whI8w",
+              "name": "Banned Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "khA99",
+                  "name": "Banned Header",
+                  "width": "fill_container",
+                  "stroke": "$border/border",
+                  "strokeAlignment": "inner",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "xWJbE",
+                      "name": "Banned Chevron",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "aFc8A",
+                      "name": "Banned Label",
+                      "fill": "$muted",
+                      "content": "Banned (0)",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

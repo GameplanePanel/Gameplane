@@ -794,8 +794,9 @@ describe("CaptureWidget", () => {
 
       const buttons = await screen.findAllByLabelText(/Download capture/i);
       expect(buttons.length).toBe(2);
-      // First button (Completed) should be enabled
-      expect(buttons[0]).not.toBeDisabled();
+      // First button (Completed) should be enabled once the capabilities
+      // query resolves; the list can render before it does.
+      await waitFor(() => expect(buttons[0]).not.toBeDisabled());
       // Second button (Failed) should be disabled
       expect(buttons[1]).toBeDisabled();
     });

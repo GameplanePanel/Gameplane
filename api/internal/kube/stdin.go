@@ -52,7 +52,7 @@ func (c *Client) WriteStdinLines(ctx context.Context, ns, pod, container string,
 		}, scheme.ParameterCodec).
 		URL()
 
-	exec, err := remotecommand.NewSPDYExecutor(c.Config, "POST", url)
+	exec, err := c.NewSPDYExecutor("POST", url)
 	if err != nil {
 		return fmt.Errorf("build stdin attach executor for pod %s/%s: %w", ns, pod, err)
 	}

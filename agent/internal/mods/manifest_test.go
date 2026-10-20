@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ValgulNecron/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 )
 
 // jarServer serves the same bytes for every path and returns its allowlist

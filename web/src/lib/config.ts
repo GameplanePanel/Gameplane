@@ -77,14 +77,27 @@ export interface NotifSink {
   // before delivery existed lack it; they deliver nothing until set.
   configRef?: string;
   events?: NotifEventType[];
+  // BCP 47 tag of a listed language the sink's messages are written in.
+  // Omitted = the instance default (I18nCfg.defaultLanguage).
+  language?: string;
 }
 
 export interface NotificationsCfg {
   sinks: NotifSink[];
 }
 
+// Instance-wide default language (config section "i18n"). Absent = "en".
+// Used when a user has no saved language and no browser language is listed,
+// and by notification sinks set to the instance default.
+export interface I18nCfg {
+  defaultLanguage: string;
+}
+
 export interface TelemetryCfg {
   sendMetrics: boolean;
+  // Extended tier (spec 022). The server saves it as false whenever
+  // sendMetrics is false.
+  extended: boolean;
 }
 
 // Mod-registry providers that take an admin-configured API key (mirrors
@@ -139,6 +152,7 @@ export interface AllConfig {
   auth?: AuthCfg;
   notifications?: NotificationsCfg;
   telemetry?: TelemetryCfg;
+  i18n?: I18nCfg;
   modRegistries?: ModRegistriesCfg;
   installTimeSettings?: InstallTimeSettings;
 }

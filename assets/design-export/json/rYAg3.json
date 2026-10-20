@@ -1,0 +1,240 @@
+{
+  "type": "frame",
+  "id": "rYAg3",
+  "x": 1748,
+  "y": 7617,
+  "name": "Gameplane/Fleet Status Card",
+  "reusable": true,
+  "width": "fill_container(546)",
+  "height": 372,
+  "fill": "$surface/surface",
+  "cornerRadius": "$radius/3xl",
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "effect": {
+    "type": "shadow",
+    "shadowType": "outer",
+    "color": "#0000000A",
+    "offset": {
+      "x": 0,
+      "y": 2
+    },
+    "blur": 4
+  },
+  "layout": "vertical",
+  "gap": 12,
+  "padding": 16,
+  "children": [
+    {
+      "type": "frame",
+      "id": "B9d3yE",
+      "name": "Header",
+      "width": "fill_container",
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "AQAla",
+          "name": "title",
+          "fill": "$foreground/foreground",
+          "content": "Fleet status",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "L6pQb",
+          "name": "link",
+          "fill": "$muted",
+          "content": "1 servers",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ialHu",
+      "name": "Content",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "NzjSa",
+          "name": "Health Bar",
+          "clip": true,
+          "width": "fill_container",
+          "height": 8,
+          "fill": "$default/default",
+          "cornerRadius": 999,
+          "children": [
+            {
+              "type": "rectangle",
+              "id": "VVCOn",
+              "name": "Running Segment",
+              "fill": "$success/success",
+              "width": "fill_container",
+              "height": 8
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "bLCPP",
+          "name": "Legend",
+          "gap": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "FGZqj",
+              "name": "legend-Running 1",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "s3skbL",
+                  "name": "dot",
+                  "fill": "$success/success",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "SrmAX",
+                  "name": "label",
+                  "fill": "$muted",
+                  "content": "Running 1",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mmSxS",
+              "name": "legend-Stopped 0",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "R9BbFj",
+                  "name": "dot",
+                  "fill": "$muted",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "JqpQN",
+                  "name": "label",
+                  "fill": "$muted",
+                  "content": "Stopped 0",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "svjLI",
+              "name": "legend-Failed 0",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "WtE2l",
+                  "name": "dot",
+                  "fill": "$danger/danger",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "gYBWa",
+                  "name": "label",
+                  "fill": "$muted",
+                  "content": "Failed 0",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "CwvN0",
+          "name": "Attention Section",
+          "width": "fill_container",
+          "stroke": "$border/border",
+          "strokeWidth": {
+            "top": 1
+          },
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "bI0Ic",
+              "name": "attnLabel",
+              "fill": "$muted",
+              "content": "NEEDS ATTENTION",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 10,
+              "fontWeight": "500",
+              "letterSpacing": 1
+            },
+            {
+              "type": "frame",
+              "id": "ReAgF",
+              "name": "healthyRow",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "OPLzG",
+                  "name": "check",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "circle-check",
+                  "library": "lucide",
+                  "fill": "$success/success"
+                },
+                {
+                  "type": "text",
+                  "id": "fanYm",
+                  "name": "healthyLabel",
+                  "fill": "$muted",
+                  "content": "Everything looks healthy.",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

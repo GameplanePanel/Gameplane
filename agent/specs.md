@@ -1,7 +1,7 @@
 # agent — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/agent`
+**Module / package:** `github.com/GameplanePanel/gameplane/agent`
 
 ## Purpose
 
@@ -82,7 +82,7 @@ Per-package roles:
 - **`files`**: Walks the filesystem under `--data-root`, validates paths lexically, then performs every operation relative to a directory descriptor on the root with `openat(O_NOFOLLOW)` per component (no `..`, no symlink at any component), handles multipart uploads.
 - **`heartbeat`**: Runs a background goroutine that every 20 seconds patches `gameservers/<name>/status` with `status.agent.lastHeartbeat`, `status.agent.playersOnline`, `status.agent.playersMax`, `status.agent.gameVersion`, and resource usage via the pod's ServiceAccount. `gameVersion` is currently always patched `null` ("unknown") — the agent has no source for the game's actual running version; it must never be filled in with the game/template identifier (e.g. `minecraft-java`), which is a different value.
 - **`lifecycle`**: HTTP handler for the operator's `/lifecycle/stop` call; runs module-declared stop commands over RCON before the game process terminates.
-- **`logs`**: Tails a game log file (path from `--game-log-path`) over WebSocket; supports streaming from end (default, "live") or start ("backlog").
+- **`logs`**: Tails a game log file (path from `--game-log-path`) over WebSocket; supports streaming from end (default, "live") or start ("backlog"). Absolute paths must be inside `--data-root`; relative paths resolve beneath it. Downloads and all tail opens, rotation probes, and reopens use regular-file descriptors confined to the trusted data root. Symlinks in any component below the root and nonregular files are rejected; FIFO rejection does not block. Downloads serve the opened descriptor even if the path changes. Ordinary rename rotation and missing-file retries remain supported. Filesystem failures use generic client errors.
 - **`mods`**: Tracks installed mods in a per-volume manifest (`.gameplane-mods.json`); downloads from registry with strict egress validation via `netguard.IsPublic`.
 - **`players`**: Queries player count, names, ban lists, and runs moderation actions over RCON; a single template-driven `commander` renders each moderation command from the module's declared `capabilities.players` templates (no per-game Go implementations), and reports capabilities from what the template declares.
 - **`quiesce`**: Runs module-declared sequences (e.g., Minecraft's `save-off` + `save-all flush`) over RCON; responds `quiesced: false` + reason when unsupported (not an error).
@@ -109,7 +109,7 @@ Mode: In-pod HTTP/HTTPS sidecar (runs as a container sidecar or as a pod share-p
 | `--rcon-password-file` | `` | — | Path to file holding the RCON password |
 | `--rcon-enabled` | `true` (from env) | `GAMEPLANE_RCON_ENABLED` | Whether the game exposes RCON; `false` degrades RCON-backed endpoints gracefully |
 | `--rcon-protocol` | `source` (from env) | `GAMEPLANE_RCON_PROTOCOL` | RCON wire protocol: `source` (Valve/Minecraft), `telnet` (7 Days to Die), `websocket` (Rust), `battleye` (DayZ/Arma), `satisfactory` (Satisfactory), `palworld` (Palworld), `nuclearoption` (Nuclear Option), `rest` (generic HTTP/JSON admin API, e.g. FiveM txAdmin or Farming Simulator 25), `cli` (container stdin/PTY); unrecognized falls back to `source` |
-| `--game-log-path` | `` | — | Path to the game container's log file for `/logs/tail` |
+| `--game-log-path` | `` | — | Regular game log file for `/logs/tail` and `/logs/download`; absolute inside `--data-root`, or relative to it; no symlinks below root |
 | `--tls-cert` | `` | — | Server TLS cert (PEM); if set, requires `--tls-key` and enables HTTPS + mTLS; exits with error if set without `--tls-key` or vice versa |
 | `--tls-key` | `` | — | Server TLS key (PEM); must be set together with `--tls-cert` |
 | `--tls-client-ca` | `` | — | CA bundle that signs API client certs (required if `--tls-cert` is set) |
@@ -163,7 +163,8 @@ Resource usage env vars (set by the operator):
 | `/files/list` | GET | List directory entries; query param `path` (default `/`) |
 | `/files/read` | GET | Read file inline (small files only); query param `path` |
 | `/files/download` | GET | Download file as attachment; query param `path` |
-| `/files/write` | POST | Overwrite or create file; query param `path`; body is raw file content |
+| `/files/write` | POST | Overwrite or create file; query param `path`; raw body capped at 64 MiB. An oversized request returns 413 without changing an existing file or leaving a new file. |
+| `/files/create` | POST | Create only; query param `path`; raw body capped at 64 MiB. An oversized request returns 413 without publishing the file. Atomically refuses any existing final entry with 409 `file already exists`, including directories, symlinks and concurrent creators. Shares rooted traversal and 0644/no inherited access-ACL new-file policy; cleans temporary files on failure and fails closed if atomic no-replace is unsupported. Older agents return 404; clients must never fall back to `/files/write`. |
 | `/files/upload` | POST | Upload one or more files to a directory; query param `path`; body is `multipart/form-data` with `files[]`; returns HTTP 400 if the destination directory or a destination file name is, or is reached through, a symlink |
 | `/files/mkdir` | POST | Create directory (recursive); query param `path` |
 | `/files/delete` | DELETE | Delete file or directory; query param `path`, optional `recursive` (boolean) |

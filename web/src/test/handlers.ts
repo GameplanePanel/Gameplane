@@ -2,7 +2,7 @@
 // on to render its happy-path UI without each test having to declare
 // every endpoint. Tests override individual routes via `server.use(...)`.
 
-import { http, HttpResponse, ws } from "msw";
+import { http, HttpResponse, ws, type PathParams } from "msw";
 import { fleetHandlers } from "./fleetHandlers";
 import {
   makeAudit,
@@ -29,6 +29,9 @@ import {
   screenshotConsoleOutput,
   screenshotSystemLogLines,
   screenshotConfigWithOidc,
+  screenshotConfigOidcDesign,
+  screenshotDesignCatalog,
+  screenshotDesignSources,
   screenshotConfigOidcEmptyMappings,
   screenshotConfigEmptyStorageClass,
   screenshotConfigCurseforgeOnly,
@@ -38,8 +41,14 @@ import {
 
 export const INVALID_BPF_FILTER_FIXTURE = "tcp prot 8080 foo";
 
+// msw 3 matches paths without path-to-regexp, so `:name([^:/]+)` is no longer
+// supported. A `/servers/:name` resolver that returns nothing falls through to
+// the next handler, which keeps `name:verb` URLs for the regex handlers.
+const isColonAction = (params: PathParams) => String(params.name).includes(":");
+
 export const handlers = [
   ...fleetHandlers,
+  http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
   // Auth
   http.get("/users/me", ({ cookies }) => {
     // e2e affordance: a 401 on /users/me must bounce the SPA to /login,
@@ -99,6 +108,9 @@ export const handlers = [
       ],
     }),
   ),
+  // Pre-auth instance default language (spec 019). The dashboard asks for it
+  // on every page load; mock mode reports English.
+  http.get("/auth/locale", () => HttpResponse.json({ defaultLanguage: "en" })),
 
   // Cluster
   // Server-sent events stream the layout opens. Browser mock mode has a
@@ -166,11 +178,12 @@ export const handlers = [
       ],
     }),
   ),
-  // `:name([^:/]+)` excludes ':' so this never swallows a `name:verb` colon-action
-  // URL (e.g. `alpha:capture`) meant for one of the regex handlers below — a
-  // dead/misordered colon-action handler should 404 as unhandled, not silently
-  // return a plausible-looking server here.
-  http.get("/servers/:name([^:/]+)", ({ params, request, cookies }) => {
+  // isColonAction falls through on ':' so this never swallows a `name:verb`
+  // colon-action URL (e.g. `alpha:capture`) meant for one of the regex handlers
+  // below — a dead/misordered colon-action handler should 404 as unhandled, not
+  // silently return a plausible-looking server here.
+  http.get("/servers/:name", ({ params, request, cookies }) => {
+    if (isColonAction(params)) return;
     const cluster = new URL(request.url).searchParams.get("cluster") || "local";
     const namespace = new URL(request.url).searchParams.get("namespace") || "gameplane-games";
     return HttpResponse.json(makeServer({ metadata: { name: String(params.name), namespace,
@@ -192,10 +205,10 @@ export const handlers = [
     );
   }),
   // See the GET /servers/:name comment above — same colon-exclusion reasoning.
-  http.put("/servers/:name([^:/]+)", ({ params }) =>
+  http.put("/servers/:name", ({ params }) => isColonAction(params) ? undefined :
     HttpResponse.json(makeServer({ metadata: { name: String(params.name) } })),
   ),
-  http.delete("/servers/:name([^:/]+)", () => new HttpResponse(null, { status: 204 })),
+  http.delete("/servers/:name", ({ params }) => isColonAction(params) ? undefined : new HttpResponse(null, { status: 204 })),
 
   // Lifecycle: chi uses `:verb` literal-colon URL syntax, which standard
   // URL pattern matchers don't parse — fall back to regex per verb.
@@ -320,7 +333,7 @@ export const handlers = [
             displayName: "Valheim",
             game: "valheim",
             version: "0.218",
-            image: "ghcr.io/valgulnecron/gameplane/valheim:0.218",
+            image: "ghcr.io/gameplanepanel/gameplane/valheim:0.218",
           },
         }),
       ],
@@ -767,6 +780,22 @@ export const handlers = [
   ),
   http.get("/admin/config", () => HttpResponse.json(makeConfig())),
   http.put("/admin/config/:section", () => new HttpResponse(null, { status: 204 })),
+  // First-login telemetry notice (spec 022): not pending by default, so
+  // tests that render the app shell as an admin see no banner.
+  http.get("/admin/telemetry/notice", () => HttpResponse.json({ pending: false })),
+  http.post("/admin/telemetry/notice", () => new HttpResponse(null, { status: 204 })),
+  // Admin Settings -> Telemetry (spec 022): matches the default config
+  // (basic off, extended off), so the section renders the default destination.
+  http.get("/admin/telemetry", () =>
+    HttpResponse.json({
+      destination: { kind: "default", host: "telemetry.example.org" },
+      operatorDisabled: false,
+      consent: { basic: false, extended: false, source: "default" },
+      installId: null,
+      preview: null,
+      status: { lastAttemptAt: null, lastSuccessAt: null, lastOutcome: "never", lastIdRotationAt: null },
+    }),
+  ),
   http.post("/admin/notifications/sinks/:name/test", () =>
     HttpResponse.json({ delivered: true }),
   ),
@@ -811,8 +840,11 @@ export function buildScreenshotHandlers() {
   const data = getScreenshotData();
   return [
     ...fleetHandlers,
+    http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
     // The Servers page asks which namespaces to list before listing servers.
     http.get("/namespaces", () => HttpResponse.json({ namespaces: ["gameplane-games"] })),
+    // Pre-auth instance default language (spec 019).
+    http.get("/auth/locale", () => HttpResponse.json({ defaultLanguage: "en" })),
     // Auth: reuse default login/logout (screenshot demos don't test auth edge cases)
     http.get("/users/me", ({ cookies }) => {
       if (cookies.e2e_force_401 === "1") {
@@ -899,7 +931,8 @@ export function buildScreenshotHandlers() {
         items: data.servers,
       }),
     ),
-    http.get("/servers/:name([^:/]+)", ({ params, cookies }) => {
+    http.get("/servers/:name", ({ params, cookies }) => {
+      if (isColonAction(params)) return;
       const name = String(params.name);
       const server = data.servers.find((s) => s.metadata.name === name);
       if (!server) {
@@ -951,11 +984,18 @@ export function buildScreenshotHandlers() {
             ...server,
             spec: {
               ...server.spec,
-              idle: { enabled: true, afterMinutes: 60 },
+              idle: { ...server.spec.idle, enabled: true, afterMinutes: 30 },
             },
             status: {
               ...server.status,
               idle: { reason: "this game reports no player count" },
+              agent: {
+                ...server.status?.agent,
+                memoryBytes: 1610612736, // 1.5 GiB -> "1.5 GB", 38% of limit
+                memoryLimitBytes: 4294967296, // 4.0 GiB -> "4.0 GB"
+                diskUsedBytes: 3972844749, // 3.7 GiB -> "3.7 GB", 13% of total
+                diskTotalBytes: 31138512896, // 29 GiB -> "29 GB"
+              },
             },
           });
         }
@@ -1026,10 +1066,10 @@ export function buildScreenshotHandlers() {
         }),
       );
     }),
-    http.put("/servers/:name([^:/]+)", ({ params }) =>
+    http.put("/servers/:name", ({ params }) => isColonAction(params) ? undefined :
       HttpResponse.json(makeServer({ metadata: { name: String(params.name) } })),
     ),
-    http.delete("/servers/:name([^:/]+)", () => new HttpResponse(null, { status: 204 })),
+    http.delete("/servers/:name", ({ params }) => isColonAction(params) ? undefined : new HttpResponse(null, { status: 204 })),
 
     // Lifecycle actions
     http.post(/\/servers\/[^/]+:start$/, () => new HttpResponse(null, { status: 202 })),
@@ -1321,8 +1361,12 @@ export function buildScreenshotHandlers() {
 
     // Modules
     http.get("/modules", () => HttpResponse.json({ items: [makeModule()] })),
-    http.get("/modules/catalog", () =>
-      HttpResponse.json({
+    http.get("/modules/catalog", ({ cookies }) => {
+      // kK8Ji design variant: selected by the e2e_modules_variant=design cookie.
+      if (cookies.e2e_modules_variant === "design") {
+        return HttpResponse.json({ items: screenshotDesignCatalog });
+      }
+      return HttpResponse.json({
         items: [
           makeCatalog(),
           makeCatalog({
@@ -1337,11 +1381,14 @@ export function buildScreenshotHandlers() {
             latestVersion: "0.218",
           }),
         ],
-      }),
-    ),
-    http.get("/modules/sources", () =>
-      HttpResponse.json({ items: [makeModuleSource()] }),
-    ),
+      });
+    }),
+    http.get("/modules/sources", ({ cookies }) => {
+      if (cookies.e2e_modules_variant === "design") {
+        return HttpResponse.json({ items: screenshotDesignSources });
+      }
+      return HttpResponse.json({ items: [makeModuleSource()] });
+    }),
     http.get("/modules/:name", ({ params }) =>
       HttpResponse.json(makeModule({ metadata: { name: String(params.name) } })),
     ),
@@ -1360,8 +1407,11 @@ export function buildScreenshotHandlers() {
     http.delete("/modules/:name", () => new HttpResponse(null, { status: 204 })),
 
     // Server events: return events for the requested server
-    http.get("/servers/:name/events", ({ params }) => {
+    http.get("/servers/:name/events", ({ params, cookies }) => {
       const name = String(params.name);
+      if (name === "mc-survival" && cookies.e2e_server_variant === "never-sleeps") {
+        return HttpResponse.json([]);
+      }
       const serverEvents = data.events.filter((e) => e.object === name);
       return HttpResponse.json(serverEvents);
     }),
@@ -1604,6 +1654,8 @@ export function buildScreenshotHandlers() {
       switch (cookies.e2e_admin_config_variant) {
         case "oidc":
           return HttpResponse.json(screenshotConfigWithOidc());
+        case "oidc-design":
+          return HttpResponse.json(screenshotConfigOidcDesign());
         case "oidc-empty-mappings":
           return HttpResponse.json(screenshotConfigOidcEmptyMappings());
         case "empty-storage-class":

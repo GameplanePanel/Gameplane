@@ -2,24 +2,38 @@
 # Ephemeral kind cluster for end-to-end tests.
 #
 # Usage:
-#   deploy/kind/e2e.sh up    [cluster-name] [tag]
+#   deploy/kind/e2e.sh up    [cluster-name] [tag] [profile]
 #   deploy/kind/e2e.sh down  [cluster-name]
 #
 # Diffs from dev-up (deploy/kind/up.sh):
 #   - Single-node cluster (faster boot, sufficient for E2E coverage).
 #   - Skips ingress-nginx (the dashboard isn't exercised here).
-#   - Loads pre-built gameplane-test/{operator,api,agent,sentinel,capture-sidecar,fakeoidc}:<tag>
+#   - Loads pre-built gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,fakeoidc}:<tag>
 #     images (and gameplane-test/gameprobe:<tag> when present).
 #   - Helm install with --wait so pods are Ready before tests start.
 #
 # Image tag defaults to "e2e". Override via the second argument or
 # the GAMEPLANE_E2E_TAG env var.
+#
+# Profile defaults to "default". The "postgres" profile (spec 013 US5) runs
+# the API on PostgreSQL: it applies deploy/kind/postgres.yaml, retags the
+# postgres-tagged api image as gameplane-test/api:<tag> before loading, and
+# installs with api.db.driver=postgres and the DSN from the
+# gameplane-postgres Secret. The retag replaces the local SQLite api image.
 
 set -euo pipefail
 
 ACTION="${1:-up}"
 CLUSTER="${2:-gameplane-e2e}"
 TAG="${3:-${GAMEPLANE_E2E_TAG:-e2e}}"
+PROFILE="${4:-default}"
+case "${PROFILE}" in
+default | postgres) ;;
+*)
+    echo "unknown profile '${PROFILE}' (want default or postgres)" >&2
+    exit 2
+    ;;
+esac
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "${HERE}/../.." && pwd)"
 CHART_DIR="${REPO}/charts/gameplane"
@@ -62,7 +76,7 @@ install_metallb() {
 # read back from docker rather than hardcoded, because the bridge subnet is
 # docker's choice (commonly 172.18.0.0/16) and not guaranteed.
 apply_metallb_pools() {
-    local subnet prefix range_east range_west attempt
+    local subnet prefix range_east range_west range_single attempt
     subnet="$(docker network inspect kind \
         -f '{{range .IPAM.Config}}{{.Subnet}} {{end}}' | tr ' ' '\n' | grep -m1 '\.' || true)"
     case "${subnet}" in
@@ -75,8 +89,9 @@ apply_metallb_pools() {
     prefix="$(echo "${subnet}" | cut -d. -f1,2)"
     range_east="${prefix}.255.100-${prefix}.255.110"
     range_west="${prefix}.255.200-${prefix}.255.210"
+    range_single="${prefix}.255.150-${prefix}.255.150"
 
-    echo "defining MetalLB pools pool-us-east (${range_east}) and pool-us-west (${range_west})"
+    echo "defining MetalLB pools pool-us-east (${range_east}), pool-us-west (${range_west}) and pool-e2e-single (${range_single})"
     # IPAddressPool and L2Advertisement are gated by MetalLB's validating
     # webhook, which keeps refusing connections for a few seconds after the
     # controller Deployment reports Available. Retry instead of racing it.
@@ -104,6 +119,20 @@ spec:
   addresses:
     - ${range_west}
 ---
+# pool-e2e-single holds exactly one address and never auto-assigns. It exists
+# only so TestAddressPool_PoolExhausted can exhaust a pool without starving the
+# parallel tests that draw from pool-us-east and pool-us-west. Do not reference
+# it from any other test.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: pool-e2e-single
+  namespace: metallb-system
+spec:
+  autoAssign: false
+  addresses:
+    - ${range_single}
+---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
@@ -121,6 +150,15 @@ metadata:
 spec:
   ipAddressPools:
     - pool-us-west
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: pool-e2e-single
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - pool-e2e-single
 EOF
         then
             return 0
@@ -163,11 +201,26 @@ EOF
     install_metallb
     apply_metallb_pools
 
-    echo "loading gameplane-test/{operator,api,agent,sentinel,capture-sidecar}:${TAG} images into kind"
-    for img in operator api agent sentinel capture-sidecar; do
+    # The chart has one image.tag for every component, so the postgres
+    # profile loads the postgres-tagged api build under the shared tag.
+    if [ "${PROFILE}" = postgres ]; then
+        if ! docker image inspect gameplane-test/api:e2e-postgres >/dev/null 2>&1; then
+            echo "missing local image gameplane-test/api:e2e-postgres (bake target e2e-api-postgres)" >&2
+            exit 1
+        fi
+        echo "retagging gameplane-test/api:e2e-postgres as gameplane-test/api:${TAG}"
+        docker tag gameplane-test/api:e2e-postgres "gameplane-test/api:${TAG}"
+    fi
+
+    echo "loading gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,mcp-server,audit-syslog-bridge,tunnel-frp}:${TAG} images into kind"
+    for img in operator api agent sentinel capture-sidecar telemetry-receiver mcp-server audit-syslog-bridge tunnel-frp; do
         if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
             echo "  missing local image gameplane-test/${img}:${TAG} — building"
-            docker build -t "gameplane-test/${img}:${TAG}" -f "${REPO}/${img}/Dockerfile" "${REPO}"
+            dockerfile="${REPO}/${img}/Dockerfile"
+            if [ "${img}" = tunnel-frp ]; then
+                dockerfile="${REPO}/tunnel/Dockerfile.frp"
+            fi
+            docker build -t "gameplane-test/${img}:${TAG}" -f "${dockerfile}" "${REPO}"
         fi
         kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
     done
@@ -219,6 +272,27 @@ EOF
     # only runs during the install call further down.
     echo "creating gameplane-system namespace (pre-Helm, for the fake-OIDC fixture)"
     kubectl create namespace gameplane-system --dry-run=client -o yaml | kubectl apply -f -
+
+    if [ "${PROFILE}" = postgres ]; then
+        echo "deploying PostgreSQL (postgres profile)"
+        kubectl apply -f "${HERE}/postgres.yaml"
+        kubectl rollout status --namespace gameplane-system \
+            statefulset/gameplane-postgres --timeout=180s
+        ready=""
+        for attempt in $(seq 1 60); do
+            if kubectl exec --namespace gameplane-system gameplane-postgres-0 -- \
+                pg_isready -U gameplane -d gameplane >/dev/null 2>&1; then
+                ready=1
+                break
+            fi
+            echo "  waiting for pg_isready (attempt ${attempt}/60)"
+            sleep 2
+        done
+        if [ -z "${ready}" ]; then
+            echo "PostgreSQL never became ready" >&2
+            exit 1
+        fi
+    fi
 
     echo "creating gameplane-oidc client-secret Secret"
     kubectl create secret generic gameplane-oidc \
@@ -283,6 +357,13 @@ EOF
     kubectl rollout status --namespace gameplane-system \
         deployment/gameplane-test-fakeoidc --timeout=120s
 
+    DB_SETS=()
+    if [ "${PROFILE}" = postgres ]; then
+        dsn="$(kubectl get secret gameplane-postgres --namespace gameplane-system \
+            -o jsonpath='{.data.dsn}' | base64 -d)"
+        DB_SETS=(--set "api.db.driver=postgres" --set-string "api.db.dsn=${dsn}")
+    fi
+
     echo "helm upgrade --install gameplane"
     # Bump the API container's memory limit above the chart default of
     # 256Mi. The bootstrap-admin subcommand and every login endpoint
@@ -298,6 +379,8 @@ EOF
     # Disable the web front end: the suite drives the API directly via
     # port-forward (never the browser), so building/loading the nginx image
     # would only add minutes, and `--wait` would block on an unloaded image.
+    # Deploy the bundled telemetry receiver and point the API at it: never let
+    # CI or dev installs reach the project provider (spec 022 R17).
     helm upgrade --install gameplane "${CHART_DIR}" \
         --namespace gameplane-system --create-namespace \
         --set "image.registry=gameplane-test" \
@@ -318,10 +401,12 @@ EOF
         --set "operator.addressManager=metallb" \
         --set "operator.gameDataStorage.storageClassName=gameplane-e2e-install-default" \
         --set "defaultModuleSource.enabled=false" \
+        --set "api.telemetry.receiver.enabled=true" \
+        ${DB_SETS[@]+"${DB_SETS[@]}"} \
         --wait --timeout 5m
 
     echo
-    echo "✓ cluster ${CLUSTER} ready (image tag ${TAG})"
+    echo "✓ cluster ${CLUSTER} ready (image tag ${TAG}, profile ${PROFILE})"
     echo "  GAMEPLANE_E2E_REUSE_CLUSTER=1 reuses this cluster across go test runs"
     ;;
 
@@ -334,7 +419,7 @@ down)
     ;;
 
 *)
-    echo "usage: $0 up|down [cluster-name] [tag]" >&2
+    echo "usage: $0 up|down [cluster-name] [tag] [profile]" >&2
     exit 2
     ;;
 esac

@@ -4,7 +4,7 @@
 //   - DELETE /modules/sources/{name}/upload/{module}   — remove a bundle
 //
 // The body is a tar.gz or zip holding one module directory (module.yaml
-// + template.yaml [+ README.md, icon.png]). After validation the files
+// + template.yaml [+ README.md, icon.png, locales/<tag>.json]). After validation the files
 // are written into a ConfigMap labeled gameplane.local/module-upload=true in
 // the operator namespace — the exact shape an upload-type ModuleSource
 // indexes, and the same thing `kubectl apply` of such a ConfigMap
@@ -32,8 +32,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/i18n/pack"
 )
 
 // Bundle files are a couple of YAML docs and an icon; the ConfigMap
@@ -60,8 +61,15 @@ const (
 
 // bundleFileNames are the canonical files copied into the ConfigMap;
 // anything else in the archive (junk like .DS_Store, nested docs) is
-// ignored.
+// ignored. Translation files locales/<tag>.json are copied too, under the
+// ConfigMap key locales.<tag>.json (a key cannot contain "/").
 var bundleFileNames = []string{"module.yaml", "template.yaml", "README.md", "icon.png"}
+
+const (
+	uploadLocalesDir       = "locales"
+	uploadLocaleKeyPrefix  = "locales."
+	uploadLocaleFileSuffix = ".json"
+)
 
 // uploadedMetadata is the subset of module.yaml the API validates and
 // echoes back for the dashboard's preview.
@@ -259,6 +267,14 @@ func parseUploadedBundle(body []byte) (map[string][]byte, *uploadedMetadata, err
 			total += len(data)
 		}
 	}
+	localeFiles, err := uploadedLocaleFiles(extracted, dir)
+	if err != nil {
+		return nil, nil, err
+	}
+	for key, data := range localeFiles {
+		files[key] = data
+		total += len(data)
+	}
 	if total > maxUploadBundleBytes {
 		return nil, nil, fmt.Errorf("bundle files exceed the %d KiB limit", maxUploadBundleBytes>>10)
 	}
@@ -295,6 +311,38 @@ func parseUploadedBundle(body []byte) (map[string][]byte, *uploadedMetadata, err
 	}
 
 	return files, &meta, nil
+}
+
+// uploadedLocaleFiles collects the locales/<tag>.json members of the module
+// directory dir as ConfigMap keys ("locales.<tag>.json"). The English
+// reference en.json is never shipped, non-JSON members are ignored, and a file
+// name that is not a valid language tag rejects the upload. Size is not capped
+// here: the caller counts these bytes against the bundle limit, so an oversized
+// upload is refused loudly instead of losing a language.
+func uploadedLocaleFiles(extracted map[string][]byte, dir string) (map[string][]byte, error) {
+	prefix := uploadLocalesDir + "/"
+	if dir != "." {
+		prefix = dir + "/" + prefix
+	}
+	out := map[string][]byte{}
+	for key, data := range extracted {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		name := strings.TrimPrefix(key, prefix)
+		if strings.Contains(name, "/") || !strings.HasSuffix(name, uploadLocaleFileSuffix) {
+			continue
+		}
+		tag := strings.TrimSuffix(name, uploadLocaleFileSuffix)
+		if tag == "en" {
+			continue
+		}
+		if !pack.ValidTag(tag) {
+			return nil, fmt.Errorf("locales/%s: %q is not a valid language tag", name, tag)
+		}
+		out[uploadLocaleKeyPrefix+tag+uploadLocaleFileSuffix] = data
+	}
+	return out, nil
 }
 
 var errUploadTooLarge = errors.New("archive expands past the decompression limit")

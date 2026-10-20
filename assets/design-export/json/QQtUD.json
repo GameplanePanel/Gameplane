@@ -1,0 +1,521 @@
+{
+  "type": "frame",
+  "id": "QQtUD",
+  "x": 1640,
+  "y": 21112,
+  "name": "Screen/Create Server — Step 4 Network (as built)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1270,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "rn0n0",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "J8b2Q",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "pN9oL",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "TopBar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "New"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "BcH4J",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 0,
+      "name": "ModalContainer",
+      "width": 1440,
+      "height": 1270,
+      "fill": "#000000B3",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "xtHqZ",
+          "name": "Modal",
+          "clip": true,
+          "width": 960,
+          "fill": "$surface/surface",
+          "cornerRadius": 12,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#00000080",
+            "offset": {
+              "x": 0,
+              "y": 24
+            },
+            "blur": 60
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "TxqZL",
+              "type": "ref",
+              "ref": "opmcF",
+              "name": "Header",
+              "width": "fill_container",
+              "descendants": {
+                "gcM6g": {
+                  "content": "Step 4 of 5 · Network"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "R3xcu0",
+              "name": "Location placement",
+              "context": "Only authorized template/location combinations; changing location starts a fresh draft. Freeze chosen target during submission.",
+              "width": "fill_container",
+              "stroke": "$border/border",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 5,
+              "padding": [
+                12,
+                24
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VXTz6",
+                  "name": "Location label",
+                  "fill": "$foreground/foreground",
+                  "content": "Location",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "P7KnGU",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Creation location",
+                  "width": "fill_container",
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "remote-lab / gameplane-games",
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "pmqTD",
+                  "name": "Changing location help",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Changing location starts a fresh draft. The chosen location handles all creation steps.",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "MWASm",
+              "type": "ref",
+              "ref": "oROhg",
+              "name": "Stepper",
+              "width": "fill_container",
+              "descendants": {
+                "F3Au7j": {
+                  "fill": "$success/soft",
+                  "stroke": "$success/success",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "qFK6z",
+                      "name": "CheckIcon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "$success/soft-foreground"
+                    }
+                  ]
+                },
+                "bSERJ": {
+                  "fill": "$muted",
+                  "fontWeight": "normal"
+                },
+                "xpeFZ": {
+                  "fill": "$success/soft",
+                  "stroke": "$success/success",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "u9Kbj",
+                      "name": "CheckIcon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "$success/soft-foreground"
+                    }
+                  ]
+                },
+                "xzVlE": {
+                  "fill": "$success/soft",
+                  "stroke": "$success/success",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "ByzhA",
+                      "name": "CheckIcon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "check",
+                      "library": "lucide",
+                      "fill": "$success/soft-foreground"
+                    }
+                  ]
+                },
+                "MntgG": {
+                  "fill": "$accent/soft",
+                  "stroke": "$accent/accent"
+                },
+                "AWo7q": {
+                  "fill": "$accent/accent"
+                },
+                "z2BJtl": {
+                  "fill": "$foreground/foreground",
+                  "fontWeight": "500"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "KXhG2",
+              "name": "Body",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PaW4I",
+                  "name": "StepBody",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "id": "F2n29",
+                      "type": "ref",
+                      "ref": "P6el1o",
+                      "name": "Expose",
+                      "width": "fill_container"
+                    },
+                    {
+                      "id": "gBzPs",
+                      "type": "ref",
+                      "ref": "aOvvm",
+                      "name": "Checkbox Enable Tunnel",
+                      "descendants": {
+                        "rKaQI": {
+                          "content": "Enable tunnel"
+                        }
+                      }
+                    },
+                    {
+                      "id": "jKsHK",
+                      "type": "ref",
+                      "ref": "mhMaM",
+                      "name": "Field Hostname",
+                      "width": "fill_container",
+                      "descendants": {
+                        "peFYu": {
+                          "content": "Hostname (optional)",
+                          "fill": "$muted",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "RflGC": {
+                          "fill": "$surface/secondary",
+                          "stroke": "$border/border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "height": 36
+                        },
+                        "O0VQ2": {
+                          "content": "mc.example.dev",
+                          "fill": "$field/placeholder"
+                        },
+                        "kl54d": {
+                          "opacity": 0,
+                          "height": 0
+                        }
+                      }
+                    },
+                    {
+                      "id": "Ws5Ns",
+                      "type": "ref",
+                      "ref": "BHT29",
+                      "name": "PortOverrides",
+                      "width": "fill_container",
+                      "descendants": {
+                        "sRTmB": {
+                          "enabled": false
+                        },
+                        "j10uO": {
+                          "width": 627,
+                          "enabled": false
+                        },
+                        "OyS3f": {
+                          "width": 627,
+                          "enabled": false
+                        },
+                        "X4KoT": {
+                          "width": 627,
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ATJkD",
+                      "name": "LoadBalancerAddress",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "iDzTi",
+                          "name": "Label",
+                          "fill": "$muted",
+                          "content": "Load balancer address (optional)",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "v7Kwt6",
+                          "name": "ColHeader",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Fd8NQ",
+                              "name": "Col",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Address pool",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "T5bNG",
+                              "name": "Col",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Requested address",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HmQXv",
+                          "name": "Row",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "LjEcl",
+                              "type": "ref",
+                              "ref": "aRqX6",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "descendants": {
+                                "ANxU1": {
+                                  "opacity": 0,
+                                  "height": 0
+                                },
+                                "K5pqlT": {
+                                  "height": 36
+                                },
+                                "hokJ3": {
+                                  "content": "pool-us-west",
+                                  "fill": "$field/placeholder"
+                                },
+                                "OiyAM": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "rtLMb",
+                              "type": "ref",
+                              "ref": "aRqX6",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "descendants": {
+                                "ANxU1": {
+                                  "opacity": 0,
+                                  "height": 0
+                                },
+                                "K5pqlT": {
+                                  "height": 36
+                                },
+                                "hokJ3": {
+                                  "content": "203.0.113.50",
+                                  "fill": "$field/placeholder"
+                                },
+                                "OiyAM": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "Tmyp1",
+                          "name": "Helper",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Name of a load-balancer address pool configured by your cluster admin, plus an optional specific address to request. Applies only when Expose is set to LoadBalancer — ignored otherwise.",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "eh1FS",
+                          "type": "ref",
+                          "ref": "Llzos",
+                          "name": "Alert Address preference ignored",
+                          "width": "fill_container",
+                          "fill": "$warning/soft",
+                          "stroke": "$warning/soft-foreground",
+                          "strokeWidth": 1,
+                          "cornerRadius": 8,
+                          "padding": [
+                            16,
+                            20
+                          ],
+                          "descendants": {
+                            "sINBP": {
+                              "icon": "megaphone"
+                            },
+                            "BXuYr": {
+                              "content": "Address preference ignored"
+                            },
+                            "JmFhb": {
+                              "content": "Expose is set to NodePort. Address pool and requested address only take effect when Expose (above) is set to LoadBalancer."
+                            },
+                            "c0FRXZ": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "e2YakD",
+                  "type": "ref",
+                  "ref": "E9qpx",
+                  "name": "Preview",
+                  "height": "fit_content"
+                }
+              ]
+            },
+            {
+              "id": "XE2dd",
+              "type": "ref",
+              "ref": "IoDHI",
+              "name": "Footer",
+              "width": "fill_container",
+              "descendants": {
+                "q4aClI": {
+                  "name": "BackBtn"
+                },
+                "q4aClI/bevQZ": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "q4aClI/ezEy1": {
+                  "content": "Back"
+                },
+                "H87Gb": {
+                  "content": "Continue to Review"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

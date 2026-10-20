@@ -1,8 +1,8 @@
 [submodule "modules"]
 	path = modules
-	url = https://github.com/ValgulNecron/gameplane-module.git
+	url = https://github.com/GameplanePanel/module.git
 	branch = main
 [submodule "website"]
 	path = website
-	url = https://github.com/ValgulNecron/gameplane-website.git
+	url = https://github.com/GameplanePanel/website.git
 	branch = main

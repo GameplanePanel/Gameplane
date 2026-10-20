@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - images/**
+      - containers/**
       - .github/workflows/images.yaml
   push:
     branches:
       - master
     paths:
-      - images/**
+      - containers/**
       - .github/workflows/images.yaml
 
 permissions:
@@ -82,7 +82,7 @@ jobs:
       - id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: images/common/${{ matrix.base }}
+          context: containers/common/${{ matrix.base }}
           # Common base images support both architectures (Ubuntu 26.04 LTS-based).
           platforms: linux/amd64,linux/arm64
           # On PRs: validate multi-platform coverage without loading/pushing (buildx still fully builds).
@@ -132,8 +132,8 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/common-${{ matrix.base }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the tags only now that the digest carries a verified signature.
@@ -202,7 +202,23 @@ jobs:
       matrix:
         include:
           - game: nuclear-option
-            context: images/games/nuclear-option
+            context: containers/games/nuclear-option
+          - game: squad
+            context: containers/games/squad
+          - game: the-isle
+            context: containers/games/the-isle
+          - game: ark-survival-evolved
+            context: containers/games/ark-survival-evolved
+          - game: mount-and-blade-2-bannerlord
+            context: containers/games/mount-and-blade-2-bannerlord
+          - game: fivem
+            context: containers/games/fivem
+          - game: beammp
+            context: containers/games/beammp
+          - game: farming-simulator-25
+            context: containers/games/farming-simulator-25
+          - game: euro-truck-simulator-2
+            context: containers/games/euro-truck-simulator-2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Signing is mandatory when publishing to a registry: fail before anything
@@ -239,7 +255,7 @@ jobs:
         id: build-base-pr
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: images/common/steamcmd
+          context: containers/common/steamcmd
           platforms: linux/amd64
           push: false
           outputs: type=oci,dest=/tmp/steamcmd-base-oci.tar
@@ -338,8 +354,8 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false \
             "ghcr.io/${owner_lc}/gameplane/${{ matrix.game }}@${DIGEST}"
-          if [ -f cosign.pub ] && ! cmp -s cosign.pub "$RUNNER_TEMP/cosign.pub"; then
-            echo "::error::committed cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
+          if [ -f signing/cosign.pub ] && ! cmp -s signing/cosign.pub "$RUNNER_TEMP/cosign.pub"; then
+            echo "::error::committed signing/cosign.pub does not match COSIGN_PRIVATE_KEY — update the published key"
             exit 1
           fi
       # Attach the tags only now that the digest carries a verified signature.

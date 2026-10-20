@@ -9,7 +9,7 @@ metadata:
 spec:
   type: oci
   oci:
-    url: ghcr.io/valgulnecron/gameplane-modules
+    url: ghcr.io/gameplanepanel/gameplane-modules
     modules:
       - name: minecraft-java
       - name: valheim

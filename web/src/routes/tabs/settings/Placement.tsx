@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { Label, Description } from "@heroui/react";
 import type { SectionProps } from "./types";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 interface PlacementSectionProps extends SectionProps {
   onValidityChange?: (valid: boolean) => void;
@@ -12,6 +13,7 @@ export function PlacementSection({
   onChange,
   onValidityChange,
 }: PlacementSectionProps) {
+  const intl = useOptionalIntl();
   // Initialize raw JSON strings once via useState initializers.
   const [rawTol, setRawTol] = useState(() =>
     JSON.stringify(draft.spec.tolerations ?? [], null, 2),
@@ -44,7 +46,7 @@ export function PlacementSection({
     try {
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) {
-        setTolError("Must be a JSON array");
+        setTolError(intl.formatMessage({ id: "web.routes.tabs.settings.placement.tolerations_must_be_array", defaultMessage: "Must be a JSON array", description: "Placement: validation error when the tolerations JSON is not an array" }));
         return;
       }
       setTolError(null);
@@ -56,7 +58,7 @@ export function PlacementSection({
         },
       });
     } catch {
-      setTolError("Invalid JSON");
+      setTolError(intl.formatMessage({ id: "web.routes.tabs.settings.placement.invalid_json", defaultMessage: "Invalid JSON", description: "Placement: validation error when a tolerations or affinity field is not valid JSON" }));
     }
   };
 
@@ -76,7 +78,7 @@ export function PlacementSection({
     try {
       const parsed = JSON.parse(raw);
       if (typeof parsed !== "object" || Array.isArray(parsed) || parsed === null) {
-        setAffError("Must be a JSON object");
+        setAffError(intl.formatMessage({ id: "web.routes.tabs.settings.placement.affinity_must_be_object", defaultMessage: "Must be a JSON object", description: "Placement: validation error when the affinity JSON is not an object" }));
         return;
       }
       setAffError(null);
@@ -88,7 +90,7 @@ export function PlacementSection({
         },
       });
     } catch {
-      setAffError("Invalid JSON");
+      setAffError(intl.formatMessage({ id: "web.routes.tabs.settings.placement.invalid_json", defaultMessage: "Invalid JSON", description: "Placement: validation error when a tolerations or affinity field is not valid JSON" }));
     }
   };
 
@@ -96,12 +98,8 @@ export function PlacementSection({
     <div className="space-y-6">
       <div className="grid grid-cols-1 items-start gap-1.5 sm:grid-cols-[200px_1fr] sm:gap-4">
         <div className="sm:pt-2">
-          <Label id="tolerations-label" className="text-sm">
-            Tolerations
-          </Label>
-          <Description className="pt-1 text-xs">
-            Pod tolerations for Kubernetes node taints. Array of toleration objects (optional).
-          </Description>
+          <Label id="tolerations-label" className="text-sm">{intl.formatMessage({ id: "web.routes.tabs.settings.placement.tolerations", defaultMessage: "Tolerations", description: "Label for the tolerations JSON editor" })}</Label>
+          <Description className="pt-1 text-xs">{intl.formatMessage({ id: "web.routes.tabs.settings.placement.pod_tolerations_for_kubernetes_node", defaultMessage: "Pod tolerations for Kubernetes node taints. Array of toleration objects (optional).", description: "Placement: hint under the Tolerations label saying the field takes an optional JSON array of toleration objects for Kubernetes node taints" })}</Description>
         </div>
         <div className="space-y-2">
           <div
@@ -126,12 +124,8 @@ export function PlacementSection({
 
       <div className="grid grid-cols-1 items-start gap-1.5 sm:grid-cols-[200px_1fr] sm:gap-4">
         <div className="sm:pt-2">
-          <Label id="affinity-label" className="text-sm">
-            Affinity
-          </Label>
-          <Description className="pt-1 text-xs">
-            Pod affinity/anti-affinity and node affinity constraints. JSON object (optional).
-          </Description>
+          <Label id="affinity-label" className="text-sm">{intl.formatMessage({ id: "web.routes.tabs.settings.placement.affinity", defaultMessage: "Affinity", description: "Label for the affinity JSON editor" })}</Label>
+          <Description className="pt-1 text-xs">{intl.formatMessage({ id: "web.routes.tabs.settings.placement.pod_affinity_anti_affinity_and_node", defaultMessage: "Pod affinity/anti-affinity and node affinity constraints. JSON object (optional).", description: "Placement: hint under the Affinity label saying the field takes an optional JSON object with pod and node affinity constraints" })}</Description>
         </div>
         <div className="space-y-2">
           <div

@@ -16,6 +16,8 @@ func TestTitle(t *testing.T) {
 			"[Gameplane] backup failed: games/nightly"},
 		{"named instance", Event{Type: EventServerUnhealthy, Instance: "prod", Namespace: "games", Name: "mc"},
 			"[prod] server unhealthy: games/mc"},
+		{"remote cluster", Event{Type: EventServerUnhealthy, Instance: "prod", Cluster: "remote-1", Namespace: "games", Name: "mc"},
+			"[prod] server unhealthy: remote-1/games/mc"},
 		{"test event", Event{Type: EventTest, Test: true},
 			"[Gameplane] test notification"},
 	}

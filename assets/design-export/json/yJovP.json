@@ -1,0 +1,136 @@
+{
+  "type": "frame",
+  "id": "yJovP",
+  "x": 2069,
+  "y": 8037,
+  "name": "Gameplane/YAML Block",
+  "reusable": true,
+  "width": "fill_container(245)",
+  "fill": "$background/background",
+  "cornerRadius": 6,
+  "layout": "vertical",
+  "padding": 12,
+  "children": [
+    {
+      "type": "text",
+      "id": "HCtbV",
+      "name": "Line",
+      "fill": "#7bb4f5",
+      "content": "apiVersion: gameplane.local/v1alpha1",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "MNBib",
+      "name": "Line",
+      "fill": "#7bb4f5",
+      "content": "kind: GameServer",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "YHnrh",
+      "name": "Line",
+      "fill": "#d4d4d4",
+      "content": "metadata:",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "e8A3vV",
+      "name": "Line",
+      "fill": "#a7e39a",
+      "content": "  name: mc-survival",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "y32Oj",
+      "name": "Line",
+      "fill": "#d4d4d4",
+      "content": "spec:",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "xNjpK",
+      "name": "Line",
+      "fill": "#a7e39a",
+      "content": "  template: minecraft-java",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "hTXlv",
+      "name": "Line",
+      "fill": "#a7e39a",
+      "content": "  version: fabric-1.21.4",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "Lmzfg",
+      "name": "Line",
+      "fill": "#d4d4d4",
+      "content": "  resources:",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "a46V31",
+      "name": "Line",
+      "fill": "#ffb86c",
+      "content": "    cpu: 2000m",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "xcCUz",
+      "name": "Line",
+      "fill": "#ffb86c",
+      "content": "    memory: 6Gi",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "text",
+      "id": "mMBEA",
+      "name": "Line",
+      "fill": "#ffb86c",
+      "content": "  storage: 50Gi",
+      "lineHeight": 1.6,
+      "fontFamily": "$typography/font-mono",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    }
+  ]
+}

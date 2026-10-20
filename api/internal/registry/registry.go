@@ -39,7 +39,7 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/ValgulNecron/gameplane/netguard"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 // Project is one search hit, normalized across providers.
@@ -215,7 +215,7 @@ type Set struct {
 // destination is refused at dial time with netguard.ErrBlockedAddr.
 func NewSet(version string, keyFunc KeyFunc) *Set {
 	client := netguard.HTTPClient(15*time.Second, netguard.IsPublic)
-	ua := "gameplane/" + version + " (+https://github.com/ValgulNecron/gameplane)"
+	ua := "gameplane/" + version + " (+https://github.com/GameplanePanel/gameplane)"
 	return &Set{
 		modrinth:     newModrinth(client, ua),
 		thunderstore: newThunderstore(client, ua),

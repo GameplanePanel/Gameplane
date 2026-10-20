@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/netguard"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 // testNotifier builds a Notifier with just the delivery plumbing — the

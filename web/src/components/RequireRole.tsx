@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { APIError } from "@/lib/api";
 import { useMe, can } from "@/lib/auth";
 import { Button, Card } from "@heroui/react";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 function isUnauthorized(error: unknown): boolean {
   return error instanceof APIError && error.status === 401;
@@ -50,6 +51,7 @@ function RoleSkeleton() {
  * state instead of a false denial.
  */
 export function IdentityUnavailable({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  const intl = useOptionalIntl();
   const detail = error instanceof APIError ? `HTTP ${error.status}` : null;
   return (
     <div className="flex h-full items-center justify-center p-6">
@@ -59,22 +61,16 @@ export function IdentityUnavailable({ error, onRetry }: { error: unknown; onRetr
             <PlugZap className="h-6 w-6" />
           </div>
         </div>
-        <div className="pt-4 text-base font-medium text-fg">
-          Can&apos;t reach the control plane
-        </div>
-        <p className="pt-1 text-sm text-muted">
-          We couldn&apos;t confirm who you are{detail ? ` (${detail})` : ""}. This is usually
-          temporary — the API may be restarting.
-        </p>
-        <Button className="mt-4" onClick={onRetry}>
-          Try again
-        </Button>
+        <div className="pt-4 text-base font-medium text-fg">{intl.formatMessage({ id: "web.components.require_role.can_t_reach_the_control_plane", defaultMessage: "Can't reach the control plane", description: "Require role: heading of the error card shown when the user's identity cannot be confirmed because the API cannot be reached" })}</div>
+        <p className="pt-1 text-sm text-muted">{intl.formatMessage({ id: "web.components.require_role.unreachable_explanation", defaultMessage: "We couldn't confirm who you are{hasDetail, select, true { ({detail})} other {}}. This is usually temporary — the API may be restarting.", description: "Require role: explanation under the unreachable heading saying the user's identity could not be confirmed and the problem is usually temporary; {hasDetail} is true or false and decides whether the error detail in parentheses is shown; {detail} is the error detail, e.g. HTTP 502" }, { hasDetail: detail ? "true" : "false", detail: detail ?? "" })}</p>
+        <Button className="mt-4" onClick={onRetry}>{intl.formatMessage({ id: "web.components.require_role.try_again", defaultMessage: "Try again", description: "Require role: button on the unreachable error card that retries the identity check; keep it short" })}</Button>
       </Card>
     </div>
   );
 }
 
 function Forbidden() {
+  const intl = useOptionalIntl();
   return (
     <div className="flex h-full items-center justify-center p-6">
       <Card className="max-w-md p-8 text-center">
@@ -83,17 +79,12 @@ function Forbidden() {
             <ShieldAlert className="h-6 w-6" />
           </div>
         </div>
-        <div className="pt-4 text-base font-medium text-fg">Access denied</div>
-        <p className="pt-1 text-sm text-muted">
-          Your role doesn&apos;t permit access to this page. Ask an
-          administrator if you believe this is a mistake.
-        </p>
+        <div className="pt-4 text-base font-medium text-fg">{intl.formatMessage({ id: "web.components.require_role.access_denied", defaultMessage: "Access denied", description: "Require role: heading of the card shown when the user's role does not allow the page they opened" })}</div>
+        <p className="pt-1 text-sm text-muted">{intl.formatMessage({ id: "web.components.require_role.your_role_doesn_t_permit_access_to_this", defaultMessage: "Your role doesn't permit access to this page. Ask an administrator if you believe this is a mistake.", description: "Require role: explanation under the access denied heading saying the user's role does not allow this page and to ask an administrator if this is a mistake" })}</p>
         <Link
           to="/"
           className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm text-primary-fg hover:opacity-90"
-        >
-          Back to dashboard
-        </Link>
+        >{intl.formatMessage({ id: "web.components.require_role.back_to_dashboard", defaultMessage: "Back to dashboard", description: "Require role: link on the access denied card that returns to the home dashboard; keep it short" })}</Link>
       </Card>
     </div>
   );

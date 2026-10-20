@@ -13,12 +13,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/archetypes"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/packager"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/preview"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/scaffold"
-	"github.com/ValgulNecron/gameplane/gp-module/pkg/validator"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/archetypes"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/packager"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/preview"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/scaffold"
+	"github.com/GameplanePanel/gameplane/gp-module/pkg/validator"
 )
 
 // BuilderPortDef specifies a network port configuration during scaffolding.

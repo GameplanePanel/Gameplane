@@ -52,7 +52,6 @@ AREA_BY_DIR = {
     "api": "area: api",
     "agent": "area: agent",
     "web": "area: web",
-    "design-export": "area: web",
     "modules": "area: modules",
     "charts": "area: chart",
     "specs": "area: specs",
@@ -62,7 +61,12 @@ AREA_BY_DIR = {
     "tunnel": "area: optional-components",
     "audit-syslog-bridge": "area: optional-components",
     "telemetry-receiver": "area: optional-components",
+    "telemetryschema": "area: shared",
+    "i18n": "area: shared",
 }
+
+# Shared translation packs. A PR that changes only these files is `type: docs`.
+TRANSLATION_PREFIX = "i18n/locales/"
 
 AREA_BY_FILE = {
     "design.pen": "area: web",
@@ -86,6 +90,8 @@ def area_for_path(path):
     """
     if path in AREA_BY_FILE:
         return AREA_BY_FILE[path]
+    if path.startswith("assets/design-export/"):
+        return "area: web"
     if path.startswith("test/e2e/"):
         return "area: e2e"
     if path.startswith("docs/"):
@@ -94,12 +100,19 @@ def area_for_path(path):
 
 
 def planned_labels(title, files, existing):
-    """Labels to add to a PR, given its title, changed files and labels."""
+    """Labels to add to a PR, given its title, changed files and labels.
+
+    A PR whose title gives no type, and whose files all sit under
+    i18n/locales/, is a translation-only docs change, so it gets `type: docs`.
+    """
     existing = set(existing)
     add = []
     type_label, breaking = parse_title(title)
-    if type_label and not any(name.startswith("type: ") for name in existing):
-        add.append(type_label)
+    if not any(name.startswith("type: ") for name in existing):
+        if type_label:
+            add.append(type_label)
+        elif files and all(f.startswith(TRANSLATION_PREFIX) for f in files):
+            add.append("type: docs")
     if files and not any(name.startswith("area: ") for name in existing):
         areas = {area_for_path(f) for f in files} - {None}
         add.extend(sorted(areas) or ["area: shared"])
@@ -155,7 +168,10 @@ def main(argv):
         existing = [label["name"] for label in pr.get("labels", [])]
         try:
             files = []
-            if not any(name.startswith("area: ") for name in existing):
+            # Changed files decide the area and a translation-only docs type.
+            missing_area = not any(name.startswith("area: ") for name in existing)
+            missing_type = not any(name.startswith("type: ") for name in existing)
+            if missing_area or missing_type:
                 files = [
                     f["filename"]
                     for f in paginate(f"/repos/{repo}/pulls/{number}/files", token)

@@ -11,7 +11,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
 const (
@@ -129,17 +131,17 @@ func (s *SessionStore) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		cookie, err := req.Cookie(sessionCookie)
 		if err != nil {
-			http.Error(w, "unauthenticated", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
 		u, csrf, err := s.lookup(req.Context(), cookie.Value)
 		if err != nil {
-			http.Error(w, "unauthenticated", http.StatusUnauthorized)
+			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
 		if isMutating(req.Method) {
 			if req.Header.Get(csrfHeader) != csrf {
-				http.Error(w, "csrf mismatch", http.StatusForbidden)
+				httperr.WriteMessage(w, req, messages.New("server.auth.csrf_mismatch", nil))
 				return
 			}
 		}

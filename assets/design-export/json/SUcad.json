@@ -1,0 +1,969 @@
+{
+  "type": "frame",
+  "id": "SUcad",
+  "x": 1640,
+  "y": 85868,
+  "name": "Screen/Admin Settings — Notifications (Add sink)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 965,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "u7xPV3",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB": {
+          "fill": "$accent/soft"
+        },
+        "ya5KB/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "ya5KB/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "ibrj8",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "EDkI7",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Settings"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "OiOjg",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "vjnZt",
+              "type": "ref",
+              "ref": "xCDF7",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Admin settings"
+                },
+                "VbHwU": {
+                  "content": "Platform-wide configuration for this Gameplane instance."
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "LuKjc",
+              "name": "Settings Layout",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "JFuM8",
+                  "type": "ref",
+                  "ref": "Mp7Ep",
+                  "name": "Settings Nav",
+                  "width": 220,
+                  "descendants": {
+                    "eIjoV": {
+                      "fill": "#00000000"
+                    },
+                    "XuGUZ": {
+                      "fill": "$muted"
+                    },
+                    "DpMnt": {
+                      "fill": "$muted"
+                    },
+                    "KSTX4": {
+                      "fill": "$surface/secondary"
+                    },
+                    "EdwLK": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "IT8Ch": {
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "id": "mXm3N",
+                  "type": "ref",
+                  "ref": "XDZ0E",
+                  "name": "Settings Panel",
+                  "width": "fill_container",
+                  "padding": 0,
+                  "gap": 0,
+                  "cornerRadius": 10,
+                  "height": "fit_content",
+                  "clip": false,
+                  "children": [
+                    {
+                      "id": "WKvCG",
+                      "type": "ref",
+                      "ref": "FRpsu",
+                      "width": "fill_container",
+                      "padding": [
+                        20,
+                        20,
+                        16,
+                        20
+                      ],
+                      "descendants": {
+                        "fuZHB": {
+                          "content": "Notifications"
+                        },
+                        "BZG9o": {
+                          "content": "Deliver server health and backup/restore events to Discord, Slack, ntfy, email, or webhooks. Credentials are entered when adding a sink and stored as a labelled Secret in the control-plane namespace.",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        }
+                      }
+                    },
+                    {
+                      "id": "R7cnBg",
+                      "type": "ref",
+                      "ref": "I9ZPb",
+                      "width": "fill_container",
+                      "padding": [
+                        0,
+                        20
+                      ],
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "s0Ous",
+                          "name": "sinkList",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "V4XO5S",
+                              "name": "sinkDiscord",
+                              "width": "fill_container",
+                              "stroke": "$border/border",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
+                              "strokeAlignment": "inner",
+                              "gap": 12,
+                              "padding": [
+                                12,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "ANzOV",
+                                  "name": "iconBox",
+                                  "width": 32,
+                                  "height": 32,
+                                  "fill": "$surface/secondary",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "F5NvRN",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "messages-square",
+                                      "library": "lucide",
+                                      "fill": "$muted"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "CwaWK",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Rm5r7",
+                                      "fill": "$foreground/foreground",
+                                      "content": "ops-discord",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "e40KMi",
+                                      "fill": "$muted",
+                                      "content": "discord · Secret: gameplane-notify-ops-discord",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "RmQdP",
+                                      "name": "sinkLangRow",
+                                      "gap": 8,
+                                      "padding": [
+                                        6,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "A8YOF",
+                                          "name": "sinkLangLabel",
+                                          "fill": "$muted",
+                                          "content": "Language",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "id": "OlQKC",
+                                          "type": "ref",
+                                          "ref": "AT7ya",
+                                          "name": "sinkLangSelect",
+                                          "width": 200,
+                                          "height": 32,
+                                          "padding": [
+                                            6,
+                                            10
+                                          ],
+                                          "descendants": {
+                                            "cFsFk": {
+                                              "content": "Français",
+                                              "fill": "$foreground/foreground",
+                                              "fontSize": 13
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "kU8X3",
+                                  "name": "eventChips",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "OfyxC",
+                                      "type": "ref",
+                                      "ref": "KmZnF",
+                                      "descendants": {
+                                        "xZ9ah": {
+                                          "content": "server.unhealthy"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "t2URzN",
+                                      "type": "ref",
+                                      "ref": "KmZnF",
+                                      "descendants": {
+                                        "xZ9ah": {
+                                          "content": "backup.failed"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "eLxVl",
+                                      "type": "ref",
+                                      "ref": "KmZnF",
+                                      "descendants": {
+                                        "xZ9ah": {
+                                          "content": "+2"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "K8cB0H",
+                                  "type": "ref",
+                                  "ref": "FIB65",
+                                  "name": "btnSendTest",
+                                  "height": 32,
+                                  "descendants": {
+                                    "K8d1zg": {
+                                      "enabled": false
+                                    },
+                                    "zMNkR": {
+                                      "content": "Send test"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "qawTW",
+                                  "type": "ref",
+                                  "ref": "hl7R3",
+                                  "name": "switchOn"
+                                },
+                                {
+                                  "id": "PH6Ba",
+                                  "type": "ref",
+                                  "ref": "j9sz4",
+                                  "name": "btnDelete",
+                                  "width": 36,
+                                  "height": 36,
+                                  "descendants": {
+                                    "uQ9KQ": {
+                                      "icon": "trash-2"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "c12AJZ",
+                              "name": "sinkWebhook",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "padding": [
+                                12,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Z8bOs5",
+                                  "name": "iconBox",
+                                  "width": 32,
+                                  "height": 32,
+                                  "fill": "$surface/secondary",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "U5ChF",
+                                      "width": 16,
+                                      "height": 16,
+                                      "icon": "webhook",
+                                      "library": "lucide",
+                                      "fill": "$muted"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nh7Lz",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "DwbkD",
+                                      "fill": "$foreground/foreground",
+                                      "content": "pager",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "LXfD4",
+                                      "fill": "$muted",
+                                      "content": "webhook · no Secret configured",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "wO9SK",
+                                      "name": "sinkLangRow",
+                                      "gap": 8,
+                                      "padding": [
+                                        6,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "sGPi6",
+                                          "name": "sinkLangLabel",
+                                          "fill": "$muted",
+                                          "content": "Language",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "id": "kcvh6",
+                                          "type": "ref",
+                                          "ref": "AT7ya",
+                                          "name": "sinkLangSelect",
+                                          "width": 200,
+                                          "height": 32,
+                                          "padding": [
+                                            6,
+                                            10
+                                          ],
+                                          "descendants": {
+                                            "cFsFk": {
+                                              "content": "Instance default",
+                                              "fill": "$foreground/foreground",
+                                              "fontSize": 13
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "TLwtl",
+                                  "type": "ref",
+                                  "ref": "eg3vM",
+                                  "name": "needsSecret",
+                                  "descendants": {
+                                    "S2JwD": {
+                                      "content": "Needs secret"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "H7CPss",
+                                  "type": "ref",
+                                  "ref": "FIB65",
+                                  "name": "btnSendTest",
+                                  "height": 32,
+                                  "opacity": 0.5,
+                                  "descendants": {
+                                    "K8d1zg": {
+                                      "enabled": false
+                                    },
+                                    "zMNkR": {
+                                      "content": "Send test"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "wRuSu",
+                                  "type": "ref",
+                                  "ref": "rh2QH",
+                                  "name": "switchOff"
+                                },
+                                {
+                                  "id": "K5AIPm",
+                                  "type": "ref",
+                                  "ref": "j9sz4",
+                                  "name": "btnDelete",
+                                  "width": 36,
+                                  "height": 36,
+                                  "descendants": {
+                                    "uQ9KQ": {
+                                      "icon": "trash-2"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "g6ucq9",
+                          "type": "ref",
+                          "ref": "FIB65",
+                          "name": "btnAddSink",
+                          "enabled": false,
+                          "descendants": {
+                            "K8d1zg": {
+                              "icon": "plus"
+                            },
+                            "zMNkR": {
+                              "content": "Add sink"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "G32C8k",
+                      "name": "addSinkForm",
+                      "width": "fill_container",
+                      "fill": "$surface/surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "xiPUh",
+                          "name": "addSinkTitle",
+                          "fill": "$foreground/foreground",
+                          "content": "Add sink",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "hdxRa",
+                          "name": "addSinkRow1",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "children": [
+                            {
+                              "id": "w5juv",
+                              "type": "ref",
+                              "ref": "aRqX6",
+                              "name": "fieldSinkName",
+                              "width": "fill_container",
+                              "descendants": {
+                                "ANxU1": {
+                                  "content": "Name"
+                                },
+                                "hokJ3": {
+                                  "content": "team-alerts",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "OiyAM": {
+                                  "width": "fill_container"
+                                },
+                                "wolxN": {
+                                  "content": "A short lowercase identifier (letters, digits, and dashes) used to name the sink and its Secret — like team-alerts.",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              }
+                            },
+                            {
+                              "type": "frame",
+                              "id": "kPqOQ",
+                              "name": "fieldSinkKind",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ll2hs",
+                                  "name": "fieldSinkKind Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Kind",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "id": "g5T85",
+                                  "type": "ref",
+                                  "ref": "AT7ya",
+                                  "name": "fieldSinkKind Select",
+                                  "width": "fill_container",
+                                  "height": 40,
+                                  "descendants": {
+                                    "cFsFk": {
+                                      "content": "discord",
+                                      "fill": "$foreground/foreground"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "IiYTE",
+                          "name": "addSinkRow2",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "children": [
+                            {
+                              "id": "Ykt5A",
+                              "type": "ref",
+                              "ref": "aRqX6",
+                              "name": "fieldSinkUrl",
+                              "width": "fill_container",
+                              "descendants": {
+                                "ANxU1": {
+                                  "content": "Webhook URL"
+                                },
+                                "hokJ3": {
+                                  "content": "https://discord.com/api/webhooks/…",
+                                  "fill": "$field/placeholder"
+                                },
+                                "OiyAM": {
+                                  "enabled": false
+                                }
+                              }
+                            },
+                            {
+                              "type": "frame",
+                              "id": "LZrw9",
+                              "name": "fieldSinkLanguage",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Tc79Z",
+                                  "name": "fieldSinkLanguage Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Language",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "id": "Te0jh",
+                                  "type": "ref",
+                                  "ref": "AT7ya",
+                                  "name": "fieldSinkLanguage Select",
+                                  "width": "fill_container",
+                                  "height": 40,
+                                  "descendants": {
+                                    "cFsFk": {
+                                      "content": "Instance default",
+                                      "fill": "$foreground/foreground"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "GTlqd",
+                                  "name": "fieldSinkLanguage Hint Wrap",
+                                  "width": "fill_container",
+                                  "padding": [
+                                    0,
+                                    4
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "K3o9SI",
+                                      "name": "fieldSinkLanguage Hint",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Notifications sent to this sink are written in this language.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "OeG30",
+                          "name": "addSinkEvents",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "eA3U8",
+                              "name": "addSinkEventsLabel",
+                              "fill": "$muted",
+                              "content": "Events (failures and recovery are pre-selected)",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "bhuSi",
+                              "name": "addSinkEventRow",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "YNb9a",
+                                  "name": "eventCell server.unhealthy",
+                                  "width": "fill_container",
+                                  "children": [
+                                    {
+                                      "id": "TbhT4",
+                                      "type": "ref",
+                                      "ref": "v6WNtR",
+                                      "name": "event server.unhealthy",
+                                      "descendants": {
+                                        "x7vJxB": {
+                                          "content": "server.unhealthy",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "noGqI",
+                                  "name": "eventCell server.recovered",
+                                  "width": "fill_container",
+                                  "children": [
+                                    {
+                                      "id": "CAJ4z",
+                                      "type": "ref",
+                                      "ref": "v6WNtR",
+                                      "name": "event server.recovered",
+                                      "descendants": {
+                                        "x7vJxB": {
+                                          "content": "server.recovered",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "tVvHJ",
+                              "name": "addSinkEventRow",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "wtIK3",
+                                  "name": "eventCell backup.failed",
+                                  "width": "fill_container",
+                                  "children": [
+                                    {
+                                      "id": "WX8fT",
+                                      "type": "ref",
+                                      "ref": "v6WNtR",
+                                      "name": "event backup.failed",
+                                      "descendants": {
+                                        "x7vJxB": {
+                                          "content": "backup.failed",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "HD3VO",
+                                  "name": "eventCell backup.succeeded",
+                                  "width": "fill_container",
+                                  "children": [
+                                    {
+                                      "id": "YHs1v",
+                                      "type": "ref",
+                                      "ref": "aOvvm",
+                                      "name": "event backup.succeeded",
+                                      "descendants": {
+                                        "rKaQI": {
+                                          "content": "backup.succeeded",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "z3qLuU",
+                              "name": "addSinkEventRow",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "w2SN1t",
+                                  "name": "eventCell restore.failed",
+                                  "width": "fill_container",
+                                  "children": [
+                                    {
+                                      "id": "CRKen",
+                                      "type": "ref",
+                                      "ref": "v6WNtR",
+                                      "name": "event restore.failed",
+                                      "descendants": {
+                                        "x7vJxB": {
+                                          "content": "restore.failed",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Z9fxO",
+                                  "name": "eventCell restore.succeeded",
+                                  "width": "fill_container",
+                                  "children": [
+                                    {
+                                      "id": "Oonk6",
+                                      "type": "ref",
+                                      "ref": "aOvvm",
+                                      "name": "event restore.succeeded",
+                                      "descendants": {
+                                        "rKaQI": {
+                                          "content": "restore.succeeded",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ZjxPR",
+                          "name": "addSinkActions",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "fBvOO",
+                              "type": "ref",
+                              "ref": "LMIom",
+                              "name": "btnCancelAddSink",
+                              "descendants": {
+                                "vWtyO/bevQZ": {
+                                  "enabled": false
+                                },
+                                "vWtyO/ezEy1": {
+                                  "content": "Cancel"
+                                }
+                              }
+                            },
+                            {
+                              "id": "QWp8Z",
+                              "type": "ref",
+                              "ref": "tpKRk",
+                              "name": "btnConfirmAddSink",
+                              "descendants": {
+                                "q58In/Xpn7K": {
+                                  "enabled": false
+                                },
+                                "q58In/U6q13B": {
+                                  "content": "Add sink"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "u7AIUb",
+                      "type": "ref",
+                      "ref": "VvBaY",
+                      "name": "Card Actions",
+                      "width": "fill_container",
+                      "padding": [
+                        8,
+                        20,
+                        20,
+                        20
+                      ],
+                      "justifyContent": "end",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "SlNIe",
+                          "type": "ref",
+                          "ref": "tpKRk",
+                          "name": "Btn Save Changes",
+                          "descendants": {
+                            "q58In/Xpn7K": {
+                              "enabled": false
+                            },
+                            "q58In/U6q13B": {
+                              "content": "Save changes"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

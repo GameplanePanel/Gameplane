@@ -18,7 +18,7 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // annoRestoreCreatedBy marks a GameServer that a volume-snapshot Restore

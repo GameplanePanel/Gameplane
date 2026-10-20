@@ -19,7 +19,7 @@ import (
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 func setupTestBuilderRouter(t *testing.T, objects ...runtime.Object) (http.Handler, *kubefake.Clientset) {
@@ -43,7 +43,7 @@ func TestBuilderScaffold(t *testing.T) {
 		Name:        "cs2-match",
 		DisplayName: "Counter-Strike 2 Match",
 		Archetype:   "steamcmd",
-		Image:       "ghcr.io/valgulnecron/cs2:latest@sha256:4b9a8e23f0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
+		Image:       "ghcr.io/gameplanepanel/cs2:latest@sha256:4b9a8e23f0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
 		Ports: []BuilderPortDef{
 			{Name: "game", ContainerPort: 27015, Protocol: "UDP", Advertise: true},
 		},

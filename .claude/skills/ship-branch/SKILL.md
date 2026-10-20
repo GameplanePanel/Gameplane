@@ -8,7 +8,6 @@ description: "Use when a branch is ready to become a PR, or a merged PR needs cl
 1. Ensure the branch is signed and all commits have the full trailer:
    ```text
    Co-Authored-By: <model actually running this session> <noreply@anthropic.com>
-   Claude-Session: https://claude.ai/code/session_<id>
    ```
    
    The Co-Authored-By name MUST be the model actually running — never a value copied from CLAUDE.md, this skill, or a prior commit.
@@ -29,8 +28,7 @@ description: "Use when a branch is ready to become a PR, or a merged PR needs cl
    ```sh
    git commit -s -m "fix: <scope> - <description>
    
-   Co-Authored-By: <model actually running this session> <noreply@anthropic.com>
-   Claude-Session: https://claude.ai/code/session_<id>"
+   Co-Authored-By: <model actually running this session> <noreply@anthropic.com>"
    git push
    ```
    - The new commit re-triggers CI automatically.
@@ -52,7 +50,6 @@ description: "Use when a branch is ready to become a PR, or a merged PR needs cl
    - [ ] Manual test step 2
 
    🤖 Generated with [Claude Code](https://claude.com/claude-code)
-   https://claude.ai/code/session_<id>
    EOF
    )"
    ```
@@ -62,7 +59,7 @@ description: "Use when a branch is ready to become a PR, or a merged PR needs cl
    **Add labels via REST API** (rule 14: `gh pr edit` is broken on this repo):
    ```sh
    # Example: type:fix + area:api
-   gh api -X POST repos/ValgulNecron/Gameplane/issues/<PR_NUMBER>/labels \
+   gh api -X POST repos/GameplanePanel/Gameplane/issues/<PR_NUMBER>/labels \
      -f "labels[]=type: fix" \
      -f "labels[]=area: api"
    ```
@@ -75,7 +72,7 @@ description: "Use when a branch is ready to become a PR, or a merged PR needs cl
 
 8. Verify labels were applied:
    ```sh
-   gh api repos/ValgulNecron/Gameplane/issues/<PR_NUMBER>/labels \
+   gh api repos/GameplanePanel/Gameplane/issues/<PR_NUMBER>/labels \
      -q '[.[].name]|join(", ")'
    ```
 
@@ -104,4 +101,4 @@ description: "Use when a branch is ready to become a PR, or a merged PR needs cl
 - **Master is protected** by a ruleset (rule 12): direct pushes refused, requires approval, dismisses stale reviews on later pushes.
 - **Codegen output** (e.g., CRD regenerates per rule 7) goes in the same commit as the source change that triggered it.
 - **Breaking changes** to CRDs, API, or the Helm chart require the `breaking` label (rule 14).
-- **Session URL**: both the PR body footer and the commit trailer must cite the session that produced the work.
+- **No session links**: never add `Claude-Session:` trailers or claude.ai session URLs to commits or PR bodies, and never add a "Requested by … · project thread" block to PR bodies.

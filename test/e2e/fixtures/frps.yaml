@@ -1,0 +1,81 @@
+# Spec 013 T046: an frp server for the optional-components bucket
+# (TestOptionalComponents_Lifecycle). fatedier/frps v0.71.0 matches the frp
+# version tunnel/frpc/go.mod pins for the tunnel-frp image's frpc. The auth
+# token comes from the e2e-frps-token Secret through FRP_AUTH_TOKEN (frp
+# renders {{ .Envs.X }} in its config). The dashboard API on 7500 uses fixed
+# credentials so the test can list proxies.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: e2e-frps-token
+  namespace: gameplane-system
+stringData:
+  token: e2e-frps-token-0123456789
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-frps-config
+  namespace: gameplane-system
+data:
+  frps.toml: |
+    bindPort = 7000
+    auth.method = "token"
+    auth.token = "{{ .Envs.FRP_AUTH_TOKEN }}"
+    webServer.addr = "0.0.0.0"
+    webServer.port = 7500
+    webServer.user = "e2e"
+    webServer.password = "e2e-frps-dashboard"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: e2e-frps
+  namespace: gameplane-system
+  labels: { app.kubernetes.io/name: e2e-frps }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: e2e-frps }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: e2e-frps }
+    spec:
+      containers:
+        - name: frps
+          # fatedier/frps:v0.71.0 (multi-arch index digest); entrypoint /usr/bin/frps
+          image: fatedier/frps@sha256:cd8b947ba61678b200baa4f71ccc33f3c52e4e2cc0059700ba3b8354e36af7c3
+          args: ["-c", "/etc/frp/frps.toml"]
+          # frps binds 7000/7500 and only reads its ConfigMap, so it needs no root.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          env:
+            - name: FRP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef: { name: e2e-frps-token, key: token }
+          ports:
+            - { name: bind, containerPort: 7000, protocol: TCP }
+            - { name: dashboard, containerPort: 7500, protocol: TCP }
+          readinessProbe:
+            tcpSocket: { port: bind }
+            periodSeconds: 2
+          volumeMounts:
+            - { name: config, mountPath: /etc/frp, readOnly: true }
+      volumes:
+        - name: config
+          configMap: { name: e2e-frps-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: e2e-frps
+  namespace: gameplane-system
+spec:
+  selector: { app.kubernetes.io/name: e2e-frps }
+  ports:
+    - { name: bind, port: 7000, targetPort: bind, protocol: TCP }
+    - { name: dashboard, port: 7500, targetPort: dashboard, protocol: TCP }

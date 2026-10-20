@@ -476,3 +476,19 @@ describe("ModRegistries secrets", () => {
     expect(last().init.method).toBe("DELETE");
   });
 });
+
+describe("Language endpoints (spec 019)", () => {
+  it("Users.setLanguage sends a PUT with the tag", async () => {
+    await expectCall(Users.setLanguage("fr"), "/users/me/language", "PUT");
+    expect(last().init.body).toBe(JSON.stringify({ language: "fr" }));
+  });
+
+  it("Users.setLanguage(null) clears the saved choice", async () => {
+    await expectCall(Users.setLanguage(null), "/users/me/language", "PUT");
+    expect(last().init.body).toBe(JSON.stringify({ language: null }));
+  });
+
+  it("Auth.locale reads the public instance default", async () => {
+    await expectCall(Auth.locale(), "/auth/locale");
+  });
+});

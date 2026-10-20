@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // fakeStopper records calls to the agent's soft-stop endpoint. disabled
@@ -52,7 +52,7 @@ func withGameServerReconcilerStopper(t *testing.T, ns string, stop AgentStopper)
 			Client:                 mgr.GetClient(),
 			APIReader:              mgr.GetAPIReader(),
 			Scheme:                 mgr.GetScheme(),
-			AgentImage:             "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:             "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentCASecretName:      "agent-ca",
 			AgentCASecretNamespace: ns,
 			AgentClient:            stop,
@@ -101,7 +101,7 @@ func withGameServerReconcilerAttacher(t *testing.T, ns string, attach PodStopAtt
 			Client:                 mgr.GetClient(),
 			APIReader:              mgr.GetAPIReader(),
 			Scheme:                 mgr.GetScheme(),
-			AgentImage:             "ghcr.io/valgulnecron/gameplane/agent:test",
+			AgentImage:             "ghcr.io/gameplanepanel/gameplane/agent:test",
 			AgentCASecretName:      "agent-ca",
 			AgentCASecretNamespace: ns,
 			PodAttacher:            attach,

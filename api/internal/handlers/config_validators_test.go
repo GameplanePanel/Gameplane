@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"errors"
+	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 )
 
 // These tests pin the per-section validators directly so error branches
@@ -164,8 +168,18 @@ func TestValidateTelemetry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("happy: %v", err)
 	}
-	if string(canon) != `{"sendMetrics":true}` {
+	if string(canon) != `{"sendMetrics":true,"extended":false}` {
 		t.Fatalf("canonicalized output: got %s", canon)
+	}
+	canon, err = validateTelemetry([]byte(`{"sendMetrics":true,"extended":true}`))
+	if err != nil || string(canon) != `{"sendMetrics":true,"extended":true}` {
+		t.Fatalf("both tiers on: got %s, %v", canon, err)
+	}
+	// Basic off turns extended off with it and the save is not rejected
+	// (FR-003, spec Q7).
+	canon, err = validateTelemetry([]byte(`{"sendMetrics":false,"extended":true}`))
+	if err != nil || string(canon) != `{"sendMetrics":false,"extended":false}` {
+		t.Fatalf("basic off must normalise extended off: got %s, %v", canon, err)
 	}
 	if _, err := validateTelemetry([]byte(`bogus`)); err == nil {
 		t.Fatal("expected json error")
@@ -222,5 +236,50 @@ func TestUpdatesSectionRemoved(t *testing.T) {
 		if _, ok := newValidators(helm)["updates"]; ok {
 			t.Fatal(`"updates" must not be a writable config section`)
 		}
+	}
+}
+
+func TestValidateI18n(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		ok   bool
+	}{
+		{"valid en", `{"defaultLanguage":"en"}`, true},
+		{"unknown key", `{"defaultLanguage":"en","extra":1}`, false},
+		{"missing field", `{}`, false},
+		{"empty tag", `{"defaultLanguage":""}`, false},
+		{"bad json", `not json`, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			canon, err := validateI18n([]byte(tc.in))
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected: %v", err)
+			}
+			if tc.ok && string(canon) != tc.in {
+				t.Fatalf("canonicalized output: got %s, want %s", canon, tc.in)
+			}
+			if !tc.ok && err == nil {
+				t.Fatal("want error, got nil")
+			}
+		})
+	}
+}
+
+func TestValidateI18n_UnlistedTagIsLocalizableMessage(t *testing.T) {
+	_, err := validateI18n([]byte(`{"defaultLanguage":"xx"}`))
+	var m *httperr.Message
+	if !errors.As(err, &m) {
+		t.Fatalf("err = %v (%T), want *httperr.Message", err, err)
+	}
+	if m.ID != "server.i18n.unlisted_language" {
+		t.Fatalf("ID = %q, want server.i18n.unlisted_language", m.ID)
+	}
+	if m.Status != http.StatusBadRequest {
+		t.Fatalf("Status = %d, want 400", m.Status)
+	}
+	if m.Args["language"] != "xx" {
+		t.Fatalf("args.language = %v, want xx", m.Args["language"])
 	}
 }

@@ -31,7 +31,7 @@ func TestGameServer_Squad_RCON(t *testing.T) {
 	uid := time.Now().UnixNano()
 	tmplName := fmt.Sprintf("e2e-squad-rcon-%d", uid)
 	gsName := fmt.Sprintf("squad-rcon-%d", uid)
-	const mountPath = "/serverdata/Squad/Saved"
+	const mountPath = "/data"
 
 	tmpl := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
@@ -41,15 +41,14 @@ func TestGameServer_Squad_RCON(t *testing.T) {
 			"displayName": "E2E Squad RCON",
 			"game":        "squad",
 			"version":     "1.0.0",
-			"image":       "ghcr.io/valgulnecron/gameplane/squad:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+			"image":       "ghcr.io/gameplanepanel/gameplane/squad:latest@sha256:c96561c975b1cd049668da930582181de7ac8d74e5d8d2251080423ec2ee2748",
 			"env": []any{
-				map[string]any{"name": "HOME", "value": "/serverdata"},
 				map[string]any{"name": "RCON_PASSWORD", "value": "secret-rcon-password"},
 			},
 			"security": map[string]any{
-				"runAsUser":  int64(1000),
-				"runAsGroup": int64(1000),
-				"fsGroup":    int64(1000),
+				"runAsUser":  int64(10000),
+				"runAsGroup": int64(10000),
+				"fsGroup":    int64(10000),
 			},
 			"ports": []any{
 				map[string]any{"name": "game", "containerPort": int64(7787), "protocol": "UDP", "advertise": true},

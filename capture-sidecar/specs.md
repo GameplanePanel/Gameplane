@@ -1,7 +1,7 @@
 # capture-sidecar — Specification
 
 **Status:** pre-v1 (v0.3.0), Phase 2 Foundational (implementation complete)  
-**Module / command:** `github.com/ValgulNecron/gameplane/capture-sidecar`  
+**Module / command:** `github.com/GameplanePanel/gameplane/capture-sidecar`  
 **Dependencies (current):** stdlib + external libraries for packet capture and filtering (github.com/gopacket/gopacket v1.7.2, github.com/packetcap/go-pcap, golang.org/x/net)
 
 ## Purpose

@@ -32,6 +32,13 @@ const target = (process.env.GAMEPLANE_E2E_TARGET ?? "mock") as "mock" | "live";
 // an environment variable set by the npm script, not CLI-sniffing.
 const screenshotsRequested = process.env.GAMEPLANE_SCREENSHOTS === "1";
 
+// en-XA run (spec 019 T100): VITE_I18N_PSEUDO=1 (npm run screenshots:pseudo)
+// builds the pseudo-language into the dev server and replaces the chromium
+// project with an en-XA project over the screenshot suite. The specs keep
+// driving the UI in English; e2e/screenshots/capture.ts switches to en-XA for
+// each capture (OD-018).
+const pseudo = process.env.VITE_I18N_PSEUDO === "1";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false, // login flow shares cookies; serial keeps it predictable
@@ -70,7 +77,7 @@ export default defineConfig({
         ? "npx vite --mode mock --port 5173"
         : "npx vite --port 5173",
     url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && !pseudo,
     timeout: 60_000,
     env: {
       // Spread first — Playwright's webServer.env REPLACES process.env
@@ -84,10 +91,7 @@ export default defineConfig({
           : "http://localhost:8000",
     },
   },
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-  ],
+  projects: pseudo
+    ? [{ name: "en-XA", testDir: "./e2e/screenshots", use: { ...devices["Desktop Chrome"] } }]
+    : [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

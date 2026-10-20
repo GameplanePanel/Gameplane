@@ -1,0 +1,266 @@
+{
+  "type": "frame",
+  "id": "Ii9Hy",
+  "x": 160,
+  "y": 8910,
+  "name": "Gameplane/Language Card",
+  "reusable": true,
+  "width": 400,
+  "fill": "$surface/surface",
+  "cornerRadius": "$radius/3xl",
+  "effect": {
+    "type": "shadow",
+    "shadowType": "outer",
+    "color": "#0000000A",
+    "offset": {
+      "x": 0,
+      "y": 2
+    },
+    "blur": 4
+  },
+  "layout": "vertical",
+  "gap": 12,
+  "padding": 16,
+  "children": [
+    {
+      "id": "bjbtk",
+      "type": "ref",
+      "ref": "FRpsu",
+      "name": "Card Header",
+      "width": "fill_container",
+      "padding": [
+        20,
+        20,
+        16,
+        20
+      ],
+      "gap": 4,
+      "descendants": {
+        "fuZHB": {
+          "content": "Language"
+        },
+        "BZG9o": {
+          "content": "Choose the language of the dashboard. Your choice is saved to your account and follows you to every browser and device.",
+          "textGrowth": "fixed-width",
+          "width": "fill_container"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "Oqax2",
+      "name": "Card Fields",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": [
+        0,
+        20,
+        20,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "dxtzd",
+          "name": "tsLangList",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "i70dwB",
+              "name": "tsLangAuto",
+              "width": "fill_container",
+              "fill": "$field/background",
+              "cornerRadius": 10,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "gap": 12,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "ak3ix",
+                  "type": "ref",
+                  "ref": "z2mDh",
+                  "name": "tsLangAuto Radio",
+                  "descendants": {
+                    "ocqPf": {
+                      "content": "Automatic (browser language)",
+                      "fontWeight": "500"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y1BzjR",
+              "name": "tsLangEn",
+              "width": "fill_container",
+              "fill": "$field/background",
+              "cornerRadius": 10,
+              "stroke": "$accent/accent",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "gap": 12,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "dS2Rd",
+                  "type": "ref",
+                  "ref": "T8ZnV",
+                  "name": "tsLangEn Radio",
+                  "descendants": {
+                    "jAx6p": {
+                      "content": "English",
+                      "fontWeight": "500"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "DK9Dy",
+                  "name": "tsLangEn Completeness",
+                  "fill": "$muted",
+                  "content": "100% translated",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "l9qY7",
+              "name": "tsLangFr",
+              "width": "fill_container",
+              "fill": "$field/background",
+              "cornerRadius": 10,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "gap": 12,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "EPK0Z",
+                  "type": "ref",
+                  "ref": "z2mDh",
+                  "name": "tsLangFr Radio",
+                  "descendants": {
+                    "ocqPf": {
+                      "content": "Français",
+                      "fontWeight": "500"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "A3u1z",
+                  "name": "tsLangFr Completeness",
+                  "fill": "$muted",
+                  "content": "100% translated",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "z5wdL",
+              "name": "tsLangDe",
+              "width": "fill_container",
+              "fill": "$field/background",
+              "cornerRadius": 10,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "gap": 12,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "f0Hxt",
+                  "type": "ref",
+                  "ref": "z2mDh",
+                  "name": "tsLangDe Radio",
+                  "descendants": {
+                    "ocqPf": {
+                      "content": "Deutsch",
+                      "fontWeight": "500"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "tmRkc",
+                  "name": "tsLangDe Completeness",
+                  "fill": "$muted",
+                  "content": "86% translated",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ms9FY",
+          "name": "tsLangNote",
+          "width": "fill_container",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "GwpwV",
+              "name": "tsLangNoteIcon",
+              "width": 14,
+              "height": 14,
+              "icon": "info",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "text",
+              "id": "iItSQ",
+              "name": "tsLangNoteText",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Text that has not been translated yet is shown in English.",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

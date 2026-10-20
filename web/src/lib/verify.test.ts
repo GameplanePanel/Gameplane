@@ -15,7 +15,7 @@ function ociSource(name: string, verify?: ModuleSource["spec"]["verify"]): Modul
 }
 
 const keylessSrc = ociSource("upstream", {
-  keyless: { issuer: "https://token.actions.githubusercontent.com", identity: "https://github.com/ValgulNecron/gameplane-modules/.github/workflows/release.yml@refs/heads/main" },
+  keyless: { issuer: "https://token.actions.githubusercontent.com", identity: "https://github.com/GameplanePanel/module/.github/workflows/release.yml@refs/heads/main" },
 });
 const keyedSrc = ociSource("keyed", { key: { name: "cosign-pub" } });
 const plainSrc = ociSource("mirror");

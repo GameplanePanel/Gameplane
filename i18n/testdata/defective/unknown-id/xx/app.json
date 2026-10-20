@@ -1,0 +1,6 @@
+{
+  "files.count": {"defaultMessage": "{n, plural, one {# fichier} other {# fichiers}}"},
+  "farewell": {"defaultMessage": "Au revoir"},
+  "greeting": {"defaultMessage": "Bonjour"},
+  "welcome": {"defaultMessage": "Bienvenue sur <b>Gameplane</b>"}
+}

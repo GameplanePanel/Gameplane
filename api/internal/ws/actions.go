@@ -12,9 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
-	"github.com/ValgulNecron/gameplane/gameaction"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/gameaction"
 )
 
 // actionsBodyLimit caps the /actions/run request body — plenty for an

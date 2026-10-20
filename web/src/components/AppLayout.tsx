@@ -14,6 +14,7 @@ import {
 import { APIError } from "@/lib/api";
 import { Clusters, Auth } from "@/lib/endpoints";
 import { useMe, can } from "@/lib/auth";
+import { useInstallation } from "@/lib/useInstallation";
 import type { User } from "@/types";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/ui/AppShell";
@@ -34,6 +35,8 @@ import {
   useThemePreferences,
 } from "@/lib/useThemePreferences";
 import { SafeModeBanner } from "@/components/ui/SafeModeBanner";
+import { TelemetryNotice } from "@/components/ui/TelemetryNotice";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 // The localStorage key the theme boot script in index.html reads before
 // React mounts — must stay in sync (see index.html and theme-tokens.md).
@@ -89,7 +92,9 @@ function useAppearance(
 }
 
 export function AppLayout() {
+  const intl = useOptionalIntl();
   const { data: me, error, isLoading } = useMe();
+  const installation = useInstallation();
   const { data: registry } = useQuery({ queryKey: ["clusters"], queryFn: () => Clusters.list() });
   const canViewInventory = registry?.items.some((item) => item.canViewInventory === true) === true;
   const canManageInfrastructure = can(me, "cluster:manage") || canViewInventory;
@@ -158,36 +163,40 @@ export function AppLayout() {
     void navigate({ to: "/settings/theme" });
   };
 
+  const openTelemetrySettings = () => {
+    void navigate({ to: "/admin", search: { section: "telemetry" } });
+  };
+
   const navItems: SidebarNavGroup[] = [
     {
-      label: "General",
+      label: intl.formatMessage({ id: "web.components.app_layout.general", defaultMessage: "General", description: "Sidebar: heading of the general navigation group" }),
       items: [
-        { to: "/", label: "Dashboard", icon: LayoutDashboard },
-        { to: "/servers", label: "Servers", icon: Server },
-        { to: "/modules", label: "Modules", icon: Package },
-        { to: "/backups", label: "Backups", icon: Archive },
+        { to: "/", label: intl.formatMessage({ id: "web.components.app_layout.dashboard", defaultMessage: "Dashboard", description: "Sidebar: navigation link to the dashboard" }), icon: LayoutDashboard },
+        { to: "/servers", label: intl.formatMessage({ id: "web.components.app_layout.servers", defaultMessage: "Servers", description: "Sidebar: navigation link to the servers list" }), icon: Server },
+        { to: "/modules", label: intl.formatMessage({ id: "web.components.app_layout.modules", defaultMessage: "Modules", description: "Sidebar: navigation link to modules" }), icon: Package },
+        { to: "/backups", label: intl.formatMessage({ id: "web.components.app_layout.backups", defaultMessage: "Backups", description: "Sidebar: navigation link to backups" }), icon: Archive },
       ],
     },
     {
-      label: "Admin",
+      label: intl.formatMessage({ id: "web.components.app_layout.admin", defaultMessage: "Admin", description: "Sidebar: heading of the admin navigation group" }),
       items: [
-        ...(canManageInfrastructure ? [{ to: "/clusters", label: "Clusters", icon: Network }] : []),
+        ...(canManageInfrastructure ? [{ to: "/clusters", label: intl.formatMessage({ id: "web.components.app_layout.clusters", defaultMessage: "Clusters", description: "Sidebar: navigation link to the clusters page" }), icon: Network }] : []),
         ...(canViewInventory
-          ? [{ to: "/cluster", label: "Cluster", icon: Server }]
+          ? [{ to: "/cluster", label: intl.formatMessage({ id: "web.components.app_layout.cluster", defaultMessage: "Cluster", description: "Sidebar: navigation link to the cluster page" }), icon: Server }]
           : []),
         ...(can(me, "users:manage")
-          ? [{ to: "/users", label: "Users & RBAC", icon: Users }]
+          ? [{ to: "/users", label: intl.formatMessage({ id: "web.components.app_layout.users_rbac", defaultMessage: "Users & RBAC", description: "Sidebar: navigation link to users and roles" }), icon: Users }]
           : []),
         ...(can(me, "audit:read")
-          ? [{ to: "/admin/audit", label: "Audit log", icon: ScrollText }]
+          ? [{ to: "/admin/audit", label: intl.formatMessage({ id: "web.components.app_layout.audit_log", defaultMessage: "Audit log", description: "Sidebar: navigation link to the audit log" }), icon: ScrollText }]
           : []),
         // System logs match the API's /admin/system-logs guard: the admin
         // wildcard permission, not a narrower named one.
         ...(can(me, "*")
-          ? [{ to: "/admin/logs", label: "System logs", icon: Terminal }]
+          ? [{ to: "/admin/logs", label: intl.formatMessage({ id: "web.components.app_layout.system_logs", defaultMessage: "System logs", description: "Sidebar: navigation link to system logs" }), icon: Terminal }]
           : []),
         ...(can(me, "config:manage")
-          ? [{ to: "/admin", label: "Settings", icon: Settings }]
+          ? [{ to: "/admin", label: intl.formatMessage({ id: "web.components.app_layout.settings", defaultMessage: "Settings", description: "Sidebar: navigation link to admin settings" }), icon: Settings }]
           : []),
       ],
     },
@@ -197,11 +206,11 @@ export function AppLayout() {
   // its crumb is fixed instead of echoing the unknown URL segments.
   const onNotFound = matches.some((m) => m.routeId.endsWith("$"));
   const crumbs = onNotFound
-    ? [{ label: "gameplane", to: "/" }, { label: "Page not found" }]
-    : buildCrumbs(pathname);
+    ? [{ label: "gameplane", to: "/" }, { label: intl.formatMessage({ id: "web.components.app_layout.page_not_found", defaultMessage: "Page not found", description: "Breadcrumb for the 404 page" }) }]
+    : buildCrumbs(pathname, intl);
   // Extract the last breadcrumb label as the mobile title
   const mobileTitle = crumbs.length > 0 ? crumbs[crumbs.length - 1].label : "";
-  const centralManagement = ["/modules", "/users", "/admin", "/settings"].some(
+  const centralManagement = ["/users", "/admin", "/settings", ...(installation.data?.standalone === false ? ["/modules"] : [])].some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
   );
 
@@ -222,7 +231,7 @@ export function AppLayout() {
         sidebar={
           <Sidebar
             navItems={navItems}
-            clusterName={centralManagement ? "Central management" : "Gameplane"}
+            clusterName={centralManagement ? intl.formatMessage({ id: "web.components.app_layout.central_management", defaultMessage: "Central management", description: "Sidebar: cluster name shown on central-management pages" }) : "Gameplane"}
             user={me}
             variant="fixed"
             onLogout={onLogout}
@@ -237,18 +246,19 @@ export function AppLayout() {
             breadcrumbs={<Breadcrumbs items={crumbs} />}
             clusterSelector={null}
             search={<GlobalSearch />}
-            notifications={<NotificationsPanel />}
+            notifications={<NotificationsPanel enabled={installation.data?.localCluster === true} />}
             mobileTitle={mobileTitle}
             user={me}
             onMenuClick={() => setDrawerOpen(true)}
           />
         }
       >
+        {/* First-login telemetry notice (spec 022 FR-004): admins only; the
+            API also answers {pending:false} to callers without config:manage. */}
+        {can(me, "config:manage") && <TelemetryNotice onOpenSettings={openTelemetrySettings} />}
         {centralManagement && (
           <div role="note" className="border-b border-border bg-surface px-4 py-3 text-sm text-muted sm:px-6">
-            <strong className="font-medium text-foreground">Central management.</strong>{" "}
-            This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.
-          </div>
+            <strong className="font-medium text-foreground">{intl.formatMessage({ id: "web.components.app_layout.central_management_lead", defaultMessage: "Central management.", description: "Bold lead-in of the central-management note shown above page content" })}</strong> {intl.formatMessage({ id: "web.components.app_layout.this_catalog_account_or_installation", defaultMessage: "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.", description: "App layout: note shown when central management applies; catalog, account or installation settings belong to the central installation, while server actions use each server's location" })}</div>
         )}
         <Outlet />
       </AppShell>
@@ -259,7 +269,7 @@ export function AppLayout() {
           confusing the accessibility tree in source order too. */}
       <Sidebar
         navItems={navItems}
-        clusterName={centralManagement ? "Central management" : "Gameplane"}
+        clusterName={centralManagement ? intl.formatMessage({ id: "web.components.app_layout.central_management", defaultMessage: "Central management", description: "Sidebar: cluster name shown on central-management pages" }) : "Gameplane"}
         user={me}
         variant="drawer"
         isOpen={drawerOpen}

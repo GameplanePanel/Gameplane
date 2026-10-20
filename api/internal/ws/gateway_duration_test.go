@@ -7,7 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/http/httptest"
+
 	"strings"
 	"testing"
 	"time"
@@ -17,7 +17,7 @@ import (
 
 func durationGatewayTransport(t *testing.T, handler http.Handler) *gatewayAgentTransport {
 	t.Helper()
-	srv := httptest.NewTLSServer(handler)
+	srv := newGatewayTLSTestServer(t, handler)
 	t.Cleanup(srv.Close)
 	resolver, home, _ := gatewayFixture(t, srv.URL)
 	secret, err := home.Typed.CoreV1().Secrets("gameplane-system").Get(t.Context(), "gateway-client", metav1.GetOptions{})

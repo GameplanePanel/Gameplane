@@ -18,7 +18,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // heartbeatFreshness defines how long an agent heartbeat is trusted.
@@ -88,7 +88,7 @@ func (r *GameServerReconciler) reconcileStatus(
 	var prov *provisioningInfo
 	if phase == gameplanev1alpha1.GameServerPhasePending || phase == gameplanev1alpha1.GameServerPhaseStarting {
 		pvcName := gs.Name + "-data"
-		if _, pvcMsg, provisioning, err := checkPVCProvisioningFailure(ctx, r.Client, gs.Namespace, pvcName); err != nil {
+		if scName, pvcMsg, provisioning, err := checkPVCProvisioningFailure(ctx, r.Client, gs.Namespace, pvcName); err != nil {
 			// Non-NotFound error checking the PVC or StorageClass; surface it.
 			return 0, fmt.Errorf("check PVC provisioning: %w", err)
 		} else if provisioning {
@@ -98,6 +98,7 @@ func (r *GameServerReconciler) reconcileStatus(
 			prov = &provisioningInfo{
 				reason:  GameServerConditionReasonPVCProvisioningFailed,
 				message: fmt.Sprintf("PVC %q: %s", pvcName, pvcMsg),
+				args:    map[string]string{"pvc": pvcName, "storageClass": scName},
 			}
 		}
 	}
@@ -123,10 +124,10 @@ func (r *GameServerReconciler) reconcileStatus(
 				// derivePhase re-evaluates every reconcile, so a later
 				// recovery returns the phase to Running.
 				phase = gameplanev1alpha1.GameServerPhaseFailed
-				prov = &provisioningInfo{reason: fr, message: fm}
+				prov = &provisioningInfo{reason: fr, message: fm, args: provisioningArgs(&pod, fr)}
 			} else {
 				reason, message := provisioningReason(&pod, heartbeatFresh(gs))
-				prov = &provisioningInfo{reason: reason, message: message}
+				prov = &provisioningInfo{reason: reason, message: message, args: provisioningArgs(&pod, reason)}
 			}
 		}
 	}
@@ -195,10 +196,12 @@ func (r *GameServerReconciler) reconcileStatus(
 	gs.Status.Conditions = computeTunnelConditions(gs, tunnelPlan, tunnelDep)
 
 	// Validate and merge playit tunnel endpoints if present.
+	var playitErr string
 	if gs.Spec.Networking.Tunnel != nil && gs.Spec.Networking.Tunnel.Provider == "playit" &&
 		len(gs.Status.TunnelEndpoints) > 0 {
 		advertisedPorts := getAdvertisedPortNames(tmpl)
 		validEndpoints, errMsg := validatePlayitEndpoints(gs.Status.TunnelEndpoints, advertisedPorts)
+		playitErr = errMsg
 		if errMsg != "" {
 			// Set condition on validation failure; invalid entries are discarded
 			invalidCond := metav1.Condition{
@@ -277,6 +280,20 @@ func (r *GameServerReconciler) reconcileStatus(
 	if phase == gameplanev1alpha1.GameServerPhaseStopped || phase == gameplanev1alpha1.GameServerPhaseSuspended {
 		gs.Status.StartedAt = nil
 	}
+
+	// Recomputed from the final conditions so the args follow each condition
+	// and are dropped when its reason has none. Out-of-band writers
+	// (setPhase, setTunnelCredentialRefused, clearTunnelCredentialRefused)
+	// maintain their own entries; see gameserver_condition_args.go.
+	gs.Status.ConditionArgs = deriveConditionArgs(gs, conditionArgsInput{
+		prov:         prov,
+		plan:         addrPlan,
+		assigned:     loadBalancerAddress(svcPtr),
+		conflicting:  conflictingServer,
+		tunnelPlan:   tunnelPlan,
+		playitErr:    playitErr,
+		idleSchedErr: idleScheduleErr,
+	})
 
 	if !reflect.DeepEqual(orig, &gs.Status) {
 		if err := r.Status().Patch(ctx, gs, client.MergeFrom(base)); err != nil {
@@ -851,6 +868,9 @@ const gameContainerName = "game"
 type provisioningInfo struct {
 	reason  string
 	message string
+	// args are the values the localized text of reason needs; see
+	// provisioningArgs. nil when the reason has none.
+	args map[string]string
 }
 
 // provisioningReason inspects a Starting pod's container states to explain
@@ -1052,19 +1072,7 @@ func computeTunnelConditions(
 	// TunnelHostnameIgnored always reflects the current spec rather than going
 	// stale behind an early return (e.g. a hostname cleared while the tunnel
 	// Deployment isn't ready yet, or the provider config is invalid) — F-055.
-	var ignoredSettings []string
-	if gs.Spec.Networking.Hostname != "" {
-		ignoredSettings = append(ignoredSettings, "hostname")
-	}
-	if len(gs.Spec.Networking.SourceRanges) > 0 {
-		ignoredSettings = append(ignoredSettings, "sourceRanges")
-	}
-	for _, po := range gs.Spec.Networking.PortOverrides {
-		if po.NodePort != 0 {
-			ignoredSettings = append(ignoredSettings, "nodePort")
-			break
-		}
-	}
+	ignoredSettings := ignoredTunnelSettings(gs)
 	if len(ignoredSettings) > 0 {
 		conds = upsertCondition(conds, metav1.Condition{
 			Type:               "TunnelHostnameIgnored",

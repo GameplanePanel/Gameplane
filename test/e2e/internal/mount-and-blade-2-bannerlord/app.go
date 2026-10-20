@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	a2s "github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/a2sproto"
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	a2s "github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/a2sproto"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // main is the probe entrypoint.

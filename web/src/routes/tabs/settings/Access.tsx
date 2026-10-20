@@ -5,8 +5,10 @@ import { X } from "lucide-react";
 import type { GameServer } from "@/types";
 import { Button, Input, Label, Chip, Card, CardContent } from "@heroui/react";
 
-import { errorText } from "@/lib/errors";
+import { errorTextIntl } from "@/lib/errors";
 import { OWNER_ANNOTATION } from "@/lib/annotations";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import type { IntlShape } from "react-intl";
 
 const COLLABORATORS_ANNOTATION = "gameplane.local/collaborators";
 const COLLABORATOR_NAMES_ANNOTATION = "gameplane.local/collaborator-names";
@@ -16,6 +18,7 @@ interface Props {
 }
 
 export function AccessSection({ gs }: Props) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name: gs?.metadata.name ?? "", namespace: gs?.metadata.namespace });
   const resourceClient = useResourceClient(resourceTarget);
   const { Servers } = resourceClient;
@@ -37,16 +40,16 @@ export function AccessSection({ gs }: Props) {
       return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "server", gs?.metadata.name) });
     },
     onError: (err) => {
-      setError(errMsg(err));
+      setError(errMsg(err, intl.formatMessage({ id: "web.routes.tabs.settings.access.failed", defaultMessage: "failed", description: "Access: fallback error shown when changing collaborators fails and the server gives no message" }), intl));
     },
   });
 
   if (!gs) {
-    return <div className="p-6 text-sm text-default-500">Loading…</div>;
+    return <div className="p-6 text-sm text-default-500">{intl.formatMessage({ id: "web.routes.tabs.settings.access.loading", defaultMessage: "Loading…", description: "Settings access section: loading text shown while the server access details are fetched" })}</div>;
   }
 
   const ann = gs.metadata.annotations ?? {};
-  const ownerName = ann[OWNER_ANNOTATION] ?? "—";
+  const ownerName = ann[OWNER_ANNOTATION] ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
   const collaboratorIDs = ann[COLLABORATORS_ANNOTATION]
     ? ann[COLLABORATORS_ANNOTATION].split(",").map((s) => s.trim())
     : [];
@@ -91,7 +94,7 @@ export function AccessSection({ gs }: Props) {
     <div className="space-y-3">
       <Card className="border border-divider bg-default/40">
         <CardContent className="gap-0 px-4 py-4">
-          <Label className="text-sm font-medium">Owner</Label>
+          <Label className="text-sm font-medium">{intl.formatMessage({ id: "web.routes.tabs.settings.access.owner", defaultMessage: "Owner", description: "Label for the server owner's username" })}</Label>
           <div className="pt-1 font-mono text-sm text-default-500">{ownerName}</div>
         </CardContent>
       </Card>
@@ -100,18 +103,13 @@ export function AccessSection({ gs }: Props) {
         <CardContent className="gap-0 px-4 py-4">
           <div className="space-y-3">
             <div>
-              <Label className="text-sm font-medium">Collaborators</Label>
-              <p className="pt-1 text-xs text-default-500">
-                Collaborators get full control of this server (console, files, settings). They
-                can&apos;t transfer ownership or edit this list.
-              </p>
+              <Label className="text-sm font-medium">{intl.formatMessage({ id: "web.routes.tabs.settings.access.collaborators", defaultMessage: "Collaborators", description: "Label for the list of users who can manage this server" })}</Label>
+              <p className="pt-1 text-xs text-default-500">{intl.formatMessage({ id: "web.routes.tabs.settings.access.collaborators_get_full_control_of_this", defaultMessage: "Collaborators get full control of this server (console, files, settings). They can't transfer ownership or edit this list.", description: "Settings access section: hint under the Collaborators label saying collaborators get full control of the server but cannot transfer ownership or edit this list" })}</p>
             </div>
 
             <div className="space-y-2">
               {!isAligned && (
-                <div className="rounded border border-warning/40 bg-warning/10 px-2 py-1 text-xs text-warning-600 dark:text-warning-400">
-                  Collaborators were modified outside the dashboard.
-                </div>
+                <div className="rounded border border-warning/40 bg-warning/10 px-2 py-1 text-xs text-warning-600 dark:text-warning-400">{intl.formatMessage({ id: "web.routes.tabs.settings.access.collaborators_were_modified_outside_the", defaultMessage: "Collaborators were modified outside the dashboard.", description: "Settings access section: warning shown when the collaborators list was changed outside the dashboard" })}</div>
               )}
               {collaboratorNames.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -131,7 +129,7 @@ export function AccessSection({ gs }: Props) {
                           className="ml-0.5 text-danger"
                           onPress={() => handleRemoveCollaborator(idx)}
                           isDisabled={setCollab.isPending}
-                          aria-label={`Remove ${name}`}
+                          aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.access.remove_collaborator", defaultMessage: "Remove {name}", description: "Access: aria-label of the remove button on a collaborator chip; {name} is the collaborator's username" }, { name })}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -140,7 +138,7 @@ export function AccessSection({ gs }: Props) {
                   ))}
                 </div>
               ) : (
-                <div className="text-xs text-default-500">None yet</div>
+                <div className="text-xs text-default-500">{intl.formatMessage({ id: "web.routes.tabs.settings.access.none_yet", defaultMessage: "None yet", description: "Settings access section: empty-state text in the collaborators area when there are no collaborators" })}</div>
               )}
             </div>
 
@@ -154,7 +152,7 @@ export function AccessSection({ gs }: Props) {
                       handleAddCollaborator();
                     }
                   }}
-                  placeholder="Add collaborator by username…"
+                  placeholder={intl.formatMessage({ id: "web.routes.tabs.settings.access.add_collaborator_by_username", defaultMessage: "Add collaborator by username…", description: "Settings access section: placeholder in the box for adding a collaborator by username; pressing Enter adds them" })}
                   className="flex-1"
                   disabled={setCollab.isPending}
                   type="text"
@@ -164,9 +162,7 @@ export function AccessSection({ gs }: Props) {
                   variant="primary"
                   onPress={() => handleAddCollaborator()}
                   isDisabled={!addInput.trim() || setCollab.isPending}
-                >
-                  Add
-                </Button>
+                >{intl.formatMessage({ id: "web.routes.tabs.settings.access.add", defaultMessage: "Add", description: "Button that adds the typed username as a collaborator" })}</Button>
               </div>
             )}
           </div>
@@ -182,6 +178,6 @@ export function AccessSection({ gs }: Props) {
   );
 }
 
-function errMsg(err: unknown): string {
-  return errorText(err, "failed");
+function errMsg(err: unknown, fallback: string, intl: IntlShape): string {
+  return errorTextIntl(intl, err, fallback);
 }

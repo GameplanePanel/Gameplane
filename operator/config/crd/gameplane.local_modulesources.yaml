@@ -203,7 +203,7 @@ spec:
                   url:
                     description: |-
                       URL is the registry/repository prefix that holds module bundles
-                      (e.g. "ghcr.io/valgulnecron/gameplane-modules").
+                      (e.g. "ghcr.io/gameplanepanel/gameplane-modules").
                     minLength: 1
                     type: string
                 required:
@@ -433,7 +433,7 @@ spec:
                     reference:
                       description: |-
                         Reference locates this module within its source: the registry
-                        repo path for oci (e.g. "ghcr.io/valgulnecron/gameplane-modules/minecraft-java"),
+                        repo path for oci (e.g. "ghcr.io/gameplanepanel/gameplane-modules/minecraft-java"),
                         or "<type>:<location>/<dir>" for the other source types.
                       type: string
                     summary:

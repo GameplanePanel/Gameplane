@@ -1,7 +1,7 @@
 # sentinel — Specification
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / command:** `github.com/ValgulNecron/gameplane/sentinel`  
+**Module / command:** `github.com/GameplanePanel/gameplane/sentinel`  
 **Dependencies:** Kubernetes `client-go` (dynamic client, in-cluster config), `k8s.io/apimachinery`, gameproto
 
 ## Purpose
@@ -37,7 +37,7 @@ sentinel/
 ├── main.go          # Entry point, config parsing, listeners, handlers, upstream polling, proxying
 ├── main_test.go     # Config parsing, ports parsing, UDP heuristic, waker, TCP/UDP handlers, proxying, bidirectional copy
 ├── Dockerfile       # Image build (sets Version at compile time)
-├── go.mod           # Dependencies: k8s.io/client-go, k8s.io/apimachinery, github.com/ValgulNecron/gameplane/gameproto
+├── go.mod           # Dependencies: k8s.io/client-go, k8s.io/apimachinery, github.com/GameplanePanel/gameplane/gameproto
 ├── go.sum           # Locked versions
 └── .testcoverage.yml # 70% coverage gate
 ```
@@ -263,7 +263,7 @@ Each accepted TCP connection runs as a *session* under its own context, separate
 - `k8s.io/client-go/rest` — in-cluster configuration.
 
 **Gameplane:**
-- `github.com/ValgulNecron/gameplane/gameproto` — Classifier interface (Classify, SupportsStatusPing, BuildStatusResponse, BuildDisconnect), registry functions (Lookup, ListRegistered) for protocol dispatch.
+- `github.com/GameplanePanel/gameplane/gameproto` — Classifier interface (Classify, SupportsStatusPing, BuildStatusResponse, BuildDisconnect), registry functions (Lookup, ListRegistered) for protocol dispatch.
 
 ## Security Considerations
 

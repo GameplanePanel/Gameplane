@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_MountAndBlade2BannerlordBot_Query boots a Bannerlord dedicated server
@@ -25,7 +25,7 @@ func TestGameServer_MountAndBlade2BannerlordBot_Query(t *testing.T) {
 		Game:        "mount-and-blade-2-bannerlord",
 		Template:    fmt.Sprintf("e2e-bannerlord-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E Mount & Blade II: Bannerlord",
-		Image:       "ghcr.io/valgulnecron/gameplane/mount-and-blade-2-bannerlord:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/mount-and-blade-2-bannerlord:latest@sha256:ac4796548429fce3bf1990839b75002f08ee8d6c11260bc4a26329f5a7d93717",
 		Env: map[string]string{
 			"SERVER_TOKEN": "test-bannerlord-token",
 			"SERVER_NAME":  "Gameplane E2E Bannerlord",
@@ -35,7 +35,7 @@ func TestGameServer_MountAndBlade2BannerlordBot_Query(t *testing.T) {
 			{Name: "query", Port: 7211, Protocol: "UDP"},
 		},
 		StorageSize: "15Gi",
-		MountPath:   "/serverdata",
+		MountPath:   "/data",
 		Resources: gameResources{
 			ReqCPU: "2", ReqMem: "4Gi",
 			LimCPU: "4", LimMem: "8Gi",

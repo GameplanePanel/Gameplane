@@ -16,12 +16,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
-	"github.com/ValgulNecron/gameplane/api/internal/rbac"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/rbac"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 const (
@@ -175,11 +176,11 @@ func (h fleetHandler) candidates(ctx context.Context, filter string) ([]fleetClu
 		k, _ := h.reg.Get(id)
 		byID[id] = fleetCluster{id: id, name: id, k: k}
 	}
-	if _, ok := byID[h.reg.DefaultID()]; !ok {
+	if _, ok := byID[h.reg.DefaultID()]; !ok && h.reg.Default() != nil {
 		byID[h.reg.DefaultID()] = fleetCluster{id: h.reg.DefaultID(), name: h.reg.DefaultID()}
 	}
 	issues := make([]fleetIssue, 0)
-	home := h.reg.Default()
+	home := h.reg.Management()
 	applyRegistration := func(obj *unstructured.Unstructured) {
 		id := obj.GetName()
 		if obj.GetDeletionTimestamp() != nil {
@@ -198,7 +199,7 @@ func (h fleetHandler) candidates(ctx context.Context, filter string) ([]fleetClu
 	}
 	// The local registration is intrinsic; its explicit filter does not
 	// depend on discovering unrelated remote registrations.
-	if filter != h.reg.DefaultID() && (home == nil || home.Dynamic == nil) {
+	if filter != h.reg.DefaultID() && (home == nil || home.Clusters() == nil) {
 		issues = append(issues, fleetIssue{Code: "unavailable", Message: "Cluster discovery is incomplete"})
 	} else if filter != h.reg.DefaultID() {
 		ctx, cancel := context.WithTimeout(ctx, fleetScopeTimeout)
@@ -207,12 +208,12 @@ func (h fleetHandler) candidates(ctx context.Context, filter string) ([]fleetClu
 		var err error
 		if filter != "" {
 			var obj *unstructured.Unstructured
-			obj, err = home.Dynamic.Resource(kube.GVRCluster).Get(ctx, filter, metav1.GetOptions{})
+			obj, err = home.Clusters().Get(ctx, filter, metav1.GetOptions{})
 			if err == nil {
 				list = &unstructured.UnstructuredList{Items: []unstructured.Unstructured{*obj}}
 			}
 		} else {
-			list, err = home.Dynamic.Resource(kube.GVRCluster).List(ctx, metav1.ListOptions{Limit: fleetMaxItems})
+			list, err = home.Clusters().List(ctx, metav1.ListOptions{Limit: fleetMaxItems})
 		}
 		if err != nil && !apierrors.IsNotFound(err) {
 			issues = append(issues, fleetIssue{Code: "unavailable", Message: "Cluster discovery is incomplete"})
@@ -359,7 +360,7 @@ func (h fleetHandler) resources(kind string) http.HandlerFunc {
 func (h fleetHandler) start(w http.ResponseWriter, req *http.Request) (*auth.User, fleetFilter, bool) {
 	u := auth.UserFromContext(req.Context())
 	if u == nil {
-		http.Error(w, "unauthenticated", http.StatusUnauthorized)
+		httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 		return nil, fleetFilter{}, false
 	}
 	f, err := parseFleetFilter(req)
@@ -611,7 +612,7 @@ func (h fleetHandler) readInventory(ctx context.Context, c fleetCluster) (*fleet
 func (h fleetHandler) serverAccess(w http.ResponseWriter, req *http.Request) {
 	u := auth.UserFromContext(req.Context())
 	if u == nil {
-		http.Error(w, "unauthenticated", http.StatusUnauthorized)
+		httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 		return
 	}
 	k, ok := resolveCluster(w, req, h.reg)
@@ -631,7 +632,7 @@ func (h fleetHandler) serverAccess(w http.ResponseWriter, req *http.Request) {
 	}
 	access := serverFleetAccess(u, cl, ns, obj)
 	if !u.Can("servers:read", true, cl, ns) && !access.IsOwner && !access.IsCollaborator {
-		http.Error(w, "forbidden", http.StatusForbidden)
+		httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 		return
 	}
 	writeJSON(w, struct {
@@ -660,10 +661,6 @@ func (h fleetHandler) placements(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	out := fleetResult[fleetPlacement]{Items: make([]fleetPlacement, 0), Issues: make([]fleetIssue, 0)}
-	if !u.Can("templates:read", false, "", "") {
-		writeJSON(w, out)
-		return
-	}
 	ctx, cancel := context.WithTimeout(req.Context(), fleetTimeout)
 	defer cancel()
 	clusters, issues := h.candidates(ctx, f.cluster)
@@ -674,6 +671,9 @@ func (h fleetHandler) placements(w http.ResponseWriter, req *http.Request) {
 	}
 	allowed := make([]eligible, 0)
 	for _, c := range clusters {
+		if !u.Can("templates:read", false, c.id, "") {
+			continue
+		}
 		namespaces := make([]string, 0)
 		for _, ns := range scope.AllowedNamespaces {
 			if (f.namespace == "" || ns == f.namespace) && u.Can("servers:write", true, c.id, ns) {

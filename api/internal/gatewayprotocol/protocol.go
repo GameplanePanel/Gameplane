@@ -62,7 +62,7 @@ func Allowed(method, path string) (int64, bool) {
 			return 16 << 10, true
 		case "/mods/upload":
 			return 512 << 20, true
-		case "/files/write", "/files/upload", "/files/mkdir", "/players/kick", "/players/ban", "/players/unban", "/players/whitelist/add", "/players/whitelist/remove", "/mods/install":
+		case "/files/write", "/files/create", "/files/upload", "/files/mkdir", "/players/kick", "/players/ban", "/players/unban", "/players/whitelist/add", "/players/whitelist/remove", "/mods/install":
 			return 64 << 20, true
 		}
 	case http.MethodDelete:

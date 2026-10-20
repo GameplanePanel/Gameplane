@@ -1,0 +1,293 @@
+{
+  "type": "frame",
+  "id": "FtdkI",
+  "x": 1640,
+  "y": 28907,
+  "name": "Screen/Server Detail — Logs (Failed)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "bj7qx",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "L8rOD",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "phelD",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "id": "rtf5z",
+          "type": "ref",
+          "ref": "S4k0x",
+          "name": "Detail Header",
+          "width": "fill_container",
+          "descendants": {
+            "N3nc2n": {
+              "id": "mTsdK",
+              "type": "ref",
+              "ref": "Yeemi",
+              "name": "statusBadge",
+              "descendants": {
+                "fRdhX": {
+                  "content": "Failed"
+                }
+              }
+            },
+            "UpnRk": {
+              "type": "frame",
+              "id": "ij6N6",
+              "name": "srvMeta",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MTJmq",
+                  "name": "errorLine",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "h0eC5L",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "triangle-alert",
+                      "library": "lucide",
+                      "weight": 400,
+                      "fill": "$danger/soft-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "f3knq",
+                      "fill": "$danger/soft-foreground",
+                      "content": "Back-off pulling image \"itzg/minecraft-server:bad-tag\"",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "BFfZU",
+                  "name": "srvSubtitle",
+                  "fill": "$muted",
+                  "content": "minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            "Gdnjm": {
+              "type": "frame",
+              "id": "AdGvP",
+              "name": "srvActions",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "hJkbE",
+                  "type": "ref",
+                  "ref": "tpKRk",
+                  "name": "Btn Start",
+                  "descendants": {
+                    "q58In/Xpn7K": {
+                      "icon": "play"
+                    },
+                    "q58In/U6q13B": {
+                      "content": "Start"
+                    }
+                  }
+                },
+                {
+                  "id": "Cf6Gd",
+                  "type": "ref",
+                  "ref": "rNhll",
+                  "name": "Btn Restart",
+                  "descendants": {
+                    "wDXFJ/K8d1zg": {
+                      "icon": "rotate-cw",
+                      "library": "lucide"
+                    },
+                    "wDXFJ/zMNkR": {
+                      "content": "Restart"
+                    }
+                  }
+                },
+                {
+                  "id": "dOBfe",
+                  "type": "ref",
+                  "ref": "rNhll",
+                  "name": "Btn Stop",
+                  "descendants": {
+                    "wDXFJ/K8d1zg": {
+                      "icon": "square",
+                      "library": "lucide"
+                    },
+                    "wDXFJ/zMNkR": {
+                      "content": "Stop"
+                    }
+                  }
+                },
+                {
+                  "id": "CaKHq",
+                  "type": "ref",
+                  "ref": "J3iWV8",
+                  "name": "Btn More",
+                  "width": 36,
+                  "height": 36,
+                  "descendants": {
+                    "xjGeb": {
+                      "width": 20,
+                      "height": 20,
+                      "icon": "ellipsis",
+                      "library": "lucide",
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "EL832",
+          "type": "ref",
+          "ref": "I9kvlZ",
+          "name": "Tabs Bar",
+          "width": "fill_container",
+          "padding": [
+            0,
+            24
+          ],
+          "descendants": {
+            "Wp6q1": {
+              "fill": "#00000000"
+            },
+            "Wp6q1/YUR8N": {
+              "fill": "$muted"
+            },
+            "tEfPq": {
+              "fill": "$segment"
+            },
+            "tEfPq/VcxMI": {
+              "fill": "$foreground/segment"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "WhMK5",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "children": [
+            {
+              "type": "frame",
+              "id": "JHfpt",
+              "name": "Terminal",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#0b0b0d",
+              "cornerRadius": "$radius/2xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 12,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "JZrXA",
+                  "width": 40,
+                  "height": 40,
+                  "icon": "warning",
+                  "library": "Material Symbols Sharp",
+                  "weight": 400,
+                  "fill": "$danger/soft-foreground"
+                },
+                {
+                  "type": "text",
+                  "id": "rzVSK",
+                  "name": "failTitle",
+                  "fill": "$foreground/foreground",
+                  "content": "The server failed to start.",
+                  "textAlign": "center",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "dNp1F",
+                  "name": "failBody",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": 440,
+                  "content": "No container output was captured. Check the Overview events for image-pull or scheduling errors.",
+                  "textAlign": "center",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

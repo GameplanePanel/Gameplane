@@ -1,0 +1,168 @@
+{
+  "type": "frame",
+  "id": "oyoTs",
+  "x": 1640,
+  "y": 12822,
+  "name": "Screen/Dashboard Home (Light)",
+  "theme": {
+    "semantic": "light"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1150,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "sDqGm",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container"
+    },
+    {
+      "type": "frame",
+      "id": "Io7lX",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Qfvz6",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gb27k": {
+              "fontFamily": "$typography/font-sans"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "ooAXA",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "children": [
+            {
+              "id": "I2oAN6",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "VbHwU": {
+                  "content": "Your game servers and resources across authorized locations."
+                },
+                "TgdLz": {
+                  "children": [
+                    {
+                      "id": "IBjLE",
+                      "type": "ref",
+                      "ref": "tpKRk",
+                      "name": "Create Server Button",
+                      "descendants": {
+                        "q58In/Xpn7K": {
+                          "library": "lucide",
+                          "icon": "plus"
+                        },
+                        "q58In/U6q13B": {
+                          "content": "Create server"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "o47VwC",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Dashboard location filter",
+              "width": 240,
+              "context": "Optional location filter; All locations combines authorized inventory.",
+              "descendants": {
+                "cFsFk": {
+                  "content": "All locations",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            },
+            {
+              "id": "ojXFL",
+              "type": "ref",
+              "ref": "YF85x",
+              "name": "Stats Row",
+              "width": "fill_container",
+              "descendants": {
+                "m20CHt/QdcEm": {
+                  "fill": "#000000"
+                },
+                "pkvT2/QdcEm": {
+                  "fill": "$chart/stat"
+                },
+                "FlXsH/QdcEm": {
+                  "fill": "$chart/stat"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "R9jaZ",
+              "name": "Row2",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "ZEzvz",
+                  "type": "ref",
+                  "ref": "rYAg3",
+                  "name": "Fleet Status Card",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "F7Xjjc",
+                  "type": "ref",
+                  "ref": "Y96CaE",
+                  "name": "Cluster Resources Card",
+                  "width": "fill_container"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HMsWg",
+              "name": "Row3",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "bpSNa",
+                  "type": "ref",
+                  "ref": "DlNh6",
+                  "name": "Central audit activity",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "A7GYvG",
+                  "type": "ref",
+                  "ref": "Vl96v",
+                  "name": "Recent Backups Card",
+                  "width": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

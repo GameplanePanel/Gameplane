@@ -1,0 +1,321 @@
+{
+  "type": "frame",
+  "id": "Z079vK",
+  "x": 8327.959083557127,
+  "y": 1020.8789062499995,
+  "name": "Receiver / Overview — empty",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "eJ6OT",
+      "name": "Top bar",
+      "width": "fill_container",
+      "height": 64,
+      "stroke": "$border",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "strokeAlignment": "inner",
+      "padding": [
+        0,
+        40
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "fLKfk",
+          "name": "Brand",
+          "gap": 10,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "id": "Oy7L3",
+              "name": "Logo",
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../website/design-assets/gameplane-icon.png",
+                "mode": "contain"
+              },
+              "width": 24,
+              "height": 24
+            },
+            {
+              "type": "text",
+              "id": "k0J6XW",
+              "name": "Wordmark",
+              "fill": "$foreground/foreground",
+              "content": "gameplane",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "W2GPI",
+              "name": "Slash",
+              "fill": "$foreground/muted",
+              "content": "/",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "FgVOn",
+              "name": "Product",
+              "fill": "$foreground/foreground",
+              "content": "Telemetry",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "th45R",
+              "type": "ref",
+              "ref": "Q401P",
+              "name": "Approx chip",
+              "descendants": {
+                "wH6ey": {
+                  "content": "Approximate · self-reported"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YA8Cg",
+          "name": "Session",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "L19QW",
+              "name": "As of",
+              "fill": "$foreground/muted",
+              "content": "No data yet",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "R6ROEM",
+              "type": "ref",
+              "ref": "bCpKh",
+              "name": "Sign out",
+              "descendants": {
+                "Watg8": {
+                  "icon": "log-out"
+                },
+                "U8ICg": {
+                  "content": "Sign out"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "W1xXA",
+      "name": "Content",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 32,
+      "padding": [
+        32,
+        40,
+        48,
+        40
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "Y9ifbZ",
+          "name": "Title row",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "end",
+          "children": [
+            {
+              "type": "frame",
+              "id": "N3wvSC",
+              "name": "Title block",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "m2ly0",
+                  "name": "Eyebrow",
+                  "fill": "$accent/accent",
+                  "content": "PROVIDER OVERVIEW",
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal",
+                  "letterSpacing": 1.5
+                },
+                {
+                  "type": "text",
+                  "id": "uw4PM",
+                  "name": "Title",
+                  "fill": "$foreground/foreground",
+                  "content": "Usage across reporting installs",
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 32,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "ZiECk",
+                  "name": "Subtitle",
+                  "fill": "$foreground/muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Daily aggregates from self-reported, anonymous reports. Every figure is approximate: installs choose to report, and nothing is verified beyond the report signature.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "Iz2y7",
+              "type": "ref",
+              "ref": "sklNL",
+              "name": "Range",
+              "children": [
+                {
+                  "id": "hnl8m",
+                  "type": "ref",
+                  "ref": "nO0GM",
+                  "name": "7 days",
+                  "descendants": {
+                    "x5KZZd": {
+                      "content": "7 days"
+                    }
+                  }
+                },
+                {
+                  "id": "LUA0n",
+                  "type": "ref",
+                  "ref": "iEQse",
+                  "name": "30 days",
+                  "descendants": {
+                    "BtgBT": {
+                      "content": "30 days"
+                    }
+                  }
+                },
+                {
+                  "id": "g25lA",
+                  "type": "ref",
+                  "ref": "nO0GM",
+                  "name": "90 days",
+                  "descendants": {
+                    "x5KZZd": {
+                      "content": "90 days"
+                    }
+                  }
+                },
+                {
+                  "id": "Y3uyQw",
+                  "type": "ref",
+                  "ref": "nO0GM",
+                  "name": "365 days",
+                  "descendants": {
+                    "x5KZZd": {
+                      "content": "365 days"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "A1PwG",
+          "name": "Empty state",
+          "width": "fill_container",
+          "height": 420,
+          "fill": "$surface/surface",
+          "cornerRadius": "$radius/3xl",
+          "stroke": "$border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 40,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "q5cEEN",
+              "name": "Icon wrap",
+              "width": 48,
+              "height": 48,
+              "fill": "$accent/soft",
+              "cornerRadius": 12,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "iSRaQ",
+                  "name": "Icon",
+                  "width": 22,
+                  "height": 22,
+                  "icon": "inbox",
+                  "library": "lucide",
+                  "fill": "$accent/accent"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "T5Kr4b",
+              "name": "Title",
+              "fill": "$foreground/foreground",
+              "content": "No reports yet",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 20,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "JJM29",
+              "name": "Body",
+              "fill": "$foreground/muted",
+              "textGrowth": "fixed-width",
+              "width": 520,
+              "content": "Figures appear as soon as this receiver accepts a report; today's figures are in progress and update as reports arrive. Installs send to POST /ingest on the public port; nothing is shown until there is data, so no chart is drawn from zeros.",
+              "lineHeight": 1.5,
+              "textAlign": "center",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

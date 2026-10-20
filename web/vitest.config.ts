@@ -8,7 +8,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "@": path.resolve(here, "./src") },
+    alias: {
+      "@": path.resolve(here, "./src"),
+      "@i18n": path.resolve(here, "../i18n/locales"),
+    },
   },
   test: {
     environment: "jsdom",

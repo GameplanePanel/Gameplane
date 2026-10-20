@@ -1,5 +1,6 @@
 import { Chip } from "@heroui/react";
 import { X } from "lucide-react";
+import { useOptionalIntl } from "@/lib/i18n/format";
 
 // RemovableGroupChip renders a removable chip for group/role membership display.
 // Used in role editors and user management to show assigned groups with inline remove capability.
@@ -40,6 +41,7 @@ export function RemovableGroupChip({
   size = "sm",
   className,
 }: RemovableGroupChipProps) {
+  const intl = useOptionalIntl();
   const config = variantMap[variant];
 
   return (
@@ -58,7 +60,7 @@ export function RemovableGroupChip({
             onRemove();
           }}
           className="inline-flex items-center justify-center hover:opacity-75 transition-opacity"
-          aria-label={`Remove ${label}`}
+          aria-label={intl.formatMessage({ id: "web.components.ui.removable_group_chip.remove", defaultMessage: "Remove {label}", description: "Removable chip: accessible name of the remove button; {label} is the chip text, e.g. a group or role name" }, { label })}
           type="button"
         >
           <X size={8} />

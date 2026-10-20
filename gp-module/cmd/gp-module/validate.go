@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/validator"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/validator"
 )
 
 func runValidate(args []string) {

@@ -11,6 +11,11 @@ import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import formatjs from "eslint-plugin-formatjs";
+
+// The formatjs rules cover all dashboard source (spec 019 T058). Test files
+// and test helpers are exempt.
+const MIGRATED_I18N_PATHS = ["src/**/*.{ts,tsx}"];
 
 export default [
   {
@@ -66,6 +71,28 @@ export default [
     },
     settings: {
       react: { version: "detect" },
+    },
+  },
+  {
+    files: MIGRATED_I18N_PATHS,
+    ignores: ["**/*.test.{ts,tsx}", "src/test/**"],
+    plugins: { formatjs },
+    rules: {
+      "formatjs/enforce-description": ["error", "literal"],
+      "formatjs/enforce-placeholders": "error",
+      "formatjs/no-literal-string-in-jsx": [
+        "error",
+        {
+          props: {
+            include: [
+              ["*", "aria-label"],
+              ["*", "title"],
+              ["*", "placeholder"],
+              ["*", "alt"],
+            ],
+          },
+        },
+      ],
     },
   },
 ];

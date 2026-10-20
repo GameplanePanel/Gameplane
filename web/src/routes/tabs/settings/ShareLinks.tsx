@@ -33,7 +33,10 @@ import {
 import { AlertCircle, Calendar as CalendarIcon, Copy, Link2 } from "lucide-react";
 import type { ShareLink } from "@/types";
 import { type ShareLinkCreateBody } from "@/lib/api";
-import { errorText } from "@/lib/errors";
+import { errorTextIntl } from "@/lib/errors";
+import { useFormat, type FormatApi } from "@/lib/i18n/format";
+import { useOptionalIntl } from "@/lib/i18n/format";
+import { defineMessages, type MessageDescriptor } from "react-intl";
 
 interface ShareLinksProps {
   name: string;
@@ -42,14 +45,36 @@ interface ShareLinksProps {
 
 // Expiry options for the create dialog (FR-001): four day-count presets,
 // "No expiry" (FR-002), and "Custom" (FR-003/FR-004). 30 days is the default.
-const EXPIRY_OPTIONS = [
-  { label: "15 days", value: "15" },
-  { label: "30 days", value: "30" },
-  { label: "60 days", value: "60" },
-  { label: "90 days", value: "90" },
-  { label: "No expiry", value: "never" },
-  { label: "Custom", value: "custom" },
+const EXPIRY_LABELS = defineMessages({
+  days15: { id: "web.routes.tabs.settings.share_links.expiry_15_days", defaultMessage: "15 days", description: "Share links: create dialog expiry option, a link valid for 15 days" },
+  days30: { id: "web.routes.tabs.settings.share_links.expiry_30_days", defaultMessage: "30 days", description: "Share links: create dialog expiry option, a link valid for 30 days" },
+  days60: { id: "web.routes.tabs.settings.share_links.expiry_60_days", defaultMessage: "60 days", description: "Share links: create dialog expiry option, a link valid for 60 days" },
+  days90: { id: "web.routes.tabs.settings.share_links.expiry_90_days", defaultMessage: "90 days", description: "Share links: create dialog expiry option, a link valid for 90 days" },
+  never: { id: "web.routes.tabs.settings.share_links.expiry_never", defaultMessage: "No expiry", description: "Share links: create dialog expiry option, the link never expires" },
+  custom: { id: "web.routes.tabs.settings.share_links.expiry_custom", defaultMessage: "Custom", description: "Share links: create dialog expiry option, pick an explicit expiry date" },
+});
+
+const EXPIRY_OPTIONS: { label: MessageDescriptor; value: string }[] = [
+  { label: EXPIRY_LABELS.days15, value: "15" },
+  { label: EXPIRY_LABELS.days30, value: "30" },
+  { label: EXPIRY_LABELS.days60, value: "60" },
+  { label: EXPIRY_LABELS.days90, value: "90" },
+  { label: EXPIRY_LABELS.never, value: "never" },
+  { label: EXPIRY_LABELS.custom, value: "custom" },
 ];
+
+// Display labels for link status values. The status strings stay English for
+// logic; these are only what users read.
+const STATUS_LABELS = defineMessages({
+  Active: { id: "web.routes.tabs.settings.share_links.status_active", defaultMessage: "Active", description: "Share links: status chip for a link that still works" },
+  Expired: { id: "web.routes.tabs.settings.share_links.status_expired", defaultMessage: "Expired", description: "Share links: status chip for a link past its expiry date" },
+  Revoked: { id: "web.routes.tabs.settings.share_links.status_revoked", defaultMessage: "Revoked", description: "Share links: status chip for a link the owner revoked" },
+});
+
+const CAN_START_LABELS = defineMessages({
+  canStart: { id: "web.routes.tabs.settings.share_links.can_start_value", defaultMessage: "Can start", description: "Share links: table cell for a link that allows starting the server" },
+  viewOnly: { id: "web.routes.tabs.settings.share_links.view_only", defaultMessage: "View only", description: "Share links: table cell for a link that only allows viewing the server status" },
+});
 
 const DEFAULT_EXPIRY_CHOICE = "30";
 
@@ -141,10 +166,10 @@ function getLinkStatus(expiresAt: string | null, revokedAt?: string | null): str
 
 // Format date for display (e.g., "Jul 28, 2026"), or "Never" for a
 // no-expiry link (SC-004).
-function formatDate(dateStr: string | null): string {
-  if (dateStr === null) return "Never";
+function formatDate(dateStr: string | null, fmt: FormatApi, neverLabel: string): string {
+  if (dateStr === null) return neverLabel;
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return fmt.date(date, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -167,6 +192,7 @@ function CreateDialog({
   ns,
   onLinkCreated,
 }: CreateDialogProps) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name: serverName, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { Shares } = resourceClient;
@@ -218,11 +244,8 @@ function CreateDialog({
       <ModalContainer>
         <ModalDialog className="w-[480px] max-w-[480px]">
           <ModalHeader>
-            <ModalHeading>Create share link for {serverName}</ModalHeading>
-            <Description className="text-sm leading-[21px] text-muted">
-              Anyone with this link can check the server&apos;s status and connection address
-              without signing in.
-            </Description>
+            <ModalHeading>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_share_link_for_servername", defaultMessage: "Create share link for {serverName}", description: "Share links: sentence with serverName in ModalHeading" }, { serverName: serverName })}</ModalHeading>
+            <Description className="text-sm leading-[21px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.anyone_with_this_link_can_check_the", defaultMessage: "Anyone with this link can check the server's status and connection address without signing in.", description: "Share links: description under the Create share link heading saying anyone with the link can view the server status and address without signing in" })}</Description>
           </ModalHeader>
 
           <ModalBody className="gap-4">
@@ -231,7 +254,7 @@ function CreateDialog({
                 value={expiryChoice}
                 onChange={(key) => setExpiryChoice(String(key))}
               >
-                <Label className="text-xs">Expires in</Label>
+                <Label className="text-xs">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.expires_in", defaultMessage: "Expires in", description: "Label for the expiry picker in the create-link dialog" })}</Label>
                 <Select.Trigger>
                   <Select.Value className="text-[var(--field-placeholder)]" />
                   <Select.Indicator />
@@ -240,7 +263,7 @@ function CreateDialog({
                   <ListBox>
                     {EXPIRY_OPTIONS.map((opt) => (
                       <ListBoxItem key={opt.value} id={opt.value}>
-                        {opt.label}
+                        {intl.formatMessage(opt.label)}
                       </ListBoxItem>
                     ))}
                   </ListBox>
@@ -248,16 +271,16 @@ function CreateDialog({
               </Select>
 
               {expiryChoice === "never" && (
-                <p className="text-xs text-warning">This link works until you revoke it.</p>
+                <p className="text-xs text-warning">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.this_link_works_until_you_revoke_it", defaultMessage: "This link works until you revoke it.", description: "Share links: warning under the expiry picker shown when the link never expires; it works until revoked" })}</p>
               )}
 
               {expiryChoice === "custom" && (
                 <>
-                  <Label className="text-xs">Expires on</Label>
+                  <Label className="text-xs">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.expires_on", defaultMessage: "Expires on", description: "Label for the custom expiry date input in the create-link dialog" })}</Label>
                   <div className="relative">
                     <Input
                       type="date"
-                      aria-label="Expires on"
+                      aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.expires_on", defaultMessage: "Expires on", description: "Label for the custom expiry date input in the create-link dialog" })}
                       min={tomorrowISODate()}
                       value={customDate}
                       onChange={(e) => setCustomDate(e.target.value)}
@@ -266,9 +289,7 @@ function CreateDialog({
                     <CalendarIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                   </div>
                   {showLongLivedWarning && (
-                    <p className="text-xs text-warning">
-                      Long-lived link — it stays valid for over a year unless you revoke it.
-                    </p>
+                    <p className="text-xs text-warning">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.long_lived_link_it_stays_valid_for_over", defaultMessage: "Long-lived link — it stays valid for over a year unless you revoke it.", description: "Share links: warning under the expiry date field shown when the chosen date is more than a year away" })}</p>
                   )}
                 </>
               )}
@@ -278,7 +299,7 @@ function CreateDialog({
               <Switch
                 isSelected={canStart}
                 onChange={setCanStart}
-                aria-label="Allow starting the server"
+                aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.allow_starting_the_server", defaultMessage: "Allow starting the server", description: "Share links: switch that lets the link holder wake the server from sleep; the text is its accessible name" })}
               >
                 <Switch.Content>
                   <Switch.Control>
@@ -287,17 +308,14 @@ function CreateDialog({
                 </Switch.Content>
               </Switch>
               <div className="flex-1">
-                <Label className="block text-sm">Allow starting the server</Label>
-                <Description className="block text-xs text-muted">
-                  The link holder can wake {serverName} from asleep. Without this, they can
-                  only view its status.
-                </Description>
+                <Label className="block text-sm">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.allow_starting_the_server", defaultMessage: "Allow starting the server", description: "Share links: switch that lets the link holder wake the server from sleep; the text is its accessible name" })}</Label>
+                <Description className="block text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.the_link_holder_can_wake_servername", defaultMessage: "The link holder can wake {serverName} from asleep. Without this, they can only view its status.", description: "Share links: sentence with serverName in Description" }, { serverName: serverName })}</Description>
               </div>
             </div>
 
             {create.isError && (
               <div className="rounded-lg bg-danger/10 p-3 text-sm text-danger">
-                {errorText(create.error, "Failed to create link")}
+                {errorTextIntl(intl, create.error, intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_failed", defaultMessage: "Failed to create link", description: "Share links: fallback error shown when creating a link fails" }))}
               </div>
             )}
           </ModalBody>
@@ -309,9 +327,7 @@ function CreateDialog({
               className="gap-[5px] text-[13px]"
               onPress={() => onOpenChange(false)}
               isDisabled={create.isPending}
-            >
-              Cancel
-            </Button>
+            >{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.cancel", defaultMessage: "Cancel", description: "Button that closes the share link dialog without changing anything" })}</Button>
             <Button
               size="sm"
               variant="primary"
@@ -320,7 +336,9 @@ function CreateDialog({
               onPress={() => create.mutate()}
             >
               <Link2 className="h-3.5 w-3.5" />
-              {create.isPending ? "Creating…" : "Create link"}
+              {create.isPending
+                ? intl.formatMessage({ id: "web.routes.tabs.settings.share_links.creating", defaultMessage: "Creating…", description: "Share links: create dialog submit button while the link is being created" })
+                : intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_link_submit", defaultMessage: "Create link", description: "Share links: create dialog submit button" })}
             </Button>
           </ModalFooter>
         </ModalDialog>
@@ -338,6 +356,7 @@ interface CreatedDialogProps {
 }
 
 function CreatedDialog({ open, onOpenChange, link }: CreatedDialogProps) {
+  const intl = useOptionalIntl();
   const [copied, setCopied] = useState(false);
 
   if (!link?.token) return null;
@@ -360,10 +379,8 @@ function CreatedDialog({ open, onOpenChange, link }: CreatedDialogProps) {
         <ModalContainer>
           <ModalDialog className="w-[480px] max-w-[480px]">
             <ModalHeader>
-              <ModalHeading>Share link created</ModalHeading>
-              <Description className="text-sm text-muted">
-                Send this to your friend. It works without a Gameplane account.
-              </Description>
+              <ModalHeading>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.share_link_created", defaultMessage: "Share link created", description: "Share links: heading of the dialog shown after a share link is created" })}</ModalHeading>
+              <Description className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.send_this_to_your_friend_it_works", defaultMessage: "Send this to your friend. It works without a Gameplane account.", description: "Share links: description in the created-link dialog telling the user to send the link to a friend, who needs no Gameplane account" })}</Description>
             </ModalHeader>
 
             <ModalBody className="gap-4">
@@ -372,11 +389,8 @@ function CreatedDialog({ open, onOpenChange, link }: CreatedDialogProps) {
                 <div className="flex items-start gap-2">
                   <AlertCircle className="h-5 w-5 shrink-0 text-warning-soft-foreground" />
                   <div className="text-sm text-warning-soft-foreground">
-                    <strong>You will not see this link again</strong>
-                    <p className="mt-1">
-                      Gameplane stores only a one-way hash of the token, so it can&apos;t be shown
-                      or recovered after you close this dialog. Copy it now.
-                    </p>
+                    <strong>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.you_will_not_see_this_link_again", defaultMessage: "You will not see this link again", description: "Share links: bold warning title in the created-link dialog saying the link cannot be seen again" })}</strong>
+                    <p className="mt-1">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.gameplane_stores_only_a_one_way_hash_of", defaultMessage: "Gameplane stores only a one-way hash of the token, so it can't be shown or recovered after you close this dialog. Copy it now.", description: "Share links: warning text under the title saying only a hash of the token is stored, so the link cannot be shown again and must be copied now" })}</p>
                   </div>
                 </div>
               </div>
@@ -387,7 +401,7 @@ function CreatedDialog({ open, onOpenChange, link }: CreatedDialogProps) {
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1 h-7 w-7 min-w-0 p-0"
-                  aria-label="Copy URL"
+                  aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.copy_url", defaultMessage: "Copy URL", description: "Share links: icon-only button in the created-link box that copies the URL; read by screen readers; keep it short" })}
                   onPress={handleCopy}
                 >
                   <Copy className="h-4 w-4" />
@@ -403,16 +417,16 @@ function CreatedDialog({ open, onOpenChange, link }: CreatedDialogProps) {
                 onPress={handleCopy}
               >
                 <Copy className="h-3.5 w-3.5" />
-                {copied ? "Copied!" : "Copy link"}
+                {copied
+                  ? intl.formatMessage({ id: "web.routes.tabs.settings.share_links.copied", defaultMessage: "Copied!", description: "Share links: copy button label briefly shown after the link was copied" })
+                  : intl.formatMessage({ id: "web.routes.tabs.settings.share_links.copy_link", defaultMessage: "Copy link", description: "Share links: button that copies the created share link" })}
               </Button>
               <Button
                 size="sm"
                 variant="primary"
                 className="gap-[5px] text-[13px]"
                 onPress={() => onOpenChange(false)}
-              >
-                Done
-              </Button>
+              >{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.done", defaultMessage: "Done", description: "Button that closes the link-created dialog" })}</Button>
             </ModalFooter>
           </ModalDialog>
         </ModalContainer>
@@ -439,6 +453,7 @@ function RevokeDialog({
   ns,
   onRevoked,
 }: RevokeDialogProps) {
+  const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name: serverName, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { Shares } = resourceClient;
@@ -463,19 +478,16 @@ function RevokeDialog({
               <AlertDialogIcon status="danger" className="shrink-0">
                 <AlertCircle className="h-5 w-5" />
               </AlertDialogIcon>
-              <AlertDialogHeading>Revoke this share link?</AlertDialogHeading>
+              <AlertDialogHeading>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.revoke_this_share_link", defaultMessage: "Revoke this share link?", description: "Share links: title of the confirmation dialog that asks before a share link is revoked" })}</AlertDialogHeading>
             </div>
           </AlertDialogHeader>
 
           <AlertDialogBody className="m-0 p-0 pt-4">
             <div className="space-y-4">
-              <Description className="text-sm leading-[21px] text-muted">
-                Anyone using this link will immediately lose access to {serverName}&apos;s status
-                page. This action cannot be undone.
-              </Description>
+              <Description className="text-sm leading-[21px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.anyone_using_this_link_will_immediately", defaultMessage: "Anyone using this link will immediately lose access to {serverName}'s status page. This action cannot be undone.", description: "Share links: sentence with serverName in Description" }, { serverName: serverName })}</Description>
               {revoke.isError && (
                 <div className="rounded-lg bg-danger/10 p-3 text-sm text-danger">
-                  {errorText(revoke.error, "Failed to revoke link")}
+                  {errorTextIntl(intl, revoke.error, intl.formatMessage({ id: "web.routes.tabs.settings.share_links.revoke_failed", defaultMessage: "Failed to revoke link", description: "Share links: fallback error shown when revoking a link fails" }))}
                 </div>
               )}
             </div>
@@ -487,16 +499,16 @@ function RevokeDialog({
               size="sm"
               isDisabled={revoke.isPending}
               onPress={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
+            >{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.cancel", defaultMessage: "Cancel", description: "Button that closes the share link dialog without changing anything" })}</Button>
             <Button
               size="sm"
               variant="danger"
               isDisabled={revoke.isPending}
               onPress={() => revoke.mutate()}
             >
-              {revoke.isPending ? "Revoking…" : "Revoke link"}
+              {revoke.isPending
+                ? intl.formatMessage({ id: "web.routes.tabs.settings.share_links.revoking", defaultMessage: "Revoking…", description: "Share links: revoke dialog submit button while the link is being revoked" })
+                : intl.formatMessage({ id: "web.routes.tabs.settings.share_links.revoke_link_submit", defaultMessage: "Revoke link", description: "Share links: revoke dialog submit button" })}
             </Button>
           </AlertDialogFooter>
         </AlertDialogDialog>
@@ -508,6 +520,8 @@ function RevokeDialog({
 
 // Main component
 export function ShareLinksSection({ name, ns }: ShareLinksProps) {
+  const intl = useOptionalIntl();
+  const fmt = useFormat();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const access = useResourceAccess();
@@ -523,6 +537,8 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Shares.list(name, ns),
     enabled: !!name,
   });
+
+  const neverLabel = intl.formatMessage({ id: "web.routes.tabs.settings.share_links.never", defaultMessage: "Never", description: "Share links: table cell for a link's expiry when the link never expires" });
 
   const handleLinkCreated = (link: ShareLink) => {
     setCreatedLink(link);
@@ -540,59 +556,51 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
     <div className="space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-base font-medium">Share links</h3>
-          <p className="mt-1 text-sm text-muted">
-            Let people without a Gameplane account check this server&apos;s status and connection
-            address. Only the owner can create or revoke links.
-          </p>
+          <h3 className="text-base font-medium">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.share_links", defaultMessage: "Share links", description: "Share links: section heading and table label for the list of share links; the table name is read by screen readers" })}</h3>
+          <p className="mt-1 text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account", defaultMessage: "Let people without a Gameplane account check this server's status and connection address. Only the owner can create or revoke links.", description: "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links" })}</p>
         </div>
         <Button variant="primary" size="sm" isDisabled={!access?.isOwner} onPress={() => setCreateOpen(true)}>
-          <Link2 className="h-4 w-4" />
-          Create link
-        </Button>
+          <Link2 className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_link", defaultMessage: "Create link", description: "Button that opens the create-link dialog" })}</Button>
       </div>
 
       {empty ? (
         <div className="rounded-lg border border-dashed border-divider p-8 text-center">
           <Link2 className="mx-auto h-12 w-12 text-muted" />
-          <h4 className="mt-3 font-medium">No share links yet</h4>
-          <p className="mt-1 text-sm text-muted">
-            Create a link so a friend without a Gameplane account can check this server&apos;s
-            status and connect — without giving them access to the dashboard.
-          </p>
+          <h4 className="mt-3 font-medium">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.no_share_links_yet", defaultMessage: "No share links yet", description: "Empty-state heading when the server has no share links" })}</h4>
+          <p className="mt-1 text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_a_link_so_a_friend_without_a", defaultMessage: "Create a link so a friend without a Gameplane account can check this server's status and connect — without giving them access to the dashboard.", description: "Share links: empty-state text shown when the server has no share links, explaining a link lets someone check status without dashboard access" })}</p>
           <Button
             variant="primary"
             size="sm"
             className="mt-4"
             isDisabled={!access?.isOwner} onPress={() => setCreateOpen(true)}
           >
-            <Link2 className="h-4 w-4" />
-            Create link
-          </Button>
+            <Link2 className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.create_link", defaultMessage: "Create link", description: "Button that opens the create-link dialog" })}</Button>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-divider">
           <Table.Root className="table--mono">
-            <Table.Content aria-label="Share links" keyboardNavigationBehavior="arrow">
+            <Table.Content aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.share_links.share_links", defaultMessage: "Share links", description: "Share links: section heading and table label for the list of share links; the table name is read by screen readers" })} keyboardNavigationBehavior="arrow">
               <Table.Header>
-                <Table.Column isRowHeader>Created</Table.Column>
-                <Table.Column>Expires</Table.Column>
-                <Table.Column>Can start</Table.Column>
-                <Table.Column>Status</Table.Column>
+                <Table.Column isRowHeader>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.created", defaultMessage: "Created", description: "Table column header for the share link creation date" })}</Table.Column>
+                <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.expires", defaultMessage: "Expires", description: "Table column header for the share link expiry date" })}</Table.Column>
+                <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.can_start", defaultMessage: "Can start", description: "Table column header for whether the share link allows starting the server" })}</Table.Column>
+                <Table.Column>{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.status", defaultMessage: "Status", description: "Table column header for the share link status (Active, Expired or Revoked)" })}</Table.Column>
                 <Table.Column />
               </Table.Header>
               <Table.Body>
                 {links?.map((link) => (
                   <Table.Row key={link.id}>
-                    <Table.Cell>{formatDate(link.createdAt)}</Table.Cell>
-                    <Table.Cell>{formatDate(link.expiresAt)}</Table.Cell>
+                    <Table.Cell>{formatDate(link.createdAt, fmt, neverLabel)}</Table.Cell>
+                    <Table.Cell>{formatDate(link.expiresAt, fmt, neverLabel)}</Table.Cell>
                     <Table.Cell>
                       <Chip
                         variant="soft"
                         size="sm"
                         className={link.canStart ? "text-success" : "text-foreground"}
                       >
-                        {link.canStart ? "Can start" : "View only"}
+                        {link.canStart
+                          ? intl.formatMessage(CAN_START_LABELS.canStart)
+                          : intl.formatMessage(CAN_START_LABELS.viewOnly)}
                       </Chip>
                     </Table.Cell>
                     <Table.Cell>
@@ -601,7 +609,7 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
                         size="sm"
                         color={statusColor(getLinkStatus(link.expiresAt, link.revokedAt))}
                       >
-                        {getLinkStatus(link.expiresAt, link.revokedAt)}
+                        {intl.formatMessage(STATUS_LABELS[getLinkStatus(link.expiresAt, link.revokedAt) as keyof typeof STATUS_LABELS])}
                       </Chip>
                     </Table.Cell>
                     <Table.Cell>
@@ -614,11 +622,9 @@ export function ShareLinksSection({ name, ns }: ShareLinksProps) {
                             setRevokeId(link.id);
                             setRevokeOpen(true);
                           }}
-                        >
-                          Revoke
-                        </Button>
+                        >{intl.formatMessage({ id: "web.routes.tabs.settings.share_links.revoke", defaultMessage: "Revoke", description: "Table row button that revokes this share link" })}</Button>
                       ) : (
-                        <span className="text-muted">—</span>
+                        <span className="text-muted">{intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</span>
                       )}
                     </Table.Cell>
                   </Table.Row>

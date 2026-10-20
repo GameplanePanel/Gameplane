@@ -26,8 +26,10 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 // ServerFetcher fetches a GameServer so the middleware can evaluate
@@ -78,12 +80,12 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			u := auth.UserFromContext(req.Context())
 			if u == nil {
-				http.Error(w, "unauthenticated", http.StatusUnauthorized)
+				httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 				return
 			}
 			r, ok := match(req.Method, req.URL.Path)
 			if !ok {
-				http.Error(w, "forbidden", http.StatusForbidden)
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 				return
 			}
 			if r.perm == "" { // any authenticated user
@@ -92,7 +94,7 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 			}
 			ns := ""
 			cl := scope.DefaultCluster
-			if clusterInventoryRead(req.Method, req.URL.Path) {
+			if clusterInventoryRead(req.Method, req.URL.Path) || strings.HasPrefix(req.URL.Path, "/modules") || strings.HasPrefix(req.URL.Path, "/templates") {
 				// Authorize before discovery, including registered clusters whose
 				// credentials could not load. The handler validates registration.
 				cl = scope.RequestedCluster(req)
@@ -100,7 +102,7 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 			if Namespaced(r.perm) {
 				resolved, err := scope.Resolve(req)
 				if err != nil {
-					http.Error(w, "namespace not permitted", http.StatusBadRequest)
+					httperr.WriteMessage(w, req, messages.New("server.common.namespace_not_permitted", nil))
 					return
 				}
 				ns = resolved
@@ -110,7 +112,7 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 				if fetch != nil {
 					resolvedCluster, err := scope.ResolveCluster(req, fetch)
 					if err != nil {
-						http.Error(w, "cluster not permitted", http.StatusBadRequest)
+						httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
 						return
 					}
 					cl = resolvedCluster
@@ -128,7 +130,7 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 						// (owner-only deletion) are permitted on the exact server path.
 						// Sub-resource writes (files, players, mods) continue through ownership fallback.
 						if isExact && req.Method != http.MethodGet && req.Method != http.MethodHead && req.Method != http.MethodDelete {
-							http.Error(w, "forbidden", http.StatusForbidden)
+							httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 							return
 						}
 						obj, err := fetch.GetServer(req.Context(), cl, ns, name)
@@ -146,7 +148,7 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 						}
 					}
 				}
-				http.Error(w, "forbidden", http.StatusForbidden)
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 				return
 			}
 			// Owner-only server operations need the server's owner or an
@@ -155,12 +157,12 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 			if Namespaced(r.perm) && !u.Can("*", true, cl, ns) {
 				if name, verb, isExact, ok := parseServerPath(req.URL.Path); ok && ownerOnlyOperation(req.Method, verb, isExact) {
 					if fetch == nil {
-						http.Error(w, "forbidden", http.StatusForbidden)
+						httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 						return
 					}
 					obj, err := fetch.GetServer(req.Context(), cl, ns, name)
 					if err != nil || obj == nil || ownershipRole(obj, u.ID) != roleOwner {
-						http.Error(w, "forbidden", http.StatusForbidden)
+						httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 						return
 					}
 					// This grant still depends on owning this exact object, even
@@ -198,13 +200,15 @@ var rules = []rule{
 	{method: "GET", segment: "fleet", suffix: "/fleet/placements", perm: ""},
 	// Own profile: every authenticated user reads /users/me and their own
 	// servers (/users/me/servers), and reads/writes/resets their own theme
-	// preferences (feature 016). The rest of /users is gated; must precede
+	// preferences (feature 016), and sets their own language (spec 019).
+	// The rest of /users is gated; must precede
 	// the segment-wide users rules.
 	{method: "GET", segment: "users", suffix: "/users/me", perm: ""},
 	{method: "GET", segment: "users", suffix: "/users/me/servers", perm: ""},
 	{method: "GET", segment: "users", suffix: "/users/me/preferences", perm: ""},
 	{method: "PUT", segment: "users", suffix: "/users/me/preferences", perm: ""},
 	{method: "POST", segment: "users", suffix: "/users/me/preferences/reset", perm: ""},
+	{method: "PUT", segment: "users", suffix: "/users/me/language", perm: ""},
 	{method: "GET", segment: "users", perm: "users:read"},
 	{segment: "users", perm: "users:manage"},
 
@@ -214,6 +218,7 @@ var rules = []rule{
 
 	// Admin area. Audit is a read; config splits read vs manage; anything
 	// else under /admin defaults to the admin wildcard (fail-closed-ish).
+	{method: "GET", segment: "admin", suffix: "/admin/installation", perm: ""},
 	{method: "GET", segment: "admin", prefix: "/admin/audit", perm: "audit:read"},
 	{method: "GET", segment: "admin", prefix: "/admin/config", perm: "config:read"},
 	{segment: "admin", prefix: "/admin/config", perm: "config:manage"},
@@ -225,6 +230,11 @@ var rules = []rule{
 	// Mod-registry provider key secrets pair with editing the
 	// modRegistries config section.
 	{segment: "admin", prefix: "/admin/registries", perm: "config:manage"},
+	// Telemetry status and notice (spec 022): reads need config:read, writes
+	// config:manage. The notice GET handler itself answers {"pending":false}
+	// to callers without config:manage.
+	{method: "GET", segment: "admin", prefix: "/admin/telemetry", perm: "config:read"},
+	{segment: "admin", prefix: "/admin/telemetry", perm: "config:manage"},
 	{segment: "admin", perm: "*"},
 
 	// Network capture (feature 003-network-capture-sidecar): admin-only via

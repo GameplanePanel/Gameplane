@@ -1,0 +1,21 @@
+{{define "content"}}
+<main class="login">
+<section class="card login-card">
+<div class="brand">
+<img class="logo" src="/static/gameplane-icon.png" width="32" height="32" alt="">
+<span class="wordmark">gameplane</span>
+</div>
+<p class="eyebrow">Private dashboard</p>
+<h1 class="title">Gameplane telemetry</h1>
+<p class="lede">Private dashboard. Sign in with the dashboard token.</p>
+{{if .Error}}<p class="alert" role="alert">{{.Error}}</p>{{end}}
+<form method="post" action="/login" class="form">
+<label for="token" class="label">Dashboard token</label>
+<input id="token" name="token" type="password" autocomplete="current-password" required class="field" aria-describedby="token-hint">
+<p id="token-hint" class="hint">The DASHBOARD_TOKEN value from the receiver's Secret.</p>
+<button type="submit" class="btn btn-primary">Sign in</button>
+</form>
+</section>
+<p class="footnote">Sessions last 12 hours. Rotating the token signs everyone out.</p>
+</main>
+{{end}}

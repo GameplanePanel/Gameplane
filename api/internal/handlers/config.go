@@ -15,12 +15,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ValgulNecron/gameplane/api/internal/audit"
-	"github.com/ValgulNecron/gameplane/api/internal/auth"
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/httperr"
-	"github.com/ValgulNecron/gameplane/api/internal/notify"
-	"github.com/ValgulNecron/gameplane/api/internal/registry"
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
+	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
+	"github.com/GameplanePanel/gameplane/api/internal/notify"
+	"github.com/GameplanePanel/gameplane/api/internal/registry"
+	"github.com/GameplanePanel/gameplane/api/internal/telemetry"
 )
 
 // MountConfig exposes the admin config store at /admin/config.
@@ -44,12 +46,21 @@ import (
 // in installTimeSettings.oidcHelmProvider (the raw seed, not merged with
 // helmOverride overrides). Passed as *auth.ProviderPolicy from main.go.
 func MountConfig(r chi.Router, store *db.Store, auditor *audit.Auditor, helmOIDCPresent bool, gameDataStorageClass string, helmPolicy *auth.ProviderPolicy) {
+	MountConfigWithTelemetry(r, store, auditor, helmOIDCPresent, gameDataStorageClass, helmPolicy, TelemetrySettings{})
+}
+
+// MountConfigWithTelemetry is MountConfig with the install's telemetry
+// setting, which the "telemetry" section's save hook needs to refuse a save
+// when the operator disabled telemetry and to schedule the first report.
+// MountConfig passes the zero value (no destination restriction, 24h).
+func MountConfigWithTelemetry(r chi.Router, store *db.Store, auditor *audit.Auditor, helmOIDCPresent bool, gameDataStorageClass string, helmPolicy *auth.ProviderPolicy, tel TelemetrySettings) {
 	h := &configHandler{
 		db:                   store,
 		auditor:              auditor,
 		validators:           newValidators(helmOIDCPresent),
 		gameDataStorageClass: gameDataStorageClass,
 		helmPolicy:           helmPolicy,
+		telemetry:            tel,
 	}
 	r.Route("/admin/config", func(r chi.Router) {
 		r.Get("/", h.getAll)
@@ -64,6 +75,7 @@ type configHandler struct {
 	validators           map[string]func([]byte) (json.RawMessage, error)
 	gameDataStorageClass string
 	helmPolicy           *auth.ProviderPolicy
+	telemetry            TelemetrySettings
 }
 
 func (h *configHandler) getAll(w http.ResponseWriter, req *http.Request) {
@@ -105,21 +117,26 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 	section := chi.URLParam(req, "section")
 	validate, ok := h.validators[section]
 	if !ok {
-		http.Error(w, "unknown section", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.config.unknown_section", nil))
 		return
 	}
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		http.Error(w, "read body", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.config.read_body", nil))
 		return
 	}
 	if len(body) == 0 {
-		http.Error(w, "empty body", http.StatusBadRequest)
+		httperr.WriteMessage(w, req, messages.New("server.empty_body", nil))
 		return
 	}
 	canon, err := validate(body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		var m *httperr.Message
+		if errors.As(err, &m) {
+			httperr.WriteMessage(w, req, m)
+			return
+		}
+		httperr.WriteCode(w, req, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -132,7 +149,18 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 		auditEvents = h.detectAuthAuditEvents(req.Context(), canon)
 	}
 
-	if _, err := h.db.DB.ExecContext(req.Context(),
+	if section == "telemetry" {
+		// The telemetry section's post-save hook runs in the same
+		// transaction as the config write (see saveTelemetry).
+		if err := h.saveTelemetry(req.Context(), canon); err != nil {
+			if errors.Is(err, telemetry.ErrOperatorDisabled) {
+				httperr.WriteCode(w, req, http.StatusConflict, err)
+				return
+			}
+			httperr.Write(w, req, err)
+			return
+		}
+	} else if _, err := h.db.DB.ExecContext(req.Context(),
 		`INSERT INTO config(key, value, updated_at)
 		 VALUES (?, ?, ?)
 		 ON CONFLICT(key) DO UPDATE SET
@@ -156,6 +184,22 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 	}
 
 	writeJSON(w, map[string]any{"section": section, "value": canon})
+}
+
+// saveTelemetry persists the validated telemetry section through
+// telemetry.ApplyConsent, so one transaction writes the config row, sets
+// consent_source to "admin", creates or clears the install ID and opens or
+// closes the report schedule. It returns telemetry.ErrOperatorDisabled when
+// the operator disabled telemetry at install time.
+func (h *configHandler) saveTelemetry(ctx context.Context, canon json.RawMessage) error {
+	var c telemetryCfg
+	if err := json.Unmarshal(canon, &c); err != nil {
+		return fmt.Errorf("decode telemetry config: %w", err)
+	}
+	return inTx(ctx, h.db, func(tx *sql.Tx) error {
+		return telemetry.ApplyConsent(ctx, tx, h.telemetry.Dest, h.telemetry.Interval,
+			c.SendMetrics, c.Extended, db.TelemetryConsentAdmin)
+	})
 }
 
 // resetRoleMapping removes a single role's override from helmOverride.roleMappings
@@ -430,6 +474,7 @@ func newValidators(helmOIDCPresent bool) map[string]func([]byte) (json.RawMessag
 		"auth":                              validateAuth(helmOIDCPresent),
 		"notifications":                     validateNotifications,
 		"telemetry":                         validateTelemetry,
+		"i18n":                              validateI18n,
 		registry.ConfigSectionModRegistries: validateModRegistries,
 	}
 }
@@ -676,6 +721,7 @@ type notifSink struct {
 	Enabled   bool     `json:"enabled"`
 	ConfigRef string   `json:"configRef,omitempty"` // K8s Secret name holding the sink's credentials
 	Events    []string `json:"events,omitempty"`    // subset of notify.AllEvents; empty = notify.DefaultOn
+	Language  string   `json:"language,omitempty"`  // BCP 47 tag of a listed language; empty = instance default
 }
 
 type notifCfg struct {
@@ -701,6 +747,9 @@ func validateNotifications(body []byte) (json.RawMessage, error) {
 		if !validSinkKinds[s.Kind] {
 			return nil, fmt.Errorf("sinks[%d].kind must be one of discord|slack|smtp|webhook|ntfy", i)
 		}
+		if s.Language != "" && !languageListed(s.Language) {
+			return nil, messages.New("server.i18n.unknown_language", map[string]any{"language": s.Language})
+		}
 		// configRef stays optional so sink rows persisted before the
 		// delivery pipeline existed keep loading; the dispatcher skips
 		// enabled sinks without one and the UI flags them.
@@ -723,12 +772,43 @@ func validateNotifications(body []byte) (json.RawMessage, error) {
 
 type telemetryCfg struct {
 	SendMetrics bool `json:"sendMetrics"`
+	Extended    bool `json:"extended"`
 }
 
 func validateTelemetry(body []byte) (json.RawMessage, error) {
 	var c telemetryCfg
 	if err := json.Unmarshal(body, &c); err != nil {
 		return nil, fmt.Errorf("invalid json: %w", err)
+	}
+	// Turning basic off turns extended off with it, and the save succeeds
+	// (FR-003, spec Q7).
+	if !c.SendMetrics {
+		c.Extended = false
+	}
+	return json.Marshal(c)
+}
+
+// i18nCfg is the instance language section: the default language for users
+// who have not chosen one, and the login page before sign-in.
+type i18nCfg struct {
+	DefaultLanguage string `json:"defaultLanguage"`
+}
+
+// validateI18n requires defaultLanguage to be a tag this release offers. An
+// unlisted tag returns a localizable *httperr.Message, so the save reports the
+// same error id to the dashboard in either language.
+func validateI18n(body []byte) (json.RawMessage, error) {
+	dec := json.NewDecoder(strings.NewReader(string(body)))
+	dec.DisallowUnknownFields()
+	var c i18nCfg
+	if err := dec.Decode(&c); err != nil {
+		return nil, fmt.Errorf("invalid json: %w", err)
+	}
+	if c.DefaultLanguage == "" {
+		return nil, fmt.Errorf("defaultLanguage is required")
+	}
+	if !languageListed(c.DefaultLanguage) {
+		return nil, messages.New("server.i18n.unlisted_language", map[string]any{"language": c.DefaultLanguage})
 	}
 	return json.Marshal(c)
 }

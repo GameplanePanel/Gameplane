@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	gameplanev1alpha1 "github.com/ValgulNecron/gameplane/operator/api/v1alpha1"
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // testSSHKey generates an ed25519 keypair, returning the private key
@@ -59,8 +59,8 @@ func gitSecret(name string, data map[string][]byte) *corev1.Secret {
 
 func TestCheckGitURL(t *testing.T) {
 	for _, ok := range []string{
-		"https://github.com/ValgulNecron/gameplane-modules.git",
-		"ssh://git@github.com/ValgulNecron/gameplane-modules.git",
+		"https://github.com/GameplanePanel/module.git",
+		"ssh://git@github.com/GameplanePanel/module.git",
 		"git@github.com:gameplane-gg/modules.git",
 		// Self-hosted git on a private literal is legitimate, not SSRF.
 		"https://10.0.0.5/internal/modules.git",

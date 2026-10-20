@@ -97,7 +97,7 @@ func (c *Command) Render(params map[string]string) (string, error)
 
 `gameaction/go.mod` (mirror `netguard/go.mod` exactly — same go version, no deps):
 ```
-module github.com/ValgulNecron/gameplane/gameaction
+module github.com/GameplanePanel/gameplane/gameaction
 
 go 1.25.0
 ```
@@ -233,8 +233,8 @@ threshold:
 `.github/workflows/ci.yaml` — add `gameaction` to the go job's `matrix.module` list.
 `agent/go.mod` — add, mirroring the netguard lines:
 ```
-require github.com/ValgulNecron/gameplane/gameaction v0.0.0
-replace github.com/ValgulNecron/gameplane/gameaction => ../gameaction
+require github.com/GameplanePanel/gameplane/gameaction v0.0.0
+replace github.com/GameplanePanel/gameplane/gameaction => ../gameaction
 ```
 
 - [ ] **Step 6: Rewire the agent to use gameaction (delete the dup)**

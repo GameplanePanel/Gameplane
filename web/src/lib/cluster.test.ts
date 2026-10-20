@@ -5,7 +5,7 @@ const localStorageMock = (() => {
   let store: Record<string, string> = {};
 
   return {
-    getItem: (key: string) => store[key] || null,
+    getItem: (key: string) => store[key] ?? null,
     setItem: (key: string, value: string) => {
       store[key] = value.toString();
     },
@@ -34,6 +34,11 @@ afterEach(() => {
 });
 
 describe("Cluster Store", () => {
+  it("preserves an explicitly cleared selection after reloading the store", async () => {
+    localStorageMock.setItem("gameplane.cluster", "");
+    const { getCurrentCluster: freshGetCurrentCluster } = await import("./cluster");
+    expect(freshGetCurrentCluster()).toBe("");
+  });
   it("returns default 'local' cluster when nothing is stored", async () => {
     // Re-import to get fresh module state
     const { getCurrentCluster: freshGetCurrentCluster } = await import("./cluster");

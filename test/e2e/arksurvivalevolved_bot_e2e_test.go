@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/joindepth"
+	"github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/joindepth"
 )
 
 // TestGameServer_ArkSurvivalEvolvedBot_Query boots an ARK: Survival Evolved dedicated server
@@ -25,7 +25,7 @@ func TestGameServer_ArkSurvivalEvolvedBot_Query(t *testing.T) {
 		Game:        "ark-survival-evolved",
 		Template:    fmt.Sprintf("e2e-ase-bot-%d", time.Now().UnixNano()),
 		DisplayName: "E2E ARK: Survival Evolved",
-		Image:       "ghcr.io/valgulnecron/gameplane/ark-survival-evolved:latest@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Image:       "ghcr.io/gameplanepanel/gameplane/ark-survival-evolved:latest@sha256:2a4298f8055dbff4107c49c961cace1f2bed42809e6b93fb4924371ae4484e58",
 		Env: map[string]string{
 			"SESSION_NAME":  "Gameplane E2E ASE",
 			"RCON_PASSWORD": "secret-rcon-password",
@@ -36,7 +36,7 @@ func TestGameServer_ArkSurvivalEvolvedBot_Query(t *testing.T) {
 			{Name: "rcon", Port: 27020, Protocol: "TCP"},
 		},
 		StorageSize: "30Gi",
-		MountPath:   "/serverdata/ShooterGame/Saved",
+		MountPath:   "/data",
 		Resources: gameResources{
 			ReqCPU: "2", ReqMem: "8Gi",
 			LimCPU: "4", LimMem: "16Gi",

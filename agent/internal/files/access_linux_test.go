@@ -13,6 +13,15 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// A named ACL user need not exist in passwd. Keep the fixture different from
+// the current UID without overflow or producing the reserved ACL ID sentinel.
+func otherACLUserID() uint32 {
+	if os.Getuid() == 1 {
+		return 2
+	}
+	return 1
+}
+
 func TestReplacementACLRetainsOriginalOwnerWithoutBroadeningOthers(t *testing.T) {
 	for _, mode := range []uint32{0o600, 0o644} {
 		st := unix.Stat_t{Uid: 1000, Mode: mode}
@@ -66,7 +75,7 @@ func TestApplyReplacementACLOnRealFile(t *testing.T) {
 	defer func() { _ = f.Close() }()
 	// A real unprivileged file owner may install an exact-UID ACL for a
 	// different UID without CAP_CHOWN. No privileged test setup is needed.
-	access := fileAccess{exists: true, stat: unix.Stat_t{Uid: uint32(os.Getuid() + 1), Gid: uint32(os.Getgid()), Mode: 0o600}}
+	access := fileAccess{exists: true, stat: unix.Stat_t{Uid: otherACLUserID(), Gid: uint32(os.Getgid()), Mode: 0o600}}
 	if err := access.apply(f); err != nil {
 		if errors.Is(err, unix.EOPNOTSUPP) {
 			t.Skip("test filesystem lacks POSIX ACL support")
@@ -82,7 +91,7 @@ func TestApplyReplacementACLOnRealFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []aclEntry{{aclUserObj, 6, aclUndefined}, {aclUser, 6, uint32(os.Getuid() + 1)}, {aclGroupObj, 0, aclUndefined}, {aclMask, 6, aclUndefined}, {aclOther, 0, aclUndefined}}
+	want := []aclEntry{{aclUserObj, 6, aclUndefined}, {aclUser, 6, otherACLUserID()}, {aclGroupObj, 0, aclUndefined}, {aclMask, 6, aclUndefined}, {aclOther, 0, aclUndefined}}
 	if !reflect.DeepEqual(entries, want) {
 		t.Fatalf("on-disk ACL=%v", entries)
 	}

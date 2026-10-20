@@ -11,7 +11,7 @@
 - **Blocker Class**: documentation
 
 **Status:** pre-v1 (v0.3.0)  
-**Module / package:** `github.com/ValgulNecron/gameplane/test/e2e/internal/garrys-mod`  
+**Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/garrys-mod`  
 **Dependencies:** stdlib only (Go 1.25+); tested against ceifa/garrysmod:debian; shared protocol families `a2s`, `source`
 
 ## Purpose
@@ -56,7 +56,7 @@ The probe imports the shared `a2s` and `source` protocol families from `test/e2e
 
 ### Shared protocol families
 
-**`github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/a2sproto`**
+**`github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/a2sproto`**
 
 ```go
 type Info struct {
@@ -77,7 +77,7 @@ func QueryInfo(ctx context.Context, addr string) (*Info, error)
 func QueryPlayers(ctx context.Context, addr string) ([]Player, error)
 ```
 
-**`github.com/ValgulNecron/gameplane/test/e2e/internal/protocol/sourceproto`**
+**`github.com/GameplanePanel/gameplane/test/e2e/internal/protocol/sourceproto`**
 
 ```go
 func Challenge(ctx context.Context, addr string) (uint32, error)

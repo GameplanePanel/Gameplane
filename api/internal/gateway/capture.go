@@ -7,8 +7,8 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/ValgulNecron/gameplane/api/internal/gatewayprotocol"
-	"github.com/ValgulNecron/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/gatewayprotocol"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
 func (h *handler) serveCapture(w http.ResponseWriter, req *http.Request, target gatewayprotocol.CaptureTarget) {

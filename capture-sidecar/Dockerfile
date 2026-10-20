@@ -9,7 +9,7 @@ WORKDIR /src
 COPY capture-sidecar/ ./capture-sidecar/
 WORKDIR /src/capture-sidecar
 
-RUN apk add --no-cache libcap
+RUN apk add --no-cache libcap~=2.78
 
 ARG VERSION=dev
 # Cross-compile on the build host ($BUILDPLATFORM above) rather than under

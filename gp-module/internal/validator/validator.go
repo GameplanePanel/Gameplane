@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/ValgulNecron/gameplane/gp-module/internal/common"
+	"github.com/GameplanePanel/gameplane/gp-module/internal/common"
 )
 
 // ValidateOptions controls validation flags and strictness.
@@ -41,6 +42,11 @@ func ValidateDirectory(dirPath string, opts ValidateOptions) (*ModuleReport, err
 
 	for _, entry := range entries {
 		if entry.IsDir() {
+			if entry.Name() == "locales" {
+				if err := readLocaleFiles(absPath, files); err != nil {
+					return nil, err
+				}
+			}
 			continue
 		}
 		path := filepath.Join(absPath, entry.Name())
@@ -69,6 +75,29 @@ func ValidateDirectory(dirPath string, opts ValidateOptions) (*ModuleReport, err
 	// Re-evaluate clean
 	report.Clean = isClean(report.Findings, opts.Strict)
 	return report, nil
+}
+
+// readLocaleFiles adds every regular locales/*.json file of the module to
+// files under the key "locales/<name>". Symlinks and other entries are skipped.
+// They do not count towards the asset size checks.
+func readLocaleFiles(absPath string, files map[string][]byte) error {
+	dir := filepath.Join(absPath, "locales")
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("failed to read directory %q: %w", dir, err)
+	}
+	for _, entry := range entries {
+		if !entry.Type().IsRegular() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		path := filepath.Join(dir, entry.Name())
+		data, err := os.ReadFile(filepath.Clean(path))
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", path, err)
+		}
+		files["locales/"+entry.Name()] = data
+	}
+	return nil
 }
 
 // ValidateFiles executes all validation rules against an in-memory map of file contents.
@@ -141,6 +170,9 @@ func ValidateFiles(dirName string, files map[string][]byte, opts ValidateOptions
 			findings = append(findings, validateConfigSchemaRules(node)...)
 		}
 	}
+
+	findings = append(findings, validateLocales(files)...)
+	findings = append(findings, validateLocaleIDs(files)...)
 
 	repName := dirName
 	if repName == "" || repName == "." {

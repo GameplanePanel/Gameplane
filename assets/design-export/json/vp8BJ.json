@@ -1,0 +1,180 @@
+{
+  "type": "frame",
+  "id": "vp8BJ",
+  "x": 3120,
+  "y": 2089,
+  "name": "loginCardSso",
+  "reusable": true,
+  "width": 420,
+  "fill": "$surface/surface",
+  "cornerRadius": 12,
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "layout": "vertical",
+  "gap": 24,
+  "padding": 40,
+  "children": [
+    {
+      "type": "frame",
+      "id": "pM6iQ",
+      "name": "loginLogo",
+      "width": "fill_container",
+      "gap": 10,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "TgK4y",
+          "name": "logoK",
+          "width": 36,
+          "height": 36,
+          "fill": "$accent/soft",
+          "cornerRadius": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "y7bhg",
+              "name": "shield",
+              "width": 20,
+              "height": 20,
+              "icon": "shield-check",
+              "library": "lucide",
+              "fill": "$accent/accent"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ewgCb",
+          "name": "logoCol",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "text",
+              "id": "MgD72",
+              "name": "appName",
+              "fill": "$foreground/foreground",
+              "content": "gameplane",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 20,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "vNCYQ",
+              "name": "appDesc",
+              "fill": "$muted",
+              "content": "game server control panel",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "pRRH6",
+      "name": "loginTitle",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 6,
+      "children": [
+        {
+          "type": "text",
+          "id": "Xjxx2",
+          "name": "titleText",
+          "fill": "$foreground/foreground",
+          "content": "Sign in",
+          "fontFamily": "$typography/font-mono",
+          "fontSize": 22,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "gJqBv",
+          "name": "subtitleText",
+          "fill": "$muted",
+          "content": "Welcome to Gameplane.",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 13,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "id": "wixY3",
+      "type": "ref",
+      "ref": "QcB8d",
+      "name": "oidc",
+      "descendants": {
+        "IruuA": {
+          "enabled": true,
+          "icon": "key-round",
+          "library": "lucide"
+        },
+        "QNiQq": {
+          "content": "Continue with Keycloak",
+          "fontFamily": "$typography/font-mono"
+        }
+      }
+    },
+    {
+      "id": "zOy4E",
+      "type": "ref",
+      "ref": "QcB8d",
+      "name": "google",
+      "descendants": {
+        "IruuA": {
+          "enabled": true,
+          "icon": "key-round",
+          "library": "lucide"
+        },
+        "QNiQq": {
+          "content": "Continue with Google",
+          "fontFamily": "$typography/font-mono"
+        }
+      }
+    },
+    {
+      "type": "text",
+      "id": "V3QWUB",
+      "name": "footer",
+      "fill": "$muted",
+      "textGrowth": "fixed-width",
+      "width": "fill_container",
+      "content": "AGPL-3.0 licensed",
+      "textAlign": "center",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 11,
+      "fontWeight": "normal"
+    },
+    {
+      "type": "frame",
+      "id": "tAIQI",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 12,
+      "name": "loginLangRow",
+      "width": 420,
+      "padding": [
+        0,
+        12
+      ],
+      "justifyContent": "end",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "H9PRsa",
+          "type": "ref",
+          "ref": "z3mtgc",
+          "name": "langPicker"
+        }
+      ]
+    }
+  ]
+}

@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "specify the checking and fixing of https://github.com/ValgulNecron/Gameplane/security/code-scanning and also merging https://github.com/ValgulNecron/Gameplane/pulls from dependabot"
+**Input**: User description: "specify the checking and fixing of https://github.com/GameplanePanel/Gameplane/security/code-scanning and also merging https://github.com/GameplanePanel/Gameplane/pulls from dependabot"
 
 ## User Scenarios & Testing *(mandatory)*
 

@@ -95,13 +95,25 @@ func (s *Store) LockUserManagement() (unlock func()) {
 // written per dialect), then the shared set (migrations/common/, 013
 // onward, portable SQL that both drivers run unchanged). See
 // migrations/README.md. Each file runs in a single transaction; failures
-// are fatal.
+// are fatal. Afterwards it seeds the telemetry_state row once (see
+// seedTelemetryState), which is why it first notes whether the database was
+// fresh.
 func (s *Store) Migrate(ctx context.Context) error {
 	if _, err := s.DB.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)`,
 	); err != nil {
 		return fmt.Errorf("create schema_migrations: %w", err)
 	}
+
+	// A database whose schema_migrations is still empty is a fresh install;
+	// the telemetry consent seeding below depends on telling it apart from an
+	// upgrade. Counting here, before anything is applied, keeps the answer
+	// right whichever entrypoint (bootstrap-admin or serve) migrates first.
+	var recorded int
+	if err := s.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM schema_migrations`).Scan(&recorded); err != nil {
+		return fmt.Errorf("count schema_migrations: %w", err)
+	}
+	fresh := recorded == 0
 
 	files, err := migrationFiles(migrations, s.Driver)
 	if err != nil {
@@ -124,7 +136,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 			return fmt.Errorf("migration %s: %w", f.name, err)
 		}
 	}
-	return nil
+	return s.seedTelemetryState(ctx, fresh)
 }
 
 // Migration directories inside the embedded FS. legacyMigrationDirs maps a

@@ -1,0 +1,51 @@
+name: gameplane-panel
+
+services:
+  gameplane-api:
+    build:
+      context: ../..
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    environment:
+      GAMEPLANE_STANDALONE: "true"
+      GAMEPLANE_PANEL_KEY_FILE: ${GAMEPLANE_PANEL_KEY_FILE:-/keys/panel.key}
+      GAMEPLANE_REMOTE_ALLOWED_CIDRS: ${GAMEPLANE_REMOTE_ALLOWED_CIDRS:-}
+      GAMEPLANE_DB_DRIVER: sqlite
+      GAMEPLANE_DB_DSN: "file:/data/gameplane.db?_pragma=journal_mode(WAL)"
+    volumes:
+      - panel-data:/data
+      - panel-keys:/keys
+    read_only: true
+    tmpfs:
+      - /tmp:uid=65532,gid=65532,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  web:
+    build:
+      context: ../..
+      dockerfile: web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - gameplane-api
+    environment:
+      API_UPSTREAM: http://gameplane-api:8000
+    ports:
+      - "127.0.0.1:${GAMEPLANE_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0755
+      - /tmp:uid=101,gid=101,mode=1777
+      - /var/cache/nginx:uid=101,gid=101,mode=0755
+      - /var/run:uid=101,gid=101,mode=0755
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  panel-data:
+  panel-keys:

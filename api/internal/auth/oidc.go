@@ -12,8 +12,9 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 
-	"github.com/ValgulNecron/gameplane/api/internal/db"
-	"github.com/ValgulNecron/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/api/internal/db"
+	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
 const (
@@ -385,7 +386,7 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 	return func(w http.ResponseWriter, req *http.Request) {
 		state, err := req.Cookie(oidcStateCookie)
 		if err != nil || state.Value == "" || state.Value != req.URL.Query().Get("state") {
-			http.Error(w, "state mismatch", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("state mismatch"))
 			return
 		}
 		clearCookieAt(w, oidcStateCookie, cookiePath)
@@ -393,17 +394,17 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		tok, err := o.oauth.Exchange(req.Context(), req.URL.Query().Get("code"))
 		if err != nil {
 			slog.Warn("oidc exchange", "err", err)
-			http.Error(w, "oauth exchange failed", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("oauth exchange failed"))
 			return
 		}
 		rawID, _ := tok.Extra("id_token").(string)
 		if rawID == "" {
-			http.Error(w, "no id_token", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("no id_token"))
 			return
 		}
 		idt, err := o.verifier.Verify(req.Context(), rawID)
 		if err != nil {
-			http.Error(w, "invalid id_token", http.StatusUnauthorized)
+			httperr.WriteCode(w, req, http.StatusUnauthorized, errors.New("invalid id_token"))
 			return
 		}
 		// Nonce check — the IdP is expected to echo the nonce we issued
@@ -413,7 +414,7 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		nonceCookie, err := req.Cookie(oidcNonceCookie)
 		if err != nil || nonceCookie.Value == "" || idt.Nonce != nonceCookie.Value {
 			clearCookieAt(w, oidcNonceCookie, cookiePath)
-			http.Error(w, "nonce mismatch", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("nonce mismatch"))
 			return
 		}
 		clearCookieAt(w, oidcNonceCookie, cookiePath)
@@ -424,7 +425,7 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		}
 		if err := idt.Claims(&claims); err != nil {
 			slog.Warn("oidc claim parse", "err", err)
-			http.Error(w, "invalid id_token claims", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("invalid id_token claims"))
 			return
 		}
 		// The typed struct above can't see arbitrary claim names, so the
@@ -432,7 +433,7 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		var rawClaims map[string]any
 		if err := idt.Claims(&rawClaims); err != nil {
 			slog.Warn("oidc raw claim parse", "err", err)
-			http.Error(w, "invalid id_token claims", http.StatusBadRequest)
+			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("invalid id_token claims"))
 			return
 		}
 		// Extract groups using the configured claim name, defaulting to "groups" if empty.
@@ -456,7 +457,7 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 			// Log the identity, never the tokens.
 			slog.Warn("oidc login denied: no group grants a role and defaultRole is deny",
 				"issuer", idt.Issuer, "subject", claims.Sub)
-			http.Error(w, "login not permitted", http.StatusForbidden)
+			httperr.WriteCode(w, req, http.StatusForbidden, errors.New("login not permitted"))
 			return
 		}
 
