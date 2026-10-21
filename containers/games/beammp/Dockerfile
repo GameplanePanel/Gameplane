@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.24
 
 LABEL org.opencontainers.image.title="Gameplane BeamMP Dedicated Server" \
       org.opencontainers.image.description="Dedicated server container for BeamNG.drive (BeamMP) with diagnostic idle support for missing auth keys" \
@@ -6,14 +6,14 @@ LABEL org.opencontainers.image.title="Gameplane BeamMP Dedicated Server" \
       org.opencontainers.image.source="https://github.com/GameplanePanel/Gameplane"
 
 RUN apk add --no-cache \
-    bash~=5.2.26 \
-    curl~=8.14.1 \
-    ca-certificates~=20260413 \
+    bash~=5.3.9 \
+    curl~=8.22.0 \
+    ca-certificates~=20261020 \
     tini~=0.19.0 \
-    procps~=4.0.4 \
-    libstdc++~=13.2.1_git20240309 \
-    libgcc~=13.2.1_git20240309 \
-    openssl~=3.3.7 \
+    procps-ng~=4.0.6 \
+    libstdc++~=15.2.0 \
+    libgcc~=15.2.0 \
+    openssl~=3.5.9 \
     zlib~=1.3.2
 
 # Create gameplane runtime user with fixed UID/GID 1000
