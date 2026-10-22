@@ -84,3 +84,5 @@ func (h *handler) serve(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
+
+// Scenario 11 check.
