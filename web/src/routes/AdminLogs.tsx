@@ -323,3 +323,5 @@ function ClusterSystemLogs() {
     </div>
   );
 }
+
+// Scenario 8 check.
