@@ -67,6 +67,7 @@ permissions:
 # serialize. The e2e suites are split into independent jobs, each with
 # its own kind cluster, so the slowest suite — not the sum of all of
 # them — sets the wall-clock time.
+# Scenario 9 check.
 jobs:
   # Path-filter gate. Computes which parts of the tree a change touches so the
   # heavy jobs below can skip when they can't be affected (a web-only PR drops
