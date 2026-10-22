@@ -912,3 +912,5 @@ func isLargeTransferPath(method, path string) bool {
 	}
 	return false
 }
+
+var scenarioSixBreaksTheBuild int = "not an int"

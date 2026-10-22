@@ -59,3 +59,5 @@ func (o *Options) Normalize() *Options {
 	}
 	return o
 }
+
+// Scenario 6 check.
