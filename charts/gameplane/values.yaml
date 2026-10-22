@@ -775,3 +775,4 @@ capture:
   # Capture sidecar container image. Defaults to {image.registry}/capture-sidecar:{image.tag}
   # if unset (the pattern matched by other component images like sentinel).
   image: ""
+# spec 023 validation scenario 3
