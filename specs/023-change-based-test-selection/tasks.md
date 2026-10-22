@@ -160,7 +160,7 @@ Repository root of `GameplanePanel/Gameplane`. Main files: `hack/ci_scope.py`, `
 - [X] T048 [P] Add a "How CI picks tests" section to `docs/contributing.md`: what a partial run skips, the `ci: full-run` label and manual run, how to add a `suite-components.json` entry, where to read the run summary
 - [X] T049 [P] Add the new selection files to the task map in `docs/agent-architecture.md`
 - [X] T050 Compile and link checks only; open PR 5 with labels `type: docs`, `area: shared`
-- [ ] T051 After the first `master` push following PR 5's merge, confirm every job ran (FR-006, SC-006) and record it in `validation.md`
+- [X] T051 After the first `master` push following PR 5's merge, confirm every job ran (FR-006, SC-006) and record it in `validation.md`
 - [ ] T052 After 30 merged PRs, measure median runner-minutes against the 30 before PR 2 via the Actions API and record SC-002 in `validation.md`; for 60 days review each red `master` run for a selection miss (SC-004)
 
 ---

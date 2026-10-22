@@ -106,3 +106,17 @@ follows the agreed `suite-components.json` mapping (OD-12).
 
 **Scenario 7.** A `testdata/` file is not a `_test.go` file, so its package's importers
 are selected too. That is broader than US2-3 asks for, never narrower.
+
+## T051: first master push after the rollout (2026-10-22)
+
+The merge of #779 (`3093f03`) was followed within minutes by the merge of #748
+(`54d5819`), which cancelled the earlier push run. Run
+[39861872464](https://github.com/GameplanePanel/Gameplane/actions/runs/39861872464)
+on `54d5819` was the first master push run to finish with every selection change in
+place:
+
+- `detect changes` emitted `"all": "true"` and `"reason": "master push"`.
+- 101 jobs were scheduled: 100 succeeded and `dependency review` was skipped, because it
+  runs only on pull requests. No job was skipped by selection, so FR-006 and SC-006 are
+  met.
+- The jobs took about 386 runner-minutes in total.
