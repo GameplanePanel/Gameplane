@@ -12,6 +12,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions checks two
@@ -64,19 +67,37 @@ func TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions(t *testing.T) {
 
 	applyBusyboxTemplate(t, tmpl)
 	createGameServerViaAPI(t, admin, ns, gsName, tmpl)
+	// /events starts at each collection's current resourceVersion. Drive real
+	// updates throughout both streams instead of depending on initial replay
+	// or other parallel tests to happen to mutate a readable resource kind.
+	changes := func(ctx context.Context) error {
+		patch, err := json.Marshal(map[string]any{"metadata": map[string]any{"annotations": map[string]string{
+			"gameplane.local/e2e-event-sequence": time.Now().UTC().Format(time.RFC3339Nano),
+		}}})
+		if err != nil {
+			return fmt.Errorf("encode event trigger: %w", err)
+		}
+		if _, err := envInstance.Dyn.Resource(gameTemplateGVR).Patch(ctx, tmpl, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
+			return fmt.Errorf("trigger template event: %w", err)
+		}
+		if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Patch(ctx, gsName, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
+			return fmt.Errorf("trigger server event: %w", err)
+		}
+		return nil
+	}
 
 	user := envInstance.APIClient(t, userName, userPW)
 	defer user.Close()
 
 	t.Run("admin event stream includes templates", func(t *testing.T) {
-		kinds, found := streamEventKinds(t, admin, ns, func(kind, _ string) bool { return kind == "templates" }, 0)
+		kinds, found := streamEventKinds(t, admin, ns, func(kind, name string) bool { return kind == "templates" && name == tmpl }, 0, changes)
 		if !found {
 			t.Fatalf("admin stream sent no templates event; kinds=%v", kinds)
 		}
 	})
 
 	t.Run("event stream sends only kinds the caller may read", func(t *testing.T) {
-		kinds, found := streamEventKinds(t, user, ns, func(kind, name string) bool { return kind == "servers" && name == gsName }, 3*time.Second)
+		kinds, found := streamEventKinds(t, user, ns, func(kind, name string) bool { return kind == "servers" && name == gsName }, 3*time.Second, changes)
 		if !found {
 			t.Fatalf("user stream never sent server %s; kinds=%v", gsName, kinds)
 		}
@@ -126,11 +147,41 @@ func TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions(t *testing.T) {
 // streamEventKinds reads GET /events as cli and returns the set of event
 // kinds it received. When match reports true for a frame, it keeps
 // reading for grace (0 = stop at once); otherwise it stops after 30s.
+// changes keeps both permitted and forbidden kinds active while connecting and
+// reading; its worker is cancelled and joined before the helper returns.
 // found reports whether match was ever true.
-func streamEventKinds(t *testing.T, cli *APIClient, ns string, match func(kind, name string) bool, grace time.Duration) (map[string]bool, bool) {
+func streamEventKinds(t *testing.T, cli *APIClient, ns string, match func(kind, name string) bool, grace time.Duration, changes func(context.Context) error) (map[string]bool, bool) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
+	changesDone := make(chan struct{})
+	var changesErr error
+	go func() {
+		defer close(changesDone)
+		ticker := time.NewTicker(500 * time.Millisecond)
+		defer ticker.Stop()
+		for {
+			if err := changes(ctx); err != nil {
+				if ctx.Err() == nil {
+					changesErr = err
+				}
+				cancel()
+				return
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
+	defer func() {
+		cancel()
+		<-changesDone
+		if changesErr != nil {
+			t.Errorf("event trigger failed: %v", changesErr)
+		}
+	}()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.BaseURL+"/events?namespace="+ns, nil)
 	if err != nil {
 		t.Fatalf("new events request: %v", err)

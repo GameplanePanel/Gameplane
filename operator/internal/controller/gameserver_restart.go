@@ -79,5 +79,5 @@ func (r *GameServerReconciler) ackRestart(ctx context.Context, gs *gameplanev1al
 	}
 	gs.Annotations[RestartCompletedAnnotation] = gs.Annotations[RestartRequestedAnnotation]
 	delete(gs.Annotations, stopRequestedAtAnnotation)
-	return r.Patch(ctx, gs, client.MergeFrom(base))
+	return r.Patch(ctx, gs, client.MergeFromWithOptions(base, client.MergeFromWithOptimisticLock{}))
 }

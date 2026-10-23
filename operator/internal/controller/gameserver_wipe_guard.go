@@ -165,8 +165,11 @@ func (r *GameServerReconciler) ensureWipeGuard(ctx context.Context, gs *gameplan
 		return false, fmt.Errorf("GameServer changed identity before wipe acquisition")
 	}
 	*gs = live
-	if gs.Annotations[wipeGuardAnnotation] != "" || gs.Annotations[restoreGuardAnnotation] != "" {
-		return false, nil
+	if token := gs.Annotations[wipeGuardAnnotation]; token != "" {
+		ready, err := claimLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, wipeLifecycleIdentity(gs, token), r.OperationQuiescer)
+		// Upgrading an existing guard does not require another pass. Only
+		// unfinished predecessor cleanup must prevent this wipe proceeding.
+		return err == nil && !ready, err
 	}
 	state := wipeInventory(inventory)
 	if err := r.loadWipeWorkers(ctx, gs, state); err != nil {
@@ -189,20 +192,8 @@ func (r *GameServerReconciler) ensureWipeGuard(ctx context.Context, gs *gameplan
 	if token == "" {
 		token = wipeOrphanGuard
 	}
-	if gs.Annotations == nil {
-		gs.Annotations = make(map[string]string)
-	}
-	gs.Annotations[wipeGuardAnnotation] = token
-	// Recovery without a pending request is cleanup, including legacy orphan
-	// pods with no token. The guard fences live workers without changing the
-	// current resume/stop intent. Pending and failed matching wipes suspend.
-	if pendingWipe(gs) {
-		gs.Spec.Suspend = true
-	}
-	if err := r.Update(ctx, gs); err != nil {
-		return false, err
-	}
-	return true, nil
+	_, err = claimLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, wipeLifecycleIdentity(gs, token), r.OperationQuiescer)
+	return err == nil && gs.Annotations[wipeGuardAnnotation] == token, err
 }
 
 // Stamp the owned workload with a checked write before workers launch. A stale
@@ -299,6 +290,9 @@ func (r *GameServerReconciler) releaseWipeGuard(ctx context.Context, gs *gamepla
 	if err := r.clearWipeWorkloadGuard(ctx, &live, token); err != nil {
 		return err
 	}
+	if err := clearLifecycleOperation(ctx, r.Client, r.wipeReader(), &live, wipeLifecycleIdentity(&live, token)); err != nil {
+		return err
+	}
 	if success {
 		live.Annotations[WipeCompletedAnnotation] = token
 		live.Spec.Suspend = false
@@ -307,6 +301,7 @@ func (r *GameServerReconciler) releaseWipeGuard(ctx context.Context, gs *gamepla
 		// Transfer only after old Jobs and live pods have drained; next pass
 		// fences the workload for this new token before launching a worker.
 		live.Annotations[wipeGuardAnnotation] = live.Annotations[WipeRequestedAnnotation]
+		live.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(lifecycleOperation{lifecycleIdentity: wipeLifecycleIdentity(&live, live.Annotations[WipeRequestedAnnotation])})
 		live.Spec.Suspend = true
 	} else {
 		delete(live.Annotations, wipeGuardAnnotation)

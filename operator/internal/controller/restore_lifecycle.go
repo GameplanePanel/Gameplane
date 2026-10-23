@@ -70,7 +70,15 @@ func (r *RestoreReconciler) bindRestoreTarget(ctx context.Context, rs *gameplane
 // cannot both claim the same GameServer, even across operator processes. Suspend
 // is written in that same update; a crash cannot leave a lock without suspension.
 func (r *RestoreReconciler) claimRestoreTarget(ctx context.Context, rs *gameplanev1alpha1.Restore, gs *gameplanev1alpha1.GameServer) (bool, error) {
-	owner := restoreIdentityJSON(rs.Name, rs.UID)
+	// Refresh before both compatibility checks and shared-owner admission.
+	var live gameplanev1alpha1.GameServer
+	if err := r.apiReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
+		return false, err
+	}
+	if live.UID != gs.UID {
+		return false, fmt.Errorf("restore target changed identity")
+	}
+	*gs = live
 	workers, err := wipeWorkers(ctx, r.apiReader(), gs)
 	if err != nil {
 		return false, err
@@ -95,38 +103,7 @@ func (r *RestoreReconciler) claimRestoreTarget(ctx context.Context, rs *gameplan
 		}
 		return false, nil
 	}
-	if guard := gs.Annotations[restoreGuardAnnotation]; guard != "" && guard != owner {
-		identity, err := parseRestoreIdentity(guard)
-		if err != nil {
-			return false, err
-		} // Malformed guards fail closed.
-		var holder gameplanev1alpha1.Restore
-		err = r.apiReader().Get(ctx, types.NamespacedName{Namespace: gs.Namespace, Name: identity.Name}, &holder)
-		if err == nil && holder.UID == identity.UID {
-			return false, nil
-		}
-		if err != nil && !apierrors.IsNotFound(err) {
-			return false, err
-		}
-		// Force-deleted owners can leave their Job and pods behind. Cancel the
-		// old UID's Job and wait for its workers before reclaiming the guard.
-		busy, err := r.restoreWorkersLive(ctx, gs.Namespace, identity, true)
-		if err != nil || busy {
-			return false, err
-		}
-	}
-	if gs.Annotations[restoreGuardAnnotation] == owner && gs.Spec.Suspend {
-		return true, nil
-	}
-	if gs.Annotations == nil {
-		gs.Annotations = make(map[string]string)
-	}
-	gs.Annotations[restoreGuardAnnotation] = owner
-	gs.Spec.Suspend = true
-	if err := r.Update(ctx, gs); err != nil {
-		return false, err
-	}
-	return true, nil
+	return claimLifecycleOperation(ctx, r.Client, r.apiReader(), gs, restoreLifecycleIdentity(gs, rs), r.OperationQuiescer)
 }
 
 func liveRestorePod(pod *corev1.Pod) bool {
@@ -280,6 +257,51 @@ func (r *RestoreReconciler) cleanupRestore(ctx context.Context, rs *gameplanev1a
 			return ctrl.Result{}, err
 		}
 		if err == nil && gs.UID == target.UID && gs.Annotations[restoreGuardAnnotation] == restoreIdentityJSON(rs.Name, rs.UID) {
+			if value := gs.Annotations[lifecycleOperationAnnotation]; value != "" {
+				op, err := parseLifecycleOperation(value)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
+				if !sameLifecycleOwner(op.lifecycleIdentity, restoreLifecycleIdentity(&gs, rs)) {
+					return ctrl.Result{}, fmt.Errorf("restore cleanup target has a different lifecycle owner")
+				}
+				if !success && (op.InitialStartup || !gs.Spec.Suspend) {
+					// A CSI restore may have started the game to bind its PVC.
+					// Retire that permission before asking the workload to stop;
+					// a replacement operation must not overlap the old process.
+					op.InitialStartup = false
+					gs.Spec.Suspend = true
+					gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+					if err := r.Update(ctx, &gs); err != nil {
+						return ctrl.Result{}, err
+					}
+				}
+				ready, err := recoverLifecycleOperation(ctx, r.Client, r.apiReader(), &gs, op, r.OperationQuiescer)
+				if err != nil || !ready {
+					return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+				}
+			}
+			if !success {
+				if !gs.Spec.Suspend {
+					gs.Spec.Suspend = true
+					if err := r.Update(ctx, &gs); err != nil {
+						return ctrl.Result{}, err
+					}
+				}
+				stopped, progressed, err := r.restoreTargetStopped(ctx, &gs)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
+				if progressed {
+					return ctrl.Result{Requeue: true}, nil
+				}
+				if !stopped {
+					return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+				}
+			}
+			if err := clearLifecycleOperation(ctx, r.Client, r.apiReader(), &gs, restoreLifecycleIdentity(&gs, rs)); err != nil {
+				return ctrl.Result{}, err
+			}
 			var ss appsv1.StatefulSet
 			ssErr := r.apiReader().Get(ctx, client.ObjectKeyFromObject(&gs), &ss)
 			if ssErr != nil && !apierrors.IsNotFound(ssErr) {
