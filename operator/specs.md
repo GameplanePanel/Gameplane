@@ -6,6 +6,35 @@
 
 ## Purpose
 
+### Restricted workloads and node capture (#714)
+
+`--restricted-workloads` applies nonroot, no escalation, drop ALL and
+RuntimeDefault to game/config-init; incompatible numeric identities and Hostport exposure fail with
+the existing Ready/Failed condition before workload creation. Every game Pod
+disables token automount and projects token/CA/namespace only into agent.
+Token lifetime is 600–3600s (default 3600); shared PID remains for metrics.
+Use NodePort or LoadBalancer for Restricted workloads. Config-init creates
+files with the declared fsGroup as its primary group in both profiles and
+reconciles copied entries' group-write permission only when needed, so an
+already-correct root-owned file can be reused by the Restricted init UID.
+Existing volumes still need compatible ownership before enabling Restricted.
+
+Restricted Pods never receive the legacy capture ephemeral container.
+`spec.capture.nodeDiagnostic` additionally requires cluster capture enablement
+and `--diagnostics-namespace`. The dedicated namespace must explicitly enforce
+privileged and be separate from games/control plane. Live owner UIDs establish
+GameServer→StatefulSet→Pod provenance; Pod UID, node and exact containerd ID are
+pinned before worker creation. A target change drains work before releasing
+the capture lock. A bounded, no-retry Job has hostPID and only SYS_ADMIN,
+SYS_PTRACE/NET_RAW additions, no token/socket/hostPath. Duration <=3600s, bytes
+<=900Mi, PVC 1Gi; deployment quota bounds aggregate retention. Linux/containerd
+with eth0 is the supported target. Artifact serving uses a separate Restricted
+Pod with per-capture mTLS. Direct reads cover diagnostic Secrets and resources.
+Cross-namespace owner references are never used: a NetworkCapture finalizer
+drains worker Pods, deletes a same-namespace ConfigMap anchor with foreground
+GC, then releases finalization. TTL and GameServer owner GC drive this cleanup.
+Terminal captures refresh artifact certificates without recreating targets.
+
 The operator is a Kubernetes controller-runtime-based process that reconciles Gameplane Custom Resource Definitions (CRDs) into operational Kubernetes objects. It is the authoritative owner of all state transformations: a user must be able to `kubectl apply` a GameServer and achieve the same outcome as creating it via the dashboard API. The operator drives the full lifecycle of game servers, backups, restores, and module installation through a set of specialized reconcilers watching CRD status.
 
 ## Responsibilities

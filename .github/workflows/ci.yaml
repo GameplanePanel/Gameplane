@@ -439,7 +439,8 @@ jobs:
     needs: [changes]
     if: (needs.changes.outputs.images == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'build-images')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Include all image builds, cache exports, artifact upload and cleanup.
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -1232,6 +1233,8 @@ jobs:
         run: python3 charts/tests/check_gateway.py
       - name: standalone panel isolation and persistence chart renders
         run: python3 charts/tests/check_standalone.py
+      - name: workload security chart contract
+        run: python3 charts/tests/check_workload_security.py
       - name: sanity-check rendered manifests
         run: |
           grep -q 'kind: Deployment' /tmp/rendered.yaml
@@ -1793,7 +1796,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # The arm64 job below uses the same steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads]
         arch: [amd64]
         include:
           - bucket: operator
@@ -1829,6 +1832,10 @@ jobs:
             parallel: 1
             test_timeout: 20m # one lifecycle test: helm upgrade, then mcp, syslog, frp tunnel and core checks in order
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: restricted-workloads
+            parallel: 1
+            test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -1900,7 +1907,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # Mirrors e2e-go's steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads]
         arch: [arm64]
         include:
           - bucket: operator
@@ -1936,6 +1943,10 @@ jobs:
             parallel: 1
             test_timeout: 20m # one lifecycle test: helm upgrade, then mcp, syslog, frp tunnel and core checks in order
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: restricted-workloads
+            parallel: 1
+            test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -2660,8 +2671,8 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ amd64 '),
-              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ arm64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
               'e2e-upgrade': (n) => n.startsWith('e2e upgrade /') && n.includes('/ amd64 '),
@@ -2813,7 +2824,7 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//);
               if (m) bucketSet.add(m[1]);
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');

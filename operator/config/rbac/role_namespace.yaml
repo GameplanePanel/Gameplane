@@ -40,6 +40,7 @@ rules:
       - backups/finalizers
       - backupschedules/finalizers
       - restores/finalizers
+      - networkcaptures/finalizers
     verbs: ["update"]
   # Deployments: the sentinel and tunnel-client Deployments live beside
   # their GameServer.

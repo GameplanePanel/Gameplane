@@ -143,6 +143,10 @@ func main() {
 		gameIngressFromCIDR              cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
+		restrictedWorkloads              bool
+		agentTokenExpirationSeconds      int64
+		diagnosticsNamespace             string
+		diagnosticsStorageClass          string
 		captureDefaultRetention          int64
 		captureMaxRetention              int64
 		captureSidecarImage              string
@@ -185,6 +189,10 @@ func main() {
 	flag.StringVar(&tunnelPlayitImage, "tunnel-playit-image", controller.DefaultTunnelPlayitImage,
 		"Image for the Playit tunnel relay pod that routes players through a Playit tunnel. "+
 			"Point at a private registry mirror for air-gapped installs.")
+	flag.BoolVar(&restrictedWorkloads, "restricted-workloads", false, "Require compatible nonroot templates and render Restricted game workloads")
+	flag.Int64Var(&agentTokenExpirationSeconds, "agent-token-expiration-seconds", 3600, "Projected agent token lifetime (600-3600 seconds)")
+	flag.StringVar(&diagnosticsNamespace, "diagnostics-namespace", "", "Opt in to node diagnostics in this dedicated privileged namespace")
+	flag.StringVar(&diagnosticsStorageClass, "diagnostics-storage-class", "", "StorageClass for bounded node capture artifact PVCs")
 	flag.BoolVar(&captureEnabled, "capture-enabled", false,
 		"Enable the network capture feature cluster-wide. When false (the default), "+
 			"the capture capability is disabled and cannot be enabled per-GameServer.")
@@ -259,6 +267,14 @@ func main() {
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	if agentTokenExpirationSeconds < 600 || agentTokenExpirationSeconds > 3600 {
+		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
+		os.Exit(1)
+	}
+	if diagnosticsNamespace != "" && diagnosticsNamespace == controlPlaneNamespace {
+		fmt.Fprintln(os.Stderr, "diagnostics-namespace must be separate from the control-plane namespace")
+		os.Exit(1)
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
@@ -394,13 +410,16 @@ func main() {
 			Config:    mgr.GetConfig(),
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		},
-		AddressManager:           addressManager,
-		MetalLBNamespace:         metalLBNamespace,
-		GameIngressPolicyEnabled: gameIngressPolicy,
-		GameIngressFromCIDRs:     gameIngressFromCIDR,
-		CaptureEnabled:           captureEnabled,
-		CaptureSidecarImage:      captureSidecarImage,
-		DefaultStorageClassName:  gameDataStorageClass,
+		AddressManager:              addressManager,
+		MetalLBNamespace:            metalLBNamespace,
+		GameIngressPolicyEnabled:    gameIngressPolicy,
+		GameIngressFromCIDRs:        gameIngressFromCIDR,
+		CaptureEnabled:              captureEnabled,
+		RestrictedWorkloads:         restrictedWorkloads,
+		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
+		DiagnosticsNamespace:        diagnosticsNamespace,
+		CaptureSidecarImage:         captureSidecarImage,
+		DefaultStorageClassName:     gameDataStorageClass,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "GameServer")
 		os.Exit(1)
@@ -451,6 +470,12 @@ func main() {
 		Client:                           mgr.GetClient(),
 		Scheme:                           mgr.GetScheme(),
 		SidecarClient:                    captureClient,
+		APIReader:                        mgr.GetAPIReader(),
+		RestrictedWorkloads:              restrictedWorkloads,
+		DiagnosticsNamespace:             diagnosticsNamespace,
+		DiagnosticsStorageClass:          diagnosticsStorageClass,
+		AgentCASecretName:                agentCASecretName,
+		AgentCASecretNamespace:           agentCASecretNamespace,
 		CaptureEnabled:                   captureEnabled,
 		CaptureSidecarImage:              captureSidecarImage,
 		CaptureDefaultMaxDurationSeconds: captureDefaultMaxDurationSeconds,

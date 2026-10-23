@@ -198,7 +198,10 @@ Top-level knobs (see `values.yaml` for the full list):
 - `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](../mcp-server/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
-- `podSecurity.enforceRestricted` — label games namespace for Pod Security Standards
+- `podSecurity.enforceRestricted` — enable the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
+  - `podSecurity.version` — pinned PSA minor, default `v1.34`; administrator override for a tested cluster version.
+  - `operator.agentTokenExpirationSeconds` — projected agent-only token lifetime, 600–3600 seconds (default 3600); rotation is handled by client-go.
+  - `capture.nodeDiagnostics.enabled` — off by default. With `capture.enabled`, creates a separate privileged namespace and bounded diagnostic storage. An administrator must additionally opt each server in through `:capture-node-enable`. Linux/containerd only; no capture-related game restart. Read the [host-privilege and cleanup requirements](security.md#network-capture-security-exception) before deployment.
 - `defaultModuleSource.*` — the official game catalog shipped with the chart (enabled by default)
   - `defaultModuleSource.enabled` — whether to create the default `ModuleSource` (default `true`; disable when managing sources via GitOps)
   - `defaultModuleSource.name` — name of the `ModuleSource` resource (default `default`)

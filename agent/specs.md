@@ -5,6 +5,16 @@
 
 ## Purpose
 
+### Kubernetes token projection (#714)
+
+Game Pods disable automatic credentials. The agent alone mounts a rotating
+projected token plus kube-root CA and namespace at client-go's standard path;
+`rest.InClusterConfig` preserves `BearerTokenFile` refresh. No token is mounted
+into game/config-init. Shared PID remains intentional for process metrics and
+is residual in-Pod trust; mount isolation does not make the agent safe from
+all processes in its Pod. CI exercises live projection rotation and a heartbeat
+after the original short token expires.
+
 The agent is a per-pod HTTP/HTTPS sidecar that runs inside every game pod to expose the game server's operations to the control plane and dashboard. It translates dashboard requests into game-protocol actions (RCON, file I/O, container logs, player queries) and reports liveness, resource usage, and player metrics back to the operator via Kubernetes API patches, decoupling game-specific behavior from the cluster control plane.
 
 ## Responsibilities
