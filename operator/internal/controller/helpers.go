@@ -13,8 +13,10 @@ import (
 )
 
 // upsertCondition replaces a condition by Type if present, otherwise
-// appends. Sets LastTransitionTime to now when the status flips.
+// appends. Sets LastTransitionTime to now when the status flips. Preserve the
+// input slice so callers can compare old and new conditions before persisting.
 func upsertCondition(conds []metav1.Condition, c metav1.Condition) []metav1.Condition {
+	conds = append([]metav1.Condition(nil), conds...)
 	now := metav1.Now()
 	for i := range conds {
 		if conds[i].Type != c.Type {

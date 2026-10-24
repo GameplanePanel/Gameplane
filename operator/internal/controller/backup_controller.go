@@ -247,14 +247,12 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if !b.DeletionTimestamp.IsZero() {
 		return r.finalizeDelete(ctx, &b)
 	}
-	// Only Backups that might quiesce the world need to block on releasing
-	// it before deletion; everything else deletes immediately.
-	if b.Spec.Quiesce && !controllerutil.ContainsFinalizer(&b, gameplanev1alpha1.BackupFinalizer) {
+	// Every copy owns the source until its workers drain, even without quiesce.
+	if !controllerutil.ContainsFinalizer(&b, gameplanev1alpha1.BackupFinalizer) {
 		controllerutil.AddFinalizer(&b, gameplanev1alpha1.BackupFinalizer)
 		if err := r.Update(ctx, &b); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, nil
 	}
 
 	// Restic Backups own a snapshot in the repository, so hold their deletion
@@ -287,6 +285,19 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if b.Status.Phase == gameplanev1alpha1.BackupPhaseSucceeded ||
 		b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed {
 		return r.runUnquiesce(ctx, &b)
+	}
+	// Observe pre-upgrade workers even when multiple legacy quiesced copies
+	// already overlap. They must finish and unquiesce before new admission;
+	// trying to acquire exclusive ownership first would deadlock their cleanup.
+	if legacyBackupOwesUnquiesce(&b) && b.Spec.Strategy != "volume-snapshot" {
+		var existing batchv1.Job
+		err := r.backupAPIReader().Get(ctx, client.ObjectKeyFromObject(&b), &existing)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
+		if err == nil && metav1.IsControlledBy(&existing, &b) {
+			return r.mirrorJobStatus(ctx, &b, &existing)
+		}
 	}
 
 	// Resolve the target before building the Job: a Backup against a
@@ -383,6 +394,9 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 	}
 	// Persist cleanup intent BEFORE save-off: a crash or a partial agent failure
 	// must still owe save-on even when quiesced-at was never recorded.
+	if err := r.setLifecycleUnquiesceIntent(ctx, b, true); err != nil {
+		return err
+	}
 	patchBackupAnnotations(b, map[string]string{annoQuiesceAttempted: "pending"})
 	if err := r.Update(ctx, b); err != nil {
 		return err
@@ -402,6 +416,9 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 		patchBackupAnnotations(b, map[string]string{
 			annoQuiesceAttempted: "unsupported",
 		})
+		if err := r.setLifecycleUnquiesceIntent(ctx, b, false); err != nil {
+			return err
+		}
 	default:
 		// Hard failure (network, RCON down). Surface as Failed: a
 		// backup taken against an unflushed Minecraft world can be

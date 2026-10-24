@@ -100,6 +100,8 @@ type GameServerReconciler struct {
 	// during a soft stop. May be nil (or a disabled client) in dev clusters,
 	// in which case the operator falls back to a timed scale-to-zero.
 	AgentClient AgentStopper
+	// OperationQuiescer recovers orphaned backups before admitting a wipe.
+	OperationQuiescer AgentQuiescer
 
 	// PodAttacher runs the module-declared stop sequence over a pod attach
 	// to the game container's stdin, for consoleMode: pty games that
@@ -1194,6 +1196,47 @@ func (r *GameServerReconciler) desiredReplicas(
 	idle idleState,
 	inventory ...*wipeWorkerState,
 ) (int32, time.Duration, error) {
+	// Read ownership live before restart acknowledgment or any stop RPC. The
+	// stop timestamp uses a checked Update, so a claim racing that write wins
+	// either before the command or after the stop has become visible.
+	var live gameplanev1alpha1.GameServer
+	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
+		return 0, 0, err
+	}
+	if live.UID != gs.UID {
+		return 0, 0, fmt.Errorf("GameServer changed identity before lifecycle decision")
+	}
+	if op, held, err := lifecycleOwner(&live); err != nil {
+		return 0, 0, err
+	} else if held && op.InitialStartup && len(op.Recovery) == 0 {
+		if live.Spec.Suspend {
+			return 0, 5 * time.Second, nil
+		}
+		return 1, 5 * time.Second, nil
+	} else if held && lifecycleRecoveryNeedsStop(op) {
+		return 0, 5 * time.Second, nil
+	} else if held && (op.Kind == "Backup" || len(op.Recovery) != 0) {
+		var ss appsv1.StatefulSet
+		err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
+		if apierrors.IsNotFound(err) {
+			return 0, 5 * time.Second, nil
+		}
+		if err != nil {
+			return 0, 0, err
+		}
+		if !metav1.IsControlledBy(&ss, gs) {
+			return 0, 0, fmt.Errorf("protected StatefulSet belongs to another GameServer")
+		}
+		if ss.Spec.Replicas == nil {
+			return 1, 5 * time.Second, nil
+		}
+		return *ss.Spec.Replicas, 5 * time.Second, nil
+	} else if held && (live.Annotations[restoreGuardAnnotation] != gs.Annotations[restoreGuardAnnotation] || live.Annotations[wipeGuardAnnotation] != gs.Annotations[wipeGuardAnnotation]) {
+		// This reconcile rendered config from an older GameServer. Use the
+		// live owner only for stopping; do not replace the caller's snapshot
+		// and mix a newly-read spec with already-materialized configuration.
+		return r.softStop(ctx, &live, tmpl)
+	}
 	if gs.Annotations[wipeGuardAnnotation] != "" || pendingWipe(gs) {
 		replicas, poll, err := r.softStop(ctx, gs, tmpl)
 		if err == nil && r.settledWipeFailure(ctx, gs, wipeInventory(inventory)) {
@@ -1456,6 +1499,38 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		if owner := metav1.GetControllerOf(ss); owner != nil && owner.UID != live.UID {
 			return fmt.Errorf("StatefulSet belongs to a different GameServer identity")
 		}
+		op, held, err := lifecycleOwner(&live)
+		if err != nil {
+			return err
+		}
+		if held {
+			if ss.Annotations == nil {
+				ss.Annotations = map[string]string{}
+			}
+			ss.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+			if op.InitialStartup {
+				actualReplicas = replicas
+				delete(ss.Annotations, restoreGuardAnnotation)
+			}
+			if op.Kind == "Backup" || len(op.Recovery) != 0 {
+				if !ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "" {
+					// Orphaned restores may leave a running initial workload.
+					// Stop it while preserving its complete pod template. Other
+					// protected operations also preserve the replica count.
+					if lifecycleRecoveryNeedsStop(op) {
+						zero := int32(0)
+						ss.Spec.Replicas = &zero
+					}
+					return nil
+				}
+				// No workload exists yet. Create it stopped; this gives backup
+				// admission a real object to fence against stale creates.
+				actualReplicas = 0
+				replicas = 0
+			}
+		} else {
+			delete(ss.Annotations, lifecycleOperationAnnotation)
+		}
 		if live.Annotations[restoreGuardAnnotation] == "" {
 			// Restore cleanup can race a callback that restamps the workload
 			// before the checked GameServer release. That release guarantees
@@ -1464,6 +1539,9 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 			delete(ss.Annotations, restoreGuardAnnotation)
 		}
 		for _, annotation := range []string{restoreGuardAnnotation, wipeGuardAnnotation} {
+			if annotation == restoreGuardAnnotation && held && op.InitialStartup {
+				continue
+			}
 			if guard := live.Annotations[annotation]; guard != "" {
 				actualReplicas = 0
 				if ss.Annotations == nil {
@@ -1492,6 +1570,11 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 			}
 		}
 		ss.Spec.Replicas = &actualReplicas
+		if held && (!ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "") {
+			// Restore and wipe may stop the existing workload, but rollout
+			// waits until the operation and its worker cleanup have finished.
+			return nil
+		}
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
 		ss.Spec.Template.Labels = labels

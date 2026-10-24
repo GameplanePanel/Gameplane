@@ -8,6 +8,7 @@ import (
 	"time"
 
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -45,7 +46,12 @@ func guardFixture(t *testing.T, backups ...*gameplanev1alpha1.Backup) (*BackupRe
 	if err := snapshotv1.AddToScheme(s); err != nil {
 		t.Fatal(err)
 	}
+	if err := appsv1.AddToScheme(s); err != nil {
+		t.Fatal(err)
+	}
 	objects := []client.Object{&gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{Name: "server", Namespace: "ns", UID: "server-uid"}, Spec: gameplanev1alpha1.GameServerSpec{TemplateRef: gameplanev1alpha1.GameTemplateRef{Name: "template"}}}, &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "repo", Namespace: "ns"}, Data: map[string][]byte{"repo": []byte("repo"), "password": []byte("password")}}}
+	one := int32(1)
+	objects = append(objects, &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{Name: "server", Namespace: "ns", UID: "workload-uid", OwnerReferences: []metav1.OwnerReference{{APIVersion: gameplanev1alpha1.GroupVersion.String(), Kind: "GameServer", Name: "server", UID: "server-uid", Controller: ownerBoolPtr(true)}}}, Spec: appsv1.StatefulSetSpec{Replicas: &one}})
 	for _, b := range backups {
 		objects = append(objects, b)
 	}
