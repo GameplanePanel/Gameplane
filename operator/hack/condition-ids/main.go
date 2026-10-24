@@ -121,6 +121,7 @@ var rows = []row{
 	{types: []string{"AddressAssignment"}, reason: "Assigned", english: "{assignedFrom, select, pool {Address {address} assigned from pool ''{pool}''.} other {Address {address} assigned.}}", description: "AddressAssignment condition once an address is assigned. assignedFrom is pool or default."},
 
 	// GameServer: tunnel and other
+	{types: []string{"TunnelReady"}, reason: "UnsupportedProtocol", english: "Tailscale forwards only advertised TCP and UDP ports. Remove unsupported protocols from the advertised ports.", description: "TunnelReady condition when a Tailscale template advertises a protocol other than TCP or UDP."},
 	{types: []string{"TunnelReady"}, reason: "InvalidConfig", english: "{provider, select, none {The tunnel is enabled but the server has no tunnel configuration.} other {The ''{provider}'' tunnel provider is selected but its configuration is missing.}}", description: "TunnelReady condition for an incomplete tunnel setup. provider is the selected provider, or none."},
 	{types: []string{"TunnelReady"}, reason: "DeploymentNotReady", english: "Waiting for the tunnel deployment to become ready.", description: "TunnelReady condition while the tunnel pod is not ready."},
 	{types: []string{"TunnelReady"}, reason: "PortNotMapped", english: "No frp remote port is configured for: {ports}.", description: "TunnelReady condition for frp when advertised ports have no remote port. ports is a comma-separated list of port names."},

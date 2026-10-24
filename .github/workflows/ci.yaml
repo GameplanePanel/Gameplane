@@ -439,7 +439,7 @@ jobs:
     needs: [changes]
     if: (needs.changes.outputs.images == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'build-images')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -801,21 +801,21 @@ jobs:
         if: matrix.module == 'operator' || matrix.module == 'api'
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12.2
+          version: v2.14.0
           working-directory: ${{ matrix.module }}
           args: --build-tags=envtest
       - name: lint (test/e2e - e2e build tags)
         if: matrix.module == 'test/e2e'
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12.2
+          version: v2.14.0
           working-directory: ${{ matrix.module }}
           args: --build-tags=e2e
       - name: lint (other modules - no build tags)
         if: matrix.module != 'operator' && matrix.module != 'api' && matrix.module != 'test/e2e'
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12.2
+          version: v2.14.0
           working-directory: ${{ matrix.module }}
 
   # Merge gate for spec 022: the project default telemetry destination

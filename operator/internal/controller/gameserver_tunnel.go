@@ -52,7 +52,8 @@ type tunnelPlan struct {
 	endpoints []gameplanev1alpha1.GameServerEndpoint
 	// noMapping is the set of advertised port names that have no frp remote-port mapping.
 	// Used only by frp to report a helpful condition reason.
-	noMapping []string
+	noMapping        []string
+	unsupportedPorts []string
 }
 
 // planTunnel is the single source of truth for the tunnel pod's existence
@@ -74,6 +75,7 @@ func (r *GameServerReconciler) planTunnel(
 	tunnel := gs.Spec.Networking.Tunnel
 	endpoints := make([]gameplanev1alpha1.GameServerEndpoint, 0)
 	var noMapping []string
+	var unsupportedPorts []string
 
 	switch tunnel.Provider {
 	case "frp":
@@ -128,6 +130,10 @@ func (r *GameServerReconciler) planTunnel(
 			if !p.Advertise {
 				continue
 			}
+			if p.Protocol != "" && p.Protocol != corev1.ProtocolTCP && p.Protocol != corev1.ProtocolUDP {
+				unsupportedPorts = append(unsupportedPorts, p.Name)
+				continue
+			}
 
 			ep := gameplanev1alpha1.GameServerEndpoint{
 				Name:           p.Name,
@@ -152,9 +158,10 @@ func (r *GameServerReconciler) planTunnel(
 	}
 
 	return tunnelPlan{
-		wantTunnel: true,
-		endpoints:  endpoints,
-		noMapping:  noMapping,
+		wantTunnel:       true,
+		endpoints:        endpoints,
+		noMapping:        noMapping,
+		unsupportedPorts: unsupportedPorts,
 	}
 }
 
@@ -199,6 +206,11 @@ func (r *GameServerReconciler) reconcileTunnel(
 		refusedSecret = ""
 		replicas := int32(1)
 		dep.Spec.Replicas = &replicas
+		dep.Spec.Strategy = appsv1.DeploymentStrategy{Type: appsv1.RollingUpdateDeploymentStrategyType}
+		if tunnel.Provider == "tailscale" {
+			// Avoid two tailnet devices racing for the same hostname on rollout.
+			dep.Spec.Strategy.Type = appsv1.RecreateDeploymentStrategyType
+		}
 		dep.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: map[string]string{
 				tunnelLabel:                  tunnelValue,
@@ -388,13 +400,20 @@ func (r *GameServerReconciler) reconcileTunnel(
 			}
 		}
 
+		var readiness *corev1.Probe
+		if tunnel.Provider == "tailscale" {
+			volumes = append(volumes, corev1.Volume{Name: "tailscale-state", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}})
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{Name: "tailscale-state", MountPath: "/var/lib/gameplane-tailscale"})
+			readiness = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromInt(8091)}}, PeriodSeconds: 5, TimeoutSeconds: 2, FailureThreshold: 1}
+		}
 		dep.Spec.Template.Spec.Volumes = volumes
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
-			Name:         "tunnel",
-			Image:        image,
-			Env:          envVars,
-			Ports:        ports,
-			VolumeMounts: volumeMounts,
+			Name:           "tunnel",
+			Image:          image,
+			Env:            envVars,
+			Ports:          ports,
+			VolumeMounts:   volumeMounts,
+			ReadinessProbe: readiness,
 			SecurityContext: &corev1.SecurityContext{
 				RunAsNonRoot:             &nonRoot,
 				RunAsUser:                &uid,
@@ -694,14 +713,18 @@ func buildFrpRemotePortsConfig(frp *gameplanev1alpha1.FrpTunnelSpec, tmpl *gamep
 }
 
 // buildTailscalePortsConfig constructs the BACKING_SERVICE_PORTS env var for Tailscale.
-// Format: "port_name:port,..." e.g. "java:25565,bedrock:19133"
+// Format: "port_name:port:protocol,..." e.g. "java:25565:tcp,bedrock:19133:udp".
 func buildTailscalePortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
 	var entries []string
 	for _, p := range tmpl.Spec.Ports {
 		if !p.Advertise {
 			continue
 		}
-		entries = append(entries, fmt.Sprintf("%s:%d", p.Name, p.ContainerPort))
+		protocol := strings.ToLower(string(p.Protocol))
+		if protocol == "" {
+			protocol = "tcp"
+		}
+		entries = append(entries, fmt.Sprintf("%s:%d:%s", p.Name, p.ContainerPort, protocol))
 	}
 	if len(entries) == 0 {
 		return ""

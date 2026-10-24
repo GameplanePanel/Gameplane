@@ -260,8 +260,19 @@ func (r *GameServerReconciler) reconcileStatus(
 	// Connection card reads the address players actually use.
 	if svcExists {
 		gs.Status.Endpoints = endpointsFromService(&svc, addrPlan)
+	} else {
+		// A deleted/replacing Service must not preserve a stale tailnet endpoint
+		// when the forwarding deployment has since lost readiness.
+		var retained []gameplanev1alpha1.GameServerEndpoint
+		for _, endpoint := range gs.Status.Endpoints {
+			if endpoint.TunnelProvider != "tailscale" {
+				retained = append(retained, endpoint)
+			}
+		}
+		gs.Status.Endpoints = retained
 	}
-	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 {
+	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 &&
+		(gs.Spec.Networking.Tunnel.Provider != "tailscale" || meta.IsStatusConditionTrue(gs.Status.Conditions, "TunnelReady")) {
 		gs.Status.Endpoints = append(tunnelPlan.endpoints, gs.Status.Endpoints...)
 	}
 	if phase == gameplanev1alpha1.GameServerPhaseRunning {
@@ -1105,6 +1116,12 @@ func computeTunnelConditions(
 	}
 
 	// Tunnel Deployment not yet created or not ready.
+	if tunnel.Provider == "tailscale" && len(plan.unsupportedPorts) > 0 {
+		tunnelReady.Status = metav1.ConditionFalse
+		tunnelReady.Reason = "UnsupportedProtocol"
+		tunnelReady.Message = "Tailscale supports only TCP and UDP; unsupported advertised ports: " + strings.Join(plan.unsupportedPorts, ", ")
+		return upsertCondition(conds, tunnelReady)
+	}
 	if tunnelDep == nil {
 		tunnelReady.Status = metav1.ConditionFalse
 		tunnelReady.Reason = "DeploymentNotReady"
@@ -1167,10 +1184,23 @@ func computeTunnelConditions(
 			return conds
 		}
 
-		// Deployment is ready and credentials are configured.
+		// A legacy image merely registering a device cannot satisfy readiness.
+		forwardingProbe := false
+		for _, container := range tunnelDep.Spec.Template.Spec.Containers {
+			if container.Name == "tunnel" && container.ReadinessProbe != nil && container.ReadinessProbe.HTTPGet != nil {
+				probe := container.ReadinessProbe.HTTPGet
+				forwardingProbe = probe.Path == "/readyz" && probe.Port.IntValue() == 8091
+			}
+		}
+		if !forwardingProbe || tunnelDep.Status.ObservedGeneration < tunnelDep.Generation || tunnelDep.Status.UpdatedReplicas == 0 {
+			tunnelReady.Status = metav1.ConditionFalse
+			tunnelReady.Reason = "DeploymentNotReady"
+			tunnelReady.Message = "waiting for the Tailscale forwarding deployment and its readiness probe"
+			return upsertCondition(conds, tunnelReady)
+		}
 		tunnelReady.Status = metav1.ConditionTrue
 		tunnelReady.Reason = "Ready"
-		tunnelReady.Message = "tunnel deployment ready and authenticated"
+		tunnelReady.Message = "tailnet online and all advertised TCP/UDP forwarding listeners active; client access remains subject to tailnet policy"
 
 	case "playit":
 		if tunnel.Playit == nil {

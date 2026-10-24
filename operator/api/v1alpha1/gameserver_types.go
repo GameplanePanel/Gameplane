@@ -460,15 +460,12 @@ type TailscaleTunnelSpec struct {
 	Hostname string `json:"hostname,omitempty"`
 
 	// Tags are Tailscale ACL tags requested for the device when it
-	// registers, via `tailscale up --advertise-tags` (tailscaled's
-	// declarative config has no field for tags, and changing the tags of a
-	// registered node needs a fresh login). Each entry is "tag:<name>" or a bare
-	// name, which gets the "tag:" prefix. The tailnet ACL must grant
-	// tagOwners for these tags to the auth key's owner; if the request is
-	// refused, the tunnel pod logs the error and the tunnel runs untagged.
-	// If any entry is invalid, the whole list is logged and ignored and the
-	// device registers untagged. See
-	// tunnel/specs.md.
+	// registers through embedded tsnet. Each entry is "tag:<name>" or a
+	// bare name, which gets the "tag:" prefix. The tailnet policy must grant
+	// tagOwners to the auth key's owner. Invalid or refused tags keep the
+	// tunnel not ready; it never silently registers without requested tags.
+	// Changing tags replaces the Pod and requires a reusable auth key.
+	// See tunnel/specs.md for identity persistence and registration details.
 	// +kubebuilder:validation:MaxItems=8
 	// +optional
 	Tags []string `json:"tags,omitempty"`

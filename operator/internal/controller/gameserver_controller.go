@@ -246,7 +246,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if changed, err := r.ensureWipeGuard(ctx, &gs, &wipeState); err != nil {
 		return requeueOnConflict(ctrl.Result{}, err)
 	} else if changed {
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 
 	// Resolve the template this GameServer points at. Templates are
@@ -388,7 +388,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileStatefulSet(ctx, &gs, &tmpl, ver, mc, replicas, &wipeState); err != nil {
 		if apierrors.IsConflict(err) {
-			return ctrl.Result{Requeue: true}, nil
+			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
@@ -416,7 +416,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := wipeErr; err != nil {
 		if apierrors.IsConflict(err) {
-			return ctrl.Result{Requeue: true}, nil
+			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile data wipe")
 		return ctrl.Result{}, err

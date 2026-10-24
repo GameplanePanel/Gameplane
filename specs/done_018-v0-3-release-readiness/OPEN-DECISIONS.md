@@ -1,5 +1,11 @@
 # Open Decisions: v0.3 Release Readiness Audit
 
+### OD-031: Tailscale game forwarding (F-173) — RESOLVED 2026-10-21
+
+Decision (maintainer reply on #722): embed `tailscale.com/tsnet` and forward both TCP and UDP from advertised tailnet listeners to the GameServer's backing Service. This explicitly ends the tunnel module's stdlib-only dependency policy. Device registration alone cannot establish readiness; the same change must provide actual tailnet/listener health. The previous Known Gaps entry referred to a decision that had never been recorded.
+
+The bridge opens only advertised protocol/port pairs, never a subnet route. Tailnet grants/ACLs govern peer access. The node uses the existing unprivileged container context, with no NET_ADMIN or TUN device. A per-Pod EmptyDir retains identity across container restarts; Pod replacement re-registers with a reusable auth key and requires an available MagicDNS hostname. No durable PVC is introduced. Invalid or refused requested tags remain not ready rather than falling back to an untagged device. UDP queues, session counts, idle lifetimes and shutdown are bounded. See `tunnel/specs.md` and `docs/tailscale-forwarding-integration.md` for the implementation contract and integration procedure.
+
 These values are unsettled. They are not contracts; resolve them during `/speckit-clarify` or `/speckit-plan`.
 
 ## OD-001: How the release candidate is deployed onto kubelab — RESOLVED 2026-09-23

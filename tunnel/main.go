@@ -1,5 +1,5 @@
 // Command tunnel is a relay client supervisor that runs as a pod and
-// configures/starts/supervises a third-party relay process (frp, Tailscale, playit).
+// configures/starts/supervises frp and playit, or embeds a Tailscale node.
 // The binary picks its behavior from the TUNNEL_TYPE env var and handles provider-specific
 // config rendering, credential management, and child process supervision.
 //
@@ -21,7 +21,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -50,45 +49,8 @@ const (
 	// be compile-time string constants -- not variables -- for buildCommand
 	// below to pass gosec's G204 subprocess-argument check structurally
 	// (see the doc comment on buildCommand).
-	frpConfigPath       = "/tmp/gameplane-tunnel-frpc.toml"
-	tailscaleConfigPath = "/tmp/gameplane-tunnel-tailscaled.json"
-	playitAuthPath      = "/tmp/gameplane-tunnel-playit-auth"
-
-	// tailscaleSocketPath is the control socket tailscaled listens on,
-	// set explicitly via --socket (both when starting tailscaled and when
-	// later talking to it with the `tailscale` CLI) because the non-root
-	// distroless image can't create tailscaled's Linux default
-	// (/run/tailscale/tailscaled.sock). This mirrors playitSocketPath's
-	// --socket-path relocation in playit_reporter.go for the same reason.
-	tailscaleSocketPath = "/tmp/gameplane-tunnel-tailscaled.sock"
-
-	// tailscaleAuthKeyPath holds the Tailscale auth key, mode 0600, when
-	// tags are requested. The key then stays out of tailscaled's config so
-	// that registration can happen through `tailscale up
-	// --auth-key=file:<this path> --advertise-tags=...` instead (see
-	// renderTailscaleConfig and registerTailscaleOnce). Passing a file keeps
-	// the key out of argv. It lives in /tmp next to the other rendered
-	// files and is removed when run returns.
-	tailscaleAuthKeyPath = "/tmp/gameplane-tunnel-tailscale-authkey"
-)
-
-// Timing for registering a tagged Tailscale device (registerTailscaleOnce).
-const (
-	// tailscaleReadyTimeout bounds how long waitForTailscaled polls for
-	// tailscaled's socket to answer with a settled BackendState before
-	// giving up on registering the device for this supervisor run. It is
-	// generous because tailscaled may be restarting under the backoff loop
-	// in run, but bounded so a daemon that never comes up doesn't leave a
-	// goroutine polling forever.
-	tailscaleReadyTimeout = 2 * time.Minute
-
-	// tailscaleReadyPollInterval is how often waitForTailscaled polls
-	// `tailscale status --json`.
-	tailscaleReadyPollInterval = 2 * time.Second
-
-	// tailscaleUpTimeout bounds a single `tailscale up`, which includes a
-	// round trip to Tailscale's control plane.
-	tailscaleUpTimeout = 2 * time.Minute
+	frpConfigPath  = "/tmp/gameplane-tunnel-frpc.toml"
+	playitAuthPath = "/tmp/gameplane-tunnel-playit-auth"
 )
 
 // credentialsDir is the directory holding the mounted Secret's credential
@@ -146,7 +108,7 @@ type Config struct {
 	// Tailscale-specific
 	TailscaleHostname   string
 	TailscaleTags       string // comma-separated
-	BackingServicePorts string // "name:port,..." format
+	BackingServicePorts string // Tailscale: name:port:protocol; playit: name:port
 
 	// Playit-specific
 	PlayitTunnelName string
@@ -237,11 +199,8 @@ func run(ctx context.Context, cfg Config) error {
 		return fmt.Errorf("read credentials: %w", err)
 	}
 
-	// tailscale with tags writes the auth key to its own file (see
-	// renderTailscaleConfig); remove it on the way out, including when
-	// rendering the config itself fails after the key was written.
 	if cfg.TunnelType == "tailscale" {
-		defer func() { _ = os.Remove(tailscaleAuthKeyPath) }()
+		return runTailscale(ctx, cfg, creds)
 	}
 
 	// Render the provider's config file.
@@ -265,25 +224,6 @@ func run(ctx context.Context, cfg Config) error {
 			stopReporter()
 			waitReporter()
 		}()
-	}
-
-	// tailscale with tags: renderTailscaleConfig left the auth key out of
-	// tailscaled's config, so register the device via `tailscale up` over
-	// tailscaled's socket (see registerTailscaleOnce). This keeps retrying
-	// until tailscaled settles and registration succeeds, or until ctx is
-	// cancelled: the login and the granted tags persist in tailscaled's
-	// local state file (/tmp/tailscale.state, --state in buildCommand)
-	// across a tailscaled restart that reuses it. Without tags, tailscaled
-	// logs in from its config by itself and nothing runs here.
-	if cfg.TunnelType == "tailscale" {
-		if tags, err := parseTailscaleTags(cfg.TailscaleTags); err == nil && len(tags) > 0 {
-			regCtx, stopRegistrar := context.WithCancel(ctx)
-			waitRegistrar := startTailscaleRegistrar(regCtx, cfg.TailscaleHostname, tags)
-			defer func() {
-				stopRegistrar()
-				waitRegistrar()
-			}()
-		}
 	}
 
 	// Supervise the relay process with exponential backoff on exit.
@@ -357,8 +297,6 @@ func renderConfig(cfg Config, credential string) (string, error) {
 	switch cfg.TunnelType {
 	case "frp":
 		return renderFrpConfig(cfg, credential)
-	case "tailscale":
-		return renderTailscaleConfig(cfg.TailscaleHostname, credential, cfg.TailscaleTags)
 	case "playit":
 		return renderPlayitConfig(credential)
 	default:
@@ -423,110 +361,6 @@ remotePort = %s
 	return frpConfigPath, nil
 }
 
-// tailscaledConfig mirrors (the subset we use of) tailscaled's own
-// ConfigVAlpha struct (ipn/conf.go in tailscale/tailscale), consumed via
-// `tailscaled --config=<path>`. This is tailscaled's documented declarative
-// config file (https://tailscale.com/docs/reference/tailscaled/tailescaled-config-file);
-// "alpha0" is the only version value it currently accepts, and the docs
-// note the schema may still change. It is what lets a bare `tailscaled`
-// process (no containerboot, no separate `tailscale up`) authenticate and
-// set its hostname in a single exec: containerboot's TS_AUTHKEY env var and
-// `tailscale up --hostname=` are containerboot/CLI conveniences that build
-// on top of this same mechanism, but neither is read by tailscaled itself,
-// which is why the previous TS_AUTHKEY env var and --hostname flag here
-// were both no-ops (the latter would have made tailscaled reject the flag
-// and exit immediately).
-type tailscaledConfig struct {
-	Version  string `json:"version"`
-	AuthKey  string `json:"authKey,omitempty"`
-	Hostname string `json:"hostname,omitempty"`
-}
-
-// renderTailscaleConfig generates tailscaled's declarative config file (see
-// tailscaledConfig for the shape) at the fixed tailscaleConfigPath (see the
-// const block near the top of the file for why the path is fixed rather
-// than a random os.CreateTemp name).
-//
-// It never writes a "tags" key: tailscaled's alpha0 declarative config
-// (ipn.ConfigVAlpha, confirmed against tailscale/tailscale v1.102.4's
-// ipn/conf.go) has no field for ACL tags, and its loader (ipn/conffile)
-// decodes with encoding/json's DisallowUnknownFields, so a "tags" key made
-// tailscaled refuse the config and the tunnel never came up.
-//
-// ACL tags can only be requested when the device registers (`tailscale up
-// --advertise-tags`; `tailscale set` has no such flag, and changing tags on
-// a running node needs a fresh login), so the file's content depends on
-// whether tagsStr yields any valid tag (see parseTailscaleTags):
-//
-//   - No tags (tagsStr empty, blank, or invalid): the auth key and hostname
-//     go into the config and tailscaled logs in by itself, exactly as it
-//     did before tags were supported. Nothing else runs.
-//   - Tags: the config carries only the hostname and "locked": false, and
-//     the auth key goes to its own 0600 file at tailscaleAuthKeyPath.
-//     Without an auth key in the config, tailscaled starts in NeedsLogin
-//     and waits; startTailscaleRegistrar then registers it once over the
-//     control socket with `tailscale up --auth-key=file:<path>
-//     --advertise-tags=...`. "locked": false is required for that:
-//     ipn.ConfigVAlpha's Locked defaults to true, and a locked config makes
-//     tailscaled reject every CLI prefs change ("config file is locked").
-//
-// The JSON is built from a map rather than by marshaling the tailscaledConfig
-// struct directly: gosec's G117 rule flags any exported struct field whose
-// name or JSON tag matches a secret-like pattern (AuthKey / "authKey" both
-// do) when it's passed straight to json.Marshal. That's a real signal in
-// general, but here marshaling the key is the entire point -- tailscaled
-// reads its auth key from exactly this file (see the type's doc comment) --
-// so there's nothing to fix behaviorally. G117 only inspects struct field
-// tags/names, not map keys, so building the object as a map sidesteps the
-// false positive structurally instead of suppressing it. tailscaledConfig
-// itself is kept as the documented shape and is what tests decode the
-// written file back into (see TestRenderTailscaleConfig).
-func renderTailscaleConfig(hostname, authKey, tagsStr string) (string, error) {
-	tags, tagsErr := parseTailscaleTags(tagsStr)
-	renderTailscaleConfigLogTags(tagsStr, tags, tagsErr)
-
-	fields := map[string]any{"version": "alpha0"}
-	if hostname != "" {
-		fields["hostname"] = hostname
-	}
-	if len(tags) > 0 {
-		fields["locked"] = false
-		if err := os.WriteFile(tailscaleAuthKeyPath, []byte(authKey), 0o600); err != nil {
-			return "", fmt.Errorf("write tailscale auth key file: %w", err)
-		}
-	} else if authKey != "" {
-		fields["authKey"] = authKey
-	}
-
-	data, err := json.Marshal(fields)
-	if err != nil {
-		return "", fmt.Errorf("marshal tailscaled config: %w", err)
-	}
-
-	if err := os.WriteFile(tailscaleConfigPath, data, 0o600); err != nil {
-		return "", fmt.Errorf("write tailscaled config: %w", err)
-	}
-
-	return tailscaleConfigPath, nil
-}
-
-// renderTailscaleConfigLogTags logs what renderTailscaleConfig does with a
-// non-empty TAILSCALE_TAGS: either that the tags will be requested when the
-// device registers (and what the tailnet ACL has to allow for that), or,
-// when parseTailscaleTags rejected them, that they are ignored and the
-// device registers untagged. Split out from renderTailscaleConfig so a test
-// can assert on the message via log.SetOutput.
-func renderTailscaleConfigLogTags(tagsStr string, tags []string, tagsErr error) {
-	switch {
-	case tagsStr == "":
-		return
-	case tagsErr != nil:
-		log.Printf("tailscale tunnel: ignoring TAILSCALE_TAGS=%q: %v; the device registers untagged", tagsStr, tagsErr)
-	case len(tags) > 0:
-		log.Printf("tailscale tunnel: TAILSCALE_TAGS=%q is set; tags %s will be requested when the device registers via `tailscale up --advertise-tags` (the tailnet ACL must grant tagOwners for them to the auth key's owner)", tagsStr, strings.Join(tags, ","))
-	}
-}
-
 // tailscaleTagNameChar reports whether b may appear in a tag name after the
 // "tag:" prefix: ASCII letters, digits and '-', per tailcfg.CheckTag.
 func tailscaleTagNameChar(b byte) bool {
@@ -542,8 +376,8 @@ func tailscaleTagNameChar(b byte) bool {
 // Every resulting tag must pass the same rule as tailscale's
 // tailcfg.CheckTag: "tag:" followed by an ASCII letter, then only ASCII
 // letters, digits or '-'. The first tag that fails is returned as an error
-// and no tags are returned, so a bad value can never reach the
-// `tailscale up` argv (see tailscaleUpArgs). It returns (nil, nil) when no
+// and no tags are returned, so a bad value can never reach tsnet registration.
+// It returns (nil, nil) when no
 // non-empty entry remains.
 func parseTailscaleTags(tagsStr string) ([]string, error) {
 	var tags []string
@@ -575,274 +409,6 @@ func parseTailscaleTags(tagsStr string) ([]string, error) {
 		tags = append(tags, tag)
 	}
 	return tags, nil
-}
-
-// tailscaleUpArgs builds the argv (excluding the binary itself) for the
-// one-off `tailscale up` that registers the device when tags are requested:
-//
-//	--socket=<tailscaleSocketPath> up --reset --auth-key=file:<tailscaleAuthKeyPath> --hostname=<hostname> [--advertise-tags=<tags>]
-//
-// Flag names and forms are confirmed against tailscale v1.102.4 (the
-// version Dockerfile.tailscale ships): --socket is a root flag
-// (cmd/tailscale/cli/cli.go); --auth-key reads the key from a file when the
-// value starts with "file:" (up.go resolveValueFromFile), so the key never
-// appears in argv or /proc/<pid>/cmdline; --advertise-tags takes a
-// comma-separated list. --reset resets every setting not named on the
-// command line to its default. Without it, `tailscale up` on a node with
-// saved prefs (a reused state file) refuses to run unless every non-default
-// setting is repeated on the command line (checkForAccidentalSettingReverts).
-// This supervisor sets nothing beyond the hostname, so the defaults are what
-// it wants anyway. With no tags (the untagged fallback) --advertise-tags is
-// left out, which with --reset clears any previously requested tags.
-//
-// Every value is a single "--flag=value" argv element, so no value can be
-// read as a separate flag, and nothing goes through a shell. tags must come
-// from parseTailscaleTags, which has already validated each one.
-func tailscaleUpArgs(hostname string, tags []string) []string {
-	args := []string{
-		"--socket=" + tailscaleSocketPath,
-		"up",
-		"--reset",
-		"--auth-key=file:" + tailscaleAuthKeyPath,
-		"--hostname=" + hostname,
-	}
-	if len(tags) > 0 {
-		args = append(args, "--advertise-tags="+strings.Join(tags, ","))
-	}
-	return args
-}
-
-// runTailscaleCLI runs the `tailscale` CLI (not tailscaled) against args
-// and returns its stdout. It is a package-level variable, rather than a
-// plain function, solely so tests can substitute a fake in place of
-// exec'ing the real binary (see credentialsDir above for the same
-// pattern). Production code never reassigns it; only tests do.
-var runTailscaleCLI = execTailscaleCLI
-
-// execTailscaleCLI is runTailscaleCLI's real implementation. It execs the
-// fixed /usr/local/bin/tailscale binary (shipped in the tailscale provider
-// image alongside tailscaled; see Dockerfile.tailscale) with args, tied to
-// ctx so supervisor shutdown also stops it. The binary path is a literal
-// and args is a plain argv slice built only by this file
-// (tailscaleStatusArgs and tailscaleUpArgs), never passed through a shell.
-// The only non-constant values in it are the hostname, as a single
-// "--hostname=" element, and tags already validated by parseTailscaleTags.
-// The auth key is never in args; `tailscale up` reads it from a file.
-//
-// The argv is appended to cmd.Args after exec.CommandContext rather than
-// passed to it, so gosec's G204 check sees a call with only literal
-// arguments. The reasoning above is the actual justification.
-func execTailscaleCLI(ctx context.Context, args ...string) ([]byte, error) {
-	cmd := exec.CommandContext(ctx, "/usr/local/bin/tailscale")
-	cmd.Args = append(cmd.Args, args...)
-	out, err := cmd.Output()
-	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) && len(exitErr.Stderr) > 0 {
-			return out, fmt.Errorf("%w: %s", err, strings.TrimSpace(string(exitErr.Stderr)))
-		}
-		return out, err
-	}
-	return out, nil
-}
-
-// tailscaleStatusArgs builds the argv for `tailscale status --json` over
-// tailscaleSocketPath. --peers=false keeps the output small: only BackendState and Self
-// are read.
-func tailscaleStatusArgs() []string {
-	return []string{"--socket=" + tailscaleSocketPath, "status", "--json", "--peers=false"}
-}
-
-// tailscaleStatus is the subset of `tailscale status --json`'s output this
-// supervisor reads, confirmed against tailscale v1.102.4's
-// ipn/ipnstate.Status: BackendState is an ipn.State string, and
-// Self.Tags lists the ACL tags the control plane has granted to this node,
-// fully qualified ("tag:x").
-type tailscaleStatus struct {
-	BackendState string `json:"BackendState"`
-	Self         *struct {
-		Tags []string `json:"Tags"`
-	} `json:"Self"`
-}
-
-// hasExactTags reports whether the node is Running and its granted tags
-// are exactly want, in any order, as a set. Both granted and requested
-// tags are deduplicated for comparison.
-func (st tailscaleStatus) hasExactTags(want []string) bool {
-	if st.BackendState != "Running" || st.Self == nil {
-		return false
-	}
-	have := make(map[string]bool)
-	for _, tag := range st.Self.Tags {
-		have[tag] = true
-	}
-	wantSet := make(map[string]bool)
-	for _, tag := range want {
-		wantSet[tag] = true
-	}
-	if len(have) != len(wantSet) {
-		return false
-	}
-	for tag := range wantSet {
-		if !have[tag] {
-			return false
-		}
-	}
-	return true
-}
-
-// tailscaleSettledStates are the BackendState values at which tailscaled
-// has finished starting up and `tailscale up` can act on it. The others are
-// transient: "NoState" before the config and state file are loaded, and
-// "Starting" while an existing login is connecting. Running `up` during
-// "Starting" would make a node that already has the right tags log in
-// again for nothing.
-var tailscaleSettledStates = map[string]bool{
-	"NeedsLogin":       true,
-	"NeedsMachineAuth": true,
-	"Stopped":          true,
-	"Running":          true,
-}
-
-// queryTailscaleStatus runs `tailscale status --json` once over
-// tailscaleSocketPath and decodes it.
-func queryTailscaleStatus(ctx context.Context) (tailscaleStatus, error) {
-	var st tailscaleStatus
-	out, err := runTailscaleCLI(ctx, tailscaleStatusArgs()...)
-	if err != nil {
-		return st, err
-	}
-	if err := json.Unmarshal(out, &st); err != nil {
-		return st, fmt.Errorf("parse tailscale status: %w", err)
-	}
-	return st, nil
-}
-
-// waitForTailscaled polls `tailscale status --json` over
-// tailscaleSocketPath every tailscaleReadyPollInterval until tailscaled's
-// socket answers with a settled BackendState (see tailscaleSettledStates),
-// ctx is cancelled, or tailscaleReadyTimeout elapses. It returns the
-// settled status, or the last error seen.
-func waitForTailscaled(ctx context.Context) (tailscaleStatus, error) {
-	deadline := time.Now().Add(tailscaleReadyTimeout)
-	var lastErr error
-	for {
-		st, err := queryTailscaleStatus(ctx)
-		switch {
-		case err != nil:
-			lastErr = err
-		case tailscaleSettledStates[st.BackendState]:
-			return st, nil
-		default:
-			lastErr = fmt.Errorf("tailscaled not ready yet (BackendState=%q)", st.BackendState)
-		}
-
-		if ctx.Err() != nil {
-			return tailscaleStatus{}, ctx.Err()
-		}
-		if time.Now().After(deadline) {
-			return tailscaleStatus{}, fmt.Errorf("timed out after %v waiting for tailscaled: %w", tailscaleReadyTimeout, lastErr)
-		}
-		select {
-		case <-ctx.Done():
-			return tailscaleStatus{}, ctx.Err()
-		case <-time.After(tailscaleReadyPollInterval):
-		}
-	}
-}
-
-// runTailscaleUp runs one bounded `tailscale up` with the argv from
-// tailscaleUpArgs.
-func runTailscaleUp(ctx context.Context, hostname string, tags []string) error {
-	upCtx, cancel := context.WithTimeout(ctx, tailscaleUpTimeout)
-	defer cancel()
-	_, err := runTailscaleCLI(upCtx, tailscaleUpArgs(hostname, tags)...)
-	return err
-}
-
-// registerTailscaleOnce registers the device with the tailnet, requesting
-// tags, for a tagged tunnel. In that case renderTailscaleConfig left the
-// auth key out of tailscaled's config, so tailscaled waits in NeedsLogin
-// until this runs.
-//
-//  1. Wait for tailscaled's socket to answer with a settled state
-//     (waitForTailscaled), retrying on timeout.
-//  2. If the node is already Running with exactly these tags (a state file
-//     reused across a restart), do nothing.
-//  3. Otherwise run `tailscale up ... --advertise-tags=<tags>` once.
-//  4. If that fails, most often because the tailnet ACL doesn't grant
-//     tagOwners for the tags to the auth key's owner, log it. If the node
-//     is not Running afterwards, run `tailscale up` once more without
-//     --advertise-tags, so the tunnel still comes up, untagged.
-//
-// Every failure is logged and none of them stops the supervisor or the
-// relay process, so an ACL problem only the tailnet admin can fix never
-// turns into a crash loop.
-func registerTailscaleOnce(ctx context.Context, hostname string, tags []string) {
-	var st tailscaleStatus
-	var err error
-	for {
-		st, err = waitForTailscaled(ctx)
-		if err == nil {
-			break
-		}
-		if ctx.Err() != nil {
-			return
-		}
-		log.Printf("tailscale tunnel: still waiting for tailscaled to settle: %v", err)
-		// Retry after a brief delay without spinning
-		select {
-		case <-time.After(5 * time.Second):
-			continue
-		case <-ctx.Done():
-			return
-		}
-	}
-
-	joined := strings.Join(tags, ",")
-	if st.hasExactTags(tags) {
-		log.Printf("tailscale tunnel: device is already running with tags %s; skipping `tailscale up`", joined)
-		return
-	}
-
-	err = runTailscaleUp(ctx, hostname, tags)
-	if err == nil {
-		log.Printf("tailscale tunnel: registered the device with tags %s", joined)
-		return
-	}
-	if ctx.Err() != nil {
-		return
-	}
-	log.Printf("tailscale tunnel: `tailscale up --advertise-tags=%s` failed: %v; the tailnet ACL must grant tagOwners for these tags to the auth key's owner.", joined, err)
-
-	if st, err := queryTailscaleStatus(ctx); err == nil && st.BackendState == "Running" {
-		if st.Self != nil && len(st.Self.Tags) > 0 {
-			oldTags := strings.Join(st.Self.Tags, ",")
-			log.Printf("tailscale tunnel: device is still running with previous tags %s; they remain granted until the tailnet ACL is fixed or they are removed in the tailnet admin console", oldTags)
-			return
-		}
-		log.Printf("tailscale tunnel: device is still running without tags")
-		return
-	}
-	if err := runTailscaleUp(ctx, hostname, nil); err != nil {
-		if ctx.Err() == nil {
-			log.Printf("tailscale tunnel: untagged `tailscale up` also failed: %v", err)
-		}
-		return
-	}
-	log.Printf("tailscale tunnel: registered the device without tags")
-}
-
-// startTailscaleRegistrar launches registerTailscaleOnce in a goroutine
-// and returns a function that waits for it to finish, mirroring
-// startPlayitReporter's shape in playit_reporter.go.
-func startTailscaleRegistrar(ctx context.Context, hostname string, tags []string) (wait func()) {
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		registerTailscaleOnce(ctx, hostname, tags)
-	}()
-	return func() { <-done }
 }
 
 // renderPlayitConfig writes the secret key to the fixed playitAuthPath
@@ -886,12 +452,9 @@ func escapeTomlString(s string) string {
 // is ever reached in the normal main() contract, so the nil case only
 // happens if a caller builds a Config by hand (see TestBuildCommandUnknownType).
 //
-// All three providers take their secret via the rendered config file
-// (see renderConfig and the frpConfigPath/tailscaleConfigPath/
-// playitAuthPath consts) rather than a raw credential argument here --
-// frpc's TOML embeds the token, tailscaled's declarative config JSON embeds
-// the auth key and hostname, and playitd's --secret-path points straight at
-// the secret file -- so buildCommand itself never needs the raw credential.
+// frpc's TOML embeds its token, and playitd's --secret-path points to a
+// private credential file. buildCommand never needs the raw credential.
+// Tailscale uses the embedded node path and does not call this function.
 //
 // The relay binary path and config-file path are both named constants
 // (rather than parameters or computed variables) so every argument to
@@ -917,24 +480,6 @@ func buildCommand(ctx context.Context, cfg Config) *exec.Cmd {
 		// Confirmed against fatedier/frp's cmd/frpc/sub/root.go: "-c"/"--config"
 		// is frpc's real config-file flag.
 		return exec.CommandContext(ctx, "/usr/local/bin/frpc", "-c", frpConfigPath)
-	case "tailscale":
-		// Tailscale uses tailscaled (daemon) with flags rather than a config file.
-		// The pod's hardened securityContext (no NET_ADMIN, no /dev/net/tun device)
-		// requires userspace networking mode via --tun=userspace-networking flag.
-		// --config points at the declarative config file (see tailscaledConfig)
-		// carrying the hostname and, unless tags are requested, the auth key.
-		// --socket relocates the control socket to a path this non-root image
-		// can create (see tailscaleSocketPath's doc comment); with tags,
-		// registerTailscaleOnce registers the device over this same socket
-		// via the `tailscale` CLI. All flags
-		// confirmed against tailscale/tailscale's cmd/tailscaled/tailscaled.go
-		// flag definitions.
-		return exec.CommandContext(ctx, "/usr/local/bin/tailscaled",
-			"--tun=userspace-networking",
-			"--state=/tmp/tailscale.state",
-			"--config="+tailscaleConfigPath,
-			"--socket="+tailscaleSocketPath,
-		)
 	case "playit":
 		// Confirmed against playit-cloud/playit-agent's packages/playitd/src/bin/playitd.rs
 		// and its own Dockerfile/docker/entrypoint.sh, which exec exactly this
