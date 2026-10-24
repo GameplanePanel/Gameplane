@@ -157,7 +157,7 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 	if err := r.Create(ctx, created); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// Lost a create race; the next pass finds it via the annotation.
-			return ctrl.Result{Requeue: true}, nil
+			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 		}
 		// Route non-AlreadyExists errors through the same deadline-aware path
 		// used for reference-copy failures. This ensures transient errors do not

@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS build
 WORKDIR /src
 
 # tunnel's go.mod currently has no gameaction requirement (no local
@@ -24,16 +24,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
     -ldflags="-s -w -X main.Version=${VERSION}" \
     -o /out/tunnel .
 
-# Copy tailscale binaries from the official upstream image pinned by digest.
-# tailscale is distributed as official OCI images; pinning by digest
-# ensures reproducible builds. The image ships both tailscaled and tailscale CLI.
-FROM tailscale/tailscale:v1.104.2@sha256:b11583ad2e93e4671128538c88cf11f460444a5d7e449311dd1933a400ab849d AS tailscale-stage
-
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=build /out/tunnel /tunnel
-COPY --from=tailscale-stage /usr/local/bin/tailscaled /usr/local/bin/tailscaled
-COPY --from=tailscale-stage /usr/local/bin/tailscale /usr/local/bin/tailscale
 USER 65532:65532
 EXPOSE 25565/tcp 25565/udp
+EXPOSE 8091/tcp
 ENTRYPOINT ["/tunnel"]

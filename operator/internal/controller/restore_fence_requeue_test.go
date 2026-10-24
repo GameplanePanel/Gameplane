@@ -18,7 +18,11 @@ func TestRestoreFenceWriteRequeuesImmediatelyAndRechecksWriters(t *testing.T) {
 	for _, phase := range []gameplanev1alpha1.RestorePhase{gameplanev1alpha1.RestorePhaseSuspending, gameplanev1alpha1.RestorePhaseRunning} {
 		t.Run(string(phase), func(t *testing.T) {
 			r, _, rs := restoreLifecycleFixture(t)
-			lifecyclePasses(t, r, "first", 1) // Persist target identity first.
+			request := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(rs)}
+			result, err := r.Reconcile(t.Context(), request) // Persist target identity first.
+			if err != nil || result != (ctrl.Result{RequeueAfter: time.Second}) {
+				t.Fatalf("identity binding must yield for a fresh reconcile: result=%+v err=%v", result, err)
+			}
 			if err := r.Get(t.Context(), client.ObjectKeyFromObject(rs), rs); err != nil {
 				t.Fatal(err)
 			}
@@ -26,8 +30,7 @@ func TestRestoreFenceWriteRequeuesImmediatelyAndRechecksWriters(t *testing.T) {
 			if err := r.Status().Update(t.Context(), rs); err != nil {
 				t.Fatal(err)
 			}
-			request := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(rs)}
-			result, err := r.Reconcile(t.Context(), request)
+			result, err = r.Reconcile(t.Context(), request)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -68,6 +71,15 @@ func TestRestoreFenceWriteRequeuesImmediatelyAndRechecksWriters(t *testing.T) {
 			}
 			if err := r.Delete(t.Context(), writer); err != nil {
 				t.Fatal(err)
+			}
+			if phase == gameplanev1alpha1.RestorePhaseSuspending {
+				result, err = r.Reconcile(t.Context(), request)
+				if err != nil || result != (ctrl.Result{RequeueAfter: time.Second}) {
+					t.Fatalf("Running transition must yield before Job creation: result=%+v err=%v", result, err)
+				}
+				if len(lifecycleJobs(t, r)) != 0 {
+					t.Fatal("restore Job created in the Running transition pass")
+				}
 			}
 			lifecyclePasses(t, r, "first", 4)
 			jobs = lifecycleJobs(t, r)

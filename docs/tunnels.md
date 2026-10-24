@@ -197,21 +197,27 @@ specify in `spec.networking.tunnel.tailscale.hostname` (or defaults to the
 GameServer name if left empty). Port 25565 is available to devices on your
 tailnet.
 
-> **`tags` requires an ACL grant.** `spec.networking.tunnel.tailscale.tags`
-> is requested when the device registers with your tailnet: the tunnel pod
-> runs `tailscale up --advertise-tags=<tags>` once, over the local daemon's
-> socket. Tailscale's headless daemon config has no field for tags, and
-> changing the tags of a registered device needs a fresh login (see
-> `tunnel/specs.md`). The tailnet's ACL must grant `tagOwners` for the
-> requested tags to the auth key's owner. If it doesn't, Tailscale refuses
-> the request and the tunnel pod logs the error. If the device is not
-> running afterwards, the pod tries once more without tags. That untagged
-> attempt can fail too (for example with a single-use auth key), in which
-> case the error is logged and the device stays logged out. Configure `tagOwners` in your tailnet's ACL before setting
-> `tags` here. Each tag is `tag:<name>` or a bare `<name>`, where the name
-> starts with a letter and holds only letters, digits and `-`. If any tag is
-> invalid, the whole list is logged and ignored and the device registers
-> untagged.
+The embedded Tailscale node forwards every advertised TCP and UDP port to this
+GameServer's backing Service. It does not provide a subnet route or expose
+unadvertised ports. `TunnelReady` requires an online device and active forwarding
+listeners. Tailnet grants still govern each player's access; readiness is not a
+test of an individual grant or of the sleeping game's application health.
+
+Requested tags require a matching `tagOwners` policy. A bare tag name receives
+the `tag:` prefix. Invalid or denied tags keep the tunnel not ready; it never
+silently falls back to an untagged identity.
+
+Container restarts retain identity in a Pod volume. Replacing the Pod, changing
+its tags, or upgrading from the older tailscaled implementation re-registers the
+device and requires a valid reusable auth key. Remove stale devices from the
+tailnet admin console so the configured MagicDNS hostname remains available.
+If Tailscale assigns a suffixed name because of a conflict, Gameplane keeps the
+advertised endpoint not ready until the conflict is resolved. Enable MagicDNS.
+
+Upgrade the operator and tunnel images together: the forwarding contract now
+carries each port's TCP/UDP protocol. See the
+[disposable tailnet integration procedure](tailscale-forwarding-integration.md)
+for traffic, access-policy and restart checks.
 
 The `credentialsSecretRef.name` is the name that the dashboard or API write after you provide the credential.
 
@@ -503,3 +509,8 @@ changes.
   the same security practices as you would for a public-facing LoadBalancer
   (e.g., disable admin consoles, run security updates, restrict in-game
   permissions).
+
+See [relay readiness and registration identity](relay-health.md) for the frp
+UID migration, replacement policy, health probes, retry reset and the pinned
+Playit version's connection-status limitation. An assigned address alone does
+not make a relay ready.

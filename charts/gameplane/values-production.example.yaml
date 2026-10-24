@@ -1,0 +1,36 @@
+# Example policy, not a capacity recommendation. Label/taint worker nodes before
+# applying this profile; see docs/production-placement.md. Never remove or
+# tolerate control-plane taints just to satisfy these selectors.
+operator:
+  replicas: 2
+  leaderElect: true
+  nodeSelector: &managementNodes { gameplane.local/pool: management }
+  tolerations: &managementTolerations
+    - { key: gameplane.local/pool, operator: Equal, value: management, effect: NoSchedule }
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels: { app.kubernetes.io/name: gameplane-operator }
+  pdb: { enabled: true, maxUnavailable: 1 }
+api:
+  replicas: 1
+  nodeSelector: *managementNodes
+  tolerations: *managementTolerations
+  pdb: { enabled: true, maxUnavailable: 1 }
+web:
+  replicas: 2
+  nodeSelector: *managementNodes
+  tolerations: *managementTolerations
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels: { app.kubernetes.io/name: gameplane-web }
+  pdb: { enabled: true, maxUnavailable: 1 }
+crds:
+  autoApply:
+    nodeSelector: *managementNodes
+    tolerations: *managementTolerations

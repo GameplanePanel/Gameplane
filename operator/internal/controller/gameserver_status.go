@@ -260,8 +260,19 @@ func (r *GameServerReconciler) reconcileStatus(
 	// Connection card reads the address players actually use.
 	if svcExists {
 		gs.Status.Endpoints = endpointsFromService(&svc, addrPlan)
+	} else {
+		// A deleted/replacing Service must not preserve a stale tailnet endpoint
+		// when the forwarding deployment has since lost readiness.
+		var retained []gameplanev1alpha1.GameServerEndpoint
+		for _, endpoint := range gs.Status.Endpoints {
+			if endpoint.TunnelProvider != "tailscale" {
+				retained = append(retained, endpoint)
+			}
+		}
+		gs.Status.Endpoints = retained
 	}
-	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 {
+	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 &&
+		(gs.Spec.Networking.Tunnel.Provider != "tailscale" || meta.IsStatusConditionTrue(gs.Status.Conditions, "TunnelReady")) {
 		gs.Status.Endpoints = append(tunnelPlan.endpoints, gs.Status.Endpoints...)
 	}
 	if phase == gameplanev1alpha1.GameServerPhaseRunning {
@@ -1105,6 +1116,21 @@ func computeTunnelConditions(
 	}
 
 	// Tunnel Deployment not yet created or not ready.
+	if tunnel.Provider == "tailscale" && len(plan.unsupportedPorts) > 0 {
+		tunnelReady.Status = metav1.ConditionFalse
+		tunnelReady.Reason = "UnsupportedProtocol"
+		tunnelReady.Message = "Tailscale supports only TCP and UDP; unsupported advertised ports: " + strings.Join(plan.unsupportedPorts, ", ")
+		return upsertCondition(conds, tunnelReady)
+	}
+	if tunnel.Provider == "playit" && (tunnel.Playit == nil || tunnel.CredentialsSecretRef == nil || tunnel.CredentialsSecretRef.Name == "") {
+		tunnelReady.Status = metav1.ConditionFalse
+		tunnelReady.Reason = "NoCredentials"
+		tunnelReady.Message = "playit configuration and credentials are required before relay connection can be confirmed"
+		if tunnel.Playit == nil {
+			tunnelReady.Reason = "InvalidConfig"
+		}
+		return upsertCondition(conds, tunnelReady)
+	}
 	if tunnelDep == nil {
 		tunnelReady.Status = metav1.ConditionFalse
 		tunnelReady.Reason = "DeploymentNotReady"
@@ -1112,11 +1138,30 @@ func computeTunnelConditions(
 		conds = upsertCondition(conds, tunnelReady)
 		return conds
 	}
+	if tunnel.Provider == "frp" || tunnel.Provider == "playit" {
+		if !hasRelayReadinessProbe(tunnelDep) || tunnelDep.Status.ObservedGeneration < tunnelDep.Generation || tunnelDep.Status.UpdatedReplicas == 0 {
+			tunnelReady.Status = metav1.ConditionUnknown
+			tunnelReady.Reason = "RelayConnectionUnknown"
+			tunnelReady.Message = "waiting for the current relay deployment and its connection readiness probe"
+			return upsertCondition(conds, tunnelReady)
+		}
+		if tunnel.Provider == "playit" {
+			tunnelReady.Status = metav1.ConditionUnknown
+			tunnelReady.Reason = "RelayConnectionUnknown"
+			tunnelReady.Message = "playit v1.0.10 IPC reports cached assignment but cannot confirm relay connection; check provider connectivity separately"
+			if len(gs.Status.TunnelEndpoints) == 0 {
+				tunnelReady.Status = metav1.ConditionFalse
+				tunnelReady.Reason = "AwaitingAddress"
+				tunnelReady.Message = "waiting for playit endpoint assignment; relay connection is unconfirmed"
+			}
+			return upsertCondition(conds, tunnelReady)
+		}
+	}
 
 	if tunnelDep.Status.ReadyReplicas == 0 {
 		tunnelReady.Status = metav1.ConditionFalse
 		tunnelReady.Reason = "DeploymentNotReady"
-		tunnelReady.Message = "tunnel deployment has no ready replicas"
+		tunnelReady.Message = "tunnel deployment has no ready replicas; relay connection or forward registration is unconfirmed"
 		conds = upsertCondition(conds, tunnelReady)
 		return conds
 	}
@@ -1147,7 +1192,7 @@ func computeTunnelConditions(
 		// All endpoints known: deployment ready and mappings complete.
 		tunnelReady.Status = metav1.ConditionTrue
 		tunnelReady.Reason = "Ready"
-		tunnelReady.Message = "tunnel deployment ready and all ports mapped"
+		tunnelReady.Message = "relay connection and all configured frp forward registrations confirmed"
 
 	case "tailscale":
 		if tunnel.Tailscale == nil {
@@ -1167,37 +1212,23 @@ func computeTunnelConditions(
 			return conds
 		}
 
-		// Deployment is ready and credentials are configured.
+		// A legacy image merely registering a device cannot satisfy readiness.
+		forwardingProbe := false
+		for _, container := range tunnelDep.Spec.Template.Spec.Containers {
+			if container.Name == "tunnel" && container.ReadinessProbe != nil && container.ReadinessProbe.HTTPGet != nil {
+				probe := container.ReadinessProbe.HTTPGet
+				forwardingProbe = probe.Path == "/readyz" && probe.Port.IntValue() == 8091
+			}
+		}
+		if !forwardingProbe || tunnelDep.Status.ObservedGeneration < tunnelDep.Generation || tunnelDep.Status.UpdatedReplicas == 0 {
+			tunnelReady.Status = metav1.ConditionFalse
+			tunnelReady.Reason = "DeploymentNotReady"
+			tunnelReady.Message = "waiting for the Tailscale forwarding deployment and its readiness probe"
+			return upsertCondition(conds, tunnelReady)
+		}
 		tunnelReady.Status = metav1.ConditionTrue
 		tunnelReady.Reason = "Ready"
-		tunnelReady.Message = "tunnel deployment ready and authenticated"
-
-	case "playit":
-		if tunnel.Playit == nil {
-			tunnelReady.Status = metav1.ConditionFalse
-			tunnelReady.Reason = "InvalidConfig"
-			tunnelReady.Message = "playit provider selected but no playit config"
-			conds = upsertCondition(conds, tunnelReady)
-			return conds
-		}
-
-		// Check if credentials are provided (playit requires authentication).
-		if tunnel.CredentialsSecretRef == nil {
-			tunnelReady.Status = metav1.ConditionFalse
-			tunnelReady.Reason = "NoCredentials"
-			tunnelReady.Message = "no credentials secret provided; playit requires authentication"
-			conds = upsertCondition(conds, tunnelReady)
-			return conds
-		}
-
-		// Deployment is ready; playit endpoint will arrive asynchronously.
-		// Report AwaitingAddress while the tunnel pod hasn't yet reported an address.
-		// This is optimistic: the condition flips based on whether the tunnel pod
-		// has written to status.tunnelEndpoint. The agent or operator reconcile must
-		// populate it separately.
-		tunnelReady.Status = metav1.ConditionTrue
-		tunnelReady.Reason = "Ready"
-		tunnelReady.Message = "tunnel deployment ready; waiting for playit endpoint assignment"
+		tunnelReady.Message = "tailnet online and all advertised TCP/UDP forwarding listeners active; client access remains subject to tailnet policy"
 
 	default:
 		tunnelReady.Status = metav1.ConditionFalse
@@ -1207,6 +1238,16 @@ func computeTunnelConditions(
 
 	conds = upsertCondition(conds, tunnelReady)
 	return conds
+}
+
+func hasRelayReadinessProbe(dep *appsv1.Deployment) bool {
+	for _, container := range dep.Spec.Template.Spec.Containers {
+		if container.Name == "tunnel" && container.ReadinessProbe != nil && container.ReadinessProbe.HTTPGet != nil {
+			probe := container.ReadinessProbe.HTTPGet
+			return probe.Path == "/readyz" && probe.Port.IntValue() == 8091
+		}
+	}
+	return false
 }
 
 // removeCondition removes a condition by type from the list, or returns the list unchanged.

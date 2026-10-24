@@ -2,48 +2,52 @@
 
 **Status:** pre-v1 (v0.3.0)  
 **Module / command:** `github.com/GameplanePanel/gameplane/tunnel`  
-**Dependencies:** stdlib only
+**Dependencies:** Go stdlib and `tailscale.com/tsnet` (F-173, #722)
 
 ## Purpose
 
-Relay client supervisor that configures and supervises a third-party tunnel process (frp, Tailscale, or playit). The supervisor runs as a single-replica Deployment per GameServer, reads provider-specific configuration and credentials via environment variables and a mounted Secret, renders provider-specific config files, spawns the relay binary, and supervises it with exponential backoff until context cancellation or an unrecoverable error. The tunnel pod never sleeps — it holds the public relay address across the full GameServer lifecycle so connection attempts can trigger wake-on-connect.
+Relay client supervisor that configures and supervises frp/playit child processes or an embedded Tailscale node. The supervisor runs as a single-replica Deployment per GameServer, reads provider-specific configuration and credentials via environment variables and a mounted Secret, renders provider-specific config files, spawns the relay binary, and supervises it with exponential backoff until context cancellation or an unrecoverable error. The tunnel pod never sleeps — it holds the public relay address across the full GameServer lifecycle so connection attempts can trigger wake-on-connect.
 
 ## Responsibilities
 
 1. Parse environment variables to determine the tunnel provider (frp, tailscale, or playit), backing service address, and provider-specific config.
 2. Read provider-specific credentials from the mounted Secret at `/etc/gameplane/tunnel-auth` (read-only).
-3. Render provider-specific config files at fixed paths (`/tmp/gameplane-tunnel-frpc.toml` for frp, `/tmp/gameplane-tunnel-tailscaled.json` for tailscale, `/tmp/gameplane-tunnel-playit-auth` for playit).
-4. Build provider-specific relay command-line arguments, referencing only fixed config file paths (never passing secrets via argv).
-5. Spawn the relay binary (frpc, tailscaled, or playitd) and supervise it until context cancellation or unrecoverable failure.
+3. Render frp TOML or playit credentials at fixed paths, with secrets excluded from argv.
+4. Start and supervise frpc or playitd as child processes.
+5. For Tailscale, authenticate an embedded tsnet node, open advertised TCP/UDP listeners, and forward only to the GameServer's backing Service.
 6. On transient failure (exit code other than 126/127, not a permission error), apply exponential backoff (2^n seconds, capped at 300 seconds) and restart.
 7. On unrecoverable failure (exit code 126/127 or "permission denied" error), exit immediately.
 8. Forward SIGTERM for graceful shutdown, waiting up to 10 seconds before SIGKILL.
 9. (Playit only) Poll playitd's IPC control socket for the assigned relay addresses and patch them into the GameServer's `status.tunnelEndpoints`, which the operator validates and merges into `status.endpoints` (see "Playit Address Reporting").
-10. (Tailscale only, when `TAILSCALE_TAGS` holds valid tags) Register the device once with `tailscale up --advertise-tags` over tailscaled's socket, requesting the tags at registration. If the tailnet refuses them, log the error; only if the backend is not `Running` afterwards, attempt one untagged registration, which can also fail and is then logged (see "Tailscale Tag Application").
+10. Tailscale readiness requires an online tailnet identity with the requested hostname/tags and all forwarding listeners active. Invalid or denied tags remain not ready; there is no untagged fallback.
 
 ## Non-goals / boundaries
 
 - Does **not** run the game server itself — that is the operator and game container's job.
 - Does **not** create or manage the relay infrastructure — frp/Tailscale/playit accounts and credentials are pre-configured.
 - Does **not** authenticate or authorize clients connecting to the relay — relay access control is the provider's responsibility.
-- Does **not** validate or filter traffic — the relay process handles all inbound connections and port forwarding.
+- Does **not** validate or filter traffic — the provider handles access control; the Tailscale bridge copies bytes/datagrams to fixed destinations.
 - Does **not** modify the game pod or game container — the tunnel runs as a separate Deployment.
 - Does **not** report metrics or logs to external systems — logs flow to the pod's stdout/stderr for the cluster to capture.
 - Does **not** support runtime configuration changes — config is read once at startup and cannot be updated without redeploying.
-- Does **not** implement Tailscale, frp, or playit protocols — delegates to their official binaries.
+- Does **not** implement Tailscale, frp, or playit protocols — uses official frp/playit binaries and the official Tailscale Go library.
 
 ## Directory & package layout
 
 ```
 tunnel/
-├── main.go              # Entry point; config loading; credential reading; config rendering; relay spawning and supervision; tailscale tagged registration
+├── main.go              # Entry point; config loading; credential reading; config rendering; relay spawning and supervision
+├── tailscale.go         # Embedded node lifecycle, health and identity checks
+├── tailscale_forward.go # Bounded TCP/UDP bridge to the fixed Service
+├── tailscale_test.go    # Registration configuration and readiness lifecycle
+├── tailscale_forward_test.go # Real TCP/UDP sockets, isolation, limits and shutdown
 ├── playit_reporter.go   # playit only: polls playitd's IPC socket for assigned addresses; patches status.tunnelEndpoints
 ├── playit_reporter_test.go # Fake playitd IPC server + httptest API server tests for the reporter
 ├── main_test.go         # Config parsing; credential reading; config rendering per provider; command building; backoff; error classification; supervision lifecycle
 ├── Dockerfile.frp       # Image build for frp provider (sets Version via -ldflags)
 ├── Dockerfile.playit    # Image build for playit provider (one image per provider)
 ├── Dockerfile.tailscale # Image build for tailscale provider
-├── go.mod              # Dependencies: stdlib only (no external deps, so no go.sum)
+├── go.mod              # Pinned tsnet dependency; go.sum records the transitive graph
 └── .testcoverage.yml    # 70% coverage gate
 ```
 
@@ -57,14 +61,15 @@ Single executable module; no subdirectories or packages.
 |---|---|---|---|
 | `GAMESERVER_NAME` | string | yes | Name of the GameServer resource (used in logs and for playit tunnel naming) |
 | `GAMESERVER_NAMESPACE` | string | yes | Kubernetes namespace of the GameServer |
+| `GAMESERVER_UID` | string | if frp | Immutable GameServer UID, used as frpc `user`; nonempty, up to 128 letters/digits/hyphens. No namespace/name fallback. |
 | `TUNNEL_TYPE` | enum (frp\|tailscale\|playit) | yes | Relay provider to use |
 | `BACKING_SERVICE_DNS` | string | yes | DNS name of the game pod Service, format `<gs-name>.<namespace>.svc` |
 | `FRP_SERVER_ADDR` | string | if frp | Hostname or IP of the frp server |
 | `FRP_SERVER_PORT` | int | no (default 7000) | frp server port; validated 1–65535 |
 | `BACKING_SERVICE_PORT` | string | if frp | Port mappings for frp, format `name:localPort:remotePort:protocol,...` (e.g., `game:34197:30000:udp`); localPort and protocol come from the GameTemplate port, remotePort from `spec.networking.tunnel.frp.remotePorts` (F-052) |
 | `TAILSCALE_HOSTNAME` | string | if tailscale | MagicDNS hostname in the tailnet; fatal if unset for tailscale provider |
-| `TAILSCALE_TAGS` | string | no | Comma-separated ACL tags requested for the Tailscale device when it registers. Each entry is trimmed, empty entries are dropped, and a bare name gets the `tag:` prefix. Each tag must then be `tag:` followed by a letter and only letters, digits or `-` (tailscale's `tailcfg.CheckTag` rule); otherwise the whole value is logged and ignored, and the device registers untagged. Never written into tailscaled's declarative config: its alpha0 config has no field for ACL tags (`ipn.ConfigVAlpha`), and its loader rejects unknown JSON fields, so a `tags` key would make tailscaled refuse to start. Tags are requested through a one-off `tailscale up --advertise-tags` instead (see "Tailscale Tag Application"). The tailnet's ACL must grant `tagOwners` for the tags to the auth key's owner. If it doesn't, the error is logged and the tunnel runs untagged rather than crash-looping. |
-| `BACKING_SERVICE_PORTS` | string | if tailscale or playit | Container ports for non-frp providers, format `name:port,name:port` |
+| `TAILSCALE_TAGS` | string | no | Comma-separated requested tags. Whitespace/empty entries are removed, bare names receive `tag:`, duplicates are removed. Invalid tags fail startup. Requested tags must be granted by tailnet `tagOwners`; refusal does not fall back to an untagged identity. |
+| `BACKING_SERVICE_PORTS` | string | if tailscale or playit | Tailscale: `name:port:protocol,...`, only `tcp` and `udp`, at most 32 unique protocol/port pairs. Playit retains `name:port,...`. Upgrade operator and tunnel images together; ambiguous legacy Tailscale mappings fail closed. |
 | `PLAYIT_TUNNEL_NAME` | string | if playit | Label/name for the playit tunnel; fatal if unset for playit provider |
 
 **Validation**: At startup, `loadConfig` enforces mutual requirement rules: frp mandates `FRP_SERVER_ADDR` and `BACKING_SERVICE_PORT`; tailscale mandates `TAILSCALE_HOSTNAME` and `BACKING_SERVICE_PORTS`; playit mandates `PLAYIT_TUNNEL_NAME` and `BACKING_SERVICE_PORTS`. Invalid `FRP_SERVER_PORT` values (non-numeric, out of range 1–65535) are fatal. Unknown `TUNNEL_TYPE` values are fatal.
@@ -76,7 +81,7 @@ The operator mounts a read-only Secret volume at `/etc/gameplane/tunnel-auth` co
 | Provider | Key Name | Example Usage | Notes |
 |---|---|---|---|
 | frp | `token` | Auth token for the frpc client | Read by `readCredentials` and embedded in rendered `/tmp/gameplane-tunnel-frpc.toml` |
-| tailscale | `authKey` | Auth key (one-time or reusable) for device registration | Read and embedded in rendered `/tmp/gameplane-tunnel-tailscaled.json` |
+| tailscale | `authKey` | Reusable auth key for registration | Read into tsnet.Server.AuthKey in memory; identity state is stored in the Pod volume |
 | playit | `secretKey` | API secret key for playitd authentication | Read and written to `/tmp/gameplane-tunnel-playit-auth` for playitd's `--secret-path` flag |
 
 Whitespace (leading/trailing newlines, spaces) is trimmed from credential values before use. Missing credentials are fatal errors and prevent relay startup.
@@ -86,18 +91,15 @@ Whitespace (leading/trailing newlines, spaces) is trimmed from credential values
 | Provider | Path | Format | Ownership |
 |---|---|---|---|
 | frp | `/tmp/gameplane-tunnel-frpc.toml` | TOML | Rendered by `renderFrpConfig`; read by frpc process |
-| tailscale | `/tmp/gameplane-tunnel-tailscaled.json` | JSON | Rendered by `renderTailscaleConfig`; read by tailscaled via `--config` flag. Holds `version` and `hostname`, plus `authKey` without tags, or `"locked": false` with tags |
-| tailscale (tags only) | `/tmp/gameplane-tunnel-tailscale-authkey` | Raw text (auth key) | Written by `renderTailscaleConfig` when tags are requested; read by `tailscale up --auth-key=file:<path>` |
 | playit | `/tmp/gameplane-tunnel-playit-auth` | Raw text (secret key) | Rendered by `renderPlayitConfig`; read by playitd via `--secret-path` flag |
 
-All files are written with mode `0o600` (read/write by owner only) via `os.WriteFile` — see `renderFrpConfig`, `renderTailscaleConfig`, `renderPlayitConfig` in `main.go`. The rendered config file (and, for tailscale, the auth key file) is removed by a deferred `os.Remove` when the supervisor's `run` returns (context cancellation or an unrecoverable error); it is not removed on SIGKILL or on each relay restart inside the backoff loop. tailscaled's `--state` file (`/tmp/tailscale.state`) is never removed by the process. All of these files live under `/tmp` in the pod's ephemeral, per-pod filesystem, so any that remain are discarded when the pod terminates and its filesystem is reclaimed.
+frp/playit rendered files use mode 0600 and are removed when `run` returns. Tailscale uses the state volume described below; no daemon config or CLI auth file is produced.
 
 ### Relay Binaries and Command-Line Arguments
 
 | Provider | Binary | Arguments |
 |---|---|---|
 | frp | `/usr/local/bin/frpc` | `-c /tmp/gameplane-tunnel-frpc.toml` (config file flag) |
-| tailscale | `/usr/local/bin/tailscaled` | `--tun=userspace-networking` (hardened pod context), `--state=/tmp/tailscale.state`, `--config=/tmp/gameplane-tunnel-tailscaled.json`, `--socket=/tmp/gameplane-tunnel-tailscaled.sock` |
 | playit | `/usr/local/bin/playitd` | `--secret-path /tmp/gameplane-tunnel-playit-auth`, `--socket-path /tmp/gameplane-tunnel-playitd.sock`, `--platform-docker` |
 
 All binary paths are fixed constants, not configurable. Secrets are never passed via command-line arguments (gosec G204 compliance).
@@ -112,27 +114,26 @@ playit.gg assigns a tunnel's public address server-side, so the supervisor learn
 4. When the mapped set differs from the last one reported, it's merge-patched into `status.tunnelEndpoints` on `PATCH https://kubernetes.default.svc/apis/gameplane.local/v1alpha1/namespaces/<ns>/gameservers/<name>/status`. The request uses the pod's projected ServiceAccount token and CA from `/var/run/secrets/kubernetes.io/serviceaccount`. The first report after startup is always sent, and an empty set is sent as `null` so stale addresses from a previous pod are cleared. The operator validates those entries (`validatePlayitEndpoints`) and merges them into `status.endpoints`, the same place frp/tailscale endpoints land.
 5. Timing: while the socket is down, playitd isn't `running` yet, or a patch fails, the reporter backs off from 1s, doubling up to 30s. Once a set has been reported, it re-polls every 30s so address changes are picked up. It stops when `run`'s context ends. If the ServiceAccount CA can't be read (not in a cluster) or `BACKING_SERVICE_PORTS` doesn't parse, the reporter logs and is skipped. The relay still runs.
 
-### Tailscale Tag Application
+### Embedded Tailscale forwarding (F-173 / #722)
 
-Tailscale ACL tags can only be requested when a device registers. tailscaled's declarative `--config` file has no field for them (see the `TAILSCALE_TAGS` row above). `tailscale set` has no `--advertise-tags` flag, and changing the tags of a registered node needs a fresh login. So when `TAILSCALE_TAGS` holds valid tags, the supervisor lets tailscaled start unauthenticated and registers it itself. Flags below are confirmed against tailscale v1.104.2, the version `Dockerfile.tailscale` ships.
+The maintainer chose embedded `tailscale.com/tsnet` for TCP and UDP; the decision is recorded in [OPEN-DECISIONS.md](../specs/done_018-v0-3-release-readiness/OPEN-DECISIONS.md#od-031-tailscale-game-forwarding-f-173--resolved-2026-10-21). No tailscaled executable, CLI, subnet router, exit node, Serve or Funnel configuration is used.
 
-1. `renderTailscaleConfig` writes the config with `version`, `hostname` and `"locked": false`, and no `authKey`. The auth key goes to `/tmp/gameplane-tunnel-tailscale-authkey` (mode 0600). `locked` must be false: `ipn.ConfigVAlpha.Locked` defaults to true, and a locked config makes tailscaled reject every CLI prefs change.
-2. `tailscaled` is started as usual, with `--socket=/tmp/gameplane-tunnel-tailscaled.sock`. Its Linux default, `/run/tailscale/tailscaled.sock`, can't be created by the non-root distroless image; this is the same reasoning as `playitSocketPath`. The `tailscale` CLI, bundled in `Dockerfile.tailscale` alongside `tailscaled`, reaches it over the same socket via `--socket=`. With no auth key, tailscaled waits in `NeedsLogin`.
-3. `run` starts one goroutine, `startTailscaleRegistrar`, which calls `registerTailscaleOnce` once per supervisor lifetime, in parallel with the relay supervision loop. It is not rerun on a relay restart: the login and granted tags persist in tailscaled's state file (`/tmp/tailscale.state`, `--state` in `buildCommand`).
-4. `waitForTailscaled` polls `tailscale --socket=<socket> status --json --peers=false` every `tailscaleReadyPollInterval` (2 seconds), bounded by `tailscaleReadyTimeout` (2 minutes). It waits until the socket answers with a settled `BackendState`: `NeedsLogin`, `NeedsMachineAuth`, `Stopped` or `Running`. Transient states (`NoState`, `Starting`) keep it polling.
-5. If the node is already `Running` and `Self.Tags` is exactly the requested set, as with a reused state file, nothing more happens.
-6. Otherwise it runs `tailscale --socket=<socket> up --reset --auth-key=file:/tmp/gameplane-tunnel-tailscale-authkey --hostname=<hostname> --advertise-tags=<tags>` once, bounded by `tailscaleUpTimeout` (2 minutes). The pure `tailscaleUpArgs` builds this argv. `--auth-key=file:` makes the CLI read the key from the file, so the key never appears in argv. `--reset` resets every setting not named on the command line to its default. Without it, `tailscale up` on a node with saved prefs refuses to run unless every non-default setting is repeated.
-7. If that fails, most commonly because the tailnet's ACL doesn't grant `tagOwners` for the tags to the auth key's owner, the error is logged. If the node is not `Running` afterwards, `tailscale up` runs once more without `--advertise-tags`, so the tunnel registers untagged. Every failure, including the readiness timeout, is logged and none stops the supervisor or the relay process. An ACL problem only the tailnet admin can fix never becomes a crash loop.
+- `tailscaleForwardPlan` accepts only the exact `<gameserver>.<namespace>.svc` host and explicitly advertised protocol/port pairs. Inbound bytes never select a backend address. TCP listens on both tailnet families; UDP binds each assigned tailnet IP because tsnet requires an explicit address.
+- The ordinary Go network dialer resolves the Service for each new TCP connection or UDP session. Existing streams/sessions can fail during Service/backend replacement; reconnecting clients resolve the current Service. UDP sessions expire after 30 seconds without client packets.
+- A shared 128-session budget covers all ports/protocols/families. Each UDP session queues at most four datagrams (65,507 bytes each) and uses one response buffer. Full budgets or queues drop incoming UDP; excess TCP connections close. Dials and UDP writes time out after five seconds. TCP sockets have five-minute activity timeouts. Shutdown closes listeners and sockets, cancels pending dials, then joins workers.
+- `tsnet.Server` receives the existing hostname, normalized requested tags and mounted auth key. There is no untagged fallback. The fixed state directory `/var/lib/gameplane-tailscale` uses a per-Pod EmptyDir owned through fsGroup 65532. Container restarts reuse identity. Pod replacement loses state and needs a reusable valid auth key; the Deployment uses Recreate. This is not durable identity across Pod replacement. Remove stale devices in the tailnet admin console to free the hostname. A suffixed/conflicting MagicDNS name cannot report the originally advertised name as ready.
+- `Up` has a two-minute attempt deadline; failed attempts use the existing capped retry delay. After binding every listener, the binary polls local tailnet status every two seconds with a two-second deadline. Loss of online status, tags or hostname clears readiness. Address changes recreate listeners. Failed listeners close all forwarding sockets and retry. Credentials and interactive login URLs are excluded from logs.
+- HTTP `:8091/readyz` returns 200 only while that state is ready, otherwise 503. `/healthz` remains independent of tailnet availability. The operator probes every five seconds and requires a current observed Deployment generation with an updated ready replica. Legacy deployments without the forwarding probe cannot report `TunnelReady=True`. Tailscale endpoints are published only while ready.
+- Readiness establishes local forwarding capacity and tailnet authentication. It does not prove a particular player's grant or game application health, and it deliberately remains ready while the game sleeps so traffic can reach the sentinel. Tailnet grants/ACLs still determine which peers may connect. Missing tags, denied registration, device approval and hostname conflicts require administrator repair.
+- Upgrading from the former daemon implementation re-registers the Pod. Replace the auth key first if it was single-use. Coordinate operator and tunnel image upgrades; the new protocol-bearing port contract rejects old ambiguous entries.
 
-The CLI is run by `execTailscaleCLI` with `exec.CommandContext` tied to `run`'s context. The binary path is the literal `/usr/local/bin/tailscale`, and nothing goes through a shell. The argv is appended to `cmd.Args`, so gosec's G204 check sees only literal arguments. The actual guarantee is that argv is built only by `tailscaleStatusArgs` and `tailscaleUpArgs`: every value is a single `--flag=value` element, the tags are validated by `parseTailscaleTags`, and the auth key is never in argv.
-
-Without tags, none of this runs. The auth key goes into the config and tailscaled logs in by itself, as before.
+The disposable integration procedure in [tailscale-forwarding-integration.md](../docs/tailscale-forwarding-integration.md) covers actual tailnet TCP/UDP, denied grants, backend replacement and registration/restart outcomes. Unit transports use real local sockets; they do not establish live tailnet coverage.
 
 ## Key Invariants
 
 1. **Tunnel pod never sleeps.** The tunnel Deployment persists for the full GameServer lifecycle, even when the server idles or suspends. The pod must remain running to hold the relay address so a connection attempt can trigger wake-on-connect.
 
-2. **Credentials are never passed via command-line.** All three providers use file-based credential delivery: frp and tailscale embed credentials in rendered config files, playitd reads a secret file via `--secret-path`. This guards against argv scraping and satisfies gosec's G204 (subprocess argument constant verification).
+2. **Credentials are never passed via command-line.** frp embeds credentials in a private config file, playitd reads a secret file via `--secret-path`, and tsnet receives its key in memory. This guards against argv scraping and satisfies gosec's G204 (subprocess argument constant verification).
 
 3. **Exponential backoff is capped and unshed.** On transient failure, retry delays follow 2^n seconds (1s, 2s, 4s, ..., 256s) capped at 300 seconds (5 minutes). No jitter is added because each pod runs a single replica against its own relay connection; jitter spreads out a thundering herd, not a singleton.
 
@@ -144,10 +145,9 @@ Without tags, none of this runs. The auth key goes into the config and tailscale
 
 7. **Operator image selection per provider.** The operator injects provider-specific tunnel images via flags (`--tunnel-frp-image`, `--tunnel-tailscale-image`, `--tunnel-playit-image`), each with a `dev` default. Each pod runs exactly one provider's binary, selected by `TUNNEL_TYPE`.
 
-## Known Gaps
+## Known Limits
 
-- **Tailscale doesn't forward tailnet traffic to the game (F-173):** `BACKING_SERVICE_DNS` and `BACKING_SERVICE_PORTS` are read and validated for presence when `TUNNEL_TYPE=tailscale`, but neither reaches `renderTailscaleConfig` or the `tailscaled` process. The rendered config carries only `version`, `hostname`, and `authKey` or `locked`. ACL tags are requested at registration through `tailscale up`; see "Tailscale Tag Application". The tunnel pod registers as a tailnet device, but nothing bridges an inbound tailnet connection to the backing Service — tailscaled's declarative `--config` file has no serve/forward field, and `tailscale serve` (the real mechanism) only proxies TCP/HTTP(S) to a local `127.0.0.1` target, never a remote host, and has no UDP support. Fixing this is an architecture decision (a local proxy + headless `tailscale serve`, TCP-only; a subnet route via `advertiseRoutes`, which needs tailnet ACL auto-approval and widens reachability into cluster-internal networking; or replacing subprocess `tailscaled` with an embedded `tsnet` listener, which would end this module's stdlib-only dependency policy), tracked pending a decision in `specs/done_018-v0-3-release-readiness/OPEN-DECISIONS.md`.
-- **Single-use Tailscale auth keys and tag retries:** when `tags` is set, the supervisor logs in with `tailscale up`. If that tagged login is refused (missing `tagOwners`), or a restarted pod reuses a state file with different tags, the untagged fallback `up` reuses the same auth key; a single-use (ephemeral, non-reusable) key has already been consumed, so the fallback fails too. The failure is logged and the supervisor does not crash-loop, but the device stays logged out until a fresh key is stored. Use a reusable auth key when setting `tags`.
+Tailscale identity survives container restarts but not Pod replacement; a reusable auth key and free MagicDNS hostname are required for re-registration. Live tailnet integration needs an explicitly provisioned disposable tailnet and is separate from ordinary unit CI. The prior registration-only F-173 gap is replaced by the embedded TCP/UDP bridge above.
 
 ## CRD Integration
 
@@ -227,16 +227,16 @@ When the pod receives SIGTERM (e.g., during cluster shutdown or pod deletion):
 ## Dependencies
 
 **Internal:** None  
-**External:** Go stdlib only (bufio, bytes, context, crypto/tls, crypto/x509, encoding/json, errors, fmt, io, log, net, net/http, net/url, os, os/exec, os/signal, path/filepath, reflect, sort, strconv, strings, sync, syscall, time). The playit status patch uses plain `net/http` against the API server rather than client-go, keeping the module free of third-party dependencies.  
-**Go version:** 1.26+
+**External:** `tailscale.com/tsnet` v1.104.2 and Go stdlib. The playit status patch uses plain `net/http` against the API server without adding client-go.
+**Go version:** 1.27.3+ (the minimum required by Tailscale v1.104.2)
 
-No third-party dependencies. The operator provides provider-specific binaries (frpc, tailscaled, playitd) in each container image.
+The maintainer explicitly approved ending the stdlib-only policy for tsnet in #722. Version 1.104.2 preserves the upstream Tailscale security update while retaining the embedded TCP/UDP forwarding implementation. CI resolves the latest Go 1.27 patch; the workspace and tunnel module require at least Go 1.27.3, and tunnel image builders use Go 1.27.3. Track future tsnet/security updates through go.mod/go.sum. frpc and playitd remain external binaries.
 
 ## Security Considerations
 
 1. **Secret mounting (read-only):** Credentials are mounted from Kubernetes Secrets into the pod at `/etc/gameplane/tunnel-auth` as a read-only VolumeMount. The credential files are accessed only after a path-containment check via `filepath.Rel` to ensure the resolved path does not escape the mount directory, providing defense-in-depth against directory traversal.
 
-2. **Credentials never on argv:** All three providers accept secrets via file-based config (embedded in TOML/JSON for frp/tailscale, separate `--secret-path` file for playitd). This ensures secrets don't appear in `/proc/<pid>/cmdline`.
+2. **Credentials never on argv:** frp/playit accept secrets via private files; Tailscale receives the mounted key in memory. This ensures secrets don't appear in `/proc/<pid>/cmdline`.
 
 3. **Hardened pod security context:** UID 65532 (nonroot), runAsNonRoot=true, allowPrivilegeEscalation=false, all capabilities dropped. No privileged escalation or host access.
 
@@ -244,7 +244,7 @@ No third-party dependencies. The operator provides provider-specific binaries (f
 
 5. **Network egress policy:** The tunnel pod's outbound traffic is controlled by a per-server NetworkPolicy. Without it, the games namespace's default-deny-egress would block relay connections.
 
-6. **Image provider isolation:** Each provider's tunnel binary (frpc, tailscaled, playitd) runs in its own container image. A vulnerability in one provider's binary doesn't affect others; operators can patch images independently.
+6. **Image provider isolation:** Provider images remain separate. The shared Go executable now links tsnet; all three tunnel images must be rebuilt for a dependency security update.
 
 7. **No credential validation at tunnel pod level:** The tunnel supervisor does not validate frp tokens, Tailscale auth keys, or playit secret keys. Validation happens at the provider's server. Invalid credentials manifest as authentication failures on the provider side.
 
@@ -255,9 +255,9 @@ No third-party dependencies. The operator provides provider-specific binaries (f
 - **Config loading:** `TestLoadConfigFrp`, `TestLoadConfigTailscale`, `TestLoadConfigPlayit` verify environment variable parsing and provider-specific validation (required fields per provider, default values).
 - **Config validation errors:** `TestLoadConfigMissingRequired`, `TestLoadConfigFrpMissingAddress`, `TestLoadConfigInvalidFrpPort`, `TestLoadConfigTailscaleMissingHostname`, `TestLoadConfigPlayitMissingTunnelName` verify that missing or invalid required fields are fatal with clear error messages.
 - **Credential reading:** `TestReadCredentialsSuccess`, `TestReadCredentialsMissingFile`, `TestReadCredentialsKeyNames`, `TestReadCredentialsUnknownTunnelType` verify credential path isolation (defense-in-depth `filepath.Rel` check) and per-provider key names.
-- **Config rendering:** `TestRenderFrpConfig`, `TestRenderFrpConfigInvalidPortMapping`, `TestRenderFrpConfigMultiplePorts`, `TestRenderTailscaleConfig`, `TestRenderTailscaleConfigNoHostname`, `TestRenderTailscaleConfigWithTagsOmitsTags`, `TestRenderTailscaleConfigNoTags`, `TestRenderTailscaleConfigInvalidTagsRegistersUntagged`, `TestRenderTailscaleConfigLogTagsNotesRegistration`, `TestRenderTailscaleConfigLogTagsSilentWhenUnset` and `TestRenderPlayitConfig` verify the TOML/JSON/text output for each provider. The tailscale tests also check that no `tags` key is ever written into tailscaled's config. With valid tags, `authKey` is left out, `"locked": false` is written, and the key goes to a 0600 file. Without tags or with invalid tags, the config keeps its original shape and no key file is written. The log line names `tailscale up --advertise-tags` and the `tagOwners` requirement.
-- **Command building:** `TestBuildCommandFrp`, `TestBuildCommandPlayit`, `TestBuildCommandTailscale`, `TestBuildCommandUnknownType` verify that command-line arguments are correctly assembled and that secrets never appear in argv.
-- **Tailscale tagged registration:** `TestParseTailscaleTags` (table-driven) checks that tags are trimmed, empty entries dropped and bare names given the `tag:` prefix, and that invalid tags are rejected: empty names, a leading digit, spaces, other prefixes, flag-like values and shell metacharacters. `TestTailscaleUpArgs` and `TestTailscaleStatusArgs` check the exact argv. The auth key never appears in it. `TestRegisterTailscaleOnceRequestsTags` checks that exactly one tagged `tailscale up` runs from `NeedsLogin`. `TestRegisterTailscaleOnceWaitsThroughStarting` checks that a transient state is polled past and that a node already `Running` with the same tags is skipped. `TestRegisterTailscaleOnceRunningWithOtherTags` checks that a node with different tags is re-registered. `TestRegisterTailscaleOnceFallsBackUntagged` checks that the tagged failure is logged with the `tagOwners` hint and followed by the exact untagged argv. `TestRegisterTailscaleOnceNoFallbackWhenStillRunning` checks that no second login runs on a node that is still up. `TestStartTailscaleRegistrarReturnsAfterFailure` checks that `wait()` returns after failures, so `run`'s shutdown is never blocked. `TestRegisterTailscaleOnceStopsOnCancel` checks that cancellation ends the wait without running `up`.
+- **Config rendering:** frp and playit tests verify private file formats, escaping, credential delivery and invalid mappings.
+- **Command building:** frp/playit tests check argv and fixed paths.
+- **Tailscale:** local socket regressions cover bidirectional TCP/UDP, peer isolation, shared session limits, idle eviction and shutdown. Lifecycle tests cover hostname/tag configuration, denied registration/tags, dual-stack listener creation, partial bind cleanup, online/offline readiness and hostname collisions. Operator tests verify protocol projection, readiness generation/probe requirements, unsupported protocols and EmptyDir/Recreate deployment wiring.
 - **Exponential backoff:** `TestExponentialBackoff`, `TestExponentialBackoffCap` verify delay calculations and the 300-second cap.
 - **Error classification:** `TestIsUnrecoverable` verifies that exit codes 126/127 and "permission denied" errors are unrecoverable, and that other errors trigger retry.
 - **Supervision lifecycle:** `TestRunContextCancellation`, `TestRunTransientFailureBacksOffThenCancels`, `TestRunRenderConfigFailure`, `TestRunReadCredentialsFailure`, `TestRunPlayitConfigDispatch` verify clean context cancellation, backoff retry, and error path handling.
@@ -267,12 +267,12 @@ No third-party dependencies. The operator provides provider-specific binaries (f
 **Test doubles:**
 
 - **`withCredentialsDir`:** Temporary directory helper that repoints the package-level `credentialsDir` var at `t.TempDir()` for the duration of a test, allowing credential reads to be exercised without touching the real mount point.
-- **`stubTailscaleCLI` / `fakeTailscale`:** `stubTailscaleCLI` points the package-level `runTailscaleCLI` var at a fake `func(ctx, args...) ([]byte, error)` for the duration of a test. This is the same seam pattern as `credentialsDir`. `fakeTailscale` scripts the `status --json` replies and `up` results and records each `up` argv, so `waitForTailscaled` and `registerTailscaleOnce` can be tested without running a real `tailscale` binary.
+- **`fakeTailnetNode`:** controls registration/status outcomes while opening real local listeners; no provider credentials are needed.
 - **Real system binaries in some tests:** `TestRunCommandContextCancellation` uses the real `sleep` command (no relay binary needed) to verify that context cancellation triggers SIGTERM forwarding, allowing the child to exit cleanly within the 10-second grace period.
 
 **Coverage gate:** 70% per `.testcoverage.yml`. Uncovered paths include error cases in relay binary spawning (operator-level validation and pod constraints already catch most configuration issues before the tunnel binary runs) and platform-specific signal handling edge cases.
 
-**Coverage rationale:** The tunnel supervisor's primary responsibility is configuration management and child process supervision. Tests cover all config parsing, credential reading, config rendering, command building, and supervision loop paths. The relay binaries themselves (frpc, tailscaled, playitd) are third-party and tested by their own projects. The tunnel pod's job is to correctly invoke them and restart on failure; actual relay functionality is end-to-end tested at the e2e suite level.
+**Coverage rationale:** The tunnel supervisor's primary responsibility is configuration management and child process supervision. Tests cover all config parsing, credential reading, config rendering, command building, and supervision loop paths. frpc/playitd and the embedded tsnet library are third-party; local socket tests cover Gameplane's bridge. The tunnel pod's job is to correctly invoke them and restart on failure; actual relay functionality is end-to-end tested at the e2e suite level.
 
 ## References
 
@@ -281,3 +281,36 @@ No third-party dependencies. The operator provides provider-specific binaries (f
 - **Consumers:** Operator (operator/internal/controller/gameserver_controller.go invokes planTunnel and reconcileTunnel), API (api/internal/handlers may report tunnel endpoints to dashboard)
 - **Related specs:** `operator/specs.md` (CRD reconciliation), `api/specs.md` (endpoint reporting)
 - **CLAUDE.md:** "K8s-native by default" (rule 9) and "Operator is authoritative" (rule 10)
+
+## Relay health and identity contract (#721, #723)
+
+`relay_health.go` owns the frp/Playit wrapper health interface and supervised
+attempt lifecycle. `/healthz`, `/readyz` and `/status` listen on Pod TCP 8091.
+The startup probe checks wrapper liveness; the readiness probe requires actual
+provider evidence. No liveness probe restarts a healthy wrapper for a provider
+outage. Each attempt owns its monitor, cancels and joins it on exit, then clears
+readiness so a late response cannot resurrect the exited child. Queries have a
+two-second deadline and two-second cadence. Observations expire after ten
+seconds. All health responses use closed-set state; raw provider errors and
+credentials are not exposed.
+
+frpc's authenticated loopback API `/api/status` on 127.0.0.1:7400 must confirm
+every configured proxy is running without error, with the expected protocol.
+The generated `user` is the GameServer UID, preserving advertised proxy names
+while making their wire identities unique. Heartbeat interval/timeout are 5/15
+seconds and multiplex keepalive is five seconds. frp and Playit Deployments use
+Recreate and a single replica to avoid simultaneous owners of an identity.
+
+Playit v1.0.10 IPC has no relay heartbeat: `Running` and addresses are cached API
+data that survive refresh errors. Assignment remains reportable, but connection
+readiness stays unknown and the probe fails closed. The operator reports
+`RelayConnectionUnknown`, or `AwaitingAddress` before assignment. Future positive
+readiness needs a provider interface with fresh connection evidence. Never infer
+it from process lifetime or repeated reads of a cached address.
+
+Backoff has no jitter and remains capped at 300 seconds. Both nonzero and clean
+unexpected exits back off. It resets to one second only after one uninterrupted
+minute of confirmed, non-stale readiness. Resource configuration retains #724's
+`TunnelResources` interface (nil defaults 25m/64Mi requests, non-nil overrides,
+empty object clears). See [relay health and upgrade guidance](../docs/relay-health.md)
+for migration and integration coverage. Tests run in CI only.

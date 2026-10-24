@@ -406,10 +406,15 @@ EOF
 # Tests that exist in the suite but deliberately run in NO bucket. Every
 # entry needs a reason; `verify` fails on any unlisted stray so additions
 # here are a conscious, reviewed act. Currently empty.
+bucket_management_placement() { cat <<'EOF'
+TestManagementPlacementAndDisruption
+EOF
+}
+
 unbucketed() { :; }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead optional-components
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead optional-components management-placement
 }
 
 list_bucket() {
@@ -428,6 +433,7 @@ list_bucket() {
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;
+	management-placement) bucket_management_placement ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
 		exit 2

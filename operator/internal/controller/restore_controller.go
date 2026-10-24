@@ -36,6 +36,8 @@ type RestoreReconciler struct {
 	// operator flag so air-gapped installs can point it at a private
 	// registry mirror. Empty falls back to DefaultResticImage.
 	ResticImage string
+	// BackupResources shares the backup worker resource configuration.
+	BackupResources *corev1.ResourceRequirements
 	// JobBackoffLimit / JobActiveDeadlineSeconds bound the restic restore Job.
 	// Set from operator flags; nil / zero fall back to
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.
@@ -111,7 +113,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err := r.Status().Update(ctx, &rs); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 
 	// Re-resolve the source Backup so we know its strategy on every pass
@@ -145,7 +147,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if changed {
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 	target, err := parseRestoreIdentity(rs.Annotations[restoreTargetAnnotation])
 	if err != nil {
@@ -194,7 +196,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err := r.Status().Update(ctx, &rs); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 
 	// src (the source Backup, with RepoRef for the Job env) was resolved
@@ -229,7 +231,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		if err := r.Create(ctx, job); err != nil {
 			if apierrors.IsAlreadyExists(err) {
-				return ctrl.Result{Requeue: true}, nil
+				return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 			}
 			return ctrl.Result{}, err
 		}
@@ -327,8 +329,9 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 	return corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		Containers: []corev1.Container{{
-			Name:  "restic",
-			Image: resticImageOrDefault(r.ResticImage),
+			Name:      "restic",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
 			// --target / restores each snapshot entry at its original
 			// absolute path. The companion backup runs `restic backup
 			// /data`, so the snapshot tree is rooted at /data/...; with
