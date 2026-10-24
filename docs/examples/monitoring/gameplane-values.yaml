@@ -1,0 +1,19 @@
+# Apply to the Gameplane Helm release. See docs/monitoring.md for node-specific
+# strict NetworkPolicy settings and the companion Prometheus resource.
+networkPolicies:
+  enabled: true
+serviceMonitors:
+  enabled: true
+  labels:
+    monitoring: gameplane
+  scrapeNamespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: monitoring
+prometheusRules:
+  enabled: true
+  labels:
+    monitoring: gameplane
+grafanaDashboards:
+  enabled: true
+  labels:
+    grafana_dashboard: "1"

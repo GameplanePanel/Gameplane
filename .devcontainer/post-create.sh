@@ -52,12 +52,11 @@ if ! command -v oras >/dev/null 2>&1; then
 fi
 
 # ---------- golangci-lint ----------
-# v2 release binaries work with the in-container Go version. The
-# .golangci.yml has been migrated from v1 to v2 schema (v2 introduces new
-# linters and removes deprecated ones).
-GOLANGCI_VERSION="v2.12.2"
+# v2.14 includes the importer for Go 1.27.3's export-data version 5.
+# Keep this exact version aligned with CI and lint-gate-verify.sh.
+GOLANGCI_VERSION="v2.14.0"
 GOLANGCI_BIN="/go/bin/golangci-lint"
-if ! "$GOLANGCI_BIN" --version 2>/dev/null | grep -qE 'version v?2\.'; then
+if ! "$GOLANGCI_BIN" --version 2>/dev/null | grep -qF "version ${GOLANGCI_VERSION#v} "; then
 	log "installing golangci-lint ${GOLANGCI_VERSION}"
 	GOBIN=/go/bin go install \
 		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_VERSION}"

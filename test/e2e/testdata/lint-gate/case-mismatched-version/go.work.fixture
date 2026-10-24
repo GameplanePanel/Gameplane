@@ -1,0 +1,17 @@
+go 1.26.0
+
+use (
+	./agent
+	./api
+	./audit-syslog-bridge
+	./gameaction
+	./gameproto
+	./mcp-server
+	./netguard
+	./operator
+	./sentinel
+	./svcutil
+	./telemetry-receiver
+	./test/e2e
+	./tunnel
+)

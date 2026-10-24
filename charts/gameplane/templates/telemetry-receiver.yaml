@@ -88,6 +88,7 @@ spec:
         app.kubernetes.io/name: gameplane-telemetry-receiver
         {{- include "gameplane.labels" . | nindent 8 }}
     spec:
+      {{- include "gameplane.placement" $r | nindent 6 }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532

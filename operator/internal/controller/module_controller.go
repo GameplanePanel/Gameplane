@@ -36,6 +36,14 @@ import (
 // refresh floor instead of hot-looping (F-258).
 const moduleFailedRetryInterval = minRefreshInterval
 
+// Pending catalog/version state is refreshed by the ModuleSource watch; its
+// refresh floor is only a polling backstop. Finalization has no GameServer
+// watch, so check references every five seconds until removal is safe.
+const (
+	modulePendingRetryInterval  = minRefreshInterval
+	moduleFinalizerPollInterval = 5 * time.Second
+)
+
 // ModuleReconciler materializes Module CRs into GameTemplate CRs. The
 // produced GameTemplate carries an OwnerReference back to the Module so
 // uninstall = `kubectl delete module <name>` and the K8s GC reaps the
@@ -368,7 +376,7 @@ func (r *ModuleReconciler) finalize(ctx context.Context, mod *gameplanev1alpha1.
 		}
 		// Don't release the finalizer; requeue so we re-check after the
 		// user removes the GameServers.
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: moduleFinalizerPollInterval}, nil
 	}
 
 	// Delete the materialized GameTemplate. SetControllerReference would
@@ -423,7 +431,7 @@ func (r *ModuleReconciler) markPending(ctx context.Context, mod *gameplanev1alph
 	if uerr := r.updateStatusIfChanged(ctx, mod, before); uerr != nil {
 		return ctrl.Result{}, uerr
 	}
-	return ctrl.Result{Requeue: true}, nil
+	return ctrl.Result{RequeueAfter: modulePendingRetryInterval}, nil
 }
 
 func (r *ModuleReconciler) markFailed(ctx context.Context, mod *gameplanev1alpha1.Module, reason string, err error) (ctrl.Result, error) {

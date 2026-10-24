@@ -567,6 +567,10 @@
     "defaultMessage": "These settings apply to the backing Service, not to tunnel traffic: {settings}.",
     "description": "Informational condition when hostname, source ranges or node ports are set on a server with a tunnel. settings is a comma-separated list of field names."
   },
+  "condition.tunnelready.awaitingaddress": {
+    "defaultMessage": "Waiting for the provider to assign a tunnel endpoint; the relay connection is unconfirmed.",
+    "description": "TunnelReady condition before Playit assigns an endpoint."
+  },
   "condition.tunnelready.deploymentnotready": {
     "defaultMessage": "Waiting for the tunnel deployment to become ready.",
     "description": "TunnelReady condition while the tunnel pod is not ready."
@@ -587,6 +591,10 @@
     "defaultMessage": "{provider, select, playit {The tunnel deployment is ready. Waiting for the playit endpoint assignment.} tailscale {The tunnel deployment is ready and authenticated.} other {The tunnel deployment is ready and all ports are mapped.}}",
     "description": "TunnelReady condition when the tunnel works."
   },
+  "condition.tunnelready.relayconnectionunknown": {
+    "defaultMessage": "The relay connection cannot be confirmed. Check the provider's connection status and the tunnel deployment's readiness probe.",
+    "description": "TunnelReady condition when provider connection evidence is missing or unsupported."
+  },
   "condition.tunnelready.tunnelcredentialrefused": {
     "defaultMessage": "The tunnel credentials secret ''{secret}'' is not owned by this GameServer. {remedy, select, defaultName {Add an ownerReference to this GameServer to the Secret, or delete the Secret and save the credential again from the dashboard.} other {Save the credential from the dashboard, or add an ownerReference to this GameServer to the Secret.}}",
     "description": "TunnelReady condition when the operator refuses to mount a credentials secret. secret is the secret name, remedy is defaultName or other."
@@ -594,6 +602,10 @@
   "condition.tunnelready.unknownprovider": {
     "defaultMessage": "Unknown tunnel provider ''{provider}''.",
     "description": "TunnelReady condition when the provider name is not supported."
+  },
+  "condition.tunnelready.unsupportedprotocol": {
+    "defaultMessage": "Tailscale forwards only advertised TCP and UDP ports. Remove unsupported protocols from the advertised ports.",
+    "description": "TunnelReady condition when a Tailscale template advertises a protocol other than TCP or UDP."
   },
   "condition.unquiesced.failed": {
     "defaultMessage": "The server could not be resumed after the backup. Its world may still have auto-save turned off.",

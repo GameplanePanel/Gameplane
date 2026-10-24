@@ -14,19 +14,19 @@ jobs:
         if: matrix.module == "operator"
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.12.2
+          version: v2.14.0
           working-directory: ${{ matrix.module }}
           args: --build-tags=envtest
       - name: lint (api - envtest build tags)
         if: matrix.module == "api"
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.12.2
+          version: v2.14.0
           working-directory: ${{ matrix.module }}
           args: --build-tags=envtest
       - name: lint (other modules - no build tags)
         if: matrix.module != "operator" && matrix.module != "api" && matrix.module != "test/e2e"
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.12.2
+          version: v2.14.0
           working-directory: ${{ matrix.module }}

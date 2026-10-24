@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/actions"
 	"github.com/GameplanePanel/gameplane/agent/internal/auth"
@@ -178,6 +179,7 @@ func main() {
 	// and isn't meant to be trusted with the console/files/RCON routes that
 	// cert would also unlock.
 
+	statusSource := status.New(rconClient, statusSpec)
 	mountProtected := func(protected chi.Router) {
 
 		// Console/Logs open long-lived WebSockets and Mods installs can run
@@ -198,7 +200,7 @@ func main() {
 			quiesce.Mount(bounded, rconClient, gameName, quiesceSpec)
 			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
 			actions.Mount(bounded, rconClient, gameName, actionSpecs)
-			status.Mount(bounded, rconClient, statusSpec)
+			statusSource.Mount(bounded)
 		})
 	}
 	r.Group(func(protected chi.Router) {
@@ -230,6 +232,8 @@ func main() {
 	// Prometheus metrics for per-server resource usage and player counts.
 	// Registered with the default registry so promhttp.Handler() picks it up.
 	m := metrics.New()
+	prometheus.MustRegister(statusSource)
+	go statusSource.Run(ctx)
 
 	// Resource usage: in proc mode (the operator shares the pod's PID
 	// namespace and sets GAMEPLANE_USAGE_PROC) the agent reports the game

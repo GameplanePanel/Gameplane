@@ -83,11 +83,19 @@ type ModInstall struct {
 // StatusMetric reads one live readout from an RCON command's output via a
 // named-group regex (group "value").
 type StatusMetric struct {
-	ID          string `json:"id"`
-	DisplayName string `json:"displayName,omitempty"`
-	Command     string `json:"command"`
-	Regex       string `json:"regex"`
-	Unit        string `json:"unit,omitempty"`
+	ID          string             `json:"id"`
+	DisplayName string             `json:"displayName,omitempty"`
+	Command     string             `json:"command"`
+	Regex       string             `json:"regex"`
+	Unit        string             `json:"unit,omitempty"`
+	Performance *PerformanceMetric `json:"performance,omitempty"`
+}
+
+// PerformanceMetric mirrors the optional, explicitly numeric status contract.
+type PerformanceMetric struct {
+	Signal            string  `json:"signal"`
+	Unit              string  `json:"unit"`
+	DegradedThreshold *string `json:"degradedThreshold,omitempty"`
 }
 
 // PlayerActions maps moderation actions to console command templates

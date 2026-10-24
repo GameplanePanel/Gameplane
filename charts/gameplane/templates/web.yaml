@@ -25,6 +25,7 @@ spec:
         app.kubernetes.io/name: gameplane-web
         {{- include "gameplane.labels" . | nindent 8 }}
     spec:
+      {{- include "gameplane.placement" .Values.web | nindent 6 }}
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

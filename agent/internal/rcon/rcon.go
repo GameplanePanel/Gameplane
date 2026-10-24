@@ -56,6 +56,11 @@ const (
 	// byte length (F-104).
 	minPacketSize = 10
 	maxPacketSize = 4*4096 + 10 // 16394
+
+	// sourceMaxResponseBytes permits large administrative listings while
+	// bounding the aggregate allocation across otherwise valid fragments.
+	// Status collection applies its separate, smaller 64-KiB acceptance cap.
+	sourceMaxResponseBytes = 8 * 1024 * 1024
 )
 
 // PassFn resolves the RCON password on demand (allowing rotation without restart).
@@ -86,6 +91,8 @@ type Client struct {
 
 	// execDeadline bounds a single command exchange (see Exec).
 	execDeadline time.Duration
+	// authDeadline separately bounds authentication, including all preamble packets.
+	authDeadline time.Duration
 
 	// authFailureCooldown bounds how long ensureLocked refuses to re-dial
 	// after an explicit AUTH_RESPONSE rejection (id=-1). A struct field
@@ -114,6 +121,8 @@ type Client struct {
 // (heartbeat, players, quiesce, console).
 const defaultExecDeadline = 30 * time.Second
 
+const defaultSourceAuthDeadline = 10 * time.Second
+
 // defaultAuthFailureCooldown bounds how long ensureLocked backs off after
 // an explicit auth rejection before it will dial again. Mirrors
 // websocket.go's defaultWebSocketAuthFailureCooldown — same value, same
@@ -133,6 +142,7 @@ func New(host string, port int, pw PassFn) *Client {
 		addr:                net.JoinHostPort(host, fmt.Sprint(port)),
 		password:            pw,
 		execDeadline:        defaultExecDeadline,
+		authDeadline:        defaultSourceAuthDeadline,
 		authFailureCooldown: defaultAuthFailureCooldown,
 	}
 }
@@ -154,7 +164,8 @@ func (c *Client) Exec(cmd string) (string, error) {
 	if d <= 0 {
 		d = defaultExecDeadline
 	}
-	_ = conn.SetDeadline(time.Now().Add(d))
+	exchangeDeadline := time.Now().Add(d)
+	_ = conn.SetDeadline(exchangeDeadline)
 	defer func() { _ = conn.SetDeadline(time.Time{}) }()
 
 	reqID := c.allocID()
@@ -172,12 +183,22 @@ func (c *Client) Exec(cmd string) (string, error) {
 	// reqID) and bound the wait for any trailing fragments with a short grace
 	// window: a single-packet reply returns as soon as the grace
 	// elapses or the server closes; a fragmented Source reply keeps extending
-	// the window as each fragment arrives.
+	// the window as each fragment arrives, never beyond exchangeDeadline.
 	var out bytes.Buffer
 	gotResponse := false
 	for {
+		if !time.Now().Before(exchangeDeadline) {
+			c.dropLocked()
+			return "", fmt.Errorf("rcon: command exchange deadline exceeded: %w", os.ErrDeadlineExceeded)
+		}
 		id, _, body, err := c.readPacket()
 		if err != nil {
+			if !time.Now().Before(exchangeDeadline) {
+				// Reaching the hard deadline is not evidence of a complete
+				// response. Discard its partial text and any queued fragments.
+				c.dropLocked()
+				return "", fmt.Errorf("rcon: command exchange deadline exceeded: %w", os.ErrDeadlineExceeded)
+			}
 			if gotResponse {
 				// We already hold the reply. A timeout means the grace window
 				// elapsed on a still-healthy socket — keep it for reuse. Any
@@ -196,9 +217,17 @@ func (c *Client) Exec(cmd string) (string, error) {
 		// Source/Minecraft echo the request id in every reply fragment; ignore
 		// anything else.
 		if id == reqID {
+			if len(body) > sourceMaxResponseBytes-out.Len() {
+				c.dropLocked()
+				return "", fmt.Errorf("rcon: response exceeded limit of %d bytes", sourceMaxResponseBytes)
+			}
 			out.WriteString(body)
 			gotResponse = true
-			_ = conn.SetReadDeadline(time.Now().Add(responseGrace))
+			readDeadline := time.Now().Add(responseGrace)
+			if readDeadline.After(exchangeDeadline) {
+				readDeadline = exchangeDeadline
+			}
+			_ = conn.SetReadDeadline(readDeadline)
 		}
 	}
 }
@@ -247,7 +276,12 @@ func (c *Client) ensureLocked() error {
 		return err
 	}
 	c.conn = conn
-	_ = conn.SetDeadline(time.Now().Add(10 * time.Second))
+	authBudget := c.authDeadline
+	if authBudget <= 0 {
+		authBudget = defaultSourceAuthDeadline
+	}
+	authDeadline := time.Now().Add(authBudget)
+	_ = conn.SetDeadline(authDeadline)
 
 	authID := c.allocID()
 	if err := c.writePacket(authID, typeAuth, pw); err != nil {
@@ -256,6 +290,10 @@ func (c *Client) ensureLocked() error {
 	}
 	// Server MAY send an empty RESPONSE_VALUE before AUTH_RESPONSE.
 	for {
+		if !time.Now().Before(authDeadline) {
+			c.dropLocked()
+			return fmt.Errorf("rcon: authentication deadline exceeded: %w", os.ErrDeadlineExceeded)
+		}
 		id, kind, _, err := c.readPacket()
 		if err != nil {
 			c.dropLocked()

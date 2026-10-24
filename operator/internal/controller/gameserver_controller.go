@@ -68,6 +68,12 @@ type GameServerReconciler struct {
 	// to info and existing StatefulSets don't roll on operator upgrade.
 	AgentLogLevel string
 
+	// Auxiliary resources are complete install-level overrides. Nil uses the
+	// built-in requests; a non-nil empty object explicitly clears them.
+	AgentResources    *corev1.ResourceRequirements
+	SentinelResources *corev1.ResourceRequirements
+	TunnelResources   *corev1.ResourceRequirements
+
 	// ConfigInitImage is the image for the init container that copies
 	// operator-rendered config files onto the data volume. Set from an
 	// operator flag so air-gapped installs can point it at a private
@@ -246,7 +252,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if changed, err := r.ensureWipeGuard(ctx, &gs, &wipeState); err != nil {
 		return requeueOnConflict(ctrl.Result{}, err)
 	} else if changed {
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 
 	// Resolve the template this GameServer points at. Templates are
@@ -296,6 +302,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileNetworkPolicy(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile ingress NetworkPolicy")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileSentinelIsolation(ctx, &gs, &tmpl); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileAgentTLS(ctx, &gs); err != nil {
@@ -388,7 +397,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileStatefulSet(ctx, &gs, &tmpl, ver, mc, replicas, &wipeState); err != nil {
 		if apierrors.IsConflict(err) {
-			return ctrl.Result{Requeue: true}, nil
+			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
@@ -416,7 +425,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := wipeErr; err != nil {
 		if apierrors.IsConflict(err) {
-			return ctrl.Result{Requeue: true}, nil
+			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile data wipe")
 		return ctrl.Result{}, err
@@ -1494,7 +1503,13 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		ss.Spec.Replicas = &actualReplicas
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
-		ss.Spec.Template.Labels = labels
+		ss.Spec.Template.Labels = make(map[string]string, len(labels)+1)
+		for key, value := range labels {
+			ss.Spec.Template.Labels[key] = value
+		}
+		if tmpl.Spec.SentinelIsolation {
+			ss.Spec.Template.Labels[sentinelIsolationLabel] = "true"
+		}
 		// Stamp (or clear) the config fingerprint without touching
 		// annotations other actors may have set on the pod template.
 		ann := ss.Spec.Template.Annotations
@@ -1509,7 +1524,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		ss.Spec.Template.Annotations = ann
 		ss.Spec.Template.Spec.Containers = []corev1.Container{
 			buildGameContainer(gs, tmpl, image, ver, mc),
-			buildAgentContainer(gs, tmpl, ver, r.AgentImage, r.AgentLogLevel, r.AgentImagePullPolicy),
+			buildAgentContainer(gs, tmpl, ver, r.AgentImage, r.AgentLogLevel, r.AgentImagePullPolicy, r.AgentResources),
 		}
 		volumes := []corev1.Volume{
 			{
@@ -1569,7 +1584,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					},
 				},
 			})
-			ss.Spec.Template.Spec.InitContainers = []corev1.Container{buildConfigInitContainer(r.ConfigInitImage, tmpl)}
+			ss.Spec.Template.Spec.InitContainers = []corev1.Container{buildConfigInitContainer(r.ConfigInitImage, tmpl, r.AgentResources)}
 		} else {
 			ss.Spec.Template.Spec.InitContainers = nil
 		}
@@ -1983,7 +1998,7 @@ func configInitImageOrDefault(image string) string {
 // When the template sets security.fsGroup, config-init makes each file
 // and directory it copied group-writable so a non-root game sharing that
 // fsGroup can update them.
-func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate) corev1.Container {
+func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate, defaults ...*corev1.ResourceRequirements) corev1.Container {
 	image = configInitImageOrDefault(image)
 	mountPath := effectiveMountPath(tmpl)
 	cpCmd := "cp -RL " + configFilesStagingPath + "/* '" + mountPath + "/'"
@@ -1996,9 +2011,10 @@ func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate
 	}
 
 	return corev1.Container{
-		Name:    "config-init",
-		Image:   image,
-		Command: []string{"/bin/sh", "-c"},
+		Name:      "config-init",
+		Image:     image,
+		Resources: auxiliaryResources(optionalResources(defaults), "25m", "64Mi"),
+		Command:   []string{"/bin/sh", "-c"},
 		// -L dereferences the kubelet's per-key symlinks; the * glob
 		// skips the ..data/..<timestamp> dot-entries of the Secret mount.
 		Args: []string{cpCmd},
@@ -2242,14 +2258,17 @@ func gamePodSecurityContext(tmpl *gameplanev1alpha1.GameTemplate) *corev1.PodSec
 func buildAgentContainer(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	ver *gameplanev1alpha1.GameVersion, fallbackImage, logLevel, pullPolicy string,
+	defaults ...*corev1.ResourceRequirements,
 ) corev1.Container {
 	image := fallbackImage
-	res := corev1.ResourceRequirements{}
+	res := auxiliaryResources(optionalResources(defaults), "25m", "64Mi")
 	if tmpl.Spec.Agent != nil {
 		if tmpl.Spec.Agent.Image != "" {
 			image = tmpl.Spec.Agent.Image
 		}
-		res = tmpl.Spec.Agent.Resources
+		if tmpl.Spec.Agent.Resources.Requests != nil || tmpl.Spec.Agent.Resources.Limits != nil || len(tmpl.Spec.Agent.Resources.Claims) != 0 {
+			res = *tmpl.Spec.Agent.Resources.DeepCopy()
+		}
 	}
 	mountPath := effectiveMountPath(tmpl)
 	nonRoot := true

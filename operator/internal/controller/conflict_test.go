@@ -24,16 +24,20 @@ func TestRequeueOnConflict(t *testing.T) {
 		wantRes ctrl.Result
 		wantErr bool
 	}{
-		{name: "conflict becomes quiet requeue", res: keep, err: conflict, wantRes: ctrl.Result{Requeue: true}},
-		{name: "wrapped conflict becomes quiet requeue", res: keep, err: fmt.Errorf("update status: %w", conflict), wantRes: ctrl.Result{Requeue: true}},
+		{name: "conflict becomes quiet paced retry", res: keep, err: conflict, wantRes: ctrl.Result{RequeueAfter: time.Second}},
+		{name: "wrapped conflict becomes quiet paced retry", res: keep, err: fmt.Errorf("update status: %w", conflict), wantRes: ctrl.Result{RequeueAfter: time.Second}},
 		{name: "other error passes through", res: keep, err: other, wantRes: keep, wantErr: true},
 		{name: "nil error passes result through", res: keep, err: nil, wantRes: keep},
+		{name: "settled reconcile stays settled", res: ctrl.Result{}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := requeueOnConflict(tc.res, tc.err)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("err = %v, wantErr %v", err, tc.wantErr)
+			}
+			if tc.wantErr && !errors.Is(err, tc.err) {
+				t.Fatalf("non-conflict error changed: %v, want %v", err, tc.err)
 			}
 			if got != tc.wantRes {
 				t.Errorf("result = %+v, want %+v", got, tc.wantRes)

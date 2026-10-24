@@ -9,7 +9,7 @@ from typing import ClassVar
 from unittest.mock import patch
 from subprocess import CompletedProcess
 
-from ci_scope import (E2E_BUCKETS, FORCE_ALL_FILES, ROOT, affected_modules, bot_matrix,
+from ci_scope import (E2E_AMD64_ONLY, E2E_BUCKETS, FORCE_ALL_FILES, ROOT, affected_modules, bot_matrix,
                       bucket_lists, changed_paths, e2e_outputs, full_scope_reason, image_inputs,
                       is_unmapped, load_suites, main, publish_paths, select_images, summarize,
                       verify_suites, go_packages, web_tests, CI_FILE, ci_blocks, ci_jobs,
@@ -347,10 +347,10 @@ class SelectionSummaryTests(unittest.TestCase):
         """Check every e2e bucket and bot test has a selection row."""
         rows, _ = self.web_only()
         suites = {row["suite"] for row in rows}
-        self.assertEqual(len(E2E_BUCKETS), 8)
         for bucket in E2E_BUCKETS:
             name = "e2e api-auth + ratelimit tail" if bucket == "api-auth" else f"e2e {bucket}"
-            self.assertIn(f"{name} (amd64, arm64)", suites)
+            arches = "amd64" if bucket in E2E_AMD64_ONLY else "amd64, arm64"
+            self.assertIn(f"{name} ({arches})", suites)
         for test in SUMMARY_BOTS:
             self.assertIn(f"e2e game bot / {test}", suites)
 
@@ -407,6 +407,38 @@ class E2ESelectionTests(unittest.TestCase):
     def select(self, *paths):
         """Return the e2e outputs for a partial-scope change to paths."""
         return e2e_outputs(ROOT, list(paths), None)
+
+    def test_audit_network_isolation_has_a_run_pattern(self):
+        """Affected components and the owning test file select the audit bucket."""
+        for path in ("operator/internal/controller/gameserver_controller.go",
+                     "api/cmd/main.go",
+                     "agent/cmd/main.go",
+                     "test/e2e/network_isolation_e2e_test.go"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestNetworkIsolation_EnforcedAndUpgrade",
+                              values["e2e-run"].get("network-isolation", ""))
+
+    def test_audit_monitoring_has_a_run_pattern(self):
+        """Metric producers and the owning test file select the real scrape fixture."""
+        for path in ("operator/internal/controller/gameserver_controller.go",
+                     "api/cmd/main.go", "agent/internal/status/performance.go",
+                     "tunnel/relay_health.go", "test/e2e/monitoring_e2e_test.go"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestMonitoring_DiscoveryPerformanceAndPolicy",
+                              values["e2e-run"].get("monitoring", ""))
+
+    def test_audit_management_placement_has_a_run_pattern(self):
+        """Affected components and the owning test file select the audit bucket."""
+        for path in ("operator/cmd/main.go",
+                     "api/cmd/main.go",
+                     "agent/cmd/main.go",
+                     "test/e2e/management_placement_e2e_test.go"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestManagementPlacementAndDisruption",
+                              values["e2e-run"].get("management-placement", ""))
 
     def test_agent_only_change_selects_agent_tests_and_skips_auth_and_telemetry(self):
         values = self.select("agent/internal/console/console.go")
@@ -503,6 +535,20 @@ class VerifySuitesTests(unittest.TestCase):
 
 class E2ERunTests(unittest.TestCase):
     """The e2e-run regexes that replace buckets.sh regex in the e2e jobs (T016)."""
+
+    def test_bucket_registry_matches_workflow_matrices(self):
+        """Every matrix bucket emits a run pattern and reports its real architectures."""
+        text = (ROOT / CI_FILE).read_text(encoding="utf-8")
+        owner, _ = ci_blocks(text)
+        matrices = {}
+        for number, line in enumerate(text.splitlines(), 1):
+            job = owner[number]
+            if job in {"e2e-go", "e2e-go-arm64"} and line.strip().startswith("bucket: ["):
+                self.assertNotIn(job, matrices)
+                matrices[job] = {name.strip() for name in line.split("[", 1)[1].split("]", 1)[0].split(",")}
+        self.assertEqual(set(matrices), {"e2e-go", "e2e-go-arm64"})
+        self.assertEqual(set(E2E_BUCKETS), matrices["e2e-go"] | matrices["e2e-go-arm64"])
+        self.assertEqual(E2E_AMD64_ONLY, matrices["e2e-go"] - matrices["e2e-go-arm64"])
 
     def test_full_scope_regex_equals_buckets_sh_regex(self):
         values = e2e_outputs(ROOT, None, "master push")

@@ -6,11 +6,23 @@
 
 ## Purpose
 
+The amd64 `network-isolation` bucket requires the Cilium fixture
+(`GAMEPLANE_E2E_CNI=cilium`) and strict chart CIDRs derived from the single-node
+cluster. It tests actual legacy versus isolated sentinel connections, an
+existing template's opt-in rollout without selector changes, HTTP kubelet
+readiness, fresh agent heartbeats, and API-to-agent mTLS access. It uses one
+admin login and runs separately from the kindnet shape-only checks.
+
 The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
 
 It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
 
 ## Responsibilities
+
+- Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
+- The serial `monitoring` bucket installs a checksum-pinned Prometheus Operator and Prometheus in a distinct namespace on the Cilium profile. It discovers real agent/tunnel targets through the documented chart values, verifies cached numeric samples, valid zero, invalid-value omission, no scrape-driven commands, policy revocation/recovery and refusal from an unapproved namespace. It performs no API login and does not opt in external modules.
+
+- The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
 
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
 - Exercise the full CRD lifecycle for all 8 kinds (GameServer, GameTemplate, Backup, BackupSchedule, Restore, Module, ModuleSource, Cluster) against a real API server and operator.
@@ -39,6 +51,17 @@ Helm release and mounted trust. Its temporary resources and gateway installation
 are removed through test cleanup. CI sets `GAMEPLANE_E2E_REQUIRE_GATEWAY=1`, so a
 missing second cluster fails instead of skipping the scenario. The multicluster
 Go invocation has a 45-minute deadline within the existing 60-minute job budget.
+
+### Management placement and disruption acceptance
+
+The `management-placement` bucket uses the three-node `management` Kind profile
+and performs no API login. `TestManagementPlacementAndDisruption` applies the
+chart's web placement and API/web PDBs in an isolated namespace, with sleeping
+fixture containers. It verifies real scheduling across labeled workers,
+Unschedulable status for an impossible selector, one-at-a-time eviction during
+a cordon, readiness of the surviving replica, and singleton API eviction. Node
+labels and cordons are restored in cleanup. This validates scheduler/PDB behavior,
+not application HA or storage migration.
 
 ## Non-goals / boundaries
 

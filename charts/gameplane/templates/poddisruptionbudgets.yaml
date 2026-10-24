@@ -1,0 +1,47 @@
+{{- $apiEnabled := eq (include "gameplane.apiEnabled" .) "true" -}}
+{{- $bridge := .Values.api.audit.webhook.syslogBridge -}}
+{{- $receiver := .Values.api.telemetry.receiver -}}
+{{- $gateway := .Values.gateway | default dict -}}
+{{- $components := list
+  (dict "name" "operator" "config" .Values.operator "enabled" (eq (include "gameplane.operatorEnabled" .) "true"))
+  (dict "name" "api" "config" .Values.api "enabled" $apiEnabled)
+  (dict "name" "web" "config" .Values.web "enabled" (and $apiEnabled .Values.web.enabled))
+  (dict "name" "mcp-server" "config" .Values.mcpServer "enabled" .Values.mcpServer.enabled)
+  (dict "name" "gateway" "config" $gateway "enabled" $gateway.enabled)
+  (dict "name" "audit-syslog-bridge" "config" $bridge "enabled" (and $apiEnabled $bridge.enabled (not .Values.api.audit.webhook.url)))
+  (dict "name" "telemetry-receiver" "config" $receiver "enabled" (and $apiEnabled $receiver.enabled (not .Values.api.telemetry.endpoint))) -}}
+{{- range $components -}}
+{{- $pdb := .config.pdb | default dict -}}
+{{- if and .enabled $pdb.enabled -}}
+{{- $minimum := not (kindIs "invalid" $pdb.minAvailable) -}}
+{{- $maximum := not (kindIs "invalid" $pdb.maxUnavailable) -}}
+{{- if eq .name "api" -}}
+{{- if or $minimum (and $maximum (ne (toString $pdb.maxUnavailable) "1")) -}}
+{{- fail "api.pdb must allow the singleton API to be evicted: use maxUnavailable: 1 without minAvailable" -}}
+{{- end -}}
+{{- else if and $minimum $maximum -}}
+{{- fail (printf "%s.pdb must set only one of minAvailable or maxUnavailable" .name) -}}
+{{- end }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gameplane-{{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+spec:
+  {{- if eq .name "api" }}
+  maxUnavailable: 1
+  {{- else if $minimum }}
+  minAvailable: {{ toYaml $pdb.minAvailable }}
+  {{- else if $maximum }}
+  maxUnavailable: {{ toYaml $pdb.maxUnavailable }}
+  {{- else }}
+  maxUnavailable: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gameplane-{{ .name }}
+      app.kubernetes.io/instance: {{ $.Release.Name }}
+{{- end -}}
+{{- end -}}

@@ -312,7 +312,7 @@ check_step_build_tag() {
 }
 
 # Check if the golangci-lint version is pinned to the expected value.
-# Args: expected_version (e.g., "v2.12.2")
+# Args: expected_version (e.g., "v2.14.0")
 # Returns: 0 if version is found and matches, 1 otherwise. On failure,
 # prints one line to stdout naming what was actually found so the caller
 # can report the offending value, not just "it didn't match".
@@ -325,8 +325,8 @@ check_golangci_version() {
 
 	# expected_version is interpolated directly into a =~ regex below, so
 	# any regex metacharacter in it (notably "." in a version like
-	# "v2.12.2") must be escaped first — otherwise "." matches ANY
-	# character, and a typo like "v2X12Y2" would count as a match.
+	# "v2.14.0") must be escaped first — otherwise "." matches ANY
+	# character, and a typo like "v2X14Y0" would count as a match.
 	local expected_version_re="${expected_version//./\\.}"
 
 	while IFS= read -r line; do
@@ -465,7 +465,9 @@ check_r006_no_deferral_comments() {
 # R-002/R-008/R-009: Operator and API have envtest build tags, test/e2e has e2e
 # build tags, working-directory matches matrix entry, version is pinned.
 check_r002_r008_r009_build_tags_and_version() {
-	local version_required="v2.12.2"
+	# x/tools v0.50.0 in this release reads Go 1.27.3 export-data version 5.
+	# Keep the workflow, devcontainer and valid fixtures on this exact pin.
+	local version_required="v2.14.0"
 
 	# Check operator has envtest build tag.
 	if ! check_step_build_tag "operator" "envtest"; then

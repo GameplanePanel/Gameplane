@@ -6,7 +6,7 @@
 #   deploy/kind/e2e.sh down  [cluster-name]
 #
 # Diffs from dev-up (deploy/kind/up.sh):
-#   - Single-node cluster (faster boot, sufficient for E2E coverage).
+#   - Single-node by default; management profile adds two scheduling workers.
 #   - Skips ingress-nginx (the dashboard isn't exercised here).
 #   - Loads pre-built gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,fakeoidc}:<tag>
 #     images (and gameplane-test/gameprobe:<tag> when present).
@@ -27,10 +27,15 @@ ACTION="${1:-up}"
 CLUSTER="${2:-gameplane-e2e}"
 TAG="${3:-${GAMEPLANE_E2E_TAG:-e2e}}"
 PROFILE="${4:-default}"
+CNI="${GAMEPLANE_E2E_CNI:-kindnet}"
+case "${CNI}" in
+kindnet | cilium) ;;
+*) echo "unsupported E2E CNI: ${CNI}" >&2; exit 2 ;;
+esac
 case "${PROFILE}" in
-default | postgres) ;;
+default | postgres | management) ;;
 *)
-    echo "unknown profile '${PROFILE}' (want default or postgres)" >&2
+    echo "unknown profile '${PROFILE}' (want default, postgres or management)" >&2
     exit 2
     ;;
 esac
@@ -188,15 +193,38 @@ up)
         echo "removing pre-existing cluster ${CLUSTER} for a clean slate"
         kind delete cluster --name "${CLUSTER}" || true
     fi
-    echo "creating kind cluster ${CLUSTER} (single-node)"
-    kind create cluster --name "${CLUSTER}" --wait 90s --config - <<EOF
+    echo "creating kind cluster ${CLUSTER} (${PROFILE})"
+    extra_nodes=""
+    if [[ "${PROFILE}" == "management" ]]; then
+        extra_nodes=$'  - role: worker\n  - role: worker'
+    fi
+    kind_networking=""
+    kind_wait=90s
+    if [ "${CNI}" = cilium ]; then
+        kind_networking=$'networking:\n  disableDefaultCNI: true'
+        kind_wait=0s # Nodes become Ready after Cilium is installed below.
+    fi
+    kind create cluster --name "${CLUSTER}" --wait "${kind_wait}" --config - <<EOF
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+${kind_networking}
 nodes:
   - role: control-plane
+${extra_nodes}
 EOF
 
     kubectl cluster-info --context "kind-${CLUSTER}" >/dev/null
+
+    if [ "${CNI}" = cilium ]; then
+        # Pin the enforcing CNI; kindnet does not implement NetworkPolicy.
+        # https://docs.cilium.io/en/stable/installation/kind/
+        helm upgrade --install cilium cilium --repo https://helm.cilium.io/ \
+            --version 1.20.3 --namespace kube-system \
+            --set image.pullPolicy=IfNotPresent --set ipam.mode=kubernetes \
+            --set policyCIDRMatchMode=nodes \
+            --set operator.replicas=1 --wait --timeout 5m
+        kubectl wait nodes --all --for=condition=Ready --timeout=120s
+    fi
 
     install_metallb
     apply_metallb_pools
@@ -358,6 +386,17 @@ EOF
         deployment/gameplane-test-fakeoidc --timeout=120s
 
     DB_SETS=()
+    NETWORK_SETS=()
+    if [ "${CNI}" = cilium ]; then
+        # Single-node IPv4 fixture: use actual endpoint/source addresses.
+        node_ip="$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')"
+        api_ip="$(kubectl get endpoints kubernetes -n default -o jsonpath='{.subsets[0].addresses[0].ip}')"
+        NETWORK_SETS=(--set networkPolicies.strict=true
+            --set-string "networkPolicies.kubeletCIDRs[0]=${node_ip}/32"
+            --set-string "networkPolicies.apiServerCIDRs[0]=${api_ip}/32"
+            --set networkPolicies.probePorts[0].protocol=TCP
+            --set networkPolicies.probePorts[0].port=25566)
+    fi
     if [ "${PROFILE}" = postgres ]; then
         dsn="$(kubectl get secret gameplane-postgres --namespace gameplane-system \
             -o jsonpath='{.data.dsn}' | base64 -d)"
@@ -403,6 +442,7 @@ EOF
         --set "defaultModuleSource.enabled=false" \
         --set "api.telemetry.receiver.enabled=true" \
         ${DB_SETS[@]+"${DB_SETS[@]}"} \
+        ${NETWORK_SETS[@]+"${NETWORK_SETS[@]}"} \
         --wait --timeout 5m
 
     echo

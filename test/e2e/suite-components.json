@@ -16,6 +16,9 @@
     "test/e2e/suite-components.json"
   ],
   "suites": [
+    { "tests": "^TestNetworkIsolation_", "components": ["operator", "api", "agent"] },
+    { "tests": "^TestMonitoring_DiscoveryPerformanceAndPolicy$", "components": ["operator", "api", "agent", "tunnel"] },
+    { "tests": "^TestManagementPlacementAndDisruption$", "components": ["operator", "api", "agent"] },
     { "tests": "^TestHelmInstall_", "components": ["*"] },
     { "tests": "^TestCRD_Validation_", "components": ["operator"] },
     { "tests": "^TestGameServer_", "components": ["operator", "api", "agent"] },

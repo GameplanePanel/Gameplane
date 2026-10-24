@@ -17,6 +17,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/yaml"
 )
 
@@ -221,11 +222,57 @@ func TestHelmInstall_APIHealthz(t *testing.T) {
 // metricsProbeScript runs in a transient curl pod. It prints the public
 // API port's status code for /metrics, flags a Prometheus body there, and
 // reports whether the dedicated metrics port serves Prometheus text.
-const metricsProbeScript = `code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://gameplane-api/metrics)
+const metricsProbeScript = `code=$(curl -sS -o /tmp/public-metrics -w '%{http_code}' --max-time 5 http://gameplane-api/metrics) || exit 1
 echo "public-status=$code"
-if curl -s --max-time 5 http://gameplane-api/metrics | grep -q '^# HELP'; then echo "public-body=metrics"; fi
-if curl -fsS --max-time 5 http://gameplane-api:9090/metrics | grep -q '^# HELP go_goroutines'; then echo "metrics-port=ok"; fi
+if grep -q '^# HELP' /tmp/public-metrics; then echo "public-body=metrics"; fi
+if curl -fsS -o /tmp/dedicated-metrics --max-time 5 http://gameplane-api:9090/metrics; then
+  if grep -q '^# HELP go_goroutines' /tmp/dedicated-metrics; then
+    echo "metrics-port=ok"
+  else
+    echo "metrics-port=unexpected-body"
+    head -n 10 /tmp/dedicated-metrics
+  fi
+fi
 exit 0`
+
+// Read completed Pod logs instead of attaching after its command has started.
+// A fast probe can print its verdict before kubectl run establishes the stream.
+func metricsProbeOutput(ctx context.Context, name string) (string, error) {
+	const ns = "gameplane-system"
+	noToken := false
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns}, Spec: corev1.PodSpec{
+		RestartPolicy: corev1.RestartPolicyNever, AutomountServiceAccountToken: &noToken,
+		Containers: []corev1.Container{{Name: "probe", Image: "curlimages/curl:8.10.1", Command: []string{"sh", "-c", metricsProbeScript}}},
+	}}
+	pods := envInstance.K8s.CoreV1().Pods(ns)
+	if _, err := pods.Create(ctx, pod, metav1.CreateOptions{}); err != nil {
+		return "", fmt.Errorf("create metrics probe: %w", err)
+	}
+	defer func() {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		_ = pods.Delete(cleanupCtx, name, metav1.DeleteOptions{})
+	}()
+	var phase corev1.PodPhase
+	if err := wait.PollUntilContextCancel(ctx, 250*time.Millisecond, true, func(ctx context.Context) (bool, error) {
+		current, err := pods.Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		phase = current.Status.Phase
+		return phase == corev1.PodSucceeded || phase == corev1.PodFailed, nil
+	}); err != nil {
+		return "", fmt.Errorf("wait for metrics probe (phase %s): %w", phase, err)
+	}
+	out, err := pods.GetLogs(name, &corev1.PodLogOptions{Container: "probe"}).DoRaw(ctx)
+	if err != nil {
+		return "", fmt.Errorf("read metrics probe logs: %w", err)
+	}
+	if phase != corev1.PodSucceeded {
+		return string(out), fmt.Errorf("metrics probe pod finished in phase %s", phase)
+	}
+	return string(out), nil
+}
 
 // TestHelmInstall_MetricsNotOnPublicPort — the API's public port (the
 // Service port the Ingress and the web front end route to) does not serve
@@ -240,15 +287,9 @@ func TestHelmInstall_MetricsNotOnPublicPort(t *testing.T) {
 		// Random suffix so an Eventually retry doesn't collide with a
 		// not-yet-cleaned-up pod from the previous tick.
 		name := fmt.Sprintf("metrics-probe-%d", time.Now().UnixNano())
-		o, err := envInstance.Kubectl(
-			t.Context(),
-			"run", "-n", "gameplane-system",
-			"--rm", "--restart=Never", "--attach",
-			"--image=curlimages/curl:8.10.1",
-			name,
-			"--command", "--",
-			"sh", "-c", metricsProbeScript,
-		)
+		ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+		defer cancel()
+		o, err := metricsProbeOutput(ctx, name)
 		if err != nil {
 			return false, fmt.Sprintf("metrics probe pod failed: %v\n%s", err, o)
 		}

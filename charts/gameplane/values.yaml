@@ -39,6 +39,12 @@ image:
 crds:
   autoApply:
     enabled: true
+    # The upgrade hook must be schedulable before new Deployments roll out.
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    topologySpreadConstraints: []
+    priorityClassName: ""
     # kubectl image the apply Job runs. Any image with kubectl on PATH works;
     # retag to a private mirror for air-gapped installs (needed at upgrade
     # time, and also on an install over CRDs an earlier, uninstalled release
@@ -53,17 +59,28 @@ operator:
   # Disable the operator and bundled native CRDs for a standalone central panel.
   enabled: true
   replicas: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  pdb: { enabled: false } # optional minAvailable OR maxUnavailable; defaults to maxUnavailable: 1
   logLevel: info     # zap log level: debug|info|error (warn not supported by zap's --zap-log-level)
   agentLogLevel: ""  # injected into every agent sidecar as GAMEPLANE_LOG_LEVEL (debug|info|warn|error); empty injects nothing, avoiding StatefulSet rollouts on upgrade
-  # Leader election guards against two operators reconciling at once. With a
-  # single replica it's unnecessary, and on a resource-starved node a missed
-  # lease renewal makes controller-runtime exit (the operator then crash-loops
-  # and stops reconciling). Leave on for HA installs; turn off for single-replica
-  # or constrained clusters (the e2e install sets it false).
+  # Required with multiple replicas and recommended during rolling upgrades.
+  # Disabling it with one replica selects Recreate to prevent overlapping writers.
   leaderElect: true
   resources:
     requests: { cpu: 100m, memory: 64Mi }
     limits:   { cpu: 500m, memory: 256Mi }
+  # Complete auxiliary ResourceRequirements overrides. Null/missing uses binary
+  # defaults, including on --reuse-values upgrades. {} (or requests: {}, limits:
+  # {}) clears defaults. No new CPU/memory limits are set by default.
+  agentResources: null    # requests 25m CPU / 64Mi memory; also config-init
+  sentinelResources: null # requests 25m CPU / 32Mi memory
+  tunnelResources: null   # requests 25m CPU / 64Mi memory (every provider)
+  backupResources: null   # backup/init/restore requests 100m CPU / 128Mi memory;
+                          # cleanup retains 50m / 128Mi, memory limit 512Mi
   agentImage: ""   # defaults to {image.registry}/agent:{image.tag}
   sentinelImage: ""   # defaults to {image.registry}/sentinel:{image.tag}
   # Which load-balancer address manager runs in this cluster, so the operator
@@ -133,6 +150,14 @@ api:
   # Standalone mode also skips the CRD apply hook and its RBAC.
   standalone: false
   replicas: 1        # Keep at 1. SQLite is single-writer on a RWO volume; with db.driver=postgres the user-management lock and audit hash chain are still per-process
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  # The API is a singleton: eviction causes downtime. A blocking budget would
+  # hang voluntary node drains, so only maxUnavailable: 1 is supported here.
+  pdb: { enabled: false, maxUnavailable: 1 }
   logLevel: info     # API log verbosity (debug|info|warn|error), passed as GAMEPLANE_LOG_LEVEL
   # Port of the API's Prometheus metrics listener. It is separate from the
   # public API port (the one the ingress and the web front end route to), so
@@ -241,6 +266,12 @@ api:
         facility: local0  # RFC 5424 facility: kern/user/daemon/auth/.../local0..local7
         severity: info    # emerg/alert/crit/err/warning/notice/info/debug
         replicas: 1
+        nodeSelector: {}
+        tolerations: []
+        affinity: {}
+        topologySpreadConstraints: []
+        priorityClassName: ""
+        pdb: { enabled: false }
         resources: {}
     # Native S3-compatible audit sink. When endpoint and bucket are set, the API
     # batches audit events as NDJSON and uploads them to S3 (or MinIO, Backblaze,
@@ -314,6 +345,12 @@ api:
       # Must stay 1 while persistence is enabled: the SQLite file on the PVC
       # has a single writer, so the template fails the render otherwise.
       replicas: 1
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      priorityClassName: ""
+      pdb: { enabled: false }
       resources: {}
       # Aggregate storage (SQLite on a PVC mounted at /data). With
       # persistence disabled an emptyDir is used instead and every
@@ -422,6 +459,12 @@ api:
 gateway:
   enabled: false
   replicas: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  pdb: { enabled: false }
   # Must match the Cluster resource name in the central Gameplane installation.
   clusterID: ""
   # Exact URI SAN trusted in the central API client certificate.
@@ -465,6 +508,12 @@ gateway:
 web:
   enabled: true
   replicas: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  pdb: { enabled: false }
   resources:
     requests: { cpu: 10m, memory: 16Mi }
     limits:   { cpu: 200m, memory: 128Mi }
@@ -493,6 +542,9 @@ gamesNamespace: gameplane-games
 
 networkPolicies:
   enabled: true
+  # Fail closed unless actual kubelet source CIDRs/probe ports and apiserver
+  # endpoint CIDRs are supplied. Defaults retain the legacy broad allowances.
+  strict: false
   # CIDRs that hold kubelet source IPs for liveness/readiness probes.
   # If unset, the chart falls back to RFC1918 + link-local ranges,
   # which cover most clusters without opening the public internet.
@@ -602,6 +654,12 @@ clusterOps:
 mcpServer:
   enabled: false
   replicas: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  pdb: { enabled: false }
   resources:
     requests: { cpu: 50m, memory: 32Mi }
     limits:   { cpu: 200m, memory: 128Mi }
@@ -618,6 +676,9 @@ updates:
   channel: ""
 
 serviceMonitors:
+  # Explicit escape for independently managed scrape ingress policies. This
+  # does not open any ports; you must install and verify those policies.
+  externallyManagedPolicy: false
   enabled: false   # when true, creates ServiceMonitors for operator/api/telemetry-receiver and a PodMonitor for agent sidecars on their separate plain metrics port 9090 (the control port 8090 stays mTLS-only)
   labels: {}       # additional labels applied to ServiceMonitor/PodMonitor objects for Prometheus selector matching
   # Namespace selector (standard Kubernetes namespaceSelector label match
@@ -629,9 +690,9 @@ serviceMonitors:
   # so the receiver ServiceMonitor also needs
   # api.telemetry.receiver.dashboard.tokenSecretRef.name) when
   # networkPolicies.enabled is also true. Required
-  # alongside enabled: true whenever networkPolicies.enabled is also true;
-  # left empty, both stay unreachable to Prometheus even though their
-  # ServiceMonitor/PodMonitor objects are rendered. Example:
+  # alongside enabled: true when the operator and networkPolicies are enabled;
+  # left empty, chart validation fails unless externallyManagedPolicy is true.
+  # Also permits tunnel health/metrics on port 8091. Example:
   # `{matchLabels: {kubernetes.io/metadata.name: monitoring}}`.
   scrapeNamespaceSelector: {}
 
