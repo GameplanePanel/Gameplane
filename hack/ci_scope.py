@@ -29,7 +29,8 @@ FORCE_ALL_FILES = {
 FORCE_ALL_PREFIXES = (".github/actions/",)
 # Mirrors the e2e-go matrix buckets in .github/workflows/ci.yaml.
 E2E_BUCKETS = ["operator", "api-auth", "api-roles", "api-rbac", "api-agent", "api-mods",
-               "telemetry", "optional-components"]
+               "telemetry", "optional-components", "restricted-workloads", "management-placement", "backup-preparation"]
+E2E_AMD64_ONLY = {"management-placement", "backup-preparation"}
 SUITES_FILE = "test/e2e/suite-components.json"
 # Paths no Go e2e test reads. Their own jobs keep their paths-filter gates.
 NO_E2E_FILES = {
@@ -936,7 +937,8 @@ def summarize(env, paths, reason):
     for bucket in E2E_BUCKETS:
         name = "e2e api-auth + ratelimit tail" if bucket == "api-auth" else f"e2e {bucket}"
         picked = bucket in e2e_run or (bucket == "api-auth" and "ratelimit" in e2e_run)
-        e2e_row(f"{name} (amd64, arm64)", gate("e2e"), picked, bucket, e2e_feed())
+        arches = "amd64" if bucket in E2E_AMD64_ONLY else "amd64, arm64"
+        e2e_row(f"{name} ({arches})", gate("e2e"), picked, bucket, e2e_feed())
     e2e_row("e2e multicluster (amd64, arm64)", gate("e2e"), flag(e2e, "e2e-multicluster"),
             "multicluster", e2e_feed())
     e2e_row("e2e upgrade (amd64, arm64)", gate("e2e"), flag(e2e, "e2e-upgrade"), "upgrade",

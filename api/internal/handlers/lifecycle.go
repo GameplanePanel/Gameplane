@@ -229,14 +229,14 @@ func cloneHandler(reg *kube.Registry) http.HandlerFunc {
 		clone.SetFinalizers(nil)
 		clone.SetManagedFields(nil)
 		clone.SetCreationTimestamp(metav1.Time{})
+		// A node diagnostic exception belongs to one server identity. Cloning
+		// never grants host-level diagnostic privileges to the new server.
+		unstructured.RemoveNestedField(clone.Object, "spec", "capture", "nodeDiagnostic")
 		stampOwner(clone, req)
 
-		cl := req.URL.Query().Get("cluster")
-		if cl == "" {
-			cl = scope.DefaultCluster
-		}
+		cl := scope.RequestedCluster(req)
 		if err := validateAndProtectGameServer(req.Context(), k, cl, ns, body.NewName, clone, nil); err != nil {
-			httperr.WriteCode(w, req, http.StatusForbidden, err)
+			writeServerValidationError(w, req, err)
 			return
 		}
 

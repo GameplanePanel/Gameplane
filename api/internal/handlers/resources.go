@@ -214,12 +214,9 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			}
 			obj.SetNamespace(ns)
 			if gvr.Resource == "gameservers" {
-				cl := req.URL.Query().Get("cluster")
-				if cl == "" {
-					cl = scope.DefaultCluster
-				}
+				cl := scope.RequestedCluster(req)
 				if err := validateAndProtectGameServer(req.Context(), k, cl, ns, obj.GetName(), obj, nil); err != nil {
-					httperr.WriteCode(w, req, http.StatusForbidden, err)
+					writeServerValidationError(w, req, err)
 					return
 				}
 			}
@@ -285,16 +282,9 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			// arrive as the redaction marker: keep the stored value for those.
 			cfgRules = newConfigRuleCache(k)
 			restoreRedactedConfig(req.Context(), cfgRules, obj, live)
-			cl := req.URL.Query().Get("cluster")
-			if cl == "" {
-				cl = scope.DefaultCluster
-			}
+			cl := scope.RequestedCluster(req)
 			if err := validateAndProtectGameServer(req.Context(), k, cl, ns, name, obj, live); err != nil {
-				code := http.StatusForbidden
-				if errors.Is(err, errTemplateRefImmutable) {
-					code = http.StatusConflict
-				}
-				httperr.WriteCode(w, req, code, err)
+				writeServerValidationError(w, req, err)
 				return
 			}
 		}
@@ -560,6 +550,9 @@ func validateAndProtectGameServer(
 			return errTemplateRefImmutable
 		}
 	}
+	if err := validateSnapshotDataSource(ctx, k, cl, ns, desired, live); err != nil {
+		return err
+	}
 
 	// 1. Validate spec.capture
 	captureRaw, hasCapture, _ := unstructured.NestedFieldNoCopy(desired.Object, "spec", "capture")
@@ -581,6 +574,27 @@ func validateAndProtectGameServer(
 	}
 
 	// 2. Validate spec.serviceAccountName
+	// A host-capable diagnostic exception must be a separate, synchronously
+	// audited administrator action. Generic edits may preserve an existing
+	// opt-in, but cannot grant/revoke it or inherit it on a clone.
+	nodeDiagnostic, hasNodeDiagnostic, err := unstructured.NestedBool(desired.Object, "spec", "capture", "nodeDiagnostic")
+	if err != nil {
+		return errors.New("spec.capture.nodeDiagnostic must be a boolean")
+	}
+	liveNodeDiagnostic := false
+	if live != nil {
+		liveNodeDiagnostic, _, _ = unstructured.NestedBool(live.Object, "spec", "capture", "nodeDiagnostic")
+		if !hasNodeDiagnostic && liveNodeDiagnostic {
+			if err := unstructured.SetNestedField(desired.Object, true, "spec", "capture", "nodeDiagnostic"); err != nil {
+				return fmt.Errorf("preserve node diagnostic exception: %w", err)
+			}
+			nodeDiagnostic = true
+		}
+	}
+	if nodeDiagnostic != liveNodeDiagnostic {
+		return errors.New("change the node diagnostic exception through the administrator capture-node-enable/capture-node-disable action")
+	}
+
 	sa, hasSA, _ := unstructured.NestedString(desired.Object, "spec", "serviceAccountName")
 	if !isAdmin {
 		if live == nil {

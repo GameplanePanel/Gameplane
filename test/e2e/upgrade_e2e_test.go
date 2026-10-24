@@ -115,6 +115,12 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	}
 
 	// ---- 3. upgrade to the working tree ----------------------------------
+	// Exercise the SSA migration even when the published fixture already uses
+	// Recreate: Kubernetes defaults rollingUpdate on this merge patch.
+	if out, err := envInstance.Kubectl(ctx, "-n", "gameplane-system", "patch", "deployment", "gameplane-operator",
+		"--type=merge", "-p", `{"spec":{"strategy":{"type":"RollingUpdate"}}}`); err != nil {
+		t.Fatalf("seed operator RollingUpdate strategy: %v\n%s", err, out)
+	}
 
 	upgrade := exec.CommandContext(ctx, "helm", "upgrade", "gameplane",
 		filepath.Join(repoRoot, "charts", "gameplane"),
@@ -132,6 +138,13 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	upgrade.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	if out, err := upgrade.CombinedOutput(); err != nil {
 		t.Fatalf("helm upgrade to the working-tree chart failed: %v\n%s", err, out)
+	}
+	operator, err := envInstance.K8s.AppsV1().Deployments("gameplane-system").Get(ctx, "gameplane-operator", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("read upgraded operator: %v", err)
+	}
+	if operator.Spec.Strategy.Type != "Recreate" || operator.Spec.Strategy.RollingUpdate != nil {
+		t.Fatalf("operator strategy migration retained RollingUpdate fields: %+v", operator.Spec.Strategy)
 	}
 
 	// ---- 4. the CRDs were actually updated -------------------------------

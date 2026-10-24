@@ -112,6 +112,21 @@ func wantsSnapshotFinalizer(b *gameplanev1alpha1.Backup) bool {
 // forgets the restic snapshot. Unquiesce goes first because it is time
 // critical: a world left with auto-save off is worse than an orphaned snapshot.
 func (r *BackupReconciler) finalizeDelete(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	if b.Annotations[backupPreparationDeadlineAnnotation] != "" {
+		if err := r.revokeBackupStart(ctx, b); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	if b.Spec.Strategy == "volume-snapshot" && b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded {
+		if err := r.recordSnapshotAbort(ctx, b, "CSI capture cancelled by Backup deletion"); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	if b.Annotations[backupPreparationDeadlineAnnotation] != "" && b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded {
+		if res, err := r.abortResticCopy(ctx, b, "copy cancelled by Backup deletion"); err != nil || res.RequeueAfter > 0 {
+			return res, err
+		}
+	}
 	if controllerutil.ContainsFinalizer(b, gameplanev1alpha1.BackupFinalizer) {
 		res, err := r.finalizeUnquiesce(ctx, b)
 		if err != nil || res.RequeueAfter > 0 {
@@ -420,6 +435,12 @@ func forgetJobName(backupName string) string {
 func (r *BackupReconciler) buildForgetPodSpec(b *gameplanev1alpha1.Backup) corev1.PodSpec {
 	nonRoot := true
 	uid := int64(65532)
+	resources := auxiliaryResources(r.BackupResources, "50m", "128Mi")
+	if r.BackupResources == nil {
+		// Preserve the existing bounded repository-cleanup default. Explicit
+		// install overrides replace it along with other restic worker resources.
+		resources.Limits = corev1.ResourceList{corev1.ResourceMemory: resource.MustParse("512Mi")}
+	}
 
 	env := resticEnv(b.Spec.RepoRef.Name)
 	env = append(env, corev1.EnvVar{Name: forgetSnapshotIDEnv, Value: b.Status.SnapshotID})
@@ -433,20 +454,12 @@ func (r *BackupReconciler) buildForgetPodSpec(b *gameplanev1alpha1.Backup) corev
 			SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
 		},
 		Containers: []corev1.Container{{
-			Name:    "restic",
-			Image:   resticImageOrDefault(r.ResticImage),
-			Command: []string{"/bin/sh", "-c"},
-			Args:    []string{forgetScript},
-			Env:     env,
-			Resources: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("50m"),
-					corev1.ResourceMemory: resource.MustParse("128Mi"),
-				},
-				Limits: corev1.ResourceList{
-					corev1.ResourceMemory: resource.MustParse("512Mi"),
-				},
-			},
+			Name:      "restic",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Command:   []string{"/bin/sh", "-c"},
+			Args:      []string{forgetScript},
+			Env:       env,
+			Resources: resources,
 			VolumeMounts: []corev1.VolumeMount{
 				{Name: "cache", MountPath: "/tmp"},
 			},

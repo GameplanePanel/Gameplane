@@ -119,11 +119,18 @@ type BackupReconciler struct {
 	// operator flag so air-gapped installs can point it at a private
 	// registry mirror. Empty falls back to DefaultResticImage.
 	ResticImage string
+	// BackupResources replaces resources for backup/init and repository cleanup
+	// workers. Nil uses defaults; an explicit empty object clears them.
+	BackupResources *corev1.ResourceRequirements
 	// JobBackoffLimit / JobActiveDeadlineSeconds bound the restic backup Job.
 	// Set from operator flags; nil / zero fall back to
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.
 	JobBackoffLimit          *int32
 	JobActiveDeadlineSeconds int64
+	PreparationTimeout       time.Duration
+	QuiesceTimeout           time.Duration
+	CSICaptureTimeout        time.Duration
+	HardSameNode             bool
 	// SnapshotScrapeGracePeriod bounds how long after the restic Job
 	// completes the reconciler keeps retrying to read the snapshot id from
 	// the pod logs before failing the Backup. Zero uses
@@ -232,7 +239,7 @@ func resticImageOrDefault(image string) string {
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups=snapshot.storage.k8s.io,resources=volumesnapshots,verbs=get;list;watch
-// +kubebuilder:rbac:groups=snapshot.storage.k8s.io,resources=volumesnapshotcontents,verbs=get;list;watch
+// +kubebuilder:rbac:groups=snapshot.storage.k8s.io,resources=volumesnapshotcontents,verbs=get;list;watch;delete
 
 func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	return requeueOnConflict(r.reconcile(ctx, req))
@@ -247,14 +254,18 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if !b.DeletionTimestamp.IsZero() {
 		return r.finalizeDelete(ctx, &b)
 	}
-	// Only Backups that might quiesce the world need to block on releasing
-	// it before deletion; everything else deletes immediately.
-	if b.Spec.Quiesce && !controllerutil.ContainsFinalizer(&b, gameplanev1alpha1.BackupFinalizer) {
+	if b.Annotations[backupCopyAbortAnnotation] != "" {
+		return r.abortResticCopy(ctx, &b, b.Annotations[backupCopyAbortAnnotation])
+	}
+	if b.Annotations[backupSnapshotAbortAnnotation] == "true" {
+		return r.abortVolumeSnapshot(ctx, &b, "volume snapshot capture was aborted")
+	}
+	// Every copy owns the source until its workers drain, even without quiesce.
+	if !controllerutil.ContainsFinalizer(&b, gameplanev1alpha1.BackupFinalizer) {
 		controllerutil.AddFinalizer(&b, gameplanev1alpha1.BackupFinalizer)
 		if err := r.Update(ctx, &b); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, nil
 	}
 
 	// Restic Backups own a snapshot in the repository, so hold their deletion
@@ -275,6 +286,11 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// Re-entering the full pipeline would re-validate the GameServer and repo
 	// Secret (flipping an already-Succeeded Backup to Failed if either was since
 	// deleted) and would re-create a cleaned-up Job, running a second backup.
+	if b.Status.Phase == gameplanev1alpha1.BackupPhaseSucceeded || b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed {
+		if err := r.syncBackupConsistency(ctx, &b); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 	if b.Status.Phase == gameplanev1alpha1.BackupPhaseSucceeded && b.Status.SnapshotID == "" {
 		return r.retrySnapshotScrape(ctx, &b)
 	}
@@ -286,7 +302,26 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// is outstanding, so this stays cheap on the common path.
 	if b.Status.Phase == gameplanev1alpha1.BackupPhaseSucceeded ||
 		b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed {
+		if b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed && b.Spec.Strategy == "volume-snapshot" {
+			return r.abortVolumeSnapshot(ctx, &b, b.Status.Message)
+		}
+		if b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed && b.Annotations[backupPreparationDeadlineAnnotation] != "" {
+			return r.abortResticCopy(ctx, &b, b.Status.Message)
+		}
 		return r.runUnquiesce(ctx, &b)
+	}
+	// Observe pre-upgrade workers even when multiple legacy quiesced copies
+	// already overlap. They must finish and unquiesce before new admission;
+	// trying to acquire exclusive ownership first would deadlock their cleanup.
+	if legacyBackupOwesUnquiesce(&b) && b.Spec.Strategy != "volume-snapshot" {
+		var existing batchv1.Job
+		err := r.backupAPIReader().Get(ctx, client.ObjectKeyFromObject(&b), &existing)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
+		if err == nil && metav1.IsControlledBy(&existing, &b) {
+			return r.mirrorJobStatus(ctx, &b, &existing)
+		}
 	}
 
 	// Resolve the target before building the Job: a Backup against a
@@ -300,13 +335,6 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return r.fail(ctx, &b,
 				fmt.Sprintf("GameServer %q not found in namespace %s", b.Spec.ServerRef.Name, b.Namespace))
 		}
-		return ctrl.Result{}, err
-	}
-
-	// A missing template is not fatal: it only refines the FSGroup, and
-	// buildBackupPodSecurityContext falls back to 65532 for a zero template.
-	var tmpl gameplanev1alpha1.GameTemplate
-	if err := r.Get(ctx, types.NamespacedName{Name: gs.Spec.TemplateRef.Name}, &tmpl); err != nil && !apierrors.IsNotFound(err) {
 		return ctrl.Result{}, err
 	}
 
@@ -345,26 +373,7 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 			b.Spec.RepoRef.Name, strings.Join(missing, ", ")))
 	}
 
-	if res, err := r.prepareBackupQuiesce(ctx, &b); err != nil || res.RequeueAfter > 0 {
-		return res, err
-	}
-
-	backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)
-	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace}}
-	if _, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
-		if job.CreationTimestamp.IsZero() {
-			job.Spec.BackoffLimit = &backoff
-			job.Spec.ActiveDeadlineSeconds = &deadline
-			job.Spec.Template.Labels = map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}
-			job.Spec.Template.Spec = r.buildBackupPodSpec(&b, &tmpl)
-			job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
-		}
-		return controllerutil.SetControllerReference(&b, job, r.Scheme)
-	}); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	return r.mirrorJobStatus(ctx, &b, job)
+	return r.reconcilePreparedRestic(ctx, &b)
 }
 
 // maybeQuiesce calls the agent's /quiesce endpoint once per Backup.
@@ -372,23 +381,62 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 // requeues; ErrUnsupported is recorded as "attempted but unsupported"
 // so the matching unquiesce step is skipped on terminal phase.
 func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha1.Backup) error {
+	preparation, err := parseBackupPreparation(b)
+	if err != nil {
+		return err
+	}
+	if preparation != nil && preparation.Outcome == "already-stopped" {
+		return nil
+	}
 	if !b.Spec.Quiesce {
 		return nil
 	}
-	if r.AgentClient == nil {
+	if !agentQuiesceAvailable(r.AgentClient) {
+		if preparation != nil && preparation.Outcome == "live" && b.Annotations[annoQuiesceAttempted] != "true" && b.Annotations[annoQuiesceAttempted] != "unsupported" {
+			err := fmt.Errorf("agent quiesce client was disabled after live preparation")
+			if _, ferr := r.fail(ctx, b, err.Error()); ferr != nil {
+				return ferr
+			}
+			return err
+		}
 		return nil
 	}
 	if state := b.Annotations[annoQuiesceAttempted]; state != "" && state != "pending" {
 		return nil
 	}
+	// Verify the versioned endpoint before creating the first cleanup debt.
+	// Old agents cannot mutate through it and must not pin an owner that
+	// would prevent their own upgrade. The POST still checks the UID again.
+	if preparation != nil && b.Annotations[annoQuiesceAttempted] == "" {
+		bound, ok := r.AgentClient.(podAgentQuiescer)
+		if !ok {
+			err = fmt.Errorf("agent client does not support pod-bound quiesce")
+		} else {
+			err = bound.CheckPod(ctx, b.Namespace, b.Spec.ServerRef.Name, string(preparation.PodUID))
+		}
+		if err != nil {
+			_, ferr := r.fail(ctx, b, fmt.Sprintf("quiesce identity check failed: %v", err))
+			if ferr != nil {
+				return ferr
+			}
+			return err
+		}
+	}
 	// Persist cleanup intent BEFORE save-off: a crash or a partial agent failure
 	// must still owe save-on even when quiesced-at was never recorded.
+	if err := r.setLifecycleUnquiesceIntent(ctx, b, true); err != nil {
+		return err
+	}
 	patchBackupAnnotations(b, map[string]string{annoQuiesceAttempted: "pending"})
 	if err := r.Update(ctx, b); err != nil {
 		return err
 	}
 
-	err := r.AgentClient.Quiesce(ctx, b.Namespace, b.Spec.ServerRef.Name)
+	var podUID types.UID
+	if preparation != nil {
+		podUID = preparation.PodUID
+	}
+	err = callBackupQuiesce(ctx, r.AgentClient, b.Namespace, b.Spec.ServerRef.Name, podUID, false)
 	switch {
 	case err == nil:
 		now := time.Now().UTC().Format(time.RFC3339)
@@ -402,6 +450,9 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 		patchBackupAnnotations(b, map[string]string{
 			annoQuiesceAttempted: "unsupported",
 		})
+		if err := r.setLifecycleUnquiesceIntent(ctx, b, false); err != nil {
+			return err
+		}
 	default:
 		// Hard failure (network, RCON down). Surface as Failed: a
 		// backup taken against an unflushed Minecraft world can be
@@ -520,6 +571,10 @@ func (r *BackupReconciler) mirrorJobStatus(
 		cond.Reason = string(phase)
 	}
 	newConds := upsertCondition(b.Status.Conditions, cond)
+	if phase == gameplanev1alpha1.BackupPhaseSucceeded || phase == gameplanev1alpha1.BackupPhaseFailed {
+		meta.RemoveStatusCondition(&newConds, "CaptureReady")
+	}
+	newConds = upsertCondition(newConds, backupConsistencyCondition(b))
 	if !sameConditions(b.Status.Conditions, newConds) {
 		b.Status.Conditions = newConds
 		dirty = true
@@ -609,8 +664,8 @@ func (r *BackupReconciler) runUnquiesce(ctx context.Context, b *gameplanev1alpha
 		}
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 	}
-	// When an unquiesce was actually performed, record success so the
-	// "world might be frozen" signal clears.
+	// Confirmed save-on or confirmed original-process exit clears the
+	// "world might be frozen" signal, with distinct condition reasons.
 	if _, ok := b.Annotations[annoUnquiescedAt]; ok {
 		if cerr := r.setUnquiescedCondition(ctx, b, true, ""); cerr != nil {
 			return ctrl.Result{}, cerr
@@ -629,6 +684,10 @@ func (r *BackupReconciler) setUnquiescedCondition(
 	if ok {
 		cond.Status = metav1.ConditionTrue
 		cond.Reason = "Unquiesced"
+		if b.Annotations[backupCleanupOutcomeAnnotation] == "source-gone" {
+			cond.Reason = "SourceProcessGone"
+			cond.Message = "original process no longer exists; no unquiesce RPC was sent"
+		}
 	} else {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = "Failed"
@@ -713,6 +772,11 @@ func (r *BackupReconciler) finalizeUnquiesce(ctx context.Context, b *gameplanev1
 			return ctrl.Result{}, err
 		}
 	}
+	if b.Annotations[backupSnapshotAbortAnnotation] == "true" {
+		if res, err := r.cleanupAbortedSnapshot(ctx, b); err != nil || res.RequeueAfter > 0 {
+			return res, err
+		}
+	}
 	controllerutil.RemoveFinalizer(b, gameplanev1alpha1.BackupFinalizer)
 	if err := r.Update(ctx, b); err != nil {
 		return ctrl.Result{}, err
@@ -720,49 +784,29 @@ func (r *BackupReconciler) finalizeUnquiesce(ctx context.Context, b *gameplanev1
 	return ctrl.Result{}, nil
 }
 
-// unquiesceTargetGone reports whether there is nothing left to unquiesce:
-// the target GameServer no longer exists or is itself being deleted, or its
-// pod no longer exists. A GameServer can be gone-together-with-its-Backup
-// under an auto BackupSchedule's owner chain, and a pod alone can be gone if
-// it was deleted independently of the GameServer; either way a fresh pod
-// starts with auto-save on, so retrying the unquiesce would never succeed
-// and would only block this Backup's deletion.
+// unquiesceTargetGone requires evidence that the original process has exited.
+// A deleted/deleting GameServer alone is insufficient: its pod can still run.
 func (r *BackupReconciler) unquiesceTargetGone(ctx context.Context, b *gameplanev1alpha1.Backup) (bool, error) {
 	targetName := b.Spec.ServerRef.Name
-	var targetUID types.UID
 	if value := b.Annotations[backupTargetAnnotation]; value != "" {
 		identity, err := parseBackupIdentity(value)
 		if err != nil {
 			return false, err
 		}
-		targetName, targetUID = identity.Name, identity.UID
+		targetName = identity.Name
 	}
 	if targetName == "" {
 		return true, nil
 	}
-	gs := &gameplanev1alpha1.GameServer{}
-	key := types.NamespacedName{Namespace: b.Namespace, Name: targetName}
-	switch err := r.Get(ctx, key, gs); {
-	case apierrors.IsNotFound(err):
-		return true, nil
-	case err != nil:
-		return false, fmt.Errorf("get gameserver %s to check unquiesce target: %w", key.Name, err)
-	case gs.DeletionTimestamp != nil:
-		return true, nil
+	preparation, err := parseBackupPreparation(b)
+	if err != nil {
+		return false, err
 	}
-	if targetUID != "" && gs.UID != targetUID {
-		return true, nil
+	var podUID types.UID
+	if preparation != nil {
+		podUID = preparation.PodUID
 	}
-
-	var pod corev1.Pod
-	podKey := types.NamespacedName{Namespace: b.Namespace, Name: gs.Name + "-0"}
-	switch err := r.Get(ctx, podKey, &pod); {
-	case apierrors.IsNotFound(err):
-		return true, nil
-	case err != nil:
-		return false, fmt.Errorf("get pod %s to check unquiesce target: %w", podKey.Name, err)
-	}
-	return false, nil
+	return backupQuiesceProcessGone(ctx, r.backupAPIReader(), b.Namespace, targetName, podUID)
 }
 
 // unquiesceRetryExpired records (on first call) when finalizeDelete's
@@ -850,10 +894,35 @@ func (r *BackupReconciler) maybeUnquiesce(ctx context.Context, b *gameplanev1alp
 			return fmt.Errorf("legacy quiesce cleanup is blocked by a protected backup")
 		}
 	}
-	if r.AgentClient == nil {
+	if targetName != "" {
+		gone, err := r.unquiesceTargetGone(ctx, b)
+		if err != nil {
+			return err
+		}
+		if gone {
+			patchBackupAnnotations(b, map[string]string{backupCleanupOutcomeAnnotation: "source-gone"})
+			return r.recordBackupUnquiesced(ctx, b)
+		}
+	}
+	if !agentQuiesceAvailable(r.AgentClient) {
 		return fmt.Errorf("cannot release quiesced world without an agent client")
 	}
-	if err := r.AgentClient.Unquiesce(ctx, b.Namespace, targetName); err != nil {
+	preparation, err := parseBackupPreparation(b)
+	if err != nil {
+		return err
+	}
+	var podUID types.UID
+	if preparation != nil {
+		podUID = preparation.PodUID
+	}
+	if err := callBackupQuiesce(ctx, r.AgentClient, b.Namespace, targetName, podUID, true); err != nil {
+		return err
+	}
+	return r.recordBackupUnquiesced(ctx, b)
+}
+
+func (r *BackupReconciler) recordBackupUnquiesced(ctx context.Context, b *gameplanev1alpha1.Backup) error {
+	if err := r.setLifecycleUnquiesceIntent(ctx, b, false); err != nil {
 		return err
 	}
 	patchBackupAnnotations(b, map[string]string{
@@ -887,6 +956,7 @@ func (r *BackupReconciler) readResticSummary(ctx context.Context, b *gameplanev1
 func (r *BackupReconciler) fail(ctx context.Context, b *gameplanev1alpha1.Backup, msg string) (ctrl.Result, error) {
 	now := metav1.Now()
 	b.Status.Phase = gameplanev1alpha1.BackupPhaseFailed
+	meta.RemoveStatusCondition(&b.Status.Conditions, "CaptureReady")
 	b.Status.ObservedGeneration = b.Generation
 	if b.Status.Message != msg {
 		b.Status.Message = msg
@@ -901,6 +971,7 @@ func (r *BackupReconciler) fail(ctx context.Context, b *gameplanev1alpha1.Backup
 		Message:            msg,
 		ObservedGeneration: b.Generation,
 	})
+	b.Status.Conditions = upsertCondition(b.Status.Conditions, backupConsistencyCondition(b))
 	if err := r.Status().Update(ctx, b); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -965,9 +1036,10 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 	return corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		InitContainers: []corev1.Container{{
-			Name:    "restic-init",
-			Image:   resticImageOrDefault(r.ResticImage),
-			Command: []string{"/bin/sh", "-c"},
+			Name:      "restic-init",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
+			Command:   []string{"/bin/sh", "-c"},
 			// `cat config` is the canonical "does the repo exist" probe;
 			// `init` is idempotent against an empty target.
 			Args: []string{"restic cat config --no-lock >/dev/null 2>&1 || restic init"},
@@ -978,10 +1050,11 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 			SecurityContext: containerSec,
 		}},
 		Containers: []corev1.Container{{
-			Name:  "restic",
-			Image: resticImageOrDefault(r.ResticImage),
-			Args:  args,
-			Env:   env,
+			Name:      "restic",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
+			Args:      args,
+			Env:       env,
 			VolumeMounts: []corev1.VolumeMount{
 				{Name: "data", MountPath: "/data", ReadOnly: true},
 				{Name: "cache", MountPath: "/tmp"},

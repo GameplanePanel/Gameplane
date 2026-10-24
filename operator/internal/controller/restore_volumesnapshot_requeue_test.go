@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -75,7 +76,7 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 		},
 	}
 	restore := &gameplanev1alpha1.Restore{
-		ObjectMeta: metav1.ObjectMeta{Name: "rs", Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: "rs", Namespace: ns, UID: "uid-restore"},
 		Spec: gameplanev1alpha1.RestoreSpec{
 			BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "smp-vs"},
 			ServerRef: gameplanev1alpha1.LocalObjectRef{Name: restoredName},
@@ -105,6 +106,8 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 				switch o := obj.(type) {
 				case *gameplanev1alpha1.GameServer:
 					if o.Name == restoredName {
+						// The fake client does not assign API-server identities.
+						o.UID = "uid-restored"
 						restoredCreated = true
 					}
 				case *corev1.Secret:
@@ -149,13 +152,32 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 	if err := pass("stale-cache pass"); err != nil {
 		t.Fatalf("stale-cache pass: want requeue without error, got %v", err)
 	}
-	// Pass 3: cache caught up; the await path re-ensures the copy but the
-	// write still fails transiently.
+	// Pass 3: cache caught up; persist the new target's UID and cleanup
+	// finalizer before claiming its durable lifecycle owner on the next pass.
 	staleRestored = false
+	if err := pass("bind target pass"); err != nil {
+		t.Fatalf("bind target pass: unexpected error: %v", err)
+	}
+	var bound gameplanev1alpha1.Restore
+	if err := cl.Get(ctx, client.ObjectKeyFromObject(restore), &bound); err != nil {
+		t.Fatalf("get bound restore: %v", err)
+	}
+	target, err := parseRestoreIdentity(bound.Annotations[restoreTargetAnnotation])
+	if err != nil || target.Name != restoredName || target.UID != "uid-restored" {
+		t.Fatalf("bound target = %+v, error = %v; want restored server identity", target, err)
+	}
+	if !controllerutil.ContainsFinalizer(&bound, restoreCleanupFinalizer) {
+		t.Fatal("bound restore is missing its cleanup finalizer")
+	}
+	if failSecretCreates != 1 {
+		t.Fatalf("binding attempted a copy before admission: remaining failures = %d, want 1", failSecretCreates)
+	}
+	// Pass 4: the shared owner is acquired; the await path re-ensures the
+	// copy but the write still fails transiently.
 	if err := pass("await pass with write error"); err == nil {
 		t.Fatal("await pass: want the transient copy error returned for requeue, got nil")
 	}
-	// Pass 4: errors cleared; the copy is made.
+	// Pass 5: errors cleared; the copy is made.
 	if err := pass("await pass"); err != nil {
 		t.Fatalf("await pass: unexpected error: %v", err)
 	}
@@ -164,6 +186,10 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 	var restored gameplanev1alpha1.GameServer
 	if err := cl.Get(ctx, types.NamespacedName{Namespace: ns, Name: restoredName}, &restored); err != nil {
 		t.Fatalf("get restored server: %v", err)
+	}
+	owner, occupied, err := lifecycleOwner(&restored)
+	if err != nil || !occupied || !sameLifecycleOwner(owner.lifecycleIdentity, restoreLifecycleIdentity(&restored, restore)) || !owner.InitialStartup {
+		t.Fatalf("restored lifecycle owner = %+v, occupied = %v, error = %v; want initial-startup restore owner", owner, occupied, err)
 	}
 	if got := restored.Spec.Env[0].ValueFrom.SecretKeyRef.Name; got != copyName {
 		t.Errorf("restored env secret ref = %q, want copy %q", got, copyName)

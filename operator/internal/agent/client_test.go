@@ -122,6 +122,46 @@ func TestAgentURL(t *testing.T) {
 	}
 }
 
+func TestPodBoundQuiesceNeverFallsBackToLegacyRoute(t *testing.T) {
+	for _, status := range []int{http.StatusOK, http.StatusNotFound} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			paths := []string{}
+			c, closeServer := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
+				paths = append(paths, r.URL.Path)
+				w.WriteHeader(status)
+				_, _ = w.Write([]byte(`{"quiesced":true}`))
+			})
+			defer closeServer()
+			err := c.QuiescePod(t.Context(), "ns", "server", "original-pod")
+			if (err == nil) != (status == http.StatusOK) {
+				t.Fatalf("status=%d error=%v", status, err)
+			}
+			if len(paths) != 1 || paths[0] != "/v1/pods/original-pod/quiesce" {
+				t.Fatalf("unbound mutation/fallback: %v", paths)
+			}
+		})
+	}
+}
+
+func TestPodBoundUnquiesceAndDisabledClient(t *testing.T) {
+	c, closeServer := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/pods/original-pod/unquiesce" {
+			t.Errorf("wrong cleanup target: %s", r.URL.Path)
+		}
+		_, _ = w.Write([]byte(`{"quiesced":false}`))
+	})
+	defer closeServer()
+	if err := c.UnquiescePod(t.Context(), "ns", "server", "original-pod"); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.QuiescePod(t.Context(), "ns", "server", ""); err == nil {
+		t.Fatal("empty pod UID admitted")
+	}
+	if err := (&Client{Disabled: true}).QuiescePod(t.Context(), "ns", "server", "pod"); err == nil {
+		t.Fatal("disabled client reported identity-bound quiesce")
+	}
+}
+
 func TestQuiesce_DisabledNoOp(t *testing.T) {
 	c := &Client{Disabled: true}
 	if err := c.Quiesce(context.Background(), "ns", "srv"); err != nil {
@@ -254,6 +294,32 @@ func TestUnquiesce_HappyPath(t *testing.T) {
 	defer cleanup()
 	if err := c.Unquiesce(context.Background(), "ns", "srv"); err != nil {
 		t.Fatalf("err: %v", err)
+	}
+}
+
+func TestCheckPodRequiresIdentityEndpoint(t *testing.T) {
+	for _, status := range []int{http.StatusNoContent, http.StatusNotFound, http.StatusOK, http.StatusServiceUnavailable} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			calls := 0
+			c, cleanup := newMockClient(t, func(w http.ResponseWriter, req *http.Request) {
+				calls++
+				if req.Method != http.MethodGet || req.URL.Path != "/v1/pods/original/identity" {
+					t.Errorf("unexpected preflight request: %s %s", req.Method, req.URL.Path)
+				}
+				w.WriteHeader(status)
+			})
+			defer cleanup()
+			err := c.CheckPod(t.Context(), "ns", "server", "original")
+			if (err == nil) != (status == http.StatusNoContent) || calls != 1 {
+				t.Fatalf("identity result = %v, calls = %d", err, calls)
+			}
+		})
+	}
+	if err := (&Client{Disabled: true}).CheckPod(t.Context(), "ns", "server", "original"); err == nil {
+		t.Fatal("disabled client confirmed identity")
+	}
+	if err := (&Client{}).CheckPod(t.Context(), "ns", "server", ""); err == nil {
+		t.Fatal("empty pod UID confirmed identity")
 	}
 }
 

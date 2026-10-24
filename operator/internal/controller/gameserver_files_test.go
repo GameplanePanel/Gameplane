@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -95,17 +99,72 @@ func TestBuildConfigInitContainer_GroupWritableWithFSGroup(t *testing.T) {
 		t.Errorf("args should not contain chmod -R, got %q", arg)
 	}
 
-	// The whole command must be valid shell: the mount path is single-quoted
-	// and closed before the loop variable, so $p still expands.
-	want := "cp -RL " + configFilesStagingPath + "/* '/data/' && cd " + configFilesStagingPath +
-		" && find ./* -follow \\( -type f -o -type d \\) | while IFS= read -r p; do chmod g+w '/data/'\"$p\"; done"
-	if arg != want {
-		t.Errorf("config-init command =\n  %q\nwant\n  %q", arg, want)
+	if !strings.Contains(arg, "stat -c %g") || !strings.Contains(arg, "stat -c %a") {
+		t.Errorf("already-correct ownership and modes must be checked before mutation: %q", arg)
 	}
 
 	// Verify the command contains "find ./*"
 	if !strings.Contains(arg, "find ./*") {
 		t.Errorf("args should contain 'find ./*' to handle entries starting with '-', got %q", arg)
+	}
+}
+
+// The second start models files that are writable through fsGroup but cannot
+// be chmodded by the init UID, as occurs on a root-to-Restricted transition.
+func TestBuildConfigInitContainer_ReusesSharedFilesWithoutOwnership(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("config-init runs in Linux containers")
+	}
+	dir := t.TempDir()
+	staging, data := filepath.Join(dir, "staging"), filepath.Join(dir, "data")
+	for _, path := range []string{filepath.Join(staging, "cfg"), data} {
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	source := filepath.Join(staging, "cfg", "profile.txt")
+	if err := os.WriteFile(source, []byte("first"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	unrelated := filepath.Join(data, "world.dat")
+	if err := os.WriteFile(unrelated, []byte("world"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &gameplanev1alpha1.GameTemplate{}
+	tmpl.Spec.Security = &gameplanev1alpha1.GameSecuritySpec{FSGroup: ptrTo(int64(os.Getgid()))}
+	tmpl.Spec.Storage.MountPath = data
+	c := buildConfigInitContainer("", tmpl)
+	if c.SecurityContext == nil || c.SecurityContext.RunAsGroup == nil || *c.SecurityContext.RunAsGroup != *tmpl.Spec.Security.FSGroup {
+		t.Fatal("config bootstrap must create files in the shared volume group")
+	}
+	script := strings.ReplaceAll(c.Args[0], configFilesStagingPath, "'"+staging+"'")
+	if out, err := exec.CommandContext(t.Context(), "/bin/sh", "-c", script).CombinedOutput(); err != nil {
+		t.Fatalf("bootstrap: %v %s", err, out)
+	}
+	// A non-owner cannot change modes or groups, even when their requested
+	// values are unchanged. Reject both operations on the second invocation.
+	bin := filepath.Join(dir, "bin")
+	if err := os.Mkdir(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"chmod", "chgrp"} {
+		if err := os.WriteFile(filepath.Join(bin, name), []byte("#!/bin/sh\necho unexpected ownership mutation >&2\nexit 1\n"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(source, []byte("updated"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.CommandContext(t.Context(), "/bin/sh", "-c", script)
+	command.Env = append(os.Environ(), "PATH="+bin+":"+os.Getenv("PATH"))
+	if out, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("repeat copy required ownership of writable files: %v %s", err, out)
+	}
+	if got, err := os.ReadFile(filepath.Join(data, "cfg", "profile.txt")); err != nil || string(got) != "updated" {
+		t.Fatalf("config was not replaced: %q %v", got, err)
+	}
+	if info, err := os.Stat(unrelated); err != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("unrelated data permissions changed: %v %v", info, err)
 	}
 }
 

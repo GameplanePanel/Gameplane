@@ -5,6 +5,22 @@
 
 ## Purpose
 
+### Node diagnostic exception (#714)
+
+`POST /servers/{name}:capture-node-enable` and `:capture-node-disable` require
+cluster-wide administrator authority in the selected cluster in addition to
+capture-management routing; a namespace-only wildcard grant is insufficient.
+Enable synchronously audits the server UID and
+host-privilege intent before a UID/resourceVersion-fenced patch; audit failure
+grants nothing. Generic create/update cannot change `capture.nodeDiagnostic`,
+and clones clear it. Generic updates that omit the field preserve its live
+value, including clients that omit the entire capture object. Explicit changes
+still require the dedicated audited action. Disable requests cancellation of active captures. Other
+capture operations retain capture permissions and existing scope/provenance
+checks. A node capture's operator annotation and immutable capture UID derive
+its diagnostic Service; local and gateway file downloads use UID-bound mTLS
+routes. Capture deletion delegates node artifact cleanup to the CR finalizer.
+
 The api module is the REST + WebSocket gateway for Gameplane, serving the web dashboard and external integrations. It exposes the Kubernetes game-server CRDs (GameServer, GameTemplate, Backup, BackupSchedule, Restore, Module, ModuleSource, Cluster) and operator-reconciled state through a type-safe HTTP surface with multi-cluster support, role-based access control, and audit logging.
 
 ## Responsibilities
@@ -483,6 +499,7 @@ audit:read, config:read, config:manage (cluster-scoped)
 
 **Owner/collaborator fallback:**
 - Generic GameServer POST/PUT reserve annotations under `gameplane.local` and its subdomains for authorized API operations and controllers, except the editable `gameplane.local/description` and unused legacy `gameplane.local/grace-period-seconds` hints: POST strips protected supplied values before stamping the creator; PUT restores their live values, including omitted keys. This protects ownership, wipe/restart/wake requests, acknowledgements and lifecycle guards without restricting ordinary settings or other annotation domains. Dedicated lifecycle/ownership routes retain their existing authorization and confirmation checks.
+- Setting, replacing or removing `spec.storage.dataSource` through GameServer POST/PUT requires both `servers:write` and `backups:restore` on the selected cluster and namespace. A new source must be a same-namespace, ready VolumeSnapshot controlled by a live successful Backup with the exact owner UID and matching snapshot ID; orphaned, foreign, replaced, deleting, unfinished and aborted captures are rejected. This also applies to clone. A durable abort marker on either object rejects late driver readiness even before the Backup status update. Unchanged sources do not block ordinary edits after the original snapshot expires. The Restore reconciler's direct creation path is unchanged.
 - When namespace permission is denied and request targets a GameServer, check if caller is owner or collaborator
 - Owner-only operations (`:transfer`, `:collaborators`, `:wipe-data`, bare DELETE) deny collaborators
 - Owner-only operations need the server's owner or an admin (a role holding `*` in the resolved cluster and namespace), whatever namespace permission the caller holds: the namespace `servers:write` permission alone does not grant them, and a server with no owner annotation (for example one created with kubectl or GitOps) is admin-only for them. `rbac.Middleware` enforces the rule for all four; the `:transfer`, `:collaborators` and `:wipe-data` handlers repeat the check (`requireOwnerOrAdmin` in `handlers/ownership.go`). Those three handlers pin their merge patch to the `resourceVersion` the check read (`patchServerAsOwner`); on a 409 Conflict they re-read the server and repeat the check (a caller who lost ownership meanwhile gets 403), retrying up to three times before returning 409. Other server writes keep their namespace permission rules.
