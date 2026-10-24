@@ -113,6 +113,7 @@ spec:
         app.kubernetes.io/name: gameplane-gateway
         {{- include "gameplane.labels" . | nindent 8 }}
     spec:
+      {{- include "gameplane.placement" $gateway | nindent 6 }}
       serviceAccountName: gameplane-gateway
       securityContext:
         runAsNonRoot: true

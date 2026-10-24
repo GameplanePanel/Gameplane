@@ -1,3 +1,6 @@
+{{- if and (eq (include "gameplane.operatorEnabled" .) "true") (gt (int .Values.operator.replicas) 1) (not .Values.operator.leaderElect) }}
+{{- fail "operator.leaderElect must be enabled with more than one replica" }}
+{{- end }}
 {{- if .Values.api.standalone }}
 {{- if ne (include "gameplane.apiEnabled" .) "true" }}
 {{- fail "api.standalone requires api.enabled=true" }}

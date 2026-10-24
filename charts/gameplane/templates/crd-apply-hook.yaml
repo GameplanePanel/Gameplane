@@ -194,6 +194,7 @@ spec:
         app.kubernetes.io/name: gameplane-crd-apply
         {{- include "gameplane.labels" . | nindent 8 }}
     spec:
+      {{- include "gameplane.placement" .Values.crds.autoApply | nindent 6 }}
       serviceAccountName: {{ .Release.Name }}-crd-apply
       restartPolicy: Never
       securityContext:

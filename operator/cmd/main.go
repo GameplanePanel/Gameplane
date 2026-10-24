@@ -150,10 +150,18 @@ func main() {
 		captureDefaultMaxSizeBytes       int64
 		backupJobBackoffLimit            int64
 		backupJobActiveDeadlineSeconds   int64
+		agentResourcesJSON               string
+		sentinelResourcesJSON            string
+		tunnelResourcesJSON              string
+		backupResourcesJSON              string
 	)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "Address the metrics endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "Address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
+	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
+	flag.StringVar(&tunnelResourcesJSON, "tunnel-resources", "", "JSON ResourceRequirements for tunnel relays; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&backupResourcesJSON, "backup-resources", "", "JSON ResourceRequirements for restic backup/init, restore and cleanup workers; default backup/restore requests 100m/128Mi, {} clears defaults.")
 	flag.StringVar(&agentImage, "agent-image", "ghcr.io/gameplanepanel/gameplane/agent:dev",
 		"Image to use for the Gameplane agent sidecar injected into game pods.")
 	flag.StringVar(&agentImagePullPolicy, "agent-image-pull-policy", "",
@@ -263,6 +271,26 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
 
+	agentResources, err := controller.ParseAuxiliaryResources(agentResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --agent-resources")
+		os.Exit(1)
+	}
+	sentinelResources, err := controller.ParseAuxiliaryResources(sentinelResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --sentinel-resources")
+		os.Exit(1)
+	}
+	tunnelResources, err := controller.ParseAuxiliaryResources(tunnelResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --tunnel-resources")
+		os.Exit(1)
+	}
+	backupResources, err := controller.ParseAuxiliaryResources(backupResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --backup-resources")
+		os.Exit(1)
+	}
 	backupJobBackoff32, err := boundedInt32(backupJobBackoffLimit) // rejects <0 and >MaxInt32
 	if err != nil {
 		setupLog.Error(err, "invalid --backup-job-backoff-limit value (must be >= 0)", "value", backupJobBackoffLimit)
@@ -380,6 +408,9 @@ func main() {
 		APIReader:              mgr.GetAPIReader(),
 		Scheme:                 mgr.GetScheme(),
 		AgentImage:             agentImage,
+		AgentResources:         agentResources,
+		SentinelResources:      sentinelResources,
+		TunnelResources:        tunnelResources,
 		AgentImagePullPolicy:   agentImagePullPolicy,
 		ConfigInitImage:        configInitImage,
 		SentinelImage:          sentinelImage,
@@ -419,6 +450,7 @@ func main() {
 		Clientset:                kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		AgentClient:              agentClient,
 		ResticImage:              resticImage,
+		BackupResources:          backupResources,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 		EventRecorder:            mgr.GetEventRecorder("backup-controller"),
@@ -438,6 +470,7 @@ func main() {
 		APIReader:                mgr.GetAPIReader(),
 		Scheme:                   mgr.GetScheme(),
 		ResticImage:              resticImage,
+		BackupResources:          backupResources,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 	}).SetupWithManager(mgr); err != nil {

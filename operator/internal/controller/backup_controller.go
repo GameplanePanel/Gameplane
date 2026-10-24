@@ -119,6 +119,9 @@ type BackupReconciler struct {
 	// operator flag so air-gapped installs can point it at a private
 	// registry mirror. Empty falls back to DefaultResticImage.
 	ResticImage string
+	// BackupResources replaces resources for backup/init and repository cleanup
+	// workers. Nil uses defaults; an explicit empty object clears them.
+	BackupResources *corev1.ResourceRequirements
 	// JobBackoffLimit / JobActiveDeadlineSeconds bound the restic backup Job.
 	// Set from operator flags; nil / zero fall back to
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.
@@ -965,9 +968,10 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 	return corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		InitContainers: []corev1.Container{{
-			Name:    "restic-init",
-			Image:   resticImageOrDefault(r.ResticImage),
-			Command: []string{"/bin/sh", "-c"},
+			Name:      "restic-init",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
+			Command:   []string{"/bin/sh", "-c"},
 			// `cat config` is the canonical "does the repo exist" probe;
 			// `init` is idempotent against an empty target.
 			Args: []string{"restic cat config --no-lock >/dev/null 2>&1 || restic init"},
@@ -978,10 +982,11 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 			SecurityContext: containerSec,
 		}},
 		Containers: []corev1.Container{{
-			Name:  "restic",
-			Image: resticImageOrDefault(r.ResticImage),
-			Args:  args,
-			Env:   env,
+			Name:      "restic",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
+			Args:      args,
+			Env:       env,
 			VolumeMounts: []corev1.VolumeMount{
 				{Name: "data", MountPath: "/data", ReadOnly: true},
 				{Name: "cache", MountPath: "/tmp"},

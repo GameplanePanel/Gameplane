@@ -131,6 +131,20 @@ Nine CRD kinds under `gameplane.local/v1alpha1`:
 
 ## Reconcilers
 
+### Auxiliary resource reservations
+
+Install flags `--agent-resources`, `--sentinel-resources`, `--tunnel-resources`
+and `--backup-resources` accept complete JSON ResourceRequirements objects.
+Absent flags use requests of 25m/64Mi for agent/config-init, 25m/32Mi for sentinel,
+25m/64Mi for each tunnel provider, and 100m/128Mi for Restic backup/init/restore.
+No new limits are set. Forget/prune retains 50m/128Mi and its existing 512Mi
+memory limit when no override is configured. Explicit `{}` clears defaults.
+Builders deep-copy resource maps. Template agent requests/limits, when declared,
+replace install agent defaults; image-only overrides keep those defaults.
+Game resources and GameServer placement retain their existing semantics.
+Chart placement and optional PDBs are documented in
+[`docs/production-placement.md`](../docs/production-placement.md).
+
 Primary reconcilers register with the manager in `cmd/main.go` and handle CRD lifecycle:
 
 ### GameServerReconciler

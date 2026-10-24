@@ -40,6 +40,17 @@ are removed through test cleanup. CI sets `GAMEPLANE_E2E_REQUIRE_GATEWAY=1`, so 
 missing second cluster fails instead of skipping the scenario. The multicluster
 Go invocation has a 45-minute deadline within the existing 60-minute job budget.
 
+### Management placement and disruption acceptance
+
+The `management-placement` bucket uses the three-node `management` Kind profile
+and performs no API login. `TestManagementPlacementAndDisruption` applies the
+chart's web placement and API/web PDBs in an isolated namespace, with sleeping
+fixture containers. It verifies real scheduling across labeled workers,
+Unschedulable status for an impossible selector, one-at-a-time eviction during
+a cordon, readiness of the surviving replica, and singleton API eviction. Node
+labels and cordons are restored in cleanup. This validates scheduler/PDB behavior,
+not application HA or storage migration.
+
 ## Non-goals / boundaries
 
 - Does **not** replace the unit or envtest tiers for any other module — it exercises integration behavior, not the exhaustive branch coverage those tiers own (this module carries no `.testcoverage.yml` coverage gate).
@@ -55,6 +66,11 @@ Go invocation has a 45-minute deadline within the existing 60-minute job budget.
 The golangci-lint job mirrors this: it must be invoked with `--build-tags=e2e` or it lints an effectively-empty package (only the 29 untagged files: `Dockerfile`-adjacent Go tooling, `internal/` package code not gated by the tag, fixtures, etc.).
 
 ## The bucket contract — the module's most important invariant
+
+The `management-placement` audit bucket is registered in the change-based selector,
+with explicit component mapping and an amd64-only selection-summary row. Its
+matrix leg skips cluster setup only when its selected test pattern is empty;
+full-scope and affected-component runs must include it.
 
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 

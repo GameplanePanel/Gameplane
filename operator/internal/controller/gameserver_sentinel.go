@@ -278,8 +278,9 @@ func (r *GameServerReconciler) reconcileSentinel(
 
 		dep.Spec.Template.Spec.ServiceAccountName = sentinelSAName(gs)
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
-			Name:  "sentinel",
-			Image: image,
+			Name:      "sentinel",
+			Image:     image,
+			Resources: auxiliaryResources(r.SentinelResources, "25m", "32Mi"),
 			Env: []corev1.EnvVar{
 				{Name: "GAMESERVER_NAME", Value: gs.Name},
 				{Name: "GAMESERVER_NAMESPACE", Value: gs.Namespace},
