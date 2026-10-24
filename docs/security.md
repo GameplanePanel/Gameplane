@@ -954,6 +954,23 @@ cluster, don't enable `mcpServer` there.
 
 ## Secrets
 
+The operator's Secret authority is namespace-local. Its manager cache, including
+the GameServer controller's `Owns(Secret)` informer and lazy Secret reads, uses
+the union of configured game, control-plane, CA and module namespaces. The chart
+grants Secret `get/list/watch` with Roles in precisely that set, with Secret writes
+retained only in managed game namespaces. Empty or malformed namespace entries
+fail startup. Other resource informers remain cluster-wide, including cluster-scoped
+Gameplane CRDs; this does not grant Secret reads outside the configured set.
+
+Remote-cluster registration reads the kubeconfig Secret from the configured local
+control-plane namespace and performs remote discovery, without opening remote
+Secret informers. The direct readers used for workload lifecycle checks remain
+subject to the same Kubernetes RBAC boundary. The API's credentials and grants
+are separate from the operator's. A cluster administrator can widen access with
+additional RoleBindings; the boundary assumes no such extra grants. See
+[operator Secret upgrades](install.md#upgrading-the-operator-secret-boundary) for
+namespace registration and migration steps.
+
 Combined installations store management credentials in Kubernetes Secrets.
 Standalone panels store their labelled management credentials, including remote
 kubeconfigs, gateway keys, OIDC client secrets, notification credentials, and mod

@@ -1,4 +1,6 @@
 {{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
+{{- $gameNamespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
+{{- $secretNamespaces := include "gameplane.operatorSecretNamespaces" . | fromJsonArray }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -6,10 +8,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 ---
-# Cluster-wide reads: the operator watches Gameplane CRDs and workload
-# primitives across all namespaces (multi-namespace installs are a
-# supported future mode). Reads are broad; writes are narrower and
-# bound per-namespace via the Role below.
+# Cluster-wide reads for Gameplane CRDs and non-Secret workload primitives.
+# Secret reads and informers share an explicit namespace set; the Roles below
+# grant no Secret access outside that set. Workload writes are namespace-local.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -55,7 +56,7 @@ rules:
     resources: [jobs]
     verbs: [get, list, watch]
   - apiGroups: [""]
-    resources: [services, persistentvolumeclaims, configmaps, secrets, pods, pods/log, serviceaccounts]
+    resources: [services, persistentvolumeclaims, configmaps, pods, pods/log, serviceaccounts]
     verbs: [get, list, watch]
   # The GameServer controller owns per-server agent RBAC objects and
   # watches them for drift repair; writes stay namespace-scoped below.
@@ -121,14 +122,14 @@ subjects:
 # Namespace-scoped writes: the operator mutates StatefulSets, Services,
 # PVCs, Secrets (for RCON passwords + mTLS server certs), Jobs (for
 # backups), and the Gameplane CRDs themselves — but only in the games
-# namespace. A multi-namespace install creates additional RoleBindings
-# here.
+# namespaces explicitly configured in gamesNamespace/operator.gameNamespaces.
+{{- range $namespace := $gameNamespaces }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ .Release.Name }}-operator-manage
-  namespace: {{ .Values.gamesNamespace }}
-  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  name: {{ $.Release.Name }}-operator-manage
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
     resources: [gameservers, backups, backupschedules, restores, networkcaptures]
@@ -151,15 +152,15 @@ rules:
   # softStop writes the module-declared stop sequence to a consoleMode:
   # pty game's stdin via this subresource when it has no RCON to run the
   # sequence over instead (see operator/internal/controller/gameserver_stop_attach.go).
-  # Namespace-scoped, not cluster-wide: game pods only ever exist in
-  # gamesNamespace, and pods/attach create is exec-equivalent — granting
+  # Namespace-scoped, not cluster-wide: each configured games namespace
+  # gets its own Role, and pods/attach create is exec-equivalent — granting
   # it cluster-wide would let the operator attach to stdin of any pod in
   # any namespace, including kube-system and the API pod.
   - apiGroups: [""]
     resources: [pods/attach]
     verbs: [create]
   # Network capture sidecar injection via ephemeral containers (reconcileCapture
-  # in gameserver_controller.go). Namespace-scoped to gamesNamespace only.
+  # in gameserver_controller.go). Namespace-scoped to this managed namespace.
   - apiGroups: [""]
     resources: [pods/ephemeralcontainers]
     verbs: [get, patch, update]
@@ -189,18 +190,47 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Release.Name }}-operator-manage
-  namespace: {{ .Values.gamesNamespace }}
-  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  name: {{ $.Release.Name }}-operator-manage
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ .Release.Name }}-operator-manage
+  name: {{ $.Release.Name }}-operator-manage
 subjects:
   - kind: ServiceAccount
     name: gameplane-operator
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ $.Release.Namespace }}
 ---
+{{- end }}
+{{- range $namespace := $secretNamespaces }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-operator-secrets
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-operator-secrets
+  namespace: {{ $namespace }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $.Release.Name }}-operator-secrets
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-operator
+    namespace: {{ $.Release.Namespace }}
+---
+{{- end }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -312,8 +342,10 @@ spec:
             - --agent-client-cert=/etc/gameplane/agent-client/tls.crt
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             - --agent-ca-secret-name={{ .Values.api.agentMTLS.caSecretRef.name }}
-            - --agent-ca-secret-namespace={{ .Release.Namespace }}
-            - --module-namespace={{ .Release.Namespace }}
+            - --game-namespaces={{ join "," $gameNamespaces }}
+            - --control-plane-namespace={{ .Values.operator.controlPlaneNamespace | default .Release.Namespace }}
+            - --agent-ca-secret-namespace={{ .Values.operator.agentCASecretNamespace | default .Release.Namespace }}
+            - --module-namespace={{ .Values.operator.moduleNamespace | default .Release.Namespace }}
             {{- if and .Values.capture .Values.capture.enabled }}
             - --capture-enabled=true
             - --capture-sidecar-image={{ include "gameplane.captureImage" . }}

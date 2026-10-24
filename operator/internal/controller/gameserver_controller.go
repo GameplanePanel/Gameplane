@@ -216,7 +216,9 @@ const (
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch
-// +kubebuilder:rbac:groups=core,resources=services;persistentvolumeclaims;configmaps;secrets,verbs=get;list;watch
+// Secret reads/writes are granted only by namespace Roles in config/rbac and
+// the chart, matching cmd/main.go's per-object Secret cache namespace set.
+// +kubebuilder:rbac:groups=core,resources=services;persistentvolumeclaims;configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods;pods/log,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=pods/ephemeralcontainers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=networkcaptures,verbs=get;list;watch

@@ -47,7 +47,7 @@ type ModuleSourceReconciler struct {
 
 // +kubebuilder:rbac:groups=gameplane.local,resources=modulesources,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=modulesources/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// Credential Secret reads use the configured module namespace Role.
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
 func (r *ModuleSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

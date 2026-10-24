@@ -135,3 +135,27 @@ true
 true
 {{- end -}}
 {{- end -}}
+
+{{- /* Validate every namespace before it can reach RBAC or cache flags. */}}
+{{- define "gameplane.namespace" -}}
+{{- if or (not (kindIs "string" .)) (gt (len (toString .)) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" (toString .))) -}}
+{{- fail "operator Secret scope requires explicit DNS-label namespace names (1-63 lowercase letters, digits or hyphens)" -}}
+{{- end -}}
+{{- . -}}
+{{- end -}}
+
+{{- define "gameplane.operatorGameNamespaces" -}}
+{{- $namespaces := list (include "gameplane.namespace" .Values.gamesNamespace) -}}
+{{- range (.Values.operator.gameNamespaces | default list) -}}
+{{- $namespaces = append $namespaces (include "gameplane.namespace" .) -}}
+{{- end -}}
+{{- uniq $namespaces | toJson -}}
+{{- end -}}
+
+{{- define "gameplane.operatorSecretNamespaces" -}}
+{{- $namespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray -}}
+{{- range list (.Values.operator.controlPlaneNamespace | default .Release.Namespace) (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) -}}
+{{- $namespaces = append $namespaces (include "gameplane.namespace" .) -}}
+{{- end -}}
+{{- uniq $namespaces | toJson -}}
+{{- end -}}

@@ -32,6 +32,9 @@ spec:
             - "--leader-elect"
             - "--health-probe-bind-address=:8081"
             - "--metrics-bind-address=:8080"
+            - "--game-namespaces=gameplane-games"
+            - "--control-plane-namespace=gameplane-system"
+            - "--module-namespace=gameplane-system"
             # Operator -> agent mTLS material. Without these the operator
             # cannot talk to any agent sidecar (console, files, RCON,
             # heartbeats). The referenced Secrets must exist in this

@@ -28,7 +28,7 @@ type ClusterStatusReconciler struct {
 
 // +kubebuilder:rbac:groups=gameplane.local,resources=clusters,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=clusters/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// Kubeconfig Secret reads use the configured control-plane namespace Role.
 
 func (r *ClusterStatusReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var cluster gameplanev1alpha1.Cluster

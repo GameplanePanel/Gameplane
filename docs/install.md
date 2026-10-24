@@ -106,6 +106,47 @@ password, promote them to `admin`, and end their existing sessions.
 
 Open `https://<ingress.host>` and log in.
 
+## Upgrading the operator Secret boundary
+
+The operator now reads Secrets only in an explicit namespace set: `gamesNamespace`,
+`operator.gameNamespaces`, and the configured control-plane, CA, and module
+namespaces. The chart creates matching namespace Roles and removes Secret access
+from the operator ClusterRole. Normal single-namespace installations need no
+value changes. This narrows the operator's authority on upgrade; custom installs
+that previously relied on cluster-wide Secret reads must list their namespaces.
+
+To add a managed namespace, create it, add it to `operator.gameNamespaces`, and
+run the normal Helm upgrade. Include your existing values file so its other
+settings remain in effect. The namespace Roles and changed operator arguments
+are applied together, and the Deployment restarts to rebuild its Secret caches.
+For example:
+
+```yaml
+gamesNamespace: gameplane-games
+operator:
+  gameNamespaces: [games-eu, games-us]
+```
+
+These additional namespaces receive operator workload RBAC. Provision their
+namespace admission labels, NetworkPolicies, and any API/gateway access settings
+separately; those chart resources still target `gamesNamespace`. Registering a
+remote cluster does not add local namespaces or extend Secret authority: remote
+health checks use discovery only, while each remote operator has its own scope.
+
+For a manifest-based development install, apply `operator/config/rbac/` including
+`role_secrets.yaml`. Duplicate `role_namespace.yaml` into each managed game
+namespace, set `--game-namespaces` to the same comma-separated list, and restart
+the operator. Duplicate the read-only Role/RoleBinding in `role_secrets.yaml`
+into any distinct `--control-plane-namespace`, `--agent-ca-secret-namespace`, or
+`--module-namespace`. Keep the RoleBinding subject in the actual operator
+ServiceAccount's namespace. Do not add Secrets back to the ClusterRole.
+
+All listed namespaces must exist; empty namespace entries, wildcards and malformed
+names fail startup instead of opening an all-namespace informer. Namespace changes
+take effect on restart. Before removing a namespace, migrate its managed workloads
+and credentials, then remove its configuration and matching Roles. Extra custom
+RoleBindings can still widen access and must be removed separately.
+
 ## Values reference
 
 Top-level knobs (see `values.yaml` for the full list):
@@ -115,6 +156,8 @@ Top-level knobs (see `values.yaml` for the full list):
 - `api.enabled` — enable the central API and dashboard (default `true`). Set to `false` on a remote operator/gateway installation.
 - `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false` and one API replica. The standalone profile omits native CRDs and the CRD apply hook/RBAC without an additional CLI flag. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
+- `operator.gameNamespaces` — additional managed game namespaces beyond `gamesNamespace`; each must already exist. The chart grants namespace-local workload permissions there and adds their Secrets to the operator cache.
+- `operator.controlPlaneNamespace`, `operator.agentCASecretNamespace`, `operator.moduleNamespace` — namespaces for cluster kubeconfig, signing CA, and module credential Secret reads. Empty values use the release namespace. The chart grants read-only Secret access in each distinct namespace; provision the referenced Secrets there before upgrading. These flags do not relocate the API's own credentials or its mounted mTLS material.
 - `operator.configInitImage` / `operator.resticImage` — the two images the operator
   injects into workloads it creates: the config-init container on game pods
   (`busybox`) and the backup/restore Jobs (`restic/restic`). Both default to the

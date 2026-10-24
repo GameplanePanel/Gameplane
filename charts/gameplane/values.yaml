@@ -53,6 +53,16 @@ operator:
   # Disable the operator and bundled native CRDs for a standalone central panel.
   enabled: true
   replicas: 1
+  # Additional managed game namespaces, beyond gamesNamespace. They must already
+  # exist. The chart grants namespace-local workload permissions and includes
+  # their Secrets in the operator cache. A Helm upgrade restarts the operator.
+  gameNamespaces: []
+  # Empty uses the release namespace. Non-default namespaces must already exist;
+  # provision the referenced Secrets there before upgrading. These settings move
+  # the operator's API reads, not the API pod or its mounted mTLS client material.
+  controlPlaneNamespace: ""
+  agentCASecretNamespace: ""
+  moduleNamespace: ""
   logLevel: info     # zap log level: debug|info|error (warn not supported by zap's --zap-log-level)
   agentLogLevel: ""  # injected into every agent sidecar as GAMEPLANE_LOG_LEVEL (debug|info|warn|error); empty injects nothing, avoiding StatefulSet rollouts on upgrade
   # Leader election guards against two operators reconciling at once. With a

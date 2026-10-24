@@ -33,7 +33,6 @@ rules:
   - pods
   - pods/ephemeralcontainers
   - pods/log
-  - secrets
   - serviceaccounts
   - services
   verbs:

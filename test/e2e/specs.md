@@ -17,6 +17,7 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 - Drive the REST + WebSocket API as a real HTTP client would: login, session/CSRF handling, RBAC matrix checks, console/PTY/log streaming, file upload/download.
 - Launch real game server containers and either speak their wire protocol directly (the CI `bot-fast` bucket: Minecraft, Terraria, Garry's Mod — narrower than `fastGameSet`'s manual/local default scope; see `test/e2e/internal/specs.md`) or query them, proving a Gameplane-managed server is genuinely playable, not merely "Running" in Kubernetes. The per-game protocol clients and the shared probe harness that does this live one level down, in `test/e2e/internal/` — see `test/e2e/internal/specs.md` for that layer's Path A / Path B contract, protocol clients, and JoinDepth model. This file does not duplicate that; it covers the outer suite that hosts and buckets those probes.
 - Validate multi-cluster dispatch, upgrade-from-previous-release, wake-on-connect, module signing/SSRF rejection, and backup/restore round trips end to end.
+- Verify the installed operator identity can read Secrets only in its configured namespaces, can mutate game-namespace Secrets, and cannot read or write unrelated namespace Secrets (`TestHelmInstall_OperatorSecretNamespaceBoundary`, operator bucket).
 - Enforce, via `buckets.sh`, that every test in the suite is assigned to exactly one CI bucket so nothing silently drops out of coverage.
 
 ### Remote gateway parity acceptance

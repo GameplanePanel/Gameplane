@@ -29,6 +29,7 @@ import (
 	"github.com/GameplanePanel/gameplane/operator/internal/agent"
 	"github.com/GameplanePanel/gameplane/operator/internal/controller"
 	"github.com/GameplanePanel/gameplane/operator/internal/modsrc"
+	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 var scheme = runtime.NewScheme()
@@ -137,6 +138,7 @@ func main() {
 		moduleNamespace                  string
 		moduleLocalRoot                  string
 		controlPlaneNamespace            string
+		gameNamespaces                   string
 		addressManager                   string
 		metalLBNamespace                 string
 		gameIngressPolicy                bool
@@ -210,6 +212,8 @@ func main() {
 			"Empty injects nothing (the agent defaults to info) and avoids rolling existing pods.")
 	flag.StringVar(&moduleNamespace, "module-namespace", "gameplane-system",
 		"Namespace where ModuleSource credential Secrets, uploaded module bundles and module translation ConfigMaps live.")
+	flag.StringVar(&gameNamespaces, "game-namespaces", "gameplane-games",
+		"Comma-separated managed game namespaces whose Secrets the operator may cache. Must be nonempty; changes require matching namespace RBAC and an operator restart.")
 	flag.StringVar(&moduleLocalRoot, "module-local-root", "",
 		"Base directory that local-type ModuleSources resolve their paths under. Empty disables local sources.")
 	flag.StringVar(&agentCABundle, "agent-ca-bundle", "",
@@ -345,8 +349,15 @@ func main() {
 		gameIngressFromCIDR[i] = ipnet.String()
 	}
 
+	secretCache, err := secretscope.CacheOptions(gameNamespaces, controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
+	if err != nil {
+		setupLog.Error(err, "invalid Secret namespace configuration")
+		os.Exit(1)
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
+		Cache:                  secretCache,
 		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,

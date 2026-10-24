@@ -8,7 +8,9 @@
 # dev without regressing to cluster-wide write grants.
 #
 # If you deploy to additional games namespaces, duplicate this file
-# (or run kustomize) with the namespace field updated.
+# (or run kustomize) with the namespace field updated, add it to
+# --game-namespaces and restart the operator. Do not restore cluster-wide
+# Secret reads: role_secrets.yaml covers the configured auxiliary namespaces.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
