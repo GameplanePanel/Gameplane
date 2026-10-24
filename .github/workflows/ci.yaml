@@ -284,6 +284,8 @@ jobs:
               - 'hack/test_ci_scope.py'
               - 'hack/check_changed_coverage.py'
               - 'hack/test_check_changed_coverage.py'
+              - 'hack/move_parity.py'
+              - 'hack/test_move_parity.py'
               - 'hack/check-ci-report-coverage.sh'
               - 'hack/test-check-ci-report-coverage.sh'
               - 'hack/testdata/check-ci-report-coverage/**'
@@ -712,6 +714,28 @@ jobs:
         run: ./hack/check-submodule-freshness_test.sh
       - name: submodule pointers are on upstream main
         run: ./hack/check-submodule-freshness.sh
+
+  # Spec 028: a PR that adds a move brief under specs/028-split-big-packages/briefs/ must
+  # keep every test name and change test files only in the OD-6/OD-9 mechanical ways.
+  # PR-only and needs no scope: it skips itself when the change carries no brief.
+  move-parity:
+    name: move parity (spec 028)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          submodules: false
+          persist-credentials: false
+      - name: test names and test edits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: python3 hack/move_parity.py ci --base "$BASE_SHA" --head "$HEAD_SHA"
 
   # Spec 013 G4: block a PR that adds a dependency with a known high or
   # critical advisory. PR-only; on push it is skipped, which the report

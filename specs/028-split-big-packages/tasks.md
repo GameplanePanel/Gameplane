@@ -15,15 +15,15 @@ description: "Task list for 028 split big packages and files"
 ## Phase 1: Setup
 
 - [X] T001 Settle OD-1..OD-10 in `OPEN-DECISIONS.md` and fold them into spec, plan and these tasks (valgul, 2026-10-20/21)
-- [ ] T002 Confirm spec 027's `docs/layout.md` has merged to master (027 implementation PR); if not, follow `specs/027-contributor-docs-layout-map/OPEN-DECISIONS.md` and cite it in every brief
-- [ ] T003 Re-measure on current master: production files over 500 lines (Go, web), files per package for `api/internal/handlers` and `operator/internal/controller`, and record the SHA and numbers at the top of `research.md`
+- [X] T002 Confirm spec 027's `docs/layout.md` has merged to master (027 implementation PR); if not, follow `specs/027-contributor-docs-layout-map/OPEN-DECISIONS.md` and cite it in every brief *Done note: merged via PR #795 (2026-10-22); briefs cite `docs/layout.md`.*
+- [X] T003 Re-measure on current master: production files over 500 lines (Go, web), files per package for `api/internal/handlers` and `operator/internal/controller`, and record the SHA and numbers at the top of `research.md` *Done note: research.md "Re-measure"; raised OD-11.*
 
 ## Phase 2: Foundational (blocks every move PR)
 
-- [ ] T004 Write `hack/move_parity.py` (stdlib) with `names <base> <head>` (static scan of Go `Test*/Fuzz*/Example*` funcs and Vitest/Playwright title chains) and `test-edits <base> <head> --brief <file>` (R2 point 3: allowed kinds from OD-6 and OD-9 only)
-- [ ] T005 Write `hack/test_move_parity.py` unit tests: equal and unequal name lists; a renamed test file with only a package-line change passes; an assertion change fails; an extra `".."` in a copied envtest CRD path passes only when OD-9 allows it; a changed `vi.mock` path passes
-- [ ] T006 Wire `hack/test_move_parity.py` into the target that `make test-ci-scope` runs in CI (`.github/workflows/ci.yaml:1521`), and add a CI step that runs `move_parity.py names` and `move_parity.py test-edits` on every PR carrying a brief under `specs/028-split-big-packages/briefs/`, passing the PR base SHA, head SHA and that brief; coordinating with open spec 023 PRs that edit the same job; PR "ci: add move parity checks (spec 028)", labels `type: ci`, `area: shared`
-- [ ] T007 Create `specs/028-split-big-packages/briefs/README.md` pointing to the brief contract
+- [X] T004 Write `hack/move_parity.py` (stdlib) with `names <base> <head>` (static scan of Go `Test*/Fuzz*/Example*` funcs and Vitest/Playwright title chains) and `test-edits <base> <head> --brief <file>` (R2 point 3: allowed kinds from OD-6 and OD-9 only)
+- [X] T005 Write `hack/test_move_parity.py` unit tests: equal and unequal name lists; a renamed test file with only a package-line change passes; an assertion change fails; an extra `".."` in a copied envtest CRD path passes only when OD-9 allows it; a changed `vi.mock` path passes
+- [X] T006 Wire `hack/test_move_parity.py` into the target that `make test-ci-scope` runs in CI (`.github/workflows/ci.yaml:1521`), and add a CI step that runs `move_parity.py names` and `move_parity.py test-edits` on every PR carrying a brief under `specs/028-split-big-packages/briefs/`, passing the PR base SHA, head SHA and that brief; coordinating with open spec 023 PRs that edit the same job; PR "ci: add move parity checks (spec 028)", labels `type: ci`, `area: shared`
+- [X] T007 Create `specs/028-split-big-packages/briefs/README.md` pointing to the brief contract
 
 **Checkpoint**: parity tooling merged; move PRs can start.
 
@@ -41,6 +41,7 @@ description: "Task list for 028 split big packages and files"
 - [ ] T017 [US4] PR: `components/modules/BuildModuleDialog.tsx` (973) and `components/modules/SourceDialog.tsx` (573) split in place (same folder)
 - [ ] T018 [US4] PR: `components/CaptureWidget.tsx` (826) split in place
 - [ ] T019 [US4] PR: `components/server/ServerActionsCard.tsx` (658) split in place
+- [ ] T061 [US4] PR: `web/scripts/i18n-migrate.ts` (1,195) split in place into files of ≤ 500 lines under `web/scripts/` (OD-11); `npm run i18n:migrate` entry point unchanged
 - [ ] T020 [US4] For each web PR: sonnet browser smoke test of the moved screens, visual-diff and screenshot jobs green, `web/specs.md` paths updated
 
 **Checkpoint**: no screen code in `web/src/routes/`; no web production file over 500 lines.

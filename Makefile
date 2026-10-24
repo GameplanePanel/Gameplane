@@ -494,3 +494,4 @@ clean: ## Remove build artifacts
 test-ci-scope: ## Verify dependency-aware CI and image selection (CI only)
 	python3 -m unittest discover -s hack -p 'test_ci_scope.py' -v
 	python3 -m unittest discover -s hack -p 'test_check_changed_coverage.py' -v
+	python3 -m unittest discover -s hack -p 'test_move_parity.py' -v

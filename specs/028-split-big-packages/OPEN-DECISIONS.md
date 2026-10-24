@@ -6,7 +6,7 @@ All decisions for this spec are settled; none is open. A new question gets its o
 
 - Spec 027 OD-3 (Go layout), OD-4 (web `pages/` layout, 500-line screens), OD-5 (this spec adds the folder-shape check to `make lint`), OD-2 (`specs.md` stays per module). valgul, 2026-10-20.
 
-## Settled (valgul, 2026-10-20 and 2026-10-21)
+## Settled (valgul, 2026-10-20 to 2026-10-22)
 
 - **OD-1 (FR-013): split order.** Web first, then api, then operator; then the small services; tunnel and sentinel wait for their audit fixes (#721–#723, #729) to merge. Chosen on a card.
 - **OD-2 (US2, US3, FR-002): sub-package boundaries.** By resource: `api/internal/handlers/` and `operator/internal/controller/` each become sub-packages per resource group, with helpers shared by several groups in one internal helper package per module, one group per PR. (Premise corrected before asking: a by-layer split does not exist in today's code and would need logic rewrites, which this spec forbids.) Chosen on a card.
@@ -18,5 +18,7 @@ All decisions for this spec are settled; none is open. A new question gets its o
 - **OD-8 (US4): server-detail tabs.** Keep a `tabs` folder under the screen: `pages/ServerDetail/tabs/<Tab>.tsx` and `pages/ServerDetail/tabs/settings/<Section>.tsx`, same names as today. A tab over 500 lines is split per 027 OD-4 into a folder beside it (for example `pages/ServerDetail/tabs/Mods/<Part>.tsx`). Chosen on a card (2026-10-21).
 - **OD-9 (FR-005): relative CRD paths in a copied envtest setup.** Allowed: a copied `suite_envtest_test.go` may add exactly one `".."` per extra folder level to its CRD directory paths (today `operator/internal/controller/suite_envtest_test.go:45,48`, `api/internal/handlers/suite_envtest_test.go:55`); the test-edit check allows only that and the PR lists it. Chosen on a card (2026-10-21).
 - **OD-10 (constitution I): new e2e test.** None. Nothing user-facing changes; every move PR runs the full existing e2e suite with `ci: full-run` plus the test-name parity check. Recorded as a constitution I exemption for a behaviour-preserving refactor. Chosen on a card (2026-10-21).
+
+- **OD-11 (FR-018, contracts/layout-check.md rule 1): dev scripts under `web/scripts/`.** No exemption: `web/scripts/i18n-migrate.ts` (1,195 lines, spec 019 codemod) is split like any other file, in place, into files of 500 lines or fewer (T061). Chosen on a card (2026-10-22).
 
 No open decisions remain.

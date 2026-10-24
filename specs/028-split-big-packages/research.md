@@ -3,6 +3,16 @@
 Measured on master `8a67f2e` (2026-10-20) unless stated. Decisions reference
 [OPEN-DECISIONS.md](./OPEN-DECISIONS.md).
 
+## Re-measure (T003, master `54d5819`, 2026-10-22)
+
+- Production files over 500 lines (FR-018 exemptions applied): 30 Go, 18 web. The 30 Go
+  files are exactly the ones FR-018, R3, R4 and R7 name (the earlier "34" over-counted).
+  The 18 web files are the 17 in R6 plus `web/scripts/i18n-migrate.ts` (1,195), a spec 019
+  dev codemod outside `web/src/` that no FR names; OD-11 (2026-10-22): split it too (T061).
+- `api/internal/handlers`: 146 `.go` files, 48 production. `operator/internal/controller`:
+  150 `.go` files, 41 production.
+- Spec 027's `docs/layout.md` merged via PR #795 (2026-10-22); every brief cites it (T002).
+
 ## R1. What a "move" may change (FR-002, FR-005, OD-6)
 
 - **Decision**: a PR may contain only these change kinds. Production files: `git mv`;
