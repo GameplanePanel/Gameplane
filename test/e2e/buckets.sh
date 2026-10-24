@@ -375,6 +375,13 @@ TestUpgrade_FromPreviousRelease
 EOF
 }
 
+# Runs alone after the normal PostgreSQL API buckets: upgrades the populated
+# release and stops/restores its database. No parallel tests may share it.
+bucket_postgres_availability() { cat <<'EOF'
+TestUpgrade_PostgresAvailability
+EOF
+}
+
 # One sequential lifecycle test that runs `helm upgrade --reuse-values` (1m
 # report interval, dashboard token, public summary, no per-source ingest
 # limit) on its own bucket cluster, so it must not share a cluster with other
@@ -409,7 +416,7 @@ EOF
 unbucketed() { :; }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead optional-components
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components
 }
 
 list_bucket() {
@@ -425,6 +432,7 @@ list_bucket() {
 	bot-heavy) bucket_bot_heavy ;;
 	multicluster) bucket_multicluster ;;
 	upgrade) bucket_upgrade ;;
+	postgres-availability) bucket_postgres_availability ;;
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;

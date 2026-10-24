@@ -108,15 +108,15 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Release.Name }}-crd-apply
     namespace: {{ .Release.Namespace }}
-{{- if and (eq (include "gameplane.apiEnabled" .) "true") (eq .Values.api.db.driver "sqlite") .Release.IsUpgrade }}
+{{- if and (eq (include "gameplane.apiEnabled" .) "true") .Release.IsUpgrade }}
 ---
 # One-time workload migration, riding along with this hook because it needs
 # exactly the same thing: a kubectl that runs BEFORE Helm applies the release.
 #
-# Releases <= 0.2.0-beta.5 shipped no `strategy` on the api Deployment, so the
-# apiserver defaulted it to RollingUpdate and materialized a
+# Older releases (including combined PostgreSQL installs) shipped no `strategy`
+# on the api Deployment, so the apiserver defaulted it to RollingUpdate with a
 # spec.strategy.rollingUpdate block. The chart now sets `type: Recreate` (the
-# SQLite store is single-writer on an RWO volume), and the apiserver rejects
+# API's audit/user-management locks require one process), and the apiserver rejects
 # the two together:
 #
 #   spec.strategy.rollingUpdate: Forbidden: may not be specified when
@@ -201,7 +201,10 @@ spec:
         runAsUser: 65532
         fsGroup: 65532
         seccompProfile: { type: RuntimeDefault }
-      {{- if and (eq (include "gameplane.apiEnabled" .) "true") (eq .Values.api.db.driver "sqlite") .Release.IsUpgrade }}
+      {{- /* The target may be enabled for the first time during this upgrade.
+             Only an existing Deployment needs migration; a lookup error fails
+             rendering, while NotFound safely skips the patch. */}}
+      {{- if and (eq (include "gameplane.apiEnabled" .) "true") .Release.IsUpgrade (lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-api") }}
       initContainers:
         # Clear the stale spec.strategy.rollingUpdate left by releases that
         # predate the Recreate strategy — see the Role above for why Helm

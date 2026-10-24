@@ -420,6 +420,10 @@ restart; a remote operator upgrade may roll game pods.
 For a panel-only Helm release, repeat the installation command with the updated
 chart, matching images, and your standalone values file. Keep
 `api.replicas=1` and the existing key storage, including when using PostgreSQL.
+All Helm API deployments use Recreate and accept a brief panel outage during
+rollout. This does not fence a process on a partitioned node after force
+deletion. See [API upgrades and readiness](install.md#api-upgrades-brief-downtime)
+for the singleton boundary and the separate database readiness probe.
 
 ## Troubleshooting
 

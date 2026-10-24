@@ -223,22 +223,18 @@ spec:
   replicas: {{ .Values.api.replicas }}
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-api }
-  {{- if or .Values.api.standalone (eq .Values.api.db.driver "sqlite") }}
-  # Standalone also avoids overlapping API processes with PostgreSQL: generated
-  # keys use a ReadWriteOnce PVC, and audit/user-management locks are per-process.
-  # Recreate strategy for SQLite: the database is a single-writer store
-  # on a ReadWriteOnce PVC. RollingUpdate would start a new pod before
-  # terminating the old one, allowing two processes to compete for the
-  # database file. The legacy adoption code would race the old writer,
-  # risking corruption. Recreate ensures the old pod is fully gone first.
+  # Every mode and database driver requires one API process: audit-chain and
+  # user-management locks are per-process. Recreate accepts a short outage to
+  # stop the old writer before starting its replacement. It is not fencing
+  # against forced Pod deletion or a partitioned node.
   strategy:
     type: Recreate
     # Explicit null, not omission: it states that this Deployment has no
     # rolling-update config, so nothing can merge one back in.
     #
     # It is NOT sufficient on its own to fix an upgrade from a release
-    # that predates this stanza (<= 0.2.0-beta.5). Those shipped no
-    # strategy at all, so the apiserver defaulted them to RollingUpdate
+    # that predates this stanza (including older PostgreSQL installs). Those
+    # shipped no strategy, so the apiserver defaulted them to RollingUpdate
     # and materialized spec.strategy.rollingUpdate on the live object;
     # under server-side apply Helm does not own that field, so a null
     # here does not remove it and the apiserver rejects the Deployment
@@ -247,7 +243,6 @@ spec:
     # runs pre-upgrade. Both halves are load-bearing; the e2e upgrade
     # test covers them.
     rollingUpdate: null
-  {{- end }}
   template:
     metadata:
       labels:
@@ -499,7 +494,9 @@ spec:
             - { name: http,    containerPort: 8000 }
             - { name: metrics, containerPort: {{ .Values.api.metricsPort | default 9090 }} }
           livenessProbe:  { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 15 }
-          readinessProbe: { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 5 }
+          # The DB ping has a 2s deadline. Tolerate brief contention on SQLite's
+          # single connection before removing the only API endpoint.
+          readinessProbe: { httpGet: { path: /readyz, port: http }, initialDelaySeconds: 5, timeoutSeconds: 3, periodSeconds: 5, failureThreshold: 3 }
           resources: {{ toYaml .Values.api.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
