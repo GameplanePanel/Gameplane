@@ -510,12 +510,19 @@ func TestNetworkCapture_UserStopCallsSidecar(t *testing.T) {
 
 	// Emulate the API's StopNetworkCapture: patch status directly to
 	// Completed with its exact message, bypassing the reconciler.
-	nc := getNetworkCapture(t, ns, "cap-stop-001")
-	now := metav1.NewTime(time.Now().UTC())
-	nc.Status.Phase = gameplanev1alpha1.CapturePhaseCompleted
-	nc.Status.CompletionTime = &now
-	nc.Status.Message = "stopped by user request"
-	if err := k8sClient.Status().Update(context.Background(), nc); err != nil {
+	// The active reconciler may refresh capture progress between Get and Update.
+	ctx := t.Context()
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var nc gameplanev1alpha1.NetworkCapture
+		if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: ns, Name: "cap-stop-001"}, &nc); err != nil {
+			return err
+		}
+		now := metav1.NewTime(time.Now().UTC())
+		nc.Status.Phase = gameplanev1alpha1.CapturePhaseCompleted
+		nc.Status.CompletionTime = &now
+		nc.Status.Message = "stopped by user request"
+		return k8sClient.Status().Update(ctx, &nc)
+	}); err != nil {
 		t.Fatalf("patch capture to user-stopped: %v", err)
 	}
 

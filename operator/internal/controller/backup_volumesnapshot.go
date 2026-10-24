@@ -38,6 +38,9 @@ func (r *BackupReconciler) reconcileVolumeSnapshot(
 	if err := r.backupAPIReader().Get(ctx, types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, &existing); err != nil && !apierrors.IsNotFound(err) {
 		return r.abortVolumeSnapshot(ctx, b, fmt.Sprintf("volume snapshot API unavailable: %v", err))
 	}
+	if legacyBackupOwesUnquiesce(b) && metav1.IsControlledBy(&existing, b) {
+		return r.observeVolumeSnapshot(ctx, b, &existing)
+	}
 	// Quiesce first (idempotent across requeues). A CSI snapshot is only
 	// crash-consistent; flushing the game to disk first (RCON save-all,
 	// etc.) makes it application-consistent. No-op when the backup opts out
@@ -69,6 +72,10 @@ func (r *BackupReconciler) reconcileVolumeSnapshot(
 		return r.abortVolumeSnapshot(ctx, b, fmt.Sprintf("volume snapshot creation failed: %v", err))
 	}
 
+	return r.observeVolumeSnapshot(ctx, b, vs)
+}
+
+func (r *BackupReconciler) observeVolumeSnapshot(ctx context.Context, b *gameplanev1alpha1.Backup, vs *snapshotv1.VolumeSnapshot) (ctrl.Result, error) {
 	switch {
 	case vs.Status != nil && vs.Status.Error != nil && vs.Status.Error.Message != nil:
 		// The CSI driver rejected the snapshot. Surface it and unquiesce so
@@ -112,6 +119,7 @@ func (r *BackupReconciler) markVolumeSnapshotRunning(
 			Reason:             string(gameplanev1alpha1.BackupPhaseRunning),
 			ObservedGeneration: b.Generation,
 		})
+		b.Status.Conditions = upsertCondition(b.Status.Conditions, backupConsistencyCondition(b))
 		if err := r.Status().Update(ctx, b); err != nil {
 			return ctrl.Result{}, err
 		}
@@ -152,6 +160,7 @@ func (r *BackupReconciler) completeVolumeSnapshot(
 			Reason:             "Succeeded",
 			ObservedGeneration: b.Generation,
 		})
+		b.Status.Conditions = upsertCondition(b.Status.Conditions, backupConsistencyCondition(b))
 		if err := r.Status().Update(ctx, b); err != nil {
 			return ctrl.Result{}, err
 		}

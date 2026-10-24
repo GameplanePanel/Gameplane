@@ -165,11 +165,10 @@ func startMgr(t *testing.T, ns string, setups ...setupReconciler) client.Client 
 		Scheme: scheme,
 		Logger: logr.Discard(),
 		Cache: cache.Options{
-			// Include the test namespace AND cluster scope (""). Without
-			// the "" entry, controller-runtime's namespace-restricted
-			// cache will refuse to serve reads of cluster-scoped CRDs
-			// like GameTemplate.
-			DefaultNamespaces: map[string]cache.Config{ns: {}, "": {}},
+			// Cluster-scoped kinds use the independent cluster cache. An
+			// empty namespace key means AllNamespaces and would make this
+			// manager reconcile fixtures left by every earlier test.
+			DefaultNamespaces: map[string]cache.Config{ns: {}},
 		},
 		Metrics:                metricsserver.Options{BindAddress: "0"},
 		HealthProbeBindAddress: "0",
@@ -571,12 +570,18 @@ func markBackupSucceeded(t *testing.T, ns, name, snapshotID, size string) {
 // reconciler waits for Suspended/Stopped before advancing to Running.
 func markGameServerPhase(t *testing.T, ns, name string, phase gameplanev1alpha1.GameServerPhase) {
 	t.Helper()
-	var gs gameplanev1alpha1.GameServer
-	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: name}, &gs); err != nil {
-		t.Fatalf("get gameserver: %v", err)
-	}
-	gs.Status.Phase = phase
-	if err := k8sClient.Status().Update(context.Background(), &gs); err != nil {
+	// The Restore reconciler also writes the target's ownership annotations.
+	// Refetch after conflicts so this simulated status observation preserves
+	// concurrent controller writes without turning them into fixture failures.
+	ctx := t.Context()
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var gs gameplanev1alpha1.GameServer
+		if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: ns, Name: name}, &gs); err != nil {
+			return err
+		}
+		gs.Status.Phase = phase
+		return k8sClient.Status().Update(ctx, &gs)
+	}); err != nil {
 		t.Fatalf("status update gameserver: %v", err)
 	}
 }
@@ -774,6 +779,14 @@ func (f *fakeAgent) Unquiesce(_ context.Context, _, _ string) error {
 	return f.unquiesceErr
 }
 
+func (f *fakeAgent) CheckPod(context.Context, string, string, string) error { return nil }
+func (f *fakeAgent) QuiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Quiesce(ctx, namespace, server)
+}
+func (f *fakeAgent) UnquiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Unquiesce(ctx, namespace, server)
+}
+
 func (f *fakeAgent) quiesceCount() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -797,13 +810,32 @@ func (f *fakeLogReader) BackupLogs(_ context.Context, _, _ string) (io.ReadClose
 	return io.NopCloser(strings.NewReader(f.body)), nil
 }
 
-// seedGameServer creates a bare GameServer so reconcilers that resolve
-// Backup/Restore serverRefs find their target. No GameServer reconciler
-// runs in these suites, so the object stays inert (no children).
+// seedGameServer creates a GameServer and observed workload for backup tests.
+// No StatefulSet controller runs in envtest; report its generation explicitly
+// so backup admission can exercise the real workload fence.
 func seedGameServer(t *testing.T, ns, name string) {
 	t.Helper()
 	gs := buildGameServer(ns, name, "seed-template")
 	if err := k8sClient.Create(context.Background(), gs); err != nil {
 		t.Fatalf("seed gameserver %s/%s: %v", ns, name, err)
+	}
+	seedBackupWorkload(t, gs)
+}
+
+func seedBackupWorkload(t *testing.T, gs *gameplanev1alpha1.GameServer) {
+	t.Helper()
+	name, ns := gs.Name, gs.Namespace
+	one := int32(1)
+	labels := map[string]string{"app": name}
+	ss := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns, OwnerReferences: []metav1.OwnerReference{{APIVersion: gameplanev1alpha1.GroupVersion.String(), Kind: "GameServer", Name: name, UID: gs.UID, Controller: ownerBoolPtr(true)}}},
+		Spec:       appsv1.StatefulSetSpec{Replicas: &one, ServiceName: name, Selector: &metav1.LabelSelector{MatchLabels: labels}, Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: labels}, Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "game", Image: "test/game:fixture"}}}}},
+	}
+	if err := k8sClient.Create(context.Background(), ss); err != nil {
+		t.Fatalf("seed workload: %v", err)
+	}
+	ss.Status.ObservedGeneration = ss.Generation
+	if err := k8sClient.Status().Update(context.Background(), ss); err != nil {
+		t.Fatalf("observe workload: %v", err)
 	}
 }

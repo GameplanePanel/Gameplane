@@ -258,6 +258,7 @@ spec:
         checksum/mtls: {{ include "gameplane.mtlsChecksum" . }}
       {{- end }}
     spec:
+      {{- include "gameplane.placement" .Values.api | nindent 6 }}
       serviceAccountName: gameplane-api
       {{- if .Values.api.standalone }}
       automountServiceAccountToken: false

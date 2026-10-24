@@ -392,6 +392,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
 			Name:         "tunnel",
 			Image:        image,
+			Resources:    auxiliaryResources(r.TunnelResources, "25m", "64Mi"),
 			Env:          envVars,
 			Ports:        ports,
 			VolumeMounts: volumeMounts,

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -36,11 +37,16 @@ type RestoreReconciler struct {
 	// operator flag so air-gapped installs can point it at a private
 	// registry mirror. Empty falls back to DefaultResticImage.
 	ResticImage string
+	// BackupResources shares the backup worker resource configuration.
+	BackupResources *corev1.ResourceRequirements
 	// JobBackoffLimit / JobActiveDeadlineSeconds bound the restic restore Job.
 	// Set from operator flags; nil / zero fall back to
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.
 	JobBackoffLimit          *int32
 	JobActiveDeadlineSeconds int64
+	// OperationQuiescer completes an orphaned backup's cleanup before this
+	// restore can acquire the same target. It never quiesces a restore.
+	OperationQuiescer AgentQuiescer
 }
 
 // apiReader returns the uncached reader for live-consistency checks,
@@ -125,7 +131,10 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{}, err
 	}
-	if src.Spec.Strategy == "volume-snapshot" && rs.Annotations[restoreTargetAnnotation] == "" {
+	// Binding the target does not change the restore strategy. CSI's own
+	// preparation path checks that binding before awaiting startup, repairing
+	// references and enforcing the deadline on every subsequent reconcile.
+	if src.Spec.Strategy == "volume-snapshot" {
 		return r.reconcileVolumeSnapshotRestore(ctx, &rs, &src)
 	}
 
@@ -156,6 +165,9 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	claimed, err := r.claimRestoreTarget(ctx, &rs, &gs)
 	if err != nil {
+		if errors.Is(err, errLifecycleGenerationChanged) {
+			return r.fail(ctx, &rs, err.Error())
+		}
 		return ctrl.Result{}, err
 	}
 	if !claimed {
@@ -168,12 +180,13 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
-	// A missing template is not fatal: it only refines the FSGroup, and
-	// buildBackupPodSecurityContext falls back to 65532 for a zero template.
-	var tmpl gameplanev1alpha1.GameTemplate
-	if err := r.Get(ctx, types.NamespacedName{Name: gs.Spec.TemplateRef.Name}, &tmpl); err != nil && !apierrors.IsNotFound(err) {
+	// A pinned snapshot is mandatory once established. Legacy targets retain
+	// the historical missing-template fallback for their initial operation.
+	effective, err := effectiveGameTemplate(ctx, r.apiReader(), &gs)
+	if err != nil && (gs.Annotations[effectiveTemplateAnnotation] != "" || !apierrors.IsNotFound(err)) {
 		return ctrl.Result{}, err
 	}
+	tmpl := *effective
 
 	if rs.Status.Phase == gameplanev1alpha1.RestorePhaseSuspending {
 		if gs.Status.Phase != gameplanev1alpha1.GameServerPhaseSuspended &&
@@ -327,8 +340,9 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 	return corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		Containers: []corev1.Container{{
-			Name:  "restic",
-			Image: resticImageOrDefault(r.ResticImage),
+			Name:      "restic",
+			Image:     resticImageOrDefault(r.ResticImage),
+			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
 			// --target / restores each snapshot entry at its original
 			// absolute path. The companion backup runs `restic backup
 			// /data`, so the snapshot tree is rooted at /data/...; with

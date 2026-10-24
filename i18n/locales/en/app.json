@@ -175,6 +175,42 @@
     "defaultMessage": "The backup or restore completed successfully.",
     "description": "Completed condition on a Backup or Restore that finished."
   },
+  "condition.consistency.agentunavailablerawcopy": {
+    "defaultMessage": "No agent quiesce capability was configured. The primary volume was copied without pausing game writes.",
+    "description": "Backup achieved consistency: AgentUnavailableRawCopy."
+  },
+  "condition.consistency.capturefailed": {
+    "defaultMessage": "The capture failed; no usable consistency guarantee was achieved.",
+    "description": "Backup achieved consistency: CaptureFailed."
+  },
+  "condition.consistency.capturepending": {
+    "defaultMessage": "The capture has not completed; its achieved consistency is not yet known.",
+    "description": "Backup achieved consistency: CapturePending."
+  },
+  "condition.consistency.crashconsistentsnapshot": {
+    "defaultMessage": "The primary CSI snapshot is crash-consistent; application quiesce was not confirmed.",
+    "description": "Backup achieved consistency: CrashConsistentSnapshot."
+  },
+  "condition.consistency.legacymetadataunknown": {
+    "defaultMessage": "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template.",
+    "description": "Backup achieved consistency: LegacyMetadataUnknown."
+  },
+  "condition.consistency.quiesced": {
+    "defaultMessage": "The primary volume copy completed after the agent confirmed quiesce. This depends on the module's quiesce commands; other volumes remain outside this backup.",
+    "description": "Backup achieved consistency: Quiesced."
+  },
+  "condition.consistency.rawcopy": {
+    "defaultMessage": "The primary volume was copied without confirmed application quiesce.",
+    "description": "Backup achieved consistency: RawCopy."
+  },
+  "condition.consistency.stoppedsource": {
+    "defaultMessage": "The primary volume copy completed from a source that was already stopped and drained before capture. Other volumes remain outside this backup.",
+    "description": "Backup achieved consistency: StoppedSource."
+  },
+  "condition.consistency.unsupportedrawcopy": {
+    "defaultMessage": "The game does not support quiesce. The primary volume was copied while it could still change.",
+    "description": "Backup achieved consistency: UnsupportedRawCopy."
+  },
   "condition.datawipe.jobfailed": {
     "defaultMessage": "The data wipe job did not complete. The volume may not be fully cleared.",
     "description": "DataWipe condition when the wipe job fails."
@@ -559,6 +595,26 @@
     "defaultMessage": "Indexing the module source failed.",
     "description": "Synced condition after a failed index."
   },
+  "condition.templateupdatepending.adoptingrevision": {
+    "defaultMessage": "The admitted template revision is being adopted.",
+    "description": "Template rollout owns the server lifecycle while draining and replacing its workload."
+  },
+  "condition.templateupdatepending.operationinprogress": {
+    "defaultMessage": "Template adoption waits for the active lifecycle operation to finish.",
+    "description": "A backup, restore or wipe prevents admitting an available template revision."
+  },
+  "condition.templateupdatepending.revisionavailable": {
+    "defaultMessage": "An installed template revision is waiting for admission.",
+    "description": "An installed template differs from the server's immutable effective revision."
+  },
+  "condition.templateupdatepending.revisioncurrent": {
+    "defaultMessage": "The installed template revision is effective.",
+    "description": "No newer template revision is waiting for adoption. Running revision is observed separately."
+  },
+  "condition.templateupdatepending.templateunavailable": {
+    "defaultMessage": "The installed template is unavailable; the effective snapshot is retained.",
+    "description": "Template availability is unknown but the server retains its immutable effective content."
+  },
   "condition.tunneladdressinvalid.validationfailed": {
     "defaultMessage": "Some tunnel endpoints were rejected: {details}",
     "description": "Condition when endpoints reported by the playit tunnel pod fail validation. details is the English validation text."
@@ -598,6 +654,10 @@
   "condition.unquiesced.failed": {
     "defaultMessage": "The server could not be resumed after the backup. Its world may still have auto-save turned off.",
     "description": "Unquiesced condition when the unfreeze failed."
+  },
+  "condition.unquiesced.sourceprocessgone": {
+    "defaultMessage": "The original game process has exited. No resume command was needed.",
+    "description": "Unquiesced condition when the original source pod no longer runs."
   },
   "condition.unquiesced.unquiesced": {
     "defaultMessage": "The server was resumed after the backup.",
@@ -1131,9 +1191,33 @@
     "defaultMessage": "Backup details",
     "description": "Backup details drawer: heading at the top of the side panel for one backup; the backup name is shown below it"
   },
+  "web.components.backups.backup_detail_drawer.classification": {
+    "defaultMessage": "{role, select, data {Data} rebuildable {Rebuildable} other {Unclassified}}",
+    "description": "Backup volume: optional declaration from the module or server at capture time"
+  },
   "web.components.backups.backup_detail_drawer.completed": {
     "defaultMessage": "Completed",
     "description": "Backup details drawer: field label above the time the backup completed, shown in relative time"
+  },
+  "web.components.backups.backup_detail_drawer.consistency": {
+    "defaultMessage": "Achieved consistency",
+    "description": "Backup details: actual consistency reported by the controller, independent of successful copying"
+  },
+  "web.components.backups.backup_detail_drawer.consistency_unknown": {
+    "defaultMessage": "Consistency has not been reported.",
+    "description": "Backup details: no achieved-consistency condition is available"
+  },
+  "web.components.backups.backup_detail_drawer.coverage": {
+    "defaultMessage": "Volume coverage",
+    "description": "Backup details: persistent claims recorded before the backup copy began"
+  },
+  "web.components.backups.backup_detail_drawer.coverage_recorded": {
+    "defaultMessage": "Recorded: {time}",
+    "description": "Backup details: timestamp of the immutable capture manifest"
+  },
+  "web.components.backups.backup_detail_drawer.coverage_scope": {
+    "defaultMessage": "Only the primary data claim is copied. Rebuildable is a declaration, not proof that recovery can reconstruct its contents.",
+    "description": "Backup details: explains the current single-volume backup scope and rebuildable declarations"
   },
   "web.components.backups.backup_detail_drawer.delete": {
     "defaultMessage": "Delete",
@@ -1142,6 +1226,18 @@
   "web.components.backups.backup_detail_drawer.deleting": {
     "defaultMessage": "Deleting…",
     "description": "Backup detail drawer: delete button label while the delete request is pending"
+  },
+  "web.components.backups.backup_detail_drawer.included": {
+    "defaultMessage": "Included",
+    "description": "Backup volume: this claim is selected for copying; success is reported separately"
+  },
+  "web.components.backups.backup_detail_drawer.legacy_coverage": {
+    "defaultMessage": "Capture-time volume metadata is unavailable. Inspect the original backup and module configuration before recovery.",
+    "description": "Backup details: older backups have no reliable volume manifest, so the current template is not used to invent coverage"
+  },
+  "web.components.backups.backup_detail_drawer.not_covered": {
+    "defaultMessage": "Not covered",
+    "description": "Backup volume: contents of this claim are not included"
   },
   "web.components.backups.backup_detail_drawer.phase": {
     "defaultMessage": "Phase",
@@ -1154,6 +1250,10 @@
   "web.components.backups.backup_detail_drawer.restore_backup": {
     "defaultMessage": "Restore backup",
     "description": "Backup details drawer: screen-reader name of the restore button in the drawer header, read instead of its visible word Restore; not visible on screen"
+  },
+  "web.components.backups.backup_detail_drawer.retained_unmounted": {
+    "defaultMessage": "Retained claim; not mounted in the captured workload.",
+    "description": "Backup volume: an older server-owned claim was retained but was not part of the observed pod layout"
   },
   "web.components.backups.backup_detail_drawer.server": {
     "defaultMessage": "Server",

@@ -1,0 +1,85 @@
+{{- /* SSA cannot remove a server-defaulted rollingUpdate field. Patch it before
+Helm applies Recreate, including installations that manage CRDs externally. */ -}}
+{{- if and .Release.IsUpgrade (eq (include "gameplane.operatorEnabled" .) "true") (not .Values.operator.leaderElect) }}
+{{- $existing := lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-operator" }}
+{{- if $existing }}
+{{- $name := printf "%s-op-roll" .Release.Name }}
+{{- $annotations := dict "helm.sh/hook" "pre-upgrade" "helm.sh/hook-delete-policy" "before-hook-creation,hook-succeeded" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations: {{- toYaml (merge (dict "helm.sh/hook-weight" "-5") $annotations) | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations: {{- toYaml (merge (dict "helm.sh/hook-weight" "-5") $annotations) | nindent 4 }}
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [gameplane-operator]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations: {{- toYaml (merge (dict "helm.sh/hook-weight" "-5") $annotations) | nindent 4 }}
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ $name }} }
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations: {{- toYaml (merge (dict "helm.sh/hook-weight" "-4") $annotations) | nindent 4 }}
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      {{- include "gameplane.placement" .Values.crds.autoApply | nindent 6 }}
+      serviceAccountName: {{ $name }}
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: kubectl
+          image: {{ .Values.crds.autoApply.image | quote }}
+          imagePullPolicy: {{ .Values.crds.autoApply.pullPolicy }}
+          command: [kubectl, patch, deployment, gameplane-operator, --type=merge, -p, '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}']
+          env:
+            - { name: HOME, value: /tmp }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}

@@ -135,3 +135,33 @@ true
 true
 {{- end -}}
 {{- end -}}
+
+{{- /* Shared PodSpec placement fields; absent keys preserve older reuse-values. */ -}}
+{{- define "gameplane.placement" -}}
+{{- range $key := list "nodeSelector" "tolerations" "affinity" "topologySpreadConstraints" "priorityClassName" -}}
+{{- with index $ $key }}
+{{ $key }}: {{ toYaml . | nindent 2 }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Complete auxiliary overrides; empty objects must not become defaults. */ -}}
+{{- define "gameplane.auxiliaryResourceArgs" -}}
+{{- range $name := list "agent" "sentinel" "tunnel" "backup" -}}
+{{- $key := printf "%sResources" $name -}}
+{{- $value := index $ $key -}}
+{{- if and (hasKey $ $key) (not (kindIs "invalid" $value)) -}}
+{{- if not (kindIs "map" $value) -}}
+{{- fail (printf "operator.%s must be a resources object or null" $key) -}}
+{{- end }}
+- {{ printf "--%s-resources=%s" $name (toJson $value) | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Resolve new diagnostics defaults for upgrades using older reuse-values.
+mergeOverwrite preserves explicit zero/empty values so validation can reject them. */ -}}
+{{- define "gameplane.nodeDiagnostics" -}}
+{{- $configured := (.Values.capture | default dict).nodeDiagnostics | default dict -}}
+{{- mergeOverwrite (dict "enabled" false "namespace" "gameplane-diagnostics" "maxCaptures" 10 "storageQuota" "10Gi" "storageClass" "") $configured | toJson -}}
+{{- end -}}

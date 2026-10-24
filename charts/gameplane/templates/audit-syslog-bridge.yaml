@@ -27,6 +27,7 @@ spec:
         app.kubernetes.io/name: gameplane-audit-syslog-bridge
         {{- include "gameplane.labels" . | nindent 8 }}
     spec:
+      {{- include "gameplane.placement" $b | nindent 6 }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -117,6 +118,47 @@ func (c *Client) Quiesce(ctx context.Context, namespace, server string) error {
 // not surface its errors as backup failures.
 func (c *Client) Unquiesce(ctx context.Context, namespace, server string) error {
 	return c.callQuiesce(ctx, namespace, server, "/unquiesce", false)
+}
+
+// QuiesceEnabled reports whether this client can perform quiesce operations.
+func (c *Client) QuiesceEnabled() bool { return c != nil && !c.Disabled }
+
+// CheckPod verifies that the responding agent belongs to the selected Pod.
+// Older agents return 404; callers must not fall back to unbound mutations.
+func (c *Client) CheckPod(ctx context.Context, namespace, server, podUID string) error {
+	if c.Disabled || podUID == "" {
+		return fmt.Errorf("agent: pod identity check requires an enabled client and pod UID")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agentURL(namespace, server, "/v1/pods/"+url.PathEscape(podUID)+"/identity"), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("agent: pod identity check: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("agent: pod identity check: status %d", resp.StatusCode)
+	}
+	return nil
+}
+
+// QuiescePod disables saving only on the selected Pod's agent.
+func (c *Client) QuiescePod(ctx context.Context, namespace, server, podUID string) error {
+	return c.callPodQuiesce(ctx, namespace, server, podUID, "/quiesce", true)
+}
+
+// UnquiescePod restores saving only on the selected Pod's agent.
+func (c *Client) UnquiescePod(ctx context.Context, namespace, server, podUID string) error {
+	return c.callPodQuiesce(ctx, namespace, server, podUID, "/unquiesce", false)
+}
+
+func (c *Client) callPodQuiesce(ctx context.Context, namespace, server, podUID, path string, expectQuiesced bool) error {
+	if c.Disabled || podUID == "" {
+		return fmt.Errorf("agent: pod-bound quiesce requires an enabled client and pod UID")
+	}
+	return c.callQuiesce(ctx, namespace, server, "/v1/pods/"+url.PathEscape(podUID)+path, expectQuiesced)
 }
 
 // expectQuiesced is what the response should report on a successful

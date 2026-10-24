@@ -45,6 +45,22 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 	c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, tmpl, caSecret).WithStatusSubresource(gs).Build()
 	reader := &wipeInventoryReader{Reader: c}
 	r := &GameServerReconciler{Client: c, APIReader: reader, Scheme: s, AgentCASecretName: caSecret.Name, AgentCASecretNamespace: caSecret.Namespace}
+	// This test measures an ordinary already-admitted reconcile. Template
+	// admission has its own live worker checks and transition tests.
+	revision, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations == nil {
+		gs.Annotations = map[string]string{}
+	}
+	gs.Annotations[effectiveTemplateAnnotation] = revision
+	if err := c.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.reportTemplateRevision(t.Context(), gs, revision, lifecycleOperation{}, false); err != nil {
+		t.Fatal(err)
+	}
 	// Exercise both initial child/status creation and the next full pass. Idle
 	// and capture reconciliation participate, rather than just lifecycle helpers.
 	for range 2 {

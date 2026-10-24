@@ -143,6 +143,10 @@ func main() {
 		gameIngressFromCIDR              cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
+		restrictedWorkloads              bool
+		agentTokenExpirationSeconds      int64
+		diagnosticsNamespace             string
+		diagnosticsStorageClass          string
 		captureDefaultRetention          int64
 		captureMaxRetention              int64
 		captureSidecarImage              string
@@ -150,10 +154,18 @@ func main() {
 		captureDefaultMaxSizeBytes       int64
 		backupJobBackoffLimit            int64
 		backupJobActiveDeadlineSeconds   int64
+		agentResourcesJSON               string
+		sentinelResourcesJSON            string
+		tunnelResourcesJSON              string
+		backupResourcesJSON              string
 	)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "Address the metrics endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "Address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
+	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
+	flag.StringVar(&tunnelResourcesJSON, "tunnel-resources", "", "JSON ResourceRequirements for tunnel relays; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&backupResourcesJSON, "backup-resources", "", "JSON ResourceRequirements for restic backup/init, restore and cleanup workers; default backup/restore requests 100m/128Mi, {} clears defaults.")
 	flag.StringVar(&agentImage, "agent-image", "ghcr.io/gameplanepanel/gameplane/agent:dev",
 		"Image to use for the Gameplane agent sidecar injected into game pods.")
 	flag.StringVar(&agentImagePullPolicy, "agent-image-pull-policy", "",
@@ -185,6 +197,10 @@ func main() {
 	flag.StringVar(&tunnelPlayitImage, "tunnel-playit-image", controller.DefaultTunnelPlayitImage,
 		"Image for the Playit tunnel relay pod that routes players through a Playit tunnel. "+
 			"Point at a private registry mirror for air-gapped installs.")
+	flag.BoolVar(&restrictedWorkloads, "restricted-workloads", false, "Require compatible nonroot templates and render Restricted game workloads")
+	flag.Int64Var(&agentTokenExpirationSeconds, "agent-token-expiration-seconds", 3600, "Projected agent token lifetime (600-3600 seconds)")
+	flag.StringVar(&diagnosticsNamespace, "diagnostics-namespace", "", "Opt in to node diagnostics in this dedicated privileged namespace")
+	flag.StringVar(&diagnosticsStorageClass, "diagnostics-storage-class", "", "StorageClass for bounded node capture artifact PVCs")
 	flag.BoolVar(&captureEnabled, "capture-enabled", false,
 		"Enable the network capture feature cluster-wide. When false (the default), "+
 			"the capture capability is disabled and cannot be enabled per-GameServer.")
@@ -259,10 +275,38 @@ func main() {
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	if agentTokenExpirationSeconds < 600 || agentTokenExpirationSeconds > 3600 {
+		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
+		os.Exit(1)
+	}
+	if diagnosticsNamespace != "" && diagnosticsNamespace == controlPlaneNamespace {
+		fmt.Fprintln(os.Stderr, "diagnostics-namespace must be separate from the control-plane namespace")
+		os.Exit(1)
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
 
+	agentResources, err := controller.ParseAuxiliaryResources(agentResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --agent-resources")
+		os.Exit(1)
+	}
+	sentinelResources, err := controller.ParseAuxiliaryResources(sentinelResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --sentinel-resources")
+		os.Exit(1)
+	}
+	tunnelResources, err := controller.ParseAuxiliaryResources(tunnelResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --tunnel-resources")
+		os.Exit(1)
+	}
+	backupResources, err := controller.ParseAuxiliaryResources(backupResourcesJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --backup-resources")
+		os.Exit(1)
+	}
 	backupJobBackoff32, err := boundedInt32(backupJobBackoffLimit) // rejects <0 and >MaxInt32
 	if err != nil {
 		setupLog.Error(err, "invalid --backup-job-backoff-limit value (must be >= 0)", "value", backupJobBackoffLimit)
@@ -380,6 +424,9 @@ func main() {
 		APIReader:              mgr.GetAPIReader(),
 		Scheme:                 mgr.GetScheme(),
 		AgentImage:             agentImage,
+		AgentResources:         agentResources,
+		SentinelResources:      sentinelResources,
+		TunnelResources:        tunnelResources,
 		AgentImagePullPolicy:   agentImagePullPolicy,
 		ConfigInitImage:        configInitImage,
 		SentinelImage:          sentinelImage,
@@ -390,17 +437,21 @@ func main() {
 		AgentCASecretName:      agentCASecretName,
 		AgentCASecretNamespace: agentCASecretNamespace,
 		AgentClient:            agentClient,
+		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{
 			Config:    mgr.GetConfig(),
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		},
-		AddressManager:           addressManager,
-		MetalLBNamespace:         metalLBNamespace,
-		GameIngressPolicyEnabled: gameIngressPolicy,
-		GameIngressFromCIDRs:     gameIngressFromCIDR,
-		CaptureEnabled:           captureEnabled,
-		CaptureSidecarImage:      captureSidecarImage,
-		DefaultStorageClassName:  gameDataStorageClass,
+		AddressManager:              addressManager,
+		MetalLBNamespace:            metalLBNamespace,
+		GameIngressPolicyEnabled:    gameIngressPolicy,
+		GameIngressFromCIDRs:        gameIngressFromCIDR,
+		CaptureEnabled:              captureEnabled,
+		RestrictedWorkloads:         restrictedWorkloads,
+		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
+		DiagnosticsNamespace:        diagnosticsNamespace,
+		CaptureSidecarImage:         captureSidecarImage,
+		DefaultStorageClassName:     gameDataStorageClass,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "GameServer")
 		os.Exit(1)
@@ -419,6 +470,7 @@ func main() {
 		Clientset:                kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		AgentClient:              agentClient,
 		ResticImage:              resticImage,
+		BackupResources:          backupResources,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 		EventRecorder:            mgr.GetEventRecorder("backup-controller"),
@@ -437,7 +489,9 @@ func main() {
 		Client:                   mgr.GetClient(),
 		APIReader:                mgr.GetAPIReader(),
 		Scheme:                   mgr.GetScheme(),
+		OperationQuiescer:        agentClient,
 		ResticImage:              resticImage,
+		BackupResources:          backupResources,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 	}).SetupWithManager(mgr); err != nil {
@@ -451,6 +505,12 @@ func main() {
 		Client:                           mgr.GetClient(),
 		Scheme:                           mgr.GetScheme(),
 		SidecarClient:                    captureClient,
+		APIReader:                        mgr.GetAPIReader(),
+		RestrictedWorkloads:              restrictedWorkloads,
+		DiagnosticsNamespace:             diagnosticsNamespace,
+		DiagnosticsStorageClass:          diagnosticsStorageClass,
+		AgentCASecretName:                agentCASecretName,
+		AgentCASecretNamespace:           agentCASecretNamespace,
 		CaptureEnabled:                   captureEnabled,
 		CaptureSidecarImage:              captureSidecarImage,
 		CaptureDefaultMaxDurationSeconds: captureDefaultMaxDurationSeconds,

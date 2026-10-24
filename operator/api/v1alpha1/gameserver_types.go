@@ -49,6 +49,11 @@ type GameServerSpec struct {
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="templateRef is immutable; delete and recreate the GameServer to switch templates"
 	TemplateRef GameTemplateRef `json:"templateRef"`
 
+	// TemplateRollout controls adoption of changes to the shared GameTemplate.
+	// Omitted preserves Automatic adoption. Per-server overrides remain live.
+	// +optional
+	TemplateRollout *TemplateRolloutSpec `json:"templateRollout,omitempty"`
+
 	// Suspend, when true, scales the underlying StatefulSet to zero.
 	// Data is preserved. Transitions the GameServer to Suspended.
 	// +kubebuilder:default=false
@@ -224,14 +229,22 @@ type IdleSpec struct {
 type CaptureConfiguration struct {
 	// Enabled: opt-in flag for packet-capture capability on this GameServer.
 	// If false or omitted, no capture sidecar is injected; the game container is unchanged.
-	// If true, the operator injects the capture sidecar as an ephemeral container via
+	// In the legacy profile, the operator injects the capture sidecar via
 	// pods/ephemeralcontainers, live, without restarting the game container.
 	// Disabling (true→false) does not remove the sidecar from a running pod — Kubernetes
 	// has no API to remove ephemeral containers — but stops accepting new captures.
+	// Restricted workloads require NodeDiagnostic instead and never inject a sidecar.
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Type=boolean
 	// +optional
 	Enabled bool `json:"enabled,omitempty"`
+
+	// NodeDiagnostic permits the separately deployed node capture worker for
+	// this server. Application administrators must explicitly opt in. The
+	// worker has host-level capabilities; it never weakens the game Pod.
+	// Required for capture on Restricted workloads. Off by default.
+	// +optional
+	NodeDiagnostic bool `json:"nodeDiagnostic,omitempty"`
 
 	// RetentionSeconds: optional per-GameServer override of the cluster-default retention window
 	// after a capture completes. Unit: seconds. If omitted, the cluster default
@@ -508,8 +521,41 @@ type InlineBackupPolicy struct {
 	Suspend bool `json:"suspend,omitempty"`
 }
 
+// TemplateRolloutSpec controls when installed template content is adopted.
+type TemplateRolloutSpec struct {
+	// Policy defaults to Automatic. OnRequest requires the exact desired digest.
+	// +kubebuilder:validation:Enum=Automatic;OnRequest
+	// +kubebuilder:default=Automatic
+	// +optional
+	Policy string `json:"policy,omitempty"`
+	// RequestedRevision authorizes this SHA256 only, never future revisions.
+	// Read status.templateRevision.desired and copy it here to admit an update.
+	// Initial provisioning always adopts the installed template.
+	// +kubebuilder:validation:Pattern=`^[a-f0-9]{64}$`
+	// +optional
+	RequestedRevision string `json:"requestedRevision,omitempty"`
+}
+
+// TemplateRevisionStatus distinguishes installed, admitted and observed content.
+type TemplateRevisionStatus struct {
+	// Desired is the installed template's SHA256; empty if it is unavailable.
+	// +optional
+	Desired string `json:"desired,omitempty"`
+	// Effective is the immutable content used for all derived resources.
+	// +optional
+	Effective string `json:"effective,omitempty"`
+	// Running comes from an owned Pod with a running game container. Empty
+	// means no running revision is known, including pre-upgrade legacy Pods.
+	// +optional
+	Running string `json:"running,omitempty"`
+}
+
 // GameServerStatus is the observed state of a GameServer.
 type GameServerStatus struct {
+	// TemplateRevision is a read model; operator-owned annotations and immutable
+	// ConfigMaps retain admission state across status resets and leader changes.
+	// +optional
+	TemplateRevision *TemplateRevisionStatus `json:"templateRevision,omitempty"`
 	// +optional
 	Phase GameServerPhase `json:"phase,omitempty"`
 
