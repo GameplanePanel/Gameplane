@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -182,7 +183,7 @@ func TestSentinelReconciliation(t *testing.T) {
 		deleteCleanup(t, tmpl)
 
 		gs := &gameplanev1alpha1.GameServer{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-sentinel-hostport", Namespace: ns},
+			ObjectMeta: metav1.ObjectMeta{Name: "test-sentinel-hostport", Namespace: ns, Annotations: map[string]string{hostportNodeAnnotation: "node-a"}},
 			Spec: gameplanev1alpha1.GameServerSpec{
 				TemplateRef: gameplanev1alpha1.GameTemplateRef{Name: tmpl.Name},
 				Idle:        armedIdleSpec(),
@@ -550,8 +551,40 @@ func TestGameServer_WakeOnConnectHostportNoHoldOpen(t *testing.T) {
 		return ssReplicas(t, ns, "wakehp") == 1, "statefulset not scaled up yet"
 	})
 	setSSStatus(t, ns, "wakehp", 1, 1)
+	node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: uniqueName("hostport-node")}}
+	if err := k8sClient.Create(ctx, node); err != nil {
+		t.Fatal(err)
+	}
+	deleteCleanup(t, node)
+	node.Status.Conditions = []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}
+	if err := k8sClient.Status().Update(ctx, node); err != nil {
+		t.Fatal(err)
+	}
+	gamePod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "wakehp-0", Namespace: ns, Labels: map[string]string{"app.kubernetes.io/name": "gameplane-game", "app.kubernetes.io/instance": gs.Name}}, Spec: corev1.PodSpec{NodeName: node.Name, Containers: []corev1.Container{{Name: "game", Image: "busybox"}}}}
+	if err := k8sClient.Create(ctx, gamePod); err != nil {
+		t.Fatal(err)
+	}
 
 	setAsleep(t, ns, "wakehp")
+	eventually(t, func() (bool, string) { return ssReplicas(t, ns, gs.Name) == 0, "game not scaled down" })
+	consistently(t, time.Second, func() (bool, string) {
+		return !deploymentExists(t, ns, "wakehp-waker"), "sentinel overlaps the live game Pod"
+	})
+	zero := int64(0)
+	if err := k8sClient.Delete(ctx, gamePod, &client.DeleteOptions{GracePeriodSeconds: &zero}); err != nil {
+		t.Fatal(err)
+	}
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var ss appsv1.StatefulSet
+		if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: ns, Name: gs.Name}, &ss); err != nil {
+			return err
+		}
+		ss.Status.Replicas, ss.Status.ReadyReplicas = 0, 0
+		ss.Status.ObservedGeneration = ss.Generation
+		return k8sClient.Status().Update(ctx, &ss)
+	}); err != nil {
+		t.Fatal(err)
+	}
 	eventually(t, func() (bool, string) {
 		return deploymentExists(t, ns, "wakehp-waker"), "sentinel deployment not created"
 	})
@@ -565,6 +598,23 @@ func TestGameServer_WakeOnConnectHostportNoHoldOpen(t *testing.T) {
 	clearAsleep(t, ns, "wakehp")
 
 	eventually(t, func() (bool, string) {
-		return !deploymentExists(t, ns, "wakehp-waker"), "sentinel not deleted immediately on Hostport wake"
+		var dep appsv1.Deployment
+		err := k8sClient.Get(ctx, types.NamespacedName{Namespace: ns, Name: "wakehp-waker"}, &dep)
+		return err == nil && !dep.DeletionTimestamp.IsZero(), "sentinel foreground deletion not requested"
+	})
+	consistently(t, time.Second, func() (bool, string) {
+		return ssReplicas(t, ns, gs.Name) == 0, "game restarted before sentinel producer disappeared"
+	})
+	// envtest has no garbage collector: finish foreground deletion explicitly.
+	var dep appsv1.Deployment
+	if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: ns, Name: "wakehp-waker"}, &dep); err != nil {
+		t.Fatal(err)
+	}
+	dep.Finalizers = nil
+	if err := k8sClient.Update(ctx, &dep); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, func() (bool, string) {
+		return ssReplicas(t, ns, gs.Name) == 1, "game did not resume after sentinel deletion"
 	})
 }

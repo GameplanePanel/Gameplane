@@ -16,6 +16,10 @@ metadata:
   name: {{ .Release.Name }}-operator-watch
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 rules:
+  # Direct node identity/readiness checks for durable Hostport wake endpoints.
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get]
   - apiGroups: ["gameplane.local"]
     resources: [gameservers, gametemplates, backups, backupschedules, restores, modules, modulesources, networkcaptures]
     verbs: [get, list, watch]

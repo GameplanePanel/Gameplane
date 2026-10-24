@@ -72,7 +72,8 @@ const (
 
 	// defaultPollInterval is how often waitForUpstream retries dialing the
 	// game-direct Service while holding a connection open.
-	defaultPollInterval = 250 * time.Millisecond
+	defaultPollInterval     = 250 * time.Millisecond
+	defaultWakePatchTimeout = 5 * time.Second
 
 	// defaultShutdownDrainTimeout bounds how long the sentinel keeps
 	// in-flight sessions alive after it is told to shut down (see
@@ -354,44 +355,68 @@ type wakeRequester interface {
 // waker patches the GameServer's idle-wake-requested annotation to signal
 // the operator that this server should wake.
 //
-// It coalesces bursts: while a patch is in flight, or within minInterval of
-// the last one landing, RequestWake is a cheap no-op instead of issuing
-// another apiserver call. This is what keeps a port scan, or a pile of
+// It coalesces bursts: callers share the result of an in-flight patch, and
+// successful patches suppress another call for minInterval. This keeps a port scan, or a pile of
 // players reconnecting at once, from hammering the apiserver with patches —
 // the operator only needs to see the annotation change once to act on it.
 type waker struct {
-	res         dynamic.ResourceInterface
-	name        string
-	minInterval time.Duration
+	res          dynamic.ResourceInterface
+	name         string
+	minInterval  time.Duration
+	patchTimeout time.Duration
 
 	mu        sync.Mutex
-	inFlight  bool
+	inFlight  *wakeAttempt
 	lastPatch time.Time
 }
 
+type wakeAttempt struct {
+	done chan struct{}
+	err  error
+}
+
 func newWaker(res dynamic.ResourceInterface, name string, minInterval time.Duration) *waker {
-	return &waker{res: res, name: name, minInterval: minInterval}
+	return &waker{res: res, name: name, minInterval: minInterval, patchTimeout: defaultWakePatchTimeout}
 }
 
 // RequestWake stamps a fresh token onto the GameServer's
 // idle-wake-requested annotation via a JSON merge patch (rather than a full
 // object update), so any other annotations already on the object survive.
-func (w *waker) RequestWake(ctx context.Context) error {
+func (w *waker) RequestWake(ctx context.Context) (result error) {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	w.mu.Lock()
 	now := time.Now()
-	if w.inFlight || (!w.lastPatch.IsZero() && now.Sub(w.lastPatch) < w.minInterval) {
+	if attempt := w.inFlight; attempt != nil {
+		w.mu.Unlock()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-attempt.done:
+			return attempt.err
+		}
+	}
+	if !w.lastPatch.IsZero() && now.Sub(w.lastPatch) < w.minInterval {
 		w.mu.Unlock()
 		return nil
 	}
-	w.inFlight = true
+	attempt := &wakeAttempt{done: make(chan struct{})}
+	w.inFlight = attempt
 	w.mu.Unlock()
 
 	defer func() {
 		w.mu.Lock()
-		w.inFlight = false
-		w.lastPatch = time.Now()
+		attempt.err = result
+		w.inFlight = nil
+		if result == nil {
+			w.lastPatch = time.Now()
+		}
+		close(attempt.done)
 		w.mu.Unlock()
 	}()
+	patchCtx, cancel := context.WithTimeout(ctx, w.patchTimeout)
+	defer cancel()
 
 	patch, err := json.Marshal(map[string]any{
 		"metadata": map[string]any{
@@ -404,7 +429,7 @@ func (w *waker) RequestWake(ctx context.Context) error {
 		return fmt.Errorf("encode wake patch: %w", err)
 	}
 
-	if _, err := w.res.Patch(ctx, w.name, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
+	if _, err := w.res.Patch(patchCtx, w.name, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
 		return fmt.Errorf("patch %s annotation: %w", idleWakeRequestedAnnotation, err)
 	}
 	return nil
@@ -714,17 +739,20 @@ type joinParams struct {
 // bidirectionally; on timeout, the connection is bounced (if a bounce
 // function is set) and closed.
 func handleJoin(ctx context.Context, conn net.Conn, br *bufio.Reader, w wakeRequester, p joinParams) {
-	if err := w.RequestWake(ctx); err != nil {
+	joinCtx, cancelJoin := context.WithTimeout(ctx, p.deadline)
+	defer cancelJoin()
+	if err := w.RequestWake(joinCtx); err != nil {
 		log.Printf("request wake: %v", err)
 	}
 
-	upstream, err := waitForUpstream(ctx, p.upstreamAddr, p.deadline, p.pollInterval)
+	upstream, err := waitForUpstream(joinCtx, p.upstreamAddr, p.deadline, p.pollInterval)
 	if err != nil {
 		if p.bounce != nil {
 			p.bounce(conn)
 		}
 		return
 	}
+	cancelJoin()
 	defer func() {
 		if err := upstream.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
 			log.Printf("close upstream connection: %v", err)
@@ -842,6 +870,11 @@ func serveUDP(ctx context.Context, port PortConfig, w wakeRequester, cfg Config,
 		}
 		return
 	}
+	defer func() { _ = pc.Close() }()
+	serveUDPPackets(ctx, pc, port, w, cfg, errCh)
+}
+
+func serveUDPPackets(ctx context.Context, pc net.PacketConn, port PortConfig, w wakeRequester, cfg Config, errCh chan<- error) {
 
 	// Belt-and-suspenders shutdown: Close() unblocks a ReadFrom that's
 	// already parked waiting for a packet, and the read deadline below
@@ -858,6 +891,11 @@ func serveUDP(ctx context.Context, port PortConfig, w wakeRequester, cfg Config,
 	sweepCtx, cancelSweep := context.WithCancel(ctx)
 	defer cancelSweep()
 	go heuristic.sweepLoop(sweepCtx, cfg.UDPWindow)
+	wakeWorker := newUDPWakeWorker(sweepCtx, w)
+	defer func() {
+		cancelSweep()
+		<-wakeWorker.done
+	}()
 
 	buf := make([]byte, 2048)
 	for {
@@ -882,9 +920,7 @@ func serveUDP(ctx context.Context, port PortConfig, w wakeRequester, cfg Config,
 		}
 
 		if heuristic.shouldWake(addr.String(), time.Now()) {
-			if err := w.RequestWake(ctx); err != nil {
-				log.Printf("request wake: %v", err)
-			}
+			wakeWorker.request()
 		}
 	}
 }

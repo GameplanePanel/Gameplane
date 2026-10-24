@@ -6,7 +6,7 @@
 #   deploy/kind/e2e.sh down  [cluster-name]
 #
 # Diffs from dev-up (deploy/kind/up.sh):
-#   - Single-node cluster (faster boot, sufficient for E2E coverage).
+#   - Single-node cluster by default; two-node profile tests Hostport handoff.
 #   - Skips ingress-nginx (the dashboard isn't exercised here).
 #   - Loads pre-built gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,fakeoidc}:<tag>
 #     images (and gameplane-test/gameprobe:<tag> when present).
@@ -28,9 +28,9 @@ CLUSTER="${2:-gameplane-e2e}"
 TAG="${3:-${GAMEPLANE_E2E_TAG:-e2e}}"
 PROFILE="${4:-default}"
 case "${PROFILE}" in
-default | postgres) ;;
+default | postgres | two-node) ;;
 *)
-    echo "unknown profile '${PROFILE}' (want default or postgres)" >&2
+    echo "unknown profile '${PROFILE}' (want default, postgres or two-node)" >&2
     exit 2
     ;;
 esac
@@ -188,12 +188,17 @@ up)
         echo "removing pre-existing cluster ${CLUSTER} for a clean slate"
         kind delete cluster --name "${CLUSTER}" || true
     fi
-    echo "creating kind cluster ${CLUSTER} (single-node)"
+    echo "creating kind cluster ${CLUSTER} (${PROFILE})"
+    extra_nodes=""
+    if [[ "${PROFILE}" == "two-node" ]]; then
+        extra_nodes="  - role: worker"
+    fi
     kind create cluster --name "${CLUSTER}" --wait 90s --config - <<EOF
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
+${extra_nodes}
 EOF
 
     kubectl cluster-info --context "kind-${CLUSTER}" >/dev/null

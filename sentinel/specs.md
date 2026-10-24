@@ -59,7 +59,7 @@ Single executable module; no subdirectories or packages.
     - `none`: Operator still advertises the port (container spec, Service), but the sentinel doesn't listen on it (port scan sink).
     - **Startup validation:** At startup, all configured `wakeProtocol` values (except `generic` and `none`) are validated against the gameproto registry. Unknown protocol names cause a fatal startup error listing available registered protocols.
 
-- **`WAKE_DEADLINE`** (optional, default `25s`): How long to hold a join connection waiting for the game pod to come up. Must be less than the game client's own timeout (Minecraft ~30s, Terraria ~30s) or the client gives up first.
+- **`WAKE_DEADLINE`** (optional, default `25s`): Total join budget, starting before the wake PATCH and including upstream dialing. The PATCH is bounded by the lesser of five seconds and the remaining join budget. Must be less than the game client's own timeout (Minecraft ~30s, Terraria ~30s) or the client gives up first. After a successful upstream connection, proxying uses the session/drain context and outlives this budget.
 - **`UDP_PACKET_THRESHOLD`** (optional, default `3`): Number of packets from one source within the window before triggering a wake.
 - **`UDP_PACKET_WINDOW`** (optional, default `10s`): Time window for counting UDP packets.
 - **`UDP_MAX_SOURCES`** (optional, default `4096`): Maximum number of distinct UDP sources (keyed by `ip:port`, not just IP) to track. Older sources are evicted when this limit is reached.
@@ -246,7 +246,7 @@ Each accepted TCP connection runs as a *session* under its own context, separate
 
 5. **No data duplication or loss.** The complete original stream is: `Consumed + remaining(bufio.Reader) + new-data-from-client`. Both classifiers and proxying preserve this boundary.
 
-6. **Annotation patch coalesces bursts.** Bursts of players reconnecting at once don't hammer the apiserver; RequestWake is a no-op if a patch is already in flight or within `wakePatchInterval` of the last one.
+6. **Annotation patch coalesces bursts.** Callers awaiting an in-flight PATCH observe that attempt's completion and error, unless their own context expires first. Only successful attempts start the `wakePatchInterval` cooldown; failures release the shared attempt so a later request can retry. One worker per UDP listener accepts a one-entry coalescing queue; packet reception and bounded source tracking continue while Kubernetes is stalled. Listener shutdown cancels and joins that worker.
 
 7. **UDP sources are evicted fairly.** The least-recently-active source is evicted (LRU), not a random or oldest source, so brief bursts of scanners don't unfairly starve legitimate players trying to rejoin.
 
@@ -293,6 +293,7 @@ Each accepted TCP connection runs as a *session* under its own context, separate
 - **Shutdown drain (F-179):** `TestRunDrainsProxiedSessionAfterContextCancel` (replaces `TestProxyBidirectionalStopsOnContextCancel`, which asserted the old cut-on-cancel behaviour) verifies that after cancel new connections are refused while a handed-through session keeps working in both directions and `run` returns only once it ends; `TestRunForceClosesSessionsAfterDrainTimeout` verifies the drain is bounded; `TestLoadConfigShutdownDrainTimeout` covers `SHUTDOWN_DRAIN_TIMEOUT` parsing.
 - **Listener failure (F-180):** `TestRunSurfacesUDPListenFailureWhileTCPHealthy` verifies a UDP bind failure is returned promptly while a TCP listener is still healthy.
 - **Waker (annotation patching):** `TestWakerRequestWakeSetsAnnotation`, `TestWakerRequestWakePreservesOtherAnnotations`, `TestWakerRequestWakeCoalescesBursts` verify merge patch isolation, burst coalescing.
+- **Wake availability:** `wake_budget_test.go` covers a hanging HTTP API, shared failure and retry, the total join deadline, worker cancellation/coalescing, successful gameplay beyond the join deadline, and receiving a 101-datagram burst while wake is stalled. CI logs elapsed receive time; this fixture does not establish a production capacity ceiling.
 - **Registry dispatch:** `TestRegistryProtocolDispatchMinecraftJoinWakes`, `TestRegistryProtocolDispatchMinecraftStatusPingNoWake`, `TestRegistryProtocolDispatchTerrariaJoinWakes`, `TestRegistryProtocolDispatchUnknownNoWake`, `TestRegistryProtocolReplayConsumedBytes` verify registry lookup, Classifier.Classify invocation, protocol-agnostic join/status/unknown handling, and consumed-byte replay.
 - **Startup validation:** `TestParsePortsConfigRejectsUnknownProtocol` verifies that unknown protocol names cause a fatal startup error with a clear message listing available protocols.
 - **Generic handlers:** `TestHandleGenericWakesOnConnect`, `TestHandleGenericClosesSilentlyOnDeadline` verify generic TCP (always join), generic UDP bounce (no message).

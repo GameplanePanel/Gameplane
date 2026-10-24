@@ -79,7 +79,45 @@ A new Service `<gs>-game-direct` — an always-ClusterIP Service selecting the g
 4. Game Service selector flips back to `gameserver: <name>`
 5. Sentinel Deployment deleted last
 
-Connections already held in the proxy survive the flip-back because they connect through `-game-direct`, not the re-pointed game Service. In Hostport mode the sentinel relinquishes the host port on deletion; the game pod briefly Pending self-heals via scheduler retry.
+Connections already held in the proxy survive the flip-back because they connect through `-game-direct`, not the re-pointed game Service.
+
+**Hostport correction (#730, October 2026):** Hostport uses a separate handoff.
+Before its first sleep, the operator saves the live game's node name and Node UID
+in `gameplane.local/hostport-node` and `gameplane.local/hostport-node-uid`. These
+annotations survive Pod deletion and operator restart; the dashboard's current
+`gameplane.local/node` annotation remains a separate, transient observation.
+The game completes its normal graceful stop and scales to zero. Only after the
+StatefulSet acknowledges that generation and a direct API list confirms all game
+Pods have disappeared does the operator create the sentinel. The sentinel has
+required node affinity for that identity, the game's tolerations and scheduling
+constraints, and a Recreate strategy. It never bypasses the scheduler with
+`spec.nodeName`.
+
+On wake, foreground deletion removes the sentinel Deployment and its children.
+The game remains at zero until a direct API read confirms the Deployment is gone
+and no sentinel Pods remain, including terminating Pods. The game then starts
+with the same required endpoint-node affinity. Hostport clients still reconnect;
+the old "briefly Pending, self-heals" sequencing is superseded. Service-backed
+exposure retains the hold-and-proxy drain described above.
+
+`HostportWakeReady=False` explains `GameDraining`, `SentinelDraining`,
+`EndpointNodeUnknown`, `EndpointNodeUnavailable`, `EndpointUnschedulable`, or
+`ListenerPending`. A full node stays pinned and reports the scheduler's reason;
+a missing, replaced or unready node makes wake unavailable. The operator never
+silently changes the advertised node. Unrelated child reconciliation continues
+during these waits. After restoring node capacity/readiness, reconciliation
+resumes automatically. For intentional migration, suspend the server, wait for
+both game and sentinel Pods to disappear, clear both durable endpoint annotations,
+update scheduling/storage placement and the client-facing node address, then
+resume the game before sleeping it again. Do not clear the annotations while a
+listener remains active. An installation upgraded while already asleep without
+a recorded game node must first start its game to establish placement.
+
+**Wake budget correction (#729):** The join deadline starts before the Kubernetes
+PATCH, which has a separate five-second maximum within that budget. Concurrent
+callers share the actual result of the in-flight PATCH. UDP packet reads enqueue
+coalesced requests to one bounded worker and never wait on the PATCH. Successful
+TCP proxy sessions use the longer session/drain context after upstream connects.
 
 ### Connection handling state machine
 

@@ -43,6 +43,7 @@ func (r *GameServerReconciler) reconcileStatus(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	idle idleState, idleStatus *gameplanev1alpha1.IdleStatus, idleScheduleErr error, tunnelPlan tunnelPlan,
 	tmpl *gameplanev1alpha1.GameTemplate, svcEvents []corev1.Event, conflictingServer string,
+	hostportConditions ...*metav1.Condition,
 ) (time.Duration, error) {
 	// base captures the object as fetched so we can issue a JSON merge
 	// patch of only the fields this reconciler owns. The agent sidecar
@@ -194,6 +195,16 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Compute tunnel conditions.
 	gs.Status.Conditions = computeTunnelConditions(gs, tunnelPlan, tunnelDep)
+	if len(hostportConditions) != 0 && hostportConditions[0] != nil {
+		condition := *hostportConditions[0]
+		gs.Status.Conditions = upsertCondition(gs.Status.Conditions, condition)
+		if condition.Status != metav1.ConditionTrue {
+			condition.Type = "Ready"
+			gs.Status.Conditions = upsertCondition(gs.Status.Conditions, condition)
+		}
+	} else {
+		gs.Status.Conditions = removeCondition(gs.Status.Conditions, hostportWakeCondition)
+	}
 
 	// Validate and merge playit tunnel endpoints if present.
 	var playitErr string

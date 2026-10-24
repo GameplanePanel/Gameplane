@@ -19,6 +19,17 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 - Validate multi-cluster dispatch, upgrade-from-previous-release, wake-on-connect, module signing/SSRF rejection, and backup/restore round trips end to end.
 - Enforce, via `buckets.sh`, that every test in the suite is assigned to exactly one CI bucket so nothing silently drops out of coverage.
 
+### Hostport wake acceptance
+
+The dedicated `wake-hostport` bucket runs on the `two-node` kind profile. It uses
+a real Hostport HTTP listener and dedicated-node taint, broadens the scheduling
+pool after recording the endpoint, and exercises two sleep/wake cycles at the
+same node address. It observes the old game still serving during termination,
+holds a terminating sentinel Pod to prove the reverse handoff waits, checks a
+cordoned endpoint remains unavailable rather than relocating, and deletes the
+node to exercise the explicit unavailable/replaced-node condition. This bucket
+runs alone because it changes node scheduling. Runtime results come from CI.
+
 ### Remote gateway parity acceptance
 
 The multicluster bucket runs `TestMultiCluster_GatewayParity` against two real
@@ -55,6 +66,11 @@ Go invocation has a 45-minute deadline within the existing 60-minute job budget.
 The golangci-lint job mirrors this: it must be invoked with `--build-tags=e2e` or it lints an effectively-empty package (only the 29 untagged files: `Dockerfile`-adjacent Go tooling, `internal/` package code not gated by the tag, fixtures, etc.).
 
 ## The bucket contract — the module's most important invariant
+
+The `wake-hostport` audit bucket is registered in the change-based selector,
+with explicit component mapping and an amd64-only selection-summary row. Its
+matrix leg skips cluster setup only when its selected test pattern is empty;
+full-scope and affected-component runs must include it.
 
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 

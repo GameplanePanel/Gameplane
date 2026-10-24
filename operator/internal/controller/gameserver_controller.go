@@ -386,6 +386,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "compute desired replicas")
 		return ctrl.Result{}, err
 	}
+	if plan.blockGame {
+		replicas = 0
+	}
 	if err := r.reconcileStatefulSet(ctx, &gs, &tmpl, ver, mc, replicas, &wipeState); err != nil {
 		if apierrors.IsConflict(err) {
 			return ctrl.Result{Requeue: true}, nil
@@ -442,7 +445,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer)
+	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer, plan.hostportCondition)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -452,7 +455,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
 	hints := []time.Duration{stopRequeue, idleRequeue}
-	if plan.wantSentinel {
+	if plan.wantSentinel || plan.hostportCondition != nil {
 		// Bounded backstop for planSentinel's wait on the sentinel or the
 		// game pod. Both are owned (Owns(&appsv1.Deployment{}),
 		// Owns(&appsv1.StatefulSet{})) so a readiness transition normally
@@ -1592,7 +1595,22 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// a removed scheduling pin active on the StatefulSet.
 		ss.Spec.Template.Spec.NodeSelector = gs.Spec.NodeSelector
 		ss.Spec.Template.Spec.Tolerations = gs.Spec.Tolerations
-		ss.Spec.Template.Spec.Affinity = gs.Spec.Affinity
+		// Do not change a live Pod's template merely because its node was
+		// recorded while a graceful stop is still saving the game. Apply the
+		// endpoint pin at zero replicas, then retain it on every future wake.
+		if actualReplicas == 0 || ss.ResourceVersion == "" || ss.Spec.Template.Annotations[hostportNodeAnnotation] != "" {
+			ss.Spec.Template.Spec.Affinity = hostportAffinity(gs)
+			if gs.Spec.Networking.Expose == "Hostport" && gs.Annotations[hostportNodeAnnotation] != "" {
+				if ss.Spec.Template.Annotations == nil {
+					ss.Spec.Template.Annotations = map[string]string{}
+				}
+				ss.Spec.Template.Annotations[hostportNodeAnnotation] = gs.Annotations[hostportNodeAnnotation]
+			} else {
+				delete(ss.Spec.Template.Annotations, hostportNodeAnnotation)
+			}
+		} else {
+			ss.Spec.Template.Spec.Affinity = gs.Spec.Affinity.DeepCopy()
+		}
 		// Same unconditional-assign reasoning: removing template.spec.security
 		// must clear a previously-set pod-level FSGroup, not leave it pinned.
 		ss.Spec.Template.Spec.SecurityContext = gamePodSecurityContext(tmpl)

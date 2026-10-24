@@ -30,6 +30,24 @@ start/stop and expiry remain reconciler responsibilities; the gateway cannot
 bypass them or operate an arbitrary pod. Existing game resources and storage are
 not recreated to enable remote parity.
 
+### Hostport wake handoff
+
+Hostport wake-on-connect keeps a durable endpoint node name and Node UID in
+`gameplane.local/hostport-node` / `gameplane.local/hostport-node-uid`, captured from
+the live game Pod before the first sleep. The current-node dashboard annotation
+is independent. Sleep waits for the zero-replica StatefulSet generation to be
+observed and for actual game Pod disappearance through the uncached API reader.
+Wake foreground-deletes the sentinel and waits for its Deployment and all Pods
+to disappear before scheduling the game. Both successor templates use required
+node affinity for the recorded endpoint, combined with the game's scheduling
+constraints; the sentinel carries its tolerations. Node gets are read-only RBAC.
+`HostportWakeReady` reports listener readiness, each drain and unavailable or
+unschedulable endpoints without blocking unrelated reconciliation. There is no
+automatic endpoint migration. See the updated
+[July handoff design](../docs/superpowers/specs/2026-07-24-wake-on-connect-design.md#sequencing-and-port-handover)
+for recovery/migration steps. Service-backed wake retains its established-session
+drain behavior. Auxiliary resource defaults are defined separately.
+
 ## Non-goals / boundaries
 
 The operator **does not** handle:

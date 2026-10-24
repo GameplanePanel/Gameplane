@@ -263,6 +263,34 @@
     "defaultMessage": "The state of the server is not known yet.",
     "description": "Healthy condition before the operator has observed the server."
   },
+  "condition.hostportwakeready.endpointnodeunavailable": {
+    "defaultMessage": "The Hostport endpoint node is missing, replaced or not Ready; restore that node or explicitly migrate the endpoint.",
+    "description": "Hostport endpoint handoff status: EndpointNodeUnavailable."
+  },
+  "condition.hostportwakeready.endpointnodeunknown": {
+    "defaultMessage": "No game endpoint node has been recorded; start the game before enabling sleep.",
+    "description": "Hostport endpoint handoff status: EndpointNodeUnknown."
+  },
+  "condition.hostportwakeready.endpointunschedulable": {
+    "defaultMessage": "The Hostport listener cannot schedule on its endpoint node. Inspect the Pod scheduling events for details.",
+    "description": "Hostport endpoint handoff status: EndpointUnschedulable."
+  },
+  "condition.hostportwakeready.gamedraining": {
+    "defaultMessage": "Waiting for the game Pod to disappear before acquiring its Hostport.",
+    "description": "Hostport endpoint handoff status: GameDraining."
+  },
+  "condition.hostportwakeready.listenerpending": {
+    "defaultMessage": "Waiting for a Ready listener on the Hostport endpoint node.",
+    "description": "Hostport endpoint handoff status: ListenerPending."
+  },
+  "condition.hostportwakeready.listenerready": {
+    "defaultMessage": "The listener is Ready on the Hostport endpoint node.",
+    "description": "Hostport endpoint handoff status: ListenerReady."
+  },
+  "condition.hostportwakeready.sentineldraining": {
+    "defaultMessage": "Waiting for the sentinel Deployment and Pods to disappear before scheduling the game on its endpoint node.",
+    "description": "Hostport endpoint handoff status: SentinelDraining."
+  },
   "condition.idlescheduleinvalid.wakewindowunparseable": {
     "defaultMessage": "A wake window in the idle schedule cannot be parsed: {details}",
     "description": "Condition when spec.idle has an invalid wake window. details is the English parse error."
@@ -423,9 +451,25 @@
     "defaultMessage": "The module content does not match its pinned digest.",
     "description": "Module condition when the digest differs from the pin."
   },
+  "condition.ready.endpointnodeunavailable": {
+    "defaultMessage": "The Hostport endpoint node is missing, replaced or not Ready; restore that node or explicitly migrate the endpoint.",
+    "description": "Hostport endpoint handoff status: EndpointNodeUnavailable."
+  },
+  "condition.ready.endpointnodeunknown": {
+    "defaultMessage": "No game endpoint node has been recorded; start the game before enabling sleep.",
+    "description": "Hostport endpoint handoff status: EndpointNodeUnknown."
+  },
+  "condition.ready.endpointunschedulable": {
+    "defaultMessage": "The Hostport listener cannot schedule on its endpoint node. Inspect the Pod scheduling events for details.",
+    "description": "Hostport endpoint handoff status: EndpointUnschedulable."
+  },
   "condition.ready.failed": {
     "defaultMessage": "{detail}",
     "description": "Ready condition when the server cannot start. detail is the English reason from the operator, for example a missing template or an invalid configuration."
+  },
+  "condition.ready.gamedraining": {
+    "defaultMessage": "Waiting for the game Pod to disappear before acquiring its Hostport.",
+    "description": "Hostport endpoint handoff status: GameDraining."
   },
   "condition.ready.idleasleep": {
     "defaultMessage": "The server is asleep because no players are online.",
@@ -442,6 +486,14 @@
   "condition.ready.inuse": {
     "defaultMessage": "The module cannot be removed while game servers use its template.",
     "description": "Ready condition when deletion is blocked."
+  },
+  "condition.ready.listenerpending": {
+    "defaultMessage": "Waiting for a Ready listener on the Hostport endpoint node.",
+    "description": "Hostport endpoint handoff status: ListenerPending."
+  },
+  "condition.ready.listenerready": {
+    "defaultMessage": "The listener is Ready on the Hostport endpoint node.",
+    "description": "Hostport endpoint handoff status: ListenerReady."
   },
   "condition.ready.noversionavailable": {
     "defaultMessage": "The module source has no available versions.",
@@ -462,6 +514,10 @@
   "condition.ready.running": {
     "defaultMessage": "The server is running and the agent is reporting heartbeats.",
     "description": "Ready condition while the game server is up."
+  },
+  "condition.ready.sentineldraining": {
+    "defaultMessage": "Waiting for the sentinel Deployment and Pods to disappear before scheduling the game on its endpoint node.",
+    "description": "Hostport endpoint handoff status: SentinelDraining."
   },
   "condition.ready.servingstalecatalog": {
     "defaultMessage": "Serving the cached catalog. The last index attempt failed.",

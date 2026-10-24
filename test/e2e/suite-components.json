@@ -16,6 +16,7 @@
     "test/e2e/suite-components.json"
   ],
   "suites": [
+    { "tests": "^TestGameServer_HostportWakeStableEndpoint$", "components": ["operator", "api", "agent", "sentinel", "gameproto"] },
     { "tests": "^TestHelmInstall_", "components": ["*"] },
     { "tests": "^TestCRD_Validation_", "components": ["operator"] },
     { "tests": "^TestGameServer_", "components": ["operator", "api", "agent"] },
