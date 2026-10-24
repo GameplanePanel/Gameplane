@@ -214,12 +214,9 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			}
 			obj.SetNamespace(ns)
 			if gvr.Resource == "gameservers" {
-				cl := req.URL.Query().Get("cluster")
-				if cl == "" {
-					cl = scope.DefaultCluster
-				}
+				cl := scope.RequestedCluster(req)
 				if err := validateAndProtectGameServer(req.Context(), k, cl, ns, obj.GetName(), obj, nil); err != nil {
-					httperr.WriteCode(w, req, http.StatusForbidden, err)
+					writeServerValidationError(w, req, err)
 					return
 				}
 			}
@@ -285,16 +282,9 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			// arrive as the redaction marker: keep the stored value for those.
 			cfgRules = newConfigRuleCache(k)
 			restoreRedactedConfig(req.Context(), cfgRules, obj, live)
-			cl := req.URL.Query().Get("cluster")
-			if cl == "" {
-				cl = scope.DefaultCluster
-			}
+			cl := scope.RequestedCluster(req)
 			if err := validateAndProtectGameServer(req.Context(), k, cl, ns, name, obj, live); err != nil {
-				code := http.StatusForbidden
-				if errors.Is(err, errTemplateRefImmutable) {
-					code = http.StatusConflict
-				}
-				httperr.WriteCode(w, req, code, err)
+				writeServerValidationError(w, req, err)
 				return
 			}
 		}
@@ -559,6 +549,9 @@ func validateAndProtectGameServer(
 		if desiredRef != liveRef {
 			return errTemplateRefImmutable
 		}
+	}
+	if err := validateSnapshotDataSource(ctx, k, cl, ns, desired, live); err != nil {
+		return err
 	}
 
 	// 1. Validate spec.capture

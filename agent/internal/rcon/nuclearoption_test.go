@@ -1275,18 +1275,47 @@ type pipeFrameCase struct {
 	forbidErr string // substring the error must NOT contain (e.g. a detail suffix)
 }
 
+type responseDeadlineConn struct {
+	net.Conn
+	deadlineSet chan<- struct{}
+}
+
+func (c *responseDeadlineConn) SetDeadline(deadline time.Time) error {
+	if err := c.Conn.SetDeadline(deadline); err != nil {
+		return err
+	}
+	select {
+	case c.deadlineSet <- struct{}{}:
+	default:
+	}
+	return nil
+}
+
 // runPipeFrameCases sends each case's raw frame back to the client over net.Pipe
 // and checks the body or the error.
 func runPipeFrameCases(t *testing.T, tests []pipeFrameCase) {
 	t.Helper()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			deadlineSet := make(chan struct{}, 1)
 			client := newPipeClient(t, func(remote net.Conn) {
 				if _, _, err := readNuclearOptionRequest(remote); err != nil {
 					return
 				}
+				if len(tt.frame) == 0 {
+					// Exec sets its response deadline after sending the request.
+					// Closing first can fail SetDeadline instead of the status read.
+					select {
+					case <-deadlineSet:
+					case <-t.Context().Done():
+						return
+					}
+				}
 				writeFrameSegments(remote, tt.frame, tt.oneByte)
 			})
+			if len(tt.frame) == 0 {
+				client.conn = &responseDeadlineConn{Conn: client.conn, deadlineSet: deadlineSet}
+			}
 
 			body, err := client.Exec("test-command")
 			if tt.wantErr != "" {

@@ -93,6 +93,9 @@ rules:
   - apiGroups: ["gameplane.local"]
     resources: [gameservers/status, backups/status, backupschedules/status, restores/status, networkcaptures/status]
     verbs: [get, update, patch]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: [volumesnapshots]
+    verbs: [get]
   # Verify GameServer -> StatefulSet -> Pod controller ownership before
   # serving pod logs or accepting terminal input.
   - apiGroups: ["apps"]

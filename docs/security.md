@@ -14,6 +14,25 @@ point. Assume:
 
 ## Authentication
 
+### Snapshot data and namespace storage trust
+
+Creating or changing a GameServer's `spec.storage.dataSource` through the API
+requires both `servers:write` and `backups:restore` in that cluster and namespace.
+The API checks that the named VolumeSnapshot has a Backup controller owner whose
+UID matches the live Backup in the same namespace. Imported snapshots, orphaned
+snapshots and references to replaced Backup objects are rejected, including for
+administrators. Removing the source also requires both permissions; editing
+other fields while retaining an unchanged source does not.
+
+Direct Kubernetes CRD writers bypass this API gate and are trusted over the
+namespace's storage. Kubernetes PVC data sources are name references, so those
+writers must also be trusted not to replace a checked snapshot before PVC
+provisioning. Use separate namespaces for mutually untrusted storage tenants.
+Existing remote-cluster kubeconfigs and manually maintained API Roles need
+`get` on `snapshot.storage.k8s.io/volumesnapshots` in each managed namespace;
+the chart grants this only in its configured games namespace. The operator's
+Restore workflow continues to create its data source directly.
+
 Operator-managed agent and capture-sidecar control traffic uses mTLS with TLS 1.2 or newer and a verified
 client certificate. Both servers reload their serving certificate, key and
 client CA on each new handshake, so operator Secret renewal takes effect
