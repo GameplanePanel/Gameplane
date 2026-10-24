@@ -89,6 +89,12 @@ type GameTemplateSpec struct {
 	// +optional
 	Ports []GamePort `json:"ports,omitempty"`
 
+	// SentinelIsolation restricts a wake sentinel to its own server's advertised
+	// ports. Templates opt in after module connectivity validation; absent or
+	// false retains the legacy namespace-wide sentinel allowances.
+	// +optional
+	SentinelIsolation bool `json:"sentinelIsolation,omitempty"`
+
 	// Storage describes the default persistent storage layout.
 	// +optional
 	Storage GameStorageSpec `json:"storage,omitempty"`

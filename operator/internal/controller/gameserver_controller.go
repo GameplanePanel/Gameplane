@@ -298,6 +298,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile ingress NetworkPolicy")
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileSentinelIsolation(ctx, &gs, &tmpl); err != nil {
+		return ctrl.Result{}, err
+	}
 	if err := r.reconcileAgentTLS(ctx, &gs); err != nil {
 		logger.Error(err, "reconcile agent TLS")
 		return ctrl.Result{}, err
@@ -1494,7 +1497,13 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		ss.Spec.Replicas = &actualReplicas
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
-		ss.Spec.Template.Labels = labels
+		ss.Spec.Template.Labels = make(map[string]string, len(labels)+1)
+		for key, value := range labels {
+			ss.Spec.Template.Labels[key] = value
+		}
+		if tmpl.Spec.SentinelIsolation {
+			ss.Spec.Template.Labels[sentinelIsolationLabel] = "true"
+		}
 		// Stamp (or clear) the config fingerprint without touching
 		// annotations other actors may have set on the pod template.
 		ann := ss.Spec.Template.Annotations

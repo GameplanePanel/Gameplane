@@ -6,6 +6,13 @@
 
 ## Purpose
 
+The amd64 `network-isolation` bucket requires the Cilium fixture
+(`GAMEPLANE_E2E_CNI=cilium`) and strict chart CIDRs derived from the single-node
+cluster. It tests actual legacy versus isolated sentinel connections, an
+existing template's opt-in rollout without selector changes, HTTP kubelet
+readiness, fresh agent heartbeats, and API-to-agent mTLS access. It uses one
+admin login and runs separately from the kindnet shape-only checks.
+
 The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
 
 It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
@@ -55,6 +62,11 @@ Go invocation has a 45-minute deadline within the existing 60-minute job budget.
 The golangci-lint job mirrors this: it must be invoked with `--build-tags=e2e` or it lints an effectively-empty package (only the 29 untagged files: `Dockerfile`-adjacent Go tooling, `internal/` package code not gated by the tag, fixtures, etc.).
 
 ## The bucket contract — the module's most important invariant
+
+The `network-isolation` audit bucket is registered in the change-based selector,
+with explicit component mapping and an amd64-only selection-summary row. Its
+matrix leg skips cluster setup only when its selected test pattern is empty;
+full-scope and affected-component runs must include it.
 
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 
