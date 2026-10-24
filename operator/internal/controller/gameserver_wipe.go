@@ -51,7 +51,7 @@ func (r *GameServerReconciler) reconcileWipe(
 	if err != nil {
 		return err
 	}
-	if gs.Annotations[restoreGuardAnnotation] != "" {
+	if gs.Annotations[restoreGuardAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
 		return nil
 	}
 	req := gs.Annotations[WipeRequestedAnnotation]

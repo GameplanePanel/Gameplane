@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 181aeee1d52a9cb178b0f8a8a862dc5959e772facf11817d5e70e5196574cd4c
+    gameplane.local/crd-bundle-sha256: fc63992190029342d40e8b7cc96ce57b24527f03275df038524b0a3a3e22ae6e
     controller-gen.kubebuilder.io/version: v0.20.1
   name: backups.gameplane.local
 spec:
@@ -129,6 +129,75 @@ spec:
           status:
             description: BackupStatus is the observed state of a Backup.
             properties:
+              captureManifest:
+                description: |-
+                  CaptureManifest is recorded once, before the first capture worker starts.
+                  It describes persistent-volume coverage independently of copy success.
+                  Missing on pre-upgrade backups; never reconstruct it from current layout.
+                properties:
+                  layoutSource:
+                    description: LayoutSource identifies the frozen workload used
+                      for mount paths.
+                    type: string
+                  quiesceOutcome:
+                    description: |-
+                      QuiesceOutcome is confirmed, already-stopped, unsupported, not-requested,
+                      agent-unavailable, or unknown, independent of subsequent copy success.
+                    type: string
+                  recordedAt:
+                    format: date-time
+                    type: string
+                  serverUID:
+                    type: string
+                  state:
+                    description: |-
+                      State is Recorded for new captures, LegacyUnknown for an existing worker
+                      whose original layout was never recorded.
+                    enum:
+                    - Recorded
+                    - LegacyUnknown
+                    type: string
+                  strategy:
+                    type: string
+                  volumes:
+                    items:
+                      description: |-
+                        BackupVolumeCoverage describes one persistent claim. Extra and loader/mod
+                        claims remain uncovered even when mounted beneath the primary data directory.
+                      properties:
+                        claimName:
+                          type: string
+                        claimUID:
+                          description: ClaimUID is empty if the claim did not yet
+                            exist at admission.
+                          type: string
+                        classification:
+                          description: |-
+                            Classification records the module/server declaration at admission;
+                            it does not prove that the volume can actually be reconstructed.
+                          enum:
+                          - data
+                          - rebuildable
+                          - unclassified
+                          type: string
+                        included:
+                          type: boolean
+                        mountPaths:
+                          items:
+                            type: string
+                          type: array
+                        reason:
+                          type: string
+                      required:
+                      - claimName
+                      - classification
+                      - included
+                      - reason
+                      type: object
+                    type: array
+                required:
+                - state
+                type: object
               completionTime:
                 format: date-time
                 type: string

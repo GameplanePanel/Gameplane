@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,6 +42,9 @@ type RestoreReconciler struct {
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.
 	JobBackoffLimit          *int32
 	JobActiveDeadlineSeconds int64
+	// OperationQuiescer completes an orphaned backup's cleanup before this
+	// restore can acquire the same target. It never quiesces a restore.
+	OperationQuiescer AgentQuiescer
 }
 
 // apiReader returns the uncached reader for live-consistency checks,
@@ -125,7 +129,10 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{}, err
 	}
-	if src.Spec.Strategy == "volume-snapshot" && rs.Annotations[restoreTargetAnnotation] == "" {
+	// Binding the target does not change the restore strategy. CSI's own
+	// preparation path checks that binding before awaiting startup, repairing
+	// references and enforcing the deadline on every subsequent reconcile.
+	if src.Spec.Strategy == "volume-snapshot" {
 		return r.reconcileVolumeSnapshotRestore(ctx, &rs, &src)
 	}
 
@@ -156,6 +163,9 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	claimed, err := r.claimRestoreTarget(ctx, &rs, &gs)
 	if err != nil {
+		if errors.Is(err, errLifecycleGenerationChanged) {
+			return r.fail(ctx, &rs, err.Error())
+		}
 		return ctrl.Result{}, err
 	}
 	if !claimed {

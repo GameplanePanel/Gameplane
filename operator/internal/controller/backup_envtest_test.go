@@ -8,9 +8,11 @@ import (
 	"testing"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -379,6 +381,20 @@ func TestBackup_QuiesceAnnotationSetBeforeJob(t *testing.T) {
 	fa := &fakeAgent{}
 	startMgr(t, ns, withBackupReconciler(backupReconcilerOpts{agent: fa}))
 	seedGameServer(t, ns, "smp")
+	// envtest has no StatefulSet controller or kubelet: provide the observed
+	// running source whose immutable identity is bound before the agent RPC.
+	var workload appsv1.StatefulSet
+	if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: "smp"}, &workload); err != nil {
+		t.Fatal(err)
+	}
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "smp-0", Namespace: ns, OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "StatefulSet", Name: workload.Name, UID: workload.UID, Controller: ownerBoolPtr(true)}}}, Spec: workload.Spec.Template.Spec}
+	if err := k8sClient.Create(context.Background(), pod); err != nil {
+		t.Fatal(err)
+	}
+	pod.Status.Phase = corev1.PodRunning
+	if err := k8sClient.Status().Update(context.Background(), pod); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := k8sClient.Create(context.Background(), buildResticRepoSecret(ns, "repo")); err != nil {
 		t.Fatalf("create secret: %v", err)
@@ -577,6 +593,7 @@ func TestBackup_UsesTemplateSecurityContext(t *testing.T) {
 	if err := k8sClient.Create(context.Background(), gs); err != nil {
 		t.Fatalf("create gameserver: %v", err)
 	}
+	seedBackupWorkload(t, gs)
 	if err := k8sClient.Create(context.Background(), buildResticRepoSecret(ns, "repo-secret")); err != nil {
 		t.Fatalf("create secret: %v", err)
 	}

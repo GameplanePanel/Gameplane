@@ -644,6 +644,23 @@ export interface ServerEvent {
   count: number;
 }
 
+export interface BackupCaptureManifest {
+  state: "Recorded" | "LegacyUnknown";
+  recordedAt?: string;
+  serverUID?: string;
+  strategy?: string;
+  layoutSource?: string;
+  quiesceOutcome?: string;
+  volumes?: Array<{
+    claimName: string;
+    claimUID?: string;
+    mountPaths?: string[];
+    included: boolean;
+    classification: "data" | "rebuildable" | "unclassified";
+    reason: string;
+  }>;
+}
+
 export interface Backup {
   metadata: ObjectMeta;
   // strategy: restic-snapshot writes to a restic repo; volume-snapshot takes a
@@ -655,6 +672,8 @@ export interface Backup {
     completionTime?: string;
     snapshotID?: string;
     size?: string;
+    captureManifest?: BackupCaptureManifest;
+    conditions?: Array<{ type: string; status: string; reason?: string; message?: string }>;
   };
 }
 

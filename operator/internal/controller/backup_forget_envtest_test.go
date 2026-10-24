@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/util/retry"
 
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -149,17 +150,17 @@ func TestBackupForget_FinalizerOnlyOnResticBackups(t *testing.T) {
 		return false, "restic backup has no snapshot finalizer yet"
 	})
 
-	// Once the volume-snapshot Backup is Running the reconciler has been through
-	// the point where it would have added a finalizer.
+	// Every strategy gets an operation cleanup finalizer before admission. Do
+	// not wait for Running: the restic backup may hold the shared server owner.
 	eventually(t, func() (bool, string) {
 		b := getBackup(t, ns, "smp-vs")
-		if b.Status.Phase != gameplanev1alpha1.BackupPhaseRunning {
+		if !controllerutil.ContainsFinalizer(b, gameplanev1alpha1.BackupFinalizer) {
 			return false, describeBackupStatus(b)
 		}
 		return true, ""
 	})
-	if got := getBackup(t, ns, "smp-vs").Finalizers; len(got) != 0 {
-		t.Errorf("volume-snapshot backup finalizers = %v, want none", got)
+	if got := getBackup(t, ns, "smp-vs"); controllerutil.ContainsFinalizer(got, gameplanev1alpha1.BackupSnapshotFinalizer) {
+		t.Errorf("volume-snapshot backup finalizers = %v, want no restic snapshot finalizer", got.Finalizers)
 	}
 }
 

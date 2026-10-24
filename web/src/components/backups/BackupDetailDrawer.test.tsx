@@ -8,6 +8,34 @@ import { makeBackup } from "@/test/factories";
 import { BackupDetailDrawer } from "./BackupDetailDrawer";
 
 describe("BackupDetailDrawer", () => {
+  it("shows captured and excluded claims independently of copy success", async () => {
+    server.use(http.get("/backups/coverage", () => HttpResponse.json(makeBackup({
+      metadata: { name: "coverage" },
+      status: {
+        phase: "Succeeded", snapshotID: "copy",
+        conditions: [{ type: "Consistency", status: "False", reason: "UnsupportedRawCopy", message: "The game does not support quiesce." }],
+        captureManifest: { state: "Recorded", recordedAt: "2026-10-21T12:00:00Z", volumes: [
+          { claimName: "game-data", claimUID: "world-uid", mountPaths: ["/world"], included: true, classification: "data", reason: "PrimaryDataClaim" },
+          { claimName: "game-extra-install", mountPaths: ["/serverfiles"], included: false, classification: "rebuildable", reason: "NotCovered" },
+          { claimName: "game-mods", mountPaths: ["/world/mods"], included: false, classification: "unclassified", reason: "NotCovered" },
+        ] },
+      },
+    }))));
+    renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="coverage" onClose={() => {}} onRestore={() => {}} />);
+    expect(await screen.findByText("The game does not support quiesce.")).toBeInTheDocument();
+    expect(screen.getByText("game-data")).toBeInTheDocument();
+    expect(screen.getByText("/world/mods")).toBeInTheDocument();
+    expect(screen.getAllByText("Not covered")).toHaveLength(2);
+    expect(screen.getByText("Rebuildable")).toBeInTheDocument();
+  });
+
+  it("shows legacy coverage as unknown without inventing a current layout", async () => {
+    server.use(http.get("/backups/legacy", () => HttpResponse.json(makeBackup({ metadata: { name: "legacy" }, status: { phase: "Succeeded" } }))));
+    renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="legacy" onClose={() => {}} onRestore={() => {}} />);
+    expect(await screen.findByText(/Capture-time volume metadata is unavailable/)).toBeInTheDocument();
+    expect(screen.queryByText("Included")).not.toBeInTheDocument();
+  });
+
   it("does not render content when name is null", () => {
     renderWithQuery(<BackupDetailDrawer permissions={["*"]} name={null} onClose={() => {}} onRestore={() => {}} />);
     expect(screen.queryByText(/Backup details/i)).not.toBeInTheDocument();
