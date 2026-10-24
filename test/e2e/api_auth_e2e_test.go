@@ -187,7 +187,7 @@ func TestAPI_AuditEmitsOnMutation(t *testing.T) {
 	}
 	// Extract our id without pulling in encoding/json: the response
 	// shape is small and we only need the leading "id":N field.
-	id := extractIntField(string(body), "id")
+	id := extractUserID(string(body))
 	if id == "" {
 		t.Fatalf("could not parse id from /users/me: %s", string(body))
 	}
@@ -224,7 +224,7 @@ func TestAPI_AuditEmitsOnMutation(t *testing.T) {
 	// the *passed-down* context, which is out of scope for this test.
 }
 
-// extractIntField has been promoted to env.go so non-test helper code
+// extractUserID has been promoted to env.go so non-test helper code
 // (Env.CreateUser) can use it. Test files in this package still call
 // it through the package-level scope.
 

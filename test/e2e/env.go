@@ -571,6 +571,11 @@ func (c *APIClient) Close() {
 // marshalled as JSON and the Content-Type header is set. CSRF header is
 // attached for mutating methods.
 func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, error) {
+	return c.DoContext(context.Background(), method, path, body)
+}
+
+// DoContext performs an authenticated request within the caller's lifetime.
+func (c *APIClient) DoContext(ctx context.Context, method, path string, body any) (*http.Response, []byte, error) {
 	var br io.Reader
 	if body != nil {
 		b, err := json.Marshal(body)
@@ -579,7 +584,7 @@ func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, e
 		}
 		br = bytes.NewReader(b)
 	}
-	req, err := http.NewRequestWithContext(context.Background(), method, c.BaseURL+path, br)
+	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, br)
 	if err != nil {
 		return nil, nil, fmt.Errorf("new request: %w", err)
 	}
@@ -691,21 +696,21 @@ func (e *Env) CreateUser(t *testing.T, admin *APIClient, role, prefix string) (u
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("CreateUser %s/%s %d: %s", role, prefix, resp.StatusCode, string(body))
 	}
-	id = extractIntField(string(body), "id")
+	id = extractUserID(string(body))
 	if id == "" {
 		t.Fatalf("CreateUser: could not parse id from response: %s", string(body))
 	}
 	return username, userPhrase, id
 }
 
-// extractIntField is a tiny scanner for `"<key>":<digits>` inside a JSON
-// blob. Lets the e2e tests parse the one or two integer fields they
-// care about (user id, mostly) without pulling in encoding/json.
+// extractUserID is a tiny scanner for `"id":<digits>` inside a JSON
+// blob. It reads the user ID returned by the API without adding a JSON
+// decoding dependency to callers that only need that field.
 //
 // Lives on env.go (not in a _test.go) so non-test helper code like
 // CreateUser can use it.
-func extractIntField(body, key string) string {
-	needle := `"` + key + `":`
+func extractUserID(body string) string {
+	const needle = `"id":`
 	i := strings.Index(body, needle)
 	if i < 0 {
 		return ""

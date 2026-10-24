@@ -393,6 +393,13 @@ TestOptionalComponents_Lifecycle
 EOF
 }
 
+# recovery owns a separate standalone API/database/key in a unique namespace.
+# Zero shared panel logins; the fixture has its own login limiter and storage.
+bucket_recovery() { cat <<'EOF'
+TestPanel_OfflineRecovery
+EOF
+}
+
 # capture-overhead is kept OUT of bot-fast on purpose: bot-fast's matrix legs
 # are blocking, while this bucket feeds the non-blocking e2e-capture-overhead
 # job (continue-on-error, never blocks a merge — spec 007 OD-1) and runs only
@@ -409,7 +416,7 @@ EOF
 unbucketed() { :; }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead optional-components
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade telemetry capture-overhead optional-components recovery
 }
 
 list_bucket() {
@@ -428,6 +435,7 @@ list_bucket() {
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;
+	recovery) bucket_recovery ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
 		exit 2

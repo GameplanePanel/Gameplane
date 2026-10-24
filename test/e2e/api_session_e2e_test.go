@@ -168,7 +168,7 @@ func TestAPI_AuditPaginationAndFilter(t *testing.T) {
 		t.Fatalf("/users/me %d: %s", getMe.StatusCode, string(body))
 	}
 	defer func() { _ = getMe.Body.Close() }()
-	id := extractIntField(string(body), "id")
+	id := extractUserID(string(body))
 	if id == "" {
 		t.Fatalf("could not parse id from /users/me: %s", string(body))
 	}

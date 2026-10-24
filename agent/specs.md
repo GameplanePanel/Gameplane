@@ -244,7 +244,7 @@ The agent and operator modules use `k8s.io/apimachinery`/`k8s.io/client-go` v0.3
   - `battleye`: UDP-based CRC32 packet framing.
   - `satisfactory`: HTTPS JSON function-call API with session token.
   - `palworld`: HTTP Basic REST admin API.
-  - `nuclearoption`: Dedicated TCP stream for Nuclear Option remote command protocol.
+  - `nuclearoption`: Dedicated TCP stream for Nuclear Option remote command protocol. One 30-second deadline bounds dialing, request writes, and response reads; responses are capped at 10 MiB. A timed-out partial exchange closes the connection before the next command.
   - `rest`: Generic HTTP/JSON REST console client with lazy auth (`PassFn`), 1 MiB bounded body read, configurable timeouts, auth failure cooldown, and loopback TLS protection. Provides adapters for FiveM (txAdmin: `POST /fxserver/commands`, bearer/X-TxAdmin-Token, `{"action":"console","parameter":"<cmd>"}`), Farming Simulator 25 (`POST /api/console`, Basic auth, `{"command":"<cmd>"}`), and generic REST (`POST /api/command`).
   - `cli`: Container stdin/PTY / local execution client (Option A in OPEN-DECISIONS.md). Drives commands via named FIFO pipe (`GAMEPLANE_CLI_PIPE`) or local process shell execution without requiring remote TCP networking or password secrets, while web console continues to attach via pod-attach PTY.
 
