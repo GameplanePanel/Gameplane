@@ -126,9 +126,9 @@ description: "Task list for spec 026 modular dev containers"
 
 - [ ] T024 [P] [US1] In `GameplanePanel/website` (branch `claude/project-thread-427u3v`), add `system-deps.toml` from the T001 brief.
 - [ ] T025 [P] [US1] In `GameplanePanel/module` (branch `claude/project-thread-427u3v`), add `system-deps.toml` from the T001 brief.
-- [ ] T026 [US1] From the main repo, run `make devcontainers` (with `--submodules`) to write `website/.devcontainer/*` and `modules/.devcontainer/*` (devcontainer.json, lock, a copied `setup.sh`, setup.env, ready.txt), and commit them in each submodule repo.
-- [ ] T027 [P] [US5] Add a dev container build job to `website/.github/workflows/ci.yaml` (amd64 and arm64, `devcontainers/ci` SHA-pinned, runs `npm run check`).
-- [ ] T028 [P] [US5] Add a dev container build job to the module repo's CI workflow (amd64 and arm64, runs the validate command from T001).
+- [X] T026 [US1] From the main repo, run `make devcontainers` (with `--submodules`) to write `website/.devcontainer/*` and `modules/.devcontainer/*` (devcontainer.json, lock, a copied `setup.sh`, setup.env, ready.txt), and commit them in each submodule repo.
+- [X] T027 [P] [US5] Add a dev container build job to `website/.github/workflows/ci.yaml` (amd64 and arm64, `devcontainers/ci` SHA-pinned, runs `npm run check`).
+- [X] T028 [P] [US5] Add a dev container build job to the module repo's CI workflow (amd64 and arm64, runs the validate command from T001).
 - [ ] T029 [US5] Open the website and module PRs to `main`. After both merge, bump both submodule pointers in the main repo (`git add website modules`) on a fresh branch (memory: pointer bumps only after submodule PRs merge), and confirm the main-repo `drift` job checks the submodule copies.
 
 ---

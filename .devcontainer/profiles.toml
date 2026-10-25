@@ -2,6 +2,9 @@
 # Hand-written. Versions live only in versions.toml; this file refers to them by key.
 # Folder ids are relative to the repo root. Catalogue order = table order below.
 # Token {go_build} expands to "cd <m> && go build ./..." for each covered go.work module (except test/e2e).
+# sub_checks (optional, component profiles whose dirs are their own submodule only): literal
+# commands run from that submodule's repo root. They replace checks in the submodule copy's
+# ready.txt; the main-repo checks and make targets are never listed there.
 
 [baseline]
 image = "mcr.microsoft.com/devcontainers/base:ubuntu-24.04"
@@ -128,6 +131,7 @@ extensions = [
 	"bradlc.vscode-tailwindcss",
 ]
 checks = ["cd website && npm ci && npm run check"]
+sub_checks = ["npm ci && npm run check"]
 
 [profile.modules]
 size = "component"
@@ -135,6 +139,7 @@ title = "Modules"
 dirs = ["modules"]
 submodules = ["modules"]
 checks = ["make module-validate"]
+sub_checks = ["bash -n build.sh && python3 -m py_compile validate.py"]
 
 # ---------------------------------------------------------------- part profiles
 

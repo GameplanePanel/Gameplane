@@ -388,6 +388,47 @@ class GenDevcontainersTests(unittest.TestCase):
         self.assertIn("Makefile: setup-envtest@release-0.23 differs from versions.toml setup_envtest "
                       "release-0.24", err)
 
+    def test_submodule_copy_lists_only_sub_checks(self):
+        # A website-style component whose dirs are its own submodule: the submodule copy's
+        # ready.txt lists sub_checks (run from the submodule root), not the main-repo checks.
+        website_section = (
+            '\n[profile.website]\n'
+            'size = "component"\n'
+            'title = "Website"\n'
+            'dirs = ["website"]\n'
+            'submodules = ["website"]\n'
+            'checks = ["cd website && npm ci && npm run check"]\n'
+            'sub_checks = ["npm ci && npm run check"]\n'
+        )
+        self.write({
+            ".devcontainer/profiles.toml": PROFILES.replace(
+                "\n[profile.full]", website_section + "\n[profile.full]"),
+            "website/system-deps.toml": 'component = "website"\nnone = true\n',
+            "website/package.json": "{}\n",
+            ".devcontainer/setup.sh": "#!/usr/bin/env bash\n",
+        })
+        code, _, err = run_gen(self.root, "--submodules")
+        self.assertEqual(code, 0, err)
+        ready = (self.root / "website/.devcontainer/ready.txt").read_text(encoding="utf-8")
+        self.assertIn("  npm ci && npm run check\n", ready)
+        self.assertNotIn("cd website", ready)
+        self.assertNotIn("make ", ready)
+        setup = (self.root / "website/.devcontainer/setup.env").read_text(encoding="utf-8")
+        self.assertIn('SUBMODULES=""\n', setup)
+        self.assertIn('WEBSITE_DIR="."\n', setup)
+        self.assertIn('READY=".devcontainer/ready.txt"\n', setup)
+        main_ready = (self.root / ".devcontainer/website/ready.txt").read_text(encoding="utf-8")
+        self.assertIn("  cd website && npm ci && npm run check\n", main_ready)
+        code, out, err = run_gen(self.root, "--check")
+        self.assertEqual(code, 0, out + err)
+
+    def test_sub_checks_on_non_submodule_profile_rejected(self):
+        self.write({".devcontainer/profiles.toml": PROFILES.replace(
+            'dirs = ["gp-module"]\n', 'dirs = ["gp-module"]\nsub_checks = ["go test ./..."]\n')})
+        code, _, err = run_gen(self.root)
+        self.assertEqual(code, 1)
+        self.assertIn("sub_checks is read only for a component whose dirs are its submodule", err)
+
 
 if __name__ == "__main__":
     unittest.main()

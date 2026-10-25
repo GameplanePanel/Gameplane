@@ -38,7 +38,7 @@ AUTO_FORWARD = frozenset({"notify", "openBrowser", "openBrowserOnce", "openPrevi
 DEP_KEYS = frozenset({"name", "kind", "version", "reason", "optional"})
 SYSTEM_DEPS_KEYS = frozenset({"component", "none", "dep"})
 PROFILE_KEYS = frozenset({"size", "title", "dirs", "includes", "extras", "submodules",
-                          "ports", "extensions", "checks", "env", "notes"})
+                          "ports", "extensions", "checks", "sub_checks", "env", "notes"})
 PORT_KEYS = frozenset({"port", "label", "onAutoForward"})
 BASELINE_KEYS = frozenset({"image", "remoteUser", "runArgs", "extensions", "env", "settings", "deps"})
 FULL_KEYS = frozenset({"personal_extensions", "personal_settings", "omit_ports", "omit_extensions"})
@@ -119,6 +119,7 @@ class Profile:
     ports: list[dict]
     extensions: list[str]
     checks: list[str]
+    sub_checks: list[str]
     env: dict
     notes: list[str]
 
@@ -157,6 +158,7 @@ class Resolved:
     ports: list[dict]
     extensions: list[str]
     checks: list[str]
+    sub_checks: list[str]
     env: dict
     notes: list[str]
     settings: dict
@@ -385,6 +387,10 @@ def build_profile(pid: str, index: int, table: dict, tools: dict, errors: list[s
         errors.append(f"{label}: size must be one of {list(SIZES)}")
     if not isinstance(table.get("title"), str):
         errors.append(f"{label}: title must be a string")
+    sub_checks = str_list(table, "sub_checks", label, errors)
+    for check in sub_checks:
+        if GO_BUILD_TOKEN in check:
+            errors.append(f"{label}: sub_checks takes literal commands, not {GO_BUILD_TOKEN}")
     extras = list(table.get("extras", []))
     for dep in extras:
         check_dep(dep, f"{label} extras", tools, errors)
@@ -405,6 +411,7 @@ def build_profile(pid: str, index: int, table: dict, tools: dict, errors: list[s
         ports=ports,
         extensions=str_list(table, "extensions", label, errors),
         checks=str_list(table, "checks", label, errors),
+        sub_checks=sub_checks,
         env=dict(table.get("env", {})),
         notes=str_list(table, "notes", label, errors),
     )
@@ -588,6 +595,7 @@ def resolve_profiles(model: Model) -> dict[str, Resolved]:
             extensions=[e for e in union([sp.extensions for sp in scope] + [extensions_extra])
                         if e not in drop_extensions],
             checks=checks,
+            sub_checks=list(prof.sub_checks),
             env=env,
             notes=union([sp.notes for sp in scope]),
             settings=settings,
@@ -735,11 +743,6 @@ def declaring_dir(model: Model, tool: str) -> str:
     return "baseline"
 
 
-def strip_cd(command: str, folder: str) -> str:
-    prefix = f"cd {folder} && "
-    return command[len(prefix):] if command.startswith(prefix) else command
-
-
 def need_lines(res: Resolved, ctx: Context) -> list[str]:
     names = {d["name"] for d in res.deps}
     owners: dict = {}
@@ -752,8 +755,10 @@ def need_lines(res: Resolved, ctx: Context) -> list[str]:
 def ready_bytes(res: Resolved, ctx: Context, sub_folder: str | None) -> bytes:
     names = {d["name"] for d in res.deps}
     lines = [f"[devcontainer] ready: Gameplane · {res.title}", "", "Works here:"]
-    for command in res.checks:
-        lines.append("  " + (strip_cd(command, sub_folder) if sub_folder else command))
+    # A submodule copy runs inside its own repo, so it lists only sub_checks (no main-repo
+    # make targets or cd-prefixed commands).
+    for command in (res.sub_checks if sub_folder else res.checks):
+        lines.append("  " + command)
     if sub_folder is None:
         for target, tools, folders in MAKE_TARGETS:
             if tools <= names and folders <= set(res.covered) \
@@ -830,6 +835,11 @@ def validate_resolved(model: Model, resolved: dict[str, Resolved]) -> list[str]:
             if feature not in model.source_lock.get("features", {}):
                 errors.append(f"{DEVC}/profiles.toml [profile.{res.pid}]: feature {feature} is not in "
                               f"{DEVC}/devcontainer-lock.json")
+        if res.sub_folder and not res.sub_checks:
+            errors.append(f"{DEVC}/profiles.toml [profile.{res.pid}]: a submodule copy needs sub_checks")
+        if res.sub_checks and not res.sub_folder:
+            errors.append(f"{DEVC}/profiles.toml [profile.{res.pid}]: sub_checks is read only for a "
+                          f"component whose dirs are its submodule")
     non_full = [r for r in resolved.values() if r.size != "full"]
     for module in model.go_modules:
         if not any(module in r.covered for r in non_full):
