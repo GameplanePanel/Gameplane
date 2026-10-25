@@ -79,9 +79,11 @@ STEP_FOR_DEP = {
     "uv": ("uv", {}),
     "specify": ("specify", {"SPECIFY_VERSION": "specify"}),
     "ai-clis": ("ai_clis", {}),
+    "python3": ("python3", {}),
+    "pyyaml": ("pyyaml", {}),
 }
-FIXED_STEP_ORDER = ("submodules", "kind", "oras", "golangci_lint", "envtest", "go_mod_download",
-                    "npm_ci_web", "npm_ci_website", "uv", "specify", "ai_clis")
+FIXED_STEP_ORDER = ("submodules", "python3", "pyyaml", "kind", "oras", "golangci_lint", "envtest",
+                    "go_mod_download", "npm_ci_web", "npm_ci_website", "uv", "specify", "ai_clis")
 # versions.toml keys a dep consumes besides its own `version` key.
 EXTRA_KEYS = {"docker": ("docker_compose",), "envtest": ("setup_envtest",)}
 REGISTRY_KEYS = ("go", "node", "docker", "docker_compose", "kubectl", "helm", "kind", "oras",

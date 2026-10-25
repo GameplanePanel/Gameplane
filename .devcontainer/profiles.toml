@@ -39,6 +39,11 @@ kind = "os-package"
 reason = "Submodule init and git plumbing come from the base image (setup.sh step_submodules)."
 
 [[baseline.deps]]
+name = "python3"
+kind = "cli"
+reason = "Runs hack/*.py (make devcontainers, check-* scripts) and modules/validate.py; the base image has no python3 (spec 026 CI evidence)."
+
+[[baseline.deps]]
 name = "gh"
 kind = "cli"
 reason = "GitHub CLI used by agents and PR scripts (inventory 6(f); modules/.github/workflows/refresh-pins.yml:108-109); devcontainer.json:26."

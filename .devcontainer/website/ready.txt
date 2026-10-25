@@ -7,4 +7,4 @@ Ports: 4321 Astro (website dev)
 Tests and lint run in CI (CLAUDE.md rule 8).
 Need something else? docker, helm, kind, kubectl → profile "dashboard-api"
 Need something else? envtest, go, golangci-lint → profile "api"
-Need something else? oras → profile "modules"
+Need something else? oras, pyyaml → profile "modules"

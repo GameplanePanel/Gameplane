@@ -80,6 +80,26 @@ step_submodules() {
 	fi
 }
 
+# ---------- python3 ----------
+# The base image has no python3, but hack/*.py (make devcontainers, check-*
+# scripts) and modules/validate.py run on it.
+step_python3() {
+	if ! command -v python3 >/dev/null 2>&1; then
+		log "installing python3"
+		sudo apt-get update
+		sudo apt-get install -y --no-install-recommends python3
+	fi
+}
+
+# ---------- PyYAML (modules/validate.py imports yaml) ----------
+step_pyyaml() {
+	if ! python3 -c 'import yaml' 2>/dev/null; then
+		log "installing python3-yaml"
+		sudo apt-get update
+		sudo apt-get install -y --no-install-recommends python3-yaml
+	fi
+}
+
 # ---------- kind ----------
 step_kind() {
 	if command -v kind >/dev/null 2>&1 \
@@ -195,6 +215,10 @@ step_specify() {
 # logs a WARN instead of failing the whole setup.
 step_ai_clis() {
 	local ai_clis=(@anthropic-ai/claude-code opencode-ai @google/gemini-cli @openai/codex)
+	if ! command -v npm >/dev/null 2>&1; then
+		log "skipping AI coding CLIs: this profile has no Node.js"
+		return 0
+	fi
 	if command -v claude >/dev/null 2>&1 \
 		&& command -v opencode >/dev/null 2>&1 \
 		&& command -v gemini >/dev/null 2>&1 \
@@ -243,12 +267,13 @@ done
 print_versions() {
 	local tool
 	log "tool versions"
-	for tool in go node npm docker kubectl helm kind oras golangci-lint uv specify; do
+	for tool in go node npm python3 docker kubectl helm kind oras golangci-lint uv specify; do
 		command -v "$tool" >/dev/null 2>&1 || continue
 		case "$tool" in
 			go) go version ;;
 			node) node --version ;;
 			npm) npm --version ;;
+			python3) python3 --version ;;
 			docker) docker version --format 'docker {{.Server.Version}}' 2>/dev/null || echo "docker (server not running)" ;;
 			kubectl) kubectl version --client=true --output=yaml 2>/dev/null | grep gitVersion || echo "kubectl (installed)" ;;
 			helm) helm version --short ;;

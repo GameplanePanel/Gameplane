@@ -11,5 +11,7 @@ kind	dashboard-api,control-plane,full	deploy/kind
 kubectl	dashboard-api,control-plane,full	deploy/kind
 node	web,website,dashboard-api,full	web
 oras	modules,dashboard-api,control-plane,modules-gp,full	modules
+python3	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+pyyaml	modules,dashboard-api,control-plane,modules-gp,full	modules
 specify	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
 uv	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
