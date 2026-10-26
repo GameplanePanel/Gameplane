@@ -61,7 +61,7 @@ jobs:
       # Login only when pushing to registry; skip on PRs to avoid unnecessary token operations.
       # Fork PRs have read-only GITHUB_TOKEN anyway, so login would fail confusingly.
       - if: github.event_name != 'pull_request'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -237,7 +237,7 @@ jobs:
       # Login only when pushing to registry; skip on PRs to avoid unnecessary token operations.
       # Fork PRs have read-only GITHUB_TOKEN anyway, so login would fail confusingly.
       - if: github.event_name != 'pull_request'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
