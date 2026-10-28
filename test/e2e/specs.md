@@ -21,6 +21,34 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 - Verify the installed operator identity can read Secrets only in its configured namespaces, can mutate game-namespace Secrets, and cannot read or write unrelated namespace Secrets (`TestHelmInstall_OperatorSecretNamespaceBoundary`, operator bucket).
 - Enforce, via `buckets.sh`, that every test in the suite is assigned to exactly one CI bucket so nothing silently drops out of coverage.
 
+### Panel recovery drill
+
+The amd64 `recovery` bucket runs `TestPanel_OfflineRecovery` in a unique namespace
+with its own standalone API, SQL database/archive PVCs, separately mounted keys
+and private login budget. It exercises stopped SQLite backup, working database
+loss, restore and offline bearer invalidation. It verifies correct-key users,
+custom roles/scoped grants, encrypted-registration-backed GameServer UID reads,
+wrong-key startup failure/no HTTP response, old session/share rejection, retained
+audit evidence and an unchanged continuously running game Pod/container. The
+read-only original archive is never changed by invalidation. Actual fixture
+recovery-point age/RTO and acceptance evidence are uploaded as JSON, with no key,
+credential, cookie, share token or raw SQL rows. It does not stop the installed
+panel/operator or claim PostgreSQL PITR coverage. Initial scoped grants wait for
+Healthy cluster discovery so the asynchronous registry has loaded the connection.
+The locally bootstrapped administrator receives an explicit fixture-cluster/gameplane-games
+grant and logs in again after that change invalidates its session. Both administrator
+and reader cookies are accepted before backup and rejected through `/users/me` after
+offline recovery; remote server UID and share checks retain their scoped authorization.
+Because API-token issuance and Bearer authentication are not implemented, the drill
+seeds one row in the reserved `api_tokens` table offline after stopping the API.
+It requires that row in the archive and zero API-token rows after restoration.
+The JSON bearer-invalidation result combines that database check with the actual
+administrator/reader session and share-link HTTP rejection results.
+The Kubernetes-created game initially has no panel owner: the drill requires share
+creation to fail for the scoped administrator until the authorized transfer endpoint
+assigns that administrator ownership, then creates the share used for recovery checks.
+See `docs/panel-recovery.md`.
+
 ### Remote gateway parity acceptance
 
 The multicluster bucket runs `TestMultiCluster_GatewayParity` against two real
@@ -142,6 +170,7 @@ This module has no runtime HTTP/RPC surface of its own — its "interface" is th
 - **`PodIsReady`, `CRDExists`** — typed/dynamic client lookups used by convergence checks.
 - **`PortForward(t, ns, target, remotePort)`** — retrying wrapper over `tryPortForward`; returns `(localPort, stopFunc)`.
 - **`APIClient(t, username, password)`** — logs in over a fresh port-forward (retrying through 429s with backoff, since the shared IP shares the login limiter across parallel tests), returns a session+CSRF-aware HTTP client whose `Do`/`Get`/`Post`/`Patch`/`Delete` attach `X-Gameplane-CSRF` on mutating methods.
+- **Response reads:** `DoContext` closes response bodies after reading them. Complete responses preserve their status and bytes, including non-2xx statuses. A body read failure returns the response (including status and headers), partial bytes, and a wrapped method/path error. Callers must check that error before treating the body as complete; callers inspecting only status still receive a valid response. `TestAPIClient_DoContextResponseBody` exercises both cases through real local HTTP transport in the `recovery` bucket without panel logins.
 - **`BootstrapAdmin(t, username, password)`** — runs the API's `bootstrap-admin` subcommand once per test process (`sync.Once`); a second call with a different credential pair fails loudly rather than silently using stale creds, since argon2id hashing inside the running pod is heavy enough that repeating it per test risks an OOM-kill.
 - **`OCIPush`/`OCIPushFromFixture`** — apply a ConfigMap+Job fixture and wait for it to succeed; guarded by `ociPushMu` at call sites that share the fixed job name.
 - **`CreateUser(t, admin, role, prefix)`** — creates a uniquely-named user via the admin `APIClient`; caller owns cleanup registration.

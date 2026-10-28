@@ -408,6 +408,16 @@ class E2ESelectionTests(unittest.TestCase):
         """Return the e2e outputs for a partial-scope change to paths."""
         return e2e_outputs(ROOT, list(paths), None)
 
+    def test_recovery_inputs_select_the_recovery_drill(self):
+        """The recovery fixture and the services it exercises retain CI coverage."""
+        for path in ("operator/internal/controller/gameserver_controller.go",
+                     "api/cmd/main.go", "agent/cmd/main.go",
+                     "test/e2e/panel_recovery_e2e_test.go",
+                     "test/e2e/testdata/recovery/maintenance.py"):
+            with self.subTest(path=path):
+                self.assertIn("TestPanel_OfflineRecovery",
+                              self.select(path)["e2e-run"].get("recovery", ""))
+
     def test_audit_management_placement_has_a_run_pattern(self):
         """Affected components and the owning test file select the audit bucket."""
         for path in ("operator/cmd/main.go",

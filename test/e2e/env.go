@@ -571,6 +571,11 @@ func (c *APIClient) Close() {
 // marshalled as JSON and the Content-Type header is set. CSRF header is
 // attached for mutating methods.
 func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, error) {
+	return c.DoContext(context.Background(), method, path, body)
+}
+
+// DoContext performs an authenticated request within the caller's lifetime.
+func (c *APIClient) DoContext(ctx context.Context, method, path string, body any) (*http.Response, []byte, error) {
 	var br io.Reader
 	if body != nil {
 		b, err := json.Marshal(body)
@@ -579,7 +584,7 @@ func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, e
 		}
 		br = bytes.NewReader(b)
 	}
-	req, err := http.NewRequestWithContext(context.Background(), method, c.BaseURL+path, br)
+	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, br)
 	if err != nil {
 		return nil, nil, fmt.Errorf("new request: %w", err)
 	}
@@ -594,7 +599,10 @@ func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, e
 		return nil, nil, fmt.Errorf("do %s %s: %w", method, path, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	rb, _ := io.ReadAll(resp.Body)
+	rb, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp, rb, fmt.Errorf("read response for %s %s: %w", method, path, err)
+	}
 	return resp, rb, nil
 }
 

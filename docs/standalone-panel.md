@@ -66,6 +66,11 @@ registered clusters. Gateway credentials are configured through the API.
 
 ## Storage and recovery
 
+For database outage/loss, key loss, authorization reconciliation and restoring
+the panel while games continue running, follow the [panel recovery runbook](panel-recovery.md).
+It builds on the storage/key procedures below and describes the CI recovery
+drill's measured recovery-point age and recovery time.
+
 The Compose volume `panel-data` contains `/data/gameplane.db`; a separate
 `panel-keys` volume contains `/keys/panel.key`. Standalone settings and remote
 credentials are stored in SQL; credential values are authenticated-encrypted

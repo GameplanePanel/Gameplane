@@ -1823,8 +1823,9 @@ jobs:
         # t.Parallel(); `parallel` bounds in-flight tests per bucket
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
-        # The arm64 job below uses the same steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, management-placement]
+        # The arm64 job below uses the same steps/settings except for the
+        # SQLite recovery drill, which runs once on amd64.
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, management-placement, recovery]
         arch: [amd64]
         include:
           - bucket: operator
@@ -1864,6 +1865,10 @@ jobs:
             parallel: 1
             test_timeout: 20m # one lifecycle test: helm upgrade, then mcp, syslog, frp tunnel and core checks in order
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: recovery
+            parallel: 1
+            test_timeout: 20m # isolated panel backup/loss/restore; game workload stays running
+            job_timeout: 60
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -1896,12 +1901,22 @@ jobs:
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e "$GAMEPLANE_E2E_PROFILE"
       - name: run go e2e (${{ matrix.bucket }})
         if: env.RUN_REGEX != ''
+        env:
+          GAMEPLANE_RECOVERY_REPORT_DIR: ${{ github.workspace }}/recovery-reports
         run: |
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout ${{ matrix.test_timeout }} -v \
               -parallel ${{ matrix.parallel }} -run "$RUN_REGEX" ./...
+      - name: upload measured panel recovery report
+        if: always() && matrix.bucket == 'recovery'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: panel-recovery-${{ matrix.arch }}-${{ github.run_attempt }}
+          path: recovery-reports/*.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: run go e2e (ratelimit tail)
         # LAST on purpose: this test deliberately drains the shared per-IP
         # and per-username login buckets; anything running after it queues
@@ -2697,7 +2712,7 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement|recovery) \//.test(n) && n.includes('/ amd64 '),
               'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
@@ -2850,7 +2865,7 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement) \//);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement|recovery) \//);
               if (m) bucketSet.add(m[1]);
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');
