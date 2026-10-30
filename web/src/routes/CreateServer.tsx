@@ -137,6 +137,11 @@ export function nonEmptyTunnelPortMappings(
   return mappings.filter((m) => m.name.trim() && m.remotePort && m.remotePort > 0);
 }
 
+/**
+ * Turns the wizard state into the GameServer create payload: template and
+ * version, config, networking or tunnel, resources (requests equal to limits
+ * unless the user reserves less) and node placement.
+ */
 function buildCreateBody(state: WizardState): ServerCreate {
   let nodeSelector: Record<string, string> | undefined;
   if (state.nodePlacement === "pin") nodeSelector = { "gameplane.local/pinned": "true" };
@@ -744,6 +749,11 @@ function PickVersion({ state, setState, cluster }: { state: WizardState; setStat
   );
 }
 
+/**
+ * Configure step: server name and description, the template's config fields,
+ * CPU and memory (capped at the largest node) with the optional reservation
+ * below the limit, storage size and node placement.
+ */
 function Configure({ state, setState, caps, cluster }: { state: WizardState; setState: (s: WizardState) => void; caps: { maxCpu: number; maxMemGi: number }; cluster: string }) {
   const intl = useOptionalIntl();
   const text = useModuleText(state.template?.metadata.name, cluster);
@@ -1258,6 +1268,11 @@ const PLACEMENT_LABELS = defineMessages({
   gpu: { id: "web.routes.create_server.node_placement_gpu", defaultMessage: "GPU-enabled", description: "Create server: node placement option requiring a GPU-capable node" },
 });
 
+/**
+ * Review step: a read-only summary of every earlier step, with an Edit link
+ * per section. Password-type config values are masked, and the reservation
+ * rows appear only when the user reserves less than the limits.
+ */
 function Review({ state, onEdit, location, cluster }: { state: WizardState; onEdit: (key: StepKey) => void; location: string; cluster: string }) {
   const intl = useOptionalIntl();
   const text = useModuleText(state.template?.metadata.name, cluster);
