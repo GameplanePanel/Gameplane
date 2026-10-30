@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, ArrowLeft, ArrowRight, Check, ExternalLink, Loader2, Megaphone, X } from "lucide-react";
-import { Button, Input, Alert, Select, Label, ListBox, ListBoxItem } from "@heroui/react";
+import { Button, Input, Alert, Select, Label, ListBox, ListBoxItem, Switch } from "@heroui/react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { ResourceInput } from "@/components/ui/ResourceInput";
 import { PortOverridesEditor } from "@/components/server/PortOverridesEditor";
@@ -23,7 +23,7 @@ import {
   maskPasswordConfig,
   validateConfig,
 } from "@/lib/validation";
-import { parseCpuQuantity, cpuCores, parseMemQuantity, memBytes } from "@/lib/quantity";
+import { parseCpuQuantity, cpuCores, parseMemQuantity, memBytes, cpuQuantityCores, memQuantityBytes } from "@/lib/quantity";
 import { cn, ignoreRejection } from "@/lib/utils";
 import { categoryFilters, categoryLabel, matchesCategory, resolveCategories } from "@/lib/games";
 import type { GameTemplate, PortOverride, GameServerTunnel } from "@/types";
@@ -60,6 +60,10 @@ interface WizardState {
   config: Record<string, string>;
   cpuLimit: string;
   memoryLimit: string;
+  // Burstable QoS opt-in: reserve (request) less than the limits.
+  reserveLess: boolean;
+  cpuRequest: string;
+  memoryRequest: string;
   storageSize: string;
   nodePlacement: "auto" | "pin" | "gpu";
   expose: "ClusterIP" | "NodePort" | "LoadBalancer";
@@ -84,6 +88,7 @@ const initial: WizardState = {
   name: "", description: "",
   template: null, version: "", config: {},
   cpuLimit: "2", memoryLimit: "4Gi",
+  reserveLess: false, cpuRequest: "2", memoryRequest: "4Gi",
   storageSize: "20Gi", nodePlacement: "auto",
   expose: "NodePort", hostname: "", sourceRanges: "",
   portOverrides: [],
@@ -210,11 +215,15 @@ function buildCreateBody(state: WizardState): ServerCreate {
       ...(tunnel ? { tunnel } : {}),
     },
     resources: {
-      // The create form uses Guaranteed QoS: requests == limits, so the pod
-      // is scheduled onto (and kept on) a node that can always give it the
-      // full amount, and never gets OOM-killed or CPU-throttled below what
-      // was configured.
-      requests: { cpu: state.cpuLimit, memory: state.memoryLimit },
+      // The create form uses Guaranteed QoS by default: requests == limits, so
+      // the pod is scheduled onto (and kept on) a node that can always give it
+      // the full amount, and never gets OOM-killed or CPU-throttled below what
+      // was configured. "Reserve less than the limit" opts into Burstable QoS
+      // instead: lower requests fit more servers per node, in exchange for
+      // throttling or eviction when the node runs short.
+      requests: state.reserveLess
+        ? { cpu: state.cpuRequest, memory: state.memoryRequest }
+        : { cpu: state.cpuLimit, memory: state.memoryLimit },
       limits: { cpu: state.cpuLimit, memory: state.memoryLimit },
     },
     ...(nodeSelector ? { nodeSelector } : {}),
@@ -253,7 +262,11 @@ function validateStep(
     if (!isValidQuantity(state.storageSize)) {
       return { ok: false, reason: intl.formatMessage({ id: "web.routes.create_server.validation_storage_quantity", defaultMessage: "Storage must be a Kubernetes quantity (e.g. 50Gi)", description: "Create server: validation message shown when the storage size is not a valid Kubernetes quantity" }) };
     }
-    if (!isValidQuantity(state.cpuLimit) || !isValidQuantity(state.memoryLimit)) {
+    if (
+      !isValidQuantity(state.cpuLimit) ||
+      !isValidQuantity(state.memoryLimit) ||
+      (state.reserveLess && (!isValidQuantity(state.cpuRequest) || !isValidQuantity(state.memoryRequest)))
+    ) {
       return { ok: false, reason: intl.formatMessage({ id: "web.routes.create_server.validation_cpu_memory_quantity", defaultMessage: "CPU and memory must be valid quantities", description: "Create server: validation message shown when the CPU or memory limit is not a valid Kubernetes quantity" }) };
     }
     const cpuParsed = parseCpuQuantity(state.cpuLimit);
@@ -739,6 +752,9 @@ function Configure({ state, setState, caps, cluster }: { state: WizardState; set
   // can never place a pod that requests more than one node provides, so
   // let the user know the ceiling and clamp their input to it.
   const { maxCpu, maxMemGi } = caps;
+  const reserveLessLabel = intl.formatMessage({ id: "web.routes.create_server.reserve_less_than_the_limit", defaultMessage: "Reserve less than the limit", description: "Create server: label next to the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name" });
+  const reservedCpuLabel = intl.formatMessage({ id: "web.routes.create_server.reserved_cpu", defaultMessage: "Reserved CPU", description: "Create server: field label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated" });
+  const reservedMemoryLabel = intl.formatMessage({ id: "web.routes.create_server.reserved_memory", defaultMessage: "Reserved memory", description: "Create server: field label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider" });
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
@@ -767,7 +783,13 @@ function Configure({ state, setState, caps, cluster }: { state: WizardState; set
           <ResourceInput
             kind="cpu"
             value={state.cpuLimit}
-            onChange={(q) => setState({ ...state, cpuLimit: q })}
+            // Kubernetes rejects a request above its limit, so a lower limit
+            // pulls the reservation down with it.
+            onChange={(q) => setState({
+              ...state,
+              cpuLimit: q,
+              cpuRequest: cpuQuantityCores(state.cpuRequest) > cpuQuantityCores(q) ? q : state.cpuRequest,
+            })}
             max={maxCpu > 0 ? maxCpu : undefined}
           />
           {maxCpu > 0 && (
@@ -779,7 +801,11 @@ function Configure({ state, setState, caps, cluster }: { state: WizardState; set
           <ResourceInput
             kind="memory"
             value={state.memoryLimit}
-            onChange={(q) => setState({ ...state, memoryLimit: q })}
+            onChange={(q) => setState({
+              ...state,
+              memoryLimit: q,
+              memoryRequest: memQuantityBytes(state.memoryRequest) > memQuantityBytes(q) ? q : state.memoryRequest,
+            })}
             max={maxMemGi > 0 ? maxMemGi : undefined}
           />
           {maxMemGi > 0 && (
@@ -787,6 +813,53 @@ function Configure({ state, setState, caps, cluster }: { state: WizardState; set
           )}
         </div>
       </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-3">
+          <Switch
+            isSelected={state.reserveLess}
+            // Switching on starts the reservation at the limits, so nothing
+            // changes until the user lowers it.
+            onChange={(on) => setState({ ...state, reserveLess: on, cpuRequest: state.cpuLimit, memoryRequest: state.memoryLimit })}
+            aria-label={reserveLessLabel}
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
+          <span className="text-sm text-fg">{reserveLessLabel}</span>
+        </div>
+        <span className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.create_server.only_the_reserved_amount_counts_when", defaultMessage: "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).", description: "Create server: hint under the reserve-less switch; Burstable QoS is a Kubernetes technical term" })}</span>
+      </div>
+
+      {state.reserveLess && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <label className="block text-xs text-muted">{reservedCpuLabel}</label>
+            <ResourceInput
+              kind="cpu"
+              label={reservedCpuLabel}
+              value={state.cpuRequest}
+              onChange={(q) => setState({ ...state, cpuRequest: q })}
+              min={0}
+              max={cpuQuantityCores(state.cpuLimit)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs text-muted">{reservedMemoryLabel}</label>
+            <ResourceInput
+              kind="memory"
+              label={reservedMemoryLabel}
+              value={state.memoryRequest}
+              onChange={(q) => setState({ ...state, memoryRequest: q })}
+              min={0}
+              max={memQuantityBytes(state.memoryLimit) / 1024 ** 3}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <label className="block text-xs text-muted">{intl.formatMessage({ id: "web.routes.create_server.persistent_storage", defaultMessage: "Persistent storage", description: "Create server: field label for the storage size reserved for the server's data" })}</label>
@@ -1159,6 +1232,8 @@ const REVIEW_LABELS = defineMessages({
   location: { id: "web.routes.create_server.review_location", defaultMessage: "Location", description: "Create server: review row label for the cluster and namespace the server is created in" },
   cpu: { id: "web.routes.create_server.review_cpu", defaultMessage: "CPU", description: "Create server: review row label for the CPU limit" },
   memory: { id: "web.routes.create_server.review_memory", defaultMessage: "Memory", description: "Create server: review row label for the memory limit" },
+  cpu_reserved: { id: "web.routes.create_server.review_cpu_reserved", defaultMessage: "Reserved CPU", description: "Create server: review row label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on" },
+  memory_reserved: { id: "web.routes.create_server.review_memory_reserved", defaultMessage: "Reserved memory", description: "Create server: review row label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on" },
   storage: { id: "web.routes.create_server.review_storage", defaultMessage: "Storage", description: "Create server: review row label for the storage size" },
   placement: { id: "web.routes.create_server.review_placement", defaultMessage: "Placement", description: "Create server: review row label for the node placement option" },
   network: { id: "web.routes.create_server.review_network", defaultMessage: "Network", description: "Create server: review section title for the network settings" },
@@ -1205,6 +1280,12 @@ function Review({ state, onEdit, location, cluster }: { state: WizardState; onEd
         [intl.formatMessage(REVIEW_LABELS.location), location],
         [intl.formatMessage(REVIEW_LABELS.cpu), state.cpuLimit],
         [intl.formatMessage(REVIEW_LABELS.memory), state.memoryLimit],
+        ...(state.reserveLess
+          ? [
+              [intl.formatMessage(REVIEW_LABELS.cpu_reserved), state.cpuRequest],
+              [intl.formatMessage(REVIEW_LABELS.memory_reserved), state.memoryRequest],
+            ]
+          : []),
         [intl.formatMessage(REVIEW_LABELS.storage), state.storageSize],
         [intl.formatMessage(REVIEW_LABELS.placement), intl.formatMessage(PLACEMENT_LABELS[state.nodePlacement])],
       ] as Array<[string, string]>,

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithQuery } from "@/test/render";
 import type { GameTemplate } from "@/types";
 
@@ -201,6 +202,74 @@ describe("CreateServerWizard", () => {
     // Defaults from the wizard state: 2 cores / 4Gi.
     expect(body.spec.resources.requests).toEqual({ cpu: "2", memory: "4Gi" });
     expect(body.spec.resources.limits).toEqual({ cpu: "2", memory: "4Gi" });
+  });
+
+  it("sends requests below the limits when reserving less (Burstable QoS)", async () => {
+    routeFetch();
+
+    renderWithQuery(<CreateServerWizard />);
+    await pickTemplate(template());
+
+    fireEvent.change(screen.getByPlaceholderText("mc-hardcore"), {
+      target: { value: "mc-test" },
+    });
+    expect(screen.queryByLabelText("Reserved CPU value")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("switch", { name: "Reserve less than the limit" }));
+    // The reservation starts at the limits.
+    expect(screen.getByLabelText("Reserved CPU value")).toHaveValue(2);
+    expect(screen.getByLabelText("Reserved memory value")).toHaveValue(4);
+
+    const cpu = screen.getByLabelText("Reserved CPU value");
+    fireEvent.change(cpu, { target: { value: "0.5" } });
+    fireEvent.blur(cpu);
+    const memory = screen.getByLabelText("Reserved memory value");
+    fireEvent.change(memory, { target: { value: "1" } });
+    fireEvent.blur(memory);
+
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Network/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Review/i }));
+    expect(screen.getByText("Reserved CPU")).toBeInTheDocument();
+    expect(screen.getByText("500m")).toBeInTheDocument();
+    expect(screen.getByText("Reserved memory")).toBeInTheDocument();
+    expect(screen.getByText("1Gi")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Create server/i }));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    const postCall = fetchMock.mock.calls.find((c) => (c[1] as FetchInit).method === "POST")!;
+    const body = JSON.parse((postCall[1] as FetchInit).body as string);
+    expect(body.spec.resources.requests).toEqual({ cpu: "500m", memory: "1Gi" });
+    expect(body.spec.resources.limits).toEqual({ cpu: "2", memory: "4Gi" });
+  });
+
+  it("lowering a limit below the reservation lowers the reservation too", async () => {
+    routeFetch();
+
+    renderWithQuery(<CreateServerWizard />);
+    await pickTemplate(template());
+
+    fireEvent.change(screen.getByPlaceholderText("mc-hardcore"), {
+      target: { value: "mc-test" },
+    });
+    await userEvent.click(screen.getByRole("switch", { name: "Reserve less than the limit" }));
+
+    const cpuLimit = screen.getByLabelText("CPU cores value");
+    fireEvent.change(cpuLimit, { target: { value: "1" } });
+    fireEvent.blur(cpuLimit);
+    const memoryLimit = screen.getByLabelText("Memory (GiB) value");
+    fireEvent.change(memoryLimit, { target: { value: "2" } });
+    fireEvent.blur(memoryLimit);
+    expect(screen.getByLabelText("Reserved CPU value")).toHaveValue(1);
+    expect(screen.getByLabelText("Reserved memory value")).toHaveValue(2);
+
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Network/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Review/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Create server/i }));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    const postCall = fetchMock.mock.calls.find((c) => (c[1] as FetchInit).method === "POST")!;
+    const body = JSON.parse((postCall[1] as FetchInit).body as string);
+    expect(body.spec.resources.requests).toEqual({ cpu: "1", memory: "2Gi" });
+    expect(body.spec.resources.limits).toEqual({ cpu: "1", memory: "2Gi" });
   });
 
   it("keeps the 4-step flow when the template declares no versions", async () => {
