@@ -9,6 +9,11 @@ import type { SectionProps } from "./types";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
 
+/**
+ * Server settings, Resources section: the CPU and memory given to the server,
+ * with an optional reservation below the limit (Burstable QoS), plus its
+ * storage size and StorageClass.
+ */
 export function ResourcesSection({ draft, onChange }: SectionProps) {
   const intl = useOptionalIntl();
   const res = draft.spec.resources ?? {};
@@ -56,40 +61,37 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
   const [reserveLessChosen, setReserveLessChosen] = useState(false);
   const reserveLess = requestsBelowLimits || reserveLessChosen;
 
+  // Each control below writes only the values it owns. The fields display
+  // fallbacks (a missing limit shows the request, a missing request shows the
+  // limit), and writing those back would add a limit or request the server
+  // never had: an absent CPU limit would suddenly cap the CPU.
+
+  /**
+   * Turns the reserve-less switch on or off. Switching off copies each saved
+   * limit onto its request (Guaranteed QoS); a resource with no saved limit
+   * keeps its request rather than gaining a limit nobody set.
+   */
   const handleReserveLessChange = (on: boolean) => {
     setReserveLessChosen(on);
-    // Switching off puts the requests back on the limits (Guaranteed QoS).
     if (!on && requestsBelowLimits) {
-      setResources({
-        ...res,
-        requests: { cpu: cpuLimit, memory: memoryLimit },
-        limits: { cpu: cpuLimit, memory: memoryLimit },
-      });
+      setResources({ ...res, requests: { ...res.requests, ...res.limits } });
     }
   };
 
-  // With reserveLess on, requests and limits are written together and in full:
-  // spec.resources replaces the template's resources wholesale, so a half-set
-  // pair would drop the other values.
-  const setRequestsAndLimits = (
-    requests: { cpu: string; memory: string },
-    limits: { cpu: string; memory: string },
-  ) => {
-    setResources({ ...res, requests, limits });
-  };
-
-  // Off: the field sets the request and the limit to the same value. On: it
-  // sets the limit, and a reservation above the new limit comes down with it,
-  // since Kubernetes rejects a request above its limit.
+  /**
+   * Sets the CPU limit. With the switch off the request follows it (Guaranteed
+   * QoS). With it on, only a saved reservation above the new limit comes down
+   * with it, since Kubernetes rejects a request above its limit.
+   */
   const handleCpuChange = (qty: string) => {
     if (reserveLess) {
-      setRequestsAndLimits(
-        {
-          cpu: cpuQuantityCores(cpuRequest) > cpuQuantityCores(qty) ? qty : cpuRequest,
-          memory: memoryRequest,
-        },
-        { cpu: qty, memory: memoryLimit },
-      );
+      const lowerRequest =
+        res.requests?.cpu !== undefined && cpuQuantityCores(res.requests.cpu) > cpuQuantityCores(qty);
+      setResources({
+        ...res,
+        requests: lowerRequest ? { ...res.requests, cpu: qty } : res.requests,
+        limits: { ...res.limits, cpu: qty },
+      });
       return;
     }
     setResources({
@@ -99,15 +101,16 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
     });
   };
 
+  /** Sets the memory limit; same rules as {@link handleCpuChange}. */
   const handleMemoryChange = (qty: string) => {
     if (reserveLess) {
-      setRequestsAndLimits(
-        {
-          cpu: cpuRequest,
-          memory: memQuantityBytes(memoryRequest) > memQuantityBytes(qty) ? qty : memoryRequest,
-        },
-        { cpu: cpuLimit, memory: qty },
-      );
+      const lowerRequest =
+        res.requests?.memory !== undefined && memQuantityBytes(res.requests.memory) > memQuantityBytes(qty);
+      setResources({
+        ...res,
+        requests: lowerRequest ? { ...res.requests, memory: qty } : res.requests,
+        limits: { ...res.limits, memory: qty },
+      });
       return;
     }
     setResources({
@@ -117,12 +120,14 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
     });
   };
 
+  /** Sets the CPU reservation (request) alone; the limits stay as saved. */
   const handleCpuRequestChange = (qty: string) => {
-    setRequestsAndLimits({ cpu: qty, memory: memoryRequest }, { cpu: cpuLimit, memory: memoryLimit });
+    setResources({ ...res, requests: { ...res.requests, cpu: qty } });
   };
 
+  /** Sets the memory reservation (request) alone; the limits stay as saved. */
   const handleMemoryRequestChange = (qty: string) => {
-    setRequestsAndLimits({ cpu: cpuRequest, memory: qty }, { cpu: cpuLimit, memory: memoryLimit });
+    setResources({ ...res, requests: { ...res.requests, memory: qty } });
   };
 
   const reserveLessLabel = intl.formatMessage({ id: "web.routes.tabs.settings.resources.reserve_less_than_the_limit", defaultMessage: "Reserve less than the limit", description: "Resources: field label for the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name" });
@@ -188,7 +193,8 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
               value={cpuRequest}
               onChange={handleCpuRequestChange}
               min={0}
-              max={cpuQuantityCores(cpuLimit)}
+              // Capped by a saved limit only: with none, nothing caps the request.
+              max={res.limits?.cpu !== undefined ? cpuQuantityCores(res.limits.cpu) : undefined}
             />
           </Field>
 
@@ -202,7 +208,7 @@ export function ResourcesSection({ draft, onChange }: SectionProps) {
               value={memoryRequest}
               onChange={handleMemoryRequestChange}
               min={0}
-              max={memQuantityBytes(memoryLimit) / 1024 ** 3}
+              max={res.limits?.memory !== undefined ? memQuantityBytes(res.limits.memory) / 1024 ** 3 : undefined}
             />
           </Field>
         </>

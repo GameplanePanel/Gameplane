@@ -321,5 +321,38 @@ describe("ResourcesSection", () => {
       expect(screen.queryByLabelText("Reserved CPU value")).not.toBeInTheDocument();
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    // CPU has a reservation but no limit (e.g. edited with kubectl); memory
+    // reserves less than its limit, so the switch opens on.
+    const cpuWithoutLimit: ResourceRequirements = {
+      requests: { cpu: "500m", memory: "1Gi" },
+      limits: { memory: "2Gi" },
+    };
+
+    it("editing a reservation never adds a limit the server did not have", () => {
+      const onChange = vi.fn();
+      render(<ResourcesSection draft={withResources(cpuWithoutLimit)} onChange={onChange} />);
+      commit("Reserved memory (GiB) value", "0.5");
+      expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
+        requests: { cpu: "500m", memory: "512Mi" },
+        limits: { memory: "2Gi" },
+      });
+      // 500m shows in mCPU, so the typed value is in millicores.
+      commit("Reserved CPU value", "250");
+      expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
+        requests: { cpu: "250m", memory: "1Gi" },
+        limits: { memory: "2Gi" },
+      });
+    });
+
+    it("switching off copies only the saved limits onto the requests", async () => {
+      const onChange = vi.fn();
+      render(<ResourcesSection draft={withResources(cpuWithoutLimit)} onChange={onChange} />);
+      await userEvent.click(screen.getByRole("switch", switchName));
+      expect(onChange.mock.calls.at(-1)![0].spec.resources).toEqual({
+        requests: { cpu: "500m", memory: "2Gi" },
+        limits: { memory: "2Gi" },
+      });
+    });
   });
 });
