@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "E0ypH",
   "x": 0,
-  "y": 41967,
+  "y": 42130,
   "name": "Screen/Server Detail — Settings · Resources",
   "theme": {
     "semantic": "dark"
@@ -364,6 +364,66 @@
                                           "enabled": false
                                         }
                                       }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "xuyWG",
+                              "name": "Field Reserve less",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "oWMYX",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "AWqw1",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Reserve less than the limit",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "Ce3T8",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "Off: the server reserves its full CPU and memory (Guaranteed QoS). On: it reserves less, so more servers fit on a node, and uses more up to its limit when the node has room (Burstable QoS).",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "q9ZQKc",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "height": 28,
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "XFdCR",
+                                      "type": "ref",
+                                      "ref": "rh2QH",
+                                      "name": "Switch",
+                                      "width": 36,
+                                      "height": 20
                                     }
                                   ]
                                 }

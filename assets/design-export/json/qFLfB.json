@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "qFLfB",
   "x": 8200,
-  "y": 91265,
+  "y": 91528,
   "name": "Historical/Share Link — Asleep (view only)",
   "context": "Historical reference. The public resolve response does not expose start capability; an asleep poll must not infer denied permission. Current behavior retains Start, with a cooldown after transient Start failures.",
   "theme": {
