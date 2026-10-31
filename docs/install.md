@@ -945,16 +945,46 @@ and the existing database is used instead — no data loss.
 
 Nothing else needs to happen; the upgrade proceeds normally.
 
-### SQLite upgrades (brief downtime)
+### API upgrades (brief downtime)
 
-When using the SQLite database driver, the API Deployment uses a `Recreate`
-upgrade strategy: the old pod is fully terminated before the new one starts.
-This ensures no two API processes try to write the same SQLite database file
-(which is a single-writer store on a ReadWriteOnce PVC). As a result,
-SQLite-backed installs experience a few seconds of dashboard downtime during
-an upgrade. Combined PostgreSQL installs use rolling updates, but the driver
-remains experimental and the API should still run as a single replica (see
-`api.replicas` in `values.yaml`). Standalone installs use `Recreate` with either
-database driver: generated keys use a ReadWriteOnce volume, and audit-chain and
-user-management locks remain per-process. A shared provisioned key does not make
-multiple API replicas supported.
+Every API Deployment uses `Recreate`: the old pod terminates before its
+replacement starts. This includes combined and standalone installations with
+either SQLite or PostgreSQL. The chart rejects `api.replicas` other than `1`.
+Audit-chain and user-management locks are per-process; PostgreSQL and a shared
+standalone key do not make multiple API writers supported. Plan a brief panel
+outage on upgrade. Existing games and their operator continue independently.
+
+Upgrading an older combined PostgreSQL release now changes its default
+RollingUpdate strategy to Recreate. The existing pre-upgrade CRD hook also
+migrates that Deployment, removing the stale `rollingUpdate` field before Helm
+applies the new strategy. Keep `crds.autoApply.enabled=true`. If you manage
+CRDs and upgrade hooks externally, apply this atomic patch before upgrading:
+
+```sh
+kubectl --namespace gameplane-system patch deployment gameplane-api --type=merge \
+  --patch '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
+```
+
+Recreate controls normal Kubernetes rollouts; it does not fence a writer on a
+partitioned node after forced Pod deletion. Stop or fence that old process
+before allowing a replacement to access the database. Multi-replica API HA is
+a separate feature requiring database-level transaction serialization for
+audit append/prune and user-management invariants, plus coordinated background
+work and rate limiting.
+
+### API database readiness
+
+`/healthz` reports process liveness. `/readyz` pings the database with a
+two-second deadline and returns 503 when it cannot obtain a connection or
+complete the ping. Only one ping can be in flight; concurrent checks fail
+without queueing more work in SQLite's one-connection pool. Neither endpoint
+returns database addresses, credentials or account details.
+
+The chart checks readiness every five seconds, allows three seconds per probe,
+and marks the Pod unready after three consecutive failures (normally within
+about seventeen seconds of a database outage, plus Kubernetes endpoint
+propagation). This tolerates brief SQLite connection contention. Liveness
+stays on `/healthz`, so an external outage does not restart a healthy API.
+Readiness recovers after the database becomes reachable again. Session-store
+errors return a generic 503 without clearing the session; invalid or expired
+sessions remain 401. Clients can retry after recovery using the same cookie.

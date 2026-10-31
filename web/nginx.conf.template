@@ -111,6 +111,12 @@ server {
         return 200 "ok\n";
     }
 
+    # The database readiness slot belongs to kubelet probes on the API's
+    # internal port. Public requests must never compete for that slot.
+    location = /readyz {
+        return 404;
+    }
+
     location / {
         # 1) Real file on disk (index.html, favicon, manifest, …) → serve it.
         # 2) Otherwise fall through to the @backend named location, which

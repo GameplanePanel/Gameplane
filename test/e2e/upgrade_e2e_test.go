@@ -371,7 +371,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 
 	// --timeout without --wait: hooks block `helm install` until they finish
 	// regardless of --wait, so the CRD-apply Job has completed and the schema
-	// is settled when this returns. operator.replicas=0 / api.replicas=0
+	// is settled when this returns. operator.replicas=0 / api.enabled=false
 	// because only the hook matters here. gamesNamespace is fresh so the
 	// install cannot race the uninstalled release's games Namespace deletion.
 	chartStamp := manifestCRDStamp(t, "gameplane.local_gameservers.yaml")
@@ -386,7 +386,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		"--set", "operator.agentImage=gameplane-test/agent:"+tag,
 		"--set", "operator.leaderElect=false",
 		"--set", "operator.replicas=0",
-		"--set", "api.replicas=0",
+		"--set", "api.enabled=false",
 		"--set", "gamesNamespace=e2e-crd-reinstall-games",
 		"--set", "defaultModuleSource.enabled=false",
 		"--timeout", "3m",

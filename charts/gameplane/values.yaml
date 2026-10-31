@@ -159,7 +159,10 @@ api:
   # Requires operator.enabled=false, which excludes bundled native CRDs.
   # Standalone mode also skips the CRD apply hook and its RBAC.
   standalone: false
-  replicas: 1        # Keep at 1. SQLite is single-writer on a RWO volume; with db.driver=postgres the user-management lock and audit hash chain are still per-process
+  # Must be 1 in every enabled API install, including PostgreSQL. Audit-chain
+  # and user-management locks are per-process. Recreate rollouts stop the old
+  # API before starting its replacement and accept a brief panel outage.
+  replicas: 1
   nodeSelector: {}
   tolerations: []
   affinity: {}

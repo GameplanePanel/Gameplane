@@ -18,6 +18,14 @@ MIB = 1 << 20
 
 class UploadSink(BaseHTTPRequestHandler):
     received = []
+    get_requests = []
+
+    def do_GET(self):
+        self.get_requests.append(self.path)
+        self.send_response(200)
+        self.send_header("Content-Length", "2")
+        self.end_headers()
+        self.wfile.write(b"ok")
 
     def do_POST(self):
         length = int(self.headers["Content-Length"])
@@ -72,6 +80,24 @@ def main():
                         subprocess.run(["docker", "logs", name], check=False)
                         raise
                     time.sleep(0.2)
+            # A live upstream and working ordinary proxy are positive controls:
+            # only the kubelet's database readiness path must stop at nginx.
+            with urllib.request.urlopen(f"http://127.0.0.1:{sink.server_port}/readyz", timeout=5) as response:
+                assert response.status == 200
+            with urllib.request.urlopen("http://127.0.0.1:8080/healthz", timeout=5) as response:
+                assert response.status == 200
+            for path in ("/readyz", "/readyz?probe=public", "/%72eadyz", "//readyz"):
+                for accept in ("application/json", "text/html", "*/*"):
+                    request = urllib.request.Request("http://127.0.0.1:8080" + path,
+                                                     headers={"Accept": accept})
+                    try:
+                        urllib.request.urlopen(request, timeout=5)
+                    except urllib.error.HTTPError as error:
+                        assert error.code == 404, (path, accept, error.code)
+                        error.close()
+                    else:
+                        raise AssertionError(("public readiness request succeeded", path, accept))
+            assert UploadSink.get_requests == ["/readyz", "/healthz"], UploadSink.get_requests
             upload = Path(directory) / "default-limit.jar"
             with upload.open("wb") as stream:
                 stream.truncate(file_mib * MIB)

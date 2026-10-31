@@ -313,9 +313,7 @@ func main() {
 	r.Use(bodyLimit(1 << 20)) // 1 MiB default; upload proxy raises its own ceiling
 	r.Use(audit.Middleware(auditor))
 
-	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("ok"))
-	})
+	mountHealthRoutes(r, store)
 	// Prometheus metrics are served by the separate metrics listener below,
 	// never on this public router.
 

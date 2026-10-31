@@ -1,3 +1,6 @@
+{{- if and (eq (include "gameplane.apiEnabled" .) "true") (ne (toString .Values.api.replicas) "1") }}
+{{- fail "api requires api.replicas=1; multiple API processes are not supported" }}
+{{- end }}
 {{- if .Values.api.standalone }}
 {{- if ne (include "gameplane.apiEnabled" .) "true" }}
 {{- fail "api.standalone requires api.enabled=true" }}
@@ -12,9 +15,6 @@
 {{- end }}
 {{- if eq (include "gameplane.operatorEnabled" .) "true" }}
 {{- fail "api.standalone requires operator.enabled=false; install operators in the remote game clusters" }}
-{{- end }}
-{{- if ne (int .Values.api.replicas) 1 }}
-{{- fail "api.standalone requires api.replicas=1 for the persistent panel key and database" }}
 {{- end }}
 {{- if (.Values.gateway | default dict).enabled }}
 {{- fail "api.standalone cannot host gateway.enabled; install the gateway in the remote game cluster" }}

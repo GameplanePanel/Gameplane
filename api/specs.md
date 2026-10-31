@@ -104,6 +104,7 @@ The HTTP server listens on `:8000` (configurable) with these route groups. Prome
 - `/auth/oidc/start` (legacy) — GET: single helm-provider start
 - `/auth/oidc/callback` (legacy) — GET: single helm-provider callback
 - `/healthz` — GET: liveness probe
+- `/readyz` — GET: database readiness, a `PingContext` with a two-second deadline. At most one ping runs at once; concurrent probes return a generic 503 without queueing more database work. Success returns `ok`; unavailable or busy returns only `not ready`. The chart probes every five seconds with a three-second timeout; three consecutive failed probes remove readiness, tolerating brief SQLite connection contention. `/healthz` remains independent of the database, so outages do not trigger liveness restarts.
 
 **Protected (authenticated + RBAC):**
 - All six `/fleet/*` reads share a per-authenticated-user token bucket: 60 requests/minute sustained, burst 10. Exhausted requests receive 429 with `Retry-After: 1` before cluster discovery or resource listing. Sessions and routes share the account's budget; users behind the same IP do not. This per-process limit bounds request frequency without removing owner/collaborator scans; multiple API replicas have independent budgets.
@@ -537,7 +538,9 @@ Verify from `/api/go.mod`.
 ### Database driver selection
 
 - **Production (default):** `modernc.org/sqlite` — file-based, WAL mode, tested
-- **Experimental:** PostgreSQL via `jackc/pgx/v5` — compile with `-tags=postgres`. Works end to end; `api/internal/db`'s tests run against PostgreSQL in the `api (postgres)` CI job, but there is no Postgres e2e/upgrade coverage yet
+- **Experimental:** PostgreSQL via `jackc/pgx/v5` — compile with `-tags=postgres`. The `api (postgres)` CI job covers the store. The `e2e postgres` job runs API auth/roles/RBAC plus the `postgres-availability` bucket: populated RollingUpdate-to-Recreate migration, singleton Pod observation, audit integrity, and database outage/recovery without restarting the API or replacing the session.
+- Every enabled API install requires exactly one replica, for both drivers and both combined/standalone modes. Helm renders `Recreate` with `rollingUpdate: null`; the combined-install pre-upgrade hook clears an existing rolling-update strategy for either driver. Recreate prevents ordinary rollout overlap, but cannot fence a process on a partitioned node after force deletion. HA requires database-level serialization of audit/user-management transactions and coordinated background work/rate limiting before multiple writers are supported.
+- Protected-route session lookup distinguishes missing, expired and corrupt sessions (generic 401) from database/session-permission lookup failures (generic 503). Both deny access. Operational failures do not delete sessions or clear cookies; access recovers with the same cookie when the store recovers. Missing-cookie responses remain 401 without consulting storage, and login privacy is unchanged.
 - Driver selected at startup via `--db-driver` (sqlite|postgres) + `--db-dsn`
 - SQLite DSNs automatically receive a `busy_timeout(5000)` pragma if one is not already specified, allowing multiple processes (e.g., the API and bootstrap-admin) sharing the same file to wait for locks instead of failing immediately
 - Migrations run automatically on startup (`store.Migrate(ctx)`): the driver's legacy set (`migrations/sqlite/` or `migrations/postgres/`, 001-012, same filenames and resulting schema) then the shared set (`migrations/common/`, 013+, one portable file per migration), in version order; a version present in both sets is a startup error. Versions are recorded in `schema_migrations` by bare filename, so SQLite installs see the same versions as before the split

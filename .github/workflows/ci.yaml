@@ -2381,12 +2381,14 @@ jobs:
   # between buckets: its login rate limiter lives in memory and each bucket is
   # sized to one fresh limiter's budget (see test/e2e/buckets.sh). The restart
   # also means each later bucket runs on data the earlier ones left in Postgres.
+  # A final serial bucket migrates the Deployment strategy and exercises a
+  # PostgreSQL outage/recovery against that populated installation.
   e2e-postgres:
     name: e2e postgres / amd64 (kind)
     needs: [changes, build-images]
     if: (needs.changes.outputs.e2e == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'e2e-postgres')
     runs-on: ubuntu-latest
-    timeout-minutes: 75 # Boots a kind cluster with PostgreSQL, installs the chart, runs three buckets.
+    timeout-minutes: 75 # Boots PostgreSQL and runs auth, roles, RBAC, then availability.
     permissions:
       contents: read
     env:
@@ -2444,6 +2446,13 @@ jobs:
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 10m -v -parallel 4 -run "$RUN_REGEX" ./...
+      - name: run go e2e (PostgreSQL singleton upgrade and outage recovery)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-availability)"
+          cd test/e2e && \
+            GAMEPLANE_E2E_REUSE_CLUSTER=1 \
+            GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-postgres)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
@@ -2854,6 +2863,10 @@ jobs:
               if (m) bucketSet.add(m[1]);
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');
+              if (/^e2e postgres \//.test(n) && Array.isArray(j.steps)) {
+                const availability = j.steps.find((s) => s.name === 'run go e2e (PostgreSQL singleton upgrade and outage recovery)');
+                if (availability && availability.conclusion === 'success') bucketSet.add('postgres-availability');
+              }
               // The ratelimit bucket runs as a trailing step inside the
               // api-auth job leg (deliberately, so it drains the shared
               // login buckets last), not as its own job — so it never
