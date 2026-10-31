@@ -55,6 +55,14 @@ LABEL org.opencontainers.image.version="${VERSION}"
 # default keeps a bare `docker run` from failing to start.
 ENV API_UPSTREAM=http://gameplane-api.gameplane-system.svc.cluster.local
 
+# The base image (last rebuilt 2026-10-19) ships brotli-libs 1.2.0-r1
+# (CVE-2026-111497) and curl/libcurl 8.22.0-r0 (CVE-2026-92392); Trivy fails
+# the publish on both. Upgrade them to the Alpine 3.24 fixes as root, then drop
+# back to the base image's unprivileged nginx user (uid 101).
+USER root
+RUN apk add --no-cache brotli-libs~=1.2.1 curl~=8.23.0 libcurl~=8.23.0
+USER 101
+
 # Replace the base image's default server block with ours.
 RUN rm -f /etc/nginx/conf.d/default.conf
 COPY web/nginx.conf.template /etc/nginx/templates/gameplane.conf.template
