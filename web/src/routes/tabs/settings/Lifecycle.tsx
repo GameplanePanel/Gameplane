@@ -54,12 +54,12 @@ export function LifecycleSection({ draft, onChange, template }: SectionProps) {
   const overrides = draft.spec.probes;
   // Mirrors the operator's wakeOnConnectEligible: the wake sentinel is only
   // armed when the template advertises a port that can wake the server
-  // (wakeProtocol other than "none"; the CRD defaults it to "generic"). While
-  // the template or its ports are unknown, the switch stays available.
-  const templatePorts = template?.spec.ports;
+  // (wakeProtocol other than "none"; the CRD defaults it to "generic"). The
+  // switch stays available until the template has loaded; a loaded template
+  // without ports has nothing that can wake the server.
   const wakeAvailable =
-    templatePorts === undefined ||
-    templatePorts.some((p) => p.advertise && p.wakeProtocol !== "none");
+    template === undefined ||
+    (template.spec.ports ?? []).some((p) => p.advertise && p.wakeProtocol !== "none");
   const wakeOnConnect = draft.spec.idle?.wakeOnConnect ?? false;
 
   // setProbe writes a per-server override for `kind`, seeded from the

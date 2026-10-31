@@ -606,6 +606,13 @@ describe("LifecycleSection", () => {
       ).toBeInTheDocument();
     });
 
+    it("is disabled when the loaded template declares no ports", () => {
+      // The operator finds no port to wake on, so it never arms the sentinel.
+      render(<LifecycleSection draft={withIdle(idleOn)} onChange={() => {}} template={templateWithProbe} />);
+      expect(screen.getByRole("switch", { name: switchName })).toBeDisabled();
+      expect(screen.getByText(/Not available for this game/)).toBeInTheDocument();
+    });
+
     it("still lets an already armed server be disarmed when the template cannot wake it", async () => {
       const onChange = vi.fn();
       render(
