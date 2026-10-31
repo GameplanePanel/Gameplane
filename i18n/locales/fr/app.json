@@ -11304,6 +11304,21 @@
     "description": "Lifecycle: field label for the number of seconds given to the server to stop cleanly before it is shut down",
     "sourceHash": "5a2eee9ddf20"
   },
+  "web.routes.tabs.settings.lifecycle.wake_on_connect": {
+    "defaultMessage": "Réveil à la connexion",
+    "description": "Lifecycle: small label above the switch that wakes a sleeping server when a player tries to join",
+    "sourceHash": "199fb74715af"
+  },
+  "web.routes.tabs.settings.lifecycle.wake_on_connect_not_available": {
+    "defaultMessage": "Indisponible pour ce jeu : son template indique qu'aucun port ne peut réveiller le serveur.",
+    "description": "Lifecycle: hint under the disabled wake on connect switch when the game's template has no port that can wake the server",
+    "sourceHash": "d5560339da80"
+  },
+  "web.routes.tabs.settings.lifecycle.wake_the_server_when_a_player_connects": {
+    "defaultMessage": "Réveiller le serveur quand un joueur se connecte",
+    "description": "Lifecycle: text next to the wake on connect switch, also its accessible name; the server wakes from sleep when a player tries to join",
+    "sourceHash": "8e5b61c242e5"
+  },
   "web.routes.tabs.settings.lifecycle.wake_window_aria": {
     "defaultMessage": "Fenêtre de réveil {n}",
     "description": "Lifecycle: aria-label of a wake window cron input; {n} is the 1-based position of the window",
@@ -11328,6 +11343,11 @@
     "defaultMessage": "Désactivé, le StatefulSet est mis à zéro (suspendu). Les données sont conservées.",
     "description": "Lifecycle: hint under the auto-restart switch saying that when it is off the server is suspended and its data is kept",
     "sourceHash": "9a0aa8691eb4"
+  },
+  "web.routes.tabs.settings.lifecycle.while_the_server_sleeps_a_small_pod": {
+    "defaultMessage": "Pendant que le serveur est en veille, un petit pod garde ses ports et le réveille quand un joueur essaie de se connecter. Coûte un pod de plus par serveur en veille. Les jeux qui n'utilisent que l'UDP se réveillent à la première tentative ; le joueur se connecte en réessayant.",
+    "description": "Lifecycle: hint under the wake on connect switch explaining that a small pod holds the ports while asleep, that it costs one pod per sleeping server, and that for UDP-only games the first join attempt only wakes the server",
+    "sourceHash": "0ff093fbfd8d"
   },
   "web.routes.tabs.settings.loading": {
     "defaultMessage": "Chargement…",

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { LifecycleSection } from "./Lifecycle";
 import { GRACE_PERIOD_ANNOTATION } from "./types";
 import { makeServer } from "@/test/factories";
-import type { GameTemplate } from "@/types";
+import type { GameTemplate, IdleSpec } from "@/types";
 
 const baseDraft = makeServer();
 
@@ -519,5 +519,108 @@ describe("LifecycleSection", () => {
       <LifecycleSection draft={lastCall} onChange={onChange} />,
     );
     expect(screen.queryByText(/between 5 and 1440/i)).not.toBeInTheDocument();
+  });
+  describe("wake on connect", () => {
+    const idleOn = { enabled: true, afterMinutes: 45, wakeWindows: ["0 9 * * 1-5"] };
+    const withIdle = (idle: IdleSpec) => ({
+      ...baseDraft,
+      spec: { ...baseDraft.spec, idle },
+    });
+    const templateWithPorts = (
+      ports: NonNullable<GameTemplate["spec"]["ports"]>,
+    ): GameTemplate => ({ ...templateWithProbe, spec: { ...templateWithProbe.spec, ports } });
+    const switchName = "Wake the server when a player connects";
+
+    it("arms the wake sentinel and keeps the other idle settings", async () => {
+      const onChange = vi.fn();
+      render(<LifecycleSection draft={withIdle(idleOn)} onChange={onChange} />);
+      await userEvent.click(screen.getByRole("switch", { name: switchName }));
+      const lastCall = onChange.mock.calls.at(-1)![0];
+      expect(lastCall.spec.idle).toEqual({ ...idleOn, wakeOnConnect: true });
+    });
+
+    it("disarms it again", async () => {
+      const onChange = vi.fn();
+      render(
+        <LifecycleSection draft={withIdle({ ...idleOn, wakeOnConnect: true })} onChange={onChange} />,
+      );
+      const sw = screen.getByRole("switch", { name: switchName });
+      expect(sw).toBeChecked();
+      await userEvent.click(sw);
+      const lastCall = onChange.mock.calls.at(-1)![0];
+      expect(lastCall.spec.idle?.wakeOnConnect).toBe(false);
+    });
+
+    it("survives switching idle auto-sleep off and on again", async () => {
+      // Regression: re-enabling rebuilt spec.idle from afterMinutes and
+      // wakeWindows only, silently dropping wakeOnConnect.
+      const onChange = vi.fn();
+      render(
+        <LifecycleSection
+          draft={withIdle({ ...idleOn, enabled: false, wakeOnConnect: true })}
+          onChange={onChange}
+        />,
+      );
+      await userEvent.click(screen.getByRole("switch", { name: "Enable idle auto-sleep" }));
+      const lastCall = onChange.mock.calls.at(-1)![0];
+      expect(lastCall.spec.idle?.enabled).toBe(true);
+      expect(lastCall.spec.idle?.wakeOnConnect).toBe(true);
+    });
+
+    it("explains the extra pod and the UDP retry", () => {
+      render(<LifecycleSection draft={withIdle(idleOn)} onChange={() => {}} />);
+      expect(screen.getByText(/a small pod holds its ports/)).toBeInTheDocument();
+      expect(screen.getByText(/the player joins on retry/)).toBeInTheDocument();
+    });
+
+    it("is available when the template has an advertised port that can wake the server", () => {
+      render(
+        <LifecycleSection
+          draft={withIdle(idleOn)}
+          onChange={() => {}}
+          template={templateWithPorts([
+            { name: "query", containerPort: 27015, protocol: "UDP", advertise: false, wakeProtocol: "none" },
+            // No wakeProtocol: the CRD defaults it to "generic".
+            { name: "game", containerPort: 8211, protocol: "UDP", advertise: true },
+          ])}
+        />,
+      );
+      expect(screen.getByRole("switch", { name: switchName })).not.toBeDisabled();
+      expect(screen.queryByText(/Not available for this game/)).not.toBeInTheDocument();
+    });
+
+    it("is disabled when no advertised port can wake the server", () => {
+      render(
+        <LifecycleSection
+          draft={withIdle(idleOn)}
+          onChange={() => {}}
+          template={templateWithPorts([
+            { name: "game", containerPort: 7777, protocol: "UDP", advertise: true, wakeProtocol: "none" },
+            { name: "rcon", containerPort: 25575, protocol: "TCP", advertise: false, wakeProtocol: "generic" },
+          ])}
+        />,
+      );
+      expect(screen.getByRole("switch", { name: switchName })).toBeDisabled();
+      expect(
+        screen.getByText("Not available for this game: its template marks every port as unable to wake the server."),
+      ).toBeInTheDocument();
+    });
+
+    it("still lets an already armed server be disarmed when the template cannot wake it", async () => {
+      const onChange = vi.fn();
+      render(
+        <LifecycleSection
+          draft={withIdle({ ...idleOn, wakeOnConnect: true })}
+          onChange={onChange}
+          template={templateWithPorts([
+            { name: "game", containerPort: 7777, protocol: "UDP", advertise: true, wakeProtocol: "none" },
+          ])}
+        />,
+      );
+      const sw = screen.getByRole("switch", { name: switchName });
+      expect(sw).not.toBeDisabled();
+      await userEvent.click(sw);
+      expect(onChange.mock.calls.at(-1)![0].spec.idle?.wakeOnConnect).toBe(false);
+    });
   });
 });
