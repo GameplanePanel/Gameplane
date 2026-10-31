@@ -13,6 +13,8 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 ## Responsibilities
 
 - Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
+- The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
+
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
 - Exercise the full CRD lifecycle for all 8 kinds (GameServer, GameTemplate, Backup, BackupSchedule, Restore, Module, ModuleSource, Cluster) against a real API server and operator.
 - Drive the REST + WebSocket API as a real HTTP client would: login, session/CSRF handling, RBAC matrix checks, console/PTY/log streaming, file upload/download.

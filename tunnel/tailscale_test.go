@@ -239,3 +239,38 @@ func TestTailnetHealthNeedsForwardingReadiness(t *testing.T) {
 		}
 	}
 }
+
+func TestTailnetConfirmedObservationsResetRetryEscalation(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	node := &fakeTailnetNode{status: onlineTailnet()}
+	backoff := &exponentialBackoff{}
+	for i := 0; i < 12; i++ {
+		backoff.next()
+	}
+	history := &relayHealth{}
+	var ready atomic.Bool
+	confirmed := 0
+	start := time.Unix(100, 0)
+	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
+		if !healthy {
+			history.observe(start.Add(time.Duration(confirmed)*healthPollInterval), relayObservation{Connection: "unknown"}, backoff)
+			return
+		}
+		history.observe(start.Add(time.Duration(confirmed)*healthPollInterval), relayObservation{Connection: "connected", Forwards: true, Assigned: true}, backoff)
+		confirmed++
+		if time.Duration(confirmed-1)*healthPollInterval >= healthyResetAfter {
+			cancel()
+		}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if confirmed < 31 || ready.Load() {
+		t.Fatalf("confirmed=%d ready=%v", confirmed, ready.Load())
+	}
+	if got := backoff.next(); got != time.Second {
+		t.Fatalf("confirmed tailnet health did not reset backoff: %v", got)
+	}
+}

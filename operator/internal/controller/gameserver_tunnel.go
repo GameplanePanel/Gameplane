@@ -229,10 +229,10 @@ func (r *GameServerReconciler) reconcileTunnel(
 		refusedSecret = ""
 		replicas := int32(1)
 		dep.Spec.Replicas = &replicas
-		dep.Spec.Strategy = appsv1.DeploymentStrategy{Type: appsv1.RollingUpdateDeploymentStrategyType}
-		if tunnel.Provider == "tailscale" {
-			// Avoid two tailnet devices racing for the same hostname on rollout.
-			dep.Spec.Strategy.Type = appsv1.RecreateDeploymentStrategyType
+		// A provider identity owns one relay session. Recreate unregisters the
+		// old child before its replacement can claim the same names/ports.
+		if tunnel.Provider == "frp" || tunnel.Provider == "playit" || tunnel.Provider == "tailscale" {
+			dep.Spec.Strategy = appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType}
 		}
 		dep.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: map[string]string{
@@ -307,6 +307,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 			envVars = []corev1.EnvVar{
 				{Name: "GAMESERVER_NAME", Value: gs.Name},
 				{Name: "GAMESERVER_NAMESPACE", Value: gs.Namespace},
+				{Name: "GAMESERVER_UID", Value: string(gs.UID)},
 				{Name: "TUNNEL_TYPE", Value: "frp"},
 				{Name: "FRP_SERVER_ADDR", Value: tunnel.Frp.ServerAddr},
 				{Name: "FRP_SERVER_PORT", Value: fmt.Sprintf("%d", serverPort)},
@@ -445,6 +446,16 @@ func (r *GameServerReconciler) reconcileTunnel(
 				Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
 			},
 		}}
+		if tunnel.Provider == "frp" || tunnel.Provider == "playit" {
+			container := &dep.Spec.Template.Spec.Containers[0]
+			container.StartupProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/healthz", Port: intstr.FromInt32(8091)}}, PeriodSeconds: 2, TimeoutSeconds: 1, FailureThreshold: 30}
+			container.ReadinessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromInt32(8091)}}, PeriodSeconds: 2, TimeoutSeconds: 1, FailureThreshold: 1}
+			if tunnel.Provider == "playit" {
+				// The pinned Playit IPC has no live connection signal. Pod
+				// readiness uses process health; TunnelReady remains Unknown.
+				container.ReadinessProbe.HTTPGet.Path = "/healthz"
+			}
+		}
 
 		return controllerutil.SetControllerReference(gs, dep, r.Scheme)
 	})
