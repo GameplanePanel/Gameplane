@@ -2779,3 +2779,14 @@ Redraws the Spec 019 language pass on the regrouped canvas. It replaces the 2026
 **Re-exported:** `n6Xlo` was re-exported in full from `Get(id, {depth: 30, includePathGeometry: true})` (sink Language rows added).
 
 **Verification method:** for each of the 16 spec 019 JSON exports (`lWvcv`, `T1wkiT`, `N1GkB`, `gX7um`, `WZdnw`, `g2HLxz`, `vp8BJ`, `HKEl2`, `lCTci`, `GsofJ`, `SUcad`, `z3mtgc`, `S0P4bl`, `Ii9Hy`, `TSXYO`, `n6Xlo`), the live export `JSON.stringify(Get(id, {depth: 30, includePathGeometry: true}))` and the file `JSON.stringify(JSON.parse(file))` were compared by length and FNV-1a 32-bit hash over UTF-16 code units. All 16 match. None contains the `"..."` truncation marker.
+
+## Incremental export 2026-10-31 — Wake on connect switch in server settings Lifecycle
+
+| Node | Name | Change |
+| --- | --- | --- |
+| `i1bLR` | Screen/Server Detail — Settings · Lifecycle | Re-exported (1440×1620, unchanged size and position). New `R8V6LP` "Wake On Connect Section" in the Idle auto-sleep controls, between the wake windows and the caveat rows: an 11px "Wake on connect" label, a `Gameplane/Switch/Off` (`rh2QH`) instance with "Wake the server when a player connects", and the helper "While the server sleeps, a small pod holds its ports and wakes it when a player tries to join. Costs one extra pod per sleeping server. Games that only use UDP wake on the first attempt; the player joins on retry." |
+| `paiCe` | Screen/Server Detail — Settings · Lifecycle (Wake on connect unavailable) | New copy of `i1bLR` to its right. The switch is dimmed (opacity 0.5), its label muted, and the helper reads "Not available for this game: its template marks every port as unable to wake the server." It shows a template whose advertised ports all set `wakeProtocol: none`, the case the operator's `wakeOnConnectEligible` never arms. |
+
+The operator has supported `spec.idle.wakeOnConnect` since v0.2.0-beta.8, but the dashboard had no control for it. No reusable component changed and Row 26 keeps its height, so no other node moved. `check-layout.js`: `NO ISSUES`. `pen-componentize` `audit.js`: nothing new on the two frames; the repeated "Field Auto-restart" and probe "row1" structures it lists predate this change.
+
+**Exports:** JSON from `Get(id, {depth: 80, includePathGeometry: true})`, pretty-printed (zero `"..."` elisions, `python3 -m json.tool` passes). PNG from `Export(ids, "png", …, {scale: 2})`: both 2880×3240. Headless `pen interactive` session (pen.dev CLI 0.3.14), with the lucide icon font served from the `lucide-static@0.563.0` npm tarball because unpkg.com is blocked in that sandbox. Body-text checks: `"Wake the server when a player connects"` only in `i1bLR.json` and `paiCe.json`; `"unable to wake the server"` only in `paiCe.json`.

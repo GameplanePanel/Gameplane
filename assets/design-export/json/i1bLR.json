@@ -1307,6 +1307,68 @@
                                     },
                                     {
                                       "type": "frame",
+                                      "id": "R8V6LP",
+                                      "name": "Wake On Connect Section",
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 8,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "T8kiE",
+                                          "name": "Label",
+                                          "fill": "$muted",
+                                          "content": "Wake on connect",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "Q4VwvW",
+                                          "name": "Wake On Connect Row",
+                                          "width": "fill_container",
+                                          "height": 28,
+                                          "gap": 12,
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "id": "c9DVL",
+                                              "type": "ref",
+                                              "ref": "rh2QH",
+                                              "name": "Switch",
+                                              "width": 36,
+                                              "height": 20
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "DRvpi",
+                                              "name": "Switch Label",
+                                              "fill": "$foreground/foreground",
+                                              "content": "Wake the server when a player connects",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 13,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "ch59V",
+                                          "name": "Helper",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "While the server sleeps, a small pod holds its ports and wakes it when a player tries to join. Costs one extra pod per sleeping server. Games that only use UDP wake on the first attempt; the player joins on retry.",
+                                          "lineHeight": 1.4,
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
                                       "id": "C5gXq",
                                       "name": "Caveat Row",
                                       "width": "fill_container",

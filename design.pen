@@ -13577,6 +13577,68 @@
                                         },
                                         {
                                           "type": "frame",
+                                          "id": "R8V6LP",
+                                          "name": "Wake On Connect Section",
+                                          "width": "fill_container",
+                                          "layout": "vertical",
+                                          "gap": 8,
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "T8kiE",
+                                              "name": "Label",
+                                              "fill": "$muted",
+                                              "content": "Wake on connect",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "Q4VwvW",
+                                              "name": "Wake On Connect Row",
+                                              "width": "fill_container",
+                                              "height": 28,
+                                              "gap": 12,
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "id": "c9DVL",
+                                                  "type": "ref",
+                                                  "ref": "rh2QH",
+                                                  "name": "Switch",
+                                                  "width": 36,
+                                                  "height": 20
+                                                },
+                                                {
+                                                  "type": "text",
+                                                  "id": "DRvpi",
+                                                  "name": "Switch Label",
+                                                  "fill": "$foreground/foreground",
+                                                  "content": "Wake the server when a player connects",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 13,
+                                                  "fontWeight": "normal"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "ch59V",
+                                              "name": "Helper",
+                                              "fill": "$muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "While the server sleeps, a small pod holds its ports and wakes it when a player tries to join. Costs one extra pod per sleeping server. Games that only use UDP wake on the first attempt; the player joins on retry.",
+                                              "lineHeight": 1.4,
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
                                           "id": "C5gXq",
                                           "name": "Caveat Row",
                                           "width": "fill_container",
@@ -128962,6 +129024,1493 @@
                                   "content": "Save changes"
                                 }
                               }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "paiCe",
+      "x": 1640,
+      "y": 45867,
+      "name": "Screen/Server Detail — Settings · Lifecycle (Wake on connect unavailable)",
+      "theme": {
+        "semantic": "dark"
+      },
+      "clip": true,
+      "width": 1440,
+      "height": 1620,
+      "fill": "$background/background",
+      "children": [
+        {
+          "id": "deRjR",
+          "type": "ref",
+          "ref": "kKFX9",
+          "height": "fill_container",
+          "descendants": {
+            "iTbd8": {
+              "fill": "#00000000"
+            },
+            "iTbd8/ghUsw": {
+              "fill": "$foreground/foreground"
+            },
+            "iTbd8/bpSQ7": {
+              "fill": "$foreground/foreground"
+            },
+            "i8Z1B": {
+              "fill": "$accent/soft"
+            },
+            "i8Z1B/Sr2Q5": {
+              "fill": "$accent/soft-foreground"
+            },
+            "i8Z1B/Ra9NK": {
+              "fill": "$accent/soft-foreground"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Atlmk",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "cjtUG",
+              "type": "ref",
+              "ref": "gu5WY",
+              "width": "fill_container",
+              "descendants": {
+                "Gl7AY": {
+                  "content": "mc-survival"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "oVJs5",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$background/background",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": 24,
+              "children": [
+                {
+                  "id": "WUlvv",
+                  "type": "ref",
+                  "ref": "S4k0x",
+                  "name": "Detail Header",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "v1LJZ",
+                  "type": "ref",
+                  "ref": "I9kvlZ",
+                  "name": "Tabs Bar",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    0,
+                    24
+                  ],
+                  "descendants": {
+                    "xJNKQ": {
+                      "width": "fill_container"
+                    },
+                    "Wp6q1": {
+                      "fill": "#00000000"
+                    },
+                    "Wp6q1/YUR8N": {
+                      "fill": "$muted"
+                    },
+                    "Y4QES": {
+                      "fill": "$segment"
+                    },
+                    "Y4QES/VcxMI": {
+                      "fill": "$foreground/segment"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "CRwIb",
+                  "name": "Settings Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "children": [
+                    {
+                      "id": "ApyBG",
+                      "type": "ref",
+                      "ref": "EV8mp",
+                      "name": "Settings Sub Nav",
+                      "width": 224,
+                      "height": "fill_container",
+                      "descendants": {
+                        "axMXL": {
+                          "fill": "#00000000"
+                        },
+                        "tv3iR": {
+                          "fill": "$surface/secondary"
+                        },
+                        "Y2PGH": {
+                          "fill": "$foreground/foreground"
+                        },
+                        "zpxa4": {
+                          "fill": "$danger/danger"
+                        },
+                        "xlVdh": {
+                          "fill": "$danger/danger"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Crgw1",
+                      "name": "Settings Panel Wrap",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "yXufT",
+                          "name": "Settings Form",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "xFMbQ",
+                              "name": "Form Body",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 24,
+                              "padding": 24,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "kzVau",
+                                  "name": "Field Auto-restart",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "neuSP",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "RGNbQ",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Auto-restart",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "d8pMME",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "When off, the StatefulSet is scaled to zero (Suspended). Data is preserved.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "iu20Z",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 28,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "aXAqv",
+                                          "type": "ref",
+                                          "ref": "hl7R3",
+                                          "name": "Switch",
+                                          "width": 36,
+                                          "height": 20
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "snUjA",
+                                          "name": "state",
+                                          "fill": "$muted",
+                                          "content": "Pod is desired Running",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Wv58s",
+                                  "name": "Field Termination grace period",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "k4H6GN",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Q9Zspj",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Termination grace period",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "TPP0B",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Seconds the operator waits for the template’s stop sequence to finish before scaling the pod down. Range 0–600; defaults to 30. No effect when the template declares no stop sequence.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "n1V0zM",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "gap": 10,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "BBoYI",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": 128,
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "30",
+                                              "fill": "$foreground/foreground"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "uec4o",
+                                          "name": "unit",
+                                          "fill": "$muted",
+                                          "content": "seconds",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nKna1",
+                                  "name": "Field Health probes",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "qfBdv",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "OnEq4",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Health probes",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "nscqJ",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Per-server overrides for the template’s readiness/liveness/startup probe timing. The probe action is inherited from the template.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "CHqsI",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 16,
+                                      "children": [
+                                        {
+                                          "type": "frame",
+                                          "id": "B2S69",
+                                          "name": "Probe Readiness",
+                                          "width": "fill_container",
+                                          "cornerRadius": 4,
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "layout": "vertical",
+                                          "gap": 8,
+                                          "padding": 12,
+                                          "children": [
+                                            {
+                                              "type": "frame",
+                                              "id": "APxES",
+                                              "name": "hd",
+                                              "width": "fill_container",
+                                              "justifyContent": "space_between",
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "type": "text",
+                                                  "id": "p8x1J",
+                                                  "name": "t",
+                                                  "fill": "$foreground/foreground",
+                                                  "content": "Readiness",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 14,
+                                                  "fontWeight": "500"
+                                                },
+                                                {
+                                                  "type": "text",
+                                                  "id": "ni5ZJ",
+                                                  "name": "src",
+                                                  "fill": "$muted",
+                                                  "content": "from template",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 11,
+                                                  "fontWeight": "normal"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "V9tZp",
+                                              "name": "row1",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "children": [
+                                                {
+                                                  "type": "frame",
+                                                  "id": "mL3D3",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "rdhQm",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Initial delay",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "u7Mlp",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "30",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "k0z0Wh",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "WSPSR",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Period",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "FTBLG",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "10",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "EDFzg",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "vD3Bd",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Timeout",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "o2tkDa",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "—",
+                                                          "fill": "#5C5C5C"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "v16JLq",
+                                              "name": "row2",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "children": [
+                                                {
+                                                  "type": "frame",
+                                                  "id": "feSq6",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "DlztU",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Failure threshold",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "BQViW",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "20",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "rXQMV",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "F6ovdl",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Success threshold",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "y0Wfyo",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "—",
+                                                          "fill": "#5C5C5C"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "N4Fsqg",
+                                                  "name": "spacer",
+                                                  "width": "fill_container",
+                                                  "height": 1,
+                                                  "layout": "vertical"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "NLl5e",
+                                          "name": "Probe Liveness",
+                                          "width": "fill_container",
+                                          "cornerRadius": 4,
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "layout": "vertical",
+                                          "gap": 8,
+                                          "padding": 12,
+                                          "children": [
+                                            {
+                                              "type": "frame",
+                                              "id": "oj4kR",
+                                              "name": "hd",
+                                              "width": "fill_container",
+                                              "justifyContent": "space_between",
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "type": "text",
+                                                  "id": "yCYmU",
+                                                  "name": "t",
+                                                  "fill": "$foreground/foreground",
+                                                  "content": "Liveness",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 14,
+                                                  "fontWeight": "500"
+                                                },
+                                                {
+                                                  "type": "text",
+                                                  "id": "eTVCX",
+                                                  "name": "src",
+                                                  "fill": "$muted",
+                                                  "content": "from template",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 11,
+                                                  "fontWeight": "normal"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "xRTzF",
+                                              "name": "row1",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "children": [
+                                                {
+                                                  "type": "frame",
+                                                  "id": "rkQk0",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "U9bv8t",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Initial delay",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "OmkjP",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "120",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "nUltc",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "PbVbP",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Period",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "FzmwH",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "30",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "UTR3c",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "bV6h1",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Timeout",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "AEDpL",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "—",
+                                                          "fill": "#5C5C5C"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "Qd7BY",
+                                              "name": "row2",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "children": [
+                                                {
+                                                  "type": "frame",
+                                                  "id": "jKGkM",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "E1E6x",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Failure threshold",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "I6SrCp",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "5",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "yVmSd",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "bdzgD",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Success threshold",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "wyPMu",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "—",
+                                                          "fill": "#5C5C5C"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "KRUYy",
+                                                  "name": "spacer",
+                                                  "width": "fill_container",
+                                                  "height": 1,
+                                                  "layout": "vertical"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "xVZ4I",
+                                          "name": "Probe Startup",
+                                          "width": "fill_container",
+                                          "cornerRadius": 4,
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "layout": "vertical",
+                                          "gap": 8,
+                                          "padding": 12,
+                                          "children": [
+                                            {
+                                              "type": "frame",
+                                              "id": "mOGhE",
+                                              "name": "hd",
+                                              "width": "fill_container",
+                                              "justifyContent": "space_between",
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "type": "text",
+                                                  "id": "jwUBN",
+                                                  "name": "t",
+                                                  "fill": "$foreground/foreground",
+                                                  "content": "Startup",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 14,
+                                                  "fontWeight": "500"
+                                                },
+                                                {
+                                                  "type": "text",
+                                                  "id": "rl0Ji",
+                                                  "name": "src",
+                                                  "fill": "$muted",
+                                                  "content": "from template",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 11,
+                                                  "fontWeight": "normal"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "MrPzb",
+                                              "name": "row1",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "children": [
+                                                {
+                                                  "type": "frame",
+                                                  "id": "wUcoD",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "lsOIK",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Initial delay",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "td9TD",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "30",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "jx6QT",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "taocw",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Period",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "DGTpg",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "10",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "qr0jR",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "bn9ZQ",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Timeout",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "Hfcpj",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "—",
+                                                          "fill": "#5C5C5C"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "fpNU7",
+                                              "name": "row2",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "children": [
+                                                {
+                                                  "type": "frame",
+                                                  "id": "f4zwX",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "WkZ7W",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Failure threshold",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "ywIfE",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "60",
+                                                          "fill": "$foreground/foreground"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "CapXe",
+                                                  "name": "f",
+                                                  "width": "fill_container",
+                                                  "layout": "vertical",
+                                                  "gap": 2,
+                                                  "children": [
+                                                    {
+                                                      "type": "text",
+                                                      "id": "qUvN4",
+                                                      "name": "l",
+                                                      "fill": "$muted",
+                                                      "content": "Success threshold",
+                                                      "fontFamily": "$typography/font-sans",
+                                                      "fontSize": 11,
+                                                      "fontWeight": "normal"
+                                                    },
+                                                    {
+                                                      "id": "T5pdJ",
+                                                      "type": "ref",
+                                                      "ref": "D0cDM",
+                                                      "name": "Input",
+                                                      "width": "fill_container",
+                                                      "descendants": {
+                                                        "PJERm": {
+                                                          "content": "—",
+                                                          "fill": "#5C5C5C"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "GvZAj",
+                                                  "name": "spacer",
+                                                  "width": "fill_container",
+                                                  "height": 1,
+                                                  "layout": "vertical"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "gc4d9",
+                                  "name": "Field Idle auto-sleep",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "R4BUoR",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Q6a06",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Idle auto-sleep",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "XZKXT",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Scale the server to zero when nobody is playing, and bring it back on a schedule or on demand. The world is saved first and the data volume is kept.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "GYsGk",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 16,
+                                      "children": [
+                                        {
+                                          "type": "frame",
+                                          "id": "wnUel",
+                                          "name": "Enable Row",
+                                          "width": "fill_container",
+                                          "height": 28,
+                                          "gap": 12,
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "id": "d0yd7Z",
+                                              "type": "ref",
+                                              "ref": "hl7R3",
+                                              "name": "Switch"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "JQGA3",
+                                              "fill": "$foreground/foreground",
+                                              "content": "Enable idle auto-sleep",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 13,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "jCY7t",
+                                          "name": "Sleep After Row",
+                                          "width": "fill_container",
+                                          "gap": 12,
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "tCz4D",
+                                              "fill": "$muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": 80,
+                                              "content": "Sleep after",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            },
+                                            {
+                                              "id": "UR5cJ",
+                                              "type": "ref",
+                                              "ref": "D0cDM",
+                                              "name": "Input",
+                                              "width": 100,
+                                              "descendants": {
+                                                "PJERm": {
+                                                  "content": "30",
+                                                  "fill": "$foreground/foreground"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "s6NYr",
+                                              "fill": "$muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "minutes of zero players (5–1440)",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "Y5TVT",
+                                          "name": "Wake Windows Section",
+                                          "width": "fill_container",
+                                          "layout": "vertical",
+                                          "gap": 8,
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "yuSDg",
+                                              "fill": "$muted",
+                                              "content": "Wake windows",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "rXfdm",
+                                              "name": "Wake Window Row 1",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "id": "jtKLy",
+                                                  "type": "ref",
+                                                  "ref": "D0cDM",
+                                                  "name": "Input",
+                                                  "width": "fill_container",
+                                                  "descendants": {
+                                                    "PJERm": {
+                                                      "content": "0 17 * * *",
+                                                      "fill": "$foreground/foreground",
+                                                      "fontFamily": "$typography/font-mono"
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "id": "Jgi28",
+                                                  "type": "ref",
+                                                  "ref": "AaE0a",
+                                                  "name": "Btn Remove",
+                                                  "width": 36,
+                                                  "height": 36,
+                                                  "fill": "$background/background",
+                                                  "stroke": "$border/border",
+                                                  "descendants": {
+                                                    "VjP01": {
+                                                      "icon": "x"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "fxvS8",
+                                              "name": "Wake Window Row 2",
+                                              "width": "fill_container",
+                                              "gap": 8,
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "id": "yUEUP",
+                                                  "type": "ref",
+                                                  "ref": "D0cDM",
+                                                  "name": "Input",
+                                                  "width": "fill_container",
+                                                  "descendants": {
+                                                    "PJERm": {
+                                                      "content": "0 9 * * 6,0",
+                                                      "fill": "$foreground/foreground",
+                                                      "fontFamily": "$typography/font-mono"
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "id": "bi3ks",
+                                                  "type": "ref",
+                                                  "ref": "AaE0a",
+                                                  "name": "Btn Remove",
+                                                  "width": 36,
+                                                  "height": 36,
+                                                  "fill": "$background/background",
+                                                  "stroke": "$border/border",
+                                                  "descendants": {
+                                                    "VjP01": {
+                                                      "icon": "x"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "id": "d3ip4d",
+                                              "type": "ref",
+                                              "ref": "rNhll",
+                                              "name": "Btn Add Wake Window",
+                                              "descendants": {
+                                                "wDXFJ/K8d1zg": {
+                                                  "icon": "plus",
+                                                  "library": "lucide"
+                                                },
+                                                "wDXFJ/zMNkR": {
+                                                  "content": "Add wake window"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "p8PuG",
+                                              "fill": "$muted",
+                                              "content": "Standard five-field cron. Max 8 entries.",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "SefZt",
+                                          "name": "Wake On Connect Section",
+                                          "width": "fill_container",
+                                          "layout": "vertical",
+                                          "gap": 8,
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "xOYkg",
+                                              "name": "Label",
+                                              "fill": "$muted",
+                                              "content": "Wake on connect",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            },
+                                            {
+                                              "type": "frame",
+                                              "id": "l1LaW",
+                                              "name": "Wake On Connect Row",
+                                              "width": "fill_container",
+                                              "height": 28,
+                                              "gap": 12,
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "id": "K8pzA",
+                                                  "type": "ref",
+                                                  "ref": "rh2QH",
+                                                  "opacity": 0.5,
+                                                  "name": "Switch",
+                                                  "width": 36,
+                                                  "height": 20
+                                                },
+                                                {
+                                                  "type": "text",
+                                                  "id": "L2Kqh",
+                                                  "name": "Switch Label",
+                                                  "fill": "$muted",
+                                                  "content": "Wake the server when a player connects",
+                                                  "fontFamily": "$typography/font-sans",
+                                                  "fontSize": 13,
+                                                  "fontWeight": "normal"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "dzLx3",
+                                              "name": "Helper",
+                                              "fill": "$muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "Not available for this game: its template marks every port as unable to wake the server.",
+                                              "lineHeight": 1.4,
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "WkCpc",
+                                          "name": "Caveat Row",
+                                          "width": "fill_container",
+                                          "gap": 8,
+                                          "children": [
+                                            {
+                                              "type": "icon",
+                                              "id": "vXuMv",
+                                              "width": 13,
+                                              "height": 13,
+                                              "icon": "info",
+                                              "library": "lucide",
+                                              "fill": "$muted"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "yEu7T",
+                                              "fill": "$muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "A game that reports no player count will never sleep.",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "c62mES",
+                                          "name": "Caveat Row",
+                                          "width": "fill_container",
+                                          "gap": 8,
+                                          "children": [
+                                            {
+                                              "type": "icon",
+                                              "id": "B70Sie",
+                                              "width": 13,
+                                              "height": 13,
+                                              "icon": "info",
+                                              "library": "lucide",
+                                              "fill": "$muted"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "AznhT",
+                                              "fill": "$muted",
+                                              "textGrowth": "fixed-width",
+                                              "width": "fill_container",
+                                              "content": "A wake window never restarts a server you stopped by hand.",
+                                              "fontFamily": "$typography/font-sans",
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Ajbci",
+                              "name": "Form Footer",
+                              "width": "fill_container",
+                              "stroke": "$border/border",
+                              "strokeWidth": {
+                                "top": 1
+                              },
+                              "strokeAlignment": "inner",
+                              "strokeLinejoin": "round",
+                              "gap": 12,
+                              "padding": [
+                                12,
+                                24
+                              ],
+                              "justifyContent": "end",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "B5VMJw",
+                                  "type": "ref",
+                                  "ref": "J09iP",
+                                  "name": "Btn Discard"
+                                },
+                                {
+                                  "id": "oTC8k",
+                                  "type": "ref",
+                                  "ref": "z9ShNE",
+                                  "name": "Btn Save Changes",
+                                  "descendants": {
+                                    "nWTJb": {
+                                      "enabled": false
+                                    },
+                                    "IVgQ8/U1xvSo": {
+                                      "content": "Save changes"
+                                    }
+                                  }
+                                }
+                              ]
                             }
                           ]
                         }
