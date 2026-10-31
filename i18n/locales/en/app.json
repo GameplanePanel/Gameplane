@@ -607,6 +607,10 @@
     "defaultMessage": "The server could not be resumed after the backup. Its world may still have auto-save turned off.",
     "description": "Unquiesced condition when the unfreeze failed."
   },
+  "condition.unquiesced.sourceprocessgone": {
+    "defaultMessage": "The original game process has exited. No resume command was needed.",
+    "description": "Unquiesced condition when the original source pod no longer runs."
+  },
   "condition.unquiesced.unquiesced": {
     "defaultMessage": "The server was resumed after the backup.",
     "description": "Unquiesced condition when the world was unfrozen."

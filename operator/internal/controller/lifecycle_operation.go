@@ -31,6 +31,7 @@ type lifecycleIdentity struct {
 	Generation     int64     `json:"generation"`
 	Token          string    `json:"token,omitempty"`
 	NeedsUnquiesce bool      `json:"needsUnquiesce,omitempty"`
+	QuiescePodUID  types.UID `json:"quiescePodUID,omitempty"`
 	// InitialStartup permits only the first workload of a CSI restore's new
 	// target (including WaitForFirstConsumer PVCs), while other operations wait.
 	InitialStartup bool `json:"initialStartup,omitempty"`
@@ -295,15 +296,21 @@ func recoverLifecycleOperation(ctx context.Context, c client.Client, reader clie
 			return false, err
 		}
 	}
-	needsUnquiesce := false
 	for _, predecessor := range op.Recovery {
-		needsUnquiesce = needsUnquiesce || predecessor.NeedsUnquiesce
-	}
-	if needsUnquiesce {
-		if quiescer == nil {
+		if !predecessor.NeedsUnquiesce {
+			continue
+		}
+		gone, err := backupQuiesceProcessGone(ctx, reader, gs.Namespace, gs.Name, predecessor.QuiescePodUID)
+		if err != nil {
+			return false, err
+		}
+		if gone {
+			continue
+		}
+		if !agentQuiesceAvailable(quiescer) {
 			return false, fmt.Errorf("cannot recover orphaned quiesce without an agent client")
 		}
-		if err := quiescer.Unquiesce(ctx, gs.Namespace, gs.Name); err != nil {
+		if err := callBackupQuiesce(ctx, quiescer, gs.Namespace, gs.Name, predecessor.QuiescePodUID, true); err != nil {
 			return false, fmt.Errorf("recover orphaned lifecycle quiesce: %w", err)
 		}
 	}
@@ -355,10 +362,23 @@ func (r *BackupReconciler) setLifecycleUnquiesceIntent(ctx context.Context, b *g
 	if err != nil {
 		return err
 	}
-	if op.NeedsUnquiesce == needed {
+	var podUID types.UID
+	if needed {
+		preparation, err := parseBackupPreparation(b)
+		if err != nil {
+			return err
+		}
+		if preparation != nil {
+			podUID = preparation.PodUID
+		}
+	}
+	if op.NeedsUnquiesce == needed && (!needed || op.QuiescePodUID == podUID) {
 		return nil
 	}
 	op.NeedsUnquiesce = needed
+	if needed {
+		op.QuiescePodUID = podUID
+	}
 	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
 	return r.Update(ctx, gs)
 }

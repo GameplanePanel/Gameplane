@@ -386,14 +386,46 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 // requeues; ErrUnsupported is recorded as "attempted but unsupported"
 // so the matching unquiesce step is skipped on terminal phase.
 func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha1.Backup) error {
+	preparation, err := parseBackupPreparation(b)
+	if err != nil {
+		return err
+	}
+	if preparation != nil && preparation.Outcome == "already-stopped" {
+		return nil
+	}
 	if !b.Spec.Quiesce {
 		return nil
 	}
-	if r.AgentClient == nil {
+	if !agentQuiesceAvailable(r.AgentClient) {
+		if preparation != nil && preparation.Outcome == "live" && b.Annotations[annoQuiesceAttempted] != "true" && b.Annotations[annoQuiesceAttempted] != "unsupported" {
+			err := fmt.Errorf("agent quiesce client was disabled after live preparation")
+			if _, ferr := r.fail(ctx, b, err.Error()); ferr != nil {
+				return ferr
+			}
+			return err
+		}
 		return nil
 	}
 	if state := b.Annotations[annoQuiesceAttempted]; state != "" && state != "pending" {
 		return nil
+	}
+	// Verify the versioned endpoint before creating the first cleanup debt.
+	// Old agents cannot mutate through it and must not pin an owner that
+	// would prevent their own upgrade. The POST still checks the UID again.
+	if preparation != nil && b.Annotations[annoQuiesceAttempted] == "" {
+		bound, ok := r.AgentClient.(podAgentQuiescer)
+		if !ok {
+			err = fmt.Errorf("agent client does not support pod-bound quiesce")
+		} else {
+			err = bound.CheckPod(ctx, b.Namespace, b.Spec.ServerRef.Name, string(preparation.PodUID))
+		}
+		if err != nil {
+			_, ferr := r.fail(ctx, b, fmt.Sprintf("quiesce identity check failed: %v", err))
+			if ferr != nil {
+				return ferr
+			}
+			return err
+		}
 	}
 	// Persist cleanup intent BEFORE save-off: a crash or a partial agent failure
 	// must still owe save-on even when quiesced-at was never recorded.
@@ -405,7 +437,11 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 		return err
 	}
 
-	err := r.AgentClient.Quiesce(ctx, b.Namespace, b.Spec.ServerRef.Name)
+	var podUID types.UID
+	if preparation != nil {
+		podUID = preparation.PodUID
+	}
+	err = callBackupQuiesce(ctx, r.AgentClient, b.Namespace, b.Spec.ServerRef.Name, podUID, false)
 	switch {
 	case err == nil:
 		now := time.Now().UTC().Format(time.RFC3339)
@@ -629,8 +665,8 @@ func (r *BackupReconciler) runUnquiesce(ctx context.Context, b *gameplanev1alpha
 		}
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 	}
-	// When an unquiesce was actually performed, record success so the
-	// "world might be frozen" signal clears.
+	// Confirmed save-on or confirmed original-process exit clears the
+	// "world might be frozen" signal, with distinct condition reasons.
 	if _, ok := b.Annotations[annoUnquiescedAt]; ok {
 		if cerr := r.setUnquiescedCondition(ctx, b, true, ""); cerr != nil {
 			return ctrl.Result{}, cerr
@@ -649,6 +685,10 @@ func (r *BackupReconciler) setUnquiescedCondition(
 	if ok {
 		cond.Status = metav1.ConditionTrue
 		cond.Reason = "Unquiesced"
+		if b.Annotations[backupCleanupOutcomeAnnotation] == "source-gone" {
+			cond.Reason = "SourceProcessGone"
+			cond.Message = "original process no longer exists; no unquiesce RPC was sent"
+		}
 	} else {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = "Failed"
@@ -740,49 +780,29 @@ func (r *BackupReconciler) finalizeUnquiesce(ctx context.Context, b *gameplanev1
 	return ctrl.Result{}, nil
 }
 
-// unquiesceTargetGone reports whether there is nothing left to unquiesce:
-// the target GameServer no longer exists or is itself being deleted, or its
-// pod no longer exists. A GameServer can be gone-together-with-its-Backup
-// under an auto BackupSchedule's owner chain, and a pod alone can be gone if
-// it was deleted independently of the GameServer; either way a fresh pod
-// starts with auto-save on, so retrying the unquiesce would never succeed
-// and would only block this Backup's deletion.
+// unquiesceTargetGone requires evidence that the original process has exited.
+// A deleted/deleting GameServer alone is insufficient: its pod can still run.
 func (r *BackupReconciler) unquiesceTargetGone(ctx context.Context, b *gameplanev1alpha1.Backup) (bool, error) {
 	targetName := b.Spec.ServerRef.Name
-	var targetUID types.UID
 	if value := b.Annotations[backupTargetAnnotation]; value != "" {
 		identity, err := parseBackupIdentity(value)
 		if err != nil {
 			return false, err
 		}
-		targetName, targetUID = identity.Name, identity.UID
+		targetName = identity.Name
 	}
 	if targetName == "" {
 		return true, nil
 	}
-	gs := &gameplanev1alpha1.GameServer{}
-	key := types.NamespacedName{Namespace: b.Namespace, Name: targetName}
-	switch err := r.Get(ctx, key, gs); {
-	case apierrors.IsNotFound(err):
-		return true, nil
-	case err != nil:
-		return false, fmt.Errorf("get gameserver %s to check unquiesce target: %w", key.Name, err)
-	case gs.DeletionTimestamp != nil:
-		return true, nil
+	preparation, err := parseBackupPreparation(b)
+	if err != nil {
+		return false, err
 	}
-	if targetUID != "" && gs.UID != targetUID {
-		return true, nil
+	var podUID types.UID
+	if preparation != nil {
+		podUID = preparation.PodUID
 	}
-
-	var pod corev1.Pod
-	podKey := types.NamespacedName{Namespace: b.Namespace, Name: gs.Name + "-0"}
-	switch err := r.Get(ctx, podKey, &pod); {
-	case apierrors.IsNotFound(err):
-		return true, nil
-	case err != nil:
-		return false, fmt.Errorf("get pod %s to check unquiesce target: %w", podKey.Name, err)
-	}
-	return false, nil
+	return backupQuiesceProcessGone(ctx, r.backupAPIReader(), b.Namespace, targetName, podUID)
 }
 
 // unquiesceRetryExpired records (on first call) when finalizeDelete's
@@ -870,10 +890,35 @@ func (r *BackupReconciler) maybeUnquiesce(ctx context.Context, b *gameplanev1alp
 			return fmt.Errorf("legacy quiesce cleanup is blocked by a protected backup")
 		}
 	}
-	if r.AgentClient == nil {
+	if targetName != "" {
+		gone, err := r.unquiesceTargetGone(ctx, b)
+		if err != nil {
+			return err
+		}
+		if gone {
+			patchBackupAnnotations(b, map[string]string{backupCleanupOutcomeAnnotation: "source-gone"})
+			return r.recordBackupUnquiesced(ctx, b)
+		}
+	}
+	if !agentQuiesceAvailable(r.AgentClient) {
 		return fmt.Errorf("cannot release quiesced world without an agent client")
 	}
-	if err := r.AgentClient.Unquiesce(ctx, b.Namespace, targetName); err != nil {
+	preparation, err := parseBackupPreparation(b)
+	if err != nil {
+		return err
+	}
+	var podUID types.UID
+	if preparation != nil {
+		podUID = preparation.PodUID
+	}
+	if err := callBackupQuiesce(ctx, r.AgentClient, b.Namespace, targetName, podUID, true); err != nil {
+		return err
+	}
+	return r.recordBackupUnquiesced(ctx, b)
+}
+
+func (r *BackupReconciler) recordBackupUnquiesced(ctx context.Context, b *gameplanev1alpha1.Backup) error {
+	if err := r.setLifecycleUnquiesceIntent(ctx, b, false); err != nil {
 		return err
 	}
 	patchBackupAnnotations(b, map[string]string{
