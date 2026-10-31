@@ -42,6 +42,8 @@ The Gameplane dashboard is a React SPA providing a UI layer over the Gameplane A
 
 **API-only:** The dashboard never speaks directly to the operator or agent. All reads/writes flow through the Kubernetes API server and the REST/WebSocket API gateway (`api/`).
 
+**Internal readiness:** Dashboard nginx returns 404 for `/readyz`, including query strings and normalized paths, before SPA routing or API proxying. Kubelet probes reach the API directly; public traffic cannot consume its database readiness slot. The nginx proxy smoke test checks rejection against a live upstream and confirms ordinary proxying still works.
+
 **Pre-auth privacy:** The login page and any unauthenticated screen must not leak internal state: no hostnames, cluster names, server counts, version strings, user lists, or "user not found" errors. See docs/security.md "pre-auth privacy" and CLAUDE.md rule 3.
 
 **Cluster-bound WebSocket:** Server streams carry the open server's explicit cluster and namespace. Reconnects retain that target; leaving the server view closes its streams. Changing an infrastructure selection cannot retarget a stream. Pod logs and PTY attach use the target Kubernetes client; remote agent streams use the configured authenticated gateway and fail closed when unavailable.
@@ -1087,6 +1089,7 @@ Each namespace is an object of typed functions building and fetching URLs:
 ## Internationalization (spec 019)
 
 - **Provider.** `src/lib/i18n/I18nProvider.tsx` wraps the whole app inside `QueryClientProvider` in `src/main.tsx`, so `/login` and `/share/*` are covered. It renders react-intl `IntlProvider` and react-aria `I18nProvider` with the same locale, and exposes `useLanguage()` (`language`, `setLanguage`, `direction`). Outside a provider `useLanguage()` and `useFormat()` fall back to English.
+- **Template picker.** `PickTemplate` in `src/routes/CreateServer.tsx` uses `useOptionalIntl()` for its existing messages: it follows the active locale inside the provider and falls back to English when rendered without one.
 - **App wiring** (`AppI18nProvider`, same file). `src/main.tsx` mounts `AppI18nProvider` rather than the bare provider. It supplies the two server inputs to resolution: the user's saved language, read from the cached `["me"]` profile (`preferences.language`) without starting a fetch, so the route guards stay the only `/users/me` caller and the value updates when that cache entry changes; and the instance default from `GET /auth/locale` (`Auth.locale()`, query key `["auth-locale"]`, `staleTime: Infinity`, no retry). A failed locale request leaves the instance default unset, so resolution falls through to `en`. `Users.setLanguage(tag | null)` (`PUT /users/me/language`) is the write path for the saved choice; the picker that calls it is not yet built.
 - **Resolution order** (`src/lib/i18n/resolve.ts`): user choice, then browser choice (storage), then each `navigator.languages` entry (regional, then base language, so `fr-CA` resolves to `fr`), then the instance default, then `en`. Candidates that are not listed languages are skipped. Listing comes only from the generated manifest.
 - **Storage key.** `localStorage["gameplane-language"]` holds `{choice, applied}`. `choice` is the viewer's pick on this browser; `applied` is the language last rendered. Every access is guarded, and failures mean "no preference".
