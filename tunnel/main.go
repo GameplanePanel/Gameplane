@@ -97,6 +97,7 @@ func main() {
 type Config struct {
 	GameServerName      string
 	GameServerNamespace string
+	GameServerUID       string
 	TunnelType          string // "frp", "tailscale", or "playit"
 
 	// FRP-specific
@@ -120,6 +121,7 @@ func loadConfig(getenv func(string) string) (Config, error) {
 	cfg := Config{
 		GameServerName:      getenv("GAMESERVER_NAME"),
 		GameServerNamespace: getenv("GAMESERVER_NAMESPACE"),
+		GameServerUID:       getenv("GAMESERVER_UID"),
 		TunnelType:          getenv("TUNNEL_TYPE"),
 		BackingServiceDNS:   getenv("BACKING_SERVICE_DNS"),
 	}
@@ -139,6 +141,9 @@ func loadConfig(getenv func(string) string) (Config, error) {
 
 	switch cfg.TunnelType {
 	case "frp":
+		if !validFrpIdentity(cfg.GameServerUID) {
+			return Config{}, errors.New("GAMESERVER_UID must be a nonempty alphanumeric or hyphen identity for frp; update the operator and tunnel images together")
+		}
 		cfg.FrpServerAddr = getenv("FRP_SERVER_ADDR")
 		if cfg.FrpServerAddr == "" {
 			return Config{}, errors.New("FRP_SERVER_ADDR is required for frp provider")
@@ -226,42 +231,21 @@ func run(ctx context.Context, cfg Config) error {
 		}()
 	}
 
-	// Supervise the relay process with exponential backoff on exit.
-	backoff := &exponentialBackoff{}
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-		}
-
-		cmd := buildCommand(ctx, cfg)
-		log.Printf("starting %s relay process", cfg.TunnelType)
-
-		err := runCommand(ctx, cmd)
-		if err != nil && ctx.Err() != nil {
-			// Context was cancelled; shut down cleanly.
-			return nil
-		}
-
-		if err != nil {
-			log.Printf("relay process exited: %v", err)
-			// Check if this is an unrecoverable error (e.g., bad config, missing credentials).
-			if isUnrecoverable(cfg, err) {
-				return fmt.Errorf("unrecoverable error: %w", err)
-			}
-
-			// Transient failure; sleep before restarting.
-			delay := backoff.next()
-			log.Printf("restarting relay in %v", delay)
-			select {
-			case <-time.After(delay):
-			case <-ctx.Done():
-				return nil
-			}
-			continue
-		}
+	h := &relayHealth{connectionUnsupported: cfg.TunnelType == "playit"}
+	if ctx.Err() != nil {
+		return nil
 	}
+	if cfg.TunnelType == "frp" || cfg.TunnelType == "playit" {
+		closeHealth, err := startRelayHealth(ctx, h)
+		if err != nil {
+			return err
+		}
+		defer closeHealth()
+	}
+	return superviseRelay(ctx, cfg, h, relayHealthCheck(cfg, creds), func(attemptCtx context.Context) error {
+		log.Printf("starting %s relay process", cfg.TunnelType)
+		return runCommand(attemptCtx, buildCommand(attemptCtx, cfg))
+	}, waitRelayRetry)
 }
 
 // readCredentials reads the provider's credential from the mounted Secret directory.
@@ -308,13 +292,24 @@ func renderConfig(cfg Config, credential string) (string, error) {
 // (see the const block near the top of the file for why the path is fixed
 // rather than a random os.CreateTemp name).
 func renderFrpConfig(cfg Config, token string) (string, error) {
+	if !validFrpIdentity(cfg.GameServerUID) {
+		return "", errors.New("invalid GameServer UID for frp identity")
+	}
 	// Build the frpc config: server address/port, auth token, and per-port proxies.
 	config := fmt.Sprintf(`
+user = "%s"
 serverAddr = "%s"
 serverPort = %d
 auth.method = "token"
 auth.token = "%s"
-`, escapeTomlString(cfg.FrpServerAddr), cfg.FrpServerPort, escapeTomlString(token))
+webServer.addr = "127.0.0.1"
+webServer.port = 7400
+webServer.user = "gameplane"
+webServer.password = "%s"
+transport.heartbeatInterval = 5
+transport.heartbeatTimeout = 15
+transport.tcpMuxKeepaliveInterval = 5
+`, escapeTomlString(cfg.GameServerUID), escapeTomlString(cfg.FrpServerAddr), cfg.FrpServerPort, escapeTomlString(token), escapeTomlString(token))
 
 	// Parse BACKING_SERVICE_PORT format:
 	// "name:localPort:remotePort:protocol,name:localPort:remotePort:protocol,...".

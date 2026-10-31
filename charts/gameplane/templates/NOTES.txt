@@ -10,6 +10,16 @@ Operator leader election is enabled automatically because operator.replicas is
 greater than one. The saved leaderElect=false value remains compatible with
 upgrades; all operator replicas coordinate through the leader-election Lease.
 {{- end }}
+{{- if .Values.serviceMonitors.enabled }}
+
+Monitoring: configure Prometheus monitor label selectors AND discovery of the
+release and games namespaces. Verify agent and tunnel targets have up=1.
+See docs/monitoring.md and docs/examples/monitoring for a complete configuration.
+{{- if .Values.serviceMonitors.externallyManagedPolicy }}
+External scrape policies are selected: this setting opens no network access.
+Ensure your policies allow the scraper to agent TCP 9090 and tunnel TCP 8091.
+{{- end }}
+{{- end }}
 {{- if .Values.api.standalone }}
 
 Standalone central panel: no local game cluster or Kubernetes API credentials.

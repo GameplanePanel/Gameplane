@@ -408,6 +408,27 @@ class E2ESelectionTests(unittest.TestCase):
         """Return the e2e outputs for a partial-scope change to paths."""
         return e2e_outputs(ROOT, list(paths), None)
 
+    def test_audit_network_isolation_has_a_run_pattern(self):
+        """Affected components and the owning test file select the audit bucket."""
+        for path in ("operator/internal/controller/gameserver_controller.go",
+                     "api/cmd/main.go",
+                     "agent/cmd/main.go",
+                     "test/e2e/network_isolation_e2e_test.go"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestNetworkIsolation_EnforcedAndUpgrade",
+                              values["e2e-run"].get("network-isolation", ""))
+
+    def test_audit_monitoring_has_a_run_pattern(self):
+        """Metric producers and the owning test file select the real scrape fixture."""
+        for path in ("operator/internal/controller/gameserver_controller.go",
+                     "api/cmd/main.go", "agent/internal/status/performance.go",
+                     "tunnel/relay_health.go", "test/e2e/monitoring_e2e_test.go"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestMonitoring_DiscoveryPerformanceAndPolicy",
+                              values["e2e-run"].get("monitoring", ""))
+
     def test_audit_management_placement_has_a_run_pattern(self):
         """Affected components and the owning test file select the audit bucket."""
         for path in ("operator/cmd/main.go",

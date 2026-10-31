@@ -16,7 +16,12 @@ import (
 // -----------------------------------------------------------------------
 
 func stubEnv(vars map[string]string) func(string) string {
-	return func(key string) string { return vars[key] }
+	return func(key string) string {
+		if key == "GAMESERVER_UID" && vars["TUNNEL_TYPE"] == "frp" {
+			return "fixture-uid"
+		}
+		return vars[key]
+	}
 }
 
 func TestLoadConfigFrp(t *testing.T) {
@@ -288,6 +293,7 @@ func TestRenderFrpConfig(t *testing.T) {
 		BackingServicePort:  "game:25565:30000:tcp",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	path, err := renderFrpConfig(cfg, "test-token")
 	if err != nil {
 		t.Fatalf("renderFrpConfig() error = %v", err)
@@ -331,6 +337,7 @@ func TestRenderFrpConfigInvalidPortMapping(t *testing.T) {
 		BackingServicePort: "not-a-valid-mapping",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	_, err := renderFrpConfig(cfg, "token")
 	if err == nil || !strings.Contains(err.Error(), "invalid port mapping") {
 		t.Errorf("renderFrpConfig() error = %v, want invalid port mapping error", err)
@@ -345,6 +352,7 @@ func TestRenderFrpConfigMultiplePorts(t *testing.T) {
 		BackingServicePort: "java:25565:25565:tcp,bedrock:19133:19133:udp",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	path, err := renderFrpConfig(cfg, "token")
 	if err != nil {
 		t.Fatalf("renderFrpConfig() error = %v", err)
@@ -377,6 +385,7 @@ func TestRenderFrpConfigUDPProtocol(t *testing.T) {
 		BackingServicePort: "game:34197:30000:udp",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	path, err := renderFrpConfig(cfg, "token")
 	if err != nil {
 		t.Fatalf("renderFrpConfig() error = %v", err)
@@ -408,6 +417,7 @@ func TestRenderFrpConfigInvalidProtocol(t *testing.T) {
 		BackingServicePort: "game:25565:25565:sctp",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	_, err := renderFrpConfig(cfg, "token")
 	if err == nil || !strings.Contains(err.Error(), "invalid port mapping protocol") {
 		t.Errorf("renderFrpConfig() error = %v, want invalid port mapping protocol error", err)
@@ -465,6 +475,7 @@ func TestRenderFrpConfigServerAddrEscaped(t *testing.T) {
 		BackingServiceDNS:  "my-server.games.svc",
 		BackingServicePort: "game:25565:30000:tcp",
 	}
+	cfg.GameServerUID = "fixture-uid"
 	path, err := renderFrpConfig(cfg, "test-token")
 	if err != nil {
 		t.Fatalf("renderFrpConfig() error = %v", err)
@@ -515,6 +526,7 @@ func TestRenderFrpConfigProxyNameEscaped(t *testing.T) {
 		BackingServiceDNS:  "my-server.games.svc",
 		BackingServicePort: `bad"name:25565:30000:tcp`,
 	}
+	cfg.GameServerUID = "fixture-uid"
 	path, err := renderFrpConfig(cfg, "test-token")
 	if err != nil {
 		t.Fatalf("renderFrpConfig() error = %v", err)
@@ -567,6 +579,7 @@ func TestRenderConfigDispatchesByType(t *testing.T) {
 			"frp",
 			Config{
 				TunnelType:         "frp",
+				GameServerUID:      "fixture-uid",
 				FrpServerAddr:      "frp.example.com",
 				BackingServiceDNS:  "svc.svc",
 				BackingServicePort: "game:25565:30000:tcp",
@@ -898,6 +911,7 @@ func TestRunContextCancellation(t *testing.T) {
 	// With a cancelled context, run should return nil (clean shutdown) even
 	// though it never gets far enough to actually exec anything: the loop's
 	// first ctx.Done() check fires before buildCommand is ever called.
+	cfg.GameServerUID = "fixture-uid"
 	err := run(ctx, cfg)
 	if err != nil {
 		t.Errorf("run with cancelled context = %v, want nil", err)
@@ -934,6 +948,7 @@ func TestRunTransientFailureBacksOffThenCancels(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
+	cfg.GameServerUID = "fixture-uid"
 	err := run(ctx, cfg)
 	if err != nil {
 		t.Errorf("run() = %v, want nil (clean shutdown once the context times out)", err)
@@ -959,6 +974,7 @@ func TestRunRenderConfigFailure(t *testing.T) {
 		BackingServicePort: "not-a-valid-mapping",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	err := run(context.Background(), cfg)
 	if err == nil || !strings.Contains(err.Error(), "render config") {
 		t.Errorf("run() error = %v, want a render-config error", err)
@@ -977,6 +993,7 @@ func TestRunReadCredentialsFailure(t *testing.T) {
 		BackingServicePorts: "game:25565",
 	}
 
+	cfg.GameServerUID = "fixture-uid"
 	err := run(context.Background(), cfg)
 	if err == nil || !strings.Contains(err.Error(), "read credentials") {
 		t.Errorf("run() error = %v, want a read-credentials error", err)
@@ -1005,6 +1022,7 @@ func TestRunPlayitConfigDispatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
+	cfg.GameServerUID = "fixture-uid"
 	err := run(ctx, cfg)
 	if err != nil {
 		t.Errorf("run() for playit with cancelled context = %v, want nil", err)

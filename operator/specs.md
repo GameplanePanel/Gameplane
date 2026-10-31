@@ -20,6 +20,10 @@ finalizer until those references are gone. These explicit waits use
 Existing restore fence-write requeues and writer-drain polling remain unchanged,
 and every resumed restore pass still verifies the workload fence and live writers.
 
+- Preserve explicit optional numeric performance declarations in template capabilities passed to the agent; CRD validation restricts signal/unit pairs and finite decimal thresholds. Tunnel containers name their existing 8091 listener `relay-metrics` for PodMonitor discovery; health, resources and provider identity policies remain unchanged.
+
+- **Relay health:** frp identities use GameServer UID without changing advertised port names. frp/Playit Deployments use one replica, Recreate, a wrapper startup probe and a provider readiness probe on TCP 8091. `TunnelReady` requires the current observed generation and updated/ready replicas with the new probe; legacy unprobed Pods cannot report success. Playit v1.0.10's cached IPC assignment cannot confirm a relay connection, so it reports unknown/not ready rather than optimistic success. Preserve `TunnelResources` defaults and override removal. See `docs/relay-health.md` for health bounds, migration and the provider limitation.
+
 - **GameServer lifecycle:** reconcile GameServer CRs into StatefulSets, Services, PVCs, and pod-injected agent sidecars; manage pod affinity, RCON/console integration, file I/O, and graceful stop sequences.
 - **Module installation:** pull OCI module bundles from remote or local sources, verify signatures (cosign), and materialize GameTemplate CRs; refresh source indexes periodically. Translation files (`locales/<tag>.json`) are carried by every module source (OCI layers, directory, git, HTTP archive, upload, `gp-module package` tarball) and validated against the ids derived from the module (`i18n/modlocale`); valid entries are written to the `<template>-locales` ConfigMap (owned by the GameTemplate, in the operator namespace) and problems surface as the GameTemplate `LocalesValid` condition (reasons `Valid`, `InvalidEntries`, `LocalesTooLarge`, `WriteFailed`) and Warning events, never as an install failure. A file over 900 KiB, or a language that would push the bundle's locale files past 4 MiB together (counted in file-name order), is not read but reported by language tag as `LocalesTooLarge`. Events fire only when the problem list changes (fingerprint annotation `gameplane.local/locales-problems`). The ConfigMap is rewritten on each apply, not recreated if deleted while the Module stays converged.
 - **Backup & restore:** coordinate application-level quiesce with agent, spawn restic backup/restore Jobs, track snapshot IDs, and enforce retention policies.
@@ -47,6 +51,12 @@ Invalid tags remove a previous Deployment and report `TunnelReady=False` with
 `InvalidTailscaleTags`, naming the configuration field to correct. Correcting
 the tags permits normal creation again; denied provider authorization never
 falls back to an untagged identity.
+
+Playit Pod readiness uses the wrapper's `/healthz` endpoint because the pinned
+provider cannot confirm a live relay connection. This never promotes
+`TunnelReady` to True: relay evidence stays Unknown, or AwaitingAddress before
+assignment. Existing frp Deployments receive `GAMESERVER_UID`, current probes
+and Recreate strategy automatically on reconciliation after an operator upgrade.
 
 The operator **does not** handle:
 - User authentication or authorization (RBAC is Kubernetes role-based, not application-level).
@@ -180,6 +190,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
   - Graceful stop: if template has Lifecycle.Stop sequence, orchestrate via agent before scaling down.
   - Node affinity: honor spec.nodeSelector and spec.affinity preferences.
   - Ingress NetworkPolicy: enforce per-template advertised ports, admit CIDRs from `--game-ingress-from-cidr`.
+  - Sentinel NetworkPolicies: `GameTemplate.spec.sentinelIsolation` defaults false. When true, reconcile owned `<gs>-sentinel-ingress` and `<gs>-sentinel-egress` policies joining only the same namespace/server instance on advertised protocol/port tuples. An opted-in template with zero advertised ports fails before child reconciliation with an actionable `Ready=False` condition; no unrestricted grant is created. Set `gameplane.local/sentinel-isolation=true` on both pod templates, without changing immutable workload selectors. On opt-out, roll the labels off both workloads and retain the per-server grants until uncached reads confirm both controllers observed the unlabeled templates and completed their rollouts, and neither game nor sentinel pods still carry the label. The matching chart excludes opted-in sources and destinations from legacy grants; other policies remain additive.
   - Fixed-name child cleanup: Delete fixed-name objects (`<gs>-config` Secret, `<gs>-files` Secret, `<gs>-rcon` Secret, `<gs>-auto` BackupSchedule, `<gs>-wipe` Job) only when the GameServer controls them via OwnerReference; unowned objects with these names stay in place (same rule as game-ingress NetworkPolicy). Wipe cleanup carries the verified Job UID as a delete precondition; a foreign Job cannot acknowledge a pending wipe or resume its server.
   - **Conflict requeue:** When reconcileStatefulSet or reconcileWipe encounters an apierrors.IsConflict error (concurrent update races), requeue without error logging — conflicts are expected and transient. Idle-transition and restart-acknowledgment conflicts, including wrapped errors, also return before logging and retry after one second with fresh state. Other errors retain their identity, error logging and controller-runtime backoff. The Module, NetworkCapture and Backup reconcilers apply the conflict rule to every error they return, via `requeueOnConflict` (`conflict.go`).
   - Load-balancer address management: translate spec.networking.addressPool / .address preferences onto the Service based on the cluster's address-manager flavor (MetalLB, Cilium, or none), report assignment status via the AddressAssignment condition.

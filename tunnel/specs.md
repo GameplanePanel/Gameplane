@@ -10,6 +10,8 @@ Relay client supervisor that configures and supervises frp/playit child processe
 
 ## Responsibilities
 
+- Expose cached provider evidence as bounded Prometheus gauges on `/metrics` at the existing health port 8091, including known/unknown connection, confirmed forwards/assignment and observation timestamp. Scraping never queries the provider; unknown or stale connection evidence has no `connected` value. Tailscale uses the same snapshot for readiness and metrics. See `docs/monitoring.md`.
+
 1. Parse environment variables to determine the tunnel provider (frp, tailscale, or playit), backing service address, and provider-specific config.
 2. Read provider-specific credentials from the mounted Secret at `/etc/gameplane/tunnel-auth` (read-only).
 3. Render frp TOML or playit credentials at fixed paths, with secrets excluded from argv.
@@ -61,6 +63,7 @@ Single executable module; no subdirectories or packages.
 |---|---|---|---|
 | `GAMESERVER_NAME` | string | yes | Name of the GameServer resource (used in logs and for playit tunnel naming) |
 | `GAMESERVER_NAMESPACE` | string | yes | Kubernetes namespace of the GameServer |
+| `GAMESERVER_UID` | string | if frp | Immutable GameServer UID, used as frpc `user`; nonempty, up to 128 letters/digits/hyphens. No namespace/name fallback. |
 | `TUNNEL_TYPE` | enum (frp\|tailscale\|playit) | yes | Relay provider to use |
 | `BACKING_SERVICE_DNS` | string | yes | DNS name of the game pod Service, format `<gs-name>.<namespace>.svc` |
 | `FRP_SERVER_ADDR` | string | if frp | Hostname or IP of the frp server |
@@ -260,7 +263,7 @@ The maintainer explicitly approved ending the stdlib-only policy for tsnet in #7
 - **Command building:** frp/playit tests check argv and fixed paths.
 - **Tailscale:** local socket regressions cover bidirectional TCP/UDP, peer isolation, shared session limits, idle eviction and shutdown. Lifecycle tests cover hostname/tag configuration, denied registration/tags, dual-stack listener creation, partial bind cleanup, online/offline readiness and hostname collisions. Operator tests verify protocol projection, readiness generation/probe requirements, unsupported protocols and EmptyDir/Recreate deployment wiring.
 - **Exponential backoff:** `TestExponentialBackoff`, `TestExponentialBackoffCap` verify delay calculations and the 300-second cap.
-- **Tailscale retry recovery:** `TestTailnetRetryHealthRequiresContinuousConfirmation`, `TestTailnetConfirmedObservationsResetRetryEscalation`, and `TestTailnetFailedAttemptsCannotResetRetryEscalation` cover sustained health, short sessions, offline interruptions, stale observations, failed registration/listener setup, and cancellation with listener teardown. Observation times are explicit, so the one-minute reset contract does not require a wall-clock minute in CI.
+- **Tailscale retry recovery:** `TestTailnetRetryHealthRequiresContinuousConfirmation`, `TestTailnetRetryObserverConfirmedSessionClosesListeners`, and `TestTailnetFailedAttemptsCannotResetRetryEscalation` cover sustained health, short sessions, offline interruptions, stale observations, failed registration/listener setup, and cancellation with listener teardown. Observation times are explicit, so the one-minute reset contract does not require a wall-clock minute in CI.
 - **Error classification:** `TestIsUnrecoverable` verifies that exit codes 126/127 and "permission denied" errors are unrecoverable, and that other errors trigger retry.
 - **Supervision lifecycle:** `TestRunContextCancellation`, `TestRunTransientFailureBacksOffThenCancels`, `TestRunRenderConfigFailure`, `TestRunReadCredentialsFailure`, `TestRunPlayitConfigDispatch` verify clean context cancellation, backoff retry, and error path handling.
 - **Playit address reporting** (`playit_reporter_test.go`): a fake playitd IPC server on a Unix socket speaks the v1.0.10 wire format. `TestQueryPlayitState*` cover running/starting/error lifecycles, skipped event frames, protocol errors (wrong IPC version, missing hello, service error, mismatched request id, blank frame), a missing socket and a context timeout. `TestParseBackingPorts` and `TestPlayitEndpoints*` cover the port-name mapping, the single-port fallback, portless addresses, dedup and the 32-entry cap. `TestKubeStatusPatcher*` and `TestNewInClusterStatusPatcher` run against an `httptest` TLS server and check the merge-patch path, headers, body and `null` clear. `TestRunPlayitReporter*` check backoff, patching only on change, the initial empty clear, and shutdown on context end.
@@ -283,3 +286,46 @@ The maintainer explicitly approved ending the stdlib-only policy for tsnet in #7
 - **Consumers:** Operator (operator/internal/controller/gameserver_controller.go invokes planTunnel and reconcileTunnel), API (api/internal/handlers may report tunnel endpoints to dashboard)
 - **Related specs:** `operator/specs.md` (CRD reconciliation), `api/specs.md` (endpoint reporting)
 - **CLAUDE.md:** "K8s-native by default" (rule 9) and "Operator is authoritative" (rule 10)
+
+## Relay health and identity contract (#721, #723)
+
+`relay_health.go` owns the frp/Playit wrapper health interface and supervised
+attempt lifecycle. `/healthz`, `/readyz` and `/status` listen on Pod TCP 8091.
+The startup probe checks wrapper liveness; frp's readiness probe requires actual
+provider evidence. Playit Pod readiness uses `/healthz`, independently of its
+unknown relay connection. No liveness probe restarts a healthy wrapper for a provider
+outage. Each attempt owns its monitor, cancels and joins it on exit, then clears
+readiness so a late response cannot resurrect the exited child. Queries have a
+two-second deadline and two-second cadence. Observations expire after ten
+seconds. All health responses use closed-set state; raw provider errors and
+credentials are not exposed.
+
+Tailscale reports observed failures as unavailable. While no forwarding attempt
+is serving, including retry backoff and replacement registration, the supervisor
+retains that known unavailable state without a provider-observation timestamp.
+This local lifecycle fact does not expire. Once forwarding is established, fresh
+provider observations replace it and retain the ten-second staleness limit.
+The served health handler and metrics are checked after a real listener failure,
+during a blocked replacement join, and after recovery in the regression source.
+
+frpc's authenticated loopback API `/api/status` on 127.0.0.1:7400 must confirm
+every configured proxy is running without error, with the expected protocol.
+The generated `user` is the GameServer UID, preserving advertised proxy names
+while making their wire identities unique. Heartbeat interval/timeout are 5/15
+seconds and multiplex keepalive is five seconds. frp and Playit Deployments use
+Recreate and a single replica to avoid simultaneous owners of an identity.
+
+Playit v1.0.10 IPC has no relay heartbeat: `Running` and addresses are cached API
+data that survive refresh errors. Assignment remains reportable, but connection
+readiness stays unknown and `/readyz` fails closed. The Kubernetes probe instead
+uses `/healthz` so the Pod can become ready. The operator reports
+`RelayConnectionUnknown`, or `AwaitingAddress` before assignment. Future positive
+readiness needs a provider interface with fresh connection evidence. Never infer
+it from process lifetime or repeated reads of a cached address.
+
+Backoff has no jitter and remains capped at 300 seconds. Both nonzero and clean
+unexpected exits back off. It resets to one second only after one uninterrupted
+minute of confirmed, non-stale readiness. Resource configuration retains #724's
+`TunnelResources` interface (nil defaults 25m/64Mi requests, non-nil overrides,
+empty object clears). See [relay health and upgrade guidance](../docs/relay-health.md)
+for migration and integration coverage. Tests run in CI only.

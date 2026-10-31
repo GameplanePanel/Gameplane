@@ -1,0 +1,152 @@
+rule_files: [rules.yaml]
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'gameplane_agent_performance_value{namespace="gameplane-games",pod="duration-0",metric="tick",signal="tick_duration",unit="seconds"}'
+        values: '0.06x10 0.04x10'
+      - series: 'gameplane_agent_performance_degraded_threshold{namespace="gameplane-games",pod="duration-0",metric="tick",signal="tick_duration",unit="seconds",direction="above"}'
+        values: '0.05x20'
+      - series: 'container_memory_working_set_bytes{namespace="gameplane-games",pod="unlimited",container="game"}'
+        values: '1000x20'
+      - series: 'container_spec_memory_limit_bytes{namespace="gameplane-games",pod="unlimited",container="game"}'
+        values: '0x20'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: GameplanePerformanceDegraded
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: duration-0, metric: tick, signal: tick_duration, unit: seconds, severity: warning}
+            exp_annotations: {summary: "Game performance crossed its module-declared threshold"}
+      - eval_time: 12m
+        alertname: GameplanePerformanceDegraded
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: GameplaneMemoryPressure
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: GameplanePerformanceUnknown
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'up{namespace="gameplane-games",pod="game-0",gameplane_component="agent"}'
+        values: '0x10 1x10'
+      - series: 'gameplane_tunnel_ready{namespace="gameplane-games",pod="relay"}'
+        values: '0x10 1x10'
+      - series: 'gameplane_tunnel_connection_known{namespace="gameplane-games",pod="relay"}'
+        values: '1x20'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: GameplaneScrapeUnavailable
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: game-0, gameplane_component: agent, severity: warning}
+            exp_annotations: {summary: "Gameplane metrics target cannot be scraped"}
+      - eval_time: 6m
+        alertname: GameplaneRelayUnavailable
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: relay, severity: warning}
+            exp_annotations: {summary: "Gameplane relay connection or forwards are unavailable"}
+      - eval_time: 12m
+        alertname: GameplaneScrapeUnavailable
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: GameplaneRelayUnavailable
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'gameplane_agent_performance_value{namespace="gameplane-games",pod="game-0",metric="tps",signal="tick_rate",unit="hertz"}'
+        values: '0x10 stale _x10'
+      - series: 'gameplane_agent_performance_degraded_threshold{namespace="gameplane-games",pod="game-0",metric="tps",signal="tick_rate",unit="hertz",direction="below"}'
+        values: '18x20'
+      - series: 'gameplane_agent_performance_available{namespace="gameplane-games",pod="game-0",metric="tps",signal="tick_rate",unit="hertz"}'
+        values: '1x10 0x10'
+      - series: 'gameplane_tunnel_connection_known{namespace="gameplane-games",pod="playit"}'
+        values: '0x20'
+      - series: 'gameplane_tunnel_connection_supported{namespace="gameplane-games",pod="playit"}'
+        values: '0x20'
+      - series: 'gameplane_tunnel_connection_known{namespace="gameplane-games",pod="frp"}'
+        values: '0x10 1x10'
+      - series: 'gameplane_tunnel_connection_supported{namespace="gameplane-games",pod="frp"}'
+        values: '1x20'
+      - series: 'gameplane_tunnel_ready{namespace="gameplane-games",pod="playit"}'
+        values: '0x10 1x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: GameplanePerformanceDegraded
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: game-0, metric: tps, signal: tick_rate, unit: hertz, severity: warning}
+            exp_annotations: {summary: "Game performance crossed its module-declared threshold"}
+      - eval_time: 12m
+        alertname: GameplanePerformanceDegraded
+        exp_alerts: []
+      - eval_time: 17m
+        alertname: GameplanePerformanceUnknown
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: game-0, metric: tps, signal: tick_rate, unit: hertz, severity: warning}
+            exp_annotations: {summary: "Declared game performance measurement is unavailable"}
+      - eval_time: 6m
+        alertname: GameplaneRelayHealthUnknown
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: frp, severity: info}
+            exp_annotations: {summary: "Gameplane provider cannot confirm live relay health"}
+      - eval_time: 6m
+        alertname: GameplaneRelayUnavailable
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: GameplaneRelayHealthUnknown
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'container_cpu_cfs_throttled_periods_total{namespace="gameplane-games",pod="game-0",container="game"}'
+        values: '0+50x25'
+      - series: 'container_cpu_cfs_periods_total{namespace="gameplane-games",pod="game-0",container="game"}'
+        values: '0+100x25'
+      - series: 'container_memory_working_set_bytes{namespace="gameplane-games",pod="game-0",container="game"}'
+        values: '95x25'
+      - series: 'container_spec_memory_limit_bytes{namespace="gameplane-games",pod="game-0",container="game"}'
+        values: '100x25'
+      - series: 'kube_pod_status_phase{namespace="gameplane-games",pod="pending",phase="Pending"}'
+        values: '1x25'
+      - series: 'kube_pod_container_status_restarts_total{namespace="gameplane-games",pod="game-0",container="game"}'
+        values: '0+1x25'
+      - series: 'kube_pod_container_status_last_terminated_reason{namespace="gameplane-games",pod="game-0",container="game",reason="OOMKilled"}'
+        values: '1x25'
+      - series: 'kube_node_status_condition{node="worker",condition="MemoryPressure",status="true"}'
+        values: '1x25'
+      - series: 'kube_pod_info{namespace="gameplane-games",pod="game-0",node="worker"}'
+        values: '1x25'
+      - series: 'gameplane_gameservers{phase="Failed",instance="operator-a"}'
+        values: '1x25'
+      - series: 'gameplane_gameservers{phase="Failed",instance="operator-b"}'
+        values: '1x25'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: GameplaneCPUThrottled
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: game-0, container: game, severity: warning}
+            exp_annotations: {summary: "Game container CPU is throttled in more than 25% of periods"}
+      - eval_time: 16m
+        alertname: GameplaneMemoryPressure
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: game-0, container: game, severity: warning}
+            exp_annotations: {summary: "Game container working set exceeds 90% of its memory limit"}
+      - eval_time: 16m
+        alertname: GameplanePodPending
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: pending, severity: warning}
+            exp_annotations: {summary: "Gameplane Pod has remained Pending for ten minutes"}
+      - eval_time: 16m
+        alertname: GameplaneContainerOOM
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: game-0, container: game, severity: warning}
+            exp_annotations: {summary: "Gameplane container restarted after an OOM kill"}
+      - eval_time: 16m
+        alertname: GameplaneNodePressure
+        exp_alerts:
+          - exp_labels: {node: worker, condition: MemoryPressure, severity: warning}
+            exp_annotations: {summary: "A node hosting Gameplane Pods reports resource pressure"}
+    promql_expr_test:
+      - expr: 'max(gameplane_gameservers{phase="Failed"})'
+        eval_time: 16m
+        exp_samples:
+          - labels: '{}'
+            value: 1

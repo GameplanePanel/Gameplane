@@ -1,0 +1,72 @@
+{{- if and .Values.prometheusRules.enabled (eq (include "gameplane.operatorEnabled" .) "true") }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gameplane-workloads
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gameplane.labels" . | nindent 4 }}
+    {{- with .Values.prometheusRules.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: gameplane.workloads
+      rules:
+        - alert: GameplaneScrapeUnavailable
+          expr: max by (namespace, pod, gameplane_component) (up{gameplane_component=~"agent|tunnel",namespace="{{ .Values.gamesNamespace }}"}) == 0
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: "Gameplane metrics target cannot be scraped" }
+        - alert: GameplaneRelayUnavailable
+          expr: (max by (namespace, pod) (gameplane_tunnel_ready{namespace="{{ .Values.gamesNamespace }}"}) == 0) and on (namespace, pod) (max by (namespace, pod) (gameplane_tunnel_connection_known{namespace="{{ .Values.gamesNamespace }}"}) == 1)
+          for: 2m
+          labels: { severity: warning }
+          annotations: { summary: "Gameplane relay connection or forwards are unavailable" }
+        - alert: GameplaneRelayHealthUnknown
+          expr: (max by (namespace, pod) (gameplane_tunnel_connection_known{namespace="{{ .Values.gamesNamespace }}"}) == 0) and on (namespace, pod) (max by (namespace, pod) (gameplane_tunnel_connection_supported{namespace="{{ .Values.gamesNamespace }}"}) == 1)
+          for: 5m
+          labels: { severity: info }
+          annotations: { summary: "Gameplane provider cannot confirm live relay health" }
+        - alert: GameplanePerformanceUnknown
+          expr: max by (namespace, pod, metric, signal, unit) (gameplane_agent_performance_available{namespace="{{ .Values.gamesNamespace }}"}) == 0
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: "Declared game performance measurement is unavailable" }
+        - alert: GameplanePerformanceDegraded
+          expr: |
+            (max by (namespace, pod, metric, signal, unit) (gameplane_agent_performance_value{namespace="{{ .Values.gamesNamespace }}"})
+              < on (namespace, pod, metric, signal, unit)
+             max by (namespace, pod, metric, signal, unit) (gameplane_agent_performance_degraded_threshold{namespace="{{ .Values.gamesNamespace }}",direction="below"}))
+            or
+            (max by (namespace, pod, metric, signal, unit) (gameplane_agent_performance_value{namespace="{{ .Values.gamesNamespace }}"})
+              > on (namespace, pod, metric, signal, unit)
+             max by (namespace, pod, metric, signal, unit) (gameplane_agent_performance_degraded_threshold{namespace="{{ .Values.gamesNamespace }}",direction="above"}))
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: "Game performance crossed its module-declared threshold" }
+        - alert: GameplaneCPUThrottled
+          expr: max by (namespace, pod, container) (rate(container_cpu_cfs_throttled_periods_total{namespace="{{ .Values.gamesNamespace }}",container="game"}[5m]) / rate(container_cpu_cfs_periods_total{namespace="{{ .Values.gamesNamespace }}",container="game"}[5m])) > 0.25
+          for: 10m
+          labels: { severity: warning }
+          annotations: { summary: "Game container CPU is throttled in more than 25% of periods" }
+        - alert: GameplaneMemoryPressure
+          expr: max by (namespace, pod, container) (container_memory_working_set_bytes{namespace="{{ .Values.gamesNamespace }}",container="game"} / (container_spec_memory_limit_bytes{namespace="{{ .Values.gamesNamespace }}",container="game"} > 0)) > 0.9
+          for: 10m
+          labels: { severity: warning }
+          annotations: { summary: "Game container working set exceeds 90% of its memory limit" }
+        - alert: GameplaneContainerOOM
+          expr: (max by (namespace, pod, container) (increase(kube_pod_container_status_restarts_total{namespace="{{ .Values.gamesNamespace }}"}[10m])) > 0) and on (namespace, pod, container) (max by (namespace, pod, container) (kube_pod_container_status_last_terminated_reason{namespace="{{ .Values.gamesNamespace }}",reason="OOMKilled"}) == 1)
+          labels: { severity: warning }
+          annotations: { summary: "Gameplane container restarted after an OOM kill" }
+        - alert: GameplanePodPending
+          expr: max by (namespace, pod) (kube_pod_status_phase{namespace="{{ .Values.gamesNamespace }}",phase="Pending"}) == 1
+          for: 10m
+          labels: { severity: warning }
+          annotations: { summary: "Gameplane Pod has remained Pending for ten minutes" }
+        - alert: GameplaneNodePressure
+          expr: (max by (node, condition) (kube_node_status_condition{condition=~"MemoryPressure|DiskPressure|PIDPressure",status="true"}) == 1) and on (node) max by (node) (kube_pod_info{namespace="{{ .Values.gamesNamespace }}"})
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: "A node hosting Gameplane Pods reports resource pressure" }
+{{- end }}

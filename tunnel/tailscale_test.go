@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -223,19 +224,161 @@ func TestTailnetListenerFailureClearsReady(t *testing.T) {
 	}
 }
 
-func TestTailnetHealthNeedsForwardingReadiness(t *testing.T) {
+type gatedTailnetNode struct {
+	*fakeTailnetNode
+	started chan struct{}
+	release chan struct{}
+}
+
+func (n *gatedTailnetNode) Up(ctx context.Context) (*ipnstate.Status, error) {
+	close(n.started)
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-n.release:
+		return n.fakeTailnetNode.Up(ctx)
+	}
+}
+
+func TestTailnetFailedAttemptRemainsKnownDuringRetry(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	history := &relayHealth{}
+	handler := relayHealthHandler(history)
+	ports := []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}
+	node := &fakeTailnetNode{status: onlineTailnet()}
 	var ready atomic.Bool
-	handler := tailscaleHealth(&ready)
+	done := make(chan error, 1)
+	go func() {
+		done <- serveTailnetWithHealth(ctx, node, nil, ports, &ready, time.Millisecond, history, nil)
+	}()
+	awaitTailnetReady(t, &ready, true)
+	if err := node.listeners[0].Close(); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("failed listener was not reported")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("failed attempt did not finish")
+	}
+	assertUnavailable := func() {
+		t.Helper()
+		// Advance beyond the maximum retry delay without sleeping: absence of
+		// a serving attempt is a local fact, not a stale provider observation.
+		if got := history.snapshot(time.Now().Add(6 * time.Minute)); got.Connection != "unavailable" || got.Ready {
+			t.Fatalf("retry forgot the known outage: %+v", got)
+		}
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/readyz", nil))
+		if rec.Code != http.StatusServiceUnavailable {
+			t.Fatalf("failed attempt readyz=%d", rec.Code)
+		}
+		metrics := httptest.NewRecorder()
+		handler.ServeHTTP(metrics, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/metrics", nil))
+		for _, want := range []string{"gameplane_tunnel_connection_known 1\n", "gameplane_tunnel_connected 0\n", "gameplane_tunnel_ready 0\n"} {
+			if !strings.Contains(metrics.Body.String(), want) {
+				t.Fatalf("failed attempt missing %q: %s", want, metrics.Body.String())
+			}
+		}
+		if strings.Contains(metrics.Body.String(), "gameplane_tunnel_observation_timestamp_seconds") {
+			t.Fatalf("supervisor outage invented a provider observation timestamp: %s", metrics.Body.String())
+		}
+	}
+	assertUnavailable()
+
+	// A new registration attempt must retain that state until forwarding is
+	// actually established, even if its Up call takes longer than the lease.
+	retry := &gatedTailnetNode{fakeTailnetNode: &fakeTailnetNode{status: onlineTailnet()}, started: make(chan struct{}), release: make(chan struct{})}
+	go func() {
+		done <- serveTailnetWithHealth(ctx, retry, nil, ports, &ready, time.Millisecond, history, nil)
+	}()
+	select {
+	case <-retry.started:
+	case <-time.After(time.Second):
+		t.Fatal("retry did not start")
+	}
+	assertUnavailable()
+	close(retry.release)
+	awaitTailnetReady(t, &ready, true)
+	deadline := time.Now().Add(time.Second)
+	for !history.snapshot(time.Now()).Ready && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	if got := history.snapshot(time.Now()); got.Connection != "connected" || !got.Ready {
+		t.Fatalf("recovered forwarding did not restore health: %+v", got)
+	}
+	if got := history.snapshot(time.Now().Add(2 * healthStaleAfter)); got.Connection != "unknown" || got.Ready {
+		t.Fatalf("live provider observations no longer expire: %+v", got)
+	}
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("retry shutdown stalled")
+	}
+}
+
+func TestTailnetHealthNeedsForwardingReadiness(t *testing.T) {
+	history := &relayHealth{}
+	handler := relayHealthHandler(history)
 	for _, check := range []struct {
 		path  string
 		ready bool
 		want  int
 	}{{"/readyz", false, 503}, {"/healthz", false, 200}, {"/readyz", true, 200}, {"/readyz", false, 503}} {
-		ready.Store(check.ready)
+		history.observe(time.Now(), tailnetHealthObservation(check.ready), nil)
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, httptest.NewRequestWithContext(context.Background(), http.MethodGet, check.path, nil))
 		if rec.Code != check.want {
 			t.Fatalf("%s=%d want%d", check.path, rec.Code, check.want)
 		}
+	}
+	metrics := httptest.NewRecorder()
+	handler.ServeHTTP(metrics, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/metrics", nil))
+	for _, want := range []string{"gameplane_tunnel_connection_known 1\n", "gameplane_tunnel_connected 0\n", "gameplane_tunnel_ready 0\n"} {
+		if !strings.Contains(metrics.Body.String(), want) {
+			t.Fatalf("confirmed tailnet failure missing %q: %s", want, metrics.Body.String())
+		}
+	}
+}
+
+func TestTailnetConfirmedObservationsResetRetryEscalation(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	node := &fakeTailnetNode{status: onlineTailnet()}
+	backoff := &exponentialBackoff{}
+	for i := 0; i < 12; i++ {
+		backoff.next()
+	}
+	history := &relayHealth{}
+	var ready atomic.Bool
+	confirmed := 0
+	start := time.Unix(100, 0)
+	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
+		if !healthy {
+			history.observe(start.Add(time.Duration(confirmed)*healthPollInterval), relayObservation{Connection: "unknown"}, backoff)
+			return
+		}
+		history.observe(start.Add(time.Duration(confirmed)*healthPollInterval), relayObservation{Connection: "connected", Forwards: true, Assigned: true}, backoff)
+		confirmed++
+		if time.Duration(confirmed-1)*healthPollInterval >= healthyResetAfter {
+			cancel()
+		}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if confirmed < 31 || ready.Load() {
+		t.Fatalf("confirmed=%d ready=%v", confirmed, ready.Load())
+	}
+	if got := backoff.next(); got != time.Second {
+		t.Fatalf("confirmed tailnet health did not reset backoff: %v", got)
 	}
 }

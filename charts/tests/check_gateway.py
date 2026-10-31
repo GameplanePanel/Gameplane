@@ -81,7 +81,9 @@ def main():
     gateway["namespaces"] = ["games-one", "games-two"]
     objects = render({
         "gateway": gateway, "api": {"enabled": False, "telemetry": {"receiver": {"enabled": True}}},
-        "serviceMonitors": {"enabled": True},
+        "serviceMonitors": {"enabled": True, "scrapeNamespaceSelector": {
+            "matchLabels": {"kubernetes.io/metadata.name": "monitoring"},
+        }},
         "clusterOps": {"enabled": True},
     }, upgrade=True)
     assert not any(obj["metadata"]["name"] in {"gameplane-api", "gameplane-api-data", "gameplane-web", "gameplane-strategy-migrate", "gameplane-telemetry-receiver"} for obj in objects)

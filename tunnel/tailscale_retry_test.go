@@ -19,10 +19,13 @@ func TestTailnetRetryHealthRequiresContinuousConfirmation(t *testing.T) {
 					t.Fatalf("failure delay=%v, want %v", got, want*time.Second)
 				}
 			}
-			history := &tailnetRetryHealth{}
+			history := &relayHealth{}
 			start := time.Unix(100, 0)
+			now := start
+			observer := tailnetRetryObserver(history, backoff, func() time.Time { return now })
 			observe := func(seconds int, healthy bool) {
-				history.observe(start.Add(time.Duration(seconds)*time.Second), healthy, backoff)
+				now = start.Add(time.Duration(seconds) * time.Second)
+				observer(healthy)
 			}
 			for seconds := 0; seconds <= 58; seconds += 2 {
 				observe(seconds, true)
@@ -69,7 +72,7 @@ func TestTailnetRetryHealthRequiresContinuousConfirmation(t *testing.T) {
 	}
 }
 
-func TestTailnetConfirmedObservationsResetRetryEscalation(t *testing.T) {
+func TestTailnetRetryObserverConfirmedSessionClosesListeners(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -78,12 +81,15 @@ func TestTailnetConfirmedObservationsResetRetryEscalation(t *testing.T) {
 	for i := 0; i < 12; i++ {
 		backoff.next()
 	}
-	history := &tailnetRetryHealth{}
+	history := &relayHealth{}
 	var ready atomic.Bool
 	confirmed := 0
 	start := time.Unix(100, 0)
+	observe := tailnetRetryObserver(history, backoff, func() time.Time {
+		return start.Add(time.Duration(confirmed) * 2 * time.Second)
+	})
 	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
-		history.observe(start.Add(time.Duration(confirmed)*2*time.Second), healthy, backoff)
+		observe(healthy)
 		if healthy {
 			confirmed++
 			if confirmed == 31 {
@@ -124,15 +130,17 @@ func TestTailnetFailedAttemptsCannotResetRetryEscalation(t *testing.T) {
 			}
 			backoff := &exponentialBackoff{}
 			backoff.next()
-			history := &tailnetRetryHealth{}
+			history := &relayHealth{}
 			var ready atomic.Bool
 			confirmed := false
+			observe := tailnetRetryObserver(history, backoff, func() time.Time { return time.Unix(100, 0) })
 			err := serveTailnetObserved(t.Context(), node, tags, []forwardPort{{network: "udp", port: "19132", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
 				confirmed = confirmed || healthy
-				history.observe(time.Unix(100, 0), healthy, backoff)
+				observe(healthy)
 			})
-			if err == nil || ready.Load() || confirmed {
-				t.Fatalf("failed attempt reported health: err=%v ready=%v confirmed=%v", err, ready.Load(), confirmed)
+			snapshot := history.snapshot(time.Unix(100, 0))
+			if err == nil || ready.Load() || confirmed || snapshot.Ready {
+				t.Fatalf("failed attempt reported health: err=%v ready=%v confirmed=%v snapshot=%+v", err, ready.Load(), confirmed, snapshot)
 			}
 			if got := backoff.next(); got != 2*time.Second {
 				t.Fatalf("failed attempt reset delay: %v", got)

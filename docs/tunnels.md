@@ -1,5 +1,8 @@
 # Tunnels
 
+For Prometheus discovery, relay health alerts and the complete scrape-policy
+configuration, see [Monitoring games and relays](monitoring.md).
+
 A GameServer can optionally route players through an external relay — the server
 dials outbound to the relay and players connect to the relay's address. This exists
 for installs with no public IP and no ability to port-forward (homelab k3s behind
@@ -509,3 +512,8 @@ changes.
   the same security practices as you would for a public-facing LoadBalancer
   (e.g., disable admin consoles, run security updates, restrict in-game
   permissions).
+
+See [relay readiness and registration identity](relay-health.md) for the frp
+UID migration, replacement policy, health probes, retry reset and the pinned
+Playit version's connection-status limitation. An assigned address alone does
+not make a relay ready.
