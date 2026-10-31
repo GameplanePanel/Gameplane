@@ -145,6 +145,10 @@ func main() {
 		gameIngressFromCIDR              cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
+		restrictedWorkloads              bool
+		agentTokenExpirationSeconds      int64
+		diagnosticsNamespace             string
+		diagnosticsStorageClass          string
 		captureDefaultRetention          int64
 		captureMaxRetention              int64
 		captureSidecarImage              string
@@ -152,6 +156,10 @@ func main() {
 		captureDefaultMaxSizeBytes       int64
 		backupJobBackoffLimit            int64
 		backupJobActiveDeadlineSeconds   int64
+		backupPreparationTimeout         time.Duration
+		backupQuiesceTimeout             time.Duration
+		backupCSICaptureTimeout          time.Duration
+		backupHardSameNode               bool
 		agentResourcesJSON               string
 		sentinelResourcesJSON            string
 		tunnelResourcesJSON              string
@@ -183,6 +191,10 @@ func main() {
 		"BackoffLimit for the restic backup and restore Jobs (retries before the Job is marked Failed). Must be >= 0. Defaults to 2.")
 	flag.Int64Var(&backupJobActiveDeadlineSeconds, "backup-job-active-deadline-seconds", controller.DefaultBackupJobActiveDeadlineSeconds,
 		"ActiveDeadlineSeconds for the restic backup and restore Jobs. Must be > 0. Defaults to 86400 (24 hours).")
+	flag.DurationVar(&backupPreparationTimeout, "backup-preparation-timeout", controller.DefaultBackupPreparationTimeout, "Maximum worker preparation time before copy authorization; must be positive.")
+	flag.DurationVar(&backupQuiesceTimeout, "backup-quiesce-timeout", controller.DefaultBackupQuiesceTimeout, "Maximum live quiesced Restic copy duration; expiry cancels and drains workers before save-on.")
+	flag.DurationVar(&backupCSICaptureTimeout, "backup-csi-capture-timeout", controller.DefaultBackupCSICaptureTimeout, "Maximum CSI capture duration before invalidation and save-on; must be positive.")
+	flag.BoolVar(&backupHardSameNode, "backup-hard-same-node", false, "Require Restic workers on the observed game node instead of the default preferred placement.")
 	flag.StringVar(&sentinelImage, "sentinel-image", controller.DefaultSentinelImage,
 		"Image for the wake sentinel pod that holds advertised ports while a server is asleep. "+
 			"Point at a private registry mirror for air-gapped installs.")
@@ -195,6 +207,10 @@ func main() {
 	flag.StringVar(&tunnelPlayitImage, "tunnel-playit-image", controller.DefaultTunnelPlayitImage,
 		"Image for the Playit tunnel relay pod that routes players through a Playit tunnel. "+
 			"Point at a private registry mirror for air-gapped installs.")
+	flag.BoolVar(&restrictedWorkloads, "restricted-workloads", false, "Require compatible nonroot templates and render Restricted game workloads")
+	flag.Int64Var(&agentTokenExpirationSeconds, "agent-token-expiration-seconds", 3600, "Projected agent token lifetime (600-3600 seconds)")
+	flag.StringVar(&diagnosticsNamespace, "diagnostics-namespace", "", "Opt in to node diagnostics in this dedicated privileged namespace")
+	flag.StringVar(&diagnosticsStorageClass, "diagnostics-storage-class", "", "StorageClass for bounded node capture artifact PVCs")
 	flag.BoolVar(&captureEnabled, "capture-enabled", false,
 		"Enable the network capture feature cluster-wide. When false (the default), "+
 			"the capture capability is disabled and cannot be enabled per-GameServer.")
@@ -271,6 +287,14 @@ func main() {
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	if agentTokenExpirationSeconds < 600 || agentTokenExpirationSeconds > 3600 {
+		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
+		os.Exit(1)
+	}
+	if diagnosticsNamespace != "" && diagnosticsNamespace == controlPlaneNamespace {
+		fmt.Fprintln(os.Stderr, "diagnostics-namespace must be separate from the control-plane namespace")
+		os.Exit(1)
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
@@ -302,6 +326,10 @@ func main() {
 	}
 	if backupJobActiveDeadlineSeconds <= 0 {
 		setupLog.Error(nil, "invalid --backup-job-active-deadline-seconds value (must be > 0)", "value", backupJobActiveDeadlineSeconds)
+		os.Exit(1)
+	}
+	if backupPreparationTimeout <= 0 || backupQuiesceTimeout <= 0 || backupCSICaptureTimeout <= 0 {
+		setupLog.Error(nil, "backup preparation, quiesce and CSI capture timeouts must be positive")
 		os.Exit(1)
 	}
 
@@ -437,13 +465,16 @@ func main() {
 			Config:    mgr.GetConfig(),
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		},
-		AddressManager:           addressManager,
-		MetalLBNamespace:         metalLBNamespace,
-		GameIngressPolicyEnabled: gameIngressPolicy,
-		GameIngressFromCIDRs:     gameIngressFromCIDR,
-		CaptureEnabled:           captureEnabled,
-		CaptureSidecarImage:      captureSidecarImage,
-		DefaultStorageClassName:  gameDataStorageClass,
+		AddressManager:              addressManager,
+		MetalLBNamespace:            metalLBNamespace,
+		GameIngressPolicyEnabled:    gameIngressPolicy,
+		GameIngressFromCIDRs:        gameIngressFromCIDR,
+		CaptureEnabled:              captureEnabled,
+		RestrictedWorkloads:         restrictedWorkloads,
+		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
+		DiagnosticsNamespace:        diagnosticsNamespace,
+		CaptureSidecarImage:         captureSidecarImage,
+		DefaultStorageClassName:     gameDataStorageClass,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "GameServer")
 		os.Exit(1)
@@ -466,6 +497,10 @@ func main() {
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 		EventRecorder:            mgr.GetEventRecorder("backup-controller"),
+		PreparationTimeout:       backupPreparationTimeout,
+		QuiesceTimeout:           backupQuiesceTimeout,
+		CSICaptureTimeout:        backupCSICaptureTimeout,
+		HardSameNode:             backupHardSameNode,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to set up controller", "controller", "Backup")
 		os.Exit(1)
@@ -497,6 +532,12 @@ func main() {
 		Client:                           mgr.GetClient(),
 		Scheme:                           mgr.GetScheme(),
 		SidecarClient:                    captureClient,
+		APIReader:                        mgr.GetAPIReader(),
+		RestrictedWorkloads:              restrictedWorkloads,
+		DiagnosticsNamespace:             diagnosticsNamespace,
+		DiagnosticsStorageClass:          diagnosticsStorageClass,
+		AgentCASecretName:                agentCASecretName,
+		AgentCASecretNamespace:           agentCASecretNamespace,
 		CaptureEnabled:                   captureEnabled,
 		CaptureSidecarImage:              captureSidecarImage,
 		CaptureDefaultMaxDurationSeconds: captureDefaultMaxDurationSeconds,

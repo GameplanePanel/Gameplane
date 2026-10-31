@@ -119,11 +119,14 @@ func (r *BackupReconciler) recoverBackupTarget(ctx context.Context, b *gameplane
 			return false, err
 		}
 	}
-	if r.AgentClient == nil {
-		return false, fmt.Errorf("cannot recover orphaned quiesce without an agent client")
+	// Legacy owners have no pod UID. Retire them only on positive absence or
+	// terminal-pod proof; never bind an old RPC to a newly observed identity.
+	gone, err := backupQuiesceProcessGone(ctx, r.backupAPIReader(), b.Namespace, b.Spec.ServerRef.Name, "")
+	if err != nil {
+		return false, err
 	}
-	if err := r.AgentClient.Unquiesce(ctx, b.Namespace, b.Spec.ServerRef.Name); err != nil {
-		return false, fmt.Errorf("recover orphaned quiesce: %w", err)
+	if !gone {
+		return false, fmt.Errorf("cannot recover legacy quiesce without proof that the original process is gone")
 	}
 	delete(b.Annotations, backupRecoveryAnnotation)
 	delete(b.Annotations, annoQuiesceAttempted)
@@ -244,7 +247,7 @@ func (r *BackupReconciler) legacyQuiescedBackups(ctx context.Context, b *gamepla
 	return legacy, nil
 }
 
-func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+func (r *BackupReconciler) prepareBackupWorkload(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
 	claimed, err := r.claimBackupTarget(ctx, b)
 	if err != nil {
 		if errors.Is(err, errLifecycleGenerationChanged) {
@@ -267,7 +270,45 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 	if err != nil || !fenced {
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 	}
-	return ctrl.Result{}, r.maybeQuiesce(ctx, b)
+	ready, err := r.prepareBackupSource(ctx, b, gs)
+	if errors.Is(err, errBackupSourceChanged) {
+		_, err = r.fail(ctx, b, err.Error())
+		return ctrl.Result{RequeueAfter: time.Nanosecond}, err
+	}
+	if err != nil || !ready {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	if res, err := r.prepareBackupWorkload(ctx, b); err != nil || res.RequeueAfter > 0 {
+		return res, err
+	}
+	gs, err := r.ownedBackupTarget(ctx, b)
+	if err != nil || gs == nil {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+	}
+	if err := r.maybeQuiesce(ctx, b); err != nil {
+		return ctrl.Result{}, err
+	}
+	// The Service RPC may overlap a pod replacement. Never start a copy on a
+	// different process from the one pinned before the request.
+	ready, err := r.prepareBackupSource(ctx, b, gs)
+	if errors.Is(err, errBackupSourceChanged) {
+		_, err = r.fail(ctx, b, err.Error())
+		return ctrl.Result{RequeueAfter: time.Nanosecond}, err
+	}
+	if err != nil || !ready {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+	}
+	if err := r.recordBackupManifest(ctx, b, gs); err != nil {
+		// Metadata must be durable before capture. Do not leave saving paused
+		// indefinitely when a lookup/status write prevents the copy starting.
+		_, failErr := r.fail(ctx, b, "cannot record capture metadata: "+err.Error())
+		return ctrl.Result{RequeueAfter: time.Second}, failErr
+	}
+	return ctrl.Result{}, nil
 }
 
 // Return only the originally bound GameServer. A foreign owner means this
@@ -321,6 +362,14 @@ func (r *BackupReconciler) releaseBackupTarget(ctx context.Context, b *gameplane
 // world while a deleting/failed Job still has a restic worker mounted. The
 // UID label keeps orphaned workers visible even after their Job disappears.
 func (r *BackupReconciler) backupWorkersLive(ctx context.Context, namespace string, id backupIdentity, cancel bool) (bool, error) {
+	if cancel {
+		// Recovery can run after the Backup disappeared. The immutable owner
+		// UID still identifies its gate, so revoke it before touching workers.
+		owner := &gameplanev1alpha1.Backup{ObjectMeta: metav1.ObjectMeta{Name: id.Name, Namespace: namespace, UID: id.UID}}
+		if err := r.revokeBackupStart(ctx, owner); err != nil {
+			return true, err
+		}
+	}
 	var jobs batchv1.JobList
 	if err := r.backupAPIReader().List(ctx, &jobs, client.InNamespace(namespace)); err != nil {
 		return false, err
@@ -363,13 +412,13 @@ func (r *BackupReconciler) backupWorkersLive(ctx context.Context, namespace stri
 	if busy {
 		return true, nil
 	}
-	return r.backupSnapshotCopyLive(ctx, namespace, id)
+	return r.backupSnapshotCopyLive(ctx, namespace, id, cancel)
 }
 
-// CSI captures have no Job or Pod. On normal deletion retain quiesce until
-// capture completion/error instead of deleting the pending VolumeSnapshot;
-// owner-reference GC will delete it after the Backup's finalizer clears.
-func (r *BackupReconciler) backupSnapshotCopyLive(ctx context.Context, namespace string, id backupIdentity) (bool, error) {
+// Normal captures remain live until ready/error. Cancellation first invalidates
+// the Backup; orphan recovery marks its UID-bound snapshot invalid before
+// save-on, since no surviving Backup can expose it as a restorable capture.
+func (r *BackupReconciler) backupSnapshotCopyLive(ctx context.Context, namespace string, id backupIdentity, cancel bool) (bool, error) {
 	scheme := r.Scheme
 	if scheme == nil {
 		scheme = r.Client.Scheme()
@@ -396,6 +445,29 @@ func (r *BackupReconciler) backupSnapshotCopyLive(ctx context.Context, namespace
 	owner := metav1.GetControllerOf(&vs)
 	if owner == nil || owner.Kind != "Backup" || owner.UID != id.UID {
 		return false, nil
+	}
+	if cancel {
+		if b.UID == id.UID && b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded {
+			return false, r.recordSnapshotAbort(ctx, &b, "CSI capture cancelled during lifecycle recovery")
+		}
+		if b.UID != id.UID {
+			if vs.Annotations == nil {
+				vs.Annotations = map[string]string{}
+			}
+			if vs.Annotations[backupSnapshotAbortAnnotation] != "true" {
+				vs.Annotations[backupSnapshotAbortAnnotation] = "true"
+				if err := r.Update(ctx, &vs); err != nil {
+					return true, err
+				}
+			}
+			uid := vs.UID
+			if uid != "" && vs.DeletionTimestamp.IsZero() {
+				if err := r.Delete(ctx, &vs, &client.DeleteOptions{Preconditions: &metav1.Preconditions{UID: &uid}}); err != nil && !apierrors.IsNotFound(err) {
+					ctrl.LoggerFrom(ctx).Error(err, "orphaned aborted snapshot requires reclamation", "snapshot", client.ObjectKeyFromObject(&vs), "uid", uid)
+				}
+			}
+			return false, nil
+		}
 	}
 	if vs.Status != nil && ((vs.Status.ReadyToUse != nil && *vs.Status.ReadyToUse) || (vs.Status.Error != nil && vs.Status.Error.Message != nil)) {
 		return false, nil

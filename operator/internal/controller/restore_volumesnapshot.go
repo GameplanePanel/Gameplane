@@ -141,6 +141,12 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 		return r.failOrRequeue(ctx, rs, err)
 	}
 	rewriteRefs(&created.Spec, copies)
+	// Preserve the source's effective template before creating a target. A
+	// durable Restore-owned copy survives source adoption/deletion and retries;
+	// the target receives its own immutable copy before InitialStartup.
+	if err := r.planRestoredTemplate(ctx, rs, &orig, created); err != nil {
+		return r.failOrRequeue(ctx, rs, err)
+	}
 
 	// Persist the copy plan on the Restore now, before creating anything.
 	// ensureOwnedRefCopies below can fail transiently (e.g. a write
@@ -224,6 +230,12 @@ func (r *RestoreReconciler) ensureRestoredRefsFromSpec(
 }
 
 func (r *RestoreReconciler) prepareSnapshotRestoreTarget(ctx context.Context, rs *gameplanev1alpha1.Restore, gs *gameplanev1alpha1.GameServer) (bool, error) {
+	if gs.Annotations[effectiveTemplateAnnotation] == "" && gs.Annotations[restoreTemplateAnnotation] != "" {
+		if err := r.copyRestoredTemplate(ctx, rs, gs); err != nil {
+			return false, err
+		}
+		return false, nil
+	}
 	changed, err := r.bindRestoreTarget(ctx, rs, gs)
 	if err != nil {
 		return false, err

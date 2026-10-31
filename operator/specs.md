@@ -6,6 +6,45 @@
 
 ## Purpose
 
+### Restricted workloads and node capture (#714)
+
+`--restricted-workloads` applies nonroot, no escalation, drop ALL and
+RuntimeDefault to game/config-init; incompatible numeric identities and Hostport exposure fail with
+the existing Ready/Failed condition before workload creation. Every game Pod
+disables token automount and projects token/CA/namespace only into agent.
+Token lifetime is 600–3600s (default 3600); shared PID remains for metrics.
+Use NodePort or LoadBalancer for Restricted workloads. Config-init creates
+files with the declared fsGroup as its primary group in both profiles and
+reconciles copied entries' group-write permission only when needed, so an
+already-correct root-owned file can be reused by the Restricted init UID.
+Existing volumes still need compatible ownership before enabling Restricted.
+
+Restricted Pods never receive the legacy capture ephemeral container.
+`spec.capture.nodeDiagnostic` additionally requires cluster capture enablement
+and `--diagnostics-namespace`. The dedicated namespace must explicitly enforce
+privileged and be separate from games/control plane. Every reconcile checks
+the recorded namespace against the configured namespace and rechecks live PSA
+labels and namespace separation. Revocation drains workers before failure;
+terminal/deleting captures retain cleanup but cannot rotate certificates in an
+unauthorized namespace. A prefilled namespace annotation alone never skips
+target binding or cleanup finalization. Live owner UIDs establish
+GameServer→StatefulSet→Pod provenance; Pod UID, node and exact containerd ID are
+pinned before worker creation. A target change drains work before releasing
+the capture lock. A bounded, no-retry Job has hostPID and only SYS_ADMIN,
+SYS_PTRACE/NET_RAW additions, no token/socket/hostPath. Duration <=3600s, bytes
+<=900Mi, PVC 1Gi; deployment quota bounds aggregate retention. Linux/containerd
+with eth0 is the supported target. Artifact serving uses a separate Restricted
+Pod with per-capture mTLS. Direct reads cover diagnostic Secrets and resources.
+Cross-namespace owner references are never used: a NetworkCapture finalizer
+drains worker Pods, deletes a same-namespace ConfigMap anchor with foreground
+GC, then releases finalization. TTL and GameServer owner GC drive this cleanup.
+Terminal captures refresh artifact certificates without recreating targets.
+After a requested stop drains the worker Job and Pods, the operator persists
+the finished timestamp once and retries unavailable artifact status for up to
+two minutes. The capture remains nonterminal and retains its lock while waiting;
+an expired window fails with the stopped-capture message. A stop before worker
+binding still fails immediately.
+
 The operator is a Kubernetes controller-runtime-based process that reconciles Gameplane Custom Resource Definitions (CRDs) into operational Kubernetes objects. It is the authoritative owner of all state transformations: a user must be able to `kubectl apply` a GameServer and achieve the same outcome as creating it via the dashboard API. The operator drives the full lifecycle of game servers, backups, restores, and module installation through a set of specialized reconcilers watching CRD status.
 
 ## Responsibilities
@@ -39,6 +78,41 @@ and cleanup, even after sidecar restart or history eviction. Capture admission,
 start/stop and expiry remain reconciler responsibilities; the gateway cannot
 bypass them or operate an arbitrary pod. Existing game resources and storage are
 not recreated to enable remote parity.
+
+## Template revision admission
+
+- `GameServer.spec.templateRollout.policy` defaults to Automatic; OnRequest
+  admits only `requestedRevision == status.templateRevision.desired`. Initial
+  provisioning/baseline always adopts the installed content. No fleet scheduler,
+  canary or maintenance-window controller is implied.
+- First-pin initialization uses shared ownership and a checked metadata update
+  without stopping an existing workload. Its StatefulSet UID and render-input
+  fingerprint preserve the existing Pod template byte-for-byte, including API
+  defaults/admission fields, while those inputs are unchanged. A real workload
+  input change, replaced StatefulSet or observed stopped drain allows revision
+  stamping. An existing unannotated Pod never receives inferred provenance.
+  New servers pin before first rendering. Existing lifecycle owners defer both.
+- Complete template Name/spec content is SHA256-addressed in immutable owned
+  ConfigMaps (900 KiB maximum). The effective annotation is authoritative; status
+  is reconstructible. A missing/foreign/mutable/corrupt pin fails closed.
+- All GameServer config, version/image, init, storage, agent, networking and
+  workload calculations use the effective snapshot. Restic backup resolves the
+  pin after shared ownership, restore resolves its owned target pin, and default
+  capture filters use pinned ports. CSI restore planning persists a Restore-owned
+  source snapshot and copies it to the new server before startup permission.
+- Rollout extends the shared operation owner: no admission during backup,
+  restore or wipe; old effective graceful stop and live observed Pod drain precede
+  a checked pin update. The owner survives restart and catalog changes, releasing
+  after the matching new Pod is observed or a suspended zero-replica template is
+  observed. Startup health remains independent. Per-server power intent survives.
+- Desired/effective/running digests are distinct. Running requires the owned
+  StatefulSet/Pod chain and a running game container; legacy or stopped Pods do
+  not claim the desired revision. TemplateUpdatePending has RevisionAvailable,
+  OperationInProgress, AdoptingRevision, RevisionCurrent and TemplateUnavailable
+  reasons, included in the generated condition translation reference.
+- Obsolete snapshots are pruned only after old workload drain and replacement
+  observation. PVCs are retained; data compatibility and runtime/data rollback
+  remain administrator responsibilities. See `docs/template-rollouts.md`.
 
 ## Non-goals / boundaries
 
@@ -248,12 +322,21 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 ### BackupReconciler
 - **Responsibility:** Drive Backup to completion: coordinate quiesce (if agent available), spawn restic Job, track snapshot ID.
 - **Key functions:**
-  - Quiesce orchestration: call agent Quiesce before Job, Unquiesce after completion.
+  - Restic preparation precedes quiesce: claim/fence the source, persist a preparation deadline, create the waiting worker, and require an uncached Running/Ready pod controlled by the exact Job UID. Before binding the first worker, a source StatefulSet requesting replicas must have an owned pod assigned to a node; initial creation/scheduling waits within the preparation budget, while a replacement after binding fails the copy. An intentionally stopped raw source remains eligible without a pod. The worker mounts the PVC, initializes/probes the repository with a shared lock, then waits for an owned ConfigMap start token. Only after readiness does the operator persist the quiesce deadline, perform the pod-bound RPC and source postcheck, record the capture manifest, and grant the Backup UID/worker UID/source-fingerprint/expiry-bound token. Replacement pods cannot reuse it. Workers have no service-account token, use the shared backup resource settings and source tolerations, and prefer the observed game node; hard same-node affinity is opt-in.
+  - Preparation defaults to 10m and live quiesce attempts to 5m (`--backup-preparation-timeout`, `--backup-quiesce-timeout`; matching Helm `operator.backupPreparationTimeout`, `operator.backupQuiesceTimeout`). Deadlines are annotations written once and survive restart/configuration changes, including when an attempted quiesce is unsupported. Copies requested raw, without an agent, or from an already-stopped source retain the full Job deadline. The waiting shell validates token expiry and bounds Restic with `timeout -s TERM -k 5`. On expiry/deletion, invalidation and token revocation precede foreground cancellation; actual live/terminating workers still block save-on and owner release. A timeout is not evidence of drainage. Existing pre-upgrade Jobs retain their observation protocol.
+  - With quiesce and an agent client enabled, preparation is recorded once in `backup.gameplane.local/preparation`, bound to the target UID and StatefulSet UID/generation. `already-stopped` requires uncached proof of desired and observed zero replicas, caught-up observed generation, and no live game/PVC user pods or pending writer Jobs. Current copy workers are excluded by Job ownership. This path sends no agent calls and preserves suspend/idle/wake intent under the shared workload fence. It applies equally to restic and CSI copies.
+  - Live preparation also pins the game Pod UID. The operator checks the agent's read-only `/v1/pods/{uid}/identity` endpoint before recording the first cleanup intent, then uses pod-bound quiesce/unquiesce routes; the agent rejects a different UID before RCON. A missing endpoint or identity mismatch fails closed without a legacy-route fallback. Ambiguous quiesce errors retain cleanup intent and the original Pod UID on both the Backup and shared owner. Only confirmed save-on or uncached evidence that the original pod is absent/replaced/terminal permits cleanup; an HTTP timeout, unready pod, or terminating pod is insufficient. Legacy attempts without a UID retire only on absence/terminal proof and never adopt a new UID. `Unquiesced=True, Reason=SourceProcessGone` distinguishes process exit from an actual save-on RPC.
+  - Source proof is checked before and after quiesce and on each copy reconcile. Observed workload/process replacement fails the Backup before it can report a restorable success. Owner recovery retains the pod UID even if the Backup is force-deleted, drains predecessor workers, and never sends its cleanup to a successor pod.
+  - Imported legacy recovery records and backups without a recorded Pod UID cannot call unbound save-on, even if an agent is available. Their cleanup intent remains durable until an uncached read proves the game Pod absent or terminal and not terminating; a live or unready replacement is not exit proof.
+  - Upgrade the operator and agent image together and allow existing GameServer pods to roll out the new agent and `GAMEPLANE_POD_UID` DownwardAPI env. Older agents fail the identity preflight before cleanup debt, so the workload can continue its upgrade after terminal cleanup releases the owner. Retry failed copies after rollout; preflight never bypasses protection. This does not automatically stop a running game.
   - Every copy, including `quiesce=false` and CSI snapshots, acquires the shared lifecycle owner before starting. The Backup pins its target in `backup.gameplane.local/target`; `backup.gameplane.local/owner` remains a compatibility marker. The shared owner is described below. Quiesce cleanup intent is recorded on both the Backup and the surviving GameServer before calling the agent, including partial failures. Cleanup waits for live copy workers; deletion cancels the copy Job with foreground propagation first. Every Backup carries the cleanup finalizer. Pre-upgrade quiesced workers are observed through completion even when overlapping legacy copies cannot acquire the new exclusive owner.
-  - Orphan recovery preserves predecessor operation identities in the shared owner's `recovery` array, atomically with ownership transfer. Existing `backup.gameplane.local/recovering-owners` lineage is imported during migration. Deleting a recovering owner cannot hide an earlier worker. Normal deletion, orphan recovery, and legacy cleanup also wait for pending owned CSI captures to report ready or an explicit error; VolumeSnapshots are reclaimed by owner-reference GC after cleanup.
-  - VolumeSnapshot API availability is checked before quiescing. Snapshot creation errors fail the Backup and run unquiesce cleanup immediately instead of retrying creation indefinitely with saving disabled. API/creation failures persist `backup.gameplane.local/snapshot-aborted` to allow cleanup without waiting for a failed/nonrestorable capture. Failed unquiesce remains visible and retried. A transport failure can leave a CSI snapshot object despite a Failed Backup; this does not make that Backup restorable.
+  - Orphan recovery preserves predecessor operation identities in the shared owner's `recovery` array, atomically with ownership transfer. Existing `backup.gameplane.local/recovering-owners` lineage is imported during migration. Deleting a recovering owner cannot hide an earlier worker. Normal CSI observation waits for ready/error, but cancellation durably invalidates incomplete captures before save-on. Force-deleted Backup recovery marks the exact owned snapshot aborted and requests UID-bound deletion; a missing Backup cannot expose that snapshot as a valid Gameplane capture.
+  - CSI capture has a persisted deadline before quiesce, default 10m (`--backup-csi-capture-timeout`, Helm `operator.backupCSICaptureTimeout`), independent of Restic. API/creation errors, deadline expiry and deletion persist `backup.gameplane.local/snapshot-aborted` as a terminal decision, clear snapshot identity and fail the Backup before save-on. Late readiness cannot revive it. Snapshot/content identity is retained separately for reclamation. Cleanup verifies snapshot ownership and recorded UID, content reference UID/name/namespace and content UID, and deletes with UID preconditions. `Retain` or unverified resources remain for administrator action with names/UIDs in `SnapshotCleaned` conditions/events. Cleanup errors retry independently of save-on; deletion retains the Backup finalizer for pending reclamation but does not retain the game owner after confirmed save-on. Cluster RBAC adds content delete for verified `Delete`-policy resources.
+  - New PVCs referencing a Gameplane Backup-owned VolumeSnapshot require uncached successful-owner/snapshotID/UID/readiness checks and reject abort markers, including raw GameServer dataSource references. Existing PVCs do not depend on retained source metadata. External snapshots without a Gameplane Backup owner preserve the administrator direct-CRD contract; API authorization is separate.
   - Restic Job: mount data PVC, run restic backup to configured destination (S3, B2, rest-server, local fs). Job carries BackoffLimit and ActiveDeadlineSeconds from the reconciler's JobBackoffLimit / JobActiveDeadlineSeconds fields (operator flags --backup-job-backoff-limit / --backup-job-active-deadline-seconds, Helm operator.backupJobBackoffLimit / operator.backupJobActiveDeadlineSeconds; defaults 2 and 86400, applied when unset; spec 018 OD-027); only a Failed=True Job condition (set by jobPermanentlyFailed check) marks the Backup Failed. Pod SecurityContext takes FSGroup from the target GameTemplate's spec.security.fsGroup (fallback 65532 if template missing).
   - Snapshot tracking: parse restic JSON output from container logs to extract snapshot ID.
+  - Capture metadata: after ownership, workload fencing and quiesce admission, record `status.captureManifest` once before authorizing the prepared copy worker or starting CSI capture. It pins the GameServer UID, strategy, observed Pod/StatefulSet mount layout, PVC names/UIDs, included primary claim and excluded extra/mod/retained claims. `storage.extra[].backupRole` optionally declares `data` or `rebuildable`; absent declarations remain unclassified and excluded. Later template edits never rewrite the manifest. Legacy workers and old terminal Backups have unknown historical coverage, never reconstructed from the current template.
+  - Achieved consistency: the `Consistency` condition is separate from copy phase and volume coverage. It stays Unknown until a usable snapshot identity is recorded; failed copies report `CaptureFailed`. Agent-confirmed quiesce, already-stopped/drained sources, unsupported/no-agent raw copy and unquiesced CSI snapshots have distinct reasons. Quiesce depends on the module commands and does not imply that excluded volumes were captured. The API exposes the stored status and the backup drawer shows consistency and included/excluded claims. `StoppedSource` records an observation, without adding a stop/copy/restart policy or multi-volume backup.
   - Snapshot cleanup on delete (`backup_forget.go`): restic-strategy Backups carry `BackupSnapshotFinalizer` (`gameplane.local/backup-snapshot-finalizer`, added on first reconcile, also for pre-existing non-Failed Backups; not added for volume-snapshot or Failed Backups). `finalizeDelete` runs the unquiesce stage (`BackupFinalizer`) first, then `finalizeSnapshot`: it deletes the Backup's own still-running Job (foreground, awaited), waits while a non-terminal Restore pins the Backup or its snapshot id, then runs Job `<backup>-forget` (`restic unlock || true; restic forget <id> --prune --retry-lock 10m`, backoff 3, deadline 1800s, 50m/128Mi requests and 512Mi memory limit, no PVC; the snapshot id is passed through env `FORGET_SNAPSHOT_ID` and must match `^[0-9a-f]{8,64}$`). Success sets `SnapshotForgotten=True` and a Normal `SnapshotForgotten` event; a Failed Job, a missing/incomplete repo Secret, a terminating namespace, or `maxSnapshotForgetWait` (45m, from annotation `backup.gameplane.local/forget-started-at`) sets `SnapshotForgotten=False` with a Warning `SnapshotForgetAbandoned` event and releases the Backup, leaving the snapshot in the repository. A Backup with no recorded snapshot id is released with `SnapshotForgetSkipped` when it may have written one. Backup Jobs run `restic backup /data --json --retry-lock 10m ...`. RBAC markers on `backup_controller.go` grant `backups` update/patch, `backups/status`, `backups/finalizers` and `jobs` create/update/patch/delete. Tests: `backup_forget_test.go`, `backup_forget_envtest_test.go`, `retention_terminating_test.go`; e2e `TestBackup_DeleteForgetsSnapshot` and the extended `TestBackupSchedule_RetentionTrimsPast`. Spec: `specs/done_020-backup-snapshot-forget/`.
   - Status: report phase (Pending/Running/Succeeded/Failed), error details.
 - **Integrations:** Agent client (quiesce), Kubernetes Pod logs (restic output), VolumeSnapshot API (CSI backups).
@@ -453,6 +536,10 @@ different copy under the old owner. See [operator operation recovery](../docs/op
 | `--agent-image-pull-policy` | string | `` | ImagePullPolicy override (Always/IfNotPresent/Never); empty leaves unset. |
 | `--config-init-image` | string | `controller.DefaultConfigInitImage` | Init container for rendering config files onto data volume. |
 | `--restic-image` | string | `controller.DefaultResticImage` | restic backup/restore Job image. |
+| `--backup-preparation-timeout` | duration | `10m` | Maximum preparation before copy authorization. |
+| `--backup-quiesce-timeout` | duration | `5m` | Live quiesced Restic copy budget; drainage precedes save-on. |
+| `--backup-csi-capture-timeout` | duration | `10m` | CSI capture budget before terminal invalidation. |
+| `--backup-hard-same-node` | bool | `false` | Require the observed game node instead of preferring it. |
 | `--backup-job-backoff-limit` | int64 | 2 | BackoffLimit of restic backup/restore Jobs; must be >= 0. |
 | `--backup-job-active-deadline-seconds` | int64 | 86400 | ActiveDeadlineSeconds of restic backup/restore Jobs; must be > 0. |
 | `--sentinel-image` | string | `controller.DefaultSentinelImage` | Wake-on-connect sentinel container image. |
@@ -517,7 +604,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 
 6. **Module sources are immutable once pulled.** Digest pinning (spec.digest) defeats tag moves; version pinning (spec.version) tracks a specific semver. Floating (unset version/digest) tracks latest and re-pulls on ModuleSource refresh.
 
-7. **Backup quiesce is best-effort.** If agent unavailable, backup proceeds raw (no pause). If quiesce unsupported (agent returns ErrUnsupported), backup continues degraded (success-with-note).
+7. **Backup quiesce fails closed on live transport errors.** With no configured agent client or `quiesce=false`, a copy proceeds raw. With a client enabled, a drained stopped source skips RPC, but an unreachable live agent prevents the copy. A game that explicitly reports quiesce unsupported can continue without claiming it was quiesced.
 
 8. **Remote cluster health checks are non-blocking.** A Cluster with health Unhealthy does not prevent GameServer creation on the local cluster; it surfaces the issue so operators can intervene.
 
