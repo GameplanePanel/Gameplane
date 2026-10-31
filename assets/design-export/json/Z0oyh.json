@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "Z0oyh",
   "x": 1640,
-  "y": 55687,
+  "y": 55950,
   "name": "Screen/Standalone — Modules (No selection)",
   "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
   "theme": {

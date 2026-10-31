@@ -1138,7 +1138,7 @@
       "type": "frame",
       "id": "EZFW0",
       "x": 0,
-      "y": 24182,
+      "y": 24345,
       "name": "Screen/Server Detail — Overview",
       "theme": {
         "semantic": "dark"
@@ -2752,7 +2752,7 @@
       "type": "frame",
       "id": "P08Uw",
       "x": 0,
-      "y": 26307,
+      "y": 26470,
       "name": "Screen/Server Detail — Events",
       "theme": {
         "semantic": "dark"
@@ -3319,7 +3319,7 @@
       "type": "frame",
       "id": "Xn5ns",
       "x": 0,
-      "y": 27607,
+      "y": 27770,
       "name": "Screen/Server Detail — Console",
       "theme": {
         "semantic": "dark"
@@ -3519,7 +3519,7 @@
       "type": "frame",
       "id": "kPmoo",
       "x": 0,
-      "y": 28907,
+      "y": 29070,
       "name": "Screen/Server Detail — Logs",
       "theme": {
         "semantic": "dark"
@@ -3952,7 +3952,7 @@
       "type": "frame",
       "id": "FtdkI",
       "x": 1640,
-      "y": 28907,
+      "y": 29070,
       "name": "Screen/Server Detail — Logs (Failed)",
       "theme": {
         "semantic": "dark"
@@ -4245,7 +4245,7 @@
       "type": "frame",
       "id": "Burtr",
       "x": 0,
-      "y": 30207,
+      "y": 30370,
       "name": "Screen/Server Detail — Files",
       "theme": {
         "semantic": "dark"
@@ -5746,7 +5746,7 @@
       "type": "frame",
       "id": "sZtDi",
       "x": 0,
-      "y": 31507,
+      "y": 31670,
       "name": "Screen/Server Detail — Mods",
       "theme": {
         "semantic": "dark"
@@ -6004,7 +6004,7 @@
       "type": "frame",
       "id": "GayoL",
       "x": 3280,
-      "y": 31507,
+      "y": 31670,
       "name": "Screen/Server Detail — Mods — Browse (added)",
       "theme": {
         "semantic": "dark"
@@ -7143,7 +7143,7 @@
       "type": "frame",
       "id": "Ss0Yr",
       "x": 4920,
-      "y": 31507,
+      "y": 31670,
       "name": "Screen/Server Detail — Mods — Install mod (from URL)",
       "theme": {
         "semantic": "dark"
@@ -7539,7 +7539,7 @@
       "type": "frame",
       "id": "V1VhGE",
       "x": 6560,
-      "y": 31507,
+      "y": 31670,
       "name": "Screen/Server Detail — Mods — Install mod (upload)",
       "theme": {
         "semantic": "dark"
@@ -7932,7 +7932,7 @@
       "type": "frame",
       "id": "tY6RD",
       "x": 0,
-      "y": 32807,
+      "y": 32970,
       "name": "Screen/Server Detail — Modpacks",
       "theme": {
         "semantic": "dark"
@@ -8739,7 +8739,7 @@
       "type": "frame",
       "id": "dPP50",
       "x": 0,
-      "y": 34107,
+      "y": 34270,
       "name": "Screen/Server Detail — Players",
       "theme": {
         "semantic": "dark"
@@ -9067,7 +9067,7 @@
       "type": "frame",
       "id": "pssCT",
       "x": 0,
-      "y": 35407,
+      "y": 35570,
       "name": "Screen/Server Detail — Backups",
       "theme": {
         "semantic": "dark"
@@ -9501,7 +9501,7 @@
       "type": "frame",
       "id": "hLB9Z",
       "x": 0,
-      "y": 38007,
+      "y": 38170,
       "name": "Screen/Server Detail — Settings",
       "theme": {
         "semantic": "dark"
@@ -9990,7 +9990,7 @@
       "type": "frame",
       "id": "swxkJ",
       "x": 0,
-      "y": 39307,
+      "y": 39470,
       "name": "Screen/Server Detail — Settings · Version",
       "theme": {
         "semantic": "dark"
@@ -10685,7 +10685,7 @@
       "type": "frame",
       "id": "E0ypH",
       "x": 0,
-      "y": 41967,
+      "y": 42130,
       "name": "Screen/Server Detail — Settings · Resources",
       "theme": {
         "semantic": "dark"
@@ -11054,6 +11054,66 @@
                                 },
                                 {
                                   "type": "frame",
+                                  "id": "xuyWG",
+                                  "name": "Field Reserve less",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "oWMYX",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "AWqw1",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Reserve less than the limit",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "Ce3T8",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Off: the server reserves its full CPU and memory (Guaranteed QoS). On: it reserves less, so more servers fit on a node, and uses more up to its limit when the node has room (Burstable QoS).",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "q9ZQKc",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 28,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "XFdCR",
+                                          "type": "ref",
+                                          "ref": "rh2QH",
+                                          "name": "Switch",
+                                          "width": 36,
+                                          "height": 20
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
                                   "id": "djYXg",
                                   "name": "Field Storage size",
                                   "width": "fill_container",
@@ -11219,7 +11279,7 @@
       "type": "frame",
       "id": "J5pjJ3",
       "x": 0,
-      "y": 43267,
+      "y": 43530,
       "name": "Server Detail · Settings · Networking · Complete",
       "theme": {
         "semantic": "dark"
@@ -12029,7 +12089,7 @@
       "type": "frame",
       "id": "ugDSa",
       "x": 0,
-      "y": 44567,
+      "y": 44830,
       "name": "Screen/Server Detail — Settings · Environment",
       "theme": {
         "semantic": "dark"
@@ -12272,7 +12332,7 @@
       "type": "frame",
       "id": "i1bLR",
       "x": 0,
-      "y": 45867,
+      "y": 46130,
       "name": "Screen/Server Detail — Settings · Lifecycle",
       "theme": {
         "semantic": "dark"
@@ -13696,7 +13756,7 @@
       "type": "frame",
       "id": "KaRFX",
       "x": 0,
-      "y": 47887,
+      "y": 48150,
       "name": "Screen/Server Detail — Settings · Scheduled backups",
       "theme": {
         "semantic": "dark"
@@ -14022,7 +14082,7 @@
       "type": "frame",
       "id": "Y5cmvI",
       "x": 0,
-      "y": 50487,
+      "y": 50750,
       "name": "Screen/Server Detail — Settings · Placement",
       "theme": {
         "semantic": "dark"
@@ -14453,7 +14513,7 @@
       "type": "frame",
       "id": "VfB0Y",
       "x": 0,
-      "y": 51787,
+      "y": 52050,
       "name": "Screen/Server Detail — Settings · RBAC & access",
       "theme": {
         "semantic": "dark"
@@ -14766,7 +14826,7 @@
       "type": "frame",
       "id": "i8wib",
       "x": 0,
-      "y": 54387,
+      "y": 54650,
       "name": "Screen/Server Detail — Settings · Danger zone",
       "theme": {
         "semantic": "dark"
@@ -17058,7 +17118,7 @@
       },
       "clip": true,
       "width": 1440,
-      "height": 1920,
+      "height": 1989,
       "fill": "$background/background",
       "children": [
         {
@@ -17119,7 +17179,7 @@
           "y": 0,
           "name": "ModalContainer",
           "width": 1440,
-          "height": 1920,
+          "height": 1989,
           "fill": "#000000B3",
           "layout": "vertical",
           "justifyContent": "center",
@@ -17569,6 +17629,57 @@
                                   "fontWeight": "normal"
                                 }
                               ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pL1xq",
+                          "name": "ReserveLess",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "ZCdGq",
+                              "name": "SwitchRow",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "Ogs2f",
+                                  "type": "ref",
+                                  "ref": "rh2QH",
+                                  "name": "Switch",
+                                  "width": 36,
+                                  "height": 20
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "qwB4J",
+                                  "name": "Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Reserve less than the limit",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "TvCeZ",
+                              "name": "Helper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -18485,7 +18596,7 @@
       "type": "frame",
       "id": "f1Vga",
       "x": 0,
-      "y": 21112,
+      "y": 21275,
       "name": "Screen/Create Server — Step 4 Network",
       "theme": {
         "semantic": "dark"
@@ -19050,7 +19161,7 @@
       "type": "frame",
       "id": "UMJli",
       "x": 0,
-      "y": 22782,
+      "y": 22945,
       "name": "Screen/Create Server — Step 5 Review",
       "theme": {
         "semantic": "dark"
@@ -20099,7 +20210,7 @@
       "type": "frame",
       "id": "kK8Ji",
       "x": 0,
-      "y": 55687,
+      "y": 55950,
       "name": "Screen/Modules Catalog",
       "theme": {
         "semantic": "dark"
@@ -21769,7 +21880,7 @@
       "type": "frame",
       "id": "DPrYX",
       "x": 0,
-      "y": 59519,
+      "y": 59782,
       "name": "Screen/Backups — Index",
       "theme": {
         "semantic": "dark"
@@ -22046,7 +22157,7 @@
       "type": "frame",
       "id": "fK8Bi",
       "x": 0,
-      "y": 60819,
+      "y": 61082,
       "name": "Screen/Backups — Schedules",
       "theme": {
         "semantic": "dark"
@@ -23116,7 +23227,7 @@
       "type": "frame",
       "id": "tTSdi",
       "x": 0,
-      "y": 62369,
+      "y": 62632,
       "name": "Screen/Backups — Restores",
       "theme": {
         "semantic": "dark"
@@ -23635,7 +23746,7 @@
       "type": "frame",
       "id": "j9W8A",
       "x": 0,
-      "y": 64969,
+      "y": 65232,
       "name": "Screen/Cluster Settings",
       "theme": {
         "semantic": "dark"
@@ -23877,7 +23988,7 @@
       "type": "frame",
       "id": "bYDHC",
       "x": 0,
-      "y": 66269,
+      "y": 66532,
       "name": "Screen/Users & RBAC",
       "theme": {
         "semantic": "dark"
@@ -24401,7 +24512,7 @@
       "type": "frame",
       "id": "e9lV4",
       "x": 0,
-      "y": 67569,
+      "y": 67832,
       "name": "Screen/Users & RBAC — Roles",
       "theme": {
         "semantic": "dark"
@@ -24845,7 +24956,7 @@
       "type": "frame",
       "id": "TBvTC",
       "x": 0,
-      "y": 68869,
+      "y": 69132,
       "name": "Screen/Users & RBAC — Service accounts",
       "theme": {
         "semantic": "dark"
@@ -25007,7 +25118,7 @@
       "type": "frame",
       "id": "Dpb9f",
       "x": 0,
-      "y": 70169,
+      "y": 70432,
       "name": "Screen/Users & RBAC — Identity providers",
       "theme": {
         "semantic": "dark"
@@ -25169,7 +25280,7 @@
       "type": "frame",
       "id": "DxKOh",
       "x": 0,
-      "y": 71469,
+      "y": 71732,
       "name": "Screen/Audit Log",
       "theme": {
         "semantic": "dark"
@@ -26453,7 +26564,7 @@
       "type": "frame",
       "id": "Bq2Yg",
       "x": 0,
-      "y": 72769,
+      "y": 73032,
       "name": "Screen/Admin — System Logs",
       "theme": {
         "semantic": "dark"
@@ -27845,7 +27956,7 @@
       "type": "frame",
       "id": "WZdnw",
       "x": 0,
-      "y": 74069,
+      "y": 74332,
       "name": "Screen/Admin Settings",
       "theme": {
         "semantic": "dark"
@@ -28324,7 +28435,7 @@
       "type": "frame",
       "id": "uMiwd",
       "x": 0,
-      "y": 78259,
+      "y": 78522,
       "name": "Screen/Admin Settings — Authentication",
       "theme": {
         "semantic": "dark"
@@ -29827,7 +29938,7 @@
       "type": "frame",
       "id": "RC3Kf",
       "x": 0,
-      "y": 81968,
+      "y": 82231,
       "name": "Screen/Admin Settings — Backup destinations",
       "theme": {
         "semantic": "dark"
@@ -30068,7 +30179,7 @@
       "type": "frame",
       "id": "g5mEpx",
       "x": 0,
-      "y": 83268,
+      "y": 83531,
       "name": "Screen/Admin Settings — Module sources",
       "theme": {
         "semantic": "dark"
@@ -30627,7 +30738,7 @@
       "type": "frame",
       "id": "n6Xlo",
       "x": 0,
-      "y": 85868,
+      "y": 86131,
       "name": "Screen/Admin Settings — Notifications",
       "theme": {
         "semantic": "dark"
@@ -31132,7 +31243,7 @@
       "type": "frame",
       "id": "uoxQW",
       "x": 0,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry",
       "theme": {
         "semantic": "dark"
@@ -31364,7 +31475,7 @@
       "type": "frame",
       "id": "M2sA4u",
       "x": 0,
-      "y": 88665,
+      "y": 88928,
       "name": "Screen/Admin Settings — Updates",
       "theme": {
         "semantic": "dark"
@@ -31582,7 +31693,7 @@
       "type": "frame",
       "id": "zM0VF",
       "x": 0,
-      "y": 89965,
+      "y": 90228,
       "name": "Screen/Admin Settings — About",
       "theme": {
         "semantic": "dark"
@@ -33805,7 +33916,7 @@
       "type": "frame",
       "id": "Wj0V4",
       "x": 0,
-      "y": 84568,
+      "y": 84831,
       "name": "Screen/Admin Settings — Mod registries",
       "context": "Central Mod registries administration. The banner describes central ownership; navigation includes registered Clusters and Cluster inventory. Exported against the unchanged screenshot scenario.",
       "theme": {
@@ -34871,7 +34982,7 @@
       "type": "frame",
       "id": "KhYNc",
       "x": 1640,
-      "y": 31507,
+      "y": 31670,
       "name": "Screen/Server Detail — Mods (by ID)",
       "theme": {
         "semantic": "dark"
@@ -35647,7 +35758,7 @@
       "type": "frame",
       "id": "IzuY2",
       "x": 3280,
-      "y": 24182,
+      "y": 24345,
       "name": "Screen/Server Detail — Overview (Never sleeps)",
       "theme": {
         "semantic": "dark"
@@ -36705,7 +36816,7 @@
       "type": "frame",
       "id": "TE2jI",
       "x": 4920,
-      "y": 24182,
+      "y": 24345,
       "name": "Screen/Server Detail — Overview (Asleep)",
       "theme": {
         "semantic": "dark"
@@ -37950,7 +38061,7 @@
       "type": "frame",
       "id": "x7MJI",
       "x": 10560,
-      "y": 24182,
+      "y": 24345,
       "name": "Gameplane/Connection Card — Tunnel States (reference)",
       "theme": {
         "semantic": "dark"
@@ -38502,7 +38613,7 @@
       "type": "frame",
       "id": "xCJlu",
       "x": 0,
-      "y": 53087,
+      "y": 53350,
       "name": "Screen/Server Detail — Settings · Share links",
       "theme": {
         "semantic": "dark"
@@ -39167,7 +39278,7 @@
       "type": "frame",
       "id": "dQV9N",
       "x": 1640,
-      "y": 53087,
+      "y": 53350,
       "name": "Screen/Server Detail — Settings · Share links (Empty)",
       "theme": {
         "semantic": "dark"
@@ -39465,7 +39576,7 @@
       "type": "frame",
       "id": "C2LQE4",
       "x": 0,
-      "y": 91265,
+      "y": 91528,
       "name": "Screen/Share Link — Up",
       "theme": {
         "semantic": "dark"
@@ -39491,7 +39602,7 @@
       "type": "frame",
       "id": "q31B6w",
       "x": 1640,
-      "y": 91265,
+      "y": 91528,
       "name": "Screen/Share Link — Asleep (can start)",
       "theme": {
         "semantic": "dark"
@@ -39585,7 +39696,7 @@
       "type": "frame",
       "id": "qFLfB",
       "x": 8200,
-      "y": 91265,
+      "y": 91528,
       "name": "Historical/Share Link — Asleep (view only)",
       "context": "Historical reference. The public resolve response does not expose start capability; an asleep poll must not infer denied permission. Current behavior retains Start, with a cooldown after transient Start failures.",
       "theme": {
@@ -39665,7 +39776,7 @@
       "type": "frame",
       "id": "EcoGD",
       "x": 4920,
-      "y": 91265,
+      "y": 91528,
       "name": "Screen/Share Link — Starting",
       "theme": {
         "semantic": "dark"
@@ -39777,7 +39888,7 @@
       "type": "frame",
       "id": "epZO2",
       "x": 6560,
-      "y": 91265,
+      "y": 91528,
       "name": "Screen/Share Link — Invalid or expired",
       "theme": {
         "semantic": "dark"
@@ -39842,7 +39953,7 @@
       "type": "frame",
       "id": "Bbnga",
       "x": 0,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture (Not enabled)",
       "theme": {
         "semantic": "dark"
@@ -40092,7 +40203,7 @@
       "type": "frame",
       "id": "dBILX",
       "x": 1640,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture (Empty)",
       "theme": {
         "semantic": "dark"
@@ -40378,7 +40489,7 @@
       "type": "frame",
       "id": "xvlB6",
       "x": 3280,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture (Running)",
       "theme": {
         "semantic": "dark"
@@ -40845,7 +40956,7 @@
       "type": "frame",
       "id": "m5kOm4",
       "x": 4920,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture (List)",
       "theme": {
         "semantic": "dark"
@@ -42078,7 +42189,7 @@
       "type": "frame",
       "id": "O08uaD",
       "x": 6560,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture — Start capture",
       "context": "Start Capture for remote-lab. Values illustrate that selected site: defaults and ceilings come from its capability response, independently of central settings.",
       "theme": {
@@ -43485,7 +43596,7 @@
       "type": "frame",
       "id": "b4eaUf",
       "x": 8200,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture — Start capture (Invalid filter)",
       "theme": {
         "semantic": "dark"
@@ -44849,7 +44960,7 @@
       "type": "frame",
       "id": "RodrS",
       "x": 0,
-      "y": 49187,
+      "y": 49450,
       "name": "Screen/Server Detail — Settings · Network capture",
       "theme": {
         "semantic": "dark"
@@ -45268,7 +45379,7 @@
       "type": "frame",
       "id": "nNGDX",
       "x": 1640,
-      "y": 78259,
+      "y": 78522,
       "name": "Screen/Admin Settings — Authentication (No OIDC mappings)",
       "theme": {
         "semantic": "dark"
@@ -46568,7 +46679,7 @@
       "type": "frame",
       "id": "dxdEi",
       "x": 1640,
-      "y": 64969,
+      "y": 65232,
       "name": "Screen/Cluster Settings — Default storage class",
       "theme": {
         "semantic": "dark"
@@ -46816,7 +46927,7 @@
       "type": "note",
       "id": "m8wjom",
       "x": 0,
-      "y": 79975,
+      "y": 80238,
       "name": "Note — Helm admin mapping banner is conditional",
       "width": 640,
       "height": 0,
@@ -46826,7 +46937,7 @@
       "type": "note",
       "id": "I96cW",
       "x": 0,
-      "y": 80355,
+      "y": 80618,
       "name": "Note — Confirm Admin Mapping trigger rule",
       "width": 560,
       "height": 0,
@@ -46836,7 +46947,7 @@
       "type": "frame",
       "id": "QgW58",
       "x": 3280,
-      "y": 78259,
+      "y": 78522,
       "name": "Screen/Admin Settings — Authentication (Save rejected)",
       "theme": {
         "semantic": "dark"
@@ -48373,7 +48484,7 @@
       "type": "note",
       "id": "R6iab",
       "x": 3280,
-      "y": 79999,
+      "y": 80262,
       "name": "Note — Role mapping overrides error states",
       "width": 700,
       "height": 0,
@@ -48383,7 +48494,7 @@
       "type": "frame",
       "id": "zqzr4",
       "x": 4920,
-      "y": 78259,
+      "y": 78522,
       "name": "Screen/Admin Settings — Authentication (Admin mapping warning)",
       "theme": {
         "semantic": "dark"
@@ -50258,7 +50369,7 @@
       "type": "note",
       "id": "x71Cb",
       "x": 4920,
-      "y": 80827,
+      "y": 81090,
       "name": "Note — FR-015 confirm step on this surface",
       "width": 640,
       "height": 0,
@@ -50268,7 +50379,7 @@
       "type": "frame",
       "id": "o4LH8W",
       "x": 8200,
-      "y": 24182,
+      "y": 24345,
       "name": "Screen/Server Detail — Overview (PVC Provisioning Failed)",
       "theme": {
         "semantic": "dark"
@@ -66709,7 +66820,7 @@
       "type": "frame",
       "id": "Hy9r0",
       "x": 6560,
-      "y": 24182,
+      "y": 24345,
       "name": "Screen/Server Detail — Overview (Idle armed)",
       "theme": {
         "semantic": "dark"
@@ -68471,7 +68582,7 @@
       "type": "frame",
       "id": "sSISK",
       "x": 1640,
-      "y": 24182,
+      "y": 24345,
       "name": "Screen/Server Detail — Overview (Light)",
       "theme": {
         "semantic": "light"
@@ -70093,7 +70204,7 @@
       "type": "note",
       "id": "zfi3t",
       "x": 10560,
-      "y": 24605,
+      "y": 24768,
       "name": "Reference frame",
       "width": 260,
       "height": 219,
@@ -71269,7 +71380,7 @@
       "type": "frame",
       "id": "IdbiB",
       "x": 0,
-      "y": 58137,
+      "y": 58400,
       "name": "Screen/Dialog/Build Module — Step 1 (Preset & Metadata)",
       "theme": {
         "semantic": "dark"
@@ -72277,7 +72388,7 @@
       "type": "frame",
       "id": "O5kaV",
       "x": 1000,
-      "y": 58137,
+      "y": 58400,
       "name": "Screen/Dialog/Build Module — Step 2 (Container & Ports)",
       "theme": {
         "semantic": "dark"
@@ -73169,7 +73280,7 @@
       "type": "frame",
       "id": "hmPL7",
       "x": 2000,
-      "y": 58137,
+      "y": 58400,
       "name": "Screen/Dialog/Build Module — Step 3 (Review & Export)",
       "theme": {
         "semantic": "dark"
@@ -73968,7 +74079,7 @@
       "type": "frame",
       "id": "uCA23",
       "x": 1640,
-      "y": 38007,
+      "y": 38170,
       "name": "Screen/Server Detail — Settings · General",
       "theme": {
         "semantic": "dark"
@@ -74607,7 +74718,7 @@
       "type": "frame",
       "id": "VctzT",
       "x": 1640,
-      "y": 39307,
+      "y": 39470,
       "name": "Screen/Server Detail — Settings · Version",
       "theme": {
         "semantic": "dark"
@@ -74928,7 +75039,7 @@
       "type": "frame",
       "id": "iLm38",
       "x": 1640,
-      "y": 44567,
+      "y": 44830,
       "name": "Screen/Server Detail — Settings · Environment",
       "theme": {
         "semantic": "dark"
@@ -75193,7 +75304,7 @@
       "type": "frame",
       "id": "QpEvu",
       "x": 1640,
-      "y": 51787,
+      "y": 52050,
       "name": "Screen/Server Detail — Settings · Access",
       "theme": {
         "semantic": "dark"
@@ -75548,7 +75659,7 @@
       "type": "frame",
       "id": "XR0f9",
       "x": 1640,
-      "y": 54387,
+      "y": 54650,
       "name": "Screen/Server Detail — Settings · Danger zone",
       "theme": {
         "semantic": "dark"
@@ -75928,7 +76039,7 @@
       "type": "frame",
       "id": "QQtUD",
       "x": 1640,
-      "y": 21112,
+      "y": 21275,
       "name": "Screen/Create Server — Step 4 Network (as built)",
       "theme": {
         "semantic": "dark"
@@ -76449,7 +76560,7 @@
       "type": "frame",
       "id": "IyMFM",
       "x": 9840,
-      "y": 43267,
+      "y": 43530,
       "name": "J5pjJ3 states/Tunnel enabled",
       "theme": {
         "semantic": "dark"
@@ -76798,7 +76909,7 @@
       "type": "frame",
       "id": "jXykV",
       "x": 10540,
-      "y": 43267,
+      "y": 43530,
       "name": "J5pjJ3 states/Alerts",
       "theme": {
         "semantic": "dark"
@@ -76863,7 +76974,7 @@
       "ref": "x3beP",
       "name": "Screen/Share links — Create link (No expiry)",
       "x": 3280,
-      "y": 53087,
+      "y": 53350,
       "descendants": {
         "E7Whx": {
           "content": "Create share link for mc-survival"
@@ -77038,7 +77149,7 @@
       "ref": "x3beP",
       "name": "Screen/Share links — Create link (Custom date)",
       "x": 3960,
-      "y": 53087,
+      "y": 53350,
       "descendants": {
         "E7Whx": {
           "content": "Create share link for mc-survival"
@@ -77262,7 +77373,7 @@
       "type": "frame",
       "id": "X405l",
       "x": 1640,
-      "y": 27607,
+      "y": 27770,
       "name": "Screen/Server Detail — Console (not running – Stopped/Suspended)",
       "theme": {
         "semantic": "dark"
@@ -77524,7 +77635,7 @@
       "type": "frame",
       "id": "j88bl0",
       "x": 3280,
-      "y": 27607,
+      "y": 27770,
       "name": "Screen/Server Detail — Console (not running – Pod failure)",
       "theme": {
         "semantic": "dark"
@@ -77748,7 +77859,7 @@
       "type": "frame",
       "id": "lWvcv",
       "x": 0,
-      "y": 75369,
+      "y": 75632,
       "name": "Screen/Theme Settings",
       "theme": {
         "semantic": "dark"
@@ -79190,7 +79301,7 @@
       "type": "frame",
       "id": "T1wkiT",
       "x": 1640,
-      "y": 75369,
+      "y": 75632,
       "name": "Screen/Theme Settings — Warnings",
       "theme": {
         "semantic": "light"
@@ -80728,7 +80839,7 @@
       "type": "frame",
       "id": "lhKzN",
       "x": 3280,
-      "y": 21112,
+      "y": 21275,
       "name": "Create Server — Step 4 Network · Tunnel disabled",
       "theme": {
         "semantic": "dark"
@@ -81239,7 +81350,7 @@
       "type": "frame",
       "id": "a7o9C",
       "x": 4920,
-      "y": 21112,
+      "y": 21275,
       "name": "Create Server — Step 4 Network · Tunnel enabled, no provider",
       "theme": {
         "semantic": "dark"
@@ -81750,7 +81861,7 @@
       "type": "frame",
       "id": "ZU1BG",
       "x": 6560,
-      "y": 21112,
+      "y": 21275,
       "name": "Create Server — Step 4 Network · Tunnel enabled, provider selected",
       "theme": {
         "semantic": "dark"
@@ -82261,7 +82372,7 @@
       "type": "frame",
       "id": "eGbsg",
       "x": 8200,
-      "y": 21112,
+      "y": 21275,
       "name": "Create Server — Step 4 Network · Tunnel enabled, complete",
       "theme": {
         "semantic": "dark"
@@ -82772,7 +82883,7 @@
       "type": "frame",
       "id": "nGJE1",
       "x": 1640,
-      "y": 43267,
+      "y": 43530,
       "name": "Server Detail · Settings · Networking · Tunnel disabled",
       "theme": {
         "semantic": "dark"
@@ -83582,7 +83693,7 @@
       "type": "frame",
       "id": "dhPtX",
       "x": 3280,
-      "y": 43267,
+      "y": 43530,
       "name": "Server Detail · Settings · Networking · Tunnel initial enable",
       "theme": {
         "semantic": "dark"
@@ -84392,7 +84503,7 @@
       "type": "frame",
       "id": "tSOeI",
       "x": 4920,
-      "y": 43267,
+      "y": 43530,
       "name": "Server Detail · Settings · Networking · Provider selected",
       "theme": {
         "semantic": "dark"
@@ -85202,7 +85313,7 @@
       "type": "frame",
       "id": "y3YcQ",
       "x": 6560,
-      "y": 43267,
+      "y": 43530,
       "name": "Server Detail · Settings · Networking · Credentials entering",
       "theme": {
         "semantic": "dark"
@@ -86012,7 +86123,7 @@
       "type": "frame",
       "id": "EKJyM",
       "x": 8200,
-      "y": 43267,
+      "y": 43530,
       "name": "Server Detail · Settings · Networking · Provider + credentials complete",
       "theme": {
         "semantic": "dark"
@@ -86822,7 +86933,7 @@
       "type": "frame",
       "id": "akr4I",
       "x": 9840,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Server Detail — Capture (No access)",
       "theme": {
         "semantic": "dark"
@@ -87075,7 +87186,7 @@
       "type": "frame",
       "id": "hlwx3",
       "x": 9840,
-      "y": 24182,
+      "y": 24345,
       "name": "State/Server Actions Menu — Owner-only disabled",
       "theme": {
         "semantic": "dark"
@@ -87124,7 +87235,7 @@
       "type": "frame",
       "id": "IMSD5",
       "x": 3280,
-      "y": 54387,
+      "y": 54650,
       "name": "Screen/Server Detail — Settings · Danger zone (Owner-only)",
       "theme": {
         "semantic": "dark"
@@ -87530,7 +87641,7 @@
       "type": "frame",
       "id": "gWqMD",
       "x": 3280,
-      "y": 51787,
+      "y": 52050,
       "name": "Screen/Server Detail — Settings · Access (Read-only)",
       "theme": {
         "semantic": "dark"
@@ -89037,7 +89148,7 @@
       "type": "frame",
       "id": "pnAbF",
       "x": 1640,
-      "y": 59519,
+      "y": 59782,
       "name": "Screen/Backups — Filters open",
       "context": "Implemented at 8e08a60f. Filter fields are drafts; Apply commits, Clear resets drafts, dismissal discards edits. Server choices retain location and namespace.",
       "theme": {
@@ -89325,7 +89436,7 @@
       "type": "frame",
       "id": "Cb3eC",
       "x": 1640,
-      "y": 60819,
+      "y": 61082,
       "name": "Screen/Backups — Schedules filters open",
       "context": "Implemented at 8e08a60f. Filter fields are drafts; Apply commits, Clear resets drafts, dismissal discards edits. Server choices retain location and namespace.",
       "theme": {
@@ -90412,7 +90523,7 @@
       "type": "frame",
       "id": "fbBqA",
       "x": 1640,
-      "y": 62369,
+      "y": 62632,
       "name": "Screen/Backups — Restores filters open",
       "context": "Implemented at 8e08a60f. Filter fields are drafts; Apply commits, Clear resets drafts, dismissal discards edits. Server choices retain location and namespace.",
       "theme": {
@@ -91167,7 +91278,7 @@
       "type": "frame",
       "id": "w1QYmf",
       "x": 11480,
-      "y": 36707,
+      "y": 36870,
       "name": "States/Remote Capture — Access and capability",
       "context": "Actual CaptureWidget states from 8e08a60f. Resolve user access separately from selected-site capability. Existing files remain readable when only new captures are disabled.",
       "theme": {
@@ -91496,7 +91607,7 @@
       "type": "frame",
       "id": "SUtGZ",
       "x": 12840,
-      "y": 36707,
+      "y": 36870,
       "name": "Screen/Mobile — Remote server Capture",
       "context": "375px viewport. Server actions wrap. The tab navigation is independently scrolled to Capture; the page itself never overflows horizontally.",
       "theme": {
@@ -92799,7 +92910,7 @@
       "type": "frame",
       "id": "NKiqf",
       "x": 3280,
-      "y": 59519,
+      "y": 59782,
       "name": "Screen/Mobile — Backups filters open",
       "theme": {
         "semantic": "dark"
@@ -92952,7 +93063,7 @@
       "type": "frame",
       "id": "iYUWc",
       "x": 0,
-      "y": 63669,
+      "y": 63932,
       "name": "Screen/Clusters — Registered locations",
       "theme": {
         "semantic": "dark"
@@ -93265,7 +93376,7 @@
       "ref": "JLaGB",
       "name": "Gameplane/Dialog/New File (Invalid name)",
       "x": 1640,
-      "y": 30207,
+      "y": 30370,
       "descendants": {
         "q9QPFd": {
           "type": "frame",
@@ -93323,7 +93434,7 @@
       "type": "frame",
       "id": "OC804",
       "x": 0,
-      "y": 40607,
+      "y": 40770,
       "name": "Screen/Server Detail — Settings · Game configuration",
       "theme": {
         "semantic": "dark"
@@ -94049,7 +94160,7 @@
       "type": "frame",
       "id": "QFEg9",
       "x": 1640,
-      "y": 40607,
+      "y": 40770,
       "name": "Screen/Server Detail — Settings · Game configuration (Invalid value)",
       "theme": {
         "semantic": "dark"
@@ -94787,7 +94898,7 @@
       "type": "frame",
       "id": "wxINm",
       "x": 3280,
-      "y": 40607,
+      "y": 40770,
       "name": "Screen/Server Detail — Settings · Game configuration (Read-only)",
       "theme": {
         "semantic": "dark"
@@ -95467,7 +95578,7 @@
       "type": "frame",
       "id": "e9FnC",
       "x": 4920,
-      "y": 40607,
+      "y": 40770,
       "name": "Screen/Server Detail — Settings · Game configuration (Orphaned key)",
       "theme": {
         "semantic": "dark"
@@ -96255,7 +96366,7 @@
       "type": "frame",
       "id": "Ne5TA",
       "x": 0,
-      "y": 92565,
+      "y": 92828,
       "name": "Screen/Not Found",
       "theme": {
         "semantic": "dark"
@@ -96414,7 +96525,7 @@
       "type": "frame",
       "id": "FBiMN",
       "x": 3280,
-      "y": 91265,
+      "y": 91528,
       "name": "Screen/Share Link — Asleep (Start cooldown)",
       "theme": {
         "semantic": "dark"
@@ -96694,7 +96805,7 @@
       "type": "frame",
       "id": "l7TRz9",
       "x": 1640,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry (default)",
       "theme": {
         "semantic": "dark"
@@ -97417,7 +97528,7 @@
       "type": "frame",
       "id": "r0heh",
       "x": 3280,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry (custom)",
       "theme": {
         "semantic": "dark"
@@ -97986,7 +98097,7 @@
       "type": "frame",
       "id": "cDiNb",
       "x": 4920,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry (bundled)",
       "theme": {
         "semantic": "dark"
@@ -98529,7 +98640,7 @@
       "type": "frame",
       "id": "DBQyF",
       "x": 6560,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry (disabled)",
       "theme": {
         "semantic": "dark"
@@ -99064,7 +99175,7 @@
       "type": "frame",
       "id": "K5XinZ",
       "x": 8200,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry (none)",
       "theme": {
         "semantic": "dark"
@@ -99597,7 +99708,7 @@
       "type": "frame",
       "id": "yrxK2",
       "x": 9840,
-      "y": 87233,
+      "y": 87496,
       "name": "Screen/Admin Settings — Telemetry (Reset ID confirm)",
       "theme": {
         "semantic": "dark"
@@ -100172,7 +100283,7 @@
       "type": "frame",
       "id": "n2qdi",
       "x": 1640,
-      "y": 63669,
+      "y": 63932,
       "name": "Screen/Standalone — Clusters (Empty)",
       "context": "PR #630 standalone deployment; matches current dashboard behavior.",
       "theme": {
@@ -100333,7 +100444,7 @@
       "type": "frame",
       "id": "WrmU5",
       "x": 3280,
-      "y": 63669,
+      "y": 63932,
       "name": "Screen/Standalone — Clusters (Registered)",
       "context": "PR #630 standalone deployment; matches current dashboard behavior.",
       "theme": {
@@ -100761,7 +100872,7 @@
       "type": "frame",
       "id": "Be7ZW",
       "x": 4920,
-      "y": 63669,
+      "y": 63932,
       "name": "Screen/Standalone — Cluster inventory (No selection)",
       "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
       "theme": {
@@ -100938,7 +101049,7 @@
       "type": "frame",
       "id": "Z0oyh",
       "x": 1640,
-      "y": 55687,
+      "y": 55950,
       "name": "Screen/Standalone — Modules (No selection)",
       "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
       "theme": {
@@ -101128,7 +101239,7 @@
       "type": "frame",
       "id": "ZlLf0",
       "x": 3280,
-      "y": 55687,
+      "y": 55950,
       "name": "Screen/Standalone — Modules (Permission denied)",
       "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
       "theme": {
@@ -101292,7 +101403,7 @@
       "type": "frame",
       "id": "RpHBg",
       "x": 6560,
-      "y": 63669,
+      "y": 63932,
       "name": "Screen/Standalone — Register cluster",
       "context": "PR #630. Modal actions use central cluster-management permission. Dismissing is disabled during submission.",
       "theme": {
@@ -101477,7 +101588,7 @@
       "type": "frame",
       "id": "HVhmb",
       "x": 8200,
-      "y": 63669,
+      "y": 63932,
       "name": "Screen/Standalone — Remove cluster",
       "context": "Removal errors stay inside the confirmation and reset when dismissed or reopened. Successful removal clears a matching current selection to empty without selecting local or another remote.",
       "theme": {
@@ -101981,7 +102092,7 @@
       "type": "frame",
       "id": "RS0KZ",
       "x": 9840,
-      "y": 63669,
+      "y": 63932,
       "name": "State/Standalone — Cluster selection and request states",
       "context": "Interaction reference, not a single dashboard screen. No workload queries before capabilities and selection resolve. Retry retains the selected remote.",
       "theme": {
@@ -102471,7 +102582,7 @@
       "type": "frame",
       "id": "D9QYZ",
       "x": 1640,
-      "y": 81968,
+      "y": 82231,
       "name": "Screen/Standalone — Settings · Backup destinations",
       "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
       "theme": {
@@ -102754,7 +102865,7 @@
       "type": "frame",
       "id": "l64bd",
       "x": 1640,
-      "y": 83268,
+      "y": 83531,
       "name": "Screen/Standalone — Settings · Module sources",
       "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
       "theme": {
@@ -103037,7 +103148,7 @@
       "type": "frame",
       "id": "Uzzje",
       "x": 1640,
-      "y": 88665,
+      "y": 88928,
       "name": "Screen/Standalone — Settings · Updates",
       "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
       "theme": {
@@ -103297,7 +103408,7 @@
       "type": "frame",
       "id": "FOVMf",
       "x": 1640,
-      "y": 89965,
+      "y": 90228,
       "name": "Screen/Standalone — Settings · About",
       "context": "Panel build version comes from authenticated installation metadata; standalone About does not fetch local Kubernetes metadata.",
       "theme": {
@@ -103571,7 +103682,7 @@
       "type": "frame",
       "id": "r139UP",
       "x": 1640,
-      "y": 72769,
+      "y": 73032,
       "name": "Screen/Standalone — System logs",
       "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
       "theme": {
@@ -103804,7 +103915,7 @@
       "type": "frame",
       "id": "EWrn0",
       "x": 4920,
-      "y": 55687,
+      "y": 55950,
       "name": "Screen/Standalone — Modules (East selected)",
       "context": "Background refetch failures display an inline retry banner and retain existing data plus open install/upload/builder/source drafts. Only an initial failure replaces loading content. Explicit target changes discard drafts.",
       "theme": {
@@ -105246,7 +105357,7 @@
       "type": "frame",
       "id": "p8QSPq",
       "x": 6560,
-      "y": 55687,
+      "y": 55950,
       "name": "Screen/Standalone — Modules (Manage sources)",
       "context": "Background refetch failures display an inline retry banner and retain existing data plus open install/upload/builder/source drafts. Only an initial failure replaces loading content. Explicit target changes discard drafts.",
       "theme": {
@@ -107114,7 +107225,7 @@
       "ref": "x3beP",
       "name": "Gameplane/Dialog/Edit user — Standalone (No target)",
       "x": 1640,
-      "y": 66269,
+      "y": 66532,
       "theme": {
         "semantic": "dark"
       },
@@ -107411,7 +107522,7 @@
       "ref": "x3beP",
       "name": "Gameplane/Dialog/Edit user — Standalone (Remote grant)",
       "x": 2320,
-      "y": 66269,
+      "y": 66532,
       "theme": {
         "semantic": "dark"
       },
@@ -108210,7 +108321,7 @@
       "type": "frame",
       "id": "U9xSg",
       "x": 1640,
-      "y": 34107,
+      "y": 34270,
       "name": "Screen/Server Detail — Players (Nuclear Option)",
       "theme": {
         "semantic": "dark"
@@ -108761,7 +108872,7 @@
       "type": "frame",
       "id": "BguST",
       "x": 6560,
-      "y": 40607,
+      "y": 40770,
       "name": "Screen/Server Detail — Settings · Game configuration (Password will be removed)",
       "theme": {
         "semantic": "dark"
@@ -109490,7 +109601,7 @@
       "type": "frame",
       "id": "YN8cE",
       "x": 8200,
-      "y": 40607,
+      "y": 40770,
       "name": "Screen/Server Detail — Settings · Game configuration (New password typed)",
       "theme": {
         "semantic": "dark"
@@ -127297,7 +127408,7 @@
       "type": "note",
       "id": "pi8JL",
       "x": -1400,
-      "y": 21112,
+      "y": 21275,
       "name": "Row 08 · Create server · Step 4 Network",
       "width": 1000,
       "height": 240,
@@ -127307,7 +127418,7 @@
       "type": "note",
       "id": "x4uMd",
       "x": -1400,
-      "y": 22782,
+      "y": 22945,
       "name": "Row 09 · Create server · Step 5 Review",
       "width": 1000,
       "height": 240,
@@ -127317,7 +127428,7 @@
       "type": "note",
       "id": "qO22k",
       "x": -1400,
-      "y": 24182,
+      "y": 24345,
       "name": "Row 10 · Server detail · Overview",
       "width": 1000,
       "height": 240,
@@ -127327,7 +127438,7 @@
       "type": "note",
       "id": "E3lyu",
       "x": -1400,
-      "y": 26307,
+      "y": 26470,
       "name": "Row 11 · Server detail · Events",
       "width": 1000,
       "height": 240,
@@ -127337,7 +127448,7 @@
       "type": "note",
       "id": "w2kUI",
       "x": -1400,
-      "y": 27607,
+      "y": 27770,
       "name": "Row 12 · Server detail · Console",
       "width": 1000,
       "height": 240,
@@ -127347,7 +127458,7 @@
       "type": "note",
       "id": "QDwYN",
       "x": -1400,
-      "y": 28907,
+      "y": 29070,
       "name": "Row 13 · Server detail · Logs",
       "width": 1000,
       "height": 240,
@@ -127357,7 +127468,7 @@
       "type": "note",
       "id": "lQzZC",
       "x": -1400,
-      "y": 30207,
+      "y": 30370,
       "name": "Row 14 · Server detail · Files",
       "width": 1000,
       "height": 240,
@@ -127367,7 +127478,7 @@
       "type": "note",
       "id": "zuaLh",
       "x": -1400,
-      "y": 31507,
+      "y": 31670,
       "name": "Row 15 · Server detail · Mods",
       "width": 1000,
       "height": 240,
@@ -127377,7 +127488,7 @@
       "type": "note",
       "id": "HOOwr",
       "x": -1400,
-      "y": 32807,
+      "y": 32970,
       "name": "Row 16 · Server detail · Modpacks",
       "width": 1000,
       "height": 240,
@@ -127387,7 +127498,7 @@
       "type": "note",
       "id": "NtNAz",
       "x": -1400,
-      "y": 34107,
+      "y": 34270,
       "name": "Row 17 · Server detail · Players",
       "width": 1000,
       "height": 240,
@@ -127397,7 +127508,7 @@
       "type": "note",
       "id": "dqvWz",
       "x": -1400,
-      "y": 35407,
+      "y": 35570,
       "name": "Row 18 · Server detail · Backups",
       "width": 1000,
       "height": 240,
@@ -127407,7 +127518,7 @@
       "type": "note",
       "id": "U0OGtp",
       "x": -1400,
-      "y": 36707,
+      "y": 36870,
       "name": "Row 19 · Server detail · Capture",
       "width": 1000,
       "height": 240,
@@ -127417,7 +127528,7 @@
       "type": "note",
       "id": "FuwJW",
       "x": -1400,
-      "y": 38007,
+      "y": 38170,
       "name": "Row 20 · Server settings · General",
       "width": 1000,
       "height": 240,
@@ -127427,7 +127538,7 @@
       "type": "note",
       "id": "T3YX5",
       "x": -1400,
-      "y": 39307,
+      "y": 39470,
       "name": "Row 21 · Server settings · Version",
       "width": 1000,
       "height": 240,
@@ -127437,7 +127548,7 @@
       "type": "note",
       "id": "Sshd6",
       "x": -1400,
-      "y": 40607,
+      "y": 40770,
       "name": "Row 22 · Server settings · Game configuration",
       "width": 1000,
       "height": 240,
@@ -127447,7 +127558,7 @@
       "type": "note",
       "id": "sMJbC",
       "x": -1400,
-      "y": 41967,
+      "y": 42130,
       "name": "Row 23 · Server settings · Resources",
       "width": 1000,
       "height": 240,
@@ -127457,7 +127568,7 @@
       "type": "note",
       "id": "MHWc5",
       "x": -1400,
-      "y": 43267,
+      "y": 43530,
       "name": "Row 24 · Server settings · Networking",
       "width": 1000,
       "height": 240,
@@ -127467,7 +127578,7 @@
       "type": "note",
       "id": "YGwuK",
       "x": -1400,
-      "y": 44567,
+      "y": 44830,
       "name": "Row 25 · Server settings · Environment",
       "width": 1000,
       "height": 240,
@@ -127477,7 +127588,7 @@
       "type": "note",
       "id": "D4jA9F",
       "x": -1400,
-      "y": 45867,
+      "y": 46130,
       "name": "Row 26 · Server settings · Lifecycle",
       "width": 1000,
       "height": 240,
@@ -127487,7 +127598,7 @@
       "type": "note",
       "id": "F9xN2",
       "x": -1400,
-      "y": 47887,
+      "y": 48150,
       "name": "Row 27 · Server settings · Scheduled backups",
       "width": 1000,
       "height": 240,
@@ -127497,7 +127608,7 @@
       "type": "note",
       "id": "KXO7u",
       "x": -1400,
-      "y": 49187,
+      "y": 49450,
       "name": "Row 28 · Server settings · Network capture",
       "width": 1000,
       "height": 240,
@@ -127507,7 +127618,7 @@
       "type": "note",
       "id": "xlK5c",
       "x": -1400,
-      "y": 50487,
+      "y": 50750,
       "name": "Row 29 · Server settings · Placement",
       "width": 1000,
       "height": 240,
@@ -127517,7 +127628,7 @@
       "type": "note",
       "id": "JgubZ",
       "x": -1400,
-      "y": 51787,
+      "y": 52050,
       "name": "Row 30 · Server settings · RBAC & access",
       "width": 1000,
       "height": 240,
@@ -127527,7 +127638,7 @@
       "type": "note",
       "id": "ryyvW",
       "x": -1400,
-      "y": 53087,
+      "y": 53350,
       "name": "Row 31 · Server settings · Share links",
       "width": 1000,
       "height": 240,
@@ -127537,7 +127648,7 @@
       "type": "note",
       "id": "eoNeU",
       "x": -1400,
-      "y": 54387,
+      "y": 54650,
       "name": "Row 32 · Server settings · Danger zone",
       "width": 1000,
       "height": 240,
@@ -127547,7 +127658,7 @@
       "type": "note",
       "id": "m6XxM6",
       "x": -1400,
-      "y": 55687,
+      "y": 55950,
       "name": "Row 33 · Modules",
       "width": 1000,
       "height": 240,
@@ -127557,7 +127668,7 @@
       "type": "note",
       "id": "W9aA6",
       "x": -1400,
-      "y": 58137,
+      "y": 58400,
       "name": "Row 34 · Modules · Build module dialog",
       "width": 1000,
       "height": 240,
@@ -127567,7 +127678,7 @@
       "type": "note",
       "id": "HG21t",
       "x": -1400,
-      "y": 59519,
+      "y": 59782,
       "name": "Row 35 · Backups · Index",
       "width": 1000,
       "height": 240,
@@ -127577,7 +127688,7 @@
       "type": "note",
       "id": "s7wiph",
       "x": -1400,
-      "y": 60819,
+      "y": 61082,
       "name": "Row 36 · Backups · Schedules",
       "width": 1000,
       "height": 240,
@@ -127587,7 +127698,7 @@
       "type": "note",
       "id": "TaRwQ",
       "x": -1400,
-      "y": 62369,
+      "y": 62632,
       "name": "Row 37 · Backups · Restores",
       "width": 1000,
       "height": 240,
@@ -127597,7 +127708,7 @@
       "type": "note",
       "id": "pSXSc",
       "x": -1400,
-      "y": 63669,
+      "y": 63932,
       "name": "Row 38 · Clusters",
       "width": 1000,
       "height": 240,
@@ -127607,7 +127718,7 @@
       "type": "note",
       "id": "NZeQ5",
       "x": -1400,
-      "y": 64969,
+      "y": 65232,
       "name": "Row 39 · Cluster settings",
       "width": 1000,
       "height": 240,
@@ -127617,7 +127728,7 @@
       "type": "note",
       "id": "ahs1q",
       "x": -1400,
-      "y": 66269,
+      "y": 66532,
       "name": "Row 40 · Users & RBAC · Users",
       "width": 1000,
       "height": 240,
@@ -127627,7 +127738,7 @@
       "type": "note",
       "id": "trxDY",
       "x": -1400,
-      "y": 67569,
+      "y": 67832,
       "name": "Row 41 · Users & RBAC · Roles",
       "width": 1000,
       "height": 240,
@@ -127637,7 +127748,7 @@
       "type": "note",
       "id": "Mu4PV",
       "x": -1400,
-      "y": 68869,
+      "y": 69132,
       "name": "Row 42 · Users & RBAC · Service accounts",
       "width": 1000,
       "height": 240,
@@ -127647,7 +127758,7 @@
       "type": "note",
       "id": "B8R3vY",
       "x": -1400,
-      "y": 70169,
+      "y": 70432,
       "name": "Row 43 · Users & RBAC · Identity providers",
       "width": 1000,
       "height": 240,
@@ -127657,7 +127768,7 @@
       "type": "note",
       "id": "yfRYR",
       "x": -1400,
-      "y": 71469,
+      "y": 71732,
       "name": "Row 44 · Audit log",
       "width": 1000,
       "height": 240,
@@ -127667,7 +127778,7 @@
       "type": "note",
       "id": "vwnjE",
       "x": -1400,
-      "y": 72769,
+      "y": 73032,
       "name": "Row 45 · System logs",
       "width": 1000,
       "height": 240,
@@ -127677,7 +127788,7 @@
       "type": "note",
       "id": "e8Uwa",
       "x": -1400,
-      "y": 74069,
+      "y": 74332,
       "name": "Row 46 · Admin settings · General",
       "width": 1000,
       "height": 240,
@@ -127687,7 +127798,7 @@
       "type": "note",
       "id": "gSmfE",
       "x": -1400,
-      "y": 75369,
+      "y": 75632,
       "name": "Row 47 · Admin settings · Theme",
       "width": 1000,
       "height": 240,
@@ -127697,7 +127808,7 @@
       "type": "note",
       "id": "QZcdP",
       "x": -1400,
-      "y": 78259,
+      "y": 78522,
       "name": "Row 48 · Admin settings · Authentication",
       "width": 1000,
       "height": 240,
@@ -127707,7 +127818,7 @@
       "type": "note",
       "id": "i0LdOM",
       "x": -1400,
-      "y": 81968,
+      "y": 82231,
       "name": "Row 49 · Admin settings · Backup destinations",
       "width": 1000,
       "height": 240,
@@ -127717,7 +127828,7 @@
       "type": "note",
       "id": "su0IR",
       "x": -1400,
-      "y": 83268,
+      "y": 83531,
       "name": "Row 50 · Admin settings · Module sources",
       "width": 1000,
       "height": 240,
@@ -127727,7 +127838,7 @@
       "type": "note",
       "id": "T40Bd",
       "x": -1400,
-      "y": 84568,
+      "y": 84831,
       "name": "Row 51 · Admin settings · Mod registries",
       "width": 1000,
       "height": 240,
@@ -127737,7 +127848,7 @@
       "type": "note",
       "id": "RGitr",
       "x": -1400,
-      "y": 85868,
+      "y": 86131,
       "name": "Row 52 · Admin settings · Notifications",
       "width": 1000,
       "height": 240,
@@ -127747,7 +127858,7 @@
       "type": "note",
       "id": "W6YgwP",
       "x": -1400,
-      "y": 87233,
+      "y": 87496,
       "name": "Row 53 · Admin settings · Telemetry",
       "width": 1000,
       "height": 240,
@@ -127757,7 +127868,7 @@
       "type": "note",
       "id": "Mfaof",
       "x": -1400,
-      "y": 88665,
+      "y": 88928,
       "name": "Row 54 · Admin settings · Updates",
       "width": 1000,
       "height": 240,
@@ -127767,7 +127878,7 @@
       "type": "note",
       "id": "SeCFN",
       "x": -1400,
-      "y": 89965,
+      "y": 90228,
       "name": "Row 55 · Admin settings · About",
       "width": 1000,
       "height": 240,
@@ -127777,7 +127888,7 @@
       "type": "note",
       "id": "FtgQt",
       "x": -1400,
-      "y": 91265,
+      "y": 91528,
       "name": "Row 56 · Share link (public)",
       "width": 1000,
       "height": 240,
@@ -127787,7 +127898,7 @@
       "type": "note",
       "id": "R2nH3",
       "x": -1400,
-      "y": 92565,
+      "y": 92828,
       "name": "Row 57 · Not found",
       "width": 1000,
       "height": 240,
@@ -127911,7 +128022,7 @@
       "type": "frame",
       "id": "lCTci",
       "x": 3280,
-      "y": 75369,
+      "y": 75632,
       "name": "Screen/Mobile — Theme Settings · Language",
       "theme": {
         "semantic": "dark"
@@ -128010,7 +128121,7 @@
       "type": "frame",
       "id": "SUcad",
       "x": 1640,
-      "y": 85868,
+      "y": 86131,
       "name": "Screen/Admin Settings — Notifications (Add sink)",
       "theme": {
         "semantic": "dark"
@@ -128968,6 +129079,2532 @@
                       ]
                     }
                   ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "NqaaU",
+      "x": 1640,
+      "y": 42130,
+      "name": "Screen/Server Detail — Settings · Resources (Reserve less on)",
+      "theme": {
+        "semantic": "dark"
+      },
+      "clip": true,
+      "width": 1440,
+      "height": 1000,
+      "fill": "$background/background",
+      "children": [
+        {
+          "id": "AZLll",
+          "type": "ref",
+          "ref": "kKFX9",
+          "height": "fill_container",
+          "descendants": {
+            "iTbd8": {
+              "fill": "#00000000"
+            },
+            "iTbd8/ghUsw": {
+              "fill": "$foreground/foreground"
+            },
+            "iTbd8/bpSQ7": {
+              "fill": "$foreground/foreground"
+            },
+            "i8Z1B": {
+              "fill": "$accent/soft"
+            },
+            "i8Z1B/Sr2Q5": {
+              "fill": "$accent/soft-foreground"
+            },
+            "i8Z1B/Ra9NK": {
+              "fill": "$accent/soft-foreground"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "p8hHD",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "nAKSm",
+              "type": "ref",
+              "ref": "gu5WY",
+              "width": "fill_container",
+              "descendants": {
+                "Gl7AY": {
+                  "content": "mc-survival"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "KBvJo",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$background/background",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": 24,
+              "children": [
+                {
+                  "id": "DPwOC",
+                  "type": "ref",
+                  "ref": "S4k0x",
+                  "name": "Detail Header",
+                  "width": "fill_container"
+                },
+                {
+                  "id": "GUwll",
+                  "type": "ref",
+                  "ref": "I9kvlZ",
+                  "name": "Tabs Bar",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    0,
+                    24
+                  ],
+                  "descendants": {
+                    "Wp6q1": {
+                      "fill": "#00000000"
+                    },
+                    "Wp6q1/YUR8N": {
+                      "fill": "$muted"
+                    },
+                    "Y4QES": {
+                      "fill": "$segment"
+                    },
+                    "Y4QES/VcxMI": {
+                      "fill": "$foreground/segment"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "b6dV3C",
+                  "name": "Settings Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "children": [
+                    {
+                      "id": "QnrW1",
+                      "type": "ref",
+                      "ref": "EV8mp",
+                      "name": "Settings Sub Nav",
+                      "width": 224,
+                      "height": "fill_container",
+                      "descendants": {
+                        "axMXL": {
+                          "fill": "#00000000"
+                        },
+                        "nnoXy": {
+                          "fill": "$surface/secondary"
+                        },
+                        "bHNH0": {
+                          "fill": "$foreground/foreground"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "k7WeNU",
+                      "name": "Settings Panel Wrap",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "z8HDA",
+                          "name": "Settings Form",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Put6Q",
+                              "name": "Form Body",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "layout": "vertical",
+                              "gap": 20,
+                              "padding": 24,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "bqZJN",
+                                  "name": "Field CPU",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "q7Ul7",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "hZfcD",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "CPU cores",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "rHjtv",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Limit: the most CPU this server can use.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "hy9GV",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 36,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "z6Plw",
+                                          "type": "ref",
+                                          "ref": "KWcnQ",
+                                          "name": "slider",
+                                          "width": "fill_container",
+                                          "descendants": {
+                                            "Gky2W": {
+                                              "enabled": false
+                                            },
+                                            "lJsFB": {
+                                              "width": 70
+                                            },
+                                            "tES7p": {
+                                              "x": 57
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "K5byY",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": 64,
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "2",
+                                              "fill": "$foreground/foreground"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "OtD8Z",
+                                          "type": "ref",
+                                          "ref": "cY9fV",
+                                          "name": "unit",
+                                          "width": 110,
+                                          "descendants": {
+                                            "mgenn": {
+                                              "enabled": false
+                                            },
+                                            "WhOPt": {
+                                              "width": "fill_container"
+                                            },
+                                            "c94wTj": {
+                                              "content": "cores"
+                                            },
+                                            "t1Te9C": {
+                                              "x": 82
+                                            },
+                                            "d7Cyay": {
+                                              "enabled": false
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "K3jnh",
+                                  "name": "Field Memory",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "AoCgz",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "cNMed",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Memory (GiB)",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "jYTdv",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Limit: the most memory this server can use.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "TPorp",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 36,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "c2cPe8",
+                                          "type": "ref",
+                                          "ref": "KWcnQ",
+                                          "name": "slider",
+                                          "width": "fill_container",
+                                          "descendants": {
+                                            "Gky2W": {
+                                              "enabled": false
+                                            },
+                                            "lJsFB": {
+                                              "width": 46
+                                            },
+                                            "tES7p": {
+                                              "x": 33
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "eywZh",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": 64,
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "4",
+                                              "fill": "$foreground/foreground"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "Zypbr",
+                                          "type": "ref",
+                                          "ref": "cY9fV",
+                                          "name": "unit",
+                                          "width": 110,
+                                          "descendants": {
+                                            "mgenn": {
+                                              "enabled": false
+                                            },
+                                            "WhOPt": {
+                                              "width": "fill_container"
+                                            },
+                                            "c94wTj": {
+                                              "content": "GiB"
+                                            },
+                                            "t1Te9C": {
+                                              "x": 82
+                                            },
+                                            "d7Cyay": {
+                                              "enabled": false
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "QXA0O",
+                                  "name": "Field Reserve less",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "kcSdJ",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "EJ9HI",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Reserve less than the limit",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "z1W8J",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Off: the server reserves its full CPU and memory (Guaranteed QoS). On: it reserves less, so more servers fit on a node, and uses more up to its limit when the node has room (Burstable QoS).",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "ceSyZ",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 28,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "IeaMp",
+                                          "type": "ref",
+                                          "ref": "hl7R3",
+                                          "name": "Switch",
+                                          "width": 36,
+                                          "height": 20
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "yWH5R",
+                                  "name": "Field Reserved CPU",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "Y3vPi",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Bl9Wr",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Reserved CPU",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "kmsMn",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Counted when the server is placed on a node. 0 reserves nothing.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "fST1a",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 36,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "FiwFm",
+                                          "type": "ref",
+                                          "ref": "KWcnQ",
+                                          "name": "slider",
+                                          "width": "fill_container",
+                                          "descendants": {
+                                            "Gky2W": {
+                                              "enabled": false
+                                            },
+                                            "lJsFB": {
+                                              "width": 223
+                                            },
+                                            "tES7p": {
+                                              "x": 210
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "eLtw3",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": 64,
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "1",
+                                              "fill": "$foreground/foreground"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "vPmPR",
+                                          "type": "ref",
+                                          "ref": "cY9fV",
+                                          "name": "unit",
+                                          "width": 110,
+                                          "descendants": {
+                                            "mgenn": {
+                                              "enabled": false
+                                            },
+                                            "WhOPt": {
+                                              "width": "fill_container"
+                                            },
+                                            "c94wTj": {
+                                              "content": "cores"
+                                            },
+                                            "t1Te9C": {
+                                              "x": 82
+                                            },
+                                            "d7Cyay": {
+                                              "enabled": false
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "KFNkW",
+                                  "name": "Field Reserved memory",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "kvxqF",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "DoL4L",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Reserved memory (GiB)",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "u47KX",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "When a node runs out of memory, servers above their reservation are stopped first. Keep it close to real use.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "CEuDC",
+                                      "name": "ctrl",
+                                      "width": "fill_container",
+                                      "height": 36,
+                                      "gap": 12,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "id": "sPVr4",
+                                          "type": "ref",
+                                          "ref": "KWcnQ",
+                                          "name": "slider",
+                                          "width": "fill_container",
+                                          "descendants": {
+                                            "Gky2W": {
+                                              "enabled": false
+                                            },
+                                            "lJsFB": {
+                                              "width": 223
+                                            },
+                                            "tES7p": {
+                                              "x": 210
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "YkJgP",
+                                          "type": "ref",
+                                          "ref": "D0cDM",
+                                          "name": "Input",
+                                          "width": 64,
+                                          "descendants": {
+                                            "PJERm": {
+                                              "content": "2",
+                                              "fill": "$foreground/foreground"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "id": "Iip2K",
+                                          "type": "ref",
+                                          "ref": "cY9fV",
+                                          "name": "unit",
+                                          "width": 110,
+                                          "descendants": {
+                                            "mgenn": {
+                                              "enabled": false
+                                            },
+                                            "WhOPt": {
+                                              "width": "fill_container"
+                                            },
+                                            "c94wTj": {
+                                              "content": "GiB"
+                                            },
+                                            "t1Te9C": {
+                                              "x": 82
+                                            },
+                                            "d7Cyay": {
+                                              "enabled": false
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "KAs9Y",
+                                  "name": "Field Storage size",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "cepHh",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "n5UuK",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Storage size",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "R7tWk",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "K8s quantity (e.g. 10Gi, 200Gi). Resizing requires a StorageClass with allowVolumeExpansion: true.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "m6SVG",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "20Gi",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Dj2nY",
+                                  "name": "Field StorageClass",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "urfz4",
+                                      "name": "lbl",
+                                      "width": 200,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Pkd0L",
+                                          "name": "t",
+                                          "fill": "$foreground/foreground",
+                                          "content": "StorageClass",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 14,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "QK3yQ",
+                                          "name": "h",
+                                          "fill": "$muted",
+                                          "textGrowth": "fixed-width",
+                                          "width": 200,
+                                          "content": "Leave blank to use the cluster default.",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "BztzG",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "fast-ssd",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "x1ZNpu",
+                              "name": "Form Footer",
+                              "width": "fill_container",
+                              "stroke": "$border/border",
+                              "strokeWidth": {
+                                "top": 1
+                              },
+                              "strokeAlignment": "inner",
+                              "strokeLinejoin": "round",
+                              "gap": 12,
+                              "padding": [
+                                12,
+                                24
+                              ],
+                              "justifyContent": "end",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "YiqwR",
+                                  "type": "ref",
+                                  "ref": "J09iP",
+                                  "name": "Btn Discard"
+                                },
+                                {
+                                  "id": "GaXjM",
+                                  "type": "ref",
+                                  "ref": "z9ShNE",
+                                  "name": "Btn Save Changes",
+                                  "descendants": {
+                                    "nWTJb": {
+                                      "enabled": false
+                                    },
+                                    "IVgQ8/U1xvSo": {
+                                      "content": "Save changes"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "NLu2I",
+      "x": 1640,
+      "y": 18792,
+      "name": "Screen/Create Server — Step 3 Configure (Reserve less on)",
+      "theme": {
+        "semantic": "dark"
+      },
+      "clip": true,
+      "width": 1440,
+      "height": 2083,
+      "fill": "$background/background",
+      "children": [
+        {
+          "id": "X6KaEm",
+          "type": "ref",
+          "ref": "kKFX9",
+          "name": "Sidebar",
+          "height": "fill_container",
+          "descendants": {
+            "iTbd8": {
+              "fill": "#00000000"
+            },
+            "iTbd8/ghUsw": {
+              "fill": "$foreground/foreground"
+            },
+            "iTbd8/bpSQ7": {
+              "fill": "$foreground/foreground"
+            },
+            "i8Z1B": {
+              "fill": "$accent/soft"
+            },
+            "i8Z1B/Sr2Q5": {
+              "fill": "$accent/soft-foreground"
+            },
+            "i8Z1B/Ra9NK": {
+              "fill": "$accent/soft-foreground"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "h0BQw",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "rNbjK",
+              "type": "ref",
+              "ref": "gu5WY",
+              "name": "TopBar",
+              "width": "fill_container",
+              "descendants": {
+                "Gl7AY": {
+                  "content": "New"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ZPGUD",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "ModalContainer",
+          "width": 1440,
+          "height": 2083,
+          "fill": "#000000B3",
+          "layout": "vertical",
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "P0qcMy",
+              "name": "Modal",
+              "clip": true,
+              "width": 960,
+              "fill": "$surface/surface",
+              "cornerRadius": 12,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000080",
+                "offset": {
+                  "x": 0,
+                  "y": 24
+                },
+                "blur": 60
+              },
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "OEG8W",
+                  "type": "ref",
+                  "ref": "opmcF",
+                  "name": "Header",
+                  "width": "fill_container",
+                  "descendants": {
+                    "gcM6g": {
+                      "content": "Step 3 of 5 · Configure"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "nZAjc",
+                  "name": "Location placement",
+                  "context": "Only authorized template/location combinations; changing location starts a fresh draft. Freeze chosen target during submission.",
+                  "width": "fill_container",
+                  "stroke": "$border/border",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mtHaM",
+                      "name": "Location label",
+                      "fill": "$foreground/foreground",
+                      "content": "Location",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "vX9vX",
+                      "type": "ref",
+                      "ref": "AT7ya",
+                      "name": "Creation location",
+                      "width": "fill_container",
+                      "descendants": {
+                        "cFsFk": {
+                          "content": "remote-lab / gameplane-games",
+                          "fill": "$foreground/foreground"
+                        }
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "O4SCTZ",
+                      "name": "Changing location help",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Changing location starts a fresh draft. The chosen location handles all creation steps.",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "id": "TktvJ",
+                  "type": "ref",
+                  "ref": "oROhg",
+                  "name": "Stepper",
+                  "width": "fill_container",
+                  "descendants": {
+                    "F3Au7j": {
+                      "fill": "#00000000",
+                      "stroke": "$border/border"
+                    },
+                    "jq5x7": {
+                      "fill": "$muted"
+                    },
+                    "bSERJ": {
+                      "fill": "$muted",
+                      "fontWeight": "normal"
+                    },
+                    "xzVlE": {
+                      "fill": "$accent/soft",
+                      "stroke": "$accent/accent"
+                    },
+                    "F3O7DI": {
+                      "fill": "$accent/accent"
+                    },
+                    "FqG7u": {
+                      "fill": "$foreground/foreground",
+                      "fontWeight": "500"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "Srvqs",
+                  "name": "Body",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jigt8",
+                      "name": "StepBody",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "id": "SVtQw",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field Server name",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "Server name"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            "O0VQ2": {
+                              "content": "mc-survival",
+                              "fill": "$foreground/foreground"
+                            },
+                            "kl54d": {
+                              "width": "fill_container"
+                            },
+                            "vdTcx": {
+                              "content": "Used as pod name and subdomain. Lowercase, dash-separated.",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "lineHeight": 1.4
+                            }
+                          }
+                        },
+                        {
+                          "id": "NwxYN",
+                          "type": "ref",
+                          "ref": "LCQU3",
+                          "name": "Field Description",
+                          "width": "fill_container",
+                          "descendants": {
+                            "it5w4": {
+                              "content": "Description"
+                            },
+                            "DzfNP": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 72
+                            },
+                            "usWsj": {
+                              "content": "Hardcore survival realm with curated mods. Invite only.",
+                              "fill": "$foreground/foreground"
+                            },
+                            "Z9i98U": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "q8Et7T",
+                          "name": "ResourceRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "r92klp",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "gLxq2",
+                                  "name": "Label",
+                                  "opacity": 0,
+                                  "fill": "$muted",
+                                  "content": "CPU",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "gTZ7d",
+                                  "name": "CtrlRow",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "Aitgu",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "CpuSlider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "x2jDfP": {
+                                          "content": "CPU"
+                                        },
+                                        "lJsFB": {
+                                          "width": 170
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "KzWwE",
+                                      "type": "ref",
+                                      "ref": "aRqX6",
+                                      "name": "CpuValue",
+                                      "width": 64,
+                                      "descendants": {
+                                        "ANxU1": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "K5pqlT": {
+                                          "height": 36,
+                                          "justifyContent": "center",
+                                          "fill": "$field/background",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner"
+                                        },
+                                        "hokJ3": {
+                                          "content": "2",
+                                          "fill": "$foreground/foreground",
+                                          "fontWeight": "500"
+                                        },
+                                        "OiyAM": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "M89954",
+                                      "type": "ref",
+                                      "ref": "gNnkz",
+                                      "name": "CpuUnit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "s5vl0": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "XBKI5": {
+                                          "fill": "$surface/secondary",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "height": 36
+                                        },
+                                        "lS7Cr": {
+                                          "content": "cores",
+                                          "fill": "$foreground/foreground"
+                                        },
+                                        "iNdHQ": {
+                                          "fill": "$muted",
+                                          "x": 82,
+                                          "y": 10
+                                        },
+                                        "ghgxf": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "B8NdB",
+                                  "name": "Helper",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Max 4 (largest node)",
+                                  "lineHeight": 1.4,
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "YOXcw",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "YPxHO",
+                                  "name": "Label",
+                                  "opacity": 0,
+                                  "fill": "$muted",
+                                  "content": "Memory",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "S1V2ab",
+                                  "name": "CtrlRow",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "jTSnP",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "MemSlider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "x2jDfP": {
+                                          "content": "Memory"
+                                        },
+                                        "lJsFB": {
+                                          "width": 156
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "TpLw6",
+                                      "type": "ref",
+                                      "ref": "aRqX6",
+                                      "name": "MemValue",
+                                      "width": 64,
+                                      "descendants": {
+                                        "ANxU1": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "K5pqlT": {
+                                          "height": 36,
+                                          "justifyContent": "center",
+                                          "fill": "$field/background",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner"
+                                        },
+                                        "hokJ3": {
+                                          "content": "4",
+                                          "fill": "$foreground/foreground",
+                                          "fontWeight": "500"
+                                        },
+                                        "OiyAM": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "Qx9tv",
+                                      "type": "ref",
+                                      "ref": "gNnkz",
+                                      "name": "MemUnit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "s5vl0": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "XBKI5": {
+                                          "fill": "$surface/secondary",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "height": 36
+                                        },
+                                        "lS7Cr": {
+                                          "content": "GiB",
+                                          "fill": "$foreground/foreground"
+                                        },
+                                        "iNdHQ": {
+                                          "fill": "$muted",
+                                          "x": 82,
+                                          "y": 10
+                                        },
+                                        "ghgxf": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "nRzf7",
+                                  "name": "Helper",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Max 13 GiB (largest node)",
+                                  "lineHeight": 1.4,
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "f1qkX",
+                          "name": "ReserveLess",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "OkCYS",
+                              "name": "SwitchRow",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "rOrhH",
+                                  "type": "ref",
+                                  "ref": "hl7R3",
+                                  "name": "Switch",
+                                  "width": 36,
+                                  "height": 20
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "jKGK6",
+                                  "name": "Label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Reserve less than the limit",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "F7PXER",
+                              "name": "Helper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "w0lzM",
+                          "name": "ReservedRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "aBe3q",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "e73GX",
+                                  "name": "Label",
+                                  "opacity": 0,
+                                  "fill": "$muted",
+                                  "content": "Reserved CPU",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "zV9Wc",
+                                  "name": "CtrlRow",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "gYGPQ",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "ReservedCpuSlider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "x2jDfP": {
+                                          "content": "Reserved CPU"
+                                        },
+                                        "lJsFB": {
+                                          "width": 58
+                                        },
+                                        "tES7p": {
+                                          "x": 45
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "BiGfM",
+                                      "type": "ref",
+                                      "ref": "aRqX6",
+                                      "name": "ReservedCpuValue",
+                                      "width": 64,
+                                      "descendants": {
+                                        "ANxU1": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "K5pqlT": {
+                                          "height": 36,
+                                          "justifyContent": "center",
+                                          "fill": "$field/background",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner"
+                                        },
+                                        "hokJ3": {
+                                          "content": "1",
+                                          "fill": "$foreground/foreground",
+                                          "fontWeight": "500"
+                                        },
+                                        "OiyAM": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "eYGak",
+                                      "type": "ref",
+                                      "ref": "gNnkz",
+                                      "name": "ReservedCpuUnit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "s5vl0": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "XBKI5": {
+                                          "fill": "$surface/secondary",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "height": 36
+                                        },
+                                        "lS7Cr": {
+                                          "content": "cores",
+                                          "fill": "$foreground/foreground"
+                                        },
+                                        "iNdHQ": {
+                                          "fill": "$muted",
+                                          "x": 82,
+                                          "y": 10
+                                        },
+                                        "ghgxf": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "lH7lt",
+                              "name": "Field",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "sfe01",
+                                  "name": "Label",
+                                  "opacity": 0,
+                                  "fill": "$muted",
+                                  "content": "Reserved memory",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "qeJ1m",
+                                  "name": "CtrlRow",
+                                  "width": "fill_container",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "zKPtD",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "ReservedMemSlider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "x2jDfP": {
+                                          "content": "Reserved memory"
+                                        },
+                                        "lJsFB": {
+                                          "width": 58
+                                        },
+                                        "tES7p": {
+                                          "x": 45
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "QdGZi",
+                                      "type": "ref",
+                                      "ref": "aRqX6",
+                                      "name": "ReservedMemValue",
+                                      "width": 64,
+                                      "descendants": {
+                                        "ANxU1": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "K5pqlT": {
+                                          "height": 36,
+                                          "justifyContent": "center",
+                                          "fill": "$field/background",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner"
+                                        },
+                                        "hokJ3": {
+                                          "content": "2",
+                                          "fill": "$foreground/foreground",
+                                          "fontWeight": "500"
+                                        },
+                                        "OiyAM": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "zmspD",
+                                      "type": "ref",
+                                      "ref": "gNnkz",
+                                      "name": "ReservedMemUnit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "s5vl0": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        },
+                                        "XBKI5": {
+                                          "fill": "$surface/secondary",
+                                          "stroke": "$border/border",
+                                          "strokeWidth": 1,
+                                          "strokeAlignment": "inner",
+                                          "height": 36
+                                        },
+                                        "lS7Cr": {
+                                          "content": "GiB",
+                                          "fill": "$foreground/foreground"
+                                        },
+                                        "iNdHQ": {
+                                          "fill": "$muted",
+                                          "x": 82,
+                                          "y": 10
+                                        },
+                                        "ghgxf": {
+                                          "opacity": 0,
+                                          "height": 0
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "i9SAhi",
+                          "name": "StoragePlacementRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "children": [
+                            {
+                              "id": "ns3t0",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field Persistent storage",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "Persistent storage"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "20Gi",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "kl54d": {
+                                  "width": "fill_container"
+                                },
+                                "vdTcx": {
+                                  "content": "Mounted at /data (RWO PVC).",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "lineHeight": 1.4
+                                }
+                              }
+                            },
+                            {
+                              "type": "frame",
+                              "id": "qRtCa",
+                              "name": "NodePlacement",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "UnwYg",
+                                  "name": "Label",
+                                  "fill": "$muted",
+                                  "content": "Node placement",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "v7FdYO",
+                                  "name": "Segmented",
+                                  "fill": "#00000000",
+                                  "cornerRadius": 6,
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "gap": 4,
+                                  "padding": 4,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "mA6So",
+                                      "name": "Seg",
+                                      "height": 28,
+                                      "fill": "$accent/soft",
+                                      "cornerRadius": 4,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "p81wg8",
+                                          "name": "Label",
+                                          "fill": "$accent/accent",
+                                          "content": "Auto (scheduler)",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "tKLyt",
+                                      "name": "Seg",
+                                      "height": 28,
+                                      "cornerRadius": 4,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "ZNoac",
+                                          "name": "Label",
+                                          "fill": "$muted",
+                                          "content": "Pin to node",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "KaPuu",
+                                      "name": "Seg",
+                                      "height": 28,
+                                      "cornerRadius": 4,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "v2ASt",
+                                          "name": "Label",
+                                          "fill": "$muted",
+                                          "content": "GPU-enabled",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "DSX7s",
+                                  "name": "Helper",
+                                  "fill": "$muted",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Picks node with most free memory, tolerations or no taints.",
+                                  "lineHeight": 1.4,
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yLDMY",
+                          "name": "TemplateConfigSection",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Ig1Y9",
+                              "name": "SectionLabel",
+                              "fill": "$muted",
+                              "content": "TEMPLATE CONFIGURATION",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "FcgZ7",
+                              "type": "ref",
+                              "ref": "gNnkz",
+                              "name": "Field Difficulty",
+                              "width": "fill_container",
+                              "descendants": {
+                                "s5vl0": {
+                                  "content": "Difficulty",
+                                  "opacity": 1,
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "XBKI5": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "lS7Cr": {
+                                  "content": "easy",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "iNdHQ": {
+                                  "fill": "$muted"
+                                },
+                                "ghgxf": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "JhPiI",
+                              "type": "ref",
+                              "ref": "gNnkz",
+                              "name": "Field Game mode",
+                              "width": "fill_container",
+                              "descendants": {
+                                "s5vl0": {
+                                  "content": "Game mode",
+                                  "opacity": 1,
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "XBKI5": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "lS7Cr": {
+                                  "content": "survival",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "iNdHQ": {
+                                  "fill": "$muted"
+                                },
+                                "ghgxf": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "JOCqo",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field Max players",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "Max players",
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "20",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "kl54d": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "ijbEY",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field MOTD",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "MOTD",
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "A Gameplane Minecraft server",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "kl54d": {
+                                  "width": "fill_container"
+                                },
+                                "vdTcx": {
+                                  "content": "Server description shown in the multiplayer list.",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "lineHeight": 1.4
+                                }
+                              }
+                            },
+                            {
+                              "id": "g9fuEp",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field World seed",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "World seed",
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "",
+                                  "fill": "$field/placeholder"
+                                },
+                                "kl54d": {
+                                  "width": "fill_container"
+                                },
+                                "vdTcx": {
+                                  "content": "Leave blank for a random seed.",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "lineHeight": 1.4
+                                }
+                              }
+                            },
+                            {
+                              "id": "MYk2Z",
+                              "type": "ref",
+                              "ref": "gNnkz",
+                              "name": "Field Enforce whitelist",
+                              "width": "fill_container",
+                              "descendants": {
+                                "s5vl0": {
+                                  "content": "Enforce whitelist",
+                                  "opacity": 1,
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "XBKI5": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "lS7Cr": {
+                                  "content": "false",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "iNdHQ": {
+                                  "fill": "$muted"
+                                },
+                                "ghgxf": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "WIB9C",
+                              "type": "ref",
+                              "ref": "gNnkz",
+                              "name": "Field PvP enabled",
+                              "width": "fill_container",
+                              "descendants": {
+                                "s5vl0": {
+                                  "content": "PvP enabled",
+                                  "opacity": 1,
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "XBKI5": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "lS7Cr": {
+                                  "content": "true",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "iNdHQ": {
+                                  "fill": "$muted"
+                                },
+                                "ghgxf": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "xJfWl",
+                              "type": "ref",
+                              "ref": "gNnkz",
+                              "name": "Field Hardcore mode",
+                              "width": "fill_container",
+                              "descendants": {
+                                "s5vl0": {
+                                  "content": "Hardcore mode",
+                                  "opacity": 1,
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "XBKI5": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "lS7Cr": {
+                                  "content": "false",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "iNdHQ": {
+                                  "fill": "$muted"
+                                },
+                                "ghgxf": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "aR0J1",
+                              "type": "ref",
+                              "ref": "gNnkz",
+                              "name": "Field Online mode",
+                              "width": "fill_container",
+                              "descendants": {
+                                "s5vl0": {
+                                  "content": "Online mode",
+                                  "opacity": 1,
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "XBKI5": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "lS7Cr": {
+                                  "content": "true",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "iNdHQ": {
+                                  "fill": "$muted"
+                                },
+                                "Qx06J": {
+                                  "content": "Verify players with Mojang. Disable only for offline/LAN setups."
+                                }
+                              }
+                            },
+                            {
+                              "id": "qXglj",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field View distance (chunks)",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "View distance (chunks)",
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "10",
+                                  "fill": "$foreground/foreground"
+                                },
+                                "kl54d": {
+                                  "opacity": 0,
+                                  "height": 0
+                                }
+                              }
+                            },
+                            {
+                              "id": "Umoe1",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field JVM max heap",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "JVM max heap",
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "Auto: 75% of the memory limit",
+                                  "fill": "$field/placeholder"
+                                },
+                                "kl54d": {
+                                  "width": "fill_container"
+                                },
+                                "vdTcx": {
+                                  "content": "Java heap ceiling (-Xmx, e.g. 2G, 3072M). Leave empty to size it automatically to 75% of the container memory limit — it then tracks the limit whenever you resize the server. If you set it yourself, keep roughly 25% below the limit: the JVM needs headroom for non-heap memory, and exceeding the limit gets the server OOM-killed.",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "lineHeight": 1.4
+                                }
+                              }
+                            },
+                            {
+                              "id": "pvoOT",
+                              "type": "ref",
+                              "ref": "mhMaM",
+                              "name": "Field JVM initial heap",
+                              "width": "fill_container",
+                              "descendants": {
+                                "peFYu": {
+                                  "content": "JVM initial heap",
+                                  "fill": "$muted",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                "RflGC": {
+                                  "fill": "$surface/secondary",
+                                  "stroke": "$border/border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "height": 36
+                                },
+                                "O0VQ2": {
+                                  "content": "Auto: 75% of the memory limit",
+                                  "fill": "$field/placeholder"
+                                },
+                                "kl54d": {
+                                  "width": "fill_container"
+                                },
+                                "vdTcx": {
+                                  "content": "Starting heap size (-Xms), at most JVM max heap. Leave empty to match the automatic max heap (a fixed heap avoids GC resizes).",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "lineHeight": 1.4
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "u42GK",
+                      "name": "Preview",
+                      "clip": true,
+                      "width": 273,
+                      "fill": "$surface/surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "JdmfO",
+                          "name": "PreviewHeader",
+                          "width": "fill_container",
+                          "stroke": "$border/border",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "strokeAlignment": "inner",
+                          "strokeLinejoin": "round",
+                          "gap": 8,
+                          "padding": [
+                            12,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "C4qTzk",
+                              "name": "IconWrap",
+                              "width": 28,
+                              "height": 28,
+                              "fill": "$default/default",
+                              "cornerRadius": 6,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "axnLm",
+                                  "name": "GameIcon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "settings",
+                                  "library": "Material Symbols Sharp",
+                                  "weight": 400,
+                                  "fill": "$muted"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "rYygo",
+                              "name": "TitleGroup",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "KAMsb",
+                                  "name": "Title",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Minecraft (Java Edition)",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "BzBnC",
+                                  "name": "Subtitle",
+                                  "fill": "$muted",
+                                  "content": "Template: minecraft-java",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "g88dd",
+                          "name": "CodeBlockWrap",
+                          "width": "fill_container",
+                          "fill": "#0a0a0a",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "padding": [
+                            12,
+                            14
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Owk4f",
+                              "name": "L0",
+                              "fill": "$muted",
+                              "content": "apiVersion: gameplane.local/v1alpha1",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "G6GfW",
+                              "name": "L1",
+                              "fill": "$muted",
+                              "content": "kind: GameServer",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "F12pr",
+                              "name": "L2",
+                              "fill": "$muted",
+                              "content": "metadata:",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fFgyz",
+                              "name": "L3",
+                              "fill": "$muted",
+                              "content": "  name: mc-survival",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "WyHg3",
+                              "name": "L4",
+                              "fill": "$muted",
+                              "content": "spec:",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "D3vnEw",
+                              "name": "L5",
+                              "fill": "$muted",
+                              "content": "  template: minecraft-java",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Mhjne",
+                              "name": "L6",
+                              "fill": "$muted",
+                              "content": "  version: fabric-1.21.4",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "K2E9Zu",
+                              "name": "L7",
+                              "fill": "$muted",
+                              "content": "  resources:",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "szBfM",
+                              "name": "L8",
+                              "fill": "$muted",
+                              "content": "    cpu: 2000m",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GCfWV",
+                              "name": "L9",
+                              "fill": "$muted",
+                              "content": "    memory: 6Gi",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "QIYPA",
+                              "name": "L10",
+                              "fill": "$muted",
+                              "content": "  storage: 50Gi",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "YYT4O",
+                              "name": "L11",
+                              "fill": "$muted",
+                              "content": "  config:",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EVNoR",
+                              "name": "L12",
+                              "fill": "$muted",
+                              "content": "    motd: \"A Gameplane server\"",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "kcWFZ",
+                              "name": "L13",
+                              "fill": "$muted",
+                              "content": "    maxPlayers: 20",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "uVshr",
+                              "name": "L14",
+                              "fill": "$muted",
+                              "content": "    difficulty: hard",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "gS7l4",
+                              "name": "L15",
+                              "fill": "$muted",
+                              "content": "    gamemode: survival",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "R0WN43",
+                              "name": "L16",
+                              "fill": "$muted",
+                              "content": "    onlineMode: true",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "hpdCH",
+                          "name": "MemoryTip",
+                          "width": "fill_container",
+                          "stroke": "$border/border",
+                          "strokeWidth": {
+                            "top": 1
+                          },
+                          "strokeAlignment": "inner",
+                          "strokeLinejoin": "round",
+                          "padding": [
+                            12,
+                            14
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "nNx5n",
+                              "name": "TipText",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Memory tip — factor in mod/plugin overhead; Minecraft Vanilla uses ~1.5 GB at 4 players.",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "Or9ff",
+                  "type": "ref",
+                  "ref": "IoDHI",
+                  "name": "Footer",
+                  "width": "fill_container"
                 }
               ]
             }

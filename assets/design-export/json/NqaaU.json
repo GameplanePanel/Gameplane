@@ -1,0 +1,808 @@
+{
+  "type": "frame",
+  "id": "NqaaU",
+  "x": 1640,
+  "y": 42130,
+  "name": "Screen/Server Detail — Settings · Resources (Reserve less on)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1000,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "AZLll",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "p8hHD",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "nAKSm",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "KBvJo",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "DPwOC",
+              "type": "ref",
+              "ref": "S4k0x",
+              "name": "Detail Header",
+              "width": "fill_container"
+            },
+            {
+              "id": "GUwll",
+              "type": "ref",
+              "ref": "I9kvlZ",
+              "name": "Tabs Bar",
+              "width": "fill_container",
+              "padding": [
+                0,
+                0,
+                0,
+                24
+              ],
+              "descendants": {
+                "Wp6q1": {
+                  "fill": "#00000000"
+                },
+                "Wp6q1/YUR8N": {
+                  "fill": "$muted"
+                },
+                "Y4QES": {
+                  "fill": "$segment"
+                },
+                "Y4QES/VcxMI": {
+                  "fill": "$foreground/segment"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "b6dV3C",
+              "name": "Settings Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "children": [
+                {
+                  "id": "QnrW1",
+                  "type": "ref",
+                  "ref": "EV8mp",
+                  "name": "Settings Sub Nav",
+                  "width": 224,
+                  "height": "fill_container",
+                  "descendants": {
+                    "axMXL": {
+                      "fill": "#00000000"
+                    },
+                    "nnoXy": {
+                      "fill": "$surface/secondary"
+                    },
+                    "bHNH0": {
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "k7WeNU",
+                  "name": "Settings Panel Wrap",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "z8HDA",
+                      "name": "Settings Form",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Put6Q",
+                          "name": "Form Body",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": 24,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "bqZJN",
+                              "name": "Field CPU",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "q7Ul7",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "hZfcD",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "CPU cores",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "rHjtv",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "Limit: the most CPU this server can use.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "hy9GV",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "height": 36,
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "z6Plw",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "slider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "Gky2W": {
+                                          "enabled": false
+                                        },
+                                        "lJsFB": {
+                                          "width": 70
+                                        },
+                                        "tES7p": {
+                                          "x": 57
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "K5byY",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": 64,
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "2",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "OtD8Z",
+                                      "type": "ref",
+                                      "ref": "cY9fV",
+                                      "name": "unit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "mgenn": {
+                                          "enabled": false
+                                        },
+                                        "WhOPt": {
+                                          "width": "fill_container"
+                                        },
+                                        "c94wTj": {
+                                          "content": "cores"
+                                        },
+                                        "t1Te9C": {
+                                          "x": 82
+                                        },
+                                        "d7Cyay": {
+                                          "enabled": false
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "K3jnh",
+                              "name": "Field Memory",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "AoCgz",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "cNMed",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Memory (GiB)",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "jYTdv",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "Limit: the most memory this server can use.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "TPorp",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "height": 36,
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "c2cPe8",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "slider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "Gky2W": {
+                                          "enabled": false
+                                        },
+                                        "lJsFB": {
+                                          "width": 46
+                                        },
+                                        "tES7p": {
+                                          "x": 33
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "eywZh",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": 64,
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "4",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "Zypbr",
+                                      "type": "ref",
+                                      "ref": "cY9fV",
+                                      "name": "unit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "mgenn": {
+                                          "enabled": false
+                                        },
+                                        "WhOPt": {
+                                          "width": "fill_container"
+                                        },
+                                        "c94wTj": {
+                                          "content": "GiB"
+                                        },
+                                        "t1Te9C": {
+                                          "x": 82
+                                        },
+                                        "d7Cyay": {
+                                          "enabled": false
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "QXA0O",
+                              "name": "Field Reserve less",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "kcSdJ",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "EJ9HI",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Reserve less than the limit",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "z1W8J",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "Off: the server reserves its full CPU and memory (Guaranteed QoS). On: it reserves less, so more servers fit on a node, and uses more up to its limit when the node has room (Burstable QoS).",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "ceSyZ",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "height": 28,
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "IeaMp",
+                                      "type": "ref",
+                                      "ref": "hl7R3",
+                                      "name": "Switch",
+                                      "width": 36,
+                                      "height": 20
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "yWH5R",
+                              "name": "Field Reserved CPU",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Y3vPi",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Bl9Wr",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Reserved CPU",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "kmsMn",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "Counted when the server is placed on a node. 0 reserves nothing.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "fST1a",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "height": 36,
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "FiwFm",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "slider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "Gky2W": {
+                                          "enabled": false
+                                        },
+                                        "lJsFB": {
+                                          "width": 223
+                                        },
+                                        "tES7p": {
+                                          "x": 210
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "eLtw3",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": 64,
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "1",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "vPmPR",
+                                      "type": "ref",
+                                      "ref": "cY9fV",
+                                      "name": "unit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "mgenn": {
+                                          "enabled": false
+                                        },
+                                        "WhOPt": {
+                                          "width": "fill_container"
+                                        },
+                                        "c94wTj": {
+                                          "content": "cores"
+                                        },
+                                        "t1Te9C": {
+                                          "x": 82
+                                        },
+                                        "d7Cyay": {
+                                          "enabled": false
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "KFNkW",
+                              "name": "Field Reserved memory",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "kvxqF",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "DoL4L",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Reserved memory (GiB)",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "u47KX",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "When a node runs out of memory, servers above their reservation are stopped first. Keep it close to real use.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "CEuDC",
+                                  "name": "ctrl",
+                                  "width": "fill_container",
+                                  "height": 36,
+                                  "gap": 12,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "id": "sPVr4",
+                                      "type": "ref",
+                                      "ref": "KWcnQ",
+                                      "name": "slider",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "Gky2W": {
+                                          "enabled": false
+                                        },
+                                        "lJsFB": {
+                                          "width": 223
+                                        },
+                                        "tES7p": {
+                                          "x": 210
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "YkJgP",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Input",
+                                      "width": 64,
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "2",
+                                          "fill": "$foreground/foreground"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "id": "Iip2K",
+                                      "type": "ref",
+                                      "ref": "cY9fV",
+                                      "name": "unit",
+                                      "width": 110,
+                                      "descendants": {
+                                        "mgenn": {
+                                          "enabled": false
+                                        },
+                                        "WhOPt": {
+                                          "width": "fill_container"
+                                        },
+                                        "c94wTj": {
+                                          "content": "GiB"
+                                        },
+                                        "t1Te9C": {
+                                          "x": 82
+                                        },
+                                        "d7Cyay": {
+                                          "enabled": false
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "KAs9Y",
+                              "name": "Field Storage size",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "cepHh",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "n5UuK",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "Storage size",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "R7tWk",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "K8s quantity (e.g. 10Gi, 200Gi). Resizing requires a StorageClass with allowVolumeExpansion: true.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "m6SVG",
+                                  "type": "ref",
+                                  "ref": "D0cDM",
+                                  "name": "Input",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "PJERm": {
+                                      "content": "20Gi",
+                                      "fill": "$foreground/foreground"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Dj2nY",
+                              "name": "Field StorageClass",
+                              "width": "fill_container",
+                              "gap": 16,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "urfz4",
+                                  "name": "lbl",
+                                  "width": 200,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Pkd0L",
+                                      "name": "t",
+                                      "fill": "$foreground/foreground",
+                                      "content": "StorageClass",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "QK3yQ",
+                                      "name": "h",
+                                      "fill": "$muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": 200,
+                                      "content": "Leave blank to use the cluster default.",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "BztzG",
+                                  "type": "ref",
+                                  "ref": "D0cDM",
+                                  "name": "Input",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "PJERm": {
+                                      "content": "fast-ssd",
+                                      "fill": "$foreground/foreground"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "x1ZNpu",
+                          "name": "Form Footer",
+                          "width": "fill_container",
+                          "stroke": "$border/border",
+                          "strokeWidth": {
+                            "top": 1
+                          },
+                          "strokeAlignment": "inner",
+                          "strokeLinejoin": "round",
+                          "gap": 12,
+                          "padding": [
+                            12,
+                            24
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "YiqwR",
+                              "type": "ref",
+                              "ref": "J09iP",
+                              "name": "Btn Discard"
+                            },
+                            {
+                              "id": "GaXjM",
+                              "type": "ref",
+                              "ref": "z9ShNE",
+                              "name": "Btn Save Changes",
+                              "descendants": {
+                                "nWTJb": {
+                                  "enabled": false
+                                },
+                                "IVgQ8/U1xvSo": {
+                                  "content": "Save changes"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -26,6 +26,10 @@ export interface ResourceInputProps {
   step?: number; // slider step in base units
   disabled?: boolean;
   id?: string;
+  // Accessible name of the slider and its fields; defaults to the kind's name
+  // ("CPU cores" / "Memory (GiB)"). Set it when one form has two inputs of the
+  // same kind (e.g. a limit and a reservation) so each keeps a unique name.
+  label?: string;
 }
 
 interface SelectOption {
@@ -88,6 +92,7 @@ export function ResourceInput({
   step: userStep,
   disabled = false,
   id,
+  label,
 }: ResourceInputProps) {
   const defaults = kind === "cpu" ? CPU_DEFAULTS : MEM_DEFAULTS;
   const minBase = userMin ?? defaults.min;
@@ -171,9 +176,10 @@ export function ResourceInput({
 
   const intl = useOptionalIntl();
   const ariaLabel =
-    kind === "cpu"
+    label ??
+    (kind === "cpu"
       ? intl.formatMessage({ id: "web.components.ui.resource_input.cpu_cores", defaultMessage: "CPU cores", description: "Resource input: accessible name of the CPU slider and its fields" })
-      : intl.formatMessage({ id: "web.components.ui.resource_input.memory_gib", defaultMessage: "Memory (GiB)", description: "Resource input: accessible name of the memory slider and its fields" });
+      : intl.formatMessage({ id: "web.components.ui.resource_input.memory_gib", defaultMessage: "Memory (GiB)", description: "Resource input: accessible name of the memory slider and its fields" }));
   const unitOptions = kind === "cpu" ? CPU_UNIT_OPTIONS : MEM_UNIT_OPTIONS;
 
   return (

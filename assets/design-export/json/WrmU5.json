@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "WrmU5",
   "x": 3280,
-  "y": 63669,
+  "y": 63932,
   "name": "Screen/Standalone — Clusters (Registered)",
   "context": "PR #630 standalone deployment; matches current dashboard behavior.",
   "theme": {

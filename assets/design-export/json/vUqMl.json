@@ -9,7 +9,7 @@
   },
   "clip": true,
   "width": 1440,
-  "height": 1920,
+  "height": 1989,
   "fill": "$background/background",
   "children": [
     {
@@ -70,7 +70,7 @@
       "y": 0,
       "name": "ModalContainer",
       "width": 1440,
-      "height": 1920,
+      "height": 1989,
       "fill": "#000000B3",
       "layout": "vertical",
       "justifyContent": "center",
@@ -520,6 +520,57 @@
                               "fontWeight": "normal"
                             }
                           ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "pL1xq",
+                      "name": "ReserveLess",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ZCdGq",
+                          "name": "SwitchRow",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "Ogs2f",
+                              "type": "ref",
+                              "ref": "rh2QH",
+                              "name": "Switch",
+                              "width": 36,
+                              "height": 20
+                            },
+                            {
+                              "type": "text",
+                              "id": "qwB4J",
+                              "name": "Label",
+                              "fill": "$foreground/foreground",
+                              "content": "Reserve less than the limit",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "TvCeZ",
+                          "name": "Helper",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
                         }
                       ]
                     },

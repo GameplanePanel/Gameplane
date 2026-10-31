@@ -575,6 +575,10 @@
     "defaultMessage": "{provider, select, none {The tunnel is enabled but the server has no tunnel configuration.} other {The ''{provider}'' tunnel provider is selected but its configuration is missing.}}",
     "description": "TunnelReady condition for an incomplete tunnel setup. provider is the selected provider, or none."
   },
+  "condition.tunnelready.invalidtailscaletags": {
+    "defaultMessage": "Correct the Tailscale tags: use an optional tag: prefix, a letter first, then only letters, digits or hyphens.",
+    "description": "TunnelReady condition when Tailscale access-control tags have invalid syntax."
+  },
   "condition.tunnelready.nocredentials": {
     "defaultMessage": "No credentials secret was provided, so the ''{provider}'' tunnel cannot authenticate.",
     "description": "TunnelReady condition when a tunnel provider needs credentials that are missing."
@@ -598,10 +602,6 @@
   "condition.tunnelready.unsupportedprotocol": {
     "defaultMessage": "Tailscale forwards only advertised TCP and UDP ports. Remove unsupported protocols from the advertised ports.",
     "description": "TunnelReady condition when a Tailscale template advertises a protocol other than TCP or UDP."
-  },
-  "condition.tunnelready.invalidtailscaletags": {
-    "defaultMessage": "Correct the Tailscale tags: use an optional tag: prefix, a letter first, then only letters, digits or hyphens.",
-    "description": "TunnelReady condition when Tailscale access-control tags have invalid syntax."
   },
   "condition.unquiesced.failed": {
     "defaultMessage": "The server could not be resumed after the backup. Its world may still have auto-save turned off.",
@@ -6235,6 +6235,10 @@
     "defaultMessage": "One CIDR per line. Restricts which clients reach the LoadBalancer; empty allows all.",
     "description": "Create server: hint under the IP allow-list box saying one CIDR goes on each line and an empty list allows all clients to reach the LoadBalancer"
   },
+  "web.routes.create_server.only_the_reserved_amount_counts_when": {
+    "defaultMessage": "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).",
+    "description": "Create server: hint under the reserve-less switch; Burstable QoS is a Kubernetes technical term"
+  },
   "web.routes.create_server.or_use_existing_secret_gitops": {
     "defaultMessage": "Or use existing Secret (GitOps)",
     "description": "Create server: field label for an option to reuse an existing Kubernetes Secret for the tunnel credentials instead of entering them"
@@ -6307,6 +6311,18 @@
     "defaultMessage": "203.0.113.50",
     "description": "Create server: placeholder of the requested load balancer address input, an example IP"
   },
+  "web.routes.create_server.reserve_less_than_the_limit": {
+    "defaultMessage": "Reserve less than the limit",
+    "description": "Create server: label next to the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name"
+  },
+  "web.routes.create_server.reserved_cpu": {
+    "defaultMessage": "Reserved CPU",
+    "description": "Create server: field label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated"
+  },
+  "web.routes.create_server.reserved_memory": {
+    "defaultMessage": "Reserved memory",
+    "description": "Create server: field label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider"
+  },
   "web.routes.create_server.review_all_sources": {
     "defaultMessage": "all",
     "description": "Create server: review value for the IP allow-list when no source range is set, meaning every address is allowed"
@@ -6318,6 +6334,10 @@
   "web.routes.create_server.review_cpu": {
     "defaultMessage": "CPU",
     "description": "Create server: review row label for the CPU limit"
+  },
+  "web.routes.create_server.review_cpu_reserved": {
+    "defaultMessage": "Reserved CPU",
+    "description": "Create server: review row label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on"
   },
   "web.routes.create_server.review_credentials_configured": {
     "defaultMessage": "✓ Configured",
@@ -6354,6 +6374,10 @@
   "web.routes.create_server.review_memory": {
     "defaultMessage": "Memory",
     "description": "Create server: review row label for the memory limit"
+  },
+  "web.routes.create_server.review_memory_reserved": {
+    "defaultMessage": "Reserved memory",
+    "description": "Create server: review row label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on"
   },
   "web.routes.create_server.review_name": {
     "defaultMessage": "Name",
@@ -9543,6 +9567,10 @@
     "defaultMessage": "allowVolumeExpansion: true",
     "description": "Resources: Kubernetes StorageClass field name shown in the storage size hint"
   },
+  "web.routes.tabs.settings.resources.counted_when_the_server_is_placed_on_a": {
+    "defaultMessage": "Counted when the server is placed on a node. 0 reserves nothing.",
+    "description": "Resources: hint under the reserved CPU field saying only this amount counts when the server is placed on a node, and that 0 reserves nothing"
+  },
   "web.routes.tabs.settings.resources.cpu_cores": {
     "defaultMessage": "CPU cores",
     "description": "Resources: field label for the number of CPU cores reserved for the server; CPU is a technical term, usually left untranslated"
@@ -9563,9 +9591,33 @@
     "defaultMessage": "Leave blank to use the cluster default.",
     "description": "Resources: hint under the StorageClass field saying a blank value uses the cluster default storage class"
   },
+  "web.routes.tabs.settings.resources.limit_the_most_cpu_this_server_can_use": {
+    "defaultMessage": "Limit: the most CPU this server can use.",
+    "description": "Resources: hint under the CPU cores field when the reservation may be lower, saying the value is the limit, the most CPU the server can use; CPU is a technical term"
+  },
+  "web.routes.tabs.settings.resources.limit_the_most_memory_this_server_can_use": {
+    "defaultMessage": "Limit: the most memory this server can use.",
+    "description": "Resources: hint under the memory field when the reservation may be lower, saying the value is the limit, the most memory the server can use"
+  },
   "web.routes.tabs.settings.resources.memory_gib": {
     "defaultMessage": "Memory (GiB)",
     "description": "Resources: field label for the memory amount in GiB reserved for the server"
+  },
+  "web.routes.tabs.settings.resources.off_the_server_reserves_its_full_cpu": {
+    "defaultMessage": "Off: the server reserves its full CPU and memory (Guaranteed QoS). On: it reserves less, so more servers fit on a node, and uses more up to its limit when the node has room (Burstable QoS).",
+    "description": "Resources: hint under the reserve-less switch explaining what off and on do; Guaranteed QoS and Burstable QoS are Kubernetes technical terms, CPU is a technical term"
+  },
+  "web.routes.tabs.settings.resources.reserve_less_than_the_limit": {
+    "defaultMessage": "Reserve less than the limit",
+    "description": "Resources: field label for the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name"
+  },
+  "web.routes.tabs.settings.resources.reserved_cpu": {
+    "defaultMessage": "Reserved CPU",
+    "description": "Resources: field label for the CPU reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated"
+  },
+  "web.routes.tabs.settings.resources.reserved_memory_gib": {
+    "defaultMessage": "Reserved memory (GiB)",
+    "description": "Resources: field label for the memory in GiB reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider"
   },
   "web.routes.tabs.settings.resources.resizing_requires_a_storageclass_with": {
     "defaultMessage": "Resizing requires a StorageClass with {setting}.",
@@ -9586,6 +9638,10 @@
   "web.routes.tabs.settings.resources.storageclass": {
     "defaultMessage": "StorageClass",
     "description": "Resources: field label for the optional storage class that provides the server's storage; the hint below says blank uses the cluster default"
+  },
+  "web.routes.tabs.settings.resources.when_a_node_runs_out_of_memory_servers": {
+    "defaultMessage": "When a node runs out of memory, servers above their reservation are stopped first. Keep it close to real use.",
+    "description": "Resources: hint under the reserved memory field warning that servers using more memory than they reserved are stopped first when a node runs out of memory"
   },
   "web.routes.tabs.settings.retry_reload": {
     "defaultMessage": "Retry reload",
