@@ -46,6 +46,8 @@ type row struct {
 // guardCalls maps a helper that takes a condition reason as a string literal
 // to the index of that argument.
 var guardCalls = map[string]int{
+	"hostportCondition":             1,
+	"hostportPending":               0,
 	"markUnhealthy":                 2,
 	"markFailed":                    2,
 	"markPending":                   2,
@@ -119,6 +121,15 @@ var rows = []row{
 	{types: []string{"AddressAssignment"}, reason: "ServiceNotReady", english: "Requested $REQ: waiting for the LoadBalancer Service that carries the request to exist.", description: "AddressAssignment condition before the load-balancer Service exists."},
 	{types: []string{"AddressAssignment"}, reason: "AssignmentPending", english: "Requested $REQ: the address manager has not assigned an address yet.", description: "AddressAssignment condition while the address manager works."},
 	{types: []string{"AddressAssignment"}, reason: "Assigned", english: "{assignedFrom, select, pool {Address {address} assigned from pool ''{pool}''.} other {Address {address} assigned.}}", description: "AddressAssignment condition once an address is assigned. assignedFrom is pool or default."},
+
+	// Hostport endpoint handoff; Ready can mirror the same reason.
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "EndpointNodeUnknown", english: "No game endpoint node has been recorded; start the game before enabling sleep.", description: "Hostport endpoint handoff status: EndpointNodeUnknown."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "EndpointNodeUnavailable", english: "The Hostport endpoint node is missing, replaced or not Ready; restore that node or explicitly migrate the endpoint.", description: "Hostport endpoint handoff status: EndpointNodeUnavailable."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "GameDraining", english: "Waiting for the game Pod to disappear before acquiring its Hostport.", description: "Hostport endpoint handoff status: GameDraining."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "SentinelDraining", english: "Waiting for the sentinel Deployment and Pods to disappear before scheduling the game on its endpoint node.", description: "Hostport endpoint handoff status: SentinelDraining."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "EndpointUnschedulable", english: "The Hostport listener cannot schedule on its endpoint node. Inspect the Pod scheduling events for details.", description: "Hostport endpoint handoff status: EndpointUnschedulable."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "ListenerReady", english: "The listener is Ready on the Hostport endpoint node.", description: "Hostport endpoint handoff status: ListenerReady."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "ListenerPending", english: "Waiting for a Ready listener on the Hostport endpoint node.", description: "Hostport endpoint handoff status: ListenerPending."},
 
 	// GameServer: tunnel and other
 	{types: []string{"TunnelReady"}, reason: "UnsupportedProtocol", english: "Tailscale forwards only advertised TCP and UDP ports. Remove unsupported protocols from the advertised ports.", description: "TunnelReady condition when a Tailscale template advertises a protocol other than TCP or UDP."},

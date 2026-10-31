@@ -408,6 +408,17 @@ class E2ESelectionTests(unittest.TestCase):
         """Return the e2e outputs for a partial-scope change to paths."""
         return e2e_outputs(ROOT, list(paths), None)
 
+    def test_audit_wake_hostport_has_a_run_pattern(self):
+        """Affected components and the owning test file select the audit bucket."""
+        for path in ("operator/internal/controller/gameserver_sentinel.go",
+                     "sentinel/main.go",
+                     "gameproto/minecraft.go",
+                     "test/e2e/hostport_wake_e2e_test.go"):
+            with self.subTest(path=path):
+                values = self.select(path)
+                self.assertIn("TestGameServer_HostportWakeStableEndpoint",
+                              values["e2e-run"].get("wake-hostport", ""))
+
     def test_audit_management_placement_has_a_run_pattern(self):
         """Affected components and the owning test file select the audit bucket."""
         for path in ("operator/cmd/main.go",

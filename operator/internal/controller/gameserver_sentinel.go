@@ -102,8 +102,10 @@ func wakeOnConnectEligible(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1al
 // whether it should exist, and whether the game Service should route to it
 // instead of the game pod.
 type sentinelPlan struct {
-	wantSentinel    bool
-	routeToSentinel bool
+	wantSentinel      bool
+	routeToSentinel   bool
+	blockGame         bool
+	hostportCondition *metav1.Condition
 }
 
 // planSentinel is the single source of truth for the sentinel/game-Service
@@ -132,9 +134,10 @@ type sentinelPlan struct {
 //     terminationGracePeriodSeconds plus the sentinel's shutdown drain
 //     (sentinelShutdownDrainTimeout) keep any handed-through session alive
 //     until it ends on its own; only new connections stop reaching it.
-//   - Hostport: the sentinel and the game pod bind the exact same host
-//     port, so the sentinel cannot outlive the wake decision — the game
-//     pod cannot even schedule until the sentinel releases that port. The
+//   - Hostport: planHostportSentinel records the endpoint node and waits
+//     for actual game Pod deletion before creating a pinned sentinel. On
+//     wake it waits for foreground sentinel deletion and actual Pod drain
+//     before permitting the game to start on that same node. The
 //     sentinel is expected to bounce any clients it is holding with a
 //     protocol-native "waking up, try again shortly" response before the
 //     operator tears it down here; players simply reconnect once the game
@@ -142,6 +145,22 @@ type sentinelPlan struct {
 func (r *GameServerReconciler) planSentinel(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate, idle idleState,
 ) (sentinelPlan, error) {
+	if gs.Spec.Networking.Expose == "Hostport" {
+		eligible := wakeOnConnectEligible(gs, tmpl)
+		if !eligible {
+			idle = idleAwake
+		}
+		plan, err := r.planHostportSentinel(ctx, gs, idle)
+		if err != nil {
+			return plan, err
+		}
+		// A Hostport server that has never used wake keeps its existing
+		// status behavior. Still drain a leftover sentinel when disabling it.
+		if !eligible && gs.Annotations[hostportNodeAnnotation] == "" && !plan.blockGame {
+			return sentinelPlan{}, nil
+		}
+		return plan, nil
+	}
 	if !wakeOnConnectEligible(gs, tmpl) {
 		return sentinelPlan{}, nil
 	}
@@ -157,10 +176,6 @@ func (r *GameServerReconciler) planSentinel(
 	// idle == idleAwake: either a wake was just decided, or the server was
 	// never asleep to begin with — sentinelExists is false in the latter
 	// case, so we return immediately without the extra StatefulSet Get.
-	if gs.Spec.Networking.Expose == "Hostport" {
-		// See the Hostport bullet above: no hold-open window, ever.
-		return sentinelPlan{}, nil
-	}
 	exists, err := r.sentinelExists(ctx, gs.Namespace, gs.Name)
 	if err != nil || !exists {
 		return sentinelPlan{}, err
@@ -206,7 +221,10 @@ func (r *GameServerReconciler) reconcileSentinel(
 	want bool,
 ) error {
 	if !want {
-		return r.deleteSentinel(ctx, gs.Namespace, gs.Name)
+		return r.deleteSentinel(ctx, gs.Namespace, gs.Name, gs.Spec.Networking.Expose == "Hostport")
+	}
+	if gs.Spec.Networking.Expose == "Hostport" && gs.Annotations[hostportNodeAnnotation] == "" {
+		return fmt.Errorf("hostport sentinel requires a persisted endpoint node")
 	}
 
 	// Create or update the sentinel Deployment.
@@ -277,6 +295,16 @@ func (r *GameServerReconciler) reconcileSentinel(
 		dep.Spec.Template.Spec.TerminationGracePeriodSeconds = &graceSeconds
 
 		dep.Spec.Template.Spec.ServiceAccountName = sentinelSAName(gs)
+		if hostPort {
+			dep.Spec.Template.Spec.NodeSelector = gs.Spec.NodeSelector
+			dep.Spec.Template.Spec.Tolerations = gs.Spec.Tolerations
+			dep.Spec.Template.Spec.Affinity = hostportAffinity(gs)
+			dep.Spec.Strategy = appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType}
+		} else {
+			dep.Spec.Template.Spec.NodeSelector = nil
+			dep.Spec.Template.Spec.Tolerations = nil
+			dep.Spec.Template.Spec.Affinity = nil
+		}
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
 			Name:      "sentinel",
 			Image:     image,
@@ -407,12 +435,15 @@ func (r *GameServerReconciler) sentinelIsReady(ctx context.Context, namespace, g
 }
 
 // deleteSentinel removes the sentinel Deployment if it exists.
-func (r *GameServerReconciler) deleteSentinel(ctx context.Context, namespace, gsName string) error {
+func (r *GameServerReconciler) deleteSentinel(ctx context.Context, namespace, gsName string, foreground ...bool) error {
 	dep, exists, err := r.getSentinel(ctx, namespace, gsName)
 	if err != nil || !exists {
 		return err
 	}
 	policy := metav1.DeletePropagationBackground
+	if len(foreground) != 0 && foreground[0] {
+		policy = metav1.DeletePropagationForeground
+	}
 	return client.IgnoreNotFound(r.Delete(ctx, dep, &client.DeleteOptions{PropagationPolicy: &policy}))
 }
 
