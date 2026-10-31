@@ -331,8 +331,9 @@ spec:
         - { protocol: TCP, port: 443 }
         - { protocol: TCP, port: 6443 }
 ---
-# Allow the sentinel to egress to game pods on advertised ports for the proxy path.
-# This is the INGRESS half only, on the game pod's own selector.
+# Legacy sentinel proxy allowance, ingress half. This grants ALL ports between
+# non-isolated sentinels and games. NetworkPolicies are additive; per-server
+# player ingress does not narrow it. Opted-in templates use operator policies.
 # NetworkPolicy requires both sides to agree: the destination (this policy)
 # admits the sentinel, but default-deny-egress's podSelector: {} still
 # governs the sentinel as a SOURCE and only opens DNS. allow-sentinel-to-game-egress
@@ -349,14 +350,17 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: gameplane-game
+    matchExpressions:
+      - { key: gameplane.local/sentinel-isolation, operator: NotIn, values: ["true"] }
   policyTypes: [Ingress]
   ingress:
     - from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: gameplane-waker
-      # All ports; the per-server ingress policy covers which ports are
-      # actually advertised for each server.
+            matchExpressions:
+              - { key: gameplane.local/sentinel-isolation, operator: NotIn, values: ["true"] }
+      # Intentionally unrestricted for templates that have not opted in.
 ---
 # The Egress half of allow-sentinel-to-game (see its comment above): admits
 # the sentinel, as a traffic SOURCE, to reach game pods. Selects the
@@ -374,15 +378,17 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: gameplane-waker
+    matchExpressions:
+      - { key: gameplane.local/sentinel-isolation, operator: NotIn, values: ["true"] }
   policyTypes: [Egress]
   egress:
     - to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: gameplane-game
-      # All ports; allow-sentinel-to-game above (the matching ingress half)
-      # and the per-server ingress policy cover which ports are actually
-      # advertised for each server.
+            matchExpressions:
+              - { key: gameplane.local/sentinel-isolation, operator: NotIn, values: ["true"] }
+      # Intentionally unrestricted for templates that have not opted in.
 {{- end }}
 
 {{- end }}

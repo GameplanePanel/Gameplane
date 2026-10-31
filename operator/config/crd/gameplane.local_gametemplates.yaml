@@ -2113,6 +2113,12 @@ spec:
                     minimum: 0
                     type: integer
                 type: object
+              sentinelIsolation:
+                description: |-
+                  SentinelIsolation restricts a wake sentinel to its own server's advertised
+                  ports. Templates opt in after module connectivity validation; absent or
+                  false retains the legacy namespace-wide sentinel allowances.
+                type: boolean
               storage:
                 description: Storage describes the default persistent storage layout.
                 properties:

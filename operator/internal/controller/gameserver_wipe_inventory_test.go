@@ -106,9 +106,34 @@ func (r *wipeInventoryReader) Get(ctx context.Context, key client.ObjectKey, obj
 
 func (r *wipeInventoryReader) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	if _, ok := list.(*corev1.PodList); ok {
-		r.podLists++
+		options := (&client.ListOptions{}).ApplyOptions(opts)
+		// Wipe inventory deliberately reads every Pod in the namespace so
+		// unlabeled legacy workers remain visible. Filtered safety queries,
+		// such as sentinel opt-out drainage, are separate inventories.
+		if (options.LabelSelector == nil || options.LabelSelector.Empty()) &&
+			(options.FieldSelector == nil || options.FieldSelector.Empty()) {
+			r.podLists++
+		}
 	}
 	return r.Reader.List(ctx, list, opts...)
+}
+
+func TestWipeInventoryReaderSeparatesFilteredPodQueries(t *testing.T) {
+	reader := &wipeInventoryReader{Reader: fake.NewClientBuilder().WithScheme(wipeScheme(t)).Build()}
+	for range 2 {
+		var pods corev1.PodList
+		if err := reader.List(t.Context(), &pods, client.InNamespace("games")); err != nil {
+			t.Fatal(err)
+		}
+		if err := reader.List(t.Context(), &pods, client.InNamespace("games"), client.MatchingLabels{
+			"app.kubernetes.io/instance": "server", sentinelIsolationLabel: "true",
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if reader.podLists != 2 {
+		t.Fatalf("duplicate unfiltered inventories must count independently of sentinel queries: got %d", reader.podLists)
+	}
 }
 
 func TestWipeInventoryIsSharedWithWorkloadMutation(t *testing.T) {

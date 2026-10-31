@@ -552,6 +552,9 @@ gamesNamespace: gameplane-games
 
 networkPolicies:
   enabled: true
+  # Fail closed unless actual kubelet source CIDRs/probe ports and apiserver
+  # endpoint CIDRs are supplied. Defaults retain the legacy broad allowances.
+  strict: false
   # CIDRs that hold kubelet source IPs for liveness/readiness probes.
   # If unset, the chart falls back to RFC1918 + link-local ranges,
   # which cover most clusters without opening the public internet.
