@@ -6,11 +6,34 @@
 
 ## Purpose
 
+### Restricted workload drill (#714)
+
+The dedicated `restricted-workloads` bucket runs on amd64 and arm64. It
+upgrades a compatible existing game to the real enforced PSA profile, asserts
+nonroot config-init/writable data preservation, rejects root admission and an
+incompatible template, and checks agent-only credential mounts. It observes a
+kubelet-projected token hash change (never logs tokens) and a heartbeat after
+the original 600s token expires. Node capture checks exercise audited per-server
+opt-in, traffic-bearing PCAP download, unchanged game Pod UID/restart counts,
+worker cleanup on completion/revocation, and cross-namespace resource cleanup
+after GameServer deletion. Local work compiles test sources only; CI executes
+the drill and all unit/chart regressions.
+The drill explicitly verifies that shared PID remains enabled for agent metrics
+after the Restricted upgrade and after capture completion and revocation.
+
 The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
 
 It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
 
 ## Responsibilities
+
+The operator bucket includes `TestGameServer_TemplateOnRequestRetainsData`: a
+live busybox workload keeps its Pod and old rendered config after a shared
+template update, then admits the exact desired digest and verifies a replacement
+Pod, the same PVC UID, preserved save marker and updated config-init output.
+Operator regression sources cover lifecycle exclusion, old-template graceful
+stop, status reset/leader recovery, exact request binding, snapshot integrity,
+complete pinned render inputs and source-template preservation for CSI restore.
 
 - Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
@@ -92,7 +115,7 @@ This is a name-matching contract, not a structural one:
 
 ## Conventions (already normative via `CLAUDE.md`, restated here for the module's own record)
 
-- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust. These are documented exceptions.
+- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `restricted-workloads` upgrades the shared release and namespace admission policy. These are documented exceptions.
 - **Per-test unique resource names**: CRs, namespaces, and users a test creates get a name unique to that test run (commonly time-based, e.g. `CreateUser`'s `fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())`) so parallel tests never collide on a shared cluster.
 - **`ociPushMu`**: a package-level mutex guarding tests that push through the shared, fixed-name `oras-push` Job (`module_e2e_test.go`, `module_verify_e2e_test.go`). Because the Job's name and namespace are fixed fixtures, two tests racing to apply/wait on it would stomp each other; `ociPushMu.Lock()`/`Unlock()` serializes them.
 - **`ensureResticRepo(t)`**: guards tests that run a backup against the shared restic repository fixture (`backup_e2e_test.go`, `backupschedule_e2e_test.go`, `failure_paths_e2e_test.go`) — restic repo initialization is not safe to race.

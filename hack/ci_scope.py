@@ -29,7 +29,7 @@ FORCE_ALL_FILES = {
 FORCE_ALL_PREFIXES = (".github/actions/",)
 # Mirrors the e2e-go matrix buckets in .github/workflows/ci.yaml.
 E2E_BUCKETS = ["operator", "api-auth", "api-roles", "api-rbac", "api-agent", "api-mods",
-               "telemetry", "optional-components", "management-placement"]
+               "telemetry", "optional-components", "restricted-workloads", "management-placement"]
 E2E_AMD64_ONLY = {"management-placement"}
 SUITES_FILE = "test/e2e/suite-components.json"
 # Paths no Go e2e test reads. Their own jobs keep their paths-filter gates.

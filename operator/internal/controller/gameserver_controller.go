@@ -163,6 +163,11 @@ type GameServerReconciler struct {
 	// per-GameServer; when true, it can be toggled on/off per server.
 	CaptureEnabled bool
 
+	// RestrictedWorkloads applies the opt-in PSA-compatible game profile.
+	RestrictedWorkloads         bool
+	AgentTokenExpirationSeconds int64
+	DiagnosticsNamespace        string
+
 	// CaptureSidecarImage is the container image for the network capture sidecar
 	// injected when capture is enabled on a GameServer. Set from the
 	// --capture-sidecar-image operator flag so air-gapped installs can point it
@@ -262,22 +267,35 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	} else if changed {
 		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
-
-	// Resolve the template this GameServer points at. Templates are
-	// cluster-scoped so no namespace is needed.
-	var tmpl gameplanev1alpha1.GameTemplate
-	if err := r.Get(ctx, types.NamespacedName{Name: gs.Spec.TemplateRef.Name}, &tmpl); err != nil {
-		if apierrors.IsNotFound(err) {
-			return ctrl.Result{RequeueAfter: 15 * time.Second}, r.setPhase(ctx, &gs,
-				fmt.Sprintf("GameTemplate %q not found", gs.Spec.TemplateRef.Name))
-		}
-		return ctrl.Result{}, err
+	// Exposure compatibility depends only on the server. Reject it before
+	// resolving/adopting a template, which may otherwise initiate a rollout.
+	if r.RestrictedWorkloads && gs.Spec.Networking.Expose == "Hostport" {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, "restricted workload cannot use networking.expose=Hostport; use NodePort or LoadBalancer")
 	}
+
+	// Snapshot resolution precedes config, images, init containers, storage,
+	// services and every other template-derived resource.
+	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
+	if err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		return ctrl.Result{RequeueAfter: 15 * time.Second}, r.setPhase(ctx, &gs, err.Error())
+	}
+	if changed {
+		return ctrl.Result{RequeueAfter: time.Second}, nil
+	}
+	tmpl := *effective
 
 	// Resolve spec.config against the template's configSchema before
 	// touching any children: invalid config must fail loudly (mirroring
 	// the missing-template path) instead of materializing a pod that
 	// silently ignores what the user asked for.
+	if r.RestrictedWorkloads {
+		if err := validateRestrictedTemplate(&tmpl); err != nil {
+			return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+		}
+	}
 	mc, err := materializeConfig(&gs, &tmpl)
 	if err != nil {
 		return ctrl.Result{}, r.setPhase(ctx, &gs,
@@ -472,6 +490,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
 	hints := []time.Duration{stopRequeue, idleRequeue}
+	if _, held, _ := lifecycleOwner(&gs); held {
+		hints = append(hints, 5*time.Second)
+	}
 	if plan.wantSentinel {
 		// Bounded backstop for planSentinel's wait on the sentinel or the
 		// game pod. Both are owned (Owns(&appsv1.Deployment{}),
@@ -502,6 +523,7 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&networkingv1.NetworkPolicy{}).
 		Owns(&gameplanev1alpha1.BackupSchedule{}).
 		Owns(&corev1.Secret{}).
+		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&rbacv1.Role{}).
 		Owns(&rbacv1.RoleBinding{}).
@@ -1226,6 +1248,12 @@ func (r *GameServerReconciler) desiredReplicas(
 	}
 	if op, held, err := lifecycleOwner(&live); err != nil {
 		return 0, 0, err
+	} else if held && op.Kind == "Rollout" && !op.Baseline && len(op.Recovery) == 0 && op.Token != live.Annotations[effectiveTemplateAnnotation] {
+		replicas, poll, err := r.softStop(ctx, gs, tmpl)
+		if poll == 0 {
+			poll = restartDrainPoll
+		}
+		return replicas, poll, err
 	} else if held && op.InitialStartup && len(op.Recovery) == 0 {
 		if live.Spec.Suspend {
 			return 0, 5 * time.Second, nil
@@ -1233,7 +1261,7 @@ func (r *GameServerReconciler) desiredReplicas(
 		return 1, 5 * time.Second, nil
 	} else if held && lifecycleRecoveryNeedsStop(op) {
 		return 0, 5 * time.Second, nil
-	} else if held && (op.Kind == "Backup" || len(op.Recovery) != 0) {
+	} else if held && (op.Kind == "Backup" || op.Baseline || len(op.Recovery) != 0) {
 		var ss appsv1.StatefulSet
 		err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
 		if apierrors.IsNotFound(err) {
@@ -1514,6 +1542,9 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		if live.UID != gs.UID {
 			return fmt.Errorf("GameServer changed identity before StatefulSet mutation")
 		}
+		if live.Annotations[effectiveTemplateAnnotation] != gs.Annotations[effectiveTemplateAnnotation] {
+			return fmt.Errorf("effective template changed before StatefulSet mutation")
+		}
 		if owner := metav1.GetControllerOf(ss); owner != nil && owner.UID != live.UID {
 			return fmt.Errorf("StatefulSet belongs to a different GameServer identity")
 		}
@@ -1587,10 +1618,17 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				}
 			}
 		}
+		preserveBaseline, err := r.preserveBaselinePodTemplate(ctx, &live, ss)
+		if err != nil {
+			return err
+		}
 		ss.Spec.Replicas = &actualReplicas
-		if held && (!ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "") {
+		if held && (op.Kind != "Rollout" || op.Token != live.Annotations[effectiveTemplateAnnotation] || len(op.Recovery) != 0) && (!ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "") {
 			// Restore and wipe may stop the existing workload, but rollout
 			// waits until the operation and its worker cleanup have finished.
+			return nil
+		}
+		if preserveBaseline {
 			return nil
 		}
 		ss.Spec.ServiceName = gs.Name
@@ -1599,6 +1637,12 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// Stamp (or clear) the config fingerprint without touching
 		// annotations other actors may have set on the pod template.
 		ann := ss.Spec.Template.Annotations
+		if revision := gs.Annotations[effectiveTemplateAnnotation]; revision != "" {
+			if ann == nil {
+				ann = map[string]string{}
+			}
+			ann[templateRevisionAnnotation] = revision
+		}
 		if mc.hash != "" {
 			if ann == nil {
 				ann = map[string]string{}
@@ -1697,6 +1741,15 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// Same unconditional-assign reasoning: removing template.spec.security
 		// must clear a previously-set pod-level FSGroup, not leave it pinned.
 		ss.Spec.Template.Spec.SecurityContext = gamePodSecurityContext(tmpl)
+		if r.RestrictedWorkloads {
+			if ss.Spec.Template.Annotations == nil {
+				ss.Spec.Template.Annotations = map[string]string{}
+			}
+			ss.Spec.Template.Annotations[workloadSecurityLabel] = "restricted"
+		} else {
+			delete(ss.Spec.Template.Annotations, workloadSecurityLabel)
+		}
+		applyWorkloadSecurity(&ss.Spec.Template.Spec, tmpl, r.RestrictedWorkloads, r.AgentTokenExpirationSeconds)
 		// Default to the per-GameServer SA so the agent's heartbeat can
 		// patch gameservers/status (see reconcileAgentRBAC); an explicit
 		// spec.serviceAccountName still wins.
@@ -1978,6 +2031,10 @@ func (r *GameServerReconciler) reconcileCapture(ctx context.Context, gs *gamepla
 		return fmt.Errorf("get game pod for capture reconciliation: %w", podErr)
 	}
 
+	if r.RestrictedWorkloads || pod.Annotations[workloadSecurityLabel] == "restricted" || (gs.Spec.Capture != nil && gs.Spec.Capture.NodeDiagnostic) {
+		gs.Status.Capture.Ready = r.DiagnosticsNamespace != "" && gs.Spec.Capture.NodeDiagnostic && pod.Status.Phase == corev1.PodRunning
+		return r.patchCaptureStatus(ctx, gs, base)
+	}
 	if !hasCaptureEphemeralContainer(&pod) {
 		image := r.CaptureSidecarImage
 		pod.Spec.EphemeralContainers = append(pod.Spec.EphemeralContainers, buildCaptureEphemeralContainer(image, string(gs.UID)))
@@ -2088,19 +2145,27 @@ func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate
 	image = configInitImageOrDefault(image)
 	mountPath := effectiveMountPath(tmpl)
 	cpCmd := "cp -RL " + configFilesStagingPath + "/* '" + mountPath + "/'"
+	var security *corev1.SecurityContext
 
-	// If fsGroup is set, append a chmod step to make each file and directory
-	// config-init copied group-writable (entries that came from the staging tree;
-	// other files already on the volume keep their modes).
+	// Newly created files must inherit the declared shared group even on
+	// local-path volumes that do not implement kubelet fsGroup ownership.
+	// Only reconcile copied entries; unrelated server data keeps its modes.
 	if tmpl.Spec.Security != nil && tmpl.Spec.Security.FSGroup != nil {
-		cpCmd += " && cd " + configFilesStagingPath + " && find ./* -follow \\( -type f -o -type d \\) | while IFS= read -r p; do chmod g+w '" + mountPath + "/'\"$p\"; done"
+		group := *tmpl.Spec.Security.FSGroup
+		security = &corev1.SecurityContext{RunAsGroup: ptrTo(group)}
+		// Restricted init runs as the game UID. It can overwrite an existing
+		// root-owned, shared-group-writable file, but cannot chmod that file.
+		// Inspect the current group/mode before mutating so repeat starts and
+		// profile upgrades do not require ownership of already-correct files.
+		cpCmd += fmt.Sprintf(" && cd %s && find ./* -follow \\( -type f -o -type d \\) | while IFS= read -r p; do dest='%s/'\"$p\"; group=$(stat -c %%g \"$dest\") || exit 1; [ \"$group\" = %d ] || chgrp %d \"$dest\" || exit 1; mode=$(stat -c %%a \"$dest\") || exit 1; [ $((0$mode & 0020)) -ne 0 ] || chmod g+w \"$dest\" || exit 1; done", configFilesStagingPath, mountPath, group, group)
 	}
 
 	return corev1.Container{
-		Name:      "config-init",
-		Image:     image,
-		Resources: auxiliaryResources(optionalResources(defaults), "25m", "64Mi"),
-		Command:   []string{"/bin/sh", "-c"},
+		Name:            "config-init",
+		Image:           image,
+		Resources:       auxiliaryResources(optionalResources(defaults), "25m", "64Mi"),
+		Command:         []string{"/bin/sh", "-c"},
+		SecurityContext: security,
 		// -L dereferences the kubelet's per-key symlinks; the * glob
 		// skips the ..data/..<timestamp> dot-entries of the Secret mount.
 		Args: []string{cpCmd},
@@ -2387,6 +2452,7 @@ func buildAgentContainer(
 	env := []corev1.EnvVar{
 		{Name: "GAMEPLANE_SERVER_NAME", Value: gs.Name},
 		{Name: "GAMEPLANE_SERVER_UID", Value: string(gs.UID)},
+		{Name: "GAMEPLANE_POD_UID", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.uid"}}},
 		{Name: "GAMEPLANE_TEMPLATE", Value: tmpl.Name},
 		{Name: "GAMEPLANE_GAME", Value: tmpl.Spec.Game},
 		// Games without RCON (consoleMode pty/none) must not have the

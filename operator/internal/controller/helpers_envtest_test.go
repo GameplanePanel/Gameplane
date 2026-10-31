@@ -165,11 +165,10 @@ func startMgr(t *testing.T, ns string, setups ...setupReconciler) client.Client 
 		Scheme: scheme,
 		Logger: logr.Discard(),
 		Cache: cache.Options{
-			// Include the test namespace AND cluster scope (""). Without
-			// the "" entry, controller-runtime's namespace-restricted
-			// cache will refuse to serve reads of cluster-scoped CRDs
-			// like GameTemplate.
-			DefaultNamespaces: map[string]cache.Config{ns: {}, "": {}},
+			// Cluster-scoped kinds use the independent cluster cache. An
+			// empty namespace key means AllNamespaces and would make this
+			// manager reconcile fixtures left by every earlier test.
+			DefaultNamespaces: map[string]cache.Config{ns: {}},
 		},
 		Metrics:                metricsserver.Options{BindAddress: "0"},
 		HealthProbeBindAddress: "0",
@@ -778,6 +777,14 @@ func (f *fakeAgent) Unquiesce(_ context.Context, _, _ string) error {
 	defer f.mu.Unlock()
 	f.nUnquiesce++
 	return f.unquiesceErr
+}
+
+func (f *fakeAgent) CheckPod(context.Context, string, string, string) error { return nil }
+func (f *fakeAgent) QuiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Quiesce(ctx, namespace, server)
+}
+func (f *fakeAgent) UnquiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Unquiesce(ctx, namespace, server)
 }
 
 func (f *fakeAgent) quiesceCount() int {

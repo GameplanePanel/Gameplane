@@ -88,6 +88,12 @@ type LocalObjectRef struct {
 
 // BackupStatus is the observed state of a Backup.
 type BackupStatus struct {
+	// CaptureManifest is recorded once, before the first capture worker starts.
+	// It describes persistent-volume coverage independently of copy success.
+	// Missing on pre-upgrade backups; never reconstruct it from current layout.
+	// +optional
+	CaptureManifest *BackupCaptureManifest `json:"captureManifest,omitempty"`
+
 	// +optional
 	Phase BackupPhase `json:"phase,omitempty"`
 
@@ -126,6 +132,47 @@ type BackupStatus struct {
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
+}
+
+// BackupCaptureManifest pins the layout and quiesce result at capture admission.
+// Recorded coverage does not imply a successful or complete server backup.
+type BackupCaptureManifest struct {
+	// State is Recorded for new captures, LegacyUnknown for an existing worker
+	// whose original layout was never recorded.
+	// +kubebuilder:validation:Enum=Recorded;LegacyUnknown
+	State string `json:"state"`
+	// +optional
+	RecordedAt *metav1.Time `json:"recordedAt,omitempty"`
+	// +optional
+	ServerUID string `json:"serverUID,omitempty"`
+	// +optional
+	Strategy string `json:"strategy,omitempty"`
+	// LayoutSource identifies the frozen workload used for mount paths.
+	// +optional
+	LayoutSource string `json:"layoutSource,omitempty"`
+	// QuiesceOutcome is confirmed, already-stopped, unsupported, not-requested,
+	// agent-unavailable, or unknown, independent of subsequent copy success.
+	// +optional
+	QuiesceOutcome string `json:"quiesceOutcome,omitempty"`
+	// +optional
+	Volumes []BackupVolumeCoverage `json:"volumes,omitempty"`
+}
+
+// BackupVolumeCoverage describes one persistent claim. Extra and loader/mod
+// claims remain uncovered even when mounted beneath the primary data directory.
+type BackupVolumeCoverage struct {
+	ClaimName string `json:"claimName"`
+	// ClaimUID is empty if the claim did not yet exist at admission.
+	// +optional
+	ClaimUID string `json:"claimUID,omitempty"`
+	// +optional
+	MountPaths []string `json:"mountPaths,omitempty"`
+	Included   bool     `json:"included"`
+	// Classification records the module/server declaration at admission;
+	// it does not prove that the volume can actually be reconstructed.
+	// +kubebuilder:validation:Enum=data;rebuildable;unclassified
+	Classification string `json:"classification"`
+	CoverageReason string `json:"reason"`
 }
 
 // +kubebuilder:object:root=true

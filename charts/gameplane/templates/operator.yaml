@@ -138,7 +138,7 @@ rules:
     resources: [gameservers/status, backups/status, backupschedules/status, restores/status, networkcaptures/status]
     verbs: [get, update, patch]
   - apiGroups: ["gameplane.local"]
-    resources: [gameservers/finalizers, backups/finalizers, backupschedules/finalizers, restores/finalizers]
+    resources: [gameservers/finalizers, backups/finalizers, backupschedules/finalizers, restores/finalizers, networkcaptures/finalizers]
     verbs: [update]
   - apiGroups: ["apps"]
     resources: [statefulsets, deployments]
@@ -359,9 +359,16 @@ spec:
             - --control-plane-namespace={{ .Values.operator.controlPlaneNamespace | default .Release.Namespace }}
             - --agent-ca-secret-namespace={{ .Values.operator.agentCASecretNamespace | default .Release.Namespace }}
             - --module-namespace={{ .Values.operator.moduleNamespace | default .Release.Namespace }}
+            - --restricted-workloads={{ .Values.podSecurity.enforceRestricted }}
+            - --agent-token-expiration-seconds={{ .Values.operator.agentTokenExpirationSeconds | default 3600 }}
             {{- if and .Values.capture .Values.capture.enabled }}
             - --capture-enabled=true
             - --capture-sidecar-image={{ include "gameplane.captureImage" . }}
+            {{- $diagnostics := include "gameplane.nodeDiagnostics" . | fromJson }}
+            {{- if $diagnostics.enabled }}
+            - --diagnostics-namespace={{ $diagnostics.namespace }}
+            - --diagnostics-storage-class={{ $diagnostics.storageClass | default "" }}
+            {{- end }}
             - --capture-default-retention-seconds={{ .Values.capture.defaultRetentionSeconds | int64 }}
             - --capture-max-retention-seconds={{ .Values.capture.maxRetentionSeconds | int64 }}
             - --capture-default-max-duration-seconds={{ .Values.capture.defaultMaxDurationSeconds | int64 }}

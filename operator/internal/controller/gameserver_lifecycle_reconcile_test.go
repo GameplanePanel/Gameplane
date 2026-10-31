@@ -52,7 +52,28 @@ func lifecycleGameServerFixture(t *testing.T, gs *gameplanev1alpha1.GameServer, 
 	objects := append([]client.Object{gs, tmpl, caSecret}, extras...)
 	c := fake.NewClientBuilder().WithScheme(s).WithObjects(objects...).
 		WithStatusSubresource(gs, &appsv1.StatefulSet{}, &batchv1.Job{}).Build()
-	return &GameServerReconciler{Client: c, APIReader: c, Scheme: s, AgentCASecretName: caSecret.Name, AgentCASecretNamespace: caSecret.Namespace}
+	r := &GameServerReconciler{Client: c, APIReader: c, Scheme: s, AgentCASecretName: caSecret.Name, AgentCASecretNamespace: caSecret.Namespace}
+	// These regressions start after template admission so their first public
+	// pass exercises lifecycle recovery or the intended annotation conflict.
+	revision, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations == nil {
+		gs.Annotations = map[string]string{}
+	}
+	gs.Annotations[effectiveTemplateAnnotation] = revision
+	if err := c.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	op, held, err := lifecycleOwner(gs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.reportTemplateRevision(t.Context(), gs, revision, op, held); err != nil {
+		t.Fatal(err)
+	}
+	return r
 }
 
 func requireNoWipeJob(t *testing.T, r *GameServerReconciler, gs *gameplanev1alpha1.GameServer) {
@@ -138,7 +159,7 @@ func TestGameServerWipeReconcileDrainsOrphanRestoreStartup(t *testing.T) {
 func TestGameServerWipeReconcileWaitsForPredecessorCleanup(t *testing.T) {
 	gs := wipeGameServer(true, "wipe")
 	gs.Annotations[wipeGuardAnnotation] = "wipe"
-	predecessor := lifecycleIdentity{Kind: "Backup", Name: "deleted", UID: "deleted-backup", TargetUID: gs.UID, NeedsUnquiesce: true}
+	predecessor := lifecycleIdentity{Kind: "Backup", Name: "deleted", UID: "deleted-backup", TargetUID: gs.UID, NeedsUnquiesce: true, QuiescePodUID: "original-game"}
 	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(lifecycleOperation{lifecycleIdentity: wipeLifecycleIdentity(gs, "wipe"), Recovery: []lifecycleIdentity{predecessor}})
 	// A labelled worker still counts even if its Job and PVC mount metadata
 	// are gone. A stopped target alone does not complete predecessor cleanup.

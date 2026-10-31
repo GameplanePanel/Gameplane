@@ -72,6 +72,8 @@ func MountCapture(r chi.Router, reg *kube.Registry, auditor *audit.Auditor, cfg 
 	}
 	r.Post("/servers/{name}:capture-enable", h.captureEnable)
 	r.Post("/servers/{name}:capture-disable", h.captureDisable)
+	r.Post("/servers/{name}:capture-node-enable", h.captureNodeEnable)
+	r.Post("/servers/{name}:capture-node-disable", h.captureNodeDisable)
 	r.Post("/servers/{name}:capture-start", h.captureStart)
 	r.Post("/servers/{name}:capture-stop", h.captureStop)
 	r.Get("/servers/{name}:captures", h.captureList)
@@ -957,7 +959,9 @@ func (h *captureHandler) captureDelete(w http.ResponseWriter, req *http.Request)
 		}
 		deleteErr = deleteCaptureWithUID(req.Context(), k, nc)
 	} else {
-		h.deleteSidecarCaptureFile(req.Context(), gs.Name, gs.Namespace, captureID)
+		if nc.Annotations[kube.NodeCaptureNamespaceAnnotation] == "" {
+			h.deleteSidecarCaptureFile(req.Context(), gs.Name, gs.Namespace, captureID)
+		}
 		deleteErr = k.DeleteNetworkCapture(req.Context(), ns, captureID)
 	}
 
@@ -1099,7 +1103,11 @@ func (h *captureHandler) captureDownload(w http.ResponseWriter, req *http.Reques
 	if isRemoteCluster(req) {
 		status = h.remoteCaptureDownload(w, req, gs, nc)
 	} else {
-		status = h.proxyFileDownload(w, req, host, captureID)
+		if _, _, node, _ := kube.NodeCaptureService(nc); node {
+			status = h.proxyNodeCaptureDownload(w, req, gs, nc)
+		} else {
+			status = h.proxyFileDownload(w, req, host, captureID)
+		}
 	}
 	if status < http.StatusOK || (status >= http.StatusMultipleChoices && status != http.StatusNotModified) {
 		// A disconnect must not also erase the corrective audit outcome.

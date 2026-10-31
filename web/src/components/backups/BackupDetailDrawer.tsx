@@ -9,6 +9,7 @@ import type { Backup } from "@/types";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "./ErrorBanner";
 import { useOptionalIntl } from "@/lib/i18n/format";
+import { useConditionMessage } from "@/lib/i18n/conditionMessage";
 
 interface Props {
   target?: ResourceTarget;
@@ -44,6 +45,8 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
 
   const restorable =
     backup?.status?.phase === "Succeeded" && Boolean(backup.status.snapshotID);
+  const consistency = useConditionMessage(backup?.status?.conditions?.find((c) => c.type === "Consistency"));
+  const manifest = backup?.status?.captureManifest;
 
   return (
     <Drawer
@@ -79,6 +82,30 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
                     <PhaseChip phase={backup.status?.phase} />
                   </Field>
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.server", defaultMessage: "Server", description: "Backup details drawer: field label above the name of the server the backup belongs to" })}>{backup.spec.serverRef.name}</Field>
+                  <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.consistency", defaultMessage: "Achieved consistency", description: "Backup details: actual consistency reported by the controller, independent of successful copying" })}>
+                    {consistency ?? intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.consistency_unknown", defaultMessage: "Consistency has not been reported.", description: "Backup details: no achieved-consistency condition is available" })}
+                  </Field>
+                  <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage", defaultMessage: "Volume coverage", description: "Backup details: persistent claims recorded before the backup copy began" })}>
+                    {manifest?.state === "Recorded" ? (
+                      <div className="space-y-3">
+                        {manifest.recordedAt && <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_recorded", defaultMessage: "Recorded: {time}", description: "Backup details: timestamp of the immutable capture manifest" }, { time: manifest.recordedAt })}</div>}
+                        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_scope", defaultMessage: "Only the primary data claim is copied. Rebuildable is a declaration, not proof that recovery can reconstruct its contents.", description: "Backup details: explains the current single-volume backup scope and rebuildable declarations" })}</p>
+                        <ul className="space-y-3">
+                          {manifest.volumes?.map((volume) => (
+                            <li key={volume.claimName} className="rounded border border-border p-2 space-y-1">
+                              <div className="font-mono text-xs break-all">{volume.claimName}</div>
+                              <div>{volume.included
+                                ? intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.included", defaultMessage: "Included", description: "Backup volume: this claim is selected for copying; success is reported separately" })
+                                : intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.not_covered", defaultMessage: "Not covered", description: "Backup volume: contents of this claim are not included" })}</div>
+                              <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.classification", defaultMessage: "{role, select, data {Data} rebuildable {Rebuildable} other {Unclassified}}", description: "Backup volume: optional declaration from the module or server at capture time" }, { role: volume.classification })}</div>
+                              {volume.mountPaths?.map((path) => <div key={path} className="font-mono text-xs break-all">{path}</div>)}
+                              {volume.reason === "RetainedUnmountedClaim" && <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.retained_unmounted", defaultMessage: "Retained claim; not mounted in the captured workload.", description: "Backup volume: an older server-owned claim was retained but was not part of the observed pod layout" })}</div>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.legacy_coverage", defaultMessage: "Capture-time volume metadata is unavailable. Inspect the original backup and module configuration before recovery.", description: "Backup details: older backups have no reliable volume manifest, so the current template is not used to invent coverage" })}
+                  </Field>
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.snapshot_id", defaultMessage: "Snapshot ID", description: "Backup details drawer: field label above the snapshot identifier of the backup; a dash is shown when there is none" })}>
                     <span className="font-mono text-xs">{backup.status?.snapshotID ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</span>
                   </Field>
