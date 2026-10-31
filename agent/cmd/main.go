@@ -209,6 +209,13 @@ func main() {
 		protected.Use(authCheck.Middleware, target.Guard(serverUID))
 		mountProtected(protected)
 	})
+	// Backups bind save-off/save-on to the process they prepared. The service
+	// may already route to a replacement pod, which must reject the old UID.
+	r.Route("/v1/pods/{uid}", func(protected chi.Router) {
+		protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
+		protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
+		quiesce.Mount(protected, rconClient, gameName, quiesceSpec)
+	})
 
 	srv := &http.Server{
 		Addr:              addr,

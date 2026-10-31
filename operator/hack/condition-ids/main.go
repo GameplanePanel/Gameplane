@@ -142,9 +142,21 @@ var rows = []row{
 	{types: []string{"Completed"}, reason: "Pending", english: "The backup is waiting to start.", description: "Completed condition on a Backup that has not started (dynamic: reason is the phase).", dynamic: true},
 	{types: []string{"Completed"}, reason: "Running", english: "The backup is running.", description: "Completed condition on a Backup in progress (dynamic: reason is the phase).", dynamic: true},
 	{types: []string{"Unquiesced"}, reason: "Unquiesced", english: "The server was resumed after the backup.", description: "Unquiesced condition when the world was unfrozen."},
+	{types: []string{"Unquiesced"}, reason: "SourceProcessGone", english: "The original game process has exited. No resume command was needed.", description: "Unquiesced condition when the original source pod no longer runs."},
 	{types: []string{"Unquiesced"}, reason: "Failed", english: "The server could not be resumed after the backup. Its world may still have auto-save turned off.", description: "Unquiesced condition when the unfreeze failed."},
 	{types: []string{"SnapshotForgotten"}, reason: "Forgotten", english: "The snapshot was removed from the backup repository.", description: "SnapshotForgotten condition after a deleted Backup's snapshot was forgotten."},
 	{types: []string{"SnapshotForgotten"}, reason: "ForgetAbandoned", english: "The snapshot was not removed from the backup repository when the backup was deleted.", description: "SnapshotForgotten condition when the forget step was abandoned."},
+
+	// Consistency is separate from copy completion and volume coverage.
+	{types: []string{"Consistency"}, reason: "CaptureFailed", english: "The capture failed; no usable consistency guarantee was achieved.", description: "Backup achieved consistency: CaptureFailed."},
+	{types: []string{"Consistency"}, reason: "LegacyMetadataUnknown", english: "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template.", description: "Backup achieved consistency: LegacyMetadataUnknown."},
+	{types: []string{"Consistency"}, reason: "CapturePending", english: "The capture has not completed; its achieved consistency is not yet known.", description: "Backup achieved consistency: CapturePending."},
+	{types: []string{"Consistency"}, reason: "Quiesced", english: "The primary volume copy completed after the agent confirmed quiesce. This depends on the module's quiesce commands; other volumes remain outside this backup.", description: "Backup achieved consistency: Quiesced."},
+	{types: []string{"Consistency"}, reason: "StoppedSource", english: "The primary volume copy completed from a source that was already stopped and drained before capture. Other volumes remain outside this backup.", description: "Backup achieved consistency: StoppedSource."},
+	{types: []string{"Consistency"}, reason: "CrashConsistentSnapshot", english: "The primary CSI snapshot is crash-consistent; application quiesce was not confirmed.", description: "Backup achieved consistency: CrashConsistentSnapshot."},
+	{types: []string{"Consistency"}, reason: "UnsupportedRawCopy", english: "The game does not support quiesce. The primary volume was copied while it could still change.", description: "Backup achieved consistency: UnsupportedRawCopy."},
+	{types: []string{"Consistency"}, reason: "AgentUnavailableRawCopy", english: "No agent quiesce capability was configured. The primary volume was copied without pausing game writes.", description: "Backup achieved consistency: AgentUnavailableRawCopy."},
+	{types: []string{"Consistency"}, reason: "RawCopy", english: "The primary volume was copied without confirmed application quiesce.", description: "Backup achieved consistency: RawCopy."},
 
 	// BackupSchedule
 	{types: []string{"ScheduleValid"}, reason: "CronParseError", english: "The schedule is not a valid cron expression.", description: "ScheduleValid condition for an unparseable schedule."},

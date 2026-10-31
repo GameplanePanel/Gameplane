@@ -119,6 +119,7 @@ func (r *BackupReconciler) markVolumeSnapshotRunning(
 			Reason:             string(gameplanev1alpha1.BackupPhaseRunning),
 			ObservedGeneration: b.Generation,
 		})
+		b.Status.Conditions = upsertCondition(b.Status.Conditions, backupConsistencyCondition(b))
 		if err := r.Status().Update(ctx, b); err != nil {
 			return ctrl.Result{}, err
 		}
@@ -159,6 +160,7 @@ func (r *BackupReconciler) completeVolumeSnapshot(
 			Reason:             "Succeeded",
 			ObservedGeneration: b.Generation,
 		})
+		b.Status.Conditions = upsertCondition(b.Status.Conditions, backupConsistencyCondition(b))
 		if err := r.Status().Update(ctx, b); err != nil {
 			return ctrl.Result{}, err
 		}

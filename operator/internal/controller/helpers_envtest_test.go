@@ -780,6 +780,14 @@ func (f *fakeAgent) Unquiesce(_ context.Context, _, _ string) error {
 	return f.unquiesceErr
 }
 
+func (f *fakeAgent) CheckPod(context.Context, string, string, string) error { return nil }
+func (f *fakeAgent) QuiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Quiesce(ctx, namespace, server)
+}
+func (f *fakeAgent) UnquiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Unquiesce(ctx, namespace, server)
+}
+
 func (f *fakeAgent) quiesceCount() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()

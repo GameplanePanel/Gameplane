@@ -1636,7 +1636,35 @@ useful, so readiness falls back to TCP on the game port.
 
 `spec.storage.mountPath` is where the PVC is mounted inside the game
 container. Pick the path the game writes its world/config files to —
-backups snapshot this whole directory.
+backups copy the primary claim mounted here. Separate PVCs mounted beneath
+that directory are not included.
+
+Extra persistent volumes can declare their recovery role:
+
+```yaml
+spec:
+  storage:
+    extra:
+      - name: serverfiles
+        mountPath: /serverfiles
+        size: 10Gi
+        backupRole: rebuildable   # or data
+```
+
+`backupRole: data` identifies recovery data; `rebuildable` declares that the
+contents can be downloaded or reconstructed. Neither includes the extra claim
+in today's single-volume backup. Omission remains valid and appears as
+unclassified/not covered. Do not mark an installation volume rebuildable if it
+also contains unique configuration or mods that cannot be reconstructed.
+The GameServer's existing `spec.storage.extra` override can supply the same field.
+
+The Backup pins its volume list, claim UIDs, observed game-container mount paths
+and these declarations before copying. Template changes do not rewrite that
+record. Nested loader/mod claims and retained server-owned claims remain
+explicitly uncovered. See [backup coverage](operator-operations.md#backup-consistency-and-volume-coverage).
+The module editor schema is derived from the GameTemplate CRD by
+`make module-schema`; publish its regenerated copy in the module repository
+when opting modules into this field.
 
 ## Testing a new module locally
 
