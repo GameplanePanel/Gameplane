@@ -56,6 +56,8 @@ crds:
     pullPolicy: IfNotPresent
 
 operator:
+  # Bound, rotating agent-only token; 600 supports short rotation drills.
+  agentTokenExpirationSeconds: 3600
   # Disable the operator and bundled native CRDs for a standalone central panel.
   enabled: true
   replicas: 1
@@ -719,7 +721,8 @@ grafanaDashboards:
     grafana_dashboard: "1"
 
 podSecurity:
-  enforceRestricted: false   # label gamesNamespace with pod-security.kubernetes.io/enforce=restricted
+  enforceRestricted: false   # require compatible nonroot templates and enforce Restricted game pods
+  version: v1.34             # pinned admission policy; change after testing workload compatibility
 
 # Default ModuleSource shipped with the chart. Disable when you manage
 # ModuleSource resources via GitOps. The operator indexes this source on a
@@ -807,6 +810,14 @@ uploadModuleSource:
 # opt in has no capture sidecar attached. Off by default.
 capture:
   enabled: false
+  # Separate host-capable Linux/containerd worker; each server also needs an
+  # audited administrator opt-in. Never enables privileges in game Pods.
+  nodeDiagnostics:
+    enabled: false
+    namespace: gameplane-diagnostics
+    storageClass: ""
+    maxCaptures: 10
+    storageQuota: 10Gi
   # Default retention window for completed captures (seconds). Per-server overrides
   # are clamped to the cluster maximum below; this is the default when a server does
   # not specify a retention policy.

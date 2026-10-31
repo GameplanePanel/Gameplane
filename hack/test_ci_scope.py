@@ -408,6 +408,16 @@ class E2ESelectionTests(unittest.TestCase):
         """Return the e2e outputs for a partial-scope change to paths."""
         return e2e_outputs(ROOT, list(paths), None)
 
+    def test_audit_restricted_workloads_has_a_run_pattern(self):
+        """The node capture worker and all drill components retain CI coverage."""
+        for path in ("operator/internal/controller/workload_security.go",
+                     "api/internal/handlers/capture_node.go", "agent/cmd/main.go",
+                     "capture-sidecar/internal/nodecapture/worker.go",
+                     "test/e2e/restricted_workloads_e2e_test.go"):
+            with self.subTest(path=path):
+                self.assertIn("TestRestrictedWorkloads_NodeCaptureAndTokenRotation",
+                              self.select(path)["e2e-run"].get("restricted-workloads", ""))
+
     def test_audit_management_placement_has_a_run_pattern(self):
         """Affected components and the owning test file select the audit bucket."""
         for path in ("operator/cmd/main.go",

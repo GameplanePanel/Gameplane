@@ -127,9 +127,15 @@ const captureFileCleanupBudget = 5 * time.Minute
 // over mTLS through the <gs>-agent Service, and monitors completion.
 type NetworkCaptureReconciler struct {
 	client.Client
+	APIReader                        client.Reader
 	Scheme                           *runtime.Scheme
 	SidecarClient                    SidecarCaptureClient
 	CaptureEnabled                   bool
+	RestrictedWorkloads              bool
+	DiagnosticsNamespace             string
+	DiagnosticsStorageClass          string
+	AgentCASecretName                string
+	AgentCASecretNamespace           string
 	CaptureSidecarImage              string
 	CaptureDefaultMaxDurationSeconds int64
 	CaptureDefaultMaxSizeBytes       int64
@@ -165,6 +171,11 @@ func (r *NetworkCaptureReconciler) reconcile(ctx context.Context, req ctrl.Reque
 	var nc gameplanev1alpha1.NetworkCapture
 	if err := r.Get(ctx, req.NamespacedName, &nc); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	if use, err := r.useNodeCapture(ctx, &nc); err != nil {
+		return ctrl.Result{}, err
+	} else if use {
+		return r.reconcileNodeCapture(ctx, &nc)
 	}
 
 	// A user asked for this capture to stop (the API's StopNetworkCapture

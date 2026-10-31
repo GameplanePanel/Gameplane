@@ -1,3 +1,18 @@
+{{- $diagnostics := include "gameplane.nodeDiagnostics" . | fromJson }}
+{{- if $diagnostics.enabled }}
+{{- if or (not .Values.capture.enabled) (ne (include "gameplane.operatorEnabled" .) "true") }}
+{{- fail "capture.nodeDiagnostics requires capture.enabled and the operator" }}
+{{- end }}
+{{- if or (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $diagnostics.namespace)) (gt (len $diagnostics.namespace) 63) (eq $diagnostics.namespace .Values.gamesNamespace) (eq $diagnostics.namespace .Release.Namespace) }}
+{{- fail "capture.nodeDiagnostics.namespace must be a separate explicit DNS-label namespace" }}
+{{- end }}
+{{- if lt (int $diagnostics.maxCaptures) 1 }}
+{{- fail "capture.nodeDiagnostics.maxCaptures must be positive" }}
+{{- end }}
+{{- end }}
+{{- if not (regexMatch "^v1\\.[0-9]+$" (.Values.podSecurity.version | default "v1.34")) }}
+{{- fail "podSecurity.version must pin a Kubernetes minor such as v1.34" }}
+{{- end }}
 {{- if .Values.api.standalone }}
 {{- if ne (include "gameplane.apiEnabled" .) "true" }}
 {{- fail "api.standalone requires api.enabled=true" }}

@@ -224,14 +224,22 @@ type IdleSpec struct {
 type CaptureConfiguration struct {
 	// Enabled: opt-in flag for packet-capture capability on this GameServer.
 	// If false or omitted, no capture sidecar is injected; the game container is unchanged.
-	// If true, the operator injects the capture sidecar as an ephemeral container via
+	// In the legacy profile, the operator injects the capture sidecar via
 	// pods/ephemeralcontainers, live, without restarting the game container.
 	// Disabling (true→false) does not remove the sidecar from a running pod — Kubernetes
 	// has no API to remove ephemeral containers — but stops accepting new captures.
+	// Restricted workloads require NodeDiagnostic instead and never inject a sidecar.
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Type=boolean
 	// +optional
 	Enabled bool `json:"enabled,omitempty"`
+
+	// NodeDiagnostic permits the separately deployed node capture worker for
+	// this server. Application administrators must explicitly opt in. The
+	// worker has host-level capabilities; it never weakens the game Pod.
+	// Required for capture on Restricted workloads. Off by default.
+	// +optional
+	NodeDiagnostic bool `json:"nodeDiagnostic,omitempty"`
 
 	// RetentionSeconds: optional per-GameServer override of the cluster-default retention window
 	// after a capture completes. Unit: seconds. If omitted, the cluster default

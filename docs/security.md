@@ -386,13 +386,32 @@ the image's own default user, which may be root. The operator sets no
 container runtime's defaults. This keeps arbitrary third-party game images
 working unchanged.
 
-Game pods are shaped per-template. For a hostile game module, enable
-Pod Security Standards `restricted` on the games namespace via
-`podSecurity.enforceRestricted=true`.
+`podSecurity.enforceRestricted=true` enables a different workload profile as
+well as Restricted admission. Game and config-init containers use a positive
+template UID/GID, `runAsNonRoot`, no privilege escalation, `drop: [ALL]`, and
+`RuntimeDefault` seccomp. The operator rejects templates without positive
+`security.runAsUser` and `security.fsGroup` (and a positive `runAsGroup` when
+supplied) and Hostport exposure before creating workloads; use NodePort or
+LoadBalancer with Restricted admission. Administrators must choose a compatible
+image and migrate existing data ownership; numeric identities cannot prove
+image compatibility. Enabling the profile rolls existing game Pods once. PSA
+is pinned to `v1.34`; `podSecurity.version` accepts another tested minor.
+Config bootstrap uses the declared fsGroup as its primary group even on
+volumes that do not apply fsGroup ownership automatically. Repeated starts
+preserve already-correct group-write permissions on root-owned config files.
+This does not repair arbitrary pre-existing data ownership after root access
+has been removed; migrate that data before enabling the profile.
+
+In both profiles, automatic ServiceAccount mounts are disabled. Only the agent
+gets a projected, rotating token, CA and namespace at the standard client-go
+path. Game and config-init containers have no token mount. Shared PID remains
+enabled for metrics: processes in one Pod still share a trust boundary.
+`/proc`, matching UIDs, shared files or a compromised agent can undermine mount
+isolation. Restricted is not a safe sandbox for hostile modules.
 
 ### Network Capture Security Exception
 
-The optional network capture feature [optional] (see
+The legacy optional network capture feature [optional] (see
 [`docs/roadmap.md`](roadmap.md)) adds an ephemeral sidecar container to game pods when
 capture is enabled. This sidecar requires **`allowPrivilegeEscalation: true`** in
 its securityContext, which violates the Pod Security Standards `restricted`
@@ -423,35 +442,47 @@ file capability to function.
 
 The game container does not share this exception: the operator never sets
 `allowPrivilegeEscalation: true` on it or adds `NET_RAW` to it, and the capture
-sidecar is the only container Gameplane grants `CAP_NET_RAW` for capture. The
+worker receives explicit `CAP_NET_RAW` for capture. The
 game container keeps the posture described in [Pod security](#pod-security):
 the template's uid/gid or the image's default user, and the container
 runtime's default capability set. Which capabilities the game container holds
 therefore depends on that runtime default and on the user the image runs as,
 not on the capture feature.
 
-**Trade-off with PodSecurity `restricted`**: A cluster enforcing the `restricted`
-Pod Security Standards profile on the games namespace will reject any pod with
-`allowPrivilegeEscalation: true`. If you require `restricted` admission on your
-games namespace, you have three options:
+**Capture with Restricted games** uses a separate node diagnostic worker.
+Enable both `capture.enabled` and `capture.nodeDiagnostics.enabled`, then an
+administrator calls `POST /servers/{name}:capture-node-enable` for each allowed
+server. The API synchronously audits the host-privilege opt-in before changing
+`spec.capture.nodeDiagnostic`; ordinary edits cannot grant it and clones do not
+inherit it. `:capture-node-disable` revokes it and drains active workers. Direct
+Kubernetes administrators can manage the field through their own audited
+GitOps process. The game Pod receives no capture container or restart.
 
-1. **Disable capture** — leave the cluster's capture feature disabled via Helm
-   value `capture.enabled: false` (default is false). Captures are not required
-   for normal operation; this is the safest option if you cannot or prefer not to
-   relax the `restricted` profile.
-2. **Exempt the games namespace** — remove or relax the Pod Security Standards
-   `restricted` enforcement for the games namespace, using `baseline` or
-   `privileged` instead. The games namespace remains an untrusted environment
-   (game code can run arbitrary containers), but the admission level permits the
-   capture sidecar to be injected when needed.
-3. **Leave the games-namespace label off** — the chart only adds the
-   `pod-security.kubernetes.io/enforce: restricted` label to the games namespace
-   when `podSecurity.enforceRestricted=true`; that value defaults to `false`.
-   A default install therefore already leaves the label off, and captures work
-   without any change. If you previously set `podSecurity.enforceRestricted=true`
-   and accept the operational trade-off, set it back to `false` in the Helm
-   values to drop the label. This setting only affects the games `Namespace`
-   object; it has no cluster-wide effect and there is no per-pod opt-in.
+The chart creates a separate `gameplane-diagnostics` namespace (configurable),
+explicitly labeled `privileged`. Deployment policy must permit hostPID, root,
+`SYS_ADMIN`, `SYS_PTRACE`, `NET_RAW` and unconfined seccomp there. This is
+host-level trust: a compromised worker can affect its node despite per-server
+application authorization. It has no Kubernetes token, runtime socket or
+hostPath. It accepts live Kubernetes identities, never user-supplied PIDs or
+paths; checks Pod/container cgroups immediately before and after entering the
+pinned network namespace; and stops when the target changes. Support is
+limited to Linux/containerd, cgroupfs or systemd Pod cgroups, and target `eth0`.
+Host-network and other runtime targets fail closed. Windows, rootless or user
+namespaced runtimes, and nonstandard CNI interfaces are unsupported.
+SELinux/AppArmor may deny these capabilities; capture fails rather than
+broadening privileges.
+
+Each capture is bounded to one hour and 900MiB with a 1Gi PVC. The chart defaults
+to ten captures and a 10Gi storage quota, including retained files. Privileged
+Jobs and Pods are removed on completion, cancellation, revocation or target
+identity change. A separate nonroot Pod serves only UID-bound files and status
+over mTLS. A capture finalizer deletes its same-namespace anchor and waits for
+garbage collection of Pods, PVC, Secret and Service on expiry, capture deletion
+or GameServer deletion. Do not force-remove the finalizer without cleaning its
+labeled diagnostic resources. Keep the operator and diagnostic namespace
+installed until cleanup finishes. Disabling the deployment option deletes the
+diagnostics namespace and retained files. No games-namespace or RuntimeClass
+exemption is used.
 
 **Data sensitivity**: Captures contain binary game protocols, player IP addresses,
 and may include sensitive data like in-game chat or credentials. An admin with

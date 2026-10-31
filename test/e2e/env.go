@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -523,7 +524,9 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 	var rb []byte
 	delay := 2 * time.Second
 	const maxDelay = 30 * time.Second
-	for attempt := 0; attempt < 7; attempt++ {
+	const maxAttempts = 7
+	reconnected := false
+	for attempt := 0; attempt < maxAttempts; attempt++ {
 		req, rerr := http.NewRequestWithContext(t.Context(), http.MethodPost, base+"/auth/login", bytes.NewReader(body))
 		if rerr != nil {
 			stop()
@@ -533,6 +536,15 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 		resp, err = cli.Do(req)
 		if err != nil {
 			stop()
+			// A vanished local listener cannot have received this request.
+			// Reopen once within the existing attempt budget; never replay an
+			// ambiguous read/write failure or reconnect an established session.
+			if !reconnected && attempt+1 < maxAttempts && t.Context().Err() == nil && loginDialRefused(err) {
+				local, stop = e.PortForward(t, "gameplane-system", "svc/gameplane-api", 80)
+				base = fmt.Sprintf("http://127.0.0.1:%d", local)
+				reconnected = true
+				continue
+			}
 			t.Fatalf("login: %v", err)
 		}
 		rb, _ = io.ReadAll(resp.Body)
@@ -558,6 +570,11 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 		t.Fatalf("decode login response: %v\n%s", jerr, string(rb))
 	}
 	return &APIClient{BaseURL: base, CSRF: lr.CSRF, HTTP: cli, stop: stop}
+}
+
+func loginDialRefused(err error) bool {
+	var opErr *net.OpError
+	return errors.As(err, &opErr) && opErr.Op == "dial" && !opErr.Timeout() && errors.Is(opErr.Err, syscall.ECONNREFUSED)
 }
 
 // Close tears down the port-forward backing this client.

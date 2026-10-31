@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: afbe99d46e972c35a07f42486a1f8f6ec895c183017a9d2eef67b7ea07824f6b
+    gameplane.local/crd-bundle-sha256: 5bb7d2029f782e9791e29305f35a91883aa3344fdeb81cb4c28969152578109e
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
@@ -1040,10 +1040,18 @@ spec:
                     description: |-
                       Enabled: opt-in flag for packet-capture capability on this GameServer.
                       If false or omitted, no capture sidecar is injected; the game container is unchanged.
-                      If true, the operator injects the capture sidecar as an ephemeral container via
+                      In the legacy profile, the operator injects the capture sidecar via
                       pods/ephemeralcontainers, live, without restarting the game container.
                       Disabling (true→false) does not remove the sidecar from a running pod — Kubernetes
                       has no API to remove ephemeral containers — but stops accepting new captures.
+                      Restricted workloads require NodeDiagnostic instead and never inject a sidecar.
+                    type: boolean
+                  nodeDiagnostic:
+                    description: |-
+                      NodeDiagnostic permits the separately deployed node capture worker for
+                      this server. Application administrators must explicitly opt in. The
+                      worker has host-level capabilities; it never weakens the game Pod.
+                      Required for capture on Restricted workloads. Off by default.
                     type: boolean
                   retentionSeconds:
                     description: |-

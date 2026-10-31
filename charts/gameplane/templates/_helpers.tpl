@@ -135,6 +135,13 @@ true
 true
 {{- end -}}
 {{- end -}}
+{{- /* Resolve new diagnostics defaults for upgrades using older reuse-values.
+mergeOverwrite preserves explicit zero/empty values so validation can reject them. */ -}}
+{{- define "gameplane.nodeDiagnostics" -}}
+{{- $configured := (.Values.capture | default dict).nodeDiagnostics | default dict -}}
+{{- mergeOverwrite (dict "enabled" false "namespace" "gameplane-diagnostics" "maxCaptures" 10 "storageQuota" "10Gi" "storageClass" "") $configured | toJson -}}
+{{- end -}}
+
 
 {{- /* Shared PodSpec placement fields; absent keys preserve older reuse-values. */ -}}
 {{- define "gameplane.placement" -}}
