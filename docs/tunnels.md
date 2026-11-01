@@ -509,3 +509,8 @@ changes.
   the same security practices as you would for a public-facing LoadBalancer
   (e.g., disable admin consoles, run security updates, restrict in-game
   permissions).
+
+See [relay readiness and registration identity](relay-health.md) for the frp
+UID migration, replacement policy, health probes, retry reset and the pinned
+Playit version's connection-status limitation. An assigned address alone does
+not make a relay ready.

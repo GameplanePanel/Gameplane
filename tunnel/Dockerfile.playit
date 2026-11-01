@@ -55,4 +55,5 @@ COPY --from=build /out/tunnel /tunnel
 COPY --from=playit-stage /out/playitd /usr/local/bin/playitd
 USER 65532:65532
 EXPOSE 25565/tcp 25565/udp
+EXPOSE 8091/tcp
 ENTRYPOINT ["/tunnel"]
