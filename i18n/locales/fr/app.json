@@ -7784,6 +7784,11 @@
     "description": "Create server: hint under the IP allow-list box saying one CIDR goes on each line and an empty list allows all clients to reach the LoadBalancer",
     "sourceHash": "6aa166ea622b"
   },
+  "web.routes.create_server.only_the_reserved_amount_counts_when": {
+    "defaultMessage": "Seule la réservation compte pour placer le serveur sur un nœud, donc plus de serveurs tiennent ; il peut consommer davantage, jusqu'à la limite, quand le nœud a de la marge (QoS Burstable).",
+    "description": "Create server: hint under the reserve-less switch; Burstable QoS is a Kubernetes technical term",
+    "sourceHash": "31fa0fbfa524"
+  },
   "web.routes.create_server.or_use_existing_secret_gitops": {
     "defaultMessage": "Ou utiliser un Secret existant (GitOps)",
     "description": "Create server: field label for an option to reuse an existing Kubernetes Secret for the tunnel credentials instead of entering them",
@@ -7874,6 +7879,21 @@
     "description": "Create server: placeholder of the requested load balancer address input, an example IP",
     "sourceHash": "3b5cd36857cb"
   },
+  "web.routes.create_server.reserve_less_than_the_limit": {
+    "defaultMessage": "Réserver moins que la limite",
+    "description": "Create server: label next to the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name",
+    "sourceHash": "acd9f6270468"
+  },
+  "web.routes.create_server.reserved_cpu": {
+    "defaultMessage": "CPU réservé",
+    "description": "Create server: field label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated",
+    "sourceHash": "db9d058d6d15"
+  },
+  "web.routes.create_server.reserved_memory": {
+    "defaultMessage": "Mémoire réservée",
+    "description": "Create server: field label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on; the same text is the accessible name of its slider",
+    "sourceHash": "31197fb9cc11"
+  },
   "web.routes.create_server.review_all_sources": {
     "defaultMessage": "tout",
     "description": "Create server: review value for the IP allow-list when no source range is set, meaning every address is allowed",
@@ -7888,6 +7908,11 @@
     "defaultMessage": "CPU",
     "description": "Create server: review row label for the CPU limit",
     "sourceHash": "db9a4c7d4c19"
+  },
+  "web.routes.create_server.review_cpu_reserved": {
+    "defaultMessage": "CPU réservé",
+    "description": "Create server: review row label for the CPU reserved for the server (the Kubernetes request), shown when the reserve-less switch is on",
+    "sourceHash": "db9d058d6d15"
   },
   "web.routes.create_server.review_credentials_configured": {
     "defaultMessage": "✓ Configurés",
@@ -7933,6 +7958,11 @@
     "defaultMessage": "Mémoire",
     "description": "Create server: review row label for the memory limit",
     "sourceHash": "c3963aedaac6"
+  },
+  "web.routes.create_server.review_memory_reserved": {
+    "defaultMessage": "Mémoire réservée",
+    "description": "Create server: review row label for the memory reserved for the server (the Kubernetes request), shown when the reserve-less switch is on",
+    "sourceHash": "31197fb9cc11"
   },
   "web.routes.create_server.review_name": {
     "defaultMessage": "Nom",
@@ -11919,6 +11949,11 @@
     "description": "Resources: Kubernetes StorageClass field name shown in the storage size hint",
     "sourceHash": "1980baabd43d"
   },
+  "web.routes.tabs.settings.resources.counted_when_the_server_is_placed_on_a": {
+    "defaultMessage": "Compté pour placer le serveur sur un nœud. 0 ne réserve rien.",
+    "description": "Resources: hint under the reserved CPU field saying only this amount counts when the server is placed on a node, and that 0 reserves nothing",
+    "sourceHash": "31e44a99748f"
+  },
   "web.routes.tabs.settings.resources.cpu_cores": {
     "defaultMessage": "Cœurs CPU",
     "description": "Resources: field label for the number of CPU cores reserved for the server; CPU is a technical term, usually left untranslated",
@@ -11944,10 +11979,40 @@
     "description": "Resources: hint under the StorageClass field saying a blank value uses the cluster default storage class",
     "sourceHash": "9b1e131c4d2c"
   },
+  "web.routes.tabs.settings.resources.limit_the_most_cpu_this_server_can_use": {
+    "defaultMessage": "Limite : le maximum de CPU que ce serveur peut utiliser.",
+    "description": "Resources: hint under the CPU cores field when the reservation may be lower, saying the value is the limit, the most CPU the server can use; CPU is a technical term",
+    "sourceHash": "ff804454a007"
+  },
+  "web.routes.tabs.settings.resources.limit_the_most_memory_this_server_can_use": {
+    "defaultMessage": "Limite : le maximum de mémoire que ce serveur peut utiliser.",
+    "description": "Resources: hint under the memory field when the reservation may be lower, saying the value is the limit, the most memory the server can use",
+    "sourceHash": "a0472520e73f"
+  },
   "web.routes.tabs.settings.resources.memory_gib": {
     "defaultMessage": "Mémoire (GiB)",
     "description": "Resources: field label for the memory amount in GiB reserved for the server",
     "sourceHash": "e360625ba4be"
+  },
+  "web.routes.tabs.settings.resources.off_the_server_reserves_its_full_cpu": {
+    "defaultMessage": "Désactivé : le serveur réserve tout son CPU et sa mémoire (QoS Guaranteed). Activé : il réserve moins, donc plus de serveurs tiennent sur un nœud, et consomme davantage jusqu'à sa limite quand le nœud a de la marge (QoS Burstable).",
+    "description": "Resources: hint under the reserve-less switch explaining what off and on do; Guaranteed QoS and Burstable QoS are Kubernetes technical terms, CPU is a technical term",
+    "sourceHash": "3b08ceae443b"
+  },
+  "web.routes.tabs.settings.resources.reserve_less_than_the_limit": {
+    "defaultMessage": "Réserver moins que la limite",
+    "description": "Resources: field label for the switch that lets the CPU and memory reserved for the server (Kubernetes requests) be lower than its limits; the same text is the switch's accessible name",
+    "sourceHash": "acd9f6270468"
+  },
+  "web.routes.tabs.settings.resources.reserved_cpu": {
+    "defaultMessage": "CPU réservé",
+    "description": "Resources: field label for the CPU reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider; CPU is a technical term, usually left untranslated",
+    "sourceHash": "db9d058d6d15"
+  },
+  "web.routes.tabs.settings.resources.reserved_memory_gib": {
+    "defaultMessage": "Mémoire réservée (GiB)",
+    "description": "Resources: field label for the memory in GiB reserved for the server (the Kubernetes request), shown when the reservation may be lower than the limit; the same text is the accessible name of its slider",
+    "sourceHash": "0d4bcbc433ec"
   },
   "web.routes.tabs.settings.resources.resizing_requires_a_storageclass_with": {
     "defaultMessage": "Le redimensionnement nécessite une StorageClass avec {setting}.",
@@ -11973,6 +12038,11 @@
     "defaultMessage": "StorageClass",
     "description": "Resources: field label for the optional storage class that provides the server's storage; the hint below says blank uses the cluster default",
     "sourceHash": "ca92c8a29fb8"
+  },
+  "web.routes.tabs.settings.resources.when_a_node_runs_out_of_memory_servers": {
+    "defaultMessage": "Quand un nœud manque de mémoire, les serveurs au-delà de leur réservation sont arrêtés en premier. Gardez-la proche de la consommation réelle.",
+    "description": "Resources: hint under the reserved memory field warning that servers using more memory than they reserved are stopped first when a node runs out of memory",
+    "sourceHash": "3092e671b2fe"
   },
   "web.routes.tabs.settings.retry_reload": {
     "defaultMessage": "Réessayer le rechargement",
