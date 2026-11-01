@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "n2qdi",
   "x": 1640,
-  "y": 63669,
+  "y": 63932,
   "name": "Screen/Standalone — Clusters (Empty)",
   "context": "PR #630 standalone deployment; matches current dashboard behavior.",
   "theme": {

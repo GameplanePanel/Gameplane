@@ -1,8 +1,8 @@
 {
   "type": "frame",
-  "id": "paiCe",
+  "id": "A8vGwM",
   "x": 1640,
-  "y": 45867,
+  "y": 46130,
   "name": "Screen/Server Detail — Settings · Lifecycle (Wake on connect unavailable)",
   "theme": {
     "semantic": "dark"
@@ -13,7 +13,7 @@
   "fill": "$background/background",
   "children": [
     {
-      "id": "deRjR",
+      "id": "N7VQ33",
       "type": "ref",
       "ref": "kKFX9",
       "height": "fill_container",
@@ -40,7 +40,7 @@
     },
     {
       "type": "frame",
-      "id": "Atlmk",
+      "id": "D9WMG",
       "name": "Main",
       "width": "fill_container",
       "height": "fill_container",
@@ -48,7 +48,7 @@
       "layout": "vertical",
       "children": [
         {
-          "id": "cjtUG",
+          "id": "dtGzG",
           "type": "ref",
           "ref": "gu5WY",
           "width": "fill_container",
@@ -60,7 +60,7 @@
         },
         {
           "type": "frame",
-          "id": "oVJs5",
+          "id": "cD0Oh",
           "name": "Body",
           "width": "fill_container",
           "height": "fill_container",
@@ -70,14 +70,14 @@
           "padding": 24,
           "children": [
             {
-              "id": "WUlvv",
+              "id": "c1Y5Ok",
               "type": "ref",
               "ref": "S4k0x",
               "name": "Detail Header",
               "width": "fill_container"
             },
             {
-              "id": "v1LJZ",
+              "id": "rERxz",
               "type": "ref",
               "ref": "I9kvlZ",
               "name": "Tabs Bar",
@@ -108,13 +108,13 @@
             },
             {
               "type": "frame",
-              "id": "CRwIb",
+              "id": "akpJ7",
               "name": "Settings Content",
               "width": "fill_container",
               "height": "fill_container",
               "children": [
                 {
-                  "id": "ApyBG",
+                  "id": "e3sKX1",
                   "type": "ref",
                   "ref": "EV8mp",
                   "name": "Settings Sub Nav",
@@ -140,7 +140,7 @@
                 },
                 {
                   "type": "frame",
-                  "id": "Crgw1",
+                  "id": "gteRE",
                   "name": "Settings Panel Wrap",
                   "width": "fill_container",
                   "height": "fill_container",
@@ -148,7 +148,7 @@
                   "children": [
                     {
                       "type": "frame",
-                      "id": "yXufT",
+                      "id": "gKvSB",
                       "name": "Settings Form",
                       "width": "fill_container",
                       "height": "fill_container",
@@ -156,7 +156,7 @@
                       "children": [
                         {
                           "type": "frame",
-                          "id": "xFMbQ",
+                          "id": "MRC9x",
                           "name": "Form Body",
                           "width": "fill_container",
                           "layout": "vertical",
@@ -165,14 +165,14 @@
                           "children": [
                             {
                               "type": "frame",
-                              "id": "kzVau",
+                              "id": "i0diUb",
                               "name": "Field Auto-restart",
                               "width": "fill_container",
                               "gap": 16,
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "neuSP",
+                                  "id": "RPw6X",
                                   "name": "lbl",
                                   "width": 200,
                                   "layout": "vertical",
@@ -180,7 +180,7 @@
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "RGNbQ",
+                                      "id": "kFRnr",
                                       "name": "t",
                                       "fill": "$foreground/foreground",
                                       "content": "Auto-restart",
@@ -190,7 +190,7 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "d8pMME",
+                                      "id": "TbBL1",
                                       "name": "h",
                                       "fill": "$muted",
                                       "textGrowth": "fixed-width",
@@ -204,7 +204,7 @@
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "iu20Z",
+                                  "id": "A41uI",
                                   "name": "ctrl",
                                   "width": "fill_container",
                                   "height": 28,
@@ -212,7 +212,7 @@
                                   "alignItems": "center",
                                   "children": [
                                     {
-                                      "id": "aXAqv",
+                                      "id": "r0Bgr0",
                                       "type": "ref",
                                       "ref": "hl7R3",
                                       "name": "Switch",
@@ -221,7 +221,7 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "snUjA",
+                                      "id": "vkMHE",
                                       "name": "state",
                                       "fill": "$muted",
                                       "content": "Pod is desired Running",
@@ -235,14 +235,14 @@
                             },
                             {
                               "type": "frame",
-                              "id": "Wv58s",
+                              "id": "su7N3",
                               "name": "Field Termination grace period",
                               "width": "fill_container",
                               "gap": 16,
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "k4H6GN",
+                                  "id": "WBqSF",
                                   "name": "lbl",
                                   "width": 200,
                                   "layout": "vertical",
@@ -250,7 +250,7 @@
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "Q9Zspj",
+                                      "id": "Xrd5T",
                                       "name": "t",
                                       "fill": "$foreground/foreground",
                                       "content": "Termination grace period",
@@ -260,7 +260,7 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "TPP0B",
+                                      "id": "aTVe3",
                                       "name": "h",
                                       "fill": "$muted",
                                       "textGrowth": "fixed-width",
@@ -274,14 +274,14 @@
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "n1V0zM",
+                                  "id": "Gbwcj",
                                   "name": "ctrl",
                                   "width": "fill_container",
                                   "gap": 10,
                                   "alignItems": "center",
                                   "children": [
                                     {
-                                      "id": "BBoYI",
+                                      "id": "YuFCv",
                                       "type": "ref",
                                       "ref": "D0cDM",
                                       "name": "Input",
@@ -295,7 +295,7 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "uec4o",
+                                      "id": "P6ALv",
                                       "name": "unit",
                                       "fill": "$muted",
                                       "content": "seconds",
@@ -309,14 +309,14 @@
                             },
                             {
                               "type": "frame",
-                              "id": "nKna1",
+                              "id": "EtIAm",
                               "name": "Field Health probes",
                               "width": "fill_container",
                               "gap": 16,
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "qfBdv",
+                                  "id": "yqHuR",
                                   "name": "lbl",
                                   "width": 200,
                                   "layout": "vertical",
@@ -324,7 +324,7 @@
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "OnEq4",
+                                      "id": "n7xKbU",
                                       "name": "t",
                                       "fill": "$foreground/foreground",
                                       "content": "Health probes",
@@ -334,7 +334,7 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "nscqJ",
+                                      "id": "q4kiTP",
                                       "name": "h",
                                       "fill": "$muted",
                                       "textGrowth": "fixed-width",
@@ -348,7 +348,7 @@
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "CHqsI",
+                                  "id": "Ks9Q9",
                                   "name": "ctrl",
                                   "width": "fill_container",
                                   "layout": "vertical",
@@ -356,7 +356,7 @@
                                   "children": [
                                     {
                                       "type": "frame",
-                                      "id": "B2S69",
+                                      "id": "wjKie",
                                       "name": "Probe Readiness",
                                       "width": "fill_container",
                                       "cornerRadius": 4,
@@ -369,7 +369,7 @@
                                       "children": [
                                         {
                                           "type": "frame",
-                                          "id": "APxES",
+                                          "id": "CBahk",
                                           "name": "hd",
                                           "width": "fill_container",
                                           "justifyContent": "space_between",
@@ -377,7 +377,7 @@
                                           "children": [
                                             {
                                               "type": "text",
-                                              "id": "p8x1J",
+                                              "id": "vfg2j",
                                               "name": "t",
                                               "fill": "$foreground/foreground",
                                               "content": "Readiness",
@@ -387,7 +387,7 @@
                                             },
                                             {
                                               "type": "text",
-                                              "id": "ni5ZJ",
+                                              "id": "HT0Re",
                                               "name": "src",
                                               "fill": "$muted",
                                               "content": "from template",
@@ -399,14 +399,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "V9tZp",
+                                          "id": "R1Weyn",
                                           "name": "row1",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "children": [
                                             {
                                               "type": "frame",
-                                              "id": "mL3D3",
+                                              "id": "tvP6V",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -414,7 +414,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "rdhQm",
+                                                  "id": "jGTHF",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Initial delay",
@@ -423,7 +423,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "u7Mlp",
+                                                  "id": "H9OMNH",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -439,7 +439,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "k0z0Wh",
+                                              "id": "ECVx6",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -447,7 +447,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "WSPSR",
+                                                  "id": "HW9RA",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Period",
@@ -456,7 +456,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "FTBLG",
+                                                  "id": "BeTsJ",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -472,7 +472,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "EDFzg",
+                                              "id": "yubmn",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -480,7 +480,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "vD3Bd",
+                                                  "id": "PlCZ0",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Timeout",
@@ -489,7 +489,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "o2tkDa",
+                                                  "id": "Bx782",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -507,14 +507,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "v16JLq",
+                                          "id": "it9JS",
                                           "name": "row2",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "children": [
                                             {
                                               "type": "frame",
-                                              "id": "feSq6",
+                                              "id": "uoXip",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -522,7 +522,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "DlztU",
+                                                  "id": "FwZDm",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Failure threshold",
@@ -531,7 +531,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "BQViW",
+                                                  "id": "Hpmvn",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -547,7 +547,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "rXQMV",
+                                              "id": "gW08b",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -555,7 +555,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "F6ovdl",
+                                                  "id": "ai90E",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Success threshold",
@@ -564,7 +564,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "y0Wfyo",
+                                                  "id": "GkEPe",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -580,7 +580,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "N4Fsqg",
+                                              "id": "B1kkIy",
                                               "name": "spacer",
                                               "width": "fill_container",
                                               "height": 1,
@@ -592,7 +592,7 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "NLl5e",
+                                      "id": "Tz4II",
                                       "name": "Probe Liveness",
                                       "width": "fill_container",
                                       "cornerRadius": 4,
@@ -605,7 +605,7 @@
                                       "children": [
                                         {
                                           "type": "frame",
-                                          "id": "oj4kR",
+                                          "id": "cizt9",
                                           "name": "hd",
                                           "width": "fill_container",
                                           "justifyContent": "space_between",
@@ -613,7 +613,7 @@
                                           "children": [
                                             {
                                               "type": "text",
-                                              "id": "yCYmU",
+                                              "id": "q6MgB0",
                                               "name": "t",
                                               "fill": "$foreground/foreground",
                                               "content": "Liveness",
@@ -623,7 +623,7 @@
                                             },
                                             {
                                               "type": "text",
-                                              "id": "eTVCX",
+                                              "id": "m6C58",
                                               "name": "src",
                                               "fill": "$muted",
                                               "content": "from template",
@@ -635,14 +635,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "xRTzF",
+                                          "id": "dFjMA",
                                           "name": "row1",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "children": [
                                             {
                                               "type": "frame",
-                                              "id": "rkQk0",
+                                              "id": "PzhTY",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -650,7 +650,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "U9bv8t",
+                                                  "id": "sGd5t",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Initial delay",
@@ -659,7 +659,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "OmkjP",
+                                                  "id": "h3PGEv",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -675,7 +675,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "nUltc",
+                                              "id": "i0Rn2h",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -683,7 +683,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "PbVbP",
+                                                  "id": "vPqFz",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Period",
@@ -692,7 +692,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "FzmwH",
+                                                  "id": "uKAG5",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -708,7 +708,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "UTR3c",
+                                              "id": "GL1ul",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -716,7 +716,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "bV6h1",
+                                                  "id": "c8iP0z",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Timeout",
@@ -725,7 +725,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "AEDpL",
+                                                  "id": "a7nSw",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -743,14 +743,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "Qd7BY",
+                                          "id": "I1zs4",
                                           "name": "row2",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "children": [
                                             {
                                               "type": "frame",
-                                              "id": "jKGkM",
+                                              "id": "NeosO",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -758,7 +758,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "E1E6x",
+                                                  "id": "KnKBw",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Failure threshold",
@@ -767,7 +767,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "I6SrCp",
+                                                  "id": "T2CkHr",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -783,7 +783,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "yVmSd",
+                                              "id": "G5XRr0",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -791,7 +791,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "bdzgD",
+                                                  "id": "FHCul",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Success threshold",
@@ -800,7 +800,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "wyPMu",
+                                                  "id": "v9Ffd1",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -816,7 +816,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "KRUYy",
+                                              "id": "eQMtr",
                                               "name": "spacer",
                                               "width": "fill_container",
                                               "height": 1,
@@ -828,7 +828,7 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "xVZ4I",
+                                      "id": "fOzkm",
                                       "name": "Probe Startup",
                                       "width": "fill_container",
                                       "cornerRadius": 4,
@@ -841,7 +841,7 @@
                                       "children": [
                                         {
                                           "type": "frame",
-                                          "id": "mOGhE",
+                                          "id": "iuV6w",
                                           "name": "hd",
                                           "width": "fill_container",
                                           "justifyContent": "space_between",
@@ -849,7 +849,7 @@
                                           "children": [
                                             {
                                               "type": "text",
-                                              "id": "jwUBN",
+                                              "id": "qrLM7",
                                               "name": "t",
                                               "fill": "$foreground/foreground",
                                               "content": "Startup",
@@ -859,7 +859,7 @@
                                             },
                                             {
                                               "type": "text",
-                                              "id": "rl0Ji",
+                                              "id": "FZbK1",
                                               "name": "src",
                                               "fill": "$muted",
                                               "content": "from template",
@@ -871,14 +871,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "MrPzb",
+                                          "id": "CBNLQ",
                                           "name": "row1",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "children": [
                                             {
                                               "type": "frame",
-                                              "id": "wUcoD",
+                                              "id": "HrxxL",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -886,7 +886,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "lsOIK",
+                                                  "id": "qCTus",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Initial delay",
@@ -895,7 +895,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "td9TD",
+                                                  "id": "W8v0A",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -911,7 +911,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "jx6QT",
+                                              "id": "ocMah",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -919,7 +919,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "taocw",
+                                                  "id": "L6quPJ",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Period",
@@ -928,7 +928,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "DGTpg",
+                                                  "id": "h1TxZ",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -944,7 +944,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "qr0jR",
+                                              "id": "G31fb",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -952,7 +952,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "bn9ZQ",
+                                                  "id": "UlgTE",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Timeout",
@@ -961,7 +961,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "Hfcpj",
+                                                  "id": "nE6rz",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -979,14 +979,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "fpNU7",
+                                          "id": "vce4f",
                                           "name": "row2",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "children": [
                                             {
                                               "type": "frame",
-                                              "id": "f4zwX",
+                                              "id": "POWVF",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -994,7 +994,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "WkZ7W",
+                                                  "id": "orqak",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Failure threshold",
@@ -1003,7 +1003,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "ywIfE",
+                                                  "id": "Act2V",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -1019,7 +1019,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "CapXe",
+                                              "id": "HhDcM",
                                               "name": "f",
                                               "width": "fill_container",
                                               "layout": "vertical",
@@ -1027,7 +1027,7 @@
                                               "children": [
                                                 {
                                                   "type": "text",
-                                                  "id": "qUvN4",
+                                                  "id": "u70Nfe",
                                                   "name": "l",
                                                   "fill": "$muted",
                                                   "content": "Success threshold",
@@ -1036,7 +1036,7 @@
                                                   "fontWeight": "normal"
                                                 },
                                                 {
-                                                  "id": "T5pdJ",
+                                                  "id": "rW31T",
                                                   "type": "ref",
                                                   "ref": "D0cDM",
                                                   "name": "Input",
@@ -1052,7 +1052,7 @@
                                             },
                                             {
                                               "type": "frame",
-                                              "id": "GvZAj",
+                                              "id": "CGJew",
                                               "name": "spacer",
                                               "width": "fill_container",
                                               "height": 1,
@@ -1068,14 +1068,14 @@
                             },
                             {
                               "type": "frame",
-                              "id": "gc4d9",
+                              "id": "x2uV0l",
                               "name": "Field Idle auto-sleep",
                               "width": "fill_container",
                               "gap": 16,
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "R4BUoR",
+                                  "id": "Go2n7",
                                   "name": "lbl",
                                   "width": 200,
                                   "layout": "vertical",
@@ -1083,7 +1083,7 @@
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "Q6a06",
+                                      "id": "KUny4",
                                       "name": "t",
                                       "fill": "$foreground/foreground",
                                       "content": "Idle auto-sleep",
@@ -1093,7 +1093,7 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "XZKXT",
+                                      "id": "ZDteX",
                                       "name": "h",
                                       "fill": "$muted",
                                       "textGrowth": "fixed-width",
@@ -1107,7 +1107,7 @@
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "GYsGk",
+                                  "id": "onYBT",
                                   "name": "ctrl",
                                   "width": "fill_container",
                                   "layout": "vertical",
@@ -1115,7 +1115,7 @@
                                   "children": [
                                     {
                                       "type": "frame",
-                                      "id": "wnUel",
+                                      "id": "k08ihC",
                                       "name": "Enable Row",
                                       "width": "fill_container",
                                       "height": 28,
@@ -1123,14 +1123,14 @@
                                       "alignItems": "center",
                                       "children": [
                                         {
-                                          "id": "d0yd7Z",
+                                          "id": "DO3cG",
                                           "type": "ref",
                                           "ref": "hl7R3",
                                           "name": "Switch"
                                         },
                                         {
                                           "type": "text",
-                                          "id": "JQGA3",
+                                          "id": "j3HWkN",
                                           "fill": "$foreground/foreground",
                                           "content": "Enable idle auto-sleep",
                                           "fontFamily": "$typography/font-sans",
@@ -1141,7 +1141,7 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "jCY7t",
+                                      "id": "haDdS",
                                       "name": "Sleep After Row",
                                       "width": "fill_container",
                                       "gap": 12,
@@ -1149,7 +1149,7 @@
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "tCz4D",
+                                          "id": "XjsPN",
                                           "fill": "$muted",
                                           "textGrowth": "fixed-width",
                                           "width": 80,
@@ -1159,7 +1159,7 @@
                                           "fontWeight": "normal"
                                         },
                                         {
-                                          "id": "UR5cJ",
+                                          "id": "pk7Ru",
                                           "type": "ref",
                                           "ref": "D0cDM",
                                           "name": "Input",
@@ -1173,7 +1173,7 @@
                                         },
                                         {
                                           "type": "text",
-                                          "id": "s6NYr",
+                                          "id": "xPlLK",
                                           "fill": "$muted",
                                           "textGrowth": "fixed-width",
                                           "width": "fill_container",
@@ -1186,7 +1186,7 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "Y5TVT",
+                                      "id": "N0t3r",
                                       "name": "Wake Windows Section",
                                       "width": "fill_container",
                                       "layout": "vertical",
@@ -1194,7 +1194,7 @@
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "yuSDg",
+                                          "id": "hlGf8",
                                           "fill": "$muted",
                                           "content": "Wake windows",
                                           "fontFamily": "$typography/font-sans",
@@ -1203,14 +1203,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "rXfdm",
+                                          "id": "U3z6F",
                                           "name": "Wake Window Row 1",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "alignItems": "center",
                                           "children": [
                                             {
-                                              "id": "jtKLy",
+                                              "id": "a34vH",
                                               "type": "ref",
                                               "ref": "D0cDM",
                                               "name": "Input",
@@ -1224,7 +1224,7 @@
                                               }
                                             },
                                             {
-                                              "id": "Jgi28",
+                                              "id": "f7oc1G",
                                               "type": "ref",
                                               "ref": "AaE0a",
                                               "name": "Btn Remove",
@@ -1242,14 +1242,14 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "fxvS8",
+                                          "id": "AErDK",
                                           "name": "Wake Window Row 2",
                                           "width": "fill_container",
                                           "gap": 8,
                                           "alignItems": "center",
                                           "children": [
                                             {
-                                              "id": "yUEUP",
+                                              "id": "MaeRd",
                                               "type": "ref",
                                               "ref": "D0cDM",
                                               "name": "Input",
@@ -1263,7 +1263,7 @@
                                               }
                                             },
                                             {
-                                              "id": "bi3ks",
+                                              "id": "eXpoW",
                                               "type": "ref",
                                               "ref": "AaE0a",
                                               "name": "Btn Remove",
@@ -1280,7 +1280,7 @@
                                           ]
                                         },
                                         {
-                                          "id": "d3ip4d",
+                                          "id": "ZjmgT",
                                           "type": "ref",
                                           "ref": "rNhll",
                                           "name": "Btn Add Wake Window",
@@ -1296,7 +1296,7 @@
                                         },
                                         {
                                           "type": "text",
-                                          "id": "p8PuG",
+                                          "id": "EGTfR",
                                           "fill": "$muted",
                                           "content": "Standard five-field cron. Max 8 entries.",
                                           "fontFamily": "$typography/font-sans",
@@ -1307,7 +1307,7 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "SefZt",
+                                      "id": "lbmNu",
                                       "name": "Wake On Connect Section",
                                       "width": "fill_container",
                                       "layout": "vertical",
@@ -1315,7 +1315,7 @@
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "xOYkg",
+                                          "id": "cWbJF",
                                           "name": "Label",
                                           "fill": "$muted",
                                           "content": "Wake on connect",
@@ -1325,7 +1325,7 @@
                                         },
                                         {
                                           "type": "frame",
-                                          "id": "l1LaW",
+                                          "id": "ZCWgU",
                                           "name": "Wake On Connect Row",
                                           "width": "fill_container",
                                           "height": 28,
@@ -1333,7 +1333,7 @@
                                           "alignItems": "center",
                                           "children": [
                                             {
-                                              "id": "K8pzA",
+                                              "id": "g3u7u",
                                               "type": "ref",
                                               "ref": "rh2QH",
                                               "opacity": 0.5,
@@ -1343,7 +1343,7 @@
                                             },
                                             {
                                               "type": "text",
-                                              "id": "L2Kqh",
+                                              "id": "DpDc6",
                                               "name": "Switch Label",
                                               "fill": "$muted",
                                               "content": "Wake the server when a player connects",
@@ -1355,7 +1355,7 @@
                                         },
                                         {
                                           "type": "text",
-                                          "id": "dzLx3",
+                                          "id": "DJ7sb",
                                           "name": "Helper",
                                           "fill": "$muted",
                                           "textGrowth": "fixed-width",
@@ -1370,14 +1370,14 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "WkCpc",
+                                      "id": "oKWUe",
                                       "name": "Caveat Row",
                                       "width": "fill_container",
                                       "gap": 8,
                                       "children": [
                                         {
                                           "type": "icon",
-                                          "id": "vXuMv",
+                                          "id": "a5SxI",
                                           "width": 13,
                                           "height": 13,
                                           "icon": "info",
@@ -1386,7 +1386,7 @@
                                         },
                                         {
                                           "type": "text",
-                                          "id": "yEu7T",
+                                          "id": "mXBm5",
                                           "fill": "$muted",
                                           "textGrowth": "fixed-width",
                                           "width": "fill_container",
@@ -1399,14 +1399,14 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "c62mES",
+                                      "id": "A4UnIb",
                                       "name": "Caveat Row",
                                       "width": "fill_container",
                                       "gap": 8,
                                       "children": [
                                         {
                                           "type": "icon",
-                                          "id": "B70Sie",
+                                          "id": "uzUdN",
                                           "width": 13,
                                           "height": 13,
                                           "icon": "info",
@@ -1415,7 +1415,7 @@
                                         },
                                         {
                                           "type": "text",
-                                          "id": "AznhT",
+                                          "id": "T5ygp9",
                                           "fill": "$muted",
                                           "textGrowth": "fixed-width",
                                           "width": "fill_container",
@@ -1434,7 +1434,7 @@
                         },
                         {
                           "type": "frame",
-                          "id": "Ajbci",
+                          "id": "u23qy",
                           "name": "Form Footer",
                           "width": "fill_container",
                           "stroke": "$border/border",
@@ -1452,13 +1452,13 @@
                           "alignItems": "center",
                           "children": [
                             {
-                              "id": "B5VMJw",
+                              "id": "E7b0jT",
                               "type": "ref",
                               "ref": "J09iP",
                               "name": "Btn Discard"
                             },
                             {
-                              "id": "oTC8k",
+                              "id": "o0UP1",
                               "type": "ref",
                               "ref": "z9ShNE",
                               "name": "Btn Save Changes",

@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "O08uaD",
   "x": 6560,
-  "y": 36707,
+  "y": 36870,
   "name": "Screen/Server Detail — Capture — Start capture",
   "context": "Start Capture for remote-lab. Values illustrate that selected site: defaults and ceilings come from its capability response, independently of central settings.",
   "theme": {
