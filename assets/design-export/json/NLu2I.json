@@ -1,0 +1,1718 @@
+{
+  "type": "frame",
+  "id": "NLu2I",
+  "x": 1640,
+  "y": 18792,
+  "name": "Screen/Create Server — Step 3 Configure (Reserve less on)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 2083,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "X6KaEm",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "h0BQw",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "rNbjK",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "TopBar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "New"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ZPGUD",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 0,
+      "name": "ModalContainer",
+      "width": 1440,
+      "height": 2083,
+      "fill": "#000000B3",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "P0qcMy",
+          "name": "Modal",
+          "clip": true,
+          "width": 960,
+          "fill": "$surface/surface",
+          "cornerRadius": 12,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#00000080",
+            "offset": {
+              "x": 0,
+              "y": 24
+            },
+            "blur": 60
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "id": "OEG8W",
+              "type": "ref",
+              "ref": "opmcF",
+              "name": "Header",
+              "width": "fill_container",
+              "descendants": {
+                "gcM6g": {
+                  "content": "Step 3 of 5 · Configure"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "nZAjc",
+              "name": "Location placement",
+              "context": "Only authorized template/location combinations; changing location starts a fresh draft. Freeze chosen target during submission.",
+              "width": "fill_container",
+              "stroke": "$border/border",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 5,
+              "padding": [
+                12,
+                24
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mtHaM",
+                  "name": "Location label",
+                  "fill": "$foreground/foreground",
+                  "content": "Location",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "vX9vX",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Creation location",
+                  "width": "fill_container",
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "remote-lab / gameplane-games",
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "O4SCTZ",
+                  "name": "Changing location help",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Changing location starts a fresh draft. The chosen location handles all creation steps.",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "TktvJ",
+              "type": "ref",
+              "ref": "oROhg",
+              "name": "Stepper",
+              "width": "fill_container",
+              "descendants": {
+                "F3Au7j": {
+                  "fill": "#00000000",
+                  "stroke": "$border/border"
+                },
+                "jq5x7": {
+                  "fill": "$muted"
+                },
+                "bSERJ": {
+                  "fill": "$muted",
+                  "fontWeight": "normal"
+                },
+                "xzVlE": {
+                  "fill": "$accent/soft",
+                  "stroke": "$accent/accent"
+                },
+                "F3O7DI": {
+                  "fill": "$accent/accent"
+                },
+                "FqG7u": {
+                  "fill": "$foreground/foreground",
+                  "fontWeight": "500"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "Srvqs",
+              "name": "Body",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jigt8",
+                  "name": "StepBody",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "SVtQw",
+                      "type": "ref",
+                      "ref": "mhMaM",
+                      "name": "Field Server name",
+                      "width": "fill_container",
+                      "descendants": {
+                        "peFYu": {
+                          "content": "Server name"
+                        },
+                        "RflGC": {
+                          "fill": "$surface/secondary",
+                          "stroke": "$border/border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner"
+                        },
+                        "O0VQ2": {
+                          "content": "mc-survival",
+                          "fill": "$foreground/foreground"
+                        },
+                        "kl54d": {
+                          "width": "fill_container"
+                        },
+                        "vdTcx": {
+                          "content": "Used as pod name and subdomain. Lowercase, dash-separated.",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "lineHeight": 1.4
+                        }
+                      }
+                    },
+                    {
+                      "id": "NwxYN",
+                      "type": "ref",
+                      "ref": "LCQU3",
+                      "name": "Field Description",
+                      "width": "fill_container",
+                      "descendants": {
+                        "it5w4": {
+                          "content": "Description"
+                        },
+                        "DzfNP": {
+                          "fill": "$surface/secondary",
+                          "stroke": "$border/border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "height": 72
+                        },
+                        "usWsj": {
+                          "content": "Hardcore survival realm with curated mods. Invite only.",
+                          "fill": "$foreground/foreground"
+                        },
+                        "Z9i98U": {
+                          "opacity": 0,
+                          "height": 0
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "q8Et7T",
+                      "name": "ResourceRow",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "r92klp",
+                          "name": "Field",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "gLxq2",
+                              "name": "Label",
+                              "opacity": 0,
+                              "fill": "$muted",
+                              "content": "CPU",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "gTZ7d",
+                              "name": "CtrlRow",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "Aitgu",
+                                  "type": "ref",
+                                  "ref": "KWcnQ",
+                                  "name": "CpuSlider",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "x2jDfP": {
+                                      "content": "CPU"
+                                    },
+                                    "lJsFB": {
+                                      "width": 170
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "KzWwE",
+                                  "type": "ref",
+                                  "ref": "aRqX6",
+                                  "name": "CpuValue",
+                                  "width": 64,
+                                  "descendants": {
+                                    "ANxU1": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "K5pqlT": {
+                                      "height": 36,
+                                      "justifyContent": "center",
+                                      "fill": "$field/background",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner"
+                                    },
+                                    "hokJ3": {
+                                      "content": "2",
+                                      "fill": "$foreground/foreground",
+                                      "fontWeight": "500"
+                                    },
+                                    "OiyAM": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "M89954",
+                                  "type": "ref",
+                                  "ref": "gNnkz",
+                                  "name": "CpuUnit",
+                                  "width": 110,
+                                  "descendants": {
+                                    "s5vl0": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "XBKI5": {
+                                      "fill": "$surface/secondary",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner",
+                                      "height": 36
+                                    },
+                                    "lS7Cr": {
+                                      "content": "cores",
+                                      "fill": "$foreground/foreground"
+                                    },
+                                    "iNdHQ": {
+                                      "fill": "$muted",
+                                      "x": 82,
+                                      "y": 10
+                                    },
+                                    "ghgxf": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "B8NdB",
+                              "name": "Helper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Max 4 (largest node)",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YOXcw",
+                          "name": "Field",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "YPxHO",
+                              "name": "Label",
+                              "opacity": 0,
+                              "fill": "$muted",
+                              "content": "Memory",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "S1V2ab",
+                              "name": "CtrlRow",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "jTSnP",
+                                  "type": "ref",
+                                  "ref": "KWcnQ",
+                                  "name": "MemSlider",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "x2jDfP": {
+                                      "content": "Memory"
+                                    },
+                                    "lJsFB": {
+                                      "width": 156
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "TpLw6",
+                                  "type": "ref",
+                                  "ref": "aRqX6",
+                                  "name": "MemValue",
+                                  "width": 64,
+                                  "descendants": {
+                                    "ANxU1": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "K5pqlT": {
+                                      "height": 36,
+                                      "justifyContent": "center",
+                                      "fill": "$field/background",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner"
+                                    },
+                                    "hokJ3": {
+                                      "content": "4",
+                                      "fill": "$foreground/foreground",
+                                      "fontWeight": "500"
+                                    },
+                                    "OiyAM": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "Qx9tv",
+                                  "type": "ref",
+                                  "ref": "gNnkz",
+                                  "name": "MemUnit",
+                                  "width": 110,
+                                  "descendants": {
+                                    "s5vl0": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "XBKI5": {
+                                      "fill": "$surface/secondary",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner",
+                                      "height": 36
+                                    },
+                                    "lS7Cr": {
+                                      "content": "GiB",
+                                      "fill": "$foreground/foreground"
+                                    },
+                                    "iNdHQ": {
+                                      "fill": "$muted",
+                                      "x": 82,
+                                      "y": 10
+                                    },
+                                    "ghgxf": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "nRzf7",
+                              "name": "Helper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Max 13 GiB (largest node)",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "f1qkX",
+                      "name": "ReserveLess",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "OkCYS",
+                          "name": "SwitchRow",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "rOrhH",
+                              "type": "ref",
+                              "ref": "hl7R3",
+                              "name": "Switch",
+                              "width": 36,
+                              "height": 20
+                            },
+                            {
+                              "type": "text",
+                              "id": "jKGK6",
+                              "name": "Label",
+                              "fill": "$foreground/foreground",
+                              "content": "Reserve less than the limit",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "F7PXER",
+                          "name": "Helper",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Only the reserved amount counts when the server is placed on a node, so more servers fit; it can use more, up to the limit, when the node has room (Burstable QoS).",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "w0lzM",
+                      "name": "ReservedRow",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aBe3q",
+                          "name": "Field",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "e73GX",
+                              "name": "Label",
+                              "opacity": 0,
+                              "fill": "$muted",
+                              "content": "Reserved CPU",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "zV9Wc",
+                              "name": "CtrlRow",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "gYGPQ",
+                                  "type": "ref",
+                                  "ref": "KWcnQ",
+                                  "name": "ReservedCpuSlider",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "x2jDfP": {
+                                      "content": "Reserved CPU"
+                                    },
+                                    "lJsFB": {
+                                      "width": 58
+                                    },
+                                    "tES7p": {
+                                      "x": 45
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "BiGfM",
+                                  "type": "ref",
+                                  "ref": "aRqX6",
+                                  "name": "ReservedCpuValue",
+                                  "width": 64,
+                                  "descendants": {
+                                    "ANxU1": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "K5pqlT": {
+                                      "height": 36,
+                                      "justifyContent": "center",
+                                      "fill": "$field/background",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner"
+                                    },
+                                    "hokJ3": {
+                                      "content": "1",
+                                      "fill": "$foreground/foreground",
+                                      "fontWeight": "500"
+                                    },
+                                    "OiyAM": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "eYGak",
+                                  "type": "ref",
+                                  "ref": "gNnkz",
+                                  "name": "ReservedCpuUnit",
+                                  "width": 110,
+                                  "descendants": {
+                                    "s5vl0": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "XBKI5": {
+                                      "fill": "$surface/secondary",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner",
+                                      "height": 36
+                                    },
+                                    "lS7Cr": {
+                                      "content": "cores",
+                                      "fill": "$foreground/foreground"
+                                    },
+                                    "iNdHQ": {
+                                      "fill": "$muted",
+                                      "x": 82,
+                                      "y": 10
+                                    },
+                                    "ghgxf": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lH7lt",
+                          "name": "Field",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "sfe01",
+                              "name": "Label",
+                              "opacity": 0,
+                              "fill": "$muted",
+                              "content": "Reserved memory",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "qeJ1m",
+                              "name": "CtrlRow",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "zKPtD",
+                                  "type": "ref",
+                                  "ref": "KWcnQ",
+                                  "name": "ReservedMemSlider",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "x2jDfP": {
+                                      "content": "Reserved memory"
+                                    },
+                                    "lJsFB": {
+                                      "width": 58
+                                    },
+                                    "tES7p": {
+                                      "x": 45
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "QdGZi",
+                                  "type": "ref",
+                                  "ref": "aRqX6",
+                                  "name": "ReservedMemValue",
+                                  "width": 64,
+                                  "descendants": {
+                                    "ANxU1": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "K5pqlT": {
+                                      "height": 36,
+                                      "justifyContent": "center",
+                                      "fill": "$field/background",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner"
+                                    },
+                                    "hokJ3": {
+                                      "content": "2",
+                                      "fill": "$foreground/foreground",
+                                      "fontWeight": "500"
+                                    },
+                                    "OiyAM": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "zmspD",
+                                  "type": "ref",
+                                  "ref": "gNnkz",
+                                  "name": "ReservedMemUnit",
+                                  "width": 110,
+                                  "descendants": {
+                                    "s5vl0": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    },
+                                    "XBKI5": {
+                                      "fill": "$surface/secondary",
+                                      "stroke": "$border/border",
+                                      "strokeWidth": 1,
+                                      "strokeAlignment": "inner",
+                                      "height": 36
+                                    },
+                                    "lS7Cr": {
+                                      "content": "GiB",
+                                      "fill": "$foreground/foreground"
+                                    },
+                                    "iNdHQ": {
+                                      "fill": "$muted",
+                                      "x": 82,
+                                      "y": 10
+                                    },
+                                    "ghgxf": {
+                                      "opacity": 0,
+                                      "height": 0
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "i9SAhi",
+                      "name": "StoragePlacementRow",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "id": "ns3t0",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field Persistent storage",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "Persistent storage"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "20Gi",
+                              "fill": "$foreground/foreground"
+                            },
+                            "kl54d": {
+                              "width": "fill_container"
+                            },
+                            "vdTcx": {
+                              "content": "Mounted at /data (RWO PVC).",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "lineHeight": 1.4
+                            }
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "qRtCa",
+                          "name": "NodePlacement",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "UnwYg",
+                              "name": "Label",
+                              "fill": "$muted",
+                              "content": "Node placement",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "v7FdYO",
+                              "name": "Segmented",
+                              "fill": "#00000000",
+                              "cornerRadius": 6,
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "gap": 4,
+                              "padding": 4,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "mA6So",
+                                  "name": "Seg",
+                                  "height": 28,
+                                  "fill": "$accent/soft",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "p81wg8",
+                                      "name": "Label",
+                                      "fill": "$accent/accent",
+                                      "content": "Auto (scheduler)",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "tKLyt",
+                                  "name": "Seg",
+                                  "height": 28,
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "ZNoac",
+                                      "name": "Label",
+                                      "fill": "$muted",
+                                      "content": "Pin to node",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "KaPuu",
+                                  "name": "Seg",
+                                  "height": 28,
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "v2ASt",
+                                      "name": "Label",
+                                      "fill": "$muted",
+                                      "content": "GPU-enabled",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "DSX7s",
+                              "name": "Helper",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Picks node with most free memory, tolerations or no taints.",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yLDMY",
+                      "name": "TemplateConfigSection",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Ig1Y9",
+                          "name": "SectionLabel",
+                          "fill": "$muted",
+                          "content": "TEMPLATE CONFIGURATION",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 11,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "id": "FcgZ7",
+                          "type": "ref",
+                          "ref": "gNnkz",
+                          "name": "Field Difficulty",
+                          "width": "fill_container",
+                          "descendants": {
+                            "s5vl0": {
+                              "content": "Difficulty",
+                              "opacity": 1,
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "XBKI5": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "lS7Cr": {
+                              "content": "easy",
+                              "fill": "$foreground/foreground"
+                            },
+                            "iNdHQ": {
+                              "fill": "$muted"
+                            },
+                            "ghgxf": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "JhPiI",
+                          "type": "ref",
+                          "ref": "gNnkz",
+                          "name": "Field Game mode",
+                          "width": "fill_container",
+                          "descendants": {
+                            "s5vl0": {
+                              "content": "Game mode",
+                              "opacity": 1,
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "XBKI5": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "lS7Cr": {
+                              "content": "survival",
+                              "fill": "$foreground/foreground"
+                            },
+                            "iNdHQ": {
+                              "fill": "$muted"
+                            },
+                            "ghgxf": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "JOCqo",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field Max players",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "Max players",
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "20",
+                              "fill": "$foreground/foreground"
+                            },
+                            "kl54d": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "ijbEY",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field MOTD",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "MOTD",
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "A Gameplane Minecraft server",
+                              "fill": "$foreground/foreground"
+                            },
+                            "kl54d": {
+                              "width": "fill_container"
+                            },
+                            "vdTcx": {
+                              "content": "Server description shown in the multiplayer list.",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "lineHeight": 1.4
+                            }
+                          }
+                        },
+                        {
+                          "id": "g9fuEp",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field World seed",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "World seed",
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "",
+                              "fill": "$field/placeholder"
+                            },
+                            "kl54d": {
+                              "width": "fill_container"
+                            },
+                            "vdTcx": {
+                              "content": "Leave blank for a random seed.",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "lineHeight": 1.4
+                            }
+                          }
+                        },
+                        {
+                          "id": "MYk2Z",
+                          "type": "ref",
+                          "ref": "gNnkz",
+                          "name": "Field Enforce whitelist",
+                          "width": "fill_container",
+                          "descendants": {
+                            "s5vl0": {
+                              "content": "Enforce whitelist",
+                              "opacity": 1,
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "XBKI5": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "lS7Cr": {
+                              "content": "false",
+                              "fill": "$foreground/foreground"
+                            },
+                            "iNdHQ": {
+                              "fill": "$muted"
+                            },
+                            "ghgxf": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "WIB9C",
+                          "type": "ref",
+                          "ref": "gNnkz",
+                          "name": "Field PvP enabled",
+                          "width": "fill_container",
+                          "descendants": {
+                            "s5vl0": {
+                              "content": "PvP enabled",
+                              "opacity": 1,
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "XBKI5": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "lS7Cr": {
+                              "content": "true",
+                              "fill": "$foreground/foreground"
+                            },
+                            "iNdHQ": {
+                              "fill": "$muted"
+                            },
+                            "ghgxf": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "xJfWl",
+                          "type": "ref",
+                          "ref": "gNnkz",
+                          "name": "Field Hardcore mode",
+                          "width": "fill_container",
+                          "descendants": {
+                            "s5vl0": {
+                              "content": "Hardcore mode",
+                              "opacity": 1,
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "XBKI5": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "lS7Cr": {
+                              "content": "false",
+                              "fill": "$foreground/foreground"
+                            },
+                            "iNdHQ": {
+                              "fill": "$muted"
+                            },
+                            "ghgxf": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "aR0J1",
+                          "type": "ref",
+                          "ref": "gNnkz",
+                          "name": "Field Online mode",
+                          "width": "fill_container",
+                          "descendants": {
+                            "s5vl0": {
+                              "content": "Online mode",
+                              "opacity": 1,
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "XBKI5": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "lS7Cr": {
+                              "content": "true",
+                              "fill": "$foreground/foreground"
+                            },
+                            "iNdHQ": {
+                              "fill": "$muted"
+                            },
+                            "Qx06J": {
+                              "content": "Verify players with Mojang. Disable only for offline/LAN setups."
+                            }
+                          }
+                        },
+                        {
+                          "id": "qXglj",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field View distance (chunks)",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "View distance (chunks)",
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "10",
+                              "fill": "$foreground/foreground"
+                            },
+                            "kl54d": {
+                              "opacity": 0,
+                              "height": 0
+                            }
+                          }
+                        },
+                        {
+                          "id": "Umoe1",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field JVM max heap",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "JVM max heap",
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "Auto: 75% of the memory limit",
+                              "fill": "$field/placeholder"
+                            },
+                            "kl54d": {
+                              "width": "fill_container"
+                            },
+                            "vdTcx": {
+                              "content": "Java heap ceiling (-Xmx, e.g. 2G, 3072M). Leave empty to size it automatically to 75% of the container memory limit — it then tracks the limit whenever you resize the server. If you set it yourself, keep roughly 25% below the limit: the JVM needs headroom for non-heap memory, and exceeding the limit gets the server OOM-killed.",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "lineHeight": 1.4
+                            }
+                          }
+                        },
+                        {
+                          "id": "pvoOT",
+                          "type": "ref",
+                          "ref": "mhMaM",
+                          "name": "Field JVM initial heap",
+                          "width": "fill_container",
+                          "descendants": {
+                            "peFYu": {
+                              "content": "JVM initial heap",
+                              "fill": "$muted",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "RflGC": {
+                              "fill": "$surface/secondary",
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "height": 36
+                            },
+                            "O0VQ2": {
+                              "content": "Auto: 75% of the memory limit",
+                              "fill": "$field/placeholder"
+                            },
+                            "kl54d": {
+                              "width": "fill_container"
+                            },
+                            "vdTcx": {
+                              "content": "Starting heap size (-Xms), at most JVM max heap. Leave empty to match the automatic max heap (a fixed heap avoids GC resizes).",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "lineHeight": 1.4
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "u42GK",
+                  "name": "Preview",
+                  "clip": true,
+                  "width": 273,
+                  "fill": "$surface/surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border/border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "JdmfO",
+                      "name": "PreviewHeader",
+                      "width": "fill_container",
+                      "stroke": "$border/border",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "strokeAlignment": "inner",
+                      "strokeLinejoin": "round",
+                      "gap": 8,
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "C4qTzk",
+                          "name": "IconWrap",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$default/default",
+                          "cornerRadius": 6,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "axnLm",
+                              "name": "GameIcon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "settings",
+                              "library": "Material Symbols Sharp",
+                              "weight": 400,
+                              "fill": "$muted"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "rYygo",
+                          "name": "TitleGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "KAMsb",
+                              "name": "Title",
+                              "fill": "$foreground/foreground",
+                              "content": "Minecraft (Java Edition)",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "BzBnC",
+                              "name": "Subtitle",
+                              "fill": "$muted",
+                              "content": "Template: minecraft-java",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "g88dd",
+                      "name": "CodeBlockWrap",
+                      "width": "fill_container",
+                      "fill": "#0a0a0a",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Owk4f",
+                          "name": "L0",
+                          "fill": "$muted",
+                          "content": "apiVersion: gameplane.local/v1alpha1",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "G6GfW",
+                          "name": "L1",
+                          "fill": "$muted",
+                          "content": "kind: GameServer",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "F12pr",
+                          "name": "L2",
+                          "fill": "$muted",
+                          "content": "metadata:",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fFgyz",
+                          "name": "L3",
+                          "fill": "$muted",
+                          "content": "  name: mc-survival",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "WyHg3",
+                          "name": "L4",
+                          "fill": "$muted",
+                          "content": "spec:",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "D3vnEw",
+                          "name": "L5",
+                          "fill": "$muted",
+                          "content": "  template: minecraft-java",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Mhjne",
+                          "name": "L6",
+                          "fill": "$muted",
+                          "content": "  version: fabric-1.21.4",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "K2E9Zu",
+                          "name": "L7",
+                          "fill": "$muted",
+                          "content": "  resources:",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "szBfM",
+                          "name": "L8",
+                          "fill": "$muted",
+                          "content": "    cpu: 2000m",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "GCfWV",
+                          "name": "L9",
+                          "fill": "$muted",
+                          "content": "    memory: 6Gi",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "QIYPA",
+                          "name": "L10",
+                          "fill": "$muted",
+                          "content": "  storage: 50Gi",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "YYT4O",
+                          "name": "L11",
+                          "fill": "$muted",
+                          "content": "  config:",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "EVNoR",
+                          "name": "L12",
+                          "fill": "$muted",
+                          "content": "    motd: \"A Gameplane server\"",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "kcWFZ",
+                          "name": "L13",
+                          "fill": "$muted",
+                          "content": "    maxPlayers: 20",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "uVshr",
+                          "name": "L14",
+                          "fill": "$muted",
+                          "content": "    difficulty: hard",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "gS7l4",
+                          "name": "L15",
+                          "fill": "$muted",
+                          "content": "    gamemode: survival",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "R0WN43",
+                          "name": "L16",
+                          "fill": "$muted",
+                          "content": "    onlineMode: true",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hpdCH",
+                      "name": "MemoryTip",
+                      "width": "fill_container",
+                      "stroke": "$border/border",
+                      "strokeWidth": {
+                        "top": 1
+                      },
+                      "strokeAlignment": "inner",
+                      "strokeLinejoin": "round",
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nNx5n",
+                          "name": "TipText",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Memory tip — factor in mod/plugin overhead; Minecraft Vanilla uses ~1.5 GB at 4 players.",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "Or9ff",
+              "type": "ref",
+              "ref": "IoDHI",
+              "name": "Footer",
+              "width": "fill_container"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

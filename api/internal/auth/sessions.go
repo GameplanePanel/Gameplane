@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -21,6 +22,11 @@ const (
 	csrfHeader    = "X-Gameplane-CSRF"
 	csrfCookie    = "gameplane_csrf"
 	sessionTTL    = 12 * time.Hour
+)
+
+var (
+	errSessionInvalid = errors.New("session invalid")
+	errSessionExpired = errors.New("session expired")
 )
 
 type ctxKey int
@@ -136,7 +142,13 @@ func (s *SessionStore) Authenticate(next http.Handler) http.Handler {
 		}
 		u, csrf, err := s.lookup(req.Context(), cookie.Value)
 		if err != nil {
-			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
+			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, errSessionInvalid) || errors.Is(err, errSessionExpired) {
+				httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
+			} else {
+				// Store failures deny access but do not imply logout. Never put
+				// database, account, cookie or permission details in the response.
+				httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+			}
 			return
 		}
 		if isMutating(req.Method) {
@@ -169,11 +181,6 @@ func (s *SessionStore) lookup(ctx context.Context, token string) (*User, string,
 	if err != nil {
 		return nil, "", err
 	}
-	perms, perr := s.LoadPerms(ctx, u.ID)
-	if perr != nil {
-		return nil, "", perr
-	}
-	u.Perms = perms
 	exp, perr := time.Parse(time.RFC3339, expires)
 	if perr != nil {
 		// A corrupt expires_at row is indistinguishable from an expired
@@ -181,12 +188,17 @@ func (s *SessionStore) lookup(ctx context.Context, token string) (*User, string,
 		// user log in again. Log so it's visible in ops.
 		slog.Warn("session expires_at parse", "err", perr, "value", expires)
 		_, _ = s.db.DB.ExecContext(ctx, `DELETE FROM sessions WHERE token = ?`, digest)
-		return nil, "", errors.New("session invalid")
+		return nil, "", errSessionInvalid
 	}
 	if time.Now().After(exp) {
 		_, _ = s.db.DB.ExecContext(ctx, `DELETE FROM sessions WHERE token = ?`, digest)
-		return nil, "", errors.New("session expired")
+		return nil, "", errSessionExpired
 	}
+	perms, perr := s.LoadPerms(ctx, u.ID)
+	if perr != nil {
+		return nil, "", perr
+	}
+	u.Perms = perms
 	return &u, csrf, nil
 }
 
