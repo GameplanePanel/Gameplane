@@ -9075,6 +9075,18 @@
     "defaultMessage": "Termination grace period",
     "description": "Lifecycle: field label for the number of seconds given to the server to stop cleanly before it is shut down"
   },
+  "web.routes.tabs.settings.lifecycle.wake_on_connect": {
+    "defaultMessage": "Wake on connect",
+    "description": "Lifecycle: small label above the switch that wakes a sleeping server when a player tries to join"
+  },
+  "web.routes.tabs.settings.lifecycle.wake_on_connect_not_available": {
+    "defaultMessage": "Not available for this game: its template marks every port as unable to wake the server.",
+    "description": "Lifecycle: hint under the disabled wake on connect switch when the game's template has no port that can wake the server"
+  },
+  "web.routes.tabs.settings.lifecycle.wake_the_server_when_a_player_connects": {
+    "defaultMessage": "Wake the server when a player connects",
+    "description": "Lifecycle: text next to the wake on connect switch, also its accessible name; the server wakes from sleep when a player tries to join"
+  },
   "web.routes.tabs.settings.lifecycle.wake_window_aria": {
     "defaultMessage": "Wake window {n}",
     "description": "Lifecycle: aria-label of a wake window cron input; {n} is the 1-based position of the window"
@@ -9094,6 +9106,10 @@
   "web.routes.tabs.settings.lifecycle.when_off_the_statefulset_is_scaled_to": {
     "defaultMessage": "When off, the StatefulSet is scaled to zero (Suspended). Data is preserved.",
     "description": "Lifecycle: hint under the auto-restart switch saying that when it is off the server is suspended and its data is kept"
+  },
+  "web.routes.tabs.settings.lifecycle.while_the_server_sleeps_a_small_pod": {
+    "defaultMessage": "While the server sleeps, a small pod holds its ports and wakes it when a player tries to join. Costs one extra pod per sleeping server. Games that only use UDP wake on the first attempt; the player joins on retry.",
+    "description": "Lifecycle: hint under the wake on connect switch explaining that a small pod holds the ports while asleep, that it costs one pod per sleeping server, and that for UDP-only games the first join attempt only wakes the server"
   },
   "web.routes.tabs.settings.loading": {
     "defaultMessage": "Loading…",
