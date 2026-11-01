@@ -52,6 +52,15 @@ export function LifecycleSection({ draft, onChange, template }: SectionProps) {
       : (annotations[GRACE_PERIOD_ANNOTATION] ?? "");
   const templateProbes = template?.spec.probes;
   const overrides = draft.spec.probes;
+  // Mirrors the operator's wakeOnConnectEligible: the wake sentinel is only
+  // armed when the template advertises a port that can wake the server
+  // (wakeProtocol other than "none"; the CRD defaults it to "generic"). The
+  // switch stays available until the template has loaded; a loaded template
+  // without ports has nothing that can wake the server.
+  const wakeAvailable =
+    template === undefined ||
+    (template.spec.ports ?? []).some((p) => p.advertise && p.wakeProtocol !== "none");
+  const wakeOnConnect = draft.spec.idle?.wakeOnConnect ?? false;
 
   // setProbe writes a per-server override for `kind`, seeded from the
   // template probe so the action (httpGet/tcpSocket/exec) is preserved.
@@ -159,7 +168,18 @@ export function LifecycleSection({ draft, onChange, template }: SectionProps) {
       });
       return;
     }
-    setIdle({ enabled: true, afterMinutes: idle?.afterMinutes ?? 30, wakeWindows: idle?.wakeWindows ?? [] });
+    // Spread the saved settings first so fields this form sets elsewhere,
+    // such as wakeOnConnect, survive switching auto-sleep off and on again.
+    setIdle({ ...idle, enabled: true, afterMinutes: idle?.afterMinutes ?? 30, wakeWindows: idle?.wakeWindows ?? [] });
+  };
+
+  /** Arms or disarms the wake sentinel (spec.idle.wakeOnConnect). */
+  const setWakeOnConnect = (on: boolean) => {
+    const idle = draft.spec.idle ?? { enabled: true };
+    setIdle({
+      ...idle,
+      wakeOnConnect: on,
+    });
   };
 
   const setIdleAfterMinutes = (value: string) => {
@@ -361,6 +381,32 @@ export function LifecycleSection({ draft, onChange, template }: SectionProps) {
                   })}
                 </div>
                 <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.lifecycle.standard_five_field_cron_max_8_entries", defaultMessage: "Standard five-field cron. Max 8 entries.", description: "Lifecycle: hint under the wake windows list saying the entries use standard five-field cron and at most 8 are allowed" })}</span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.lifecycle.wake_on_connect", defaultMessage: "Wake on connect", description: "Lifecycle: small label above the switch that wakes a sleeping server when a player tries to join" })}</label>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    isSelected={wakeOnConnect}
+                    onChange={setWakeOnConnect}
+                    // A template that cannot wake the server keeps the switch
+                    // off; one already armed can still be turned off.
+                    isDisabled={!wakeAvailable && !wakeOnConnect}
+                    aria-label={intl.formatMessage({ id: "web.routes.tabs.settings.lifecycle.wake_the_server_when_a_player_connects", defaultMessage: "Wake the server when a player connects", description: "Lifecycle: text next to the wake on connect switch, also its accessible name; the server wakes from sleep when a player tries to join" })}
+                  >
+                    <Switch.Content>
+                      <Switch.Control>
+                        <Switch.Thumb />
+                      </Switch.Control>
+                    </Switch.Content>
+                  </Switch>
+                  <span className={wakeAvailable ? "text-sm text-fg" : "text-sm text-muted"}>{intl.formatMessage({ id: "web.routes.tabs.settings.lifecycle.wake_the_server_when_a_player_connects", defaultMessage: "Wake the server when a player connects", description: "Lifecycle: text next to the wake on connect switch, also its accessible name; the server wakes from sleep when a player tries to join" })}</span>
+                </div>
+                <div className="text-xs text-muted">
+                  {wakeAvailable
+                    ? intl.formatMessage({ id: "web.routes.tabs.settings.lifecycle.while_the_server_sleeps_a_small_pod", defaultMessage: "While the server sleeps, a small pod holds its ports and wakes it when a player tries to join. Costs one extra pod per sleeping server. Games that only use UDP wake on the first attempt; the player joins on retry.", description: "Lifecycle: hint under the wake on connect switch explaining that a small pod holds the ports while asleep, that it costs one pod per sleeping server, and that for UDP-only games the first join attempt only wakes the server" })
+                    : intl.formatMessage({ id: "web.routes.tabs.settings.lifecycle.wake_on_connect_not_available", defaultMessage: "Not available for this game: its template marks every port as unable to wake the server.", description: "Lifecycle: hint under the disabled wake on connect switch when the game's template has no port that can wake the server" })}
+                </div>
               </div>
 
               <div className="space-y-1 rounded bg-surface/40 p-2">
