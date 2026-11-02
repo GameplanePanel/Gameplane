@@ -25,7 +25,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
     -o /out/tunnel .
 
 # Build stage to download and verify playit binary
-FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS playit-stage
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS playit-stage
 ARG PLAYIT_VERSION=1.0.10
 ARG TARGETARCH
 ARG PLAYIT_SHA256_amd64=2df7d9f10227ab312b1ad341853db4e8a8243df5cfcdbae58713a4271711c339
