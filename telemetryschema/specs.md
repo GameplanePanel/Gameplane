@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (spec 022)
 **Module / package:** `github.com/GameplanePanel/gameplane/telemetryschema`
-**Dependencies:** stdlib only (Go 1.26+)
+**Dependencies:** stdlib only (Go 1.27+)
 
 ## Purpose
 
