@@ -1,26 +1,10 @@
 module github.com/GameplanePanel/gameplane/operator
 
-go 1.26.0
-
-require github.com/GameplanePanel/gameplane/netguard v0.0.0
-
-require github.com/sassoftware/relic/v8 v8.2.0 // indirect
-
-require (
-	github.com/google/go-github/v88 v88.0.0 // indirect
-	github.com/sigstore/cosign/v3 v3.1.3
-)
-
-// netguard is an in-repo module (no published version); resolve it locally
-// both inside the workspace (go.work) and in standalone module/Docker builds.
-replace github.com/GameplanePanel/gameplane/netguard => ../netguard
-
-// i18n is an in-repo module (no published version); resolve it locally
-// both inside the go.work workspace and in standalone/Docker builds.
-replace github.com/GameplanePanel/gameplane/i18n => ../i18n
+go 1.27.0
 
 require (
 	github.com/GameplanePanel/gameplane/i18n v0.0.0
+	github.com/GameplanePanel/gameplane/netguard v0.0.0
 	github.com/go-git/go-billy/v5 v5.9.2
 	github.com/go-git/go-git/v5 v5.19.3
 	github.com/go-logr/logr v1.4.4
@@ -30,9 +14,11 @@ require (
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/prometheus/client_golang v1.25.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/sigstore/sigstore v1.10.9 // indirect
+	github.com/sigstore/cosign/v3 v3.1.3
+	github.com/sigstore/sigstore-go v1.3.0
 	golang.org/x/crypto v0.58.0
 	golang.org/x/mod v0.42.0
+	golang.org/x/sys v0.49.0
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
 	k8s.io/client-go v0.37.1
@@ -102,6 +88,7 @@ require (
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/certificate-transparency-go v1.3.3 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
+	github.com/google/go-github/v88 v88.0.0 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -134,13 +121,14 @@ require (
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common v0.72.0 // indirect
 	github.com/prometheus/procfs v0.22.0 // indirect
+	github.com/sassoftware/relic/v8 v8.2.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.11.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/sigstore/protobuf-specs v0.5.1 // indirect
 	github.com/sigstore/rekor v1.5.4 // indirect
 	github.com/sigstore/rekor-tiles/v2 v2.3.0 // indirect
-	github.com/sigstore/sigstore-go v1.3.0
+	github.com/sigstore/sigstore v1.10.9 // indirect
 	github.com/sigstore/timestamp-authority/v2 v2.1.3 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/skeema/knownhosts v1.3.2 // indirect
@@ -167,7 +155,6 @@ require (
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
@@ -195,5 +182,13 @@ require (
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 )
+
+// netguard is an in-repo module (no published version); resolve it locally
+// both inside the workspace (go.work) and in standalone module/Docker builds.
+replace github.com/GameplanePanel/gameplane/netguard => ../netguard
+
+// i18n is an in-repo module (no published version); resolve it locally
+// both inside the go.work workspace and in standalone/Docker builds.
+replace github.com/GameplanePanel/gameplane/i18n => ../i18n
 
 tool sigs.k8s.io/controller-tools/cmd/controller-gen

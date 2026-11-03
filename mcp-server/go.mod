@@ -1,6 +1,6 @@
 module github.com/GameplanePanel/gameplane/mcp-server
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/modelcontextprotocol/go-sdk v1.8.0

@@ -1,6 +1,6 @@
 module github.com/GameplanePanel/gameplane/capture-sidecar
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/gopacket/gopacket v1.7.4
