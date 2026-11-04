@@ -207,7 +207,7 @@ func ocTunnelReady(obj *unstructured.Unstructured) (bool, string) {
 // ocFrpsProxyStatus asks the frps dashboard whether the noop proxy is online
 // and returns its lastStartTime, which changes each time frpc opens a new
 // session for it.
-func ocFrpsProxyStatus(ctx context.Context, t *testing.T, port int) (online bool, lastStart, detail string) {
+func ocFrpsProxyStatus(ctx context.Context, t *testing.T, port int, proxyName string) (online bool, lastStart, detail string) {
 	t.Helper()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/api/proxy/tcp", port), nil)
 	if err != nil {
@@ -235,7 +235,7 @@ func ocFrpsProxyStatus(ctx context.Context, t *testing.T, port int) (online bool
 		return false, "", fmt.Sprintf("decode frps proxies: %v body=%s", err, body)
 	}
 	for _, p := range out.Proxies {
-		if p.Name == "noop" && p.Status == "online" {
+		if p.Name == proxyName && p.Status == "online" {
 			return true, p.LastStartTime, string(body)
 		}
 	}
@@ -560,7 +560,7 @@ func TestOptionalComponents_Lifecycle(t *testing.T) {
 		// show a different one, proving frpc opened a new session.
 		var firstStart string
 		envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
-			online, start, detail := ocFrpsProxyStatus(ctx, t, dashPort)
+			online, start, detail := ocFrpsProxyStatus(ctx, t, dashPort, uid+".noop")
 			if !online || start == "" {
 				return false, detail
 			}
@@ -654,7 +654,7 @@ func TestOptionalComponents_Lifecycle(t *testing.T) {
 		})
 
 		envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
-			online, start, detail := ocFrpsProxyStatus(ctx, t, dashPort)
+			online, start, detail := ocFrpsProxyStatus(ctx, t, dashPort, uid+".noop")
 			if !online || start == "" || start == firstStart {
 				return false, fmt.Sprintf("want a new session (lastStartTime != %q): %s", firstStart, detail)
 			}
@@ -664,6 +664,10 @@ func TestOptionalComponents_Lifecycle(t *testing.T) {
 		// frpc was restarted inside the container, not by the kubelet.
 		envInstance.Eventually(t, 1*time.Minute, stillSame)
 	}) {
+		return
+	}
+
+	if !t.Run("frp-identity-health", testFrpIdentityHealth) {
 		return
 	}
 

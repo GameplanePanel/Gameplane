@@ -202,3 +202,22 @@ export function memBytes(a: MemAmount): number {
 
   return a.value * magnitudes[a.unit];
 }
+
+/**
+ * Get the core count of a canonical CPU quantity, so amounts written in
+ * different forms compare equal ("2" and "2000m" are both 2). Empty or
+ * invalid input counts as 0.
+ */
+export function cpuQuantityCores(qty: string | undefined): number {
+  const amount = parseCpuQuantity(qty);
+  return amount ? cpuCores(amount) : 0;
+}
+
+/**
+ * Get the byte count of a canonical memory quantity ("4Gi" and "4096Mi" are
+ * equal). Empty, invalid or zero input counts as 0.
+ */
+export function memQuantityBytes(qty: string | undefined): number {
+  const amount = parseMemQuantity(qty);
+  return amount ? memBytes(amount) : 0;
+}

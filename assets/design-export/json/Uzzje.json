@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "Uzzje",
   "x": 1640,
-  "y": 88665,
+  "y": 88928,
   "name": "Screen/Standalone — Settings · Updates",
   "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
   "theme": {
