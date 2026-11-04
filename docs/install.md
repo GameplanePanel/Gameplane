@@ -684,6 +684,14 @@ Before registering a target cluster, ensure it has:
 - Gameplane operator and agent images accessible (same registry as the control-plane)
 - A valid kubeconfig scoped to the intended Gameplane operations and namespaces
 
+Servers pinned to an admitted template revision also require `get` on core
+`configmaps` in each allowed game namespace. The API verifies the snapshot's
+ownership, immutability and content before using its password schema. If a
+snapshot is missing, invalid or inaccessible, all non-empty config values are
+redacted; the API never substitutes the latest catalog schema for a pin. The
+chart grants this read permission to the local API. Update custom remote
+kubeconfigs and extra namespace Roles with the same permission.
+
 ### Pod logs and PTY console permissions
 
 The central API must reach the target Kubernetes API (including streaming/SPDY
