@@ -577,6 +577,7 @@ func TestBackup_UsesTemplateSecurityContext(t *testing.T) {
 	if err := k8sClient.Create(context.Background(), gs); err != nil {
 		t.Fatalf("create gameserver: %v", err)
 	}
+	seedBackupWorkload(t, gs)
 	if err := k8sClient.Create(context.Background(), buildResticRepoSecret(ns, "repo-secret")); err != nil {
 		t.Fatalf("create secret: %v", err)
 	}

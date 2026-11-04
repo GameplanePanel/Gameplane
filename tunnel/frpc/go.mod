@@ -3,7 +3,7 @@
 // (spec 013 G2, T031). Not part of go.work; tunnel/Dockerfile.frp builds it.
 module github.com/GameplanePanel/Gameplane/tunnel/frpc
 
-go 1.26.0
+go 1.27.0
 
 // Mirrors the replace in frp v0.71.0's own go.mod, which does not apply to
 // dependents.
@@ -15,7 +15,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.18.0 // indirect
 	github.com/fatedier/frp v0.71.0 // indirect
 	github.com/fatedier/golib v0.8.2 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect

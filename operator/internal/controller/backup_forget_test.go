@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -180,7 +181,7 @@ func TestReconcile_AddsSnapshotFinalizerForResticBackup(t *testing.T) {
 }
 
 // Volume-snapshot and Failed Backups never write a restic snapshot, so they
-// must not be held on deletion.
+// need operation cleanup but must not be held for restic snapshot deletion.
 func TestReconcile_NoSnapshotFinalizerWhenNothingToForget(t *testing.T) {
 	volume := forgetBackup()
 	volume.DeletionTimestamp = nil
@@ -205,8 +206,11 @@ func TestReconcile_NoSnapshotFinalizerWhenNothingToForget(t *testing.T) {
 			if !ok {
 				t.Fatal("backup vanished")
 			}
-			if len(got.Finalizers) != 0 {
-				t.Errorf("finalizers = %v, want none", got.Finalizers)
+			if !controllerutil.ContainsFinalizer(got, gameplanev1alpha1.BackupFinalizer) {
+				t.Errorf("finalizers = %v, want operation cleanup finalizer", got.Finalizers)
+			}
+			if controllerutil.ContainsFinalizer(got, gameplanev1alpha1.BackupSnapshotFinalizer) {
+				t.Errorf("finalizers = %v, want no restic snapshot finalizer", got.Finalizers)
 			}
 		})
 	}

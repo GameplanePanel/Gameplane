@@ -1,0 +1,15 @@
+# System dependencies for gp-module (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "gp-module"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles the gp-module CLI and tests the module (go.work:3-21; Makefile:383-385 builds bin/gp-module)."
+
+[[dep]]
+name = "golangci-lint"
+kind = "cli"
+version = "golangci_lint"
+reason = "make lint-go runs golangci-lint in this module (Makefile:302-305; GO_MODULES at Makefile:43)."

@@ -689,8 +689,8 @@ func TestInstall_ExtractBadArchive(t *testing.T) {
 
 // --- Tests for ConfinePath-based refactors (T006) ---
 
-// TestRemoveEntry_ConfinePath verifies that removeEntry uses ConfinePath
-// to validate the target and rejects path traversal attempts.
+// TestRemoveEntry_ConfinePath preserves the original valid-name and traversal
+// contract now enforced by descriptor-relative removal.
 func TestRemoveEntry_ConfinePath(t *testing.T) {
 	root := t.TempDir()
 	modsDir := filepath.Join(root, "mods")
@@ -786,8 +786,8 @@ func TestSwapInArchive_ConfinePath(t *testing.T) {
 	}
 }
 
-// TestRemoveWithConfinePath verifies that the remove handler uses ConfinePath
-// to validate the name parameter and rejects traversal attempts.
+// TestRemoveWithConfinePath preserves the HTTP name-validation contract when
+// deletion is performed through the opened mods root.
 func TestRemoveWithConfinePath(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "mods"), 0o755); err != nil {
@@ -808,7 +808,7 @@ func TestRemoveWithConfinePath(t *testing.T) {
 		t.Fatal("file should be gone")
 	}
 
-	// remove should reject traversal attempts via ConfinePath validation.
+	// Rooted removal must still reject the original traversal cases.
 	for _, bad := range []string{"../escape", "a/b", ".."} {
 		status, _ := do(t, srv, http.MethodDelete, "/mods?name="+bad, nil)
 		if status != http.StatusBadRequest {

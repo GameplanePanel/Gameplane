@@ -1,0 +1,27 @@
+# System dependencies for deploy/kind (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "deploy/kind"
+
+[[dep]]
+name = "docker"
+kind = "service"
+version = "docker"
+reason = "kind nodes and the registry:2 container run on Docker (deploy/kind/up.sh:19, :177-179)."
+
+[[dep]]
+name = "kind"
+kind = "cli"
+version = "kind"
+reason = "up.sh and e2e.sh create the kind cluster (deploy/kind/up.sh:207; deploy/kind/e2e.sh:192)."
+
+[[dep]]
+name = "kubectl"
+kind = "cli"
+version = "kubectl"
+reason = "up.sh wraps kubectl for MetalLB and ingress-nginx applies (deploy/kind/up.sh:31, :51-52, :245)."
+
+[[dep]]
+name = "helm"
+kind = "cli"
+version = "helm"
+reason = "e2e.sh runs helm upgrade --install gameplane (deploy/kind/e2e.sh:384; need check at up.sh:195-199)."

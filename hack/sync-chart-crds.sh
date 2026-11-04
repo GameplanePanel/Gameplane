@@ -48,19 +48,21 @@ if command -v sha256sum >/dev/null 2>&1; then
 else
   sha256() { shasum -a 256; }
 fi
-hash=$(cat "${files[@]}" | sha256 | cut -d' ' -f1)
+# Git may check out these text files with CRLF on Windows. Hash and copy the
+# canonical LF representation so the stamp matches Linux code generation.
+hash=$(sed $'s/\r$//' "${files[@]}" | sha256 | cut -d' ' -f1)
 
 for f in "${files[@]}"; do
   # controller-gen always emits exactly one top-level metadata.annotations
   # block (two-space indent); schema-level `annotations:` keys sit deeper.
-  if [ "$(grep -c '^  annotations:$' "$f")" != 1 ]; then
+  if [ "$(sed $'s/\r$//' "$f" | grep -c '^  annotations:$')" != 1 ]; then
     echo "sync-chart-crds: $f has no single metadata.annotations block to stamp" >&2
     exit 1
   fi
   base=$(basename "$f")
   for dir in charts/gameplane/charts/gameplane-crds/crds charts/gameplane/crd-manifests; do
     awk -v line="    ${annotation}: ${hash}" '
-      { print }
+      { sub(/\r$/, ""); print }
       /^  annotations:$/ && !done { print line; done = 1 }
     ' "$f" > "$dir/$base"
   done

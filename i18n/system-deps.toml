@@ -1,0 +1,15 @@
+# System dependencies for i18n (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "i18n"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles and tests the i18n module (go.work:3-21; i18n-sync at Makefile:272-273 uses go run)."
+
+[[dep]]
+name = "golangci-lint"
+kind = "cli"
+version = "golangci_lint"
+reason = "make lint-go runs golangci-lint in this module (Makefile:302-305; GO_MODULES at Makefile:43)."

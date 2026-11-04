@@ -109,6 +109,32 @@ func TestTunnelReconciliation_CredentialKeyProjection(t *testing.T) {
 		}
 
 		// Verify the Secret volume has Items projection with only "authKey"
+		if dep.Spec.Strategy.Type != appsv1.RecreateDeploymentStrategyType || dep.Spec.Strategy.RollingUpdate != nil {
+			t.Fatalf("Tailscale must recreate its single identity: %+v", dep.Spec.Strategy)
+		}
+		container := dep.Spec.Template.Spec.Containers[0]
+		if container.ReadinessProbe == nil || container.ReadinessProbe.HTTPGet == nil || container.ReadinessProbe.HTTPGet.Path != "/readyz" || container.ReadinessProbe.HTTPGet.Port.IntValue() != 8091 {
+			t.Fatalf("Tailscale lacks forwarding readiness probe: %+v", container.ReadinessProbe)
+		}
+		stateVolume, stateMount, protocolEnv := false, false, false
+		for _, volume := range dep.Spec.Template.Spec.Volumes {
+			if volume.Name == "tailscale-state" && volume.EmptyDir != nil {
+				stateVolume = true
+			}
+		}
+		for _, mount := range container.VolumeMounts {
+			if mount.Name == "tailscale-state" && mount.MountPath == "/var/lib/gameplane-tailscale" {
+				stateMount = true
+			}
+		}
+		for _, env := range container.Env {
+			if env.Name == "BACKING_SERVICE_PORTS" && env.Value == "game:25565:tcp" {
+				protocolEnv = true
+			}
+		}
+		if !stateVolume || !stateMount || !protocolEnv {
+			t.Fatal("Tailscale lost persistent pod state or advertised protocol contract")
+		}
 		if len(dep.Spec.Template.Spec.Volumes) == 0 {
 			t.Fatal("no volumes in tunnel pod template")
 		}

@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (v0.3.0)
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e`
-**Go version:** 1.26.0
+**Go version:** 1.27.0
 
 ## Purpose
 
@@ -11,6 +11,9 @@ The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real 
 It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
 
 ## Responsibilities
+
+- Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
+- The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
 
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
 - Exercise the full CRD lifecycle for all 8 kinds (GameServer, GameTemplate, Backup, BackupSchedule, Restore, Module, ModuleSource, Cluster) against a real API server and operator.
@@ -119,7 +122,7 @@ This is a name-matching contract, not a structural one:
 
 ## Conventions (already normative via `CLAUDE.md`, restated here for the module's own record)
 
-- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust. These are documented exceptions.
+- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `postgres-availability` (`TestUpgrade_PostgresAvailability`) upgrades the shared release and interrupts PostgreSQL. These are documented exceptions.
 - **Per-test unique resource names**: CRs, namespaces, and users a test creates get a name unique to that test run (commonly time-based, e.g. `CreateUser`'s `fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())`) so parallel tests never collide on a shared cluster.
 - **`ociPushMu`**: a package-level mutex guarding tests that push through the shared, fixed-name `oras-push` Job (`module_e2e_test.go`, `module_verify_e2e_test.go`). Because the Job's name and namespace are fixed fixtures, two tests racing to apply/wait on it would stomp each other; `ociPushMu.Lock()`/`Unlock()` serializes them.
 - **`ensureResticRepo(t)`**: guards tests that run a backup against the shared restic repository fixture (`backup_e2e_test.go`, `backupschedule_e2e_test.go`, `failure_paths_e2e_test.go`) — restic repo initialization is not safe to race.
@@ -212,6 +215,7 @@ This module *is* a test tier; it carries no unit tests of its own and no `.testc
 
 - **`buckets.sh verify`** — the "e2e bucket coverage" CI job, structural proof every test is in exactly one bucket.
 - **CI's per-bucket jobs** — `operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `multicluster`, `upgrade` all run against a real kind cluster per job; `bot-heavy` is bucketed but never scheduled (see Non-goals).
+- **`postgres-availability`** runs alone at the end of the `e2e postgres` job. `TestUpgrade_PostgresAvailability` creates a user/session before migrating a live combined PostgreSQL Deployment from RollingUpdate to Recreate, watches API containers for overlapping writers, verifies the populated audit chain, then scales the database fixture down/up. A direct API Pod connection verifies failing readiness, healthy liveness, generic session 503s, no API restart, and recovery with the original session. It must not run in parallel with other tests because it upgrades the shared release and interrupts storage.
 - **`joincoverage.sh`/`joincoverage_test.sh`** — reports which games/protocols the bot suite actually reaches JoinDepth on, cross-referenced with `internal/specs.md`'s JoinDepth model.
 
 ## References

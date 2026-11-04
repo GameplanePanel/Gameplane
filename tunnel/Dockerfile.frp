@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS build
 WORKDIR /src
 
 # tunnel's go.mod currently has no gameaction requirement (no local
@@ -29,8 +29,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
 # golang.org/x/crypto with fixed HIGH CVEs that the image scan rejects
 # (spec 013 G2, T031). tunnel/frpc/go.mod pins frp and the newer x/net and
 # x/crypto; go.sum makes the download checksum-verified. The noweb tag leaves
-# out frpc's admin web UI, which the supervisor never enables (it runs frpc
-# with only a rendered config file).
+# out frpc's static admin web UI. The loopback-only authenticated JSON status
+# API remains available for the supervisor's provider readiness checks.
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS frp-stage
 WORKDIR /src/frpc
 COPY tunnel/frpc/go.mod tunnel/frpc/go.sum ./
@@ -48,4 +48,5 @@ COPY --from=build /out/tunnel /tunnel
 COPY --from=frp-stage /out/frpc /usr/local/bin/frpc
 USER 65532:65532
 EXPOSE 25565/tcp 25565/udp
+EXPOSE 8091/tcp
 ENTRYPOINT ["/tunnel"]

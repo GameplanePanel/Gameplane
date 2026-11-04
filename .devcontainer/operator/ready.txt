@@ -1,0 +1,15 @@
+[devcontainer] ready: Gameplane · Operator
+
+Works here:
+  cd i18n && go build ./...
+  cd netguard && go build ./...
+  cd operator && go build ./...
+  make build-go
+  make generate
+  make manifests
+
+Ports: none
+Tests and lint run in CI (CLAUDE.md rule 8).
+Need something else? docker, helm, kind, kubectl → profile "dashboard-api"
+Need something else? node → profile "web"
+Need something else? oras, pyyaml → profile "modules"

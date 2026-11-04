@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,9 +39,13 @@ func TestMarkPending_ClearsStalePullingCondition(t *testing.T) {
 		Build()
 	r := &ModuleReconciler{Client: cl}
 
-	if _, err := r.markPending(context.Background(), mod, "WaitingForCatalog",
-		errors.New("source has not yet indexed module")); err != nil {
+	result, err := r.markPending(context.Background(), mod, "WaitingForCatalog",
+		errors.New("source has not yet indexed module"))
+	if err != nil {
 		t.Fatalf("markPending: %v", err)
+	}
+	if result.RequeueAfter != time.Minute {
+		t.Fatalf("catalog retry = %s, want the one-minute refresh floor", result.RequeueAfter)
 	}
 
 	got := &gameplanev1alpha1.Module{}

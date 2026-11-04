@@ -53,6 +53,19 @@ func TestUpsertCondition_StatusFlip_BumpsTimestamp(t *testing.T) {
 	}
 }
 
+func TestUpsertConditionPreservesComparisonBase(t *testing.T) {
+	for _, status := range []metav1.ConditionStatus{metav1.ConditionFalse, metav1.ConditionTrue} {
+		t.Run(string(status), func(t *testing.T) {
+			original := metav1.Condition{Type: "SnapshotCleaned", Status: metav1.ConditionFalse, Reason: "Pending", LastTransitionTime: metav1.Now()}
+			conditions := []metav1.Condition{original}
+			updated := upsertCondition(conditions, metav1.Condition{Type: original.Type, Status: status, Reason: "Updated"})
+			if conditions[0] != original || sameConditions(conditions, updated) {
+				t.Fatalf("upsert hid the change from status persistence: before=%+v after=%+v", conditions, updated)
+			}
+		})
+	}
+}
+
 func TestSameConditions(t *testing.T) {
 	a := []metav1.Condition{
 		{Type: "Ready", Status: metav1.ConditionTrue, Reason: "Up"},

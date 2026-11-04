@@ -51,7 +51,7 @@ func (r *GameServerReconciler) reconcileWipe(
 	if err != nil {
 		return err
 	}
-	if gs.Annotations[restoreGuardAnnotation] != "" {
+	if gs.Annotations[restoreGuardAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
 		return nil
 	}
 	req := gs.Annotations[WipeRequestedAnnotation]
@@ -73,6 +73,11 @@ func (r *GameServerReconciler) reconcileWipe(
 	}
 	if changed {
 		return nil
+	}
+	if guard != "" {
+		if ready, err := wipeLifecycleReady(gs, guard); err != nil || !ready {
+			return err
+		}
 	}
 	if guard == "" {
 		if len(state.jobs) == 0 {
@@ -137,8 +142,11 @@ func (r *GameServerReconciler) reconcileWipe(
 	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
 		return client.IgnoreNotFound(err)
 	}
-	if live.UID != gs.UID || live.Annotations[wipeGuardAnnotation] != guard || live.Annotations[WipeRequestedAnnotation] != guard || !pendingWipe(&live) || live.Annotations[restoreGuardAnnotation] != "" {
+	if live.UID != gs.UID || live.Annotations[wipeGuardAnnotation] != guard || live.Annotations[WipeRequestedAnnotation] != guard || !pendingWipe(&live) || live.Annotations[restoreGuardAnnotation] != "" || live.Annotations[backupGuardAnnotation] != "" {
 		return nil
+	}
+	if ready, err := wipeLifecycleReady(&live, guard); err != nil || !ready {
+		return err
 	}
 	return r.createWipeJob(ctx, &live, tmpl, jobName, guard)
 }

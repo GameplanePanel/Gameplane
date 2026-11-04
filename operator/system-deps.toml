@@ -1,0 +1,21 @@
+# System dependencies for operator (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "operator"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles and tests the operator module (go.work:3-21; generate and manifests run controller-gen via go run, Makefile:347-362)."
+
+[[dep]]
+name = "golangci-lint"
+kind = "cli"
+version = "golangci_lint"
+reason = "make lint-go runs golangci-lint in this module (Makefile:302-305; GO_MODULES at Makefile:43)."
+
+[[dep]]
+name = "envtest"
+kind = "service"
+version = "envtest_k8s"
+reason = "Kubernetes API server and etcd binaries for operator envtest suites (Makefile:166-171; inventory 2.1 operator row)."

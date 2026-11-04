@@ -1,0 +1,15 @@
+# System dependencies for netguard (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "netguard"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles and tests the netguard module (go.work:3-21; inventory 2.1)."
+
+[[dep]]
+name = "golangci-lint"
+kind = "cli"
+version = "golangci_lint"
+reason = "make lint-go runs golangci-lint in this module (Makefile:302-305; GO_MODULES at Makefile:43)."

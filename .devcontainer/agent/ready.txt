@@ -1,0 +1,14 @@
+[devcontainer] ready: Gameplane · Agent
+
+Works here:
+  cd agent && go build ./...
+  cd gameaction && go build ./...
+  cd netguard && go build ./...
+  make build-go
+
+Ports: none
+Tests and lint run in CI (CLAUDE.md rule 8).
+Need something else? docker, helm, kind, kubectl → profile "dashboard-api"
+Need something else? envtest → profile "api"
+Need something else? node → profile "web"
+Need something else? oras, pyyaml → profile "modules"

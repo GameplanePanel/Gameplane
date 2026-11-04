@@ -52,6 +52,7 @@ const (
 )
 
 type handler struct {
+	dataRoot string   // trusted data-volume root; removal opens descendants relative to it
 	dir      string   // absolute mods directory, "" when unconfigured
 	exts     []string // lowercased extension allowlist ("" = any)
 	allowed  []string // download host allowlist; nil disables installs
@@ -96,6 +97,7 @@ func newHandler(dataRoot string, spec *caps.Mods) *handler {
 		return h
 	}
 	h.dir = dir
+	h.dataRoot = root
 	h.extract = spec.Extract
 	for _, e := range spec.Extensions {
 		h.exts = append(h.exts, strings.ToLower(e))
@@ -455,23 +457,12 @@ func (h *handler) upload(w http.ResponseWriter, req *http.Request) {
 // removeEntry deletes an installed mod by name — the whole folder for
 // extract loaders, a single file otherwise.
 func (h *handler) removeEntry(name string) error {
-	// Use ConfinePath to validate and resolve the target within h.dir.
-	// ConfinePath consolidates validation and symlink resolution in one function,
-	// making the guard legible to CodeQL taint analysis.
-	target, err := ConfinePath(h.dir, name)
+	root, err := h.openModsRoot()
 	if err != nil {
-		return fmt.Errorf("path escape attempt: %w", err)
+		return err
 	}
-	// Re-check inline so the guard is visible at the point of use.
-	rootClean := filepath.Clean(h.dir)
-	target = filepath.Clean(target)
-	if target != rootClean && !strings.HasPrefix(target, rootClean+string(os.PathSeparator)) {
-		return errors.New("path escape attempt")
-	}
-	if h.extract {
-		return os.RemoveAll(target)
-	}
-	return os.Remove(target)
+	defer func() { _ = root.Close() }()
+	return removeModEntry(root, name, h.extract)
 }
 
 // downloadTemp streams rawURL into a temp file under the mods dir, enforcing
@@ -738,31 +729,25 @@ func (h *handler) remove(w http.ResponseWriter, req *http.Request) {
 		httpjson.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	// Use ConfinePath to validate and resolve the target within h.dir.
-	// ConfinePath consolidates validation and symlink resolution in one function,
-	// making the guard legible to CodeQL taint analysis.
-	target, err := ConfinePath(h.dir, name)
-	if err != nil {
-		httpjson.Error(w, http.StatusBadRequest, err.Error())
-		return
+	root, err := h.openModsRoot()
+	if err == nil {
+		defer func() { _ = root.Close() }()
+		err = removeModEntry(root, name, h.extract)
 	}
-	// Re-check inline so the guard is visible at the point of use.
-	rootClean := filepath.Clean(h.dir)
-	target = filepath.Clean(target)
-	if target != rootClean && !strings.HasPrefix(target, rootClean+string(os.PathSeparator)) {
+	if errors.Is(err, ErrEscapesRoot) {
 		httpjson.Error(w, http.StatusBadRequest, "path escape attempt")
 		return
 	}
-	if _, statErr := os.Stat(target); errors.Is(statErr, os.ErrNotExist) {
+	if errors.Is(err, fs.ErrNotExist) {
 		httpjson.Error(w, http.StatusNotFound, "no such mod")
 		return
 	}
-	if err := h.removeEntry(name); err != nil {
+	if err != nil {
 		slog.Warn("mod remove", "err", err)
 		httpjson.Error(w, http.StatusInternalServerError, "could not remove mod")
 		return
 	}
-	h.updateManifest(func(mods map[string]*ModMeta) {
+	h.updateManifestInRoot(root, func(mods map[string]*ModMeta) {
 		delete(mods, name)
 	})
 	w.WriteHeader(http.StatusNoContent)
