@@ -1,20 +1,18 @@
 module github.com/GameplanePanel/gameplane/agent
 
-go 1.26.0
-
-require github.com/GameplanePanel/gameplane/netguard v0.0.0
+go 1.27.0
 
 // netguard is an in-repo module (no published version); resolve it locally
 // both inside the workspace (go.work) and in standalone module/Docker builds.
 replace github.com/GameplanePanel/gameplane/netguard => ../netguard
-
-require github.com/GameplanePanel/gameplane/gameaction v0.0.0
 
 // gameaction is an in-repo module (no published version); resolve it locally
 // both inside the workspace (go.work) and in standalone module/Docker builds.
 replace github.com/GameplanePanel/gameplane/gameaction => ../gameaction
 
 require (
+	github.com/GameplanePanel/gameplane/gameaction v0.0.0
+	github.com/GameplanePanel/gameplane/netguard v0.0.0
 	github.com/coder/websocket v1.8.15
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/prometheus/client_golang v1.25.0

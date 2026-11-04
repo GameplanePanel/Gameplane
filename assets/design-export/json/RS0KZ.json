@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "RS0KZ",
   "x": 9840,
-  "y": 63669,
+  "y": 63932,
   "name": "State/Standalone — Cluster selection and request states",
   "context": "Interaction reference, not a single dashboard screen. No workload queries before capabilities and selection resolve. Retry retains the selected remote.",
   "theme": {

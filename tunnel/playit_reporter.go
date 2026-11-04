@@ -466,7 +466,7 @@ func runPlayitReporter(ctx context.Context, socketPath string, ports []backingPo
 			if ctx.Err() != nil {
 				return
 			}
-			log.Printf("playit reporter: %v", err)
+			log.Print("playit reporter: local provider state unavailable")
 			delay = min(delay*2, timing.maxBackoff)
 		case state.Phase != "running":
 			// Not yet assigned (starting, waiting_for_secret, ...): keep
@@ -479,7 +479,7 @@ func runPlayitReporter(ctx context.Context, socketPath string, ports []backingPo
 					if ctx.Err() != nil {
 						return
 					}
-					log.Printf("playit reporter: %v", err)
+					log.Print("playit reporter: endpoint status update failed")
 					delay = min(delay*2, timing.maxBackoff)
 					break
 				}

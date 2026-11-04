@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "FOVMf",
   "x": 1640,
-  "y": 89965,
+  "y": 90228,
   "name": "Screen/Standalone — Settings · About",
   "context": "Panel build version comes from authenticated installation metadata; standalone About does not fetch local Kubernetes metadata.",
   "theme": {

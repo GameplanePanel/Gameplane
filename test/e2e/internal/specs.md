@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (v0.3.0), in-progress (fast set JOINED, heavy set not yet implemented)  
 **Module / package:** `test/e2e/internal/{probe,protocol,<game>}` — per-game protocol clients and the shared probe harness (plus `internal/fakeoidc`, an unrelated e2e fixture — see `test/e2e/api_auth_e2e_test.go`)  
-**Dependencies:** stdlib only (Go 1.26+) — per-game binaries build against `test/e2e/go.mod` with `GOWORK=off`, dragging zero Kubernetes or external modules into the probe image
+**Dependencies:** stdlib only (Go 1.27+) — per-game binaries build against `test/e2e/go.mod` with `GOWORK=off`, dragging zero Kubernetes or external modules into the probe image
 
 ## Purpose
 
@@ -259,7 +259,7 @@ func main() {
 
 **External:**
 - Stdlib only: `context`, `encoding/binary`, `fmt`, `io`, `log`, `net`, `os`, `strconv`, `strings`, `time`, and protocol-specific deps (e.g. `encoding/json` for Minecraft status).
-- Go 1.26+ (same as the main repo).
+- Go 1.27+ (same as the main repo).
 
 No external modules in the probe image. If a game needs a special library, copy the implementation into `internal/protocol/<family>/` or `internal/<game>/`.
 

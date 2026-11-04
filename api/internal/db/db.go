@@ -84,7 +84,7 @@ func (s *Store) Close() error { return s.DB.Close() }
 // user-management access (role permission edits, primary-role changes,
 // user deletion). Hold it from the last-user-manager check through the
 // commit of the change so two requests can't both pass the check. It
-// covers one API process; the SQLite install runs a single API replica.
+// covers one API process; every database driver requires a single API replica.
 func (s *Store) LockUserManagement() (unlock func()) {
 	s.userMgmtMu.Lock()
 	return s.userMgmtMu.Unlock
