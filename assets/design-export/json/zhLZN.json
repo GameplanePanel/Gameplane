@@ -22,8 +22,7 @@
       "x": -12,
       "y": 0
     },
-    "blur": 32,
-    "spread": -8
+    "blur": 32
   },
   "layout": "vertical",
   "children": [
@@ -161,6 +160,76 @@
               "id": "RuNbp",
               "fill": "$foreground/foreground",
               "content": "mc-survival",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "T8CP1C",
+          "name": "Achieved consistency",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "No2fi",
+              "name": "Consistency label",
+              "fill": "$muted",
+              "content": "ACHIEVED CONSISTENCY",
+              "lineHeight": 1.333333,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal",
+              "letterSpacing": 0.5
+            },
+            {
+              "type": "text",
+              "id": "f04lR",
+              "name": "Unknown consistency",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Consistency has not been reported.",
+              "lineHeight": 1.428571,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "W6b7K",
+          "name": "Volume coverage — Legacy unknown",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "J3Xx6",
+              "name": "Coverage label",
+              "fill": "$muted",
+              "content": "VOLUME COVERAGE",
+              "lineHeight": 1.333333,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal",
+              "letterSpacing": 0.5
+            },
+            {
+              "type": "text",
+              "id": "YFaQj",
+              "name": "Unknown capture coverage",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Capture-time volume metadata is unavailable. Inspect the original backup and module configuration before recovery.",
+              "lineHeight": 1.428571,
               "fontFamily": "$typography/font-sans",
               "fontSize": 14,
               "fontWeight": "normal"
