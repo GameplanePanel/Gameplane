@@ -60,6 +60,13 @@ five-second backstop runs only while `HostportWakeReady` is not True. Endpoint
 diagnostics never replace an existing `Ready=False` game failure. Pending-listener
 messages omit the endpoint node name until it has been recorded.
 
+A missing, deleting or replaced endpoint Node forces the game StatefulSet to
+zero replicas even if a replacement game Pod already exists. The live Node
+identity is checked again immediately before workload mutation, including
+backup replica preservation and restore startup; the existing pod template is
+left intact. A transient NotReady condition on the same Node UID preserves an
+existing running game, while Pending or terminating Pods do not authorize a wake.
+
 After restoring node capacity/readiness, reconciliation resumes automatically.
 For intentional migration, suspend the server, wait for both game and sentinel
 Pods to disappear, clear both durable endpoint annotations, update scheduling,

@@ -1520,6 +1520,22 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		if owner := metav1.GetControllerOf(ss); owner != nil && owner.UID != live.UID {
 			return fmt.Errorf("StatefulSet belongs to a different GameServer identity")
 		}
+		if live.Spec.Networking.Expose == "Hostport" && live.Annotations[hostportNodeAnnotation] != "" {
+			node, err := r.hostportEndpointNode(ctx, &live)
+			if err != nil {
+				return err
+			}
+			if node == nil {
+				// StatefulSet replacement and Node deletion run independently
+				// of the earlier sentinel plan. Identity loss must also fence
+				// stale wake decisions and lifecycle owners that retain replicas.
+				actualReplicas, replicas = 0, 0
+				ss.Spec.Replicas = &actualReplicas
+				if ss.ResourceVersion != "" {
+					return nil // Stop without rolling or changing the game template.
+				}
+			}
+		}
 		op, held, err := lifecycleOwner(&live)
 		if err != nil {
 			return err

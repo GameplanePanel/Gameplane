@@ -31,6 +31,23 @@ func (r *GameServerReconciler) hostportReader() client.Reader {
 	return r.Client
 }
 
+// hostportEndpointNode returns the recorded node only while its identity is
+// intact. Readiness is separate: a temporarily NotReady node may still host a
+// running game, but a missing, deleting or replacement node cannot authorize it.
+func (r *GameServerReconciler) hostportEndpointNode(ctx context.Context, gs *gameplanev1alpha1.GameServer) (*corev1.Node, error) {
+	var node corev1.Node
+	if err := r.hostportReader().Get(ctx, client.ObjectKey{Name: gs.Annotations[hostportNodeAnnotation]}, &node); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("read Hostport endpoint node: %w", err)
+	}
+	if !node.DeletionTimestamp.IsZero() || gs.Annotations[hostportNodeUIDAnnotation] == "" || string(node.UID) != gs.Annotations[hostportNodeUIDAnnotation] {
+		return nil, nil
+	}
+	return &node, nil
+}
+
 // sentinelBackstopPending polls Hostport only until the listener is ready.
 // Service-backed sentinel handoffs retain their existing watch backstop.
 func sentinelBackstopPending(plan sentinelPlan) bool {
@@ -100,11 +117,14 @@ func (r *GameServerReconciler) planHostportSentinel(ctx context.Context, gs *gam
 		return plan, nil
 	}
 	if nodeName != "" {
-		var node corev1.Node
-		err := reader.Get(ctx, client.ObjectKey{Name: nodeName}, &node)
-		nodeMissing := apierrors.IsNotFound(err)
-		if err != nil && !nodeMissing {
+		node, err := r.hostportEndpointNode(ctx, gs)
+		if err != nil {
 			return plan, err
+		}
+		if node == nil {
+			plan.blockGame = true
+			hostportPending("EndpointNodeUnavailable", fmt.Sprintf("Hostport endpoint node %q is missing, replaced or deleting; restore that node or explicitly migrate the endpoint.", nodeName))
+			return plan, nil
 		}
 		ready := false
 		for _, condition := range node.Status.Conditions {
@@ -112,9 +132,15 @@ func (r *GameServerReconciler) planHostportSentinel(ctx context.Context, gs *gam
 				ready = condition.Status == corev1.ConditionTrue
 			}
 		}
-		if nodeMissing || !node.DeletionTimestamp.IsZero() || !ready || string(node.UID) != gs.Annotations[hostportNodeUIDAnnotation] {
-			plan.blockGame = len(gamePods.Items) == 0
-			hostportPending("EndpointNodeUnavailable", fmt.Sprintf("Hostport endpoint node %q is missing, replaced or not Ready; restore that node or explicitly migrate the endpoint.", nodeName))
+		if !ready {
+			plan.blockGame = true
+			for _, pod := range gamePods.Items {
+				if pod.Name == gs.Name+"-0" && pod.Spec.NodeName == nodeName && pod.DeletionTimestamp.IsZero() && pod.Status.Phase == corev1.PodRunning {
+					plan.blockGame = false
+					break
+				}
+			}
+			hostportPending("EndpointNodeUnavailable", fmt.Sprintf("Hostport endpoint node %q is not Ready; restore its readiness before starting a listener.", nodeName))
 			return plan, nil
 		}
 	}
