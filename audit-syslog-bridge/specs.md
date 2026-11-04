@@ -53,7 +53,7 @@ Single flat package (`main`): `main.go` (relay + config + server logic), `bridge
 
 ## Dependencies
 
-**Go 1.26** (workspace-linked to `go.work` alongside `operator/`, `api/`, `agent/`, etc.)
+**Go 1.27** (workspace-linked to `go.work` alongside `operator/`, `api/`, `agent/`, etc.)
 
 **Imports:** stdlib only (`crypto/tls`, `net`, `net/http`, `log/slog`, `sync`, `time`, `context`, etc.). No external dependencies.
 

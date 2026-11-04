@@ -26,6 +26,10 @@ finalizers cannot establish that a worker has stopped. A failed or canceled rest
 leaves its target suspended for inspection.
 
 Upgrades recognize existing owner annotations and import backup recovery lineage.
+If that legacy record lacks the original Pod UID, cleanup cannot safely address
+save-on to a running Pod. Its owner remains held until an uncached read proves
+the game Pod absent or terminal and not terminating. An available agent or a
+replacement Pod does not establish this proof; no unbound save-on is sent.
 Already-running legacy quiesced copies continue being observed until their workers
 finish and cleanup succeeds. Legacy raw workers also block new admission. Conflicting
 legacy guards fail closed until their existing operations finish cleanup. Keep a

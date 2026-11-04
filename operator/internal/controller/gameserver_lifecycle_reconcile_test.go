@@ -138,7 +138,7 @@ func TestGameServerWipeReconcileDrainsOrphanRestoreStartup(t *testing.T) {
 func TestGameServerWipeReconcileWaitsForPredecessorCleanup(t *testing.T) {
 	gs := wipeGameServer(true, "wipe")
 	gs.Annotations[wipeGuardAnnotation] = "wipe"
-	predecessor := lifecycleIdentity{Kind: "Backup", Name: "deleted", UID: "deleted-backup", TargetUID: gs.UID, NeedsUnquiesce: true}
+	predecessor := lifecycleIdentity{Kind: "Backup", Name: "deleted", UID: "deleted-backup", TargetUID: gs.UID, NeedsUnquiesce: true, QuiescePodUID: "original-game"}
 	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(lifecycleOperation{lifecycleIdentity: wipeLifecycleIdentity(gs, "wipe"), Recovery: []lifecycleIdentity{predecessor}})
 	// A labelled worker still counts even if its Job and PVC mount metadata
 	// are gone. A stopped target alone does not complete predecessor cleanup.

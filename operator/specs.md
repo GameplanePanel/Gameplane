@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (v0.3.0)  
 **Module / package:** github.com/GameplanePanel/gameplane/operator  
-**Go version:** 1.26.0
+**Go version:** 1.27.0
 
 ## Purpose
 
@@ -59,6 +59,8 @@ finalizer until those references are gone. These explicit waits use
 Existing restore fence-write requeues and writer-drain polling remain unchanged,
 and every resumed restore pass still verifies the workload fence and live writers.
 
+- **Relay health:** frp identities use GameServer UID without changing advertised port names. frp/Playit Deployments use one replica, Recreate, a wrapper startup probe and a provider readiness probe on TCP 8091. `TunnelReady` requires the current observed generation and updated/ready replicas with the new probe; legacy unprobed Pods cannot report success. Playit v1.0.10's cached IPC assignment cannot confirm a relay connection, so it reports unknown/not ready rather than optimistic success. Preserve `TunnelResources` defaults and override removal. See `docs/relay-health.md` for health bounds, migration and the provider limitation.
+
 - **GameServer lifecycle:** reconcile GameServer CRs into StatefulSets, Services, PVCs, and pod-injected agent sidecars; manage pod affinity, RCON/console integration, file I/O, and graceful stop sequences.
 - **Module installation:** pull OCI module bundles from remote or local sources, verify signatures (cosign), and materialize GameTemplate CRs; refresh source indexes periodically. Translation files (`locales/<tag>.json`) are carried by every module source (OCI layers, directory, git, HTTP archive, upload, `gp-module package` tarball) and validated against the ids derived from the module (`i18n/modlocale`); valid entries are written to the `<template>-locales` ConfigMap (owned by the GameTemplate, in the operator namespace) and problems surface as the GameTemplate `LocalesValid` condition (reasons `Valid`, `InvalidEntries`, `LocalesTooLarge`, `WriteFailed`) and Warning events, never as an install failure. A file over 900 KiB, or a language that would push the bundle's locale files past 4 MiB together (counted in file-name order), is not read but reported by language tag as `LocalesTooLarge`. Events fire only when the problem list changes (fingerprint annotation `gameplane.local/locales-problems`). The ConfigMap is rewritten on each apply, not recreated if deleted while the Module stays converged.
 - **Backup & restore:** coordinate application-level quiesce with agent, spawn restic backup/restore Jobs, track snapshot IDs, and enforce retention policies.
@@ -86,6 +88,12 @@ Invalid tags remove a previous Deployment and report `TunnelReady=False` with
 `InvalidTailscaleTags`, naming the configuration field to correct. Correcting
 the tags permits normal creation again; denied provider authorization never
 falls back to an untagged identity.
+
+Playit Pod readiness uses the wrapper's `/healthz` endpoint because the pinned
+provider cannot confirm a live relay connection. This never promotes
+`TunnelReady` to True: relay evidence stays Unknown, or AwaitingAddress before
+assignment. Existing frp Deployments receive `GAMESERVER_UID`, current probes
+and Recreate strategy automatically on reconciliation after an operator upgrade.
 
 The operator **does not** handle:
 - User authentication or authorization (RBAC is Kubernetes role-based, not application-level).
@@ -288,6 +296,11 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 - **Responsibility:** Drive Backup to completion: coordinate quiesce (if agent available), spawn restic Job, track snapshot ID.
 - **Key functions:**
   - Quiesce orchestration: call agent Quiesce before Job, Unquiesce after completion.
+  - With quiesce and an agent client enabled, preparation is recorded once in `backup.gameplane.local/preparation`, bound to the target UID and StatefulSet UID/generation. `already-stopped` requires uncached proof of desired and observed zero replicas, caught-up observed generation, and no live game/PVC user pods or pending writer Jobs. Current copy workers are excluded by Job ownership. This path sends no agent calls and preserves suspend/idle/wake intent under the shared workload fence. It applies equally to restic and CSI copies.
+  - Live preparation also pins the game Pod UID. The operator checks the agent's read-only `/v1/pods/{uid}/identity` endpoint before recording the first cleanup intent, then uses pod-bound quiesce/unquiesce routes; the agent rejects a different UID before RCON. A missing endpoint or identity mismatch fails closed without a legacy-route fallback. Ambiguous quiesce errors retain cleanup intent and the original Pod UID on both the Backup and shared owner. Only confirmed save-on or uncached evidence that the original pod is absent/replaced/terminal permits cleanup; an HTTP timeout, unready pod, or terminating pod is insufficient. Legacy attempts without a UID retire only on absence/terminal proof and never adopt a new UID. `Unquiesced=True, Reason=SourceProcessGone` distinguishes process exit from an actual save-on RPC.
+  - Source proof is checked before and after quiesce and on each copy reconcile. Observed workload/process replacement fails the Backup before it can report a restorable success. Owner recovery retains the pod UID even if the Backup is force-deleted, drains predecessor workers, and never sends its cleanup to a successor pod.
+  - Imported legacy recovery records and backups without a recorded Pod UID cannot call unbound save-on, even if an agent is available. Their cleanup intent remains durable until an uncached read proves the game Pod absent or terminal and not terminating; a live or unready replacement is not exit proof.
+  - Upgrade the operator and agent image together and allow existing GameServer pods to roll out the new agent and `GAMEPLANE_POD_UID` DownwardAPI env. Older agents fail the identity preflight before cleanup debt, so the workload can continue its upgrade after terminal cleanup releases the owner. Retry failed copies after rollout; preflight never bypasses protection. This does not automatically stop a running game.
   - Every copy, including `quiesce=false` and CSI snapshots, acquires the shared lifecycle owner before starting. The Backup pins its target in `backup.gameplane.local/target`; `backup.gameplane.local/owner` remains a compatibility marker. The shared owner is described below. Quiesce cleanup intent is recorded on both the Backup and the surviving GameServer before calling the agent, including partial failures. Cleanup waits for live copy workers; deletion cancels the copy Job with foreground propagation first. Every Backup carries the cleanup finalizer. Pre-upgrade quiesced workers are observed through completion even when overlapping legacy copies cannot acquire the new exclusive owner.
   - Orphan recovery preserves predecessor operation identities in the shared owner's `recovery` array, atomically with ownership transfer. Existing `backup.gameplane.local/recovering-owners` lineage is imported during migration. Deleting a recovering owner cannot hide an earlier worker. Normal deletion, orphan recovery, and legacy cleanup also wait for pending owned CSI captures to report ready or an explicit error; VolumeSnapshots are reclaimed by owner-reference GC after cleanup.
   - VolumeSnapshot API availability is checked before quiescing. Snapshot creation errors fail the Backup and run unquiesce cleanup immediately instead of retrying creation indefinitely with saving disabled. API/creation failures persist `backup.gameplane.local/snapshot-aborted` to allow cleanup without waiting for a failed/nonrestorable capture. Failed unquiesce remains visible and retried. A transport failure can leave a CSI snapshot object despite a Failed Backup; this does not make that Backup restorable.
@@ -556,7 +569,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 
 6. **Module sources are immutable once pulled.** Digest pinning (spec.digest) defeats tag moves; version pinning (spec.version) tracks a specific semver. Floating (unset version/digest) tracks latest and re-pulls on ModuleSource refresh.
 
-7. **Backup quiesce is best-effort.** If agent unavailable, backup proceeds raw (no pause). If quiesce unsupported (agent returns ErrUnsupported), backup continues degraded (success-with-note).
+7. **Backup quiesce fails closed on live transport errors.** With no configured agent client or `quiesce=false`, a copy proceeds raw. With a client enabled, a drained stopped source skips RPC, but an unreachable live agent prevents the copy. A game that explicitly reports quiesce unsupported can continue without claiming it was quiesced.
 
 8. **Remote cluster health checks are non-blocking.** A Cluster with health Unhealthy does not prevent GameServer creation on the local cluster; it surfaces the issue so operators can intervene.
 
