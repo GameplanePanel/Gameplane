@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -523,7 +524,9 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 	var rb []byte
 	delay := 2 * time.Second
 	const maxDelay = 30 * time.Second
-	for attempt := 0; attempt < 7; attempt++ {
+	const maxAttempts = 7
+	reconnected := false
+	for attempt := 0; attempt < maxAttempts; attempt++ {
 		req, rerr := http.NewRequestWithContext(t.Context(), http.MethodPost, base+"/auth/login", bytes.NewReader(body))
 		if rerr != nil {
 			stop()
@@ -533,6 +536,15 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 		resp, err = cli.Do(req)
 		if err != nil {
 			stop()
+			// A vanished local listener cannot have received this request.
+			// Reopen once within the existing attempt budget; never replay an
+			// ambiguous read/write failure or reconnect an established session.
+			if !reconnected && attempt+1 < maxAttempts && t.Context().Err() == nil && loginDialRefused(err) {
+				local, stop = e.PortForward(t, "gameplane-system", "svc/gameplane-api", 80)
+				base = fmt.Sprintf("http://127.0.0.1:%d", local)
+				reconnected = true
+				continue
+			}
 			t.Fatalf("login: %v", err)
 		}
 		rb, _ = io.ReadAll(resp.Body)
@@ -560,6 +572,11 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 	return &APIClient{BaseURL: base, CSRF: lr.CSRF, HTTP: cli, stop: stop}
 }
 
+func loginDialRefused(err error) bool {
+	var opErr *net.OpError
+	return errors.As(err, &opErr) && opErr.Op == "dial" && !opErr.Timeout() && errors.Is(opErr.Err, syscall.ECONNREFUSED)
+}
+
 // Close tears down the port-forward backing this client.
 func (c *APIClient) Close() {
 	if c.stop != nil {
@@ -571,6 +588,11 @@ func (c *APIClient) Close() {
 // marshalled as JSON and the Content-Type header is set. CSRF header is
 // attached for mutating methods.
 func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, error) {
+	return c.DoContext(context.Background(), method, path, body)
+}
+
+// DoContext performs an authenticated request within the caller's lifetime.
+func (c *APIClient) DoContext(ctx context.Context, method, path string, body any) (*http.Response, []byte, error) {
 	var br io.Reader
 	if body != nil {
 		b, err := json.Marshal(body)
@@ -579,7 +601,7 @@ func (c *APIClient) Do(method, path string, body any) (*http.Response, []byte, e
 		}
 		br = bytes.NewReader(b)
 	}
-	req, err := http.NewRequestWithContext(context.Background(), method, c.BaseURL+path, br)
+	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, br)
 	if err != nil {
 		return nil, nil, fmt.Errorf("new request: %w", err)
 	}

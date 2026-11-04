@@ -150,8 +150,32 @@ func TestRestrictedWorkloads_NodeCaptureAndTokenRotation(t *testing.T) {
 		}
 		return raw
 	}
-	post("/servers/"+name+":capture-enable", nil, http.StatusOK)
-	post("/servers/"+name+":capture-node-enable", nil, http.StatusOK)
+	// Setting an opt-in is idempotent, but its UID/resourceVersion fence may
+	// conflict with a controller status update. Retry only that explicit
+	// response, never capture creation or a transport/authorization failure.
+	setCapture := func(action string) {
+		envInstance.Eventually(t, time.Minute, func() (bool, string) {
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, cli.BaseURL+"/servers/"+name+":"+action, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("X-Gameplane-CSRF", cli.CSRF)
+			resp, err := cli.HTTP.Do(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_ = resp.Body.Close()
+			if resp.StatusCode == http.StatusConflict {
+				return false, action + ": conflicting server update"
+			}
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("POST %s: %d", action, resp.StatusCode)
+			}
+			return true, ""
+		})
+	}
+	setCapture("capture-enable")
+	setCapture("capture-node-enable")
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		gs, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
@@ -252,7 +276,7 @@ func TestRestrictedWorkloads_NodeCaptureAndTokenRotation(t *testing.T) {
 	assertUnchanged()
 	// Revocation must drain a running host-capable worker before releasing its lock.
 	second := start(300)
-	post("/servers/"+name+":capture-node-disable", nil, http.StatusOK)
+	setCapture("capture-node-disable")
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		pods, err := envInstance.K8s.CoreV1().Pods(diagnosticNS).List(ctx, metav1.ListOptions{LabelSelector: "gameplane.local/capture-component=worker"})
 		if err != nil {

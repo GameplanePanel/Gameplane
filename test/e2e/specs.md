@@ -2,13 +2,16 @@
 
 **Status:** pre-v1 (v0.3.0)
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e`
-**Go version:** 1.26.0
+**Go version:** 1.27.0
 
 ## Purpose
 
 ### Restricted workload drill (#714)
 
 The dedicated `restricted-workloads` bucket runs on amd64 and arm64. It
+is registered in the CI selector for operator, API, agent and capture-sidecar
+changes, including the node capture worker. Full-scope and affected-component
+runs retain the drill on both architectures. It
 upgrades a compatible existing game to the real enforced PSA profile, asserts
 nonroot config-init/writable data preservation, rejects root admission and an
 incompatible template, and checks agent-only credential mounts. It observes a
@@ -17,7 +20,10 @@ the original 600s token expires. Node capture checks exercise audited per-server
 opt-in, traffic-bearing PCAP download, unchanged game Pod UID/restart counts,
 worker cleanup on completion/revocation, and cross-namespace resource cleanup
 after GameServer deletion. Local work compiles test sources only; CI executes
-the drill and all unit/chart regressions.
+the drill and all unit/chart regressions. Idempotent capture-setting requests
+retry only HTTP 409 conflicts with controller updates; capture creation and
+transport or authorization failures are never retried. Completion still
+requires all capture workers to have been drained before `Completed` is reported.
 The drill explicitly verifies that shared PID remains enabled for agent metrics
 after the Restricted upgrade and after capture completion and revocation.
 
@@ -36,6 +42,8 @@ stop, status reset/leader recovery, exact request binding, snapshot integrity,
 complete pinned render inputs and source-template preservation for CSI restore.
 
 - Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
+- The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
+
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
 - Exercise the full CRD lifecycle for all 8 kinds (GameServer, GameTemplate, Backup, BackupSchedule, Restore, Module, ModuleSource, Cluster) against a real API server and operator.
 - Drive the REST + WebSocket API as a real HTTP client would: login, session/CSRF handling, RBAC matrix checks, console/PTY/log streaming, file upload/download.
@@ -123,10 +131,11 @@ This is a name-matching contract, not a structural one:
 
 - **`Kubectl(ctx, args...)`** and **`KubectlWithStdin(ctx, stdin, args...)`** both run `exec.CommandContext(ctx, "kubectl", all...)`. Both still validate every argument up to a literal `--` separator against shell metacharacters (`|;&$\`<>()\\`) before building `all` — this is the caller-supplied-args gosec finding scoped by the `.golangci.yml` G204 exclusion on `env.go`: gosec can't see that the args come from the suite's own test code and are pre-validated, not from untrusted external input.
 - **`tryPortForward(ctx, ns, target, remotePort)`** (the single-attempt implementation behind the public, retrying `PortForward`) also runs its `kubectl port-forward` child via `exec.CommandContext(ctx, ...)`. **The context passed here must outlive the call that starts the forward** — it only bounds the *maximum* process lifetime, not the normal teardown path. The returned `stop` func is the real owner of the forward's lifecycle: every caller `defer`/`t.Cleanup`s it well before the test (and therefore its context) ends. Binding the forward to anything shorter-lived than the test itself — e.g. a context scoped to just the readiness-poll loop — would risk the process being killed by context expiry out from under an in-flight caller still using the tunnel. `PortForward` retries `tryPortForward` up to 4 times on a fresh local port before giving up, tolerating a loaded self-hosted runner where a single attempt's readiness window is too short.
+- **`APIClient` initial login** may reopen its forward at most once when a typed dial error reports `ECONNREFUSED`, proving the local listener did not receive the request. The reconnect consumes an attempt from the existing seven-attempt login budget and remains bound to the test context. Read/write errors, resets, timeouts, ambiguous failures and HTTP errors retain their existing failure behavior (apart from the existing bounded HTTP 429 backoff). Established clients never reconnect or replay requests. `TestAPI_LoginTransportRefusalClassification` covers accepted and rejected transport errors in `api-auth` without consuming a cluster login.
 
 ## Conventions (already normative via `CLAUDE.md`, restated here for the module's own record)
 
-- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `restricted-workloads` upgrades the shared release and namespace admission policy. These are documented exceptions.
+- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `restricted-workloads` upgrades the shared release and namespace admission policy; `postgres-availability` (`TestUpgrade_PostgresAvailability`) upgrades the shared release and interrupts PostgreSQL. These are documented exceptions.
 - **Per-test unique resource names**: CRs, namespaces, and users a test creates get a name unique to that test run (commonly time-based, e.g. `CreateUser`'s `fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())`) so parallel tests never collide on a shared cluster.
 - **`ociPushMu`**: a package-level mutex guarding tests that push through the shared, fixed-name `oras-push` Job (`module_e2e_test.go`, `module_verify_e2e_test.go`). Because the Job's name and namespace are fixed fixtures, two tests racing to apply/wait on it would stomp each other; `ociPushMu.Lock()`/`Unlock()` serializes them.
 - **`ensureResticRepo(t)`**: guards tests that run a backup against the shared restic repository fixture (`backup_e2e_test.go`, `backupschedule_e2e_test.go`, `failure_paths_e2e_test.go`) — restic repo initialization is not safe to race.
@@ -218,6 +227,7 @@ This module *is* a test tier; it carries no unit tests of its own and no `.testc
 
 - **`buckets.sh verify`** — the "e2e bucket coverage" CI job, structural proof every test is in exactly one bucket.
 - **CI's per-bucket jobs** — `operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `multicluster`, `upgrade` all run against a real kind cluster per job; `bot-heavy` is bucketed but never scheduled (see Non-goals).
+- **`postgres-availability`** runs alone at the end of the `e2e postgres` job. `TestUpgrade_PostgresAvailability` creates a user/session before migrating a live combined PostgreSQL Deployment from RollingUpdate to Recreate, watches API containers for overlapping writers, verifies the populated audit chain, then scales the database fixture down/up. A direct API Pod connection verifies failing readiness, healthy liveness, generic session 503s, no API restart, and recovery with the original session. It must not run in parallel with other tests because it upgrades the shared release and interrupts storage.
 - **`joincoverage.sh`/`joincoverage_test.sh`** — reports which games/protocols the bot suite actually reaches JoinDepth on, cross-referenced with `internal/specs.md`'s JoinDepth model.
 
 ## References

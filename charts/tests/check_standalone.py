@@ -42,8 +42,41 @@ def check_packaged_crds(example):
                 assert not any("crd-apply" in obj["metadata"]["name"] for obj in objects), objects
 
 
+def check_api_availability():
+    """All API modes stay singleton, migrate old strategies, and probe the DB."""
+    for standalone in (False, True):
+        for driver in ("sqlite", "postgres"):
+            values = {"operator": {"enabled": not standalone},
+                      "api": {"standalone": standalone, "db": {"driver": driver}}}
+            for upgrade in (False, True):
+                objects = render(values, upgrade=upgrade)
+                deployment = one(objects, "Deployment", "gameplane-api")
+                assert deployment["spec"]["replicas"] == 1
+                assert deployment["spec"]["strategy"] == {"type": "Recreate", "rollingUpdate": None}
+                container = next(c for c in deployment["spec"]["template"]["spec"]["containers"] if c["name"] == "api")
+                assert container["livenessProbe"]["httpGet"]["path"] == "/healthz"
+                assert container["readinessProbe"]["httpGet"]["path"] == "/readyz"
+                assert container["readinessProbe"]["failureThreshold"] == 3
+                assert container["readinessProbe"]["periodSeconds"] == 5
+                assert container["readinessProbe"]["timeoutSeconds"] > 2
+                if upgrade and not standalone:
+                    role = one(objects, "Role", "gameplane-strategy-migrate")
+                    assert role["rules"][0]["resourceNames"] == ["gameplane-api"]
+                    job = one(objects, "Job", "gameplane-crd-apply")
+                    # Client-side rendering has no live Deployment. Enabling
+                    # the API on an older operator-only release must skip the
+                    # migration instead of PATCHing an absent resource.
+                    assert not any(c["name"] == "migrate-api-strategy" for c in job["spec"]["template"]["spec"].get("initContainers", []))
+            for replicas in (0, 2, -1, 1.5):
+                values["api"]["replicas"] = replicas
+                render(values, failure="api requires api.replicas=1")
+    # A remote installation with no API has no singleton requirement.
+    render({"api": {"enabled": False, "replicas": 0}})
+
+
 def main():
     """Check deployment roles, standalone key custody, and source/archive CRDs."""
+    check_api_availability()
     defaults = render(include_crds=True)
     assert_crds(defaults, EXPECTED_CRDS)
     one(defaults, "Deployment", "gameplane-operator")
@@ -139,7 +172,7 @@ def main():
 
     render({"api": {"standalone": True}}, failure="api.standalone requires operator.enabled=false")
     render({"operator": {"enabled": False}, "api": {"enabled": False, "standalone": True}}, failure="api.standalone requires api.enabled=true")
-    render({"operator": {"enabled": False}, "api": {"standalone": True, "replicas": 2}}, failure="api.standalone requires api.replicas=1")
+    render({"operator": {"enabled": False}, "api": {"standalone": True, "replicas": 2}}, failure="api requires api.replicas=1")
     example = yaml.safe_load((Path(__file__).parents[1] / "gameplane/examples/standalone-panel-values.yaml").read_text())
     for upgrade in (False, True):
         objects = render(example, include_crds=True, upgrade=upgrade)
