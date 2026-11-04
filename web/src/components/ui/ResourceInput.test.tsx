@@ -187,6 +187,13 @@ describe("ResourceInput", () => {
       expect(screen.getByLabelText("Memory (GiB) unit")).toBeInTheDocument();
     });
 
+    it("uses the label prop as the accessible name when given", () => {
+      render(<ResourceInput kind="cpu" value="1" onChange={() => {}} label="Reserved CPU" />);
+      expect(screen.getByRole("slider")).toHaveAttribute("aria-label", "Reserved CPU");
+      expect(screen.getByLabelText("Reserved CPU value")).toBeInTheDocument();
+      expect(screen.getByLabelText("Reserved CPU unit")).toBeInTheDocument();
+    });
+
     it("disables all controls when disabled prop is true", () => {
       render(<ResourceInput kind="cpu" value="1" onChange={() => {}} disabled />);
       expect(screen.getByRole("slider")).toBeDisabled();

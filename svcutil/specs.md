@@ -2,7 +2,7 @@
 
 **Status:** Stable  
 **Module / command:** `github.com/GameplanePanel/gameplane/svcutil`  
-**Dependencies:** stdlib only (Go 1.26+)
+**Dependencies:** stdlib only (Go 1.27+)
 
 ## Purpose
 
