@@ -193,16 +193,16 @@ up)
         echo "removing pre-existing cluster ${CLUSTER} for a clean slate"
         kind delete cluster --name "${CLUSTER}" || true
     fi
-    echo "creating kind cluster ${CLUSTER} (${PROFILE})"
-    extra_nodes=""
-    if [[ "${PROFILE}" == "management" ]]; then
-        extra_nodes=$'  - role: worker\n  - role: worker'
-    fi
+    echo "creating kind cluster ${CLUSTER} (${PROFILE}, ${CNI})"
     kind_networking=""
     kind_wait=90s
     if [ "${CNI}" = cilium ]; then
         kind_networking=$'networking:\n  disableDefaultCNI: true'
         kind_wait=0s # Nodes become Ready after Cilium is installed below.
+    fi
+    extra_nodes=""
+    if [[ "${PROFILE}" == "management" ]]; then
+        extra_nodes=$'  - role: worker\n  - role: worker'
     fi
     kind create cluster --name "${CLUSTER}" --wait "${kind_wait}" --config - <<EOF
 kind: Cluster

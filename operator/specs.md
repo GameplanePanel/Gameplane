@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (v0.3.0)  
 **Module / package:** github.com/GameplanePanel/gameplane/operator  
-**Go version:** 1.26.0
+**Go version:** 1.27.0
 
 ## Purpose
 

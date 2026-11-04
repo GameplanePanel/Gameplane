@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "HVhmb",
   "x": 8200,
-  "y": 63669,
+  "y": 63932,
   "name": "Screen/Standalone — Remove cluster",
   "context": "Removal errors stay inside the confirmation and reset when dismissed or reopened. Successful removal clears a matching current selection to empty without selecting local or another remote.",
   "theme": {

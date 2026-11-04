@@ -312,6 +312,16 @@ export interface GameTemplate {
     accentColor?: string;
     image: string;
     versions?: GameVersion[];
+    // Ports the game listens on. wakeProtocol picks the wake sentinel's parser
+    // for the port while the server sleeps; the CRD defaults it to "generic",
+    // and "none" means the port never wakes the server.
+    ports?: Array<{
+      name: string;
+      containerPort: number;
+      protocol?: string;
+      advertise: boolean;
+      wakeProtocol?: "minecraft" | "terraria" | "generic" | "none";
+    }>;
     logPath?: string;
     consoleMode?: "rcon" | "pty" | "none";
     // authentication: whether the console requires a password (default true).

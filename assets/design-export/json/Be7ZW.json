@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "Be7ZW",
   "x": 4920,
-  "y": 63669,
+  "y": 63932,
   "name": "Screen/Standalone — Cluster inventory (No selection)",
   "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
   "theme": {

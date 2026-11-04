@@ -2,7 +2,7 @@
   "type": "frame",
   "id": "p8QSPq",
   "x": 6560,
-  "y": 55687,
+  "y": 55950,
   "name": "Screen/Standalone — Modules (Manage sources)",
   "context": "Background refetch failures display an inline retry banner and retain existing data plus open install/upload/builder/source drafts. Only an initial failure replaces loading content. Explicit target changes discard drafts.",
   "theme": {
