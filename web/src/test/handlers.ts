@@ -1254,7 +1254,7 @@ export function buildScreenshotHandlers() {
         ],
       }),
     ),
-    http.get("/backups/:name", ({ params }) => {
+    http.get("/backups/:name", ({ params, cookies }) => {
       const name = String(params.name);
       if (name === "mc-survival-nightly-0713") {
         return HttpResponse.json(
@@ -1267,6 +1267,18 @@ export function buildScreenshotHandlers() {
               completionTime: "2026-07-13T00:14:41Z",
               size: "1.4 GiB",
               snapshotID: "a1b2c3d4e5f6",
+              conditions: cookies.e2e_backup_coverage === "recorded"
+                ? [{ type: "Consistency", status: "False", reason: "UnsupportedRawCopy", message: "The game does not support quiesce." }]
+                : undefined,
+              captureManifest: cookies.e2e_backup_coverage === "recorded" ? {
+                state: "Recorded",
+                recordedAt: "2026-07-13T00:12:04Z",
+                volumes: [
+                  { claimName: "game-data", mountPaths: ["/world"], included: true, classification: "data", reason: "PrimaryDataClaim" },
+                  { claimName: "game-extra-install", mountPaths: ["/serverfiles"], included: false, classification: "rebuildable", reason: "NotCovered" },
+                  { claimName: "game-mods", mountPaths: ["/world/mods"], included: false, classification: "unclassified", reason: "NotCovered" },
+                ],
+              } : undefined,
             },
           }),
         );
