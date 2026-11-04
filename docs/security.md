@@ -459,7 +459,11 @@ Kubernetes administrators can manage the field through their own audited
 GitOps process. The game Pod receives no capture container or restart.
 
 The chart creates a separate `gameplane-diagnostics` namespace (configurable),
-explicitly labeled `privileged`. Deployment policy must permit hostPID, root,
+explicitly labeled `privileged`. It cannot overlap any managed game namespace,
+the control-plane, agent CA or module namespace, or the operator's deployment
+namespace. Namespace scopes must list explicit names; empty entries and wildcards
+are rejected. These checks run at chart rendering, operator startup and each
+capture reconcile. Deployment policy must permit hostPID, root,
 `SYS_ADMIN`, `SYS_PTRACE`, `NET_RAW` and unconfined seccomp there. This is
 host-level trust: a compromised worker can affect its node despite per-server
 application authorization. It has no Kubernetes token, runtime socket or

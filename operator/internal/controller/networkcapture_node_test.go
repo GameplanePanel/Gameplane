@@ -60,7 +60,65 @@ func nodeReconcilerFixture(t *testing.T, objects ...client.Object) *NetworkCaptu
 		}
 	}
 	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&gameplanev1alpha1.NetworkCapture{}, &gameplanev1alpha1.GameServer{}).WithObjects(objects...).Build()
-	return &NetworkCaptureReconciler{Client: c, APIReader: c, Scheme: scheme, CaptureEnabled: true, RestrictedWorkloads: true, DiagnosticsNamespace: "diagnostics"}
+	return &NetworkCaptureReconciler{Client: c, APIReader: c, Scheme: scheme, CaptureEnabled: true, RestrictedWorkloads: true, DiagnosticsNamespace: "diagnostics", ProtectedNamespaces: []string{"games", "system"}}
+}
+
+func TestNodeCaptureRejectsEveryProtectedNamespace(t *testing.T) {
+	for _, namespace := range []string{"games-other", "control", "certificates", "modules", "operator-pod"} {
+		t.Run(namespace, func(t *testing.T) {
+			nc := &gameplanev1alpha1.NetworkCapture{ObjectMeta: metav1.ObjectMeta{Name: "cap", Namespace: "games", UID: "capture-uid", Annotations: map[string]string{nodeCaptureNamespaceAnnotation: namespace}}, Status: gameplanev1alpha1.NetworkCaptureStatus{Phase: gameplanev1alpha1.CapturePhaseRunning}}
+			ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace, Labels: map[string]string{"pod-security.kubernetes.io/enforce": "privileged"}}}
+			r := nodeReconcilerFixture(t, nc, ns)
+			r.DiagnosticsNamespace = namespace
+			r.AgentCASecretNamespace = "certificates"
+			r.ProtectedNamespaces = []string{"games", "games-other", "control", "certificates", "modules", "operator-pod"}
+			if _, err := r.reconcileNodeCapture(t.Context(), nc); err != nil {
+				t.Fatal(err)
+			}
+			if nc.Status.Phase != gameplanev1alpha1.CapturePhaseFailed || !strings.Contains(nc.Status.Message, "separate") {
+				t.Fatalf("protected namespace accepted: %+v", nc.Status)
+			}
+			var anchors corev1.ConfigMapList
+			if err := r.List(t.Context(), &anchors); err != nil || len(anchors.Items) != 0 {
+				t.Fatalf("protected namespace acquired artifacts: %v %+v", err, anchors)
+			}
+		})
+	}
+}
+
+func TestNodeCaptureRejectsMissingOrUnboundedNamespaceScope(t *testing.T) {
+	for _, protected := range [][]string{nil, {}, {""}, {"games", "*"}, {"games", ""}, {"games,other"}} {
+		nc := &gameplanev1alpha1.NetworkCapture{ObjectMeta: metav1.ObjectMeta{Name: "cap", Namespace: "games", UID: "capture-uid"}}
+		ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "diagnostics", Labels: map[string]string{"pod-security.kubernetes.io/enforce": "privileged"}}}
+		r := nodeReconcilerFixture(t, nc, ns)
+		r.ProtectedNamespaces = protected
+		if failure, err := r.validateNodeCaptureNamespace(t.Context(), nc); err != nil || !strings.Contains(failure, "explicit") {
+			t.Fatalf("namespace scope %q did not fail closed: %q %v", protected, failure, err)
+		}
+	}
+}
+
+func TestNodeCaptureNamespaceScopeChangeDrainsWorkers(t *testing.T) {
+	nc := &gameplanev1alpha1.NetworkCapture{ObjectMeta: metav1.ObjectMeta{Name: "cap", Namespace: "games", UID: "capture-uid", Annotations: map[string]string{nodeCaptureNamespaceAnnotation: "diagnostics"}}, Status: gameplanev1alpha1.NetworkCaptureStatus{Phase: gameplanev1alpha1.CapturePhaseRunning}}
+	ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "diagnostics", Labels: map[string]string{"pod-security.kubernetes.io/enforce": "privileged"}}}
+	worker := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "worker", Namespace: ns.Name, Labels: map[string]string{nodeCaptureUIDLabel: string(nc.UID), nodeCaptureComponentLabel: "worker"}}}
+	r := nodeReconcilerFixture(t, nc, ns, worker)
+	if failure, err := r.validateNodeCaptureNamespace(t.Context(), nc); err != nil || failure != "" {
+		t.Fatalf("separate diagnostics namespace rejected: %q %v", failure, err)
+	}
+	r.ProtectedNamespaces = append(r.ProtectedNamespaces, "diagnostics")
+	if result, err := r.reconcileNodeCapture(t.Context(), nc); err != nil || result.RequeueAfter == 0 {
+		t.Fatalf("changed namespace scope did not wait for worker drain: %+v %v", result, err)
+	}
+	if nc.Status.Phase != gameplanev1alpha1.CapturePhaseRunning {
+		t.Fatal("capture failed before worker drain")
+	}
+	if _, err := r.reconcileNodeCapture(t.Context(), nc); err != nil {
+		t.Fatal(err)
+	}
+	if nc.Status.Phase != gameplanev1alpha1.CapturePhaseFailed || !strings.Contains(nc.Status.Message, "separate") {
+		t.Fatalf("changed namespace scope did not revoke capture: %+v", nc.Status)
+	}
 }
 
 func TestNodeCaptureValidatesNamespaceOnEveryReconcile(t *testing.T) {

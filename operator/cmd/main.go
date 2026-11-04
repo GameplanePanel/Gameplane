@@ -283,8 +283,14 @@ func main() {
 		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
 		os.Exit(1)
 	}
-	if diagnosticsNamespace != "" && diagnosticsNamespace == controlPlaneNamespace {
-		fmt.Fprintln(os.Stderr, "diagnostics-namespace must be separate from the control-plane namespace")
+	protectedNamespaces := append(strings.Split(gameNamespaces, ","), controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
+	// A configured credential namespace may differ from the actual operator
+	// deployment namespace. Neither may host privileged diagnostic workers.
+	if podNamespace := os.Getenv("POD_NAMESPACE"); podNamespace != "" {
+		protectedNamespaces = append(protectedNamespaces, podNamespace)
+	}
+	if err := controller.ValidateNodeDiagnosticsNamespace(diagnosticsNamespace, protectedNamespaces); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
@@ -519,6 +525,7 @@ func main() {
 		APIReader:                        mgr.GetAPIReader(),
 		RestrictedWorkloads:              restrictedWorkloads,
 		DiagnosticsNamespace:             diagnosticsNamespace,
+		ProtectedNamespaces:              protectedNamespaces,
 		DiagnosticsStorageClass:          diagnosticsStorageClass,
 		AgentCASecretName:                agentCASecretName,
 		AgentCASecretNamespace:           agentCASecretNamespace,
