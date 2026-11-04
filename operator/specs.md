@@ -22,7 +22,10 @@ Existing volumes still need compatible ownership before enabling Restricted.
 Restricted Pods never receive the legacy capture ephemeral container.
 `spec.capture.nodeDiagnostic` additionally requires cluster capture enablement
 and `--diagnostics-namespace`. The dedicated namespace must explicitly enforce
-privileged and be separate from games/control plane. Every reconcile checks
+privileged and be separate from every configured game namespace, the control-plane,
+agent CA and module namespaces, and the operator's actual `POD_NAMESPACE` when set.
+Chart rendering and operator startup reject overlaps; empty or wildcard protected
+namespace entries fail closed rather than meaning all namespaces. Every reconcile checks
 the recorded namespace against the configured namespace and rechecks live PSA
 labels and namespace separation. Revocation drains workers before failure;
 terminal/deleting captures retain cleanup but cannot rotate certificates in an

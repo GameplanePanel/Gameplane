@@ -3,7 +3,8 @@
 {{- if or (not .Values.capture.enabled) (ne (include "gameplane.operatorEnabled" .) "true") }}
 {{- fail "capture.nodeDiagnostics requires capture.enabled and the operator" }}
 {{- end }}
-{{- if or (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $diagnostics.namespace)) (gt (len $diagnostics.namespace) 63) (eq $diagnostics.namespace .Values.gamesNamespace) (eq $diagnostics.namespace .Release.Namespace) }}
+{{- $protectedNamespaces := append (include "gameplane.operatorSecretNamespaces" . | fromJsonArray) .Release.Namespace }}
+{{- if or (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $diagnostics.namespace)) (gt (len $diagnostics.namespace) 63) (has $diagnostics.namespace $protectedNamespaces) }}
 {{- fail "capture.nodeDiagnostics.namespace must be a separate explicit DNS-label namespace" }}
 {{- end }}
 {{- if lt (int $diagnostics.maxCaptures) 1 }}
