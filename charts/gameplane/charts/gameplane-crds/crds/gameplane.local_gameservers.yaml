@@ -3,8 +3,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 181aeee1d52a9cb178b0f8a8a862dc5959e772facf11817d5e70e5196574cd4c
-    controller-gen.kubebuilder.io/version: v0.20.1
+    gameplane.local/crd-bundle-sha256: afbe99d46e972c35a07f42486a1f8f6ec895c183017a9d2eef67b7ea07824f6b
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
   group: gameplane.local
@@ -1546,15 +1546,12 @@ spec:
                           tags:
                             description: |-
                               Tags are Tailscale ACL tags requested for the device when it
-                              registers, via `tailscale up --advertise-tags` (tailscaled's
-                              declarative config has no field for tags, and changing the tags of a
-                              registered node needs a fresh login). Each entry is "tag:<name>" or a bare
-                              name, which gets the "tag:" prefix. The tailnet ACL must grant
-                              tagOwners for these tags to the auth key's owner; if the request is
-                              refused, the tunnel pod logs the error and the tunnel runs untagged.
-                              If any entry is invalid, the whole list is logged and ignored and the
-                              device registers untagged. See
-                              tunnel/specs.md.
+                              registers through embedded tsnet. Each entry is "tag:<name>" or a
+                              bare name, which gets the "tag:" prefix. The tailnet policy must grant
+                              tagOwners to the auth key's owner. Invalid or refused tags keep the
+                              tunnel not ready; it never silently registers without requested tags.
+                              Changing tags replaces the Pod and requires a reusable auth key.
+                              See tunnel/specs.md for identity persistence and registration details.
                             items:
                               type: string
                             maxItems: 8

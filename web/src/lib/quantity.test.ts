@@ -5,9 +5,11 @@ import {
   convertCpu,
   convertMem,
   cpuCores,
+  cpuQuantityCores,
   formatCpuQuantity,
   formatMemQuantity,
   memBytes,
+  memQuantityBytes,
   parseCpuQuantity,
   parseMemQuantity,
 } from "./quantity";
@@ -227,6 +229,34 @@ describe("memBytes", () => {
 
   it("handles fractional values", () => {
     expect(memBytes({ value: 0.5, unit: "Gi" })).toBe(0.5 * 1024 ** 3);
+  });
+});
+
+describe("cpuQuantityCores", () => {
+  it("compares whole cores and millicores by amount", () => {
+    expect(cpuQuantityCores("2")).toBe(2);
+    expect(cpuQuantityCores("2000m")).toBe(2);
+    expect(cpuQuantityCores("500m")).toBe(0.5);
+    expect(cpuQuantityCores("0")).toBe(0);
+  });
+
+  it("counts empty or invalid input as 0", () => {
+    expect(cpuQuantityCores(undefined)).toBe(0);
+    expect(cpuQuantityCores("")).toBe(0);
+    expect(cpuQuantityCores("two")).toBe(0);
+  });
+});
+
+describe("memQuantityBytes", () => {
+  it("compares memory written in different units by amount", () => {
+    expect(memQuantityBytes("4Gi")).toBe(4 * 1024 ** 3);
+    expect(memQuantityBytes("4096Mi")).toBe(4 * 1024 ** 3);
+  });
+
+  it("counts empty, invalid or zero input as 0", () => {
+    expect(memQuantityBytes(undefined)).toBe(0);
+    expect(memQuantityBytes("lots")).toBe(0);
+    expect(memQuantityBytes("0Gi")).toBe(0);
   });
 });
 

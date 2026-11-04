@@ -1,0 +1,218 @@
+# Dev container profile catalogue (spec 026, contracts/profiles-catalogue.md).
+# Hand-written. Versions live only in versions.toml; this file refers to them by key.
+# Folder ids are relative to the repo root. Catalogue order = table order below.
+# Token {go_build} expands to "cd <m> && go build ./..." for each covered go.work module (except test/e2e).
+# sub_checks (optional, component profiles whose dirs are their own submodule only): literal
+# commands run from that submodule's repo root. They replace checks in the submodule copy's
+# ready.txt; the main-repo checks and make targets are never listed there.
+
+[baseline]
+image = "mcr.microsoft.com/devcontainers/base:ubuntu-24.04"
+remoteUser = "vscode"
+runArgs = ["--init"]
+extensions = [
+	"anthropic.claude-code",
+	"redhat.vscode-yaml",
+	"tamasfe.even-better-toml",
+	"ms-vscode.makefile-tools",
+]
+env = { GOTOOLCHAIN = "local", CI = "1" }
+
+[baseline.settings]
+"go.toolsManagement.checkForUpdates" = "off"
+"go.useLanguageServer" = true
+"editor.formatOnSave" = true
+"[go]" = { "editor.defaultFormatter" = "golang.go" }
+"[typescript]" = { "editor.defaultFormatter" = "esbenp.prettier-vscode" }
+"[typescriptreact]" = { "editor.defaultFormatter" = "esbenp.prettier-vscode" }
+"workbench.browser.openLocalhostLinks" = false
+"vs-kubernetes" = { "vs-kubernetes.crd-code-completion" = "enabled" }
+
+[[baseline.deps]]
+name = "common-utils"
+kind = "os-package"
+reason = "Base shell tooling and the vscode user (feature common-utils:2, zsh); devcontainer.json:5-9."
+
+[[baseline.deps]]
+name = "git"
+kind = "os-package"
+reason = "Submodule init and git plumbing come from the base image (setup.sh step_submodules)."
+
+[[baseline.deps]]
+name = "python3"
+kind = "cli"
+reason = "Runs hack/*.py (make devcontainers, check-* scripts) and modules/validate.py; the base image has no python3 (spec 026 CI evidence)."
+
+[[baseline.deps]]
+name = "gh"
+kind = "cli"
+reason = "GitHub CLI used by agents and PR scripts (inventory 6(f); modules/.github/workflows/refresh-pins.yml:108-109); devcontainer.json:26."
+
+[[baseline.deps]]
+name = "uv"
+kind = "cli"
+reason = "Python tool installer that provides specify-cli (setup.sh step_uv)."
+
+[[baseline.deps]]
+name = "specify"
+kind = "cli"
+version = "specify"
+reason = "Spec-kit CLI used by the spec workflow (setup.sh step_specify)."
+
+[[baseline.deps]]
+name = "ai-clis"
+kind = "cli"
+optional = true
+reason = "Optional AI coding CLIs installed warn-only (setup.sh step_ai_clis)."
+
+# ---------------------------------------------------------------- component profiles
+
+[profile.web]
+size = "component"
+title = "Web dashboard"
+dirs = ["web"]
+ports = [
+	{ port = 5173, label = "Vite (web dev)", onAutoForward = "notify" },
+]
+extensions = [
+	"dbaeumer.vscode-eslint",
+	"esbenp.prettier-vscode",
+	"bradlc.vscode-tailwindcss",
+]
+checks = [
+	"cd web && npm ci && npx tsc --noEmit",
+]
+
+[profile.api]
+size = "component"
+title = "API"
+dirs = ["api", "svcutil"]
+extensions = ["golang.go"]
+checks = ["{go_build}"]
+
+[profile.operator]
+size = "component"
+title = "Operator"
+dirs = ["operator"]
+extensions = [
+	"golang.go",
+	"ms-kubernetes-tools.vscode-kubernetes-tools",
+]
+checks = ["{go_build}"]
+
+[profile.agent]
+size = "component"
+title = "Agent"
+dirs = ["agent"]
+extensions = ["golang.go"]
+checks = ["{go_build}"]
+
+[profile.go-services]
+size = "component"
+title = "Go services"
+dirs = [
+	"audit-syslog-bridge",
+	"capture-sidecar",
+	"gameproto",
+	"gp-module",
+	"mcp-server",
+	"sentinel",
+	"telemetry-receiver",
+	"tunnel",
+]
+extensions = ["golang.go"]
+checks = ["{go_build}"]
+
+[profile.website]
+size = "component"
+title = "Website"
+dirs = ["website"]
+submodules = ["website"]
+ports = [
+	{ port = 4321, label = "Astro (website dev)", onAutoForward = "notify" },
+]
+extensions = [
+	"astro-build.astro-vscode",
+	"bradlc.vscode-tailwindcss",
+]
+checks = ["cd website && npm ci && npm run check"]
+sub_checks = ["npm ci && npm run check"]
+
+[profile.modules]
+size = "component"
+title = "Modules"
+dirs = ["modules"]
+submodules = ["modules"]
+# One known-good module proves the toolchain; a broken module elsewhere is not a container fault.
+checks = ["make module-validate MODULE=minecraft-java"]
+sub_checks = ["bash -n build.sh && python3 -m py_compile validate.py"]
+
+# ---------------------------------------------------------------- part profiles
+
+[profile.dashboard-api]
+size = "part"
+title = "Dashboard and API"
+includes = ["web", "api", "operator", "agent"]
+dirs = ["deploy/kind", "charts/gameplane"]
+submodules = ["modules"]
+extras = [
+	{ name = "docker", kind = "service", version = "docker", reason = "In-container Docker daemon for the kind dev cluster (OD-2; deploy/kind/up.sh:195-199)." },
+]
+ports = [
+	{ port = 5173, label = "Vite (web dev)", onAutoForward = "notify" },
+	{ port = 8080, label = "Gameplane ingress (HTTP)", onAutoForward = "silent" },
+	{ port = 8443, label = "Gameplane ingress (HTTPS)", onAutoForward = "silent" },
+	{ port = 5001, label = "Local OCI registry", onAutoForward = "silent" },
+]
+env = { GAMEPLANE_REG_HOST_PORT = "5001" }
+notes = ["Run order: make dev-up -> make web-dev -> open forwarded port 5173."]
+
+[profile.control-plane]
+size = "part"
+title = "Control plane"
+includes = ["operator", "api", "agent"]
+dirs = ["charts/gameplane", "deploy/kind", "test/e2e"]
+submodules = ["modules"]
+extras = [
+	{ name = "docker", kind = "service", version = "docker", reason = "In-container Docker daemon for the kind cluster and E2E images (OD-2; test/e2e/gatewayparity_e2e_test.go:156)." },
+]
+ports = [
+	{ port = 8080, label = "Gameplane ingress (HTTP)", onAutoForward = "silent" },
+	{ port = 8443, label = "Gameplane ingress (HTTPS)", onAutoForward = "silent" },
+	{ port = 5001, label = "Local OCI registry", onAutoForward = "silent" },
+	{ port = 30565, label = "Sample Minecraft NodePort", onAutoForward = "silent" },
+]
+env = { GAMEPLANE_REG_HOST_PORT = "5001" }
+checks = ["cd test/e2e && go vet -tags e2e ./..."]
+
+[profile.modules-gp]
+size = "part"
+title = "Modules and gp-module"
+includes = ["modules"]
+dirs = ["gp-module"]
+submodules = ["modules"]
+
+# ---------------------------------------------------------------- full
+
+[profile.full]
+size = "full"
+title = "Full"
+
+[full]
+# FR-003: full keeps today's ports and extensions; website-only extras stay in the website profile.
+omit_ports = [4321]
+omit_extensions = ["astro-build.astro-vscode"]
+personal_extensions = [
+	"google.geminicodeassist",
+	"google.gemini-cli-vscode-ide-companion",
+	"highagency.pencildev",
+	"fill-labs.dependi",
+	"rust-lang.rust-analyzer",
+	"dustypomerleau.rust-syntax",
+	"1yib.rust-bundle",
+	"vue.volar",
+	"nicolasdschmidt.lunar-pink",
+	"ahmedsaid.darkpinkpro",
+	"ms-azuretools.vscode-containers",
+]
+personal_settings = { "workbench.colorTheme" = "Lunar Pink" }

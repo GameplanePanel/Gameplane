@@ -76,6 +76,13 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 				"target server %q already exists; volume-snapshot restores create a new server",
 				rs.Spec.ServerRef.Name))
 		}
+		ready, err := r.prepareSnapshotRestoreTarget(ctx, rs, &newGS)
+		if errors.Is(err, errLifecycleGenerationChanged) {
+			return r.fail(ctx, rs, err.Error())
+		}
+		if err != nil || !ready {
+			return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+		}
 		return r.awaitRestoredServer(ctx, rs, src, &newGS)
 	case !apierrors.IsNotFound(err):
 		return ctrl.Result{}, err
@@ -94,9 +101,14 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 
 	created := &gameplanev1alpha1.GameServer{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        rs.Spec.ServerRef.Name,
-			Namespace:   rs.Namespace,
-			Annotations: map[string]string{annoRestoreCreatedBy: rs.Name},
+			Name:      rs.Spec.ServerRef.Name,
+			Namespace: rs.Namespace,
+			Annotations: map[string]string{
+				annoRestoreCreatedBy: rs.Name,
+				// Reserve the target atomically with creation. Once its UID is
+				// assigned, bind the full shared owner before permitting startup.
+				restoreGuardAnnotation: restoreIdentityJSON(rs.Name, rs.UID),
+			},
 		},
 	}
 	orig.Spec.DeepCopyInto(&created.Spec)
@@ -157,7 +169,7 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 	if err := r.Create(ctx, created); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// Lost a create race; the next pass finds it via the annotation.
-			return ctrl.Result{Requeue: true}, nil
+			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 		}
 		// Route non-AlreadyExists errors through the same deadline-aware path
 		// used for reference-copy failures. This ensures transient errors do not
@@ -209,6 +221,26 @@ func (r *RestoreReconciler) ensureRestoredRefsFromSpec(
 		}
 	}
 	return nil
+}
+
+func (r *RestoreReconciler) prepareSnapshotRestoreTarget(ctx context.Context, rs *gameplanev1alpha1.Restore, gs *gameplanev1alpha1.GameServer) (bool, error) {
+	changed, err := r.bindRestoreTarget(ctx, rs, gs)
+	if err != nil {
+		return false, err
+	}
+	if changed {
+		return false, nil
+	}
+	target, err := parseRestoreIdentity(rs.Annotations[restoreTargetAnnotation])
+	if err != nil {
+		return false, err
+	}
+	if target.UID != gs.UID || target.Name != gs.Name {
+		return false, fmt.Errorf("CSI restore target changed identity")
+	}
+	want := restoreLifecycleIdentity(gs, rs)
+	want.InitialStartup = true
+	return claimLifecycleOperation(ctx, r.Client, r.apiReader(), gs, want, r.OperationQuiescer)
 }
 
 // awaitRestoredServer drives the Restore to a terminal phase based on the

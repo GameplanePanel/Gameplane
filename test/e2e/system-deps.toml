@@ -1,0 +1,33 @@
+# System dependencies for test/e2e (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "test/e2e"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles and runs the Go E2E suite, a separate module (go.work:3-21; Makefile:50 GO_UNIT_MODULES)."
+
+[[dep]]
+name = "kind"
+kind = "cli"
+version = "kind"
+reason = "Creates and reads the kind cluster the E2E suite targets (deploy/kind/e2e.sh:192; test/e2e/multicluster_e2e_test.go:126)."
+
+[[dep]]
+name = "kubectl"
+kind = "cli"
+version = "kubectl"
+reason = "Runtime binary the E2E suite executes (test/e2e/env.go:167, :249, :392)."
+
+[[dep]]
+name = "helm"
+kind = "cli"
+version = "helm"
+reason = "Runtime binary the E2E suite executes (test/e2e/helm_install_e2e_test.go:359, :514)."
+
+[[dep]]
+name = "docker"
+kind = "service"
+version = "docker"
+reason = "Builds E2E images and is called by the gateway parity and multicluster tests (Makefile:185-191; test/e2e/gatewayparity_e2e_test.go:156)."

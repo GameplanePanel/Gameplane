@@ -1,0 +1,9 @@
+# System dependencies for charts/gameplane (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "charts/gameplane"
+
+[[dep]]
+name = "helm"
+kind = "cli"
+version = "helm"
+reason = "helm lint and helm upgrade --install for the chart (Makefile:443-460; .github/workflows/ci.yaml:1170-1171)."

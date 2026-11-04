@@ -1,0 +1,9 @@
+# System dependencies for web (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "web"
+
+[[dep]]
+name = "node"
+kind = "toolchain"
+version = "node"
+reason = "Runs npm ci, the Vite dev server and tsc for web (web/package.json:6-28; Makefile:79-80, 477-478; CI Node 24 at .github/workflows/ci.yaml:996)."

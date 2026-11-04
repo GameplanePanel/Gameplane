@@ -1,0 +1,95 @@
+{
+	"containerEnv": {
+		"CI": "1",
+		"GAMEPLANE_REG_HOST_PORT": "5001",
+		"GOTOOLCHAIN": "local"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"anthropic.claude-code",
+				"bradlc.vscode-tailwindcss",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"golang.go",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"ms-vscode.makefile-tools",
+				"redhat.vscode-yaml",
+				"tamasfe.even-better-toml"
+			],
+			"settings": {
+				"[go]": {
+					"editor.defaultFormatter": "golang.go"
+				},
+				"[typescript]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"[typescriptreact]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"editor.formatOnSave": true,
+				"go.toolsManagement.checkForUpdates": "off",
+				"go.useLanguageServer": true,
+				"vs-kubernetes": {
+					"vs-kubernetes.crd-code-completion": "enabled"
+				},
+				"workbench.browser.openLocalhostLinks": false
+			}
+		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"configureZshAsDefaultShell": "false",
+			"installZsh": "true",
+			"username": "vscode"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"dockerDashComposeVersion": "v2",
+			"moby": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/go:1": {
+			"version": "1.27.3"
+		},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+			"helm": "4.3.1",
+			"minikube": "none",
+			"version": "1.36"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "24"
+		}
+	},
+	"forwardPorts": [
+		5173,
+		8080,
+		8443,
+		5001
+	],
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+	"name": "Gameplane \u00b7 Dashboard and API",
+	"portsAttributes": {
+		"5001": {
+			"label": "Local OCI registry",
+			"onAutoForward": "silent"
+		},
+		"5173": {
+			"label": "Vite (web dev)",
+			"onAutoForward": "notify"
+		},
+		"8080": {
+			"label": "Gameplane ingress (HTTP)",
+			"onAutoForward": "silent"
+		},
+		"8443": {
+			"label": "Gameplane ingress (HTTPS)",
+			"onAutoForward": "silent"
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/setup.sh .devcontainer/dashboard-api/setup.env",
+	"remoteUser": "vscode",
+	"runArgs": [
+		"--init"
+	]
+}

@@ -292,6 +292,17 @@ func untilNext(next, now time.Time) time.Duration {
 func (r *GameServerReconciler) reconcileIdle(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer,
 ) (idleState, *gameplanev1alpha1.IdleStatus, time.Duration, error, error) {
+	// Keep both sleep and wake intent unchanged while an operation owns the
+	// workload. In particular, waking a stopped backup source is deferred.
+	if _, held, err := lifecycleOwner(gs); err != nil {
+		return idleAwake, nil, 0, nil, err
+	} else if held {
+		state := idleAwake
+		if parseAnnotationTime(gs, IdleAsleepSinceAnnotation) != nil {
+			state = idleAsleep
+		}
+		return state, gs.Status.Idle.DeepCopy(), idleReevaluate, nil, nil
+	}
 	in := idleInputs{
 		spec:      gs.Spec.Idle,
 		suspended: gs.Spec.Suspend,
@@ -349,7 +360,7 @@ func (r *GameServerReconciler) applyIdleTransition(
 			gs.Annotations[IdleWakeCompletedAnnotation] = tok
 		}
 	}
-	if err := r.Patch(ctx, gs, client.MergeFrom(base)); err != nil {
+	if err := r.Patch(ctx, gs, client.MergeFromWithOptions(base, client.MergeFromWithOptimisticLock{})); err != nil {
 		return fmt.Errorf("patch idle annotations on %s/%s: %w", gs.Namespace, gs.Name, err)
 	}
 	return nil

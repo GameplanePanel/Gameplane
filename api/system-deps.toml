@@ -1,0 +1,21 @@
+# System dependencies for api (spec 026). Language libraries stay in go.mod/package.json.
+
+component = "api"
+
+[[dep]]
+name = "go"
+kind = "toolchain"
+version = "go"
+reason = "Compiles and tests the API module (go.work:3-21; inventory 2.1 api row)."
+
+[[dep]]
+name = "golangci-lint"
+kind = "cli"
+version = "golangci_lint"
+reason = "make lint-go runs golangci-lint in this module (Makefile:302-305; GO_MODULES at Makefile:43)."
+
+[[dep]]
+name = "envtest"
+kind = "service"
+version = "envtest_k8s"
+reason = "Kubernetes API server and etcd binaries for api envtest suites (Makefile:166-171; test-integration at Makefile:174-179)."

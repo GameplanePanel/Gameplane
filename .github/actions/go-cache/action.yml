@@ -11,7 +11,7 @@ inputs:
   go-version:
     description: Go version to setup
     required: false
-    default: '1.26'
+    default: '1.27'
 
 runs:
   using: composite
@@ -20,7 +20,7 @@ runs:
       id: go
       with:
         go-version: ${{ inputs.go-version }}
-        # Resolve '1.26' to the newest 1.26.x patch instead of the runner's
+        # Resolve '1.27' to the newest 1.27.x patch (at least 1.27.3) instead of the runner's
         # preinstalled one, so stdlib fixes (spec 013 G1, govulncheck) land
         # without a manual pin bump.
         check-latest: true

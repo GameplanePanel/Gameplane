@@ -1,0 +1,197 @@
+name: dev containers
+
+# Verifies the modular dev containers (spec 026).
+#
+# drift:    regenerated files must match their inputs, and the generator's fixture
+#           tests must pass.
+# profiles: lists the profiles affected by the change (PR diff or push diff) and
+#           emits the build matrix: affected profile x {amd64, arm64}.
+# build:    builds each affected profile on its arch and runs that profile's
+#           checks (compile checks) inside the container.
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - '**/system-deps.toml'
+      - 'hack/gen-devcontainers.py'
+      - 'hack/test-gen-devcontainers.py'
+      - 'hack/need.sh'
+      - 'Makefile'
+      - 'go.work'
+      - '**/go.mod'
+      - 'modules'
+      - 'website'
+      - 'web/package*.json'
+      - '.github/workflows/devcontainers.yaml'
+  push:
+    branches: [master]
+    paths:
+      - '.devcontainer/**'
+      - '**/system-deps.toml'
+      - 'hack/gen-devcontainers.py'
+      - 'hack/test-gen-devcontainers.py'
+      - 'hack/need.sh'
+      - 'Makefile'
+      - 'go.work'
+      - '**/go.mod'
+      - 'modules'
+      - 'website'
+      - 'web/package*.json'
+      - '.github/workflows/devcontainers.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    name: drift
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Verify generated dev container files
+        run: python3 hack/gen-devcontainers.py --check
+
+      - name: Run generator fixture tests
+        run: make test-gen-devcontainers
+
+  profiles:
+    name: profiles
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      any: ${{ steps.affected.outputs.any }}
+      profiles: ${{ steps.affected.outputs.profiles }}
+      matrix: ${{ steps.affected.outputs.matrix }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          # The generator reads each submodule's system-deps.toml (FR-004a), so
+          # the submodules must be present for --affected to run.
+          submodules: true
+          persist-credentials: false
+
+      - name: Compute affected profiles
+        id: affected
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          changed="${RUNNER_TEMP}/changed-files.txt"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            git diff --name-only "${BASE_SHA}...HEAD" > "$changed"
+          elif [ -z "$PUSH_BEFORE" ] || [[ "$PUSH_BEFORE" =~ ^0+$ ]]; then
+            # New branch or unknown base: treat every profile as affected.
+            # profiles.toml is a global trigger, so --affected returns all ids.
+            echo ".devcontainer/profiles.toml" > "$changed"
+          elif ! git diff --name-only "$PUSH_BEFORE" "$HEAD_SHA" > "$changed" 2>/dev/null; then
+            # Base commit unreachable (force-push): treat every profile as affected.
+            echo ".devcontainer/profiles.toml" > "$changed"
+          fi
+
+          mapfile -t files < "$changed"
+          ids=""
+          # --affected requires at least one path, so an empty diff is handled here.
+          if [ "${#files[@]}" -gt 0 ]; then
+            ids="$(python3 hack/gen-devcontainers.py --affected "${files[@]}")"
+          fi
+          echo "Affected profiles: ${ids:-none}"
+
+          IDS="$ids" python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import os
+
+          ids = [line for line in os.environ.get("IDS", "").splitlines() if line]
+          rows = []
+          for pid in ids:
+              if pid == "full":
+                  config = ".devcontainer/devcontainer.json"
+              else:
+                  config = f".devcontainer/{pid}/devcontainer.json"
+              for arch in ("amd64", "arm64"):
+                  rows.append({"profile": pid, "config": config, "arch": arch})
+          if not rows:
+              # Placeholder so the matrix is never empty; the build job's `if` skips it.
+              rows = [{"profile": "none", "config": "", "arch": "amd64"}]
+          print(f"any={'true' if ids else 'false'}")
+          print("profiles=" + json.dumps(ids, separators=(",", ":")))
+          print("matrix=" + json.dumps({"include": rows}, separators=(",", ":")))
+          PY
+
+  build:
+    name: build (${{ matrix.profile }}, ${{ matrix.arch }})
+    needs: [drift, profiles]
+    if: needs.profiles.outputs.any == 'true'
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.profiles.outputs.matrix) }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Record start time
+        id: timer
+        run: echo "started=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Expand profile checks
+        id: checks
+        env:
+          PROFILE: ${{ matrix.profile }}
+        run: |
+          set -euo pipefail
+          cmd="$(python3 hack/gen-devcontainers.py --checks "$PROFILE")"
+          echo "cmd=${cmd}" >> "$GITHUB_OUTPUT"
+
+      - name: Build profile and run its checks
+        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca # v0.3.1900000450
+        with:
+          push: never
+          configFile: ${{ matrix.config }}
+          runCmd: ${{ steps.checks.outputs.cmd }}
+
+      - name: Write build summary
+        if: always() && steps.timer.outcome == 'success'
+        env:
+          STARTED: ${{ steps.timer.outputs.started }}
+          PROFILE: ${{ matrix.profile }}
+          MATRIX_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          elapsed=$(( $(date +%s) - STARTED ))
+          {
+            echo "### Dev containers: ${PROFILE} (${MATRIX_ARCH})"
+            echo ""
+            echo "- Setup seconds: ${elapsed}"
+            echo "- Workspace size (du -sx): $(du -sx "$GITHUB_WORKSPACE" | cut -f1) KiB"
+            echo ""
+            echo "Docker images:"
+            echo ""
+            echo '```'
+            docker image ls --format '{{.Repository}}:{{.Tag}} {{.Size}}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

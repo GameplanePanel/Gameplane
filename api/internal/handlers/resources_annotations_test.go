@@ -39,6 +39,7 @@ func TestGenericServerWritesCannotInjectLifecycleAnnotations(t *testing.T) {
 					wipeRequestedAnnotation:                        "injected",
 					"gameplane.local/wipe-data-completed":          "forged",
 					"gameplane.local/restore-guard":                "forged",
+					"operations.gameplane.local/owner":             "forged",
 					"gameserver.gameplane.local/stop-requested-at": "forged",
 					"restore.gameplane.local/created-by":           "forged",
 					ownerIDAnnotation:                              "999",
@@ -51,7 +52,7 @@ func TestGenericServerWritesCannotInjectLifecycleAnnotations(t *testing.T) {
 					t.Fatalf("write failed: %d %s", response.Code, response.Body)
 				}
 				got := serverAnnotations(t, k, "alpha")
-				for _, key := range []string{wipeRequestedAnnotation, "gameplane.local/wipe-data-completed", "gameplane.local/restore-guard", "gameserver.gameplane.local/stop-requested-at", "restore.gameplane.local/created-by"} {
+				for _, key := range []string{wipeRequestedAnnotation, "gameplane.local/wipe-data-completed", "gameplane.local/restore-guard", "operations.gameplane.local/owner", "gameserver.gameplane.local/stop-requested-at", "restore.gameplane.local/created-by"} {
 					if _, found := got[key]; found {
 						t.Errorf("generic write injected %s", key)
 					}
@@ -98,6 +99,7 @@ func TestGenericServerUpdatePreservesControllerState(t *testing.T) {
 				wipeRequestedAnnotation:                        "pending",
 				"gameplane.local/wipe-data-completed":          "previous",
 				"gameplane.local/backup-guard":                 "active-backup",
+				"operations.gameplane.local/owner":             `{"kind":"Backup","name":"copy","uid":"copy-uid","targetUID":"server-uid","generation":1}`,
 				"gameserver.gameplane.local/stop-requested-at": "original-time",
 				"restore.gameplane.local/created-by":           "original-restore",
 			}

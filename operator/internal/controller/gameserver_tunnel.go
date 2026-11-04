@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -25,6 +26,20 @@ const (
 	tunnelAuthVolume   = "tunnel-auth"
 	tunnelAuthMountDir = "/etc/gameplane/tunnel-auth"
 )
+
+var tailscaleTagPattern = regexp.MustCompile(`^(tag:)?[A-Za-z][A-Za-z0-9-]*$`)
+
+// validTailscaleTags mirrors the supervisor's normalization before it can
+// register a node. Invalid configuration must be visible before Pod startup.
+func validTailscaleTags(tags []string) bool {
+	for _, tag := range strings.Split(strings.Join(tags, ","), ",") {
+		tag = strings.TrimSpace(tag)
+		if tag != "" && !tailscaleTagPattern.MatchString(tag) {
+			return false
+		}
+	}
+	return true
+}
 
 // tunnelCredentialKey returns the Secret key name for a given tunnel provider.
 // Must match the keys in tunnel/main.go allowedCredentialKeys and
@@ -52,7 +67,8 @@ type tunnelPlan struct {
 	endpoints []gameplanev1alpha1.GameServerEndpoint
 	// noMapping is the set of advertised port names that have no frp remote-port mapping.
 	// Used only by frp to report a helpful condition reason.
-	noMapping []string
+	noMapping        []string
+	unsupportedPorts []string
 }
 
 // planTunnel is the single source of truth for the tunnel pod's existence
@@ -74,6 +90,7 @@ func (r *GameServerReconciler) planTunnel(
 	tunnel := gs.Spec.Networking.Tunnel
 	endpoints := make([]gameplanev1alpha1.GameServerEndpoint, 0)
 	var noMapping []string
+	var unsupportedPorts []string
 
 	switch tunnel.Provider {
 	case "frp":
@@ -128,6 +145,10 @@ func (r *GameServerReconciler) planTunnel(
 			if !p.Advertise {
 				continue
 			}
+			if p.Protocol != "" && p.Protocol != corev1.ProtocolTCP && p.Protocol != corev1.ProtocolUDP {
+				unsupportedPorts = append(unsupportedPorts, p.Name)
+				continue
+			}
 
 			ep := gameplanev1alpha1.GameServerEndpoint{
 				Name:           p.Name,
@@ -152,9 +173,10 @@ func (r *GameServerReconciler) planTunnel(
 	}
 
 	return tunnelPlan{
-		wantTunnel: true,
-		endpoints:  endpoints,
-		noMapping:  noMapping,
+		wantTunnel:       true,
+		endpoints:        endpoints,
+		noMapping:        noMapping,
+		unsupportedPorts: unsupportedPorts,
 	}
 }
 
@@ -181,6 +203,14 @@ func (r *GameServerReconciler) reconcileTunnel(
 	if tunnel == nil {
 		return r.clearTunnelCredentialRefused(ctx, gs)
 	}
+	if tunnel.Provider == "tailscale" && tunnel.Tailscale != nil && !validTailscaleTags(tunnel.Tailscale.Tags) {
+		// Stop a previous configuration rather than crash-looping a replacement
+		// or registering without the requested access-control tags.
+		if err := r.deleteTunnel(ctx, gs.Namespace, gs.Name); err != nil {
+			return err
+		}
+		return r.clearTunnelCredentialRefused(ctx, gs)
+	}
 
 	// Create or update the tunnel Deployment.
 	dep := &appsv1.Deployment{
@@ -199,6 +229,11 @@ func (r *GameServerReconciler) reconcileTunnel(
 		refusedSecret = ""
 		replicas := int32(1)
 		dep.Spec.Replicas = &replicas
+		// A provider identity owns one relay session. Recreate unregisters the
+		// old child before its replacement can claim the same names/ports.
+		if tunnel.Provider == "frp" || tunnel.Provider == "playit" || tunnel.Provider == "tailscale" {
+			dep.Spec.Strategy = appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType}
+		}
 		dep.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: map[string]string{
 				tunnelLabel:                  tunnelValue,
@@ -272,6 +307,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 			envVars = []corev1.EnvVar{
 				{Name: "GAMESERVER_NAME", Value: gs.Name},
 				{Name: "GAMESERVER_NAMESPACE", Value: gs.Namespace},
+				{Name: "GAMESERVER_UID", Value: string(gs.UID)},
 				{Name: "TUNNEL_TYPE", Value: "frp"},
 				{Name: "FRP_SERVER_ADDR", Value: tunnel.Frp.ServerAddr},
 				{Name: "FRP_SERVER_PORT", Value: fmt.Sprintf("%d", serverPort)},
@@ -388,14 +424,21 @@ func (r *GameServerReconciler) reconcileTunnel(
 			}
 		}
 
+		var readiness *corev1.Probe
+		if tunnel.Provider == "tailscale" {
+			volumes = append(volumes, corev1.Volume{Name: "tailscale-state", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}})
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{Name: "tailscale-state", MountPath: "/var/lib/gameplane-tailscale"})
+			readiness = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromInt(8091)}}, PeriodSeconds: 5, TimeoutSeconds: 2, FailureThreshold: 1}
+		}
 		dep.Spec.Template.Spec.Volumes = volumes
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
-			Name:         "tunnel",
-			Image:        image,
-			Resources:    auxiliaryResources(r.TunnelResources, "25m", "64Mi"),
-			Env:          envVars,
-			Ports:        ports,
-			VolumeMounts: volumeMounts,
+			Name:           "tunnel",
+			Image:          image,
+			Resources:      auxiliaryResources(r.TunnelResources, "25m", "64Mi"),
+			Env:            envVars,
+			Ports:          ports,
+			VolumeMounts:   volumeMounts,
+			ReadinessProbe: readiness,
 			SecurityContext: &corev1.SecurityContext{
 				RunAsNonRoot:             &nonRoot,
 				RunAsUser:                &uid,
@@ -403,6 +446,16 @@ func (r *GameServerReconciler) reconcileTunnel(
 				Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
 			},
 		}}
+		if tunnel.Provider == "frp" || tunnel.Provider == "playit" {
+			container := &dep.Spec.Template.Spec.Containers[0]
+			container.StartupProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/healthz", Port: intstr.FromInt32(8091)}}, PeriodSeconds: 2, TimeoutSeconds: 1, FailureThreshold: 30}
+			container.ReadinessProbe = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromInt32(8091)}}, PeriodSeconds: 2, TimeoutSeconds: 1, FailureThreshold: 1}
+			if tunnel.Provider == "playit" {
+				// The pinned Playit IPC has no live connection signal. Pod
+				// readiness uses process health; TunnelReady remains Unknown.
+				container.ReadinessProbe.HTTPGet.Path = "/healthz"
+			}
+		}
 
 		return controllerutil.SetControllerReference(gs, dep, r.Scheme)
 	})
@@ -695,14 +748,18 @@ func buildFrpRemotePortsConfig(frp *gameplanev1alpha1.FrpTunnelSpec, tmpl *gamep
 }
 
 // buildTailscalePortsConfig constructs the BACKING_SERVICE_PORTS env var for Tailscale.
-// Format: "port_name:port,..." e.g. "java:25565,bedrock:19133"
+// Format: "port_name:port:protocol,..." e.g. "java:25565:tcp,bedrock:19133:udp".
 func buildTailscalePortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
 	var entries []string
 	for _, p := range tmpl.Spec.Ports {
 		if !p.Advertise {
 			continue
 		}
-		entries = append(entries, fmt.Sprintf("%s:%d", p.Name, p.ContainerPort))
+		protocol := strings.ToLower(string(p.Protocol))
+		if protocol == "" {
+			protocol = "tcp"
+		}
+		entries = append(entries, fmt.Sprintf("%s:%d:%s", p.Name, p.ContainerPort, protocol))
 	}
 	if len(entries) == 0 {
 		return ""

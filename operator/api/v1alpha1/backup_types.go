@@ -17,11 +17,10 @@ const (
 	BackupPhaseFailed    BackupPhase = "Failed"
 )
 
-// BackupFinalizer blocks a quiesced Backup's deletion until the operator has
-// sent the matching unquiesce. Without it, deleting a Backup while
-// quiesce-attempted=true drops the unquiesce entirely and the game is left
-// with auto-save off indefinitely (F-048). Added only for Backups with
-// spec.quiesce=true; see backup_forget.go's finalizeDelete.
+// BackupFinalizer blocks deletion until copy workers have drained and any
+// matching unquiesce has completed. Every Backup carries it, including raw
+// copies and CSI snapshots, so deletion cannot release shared lifecycle
+// ownership while a copy is still using the target. See finalizeDelete.
 const BackupFinalizer = "gameplane.local/backup-finalizer"
 
 // BackupSnapshotFinalizer blocks the deletion of a restic-strategy Backup until

@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
@@ -52,7 +54,10 @@ func TestWipePendingStartAcquiresGuardBeforeLaunching(t *testing.T) {
 	gs := wipeGameServer(false, "current")
 	c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, wipeStoppedSet(gs)).Build()
 	r := &GameServerReconciler{Client: c, APIReader: c, Scheme: s}
-	wipePasses(t, r, gs, 1)
+	result, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)})
+	if err != nil || result != (ctrl.Result{RequeueAfter: time.Second}) {
+		t.Fatalf("guard acquisition must yield for a fresh reconcile: result=%+v err=%v", result, err)
+	}
 	current := wipeCurrent(t, c, gs)
 	if current.Annotations[wipeGuardAnnotation] != "current" || !current.Spec.Suspend {
 		t.Fatal("direct start bypassed durable wipe acquisition")

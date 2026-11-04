@@ -1,0 +1,17 @@
+ai-clis	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+common-utils	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+docker	dashboard-api,control-plane,full	deploy/kind
+envtest	api,operator,dashboard-api,control-plane,full	api
+gh	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+git	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+go	api,operator,agent,go-services,modules,dashboard-api,control-plane,modules-gp,full	agent
+golangci-lint	api,operator,agent,go-services,dashboard-api,control-plane,modules-gp,full	agent
+helm	dashboard-api,control-plane,full	charts/gameplane
+kind	dashboard-api,control-plane,full	deploy/kind
+kubectl	dashboard-api,control-plane,full	deploy/kind
+node	web,website,dashboard-api,full	web
+oras	modules,dashboard-api,control-plane,modules-gp,full	modules
+python3	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+pyyaml	modules,dashboard-api,control-plane,modules-gp,full	modules
+specify	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline
+uv	web,api,operator,agent,go-services,website,modules,dashboard-api,control-plane,modules-gp,full	baseline

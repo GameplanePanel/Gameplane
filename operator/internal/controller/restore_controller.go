@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -43,6 +44,9 @@ type RestoreReconciler struct {
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.
 	JobBackoffLimit          *int32
 	JobActiveDeadlineSeconds int64
+	// OperationQuiescer completes an orphaned backup's cleanup before this
+	// restore can acquire the same target. It never quiesces a restore.
+	OperationQuiescer AgentQuiescer
 }
 
 // apiReader returns the uncached reader for live-consistency checks,
@@ -113,7 +117,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err := r.Status().Update(ctx, &rs); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 
 	// Re-resolve the source Backup so we know its strategy on every pass
@@ -127,7 +131,10 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{}, err
 	}
-	if src.Spec.Strategy == "volume-snapshot" && rs.Annotations[restoreTargetAnnotation] == "" {
+	// Binding the target does not change the restore strategy. CSI's own
+	// preparation path checks that binding before awaiting startup, repairing
+	// references and enforcing the deadline on every subsequent reconcile.
+	if src.Spec.Strategy == "volume-snapshot" {
 		return r.reconcileVolumeSnapshotRestore(ctx, &rs, &src)
 	}
 
@@ -147,7 +154,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if changed {
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 	target, err := parseRestoreIdentity(rs.Annotations[restoreTargetAnnotation])
 	if err != nil {
@@ -158,6 +165,9 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	claimed, err := r.claimRestoreTarget(ctx, &rs, &gs)
 	if err != nil {
+		if errors.Is(err, errLifecycleGenerationChanged) {
+			return r.fail(ctx, &rs, err.Error())
+		}
 		return ctrl.Result{}, err
 	}
 	if !claimed {
@@ -196,7 +206,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err := r.Status().Update(ctx, &rs); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 
 	// src (the source Backup, with RepoRef for the Job env) was resolved
@@ -231,7 +241,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		if err := r.Create(ctx, job); err != nil {
 			if apierrors.IsAlreadyExists(err) {
-				return ctrl.Result{Requeue: true}, nil
+				return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 			}
 			return ctrl.Result{}, err
 		}

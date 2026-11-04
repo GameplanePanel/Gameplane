@@ -198,6 +198,11 @@ run_test "case-missing-working-directory" "R-008" \
 run_test "case-unpinned-version" "R-009" \
 	"not pinned"
 
+# R-009: One fixed but incompatible version must fail even when other
+# steps use the required version.
+run_test "case-mismatched-version" "R-009" \
+	"R-009:.*found: v2[.]13[.]2"
+
 # R-003: Missing fail-fast: false (strategy omits it entirely)
 run_test "case-missing-fail-fast" "R-003" \
 	"missing 'fail-fast: false'"
