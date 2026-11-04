@@ -233,6 +233,11 @@ func cloneHandler(reg *kube.Registry) http.HandlerFunc {
 		// never grants host-level diagnostic privileges to the new server.
 		unstructured.RemoveNestedField(clone.Object, "spec", "capture", "nodeDiagnostic")
 		stampOwner(clone, req)
+		configRules := newConfigRuleCache(k)
+		if err := configRules.validateCloneConfig(req.Context(), src, clone); err != nil {
+			httperr.WriteCode(w, req, http.StatusConflict, err)
+			return
+		}
 
 		cl := scope.RequestedCluster(req)
 		if err := validateAndProtectGameServer(req.Context(), k, cl, ns, body.NewName, clone, nil); err != nil {
@@ -249,7 +254,7 @@ func cloneHandler(reg *kube.Registry) http.HandlerFunc {
 		}
 		// The clone stores the source's config verbatim; only the response is redacted.
 		created = created.DeepCopy()
-		newConfigRuleCache(k).redact(req.Context(), created)
+		configRules.redact(req.Context(), created)
 		writeOrErr(w, req, created, nil)
 	}
 }

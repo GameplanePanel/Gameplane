@@ -30,8 +30,26 @@ def check_reuse_values():
         render(enabled, upgrade=True, chart=chart, failure="separate explicit")
 
 
+def check_namespace_separation():
+    operator = {"gameNamespaces": ["games-other"], "controlPlaneNamespace": "control",
+                "agentCASecretNamespace": "certificates", "moduleNamespace": "modules"}
+    for namespace in ("games-main", "games-other", "control", "certificates", "modules", "management"):
+        render({"gamesNamespace": "games-main", "operator": operator,
+                "capture": {"enabled": True, "nodeDiagnostics": {"enabled": True, "namespace": namespace}}},
+               namespace="management", failure="separate explicit")
+    for invalid in ("", "*", "games,other"):
+        render({"operator": {"gameNamespaces": [invalid]},
+                "capture": {"enabled": True, "nodeDiagnostics": {"enabled": True}}},
+               failure="explicit DNS-label namespace")
+    objects = render({"gamesNamespace": "games-main", "operator": operator,
+                      "capture": {"enabled": True, "nodeDiagnostics": {"enabled": True}}},
+                     namespace="management")
+    one(objects, "Namespace", "gameplane-diagnostics")
+
+
 def main():
     check_reuse_values()
+    check_namespace_separation()
     defaults = render()
     assert not any(o["metadata"]["name"] == "gameplane-diagnostics" for o in defaults)
     objects = render({"podSecurity": {"enforceRestricted": True}})

@@ -2810,3 +2810,14 @@ Merging master after PR #815 conflicted on `design.pen`. The file was taken from
 The operator has supported `spec.idle.wakeOnConnect` since v0.2.0-beta.8, but the dashboard had no control for it. No reusable component changed and Row 26 keeps its height, so no other node moved. `check-layout.js`: `NO ISSUES`. `pen-componentize` `audit.js`: nothing new on the two frames; the repeated "Field Auto-restart" and probe "row1" structures it lists predate this change.
 
 **Exports:** JSON from `Get(id, {depth: 80, includePathGeometry: true})`, pretty-printed (zero `"..."` elisions, `python3 -m json.tool` passes). PNG from `Export(ids, "png", …, {scale: 2})`: both 2880×3240. Headless `pen interactive` session (pen.dev CLI 0.3.14), with the lucide icon font served from the `lucide-static@0.563.0` npm tarball because unpkg.com is blocked in that sandbox. Body-text checks: `"Wake the server when a player connects"` only in `i1bLR.json` and `A8vGwM.json`; `"unable to wake the server"` only in `A8vGwM.json`.
+
+## Incremental export 2026-11-04 — Backup consistency and volume coverage (PR #769, inherited by #772)
+
+| Node | Name | Change |
+| --- | --- | --- |
+| `zhLZN` | Gameplane/Backup Detail Drawer | Added achieved consistency and legacy volume-coverage fields after Server. The legacy state explicitly says capture metadata is unavailable instead of inferring coverage from current configuration. The drawer remains 440×760. |
+| `bHJy6` | Gameplane/Backup Volume Coverage — Recorded | Added a 396px-wide coverage state with capture time, the single-primary-claim scope, and included data, excluded rebuildable, and excluded unclassified claims. Rebuildable is explicitly a declaration rather than proof of recoverability. The width includes the drawer body's scrollbar allowance; card padding includes the 1px inside border. |
+
+Source: `web/src/components/backups/BackupDetailDrawer.tsx`. The recorded state uses the matching screenshot fixture in `web/src/test/handlers.ts`; `web/e2e/screenshots/slice-3.spec.ts` captures both node IDs and checks their distinct content.
+
+**Exports:** JSON from Pencil `Get(id, {depth: 30, includePathGeometry: true})`, with no truncation markers; PNG from `Export(ids, "png", …, {scale: 2})`. Both nodes were visually inspected in Pencil, and the recorded state was checked manually in Chrome. The user saved `design.pen` in Pencil after the final sizing adjustment. TypeScript application and screenshot source compilation passed; automated visual execution remains CI-only. The drawer reference crop was remeasured as `(120,96)-(1000,1616)` in the new PNG, retaining the 880×1520 panel.

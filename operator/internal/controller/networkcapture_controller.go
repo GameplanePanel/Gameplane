@@ -133,6 +133,7 @@ type NetworkCaptureReconciler struct {
 	CaptureEnabled                   bool
 	RestrictedWorkloads              bool
 	DiagnosticsNamespace             string
+	ProtectedNamespaces              []string
 	DiagnosticsStorageClass          string
 	AgentCASecretName                string
 	AgentCASecretNamespace           string

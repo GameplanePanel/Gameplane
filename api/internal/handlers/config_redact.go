@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"sync"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
@@ -58,32 +58,43 @@ func rulesFromTemplate(tmpl *unstructured.Unstructured) configRules {
 type configRuleCache struct {
 	k       *kube.Client
 	mu      sync.Mutex
-	entries map[string]configRules
+	entries map[configRuleKey]configRules
+}
+
+// A revision is content-addressed, but snapshot ownership belongs to one
+// server. Never reuse a verified snapshot for a replacement or another server.
+type configRuleKey struct {
+	template, namespace, name, uid, revision string
 }
 
 func newConfigRuleCache(k *kube.Client) *configRuleCache {
-	return &configRuleCache{k: k, entries: map[string]configRules{}}
+	return &configRuleCache{k: k, entries: map[configRuleKey]configRules{}}
 }
 
-// rulesFor returns the rules for the named template, failing closed when the
-// template cannot be read.
-func (c *configRuleCache) rulesFor(ctx context.Context, templateName string) configRules {
-	if templateName == "" || c == nil || c.k == nil || c.k.Dynamic == nil {
+// rulesFor uses the server's admitted template, failing closed when that
+// template cannot be read or its pinned snapshot cannot be verified.
+func (c *configRuleCache) rulesFor(ctx context.Context, gs *unstructured.Unstructured) configRules {
+	if gs == nil || c == nil || c.k == nil {
 		return configRules{failClosed: true}
 	}
+	templateName, _, _ := unstructured.NestedString(gs.Object, "spec", "templateRef", "name")
+	key := configRuleKey{template: templateName, namespace: gs.GetNamespace(), name: gs.GetName(), uid: string(gs.GetUID()), revision: gs.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation]}
 	c.mu.Lock()
-	cached, ok := c.entries[templateName]
+	cached, ok := c.entries[key]
 	c.mu.Unlock()
 	if ok {
 		return cached
 	}
-	tmpl, err := c.k.Dynamic.Resource(kube.GVRs["templates"]).Get(ctx, templateName, metav1.GetOptions{})
+	tmpl, err := c.k.EffectiveGameTemplate(ctx, gs)
 	if err != nil {
 		return configRules{failClosed: true}
 	}
 	rules := rulesFromTemplate(tmpl)
+	if rules.failClosed {
+		return rules
+	}
 	c.mu.Lock()
-	c.entries[templateName] = rules
+	c.entries[key] = rules
 	c.mu.Unlock()
 	return rules
 }
@@ -107,8 +118,7 @@ func (c *configRuleCache) redact(ctx context.Context, gs *unstructured.Unstructu
 	if len(cfg) == 0 {
 		return
 	}
-	name, _, _ := unstructured.NestedString(gs.Object, "spec", "templateRef", "name")
-	rules := c.rulesFor(ctx, name)
+	rules := c.rulesFor(ctx, gs)
 	for key, val := range cfg {
 		if !rules.redacts(key) {
 			continue
@@ -125,6 +135,32 @@ func (c *configRuleCache) redactList(ctx context.Context, list *unstructured.Uns
 	for i := range list.Items {
 		c.redact(ctx, &list.Items[i])
 	}
+}
+
+// validateCloneConfig prevents secrets copied from a pinned source from
+// becoming ordinary config on an unpinned clone. Redacting only the POST reply
+// would still expose them on the clone's subsequent GET/list/event responses.
+func (c *configRuleCache) validateCloneConfig(ctx context.Context, source, clone *unstructured.Unstructured) error {
+	if source.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation] == "" {
+		return nil
+	}
+	cfg, _, err := unstructured.NestedMap(source.Object, "spec", "config")
+	if err != nil {
+		return errors.New("cannot clone: source config is malformed")
+	}
+	if len(cfg) == 0 {
+		return nil
+	}
+	sourceRules, targetRules := c.rulesFor(ctx, source), c.rulesFor(ctx, clone)
+	for key, value := range cfg {
+		if s, ok := value.(string); ok && s == "" {
+			continue
+		}
+		if sourceRules.redacts(key) && (targetRules.failClosed || !targetRules.password[key]) {
+			return errors.New("cannot clone: the current template does not protect copied passwords; restore its password field types or create a new server with fresh configuration")
+		}
+	}
+	return nil
 }
 
 // restoreRedactedConfig rewrites desired.spec.config before a PUT so redacted
@@ -146,8 +182,7 @@ func restoreRedactedConfig(ctx context.Context, c *configRuleCache, desired, liv
 		return
 	}
 	if live != nil {
-		name, _, _ := unstructured.NestedString(live.Object, "spec", "templateRef", "name")
-		rules = c.rulesFor(ctx, name)
+		rules = c.rulesFor(ctx, live)
 	}
 	out := make(map[string]any, len(incoming))
 	for key, val := range incoming {
