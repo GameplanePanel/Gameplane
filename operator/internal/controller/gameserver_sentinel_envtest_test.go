@@ -187,6 +187,10 @@ func TestSentinelReconciliation(t *testing.T) {
 			t.Fatalf("create node: %v", err)
 		}
 		deleteCleanup(t, node)
+		node.Status.Conditions = []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}
+		if err := k8sClient.Status().Update(ctx, node); err != nil {
+			t.Fatalf("mark node Ready: %v", err)
+		}
 
 		gs := &gameplanev1alpha1.GameServer{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-sentinel-hostport", Namespace: ns, Annotations: map[string]string{

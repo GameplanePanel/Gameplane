@@ -67,7 +67,10 @@ backup replica preservation and restore startup; the existing pod template is
 left intact. The sentinel Deployment also rechecks the live GameServer endpoint
 and Node UID before mutation; a stale sleep plan cannot start a listener on a
 replacement node. A transient NotReady condition on the same Node UID preserves an
-existing running game, while Pending or terminating Pods do not authorize a wake.
+existing running game or sleeping sentinel. Sentinel planning requires a running,
+non-terminating Pod on that endpoint, and mutation preserves its Deployment without
+rolling the template or raising replicas while the node is NotReady. Pending or
+terminating Pods do not authorize a wake or a new sleep listener.
 
 After restoring node capacity/readiness, reconciliation resumes automatically.
 For intentional migration, suspend the server, wait for both game and sentinel

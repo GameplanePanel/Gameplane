@@ -48,6 +48,15 @@ func (r *GameServerReconciler) hostportEndpointNode(ctx context.Context, gs *gam
 	return &node, nil
 }
 
+func hostportNodeReady(node *corev1.Node) bool {
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == corev1.NodeReady {
+			return condition.Status == corev1.ConditionTrue
+		}
+	}
+	return false
+}
+
 // sentinelBackstopPending polls Hostport only until the listener is ready.
 // Service-backed sentinel handoffs retain their existing watch backstop.
 func sentinelBackstopPending(plan sentinelPlan) bool {
@@ -126,14 +135,16 @@ func (r *GameServerReconciler) planHostportSentinel(ctx context.Context, gs *gam
 			hostportPending("EndpointNodeUnavailable", fmt.Sprintf("Hostport endpoint node %q is missing, replaced or deleting; restore that node or explicitly migrate the endpoint.", nodeName))
 			return plan, nil
 		}
-		ready := false
-		for _, condition := range node.Status.Conditions {
-			if condition.Type == corev1.NodeReady {
-				ready = condition.Status == corev1.ConditionTrue
-			}
-		}
-		if !ready {
+		if !hostportNodeReady(node) {
 			plan.blockGame = true
+			if idle == idleAsleep {
+				for _, pod := range sentinelPods.Items {
+					if pod.Spec.NodeName == nodeName && pod.DeletionTimestamp.IsZero() && pod.Status.Phase == corev1.PodRunning {
+						plan.wantSentinel = true
+						break
+					}
+				}
+			}
 			for _, pod := range gamePods.Items {
 				if pod.Name == gs.Name+"-0" && pod.Spec.NodeName == nodeName && pod.DeletionTimestamp.IsZero() && pod.Status.Phase == corev1.PodRunning {
 					plan.blockGame = false
@@ -180,7 +191,11 @@ func hostportListenerCondition(gs *gameplanev1alpha1.GameServer, pods []corev1.P
 		}
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == corev1.PodScheduled && condition.Status == corev1.ConditionFalse && condition.Reason == corev1.PodReasonUnschedulable {
-				return hostportCondition(gs, "EndpointUnschedulable", fmt.Sprintf("Hostport listener cannot schedule on endpoint node %q: %s", nodeName, condition.Message), false)
+				message := "Hostport listener cannot schedule"
+				if nodeName != "" {
+					message += fmt.Sprintf(" on endpoint node %q", nodeName)
+				}
+				return hostportCondition(gs, "EndpointUnschedulable", message+": "+condition.Message, false)
 			}
 			if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue && (nodeName == "" || pod.Spec.NodeName == nodeName) {
 				return hostportCondition(gs, "ListenerReady", "The listener is Ready on the Hostport endpoint node.", true)

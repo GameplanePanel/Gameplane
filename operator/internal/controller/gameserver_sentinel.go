@@ -265,6 +265,14 @@ func (r *GameServerReconciler) reconcileSentinel(
 				if dep.ResourceVersion != "" {
 					return nil // Stop without rolling the existing pod template.
 				}
+			} else if !hostportNodeReady(node) {
+				// Retain an existing listener's exact desired state while the
+				// original node recovers. Do not roll its template or start a
+				// stopped/new producer from a stale healthy-node plan.
+				if dep.ResourceVersion != "" {
+					return nil
+				}
+				replicas = 0
 			}
 		}
 		dep.Spec.Replicas = &replicas

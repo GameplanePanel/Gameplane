@@ -3,11 +3,13 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -274,6 +276,7 @@ func TestHostportSentinelMutationRejectsChangedGameServer(t *testing.T) {
 func TestHostportSentinelMutationRetainsListenerOnNotReadyNode(t *testing.T) {
 	t.Parallel()
 	r, gs, tmpl, plan, original := hostportSentinelMutationFixture(t, true)
+	r.SentinelImage = "sentinel:pending-upgrade"
 	r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(gs, hostportIdentityNode("node-uid", corev1.ConditionFalse)).Build()
 	if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err != nil {
 		t.Fatal(err)
@@ -287,5 +290,87 @@ func TestHostportSentinelMutationRetainsListenerOnNotReadyNode(t *testing.T) {
 	}
 	if !reflect.DeepEqual(original.Spec.Template, current.Spec.Template) {
 		t.Fatal("transient NotReady rolled the listener template")
+	}
+}
+
+func TestHostportNotReadyPlanRetainsOnlyRunningSleepListener(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name   string
+		idle   idleState
+		pod    string
+		retain bool
+	}{
+		{"sleeping-running", idleAsleep, "running", true},
+		{"awake-running", idleAwake, "running", false},
+		{"sleeping-missing", idleAsleep, "missing", false},
+		{"sleeping-pending", idleAsleep, "pending", false},
+		{"sleeping-deleting", idleAsleep, "deleting", false},
+		{"sleeping-other-node", idleAsleep, "other-node", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r, gs, tmpl, _, original := hostportSentinelMutationFixture(t, true)
+			objects := []client.Object{gs, hostportIdentityNode("node-uid", corev1.ConditionFalse)}
+			if tc.pod != "missing" {
+				pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "game-waker-pod", Namespace: gs.Namespace, Labels: map[string]string{sentinelLabel: sentinelValue, "app.kubernetes.io/instance": gs.Name}}, Spec: corev1.PodSpec{NodeName: "node-a"}, Status: corev1.PodStatus{Phase: corev1.PodRunning}}
+				switch tc.pod {
+				case "pending":
+					pod.Status.Phase = corev1.PodPending
+				case "deleting":
+					now := metav1.Now()
+					pod.DeletionTimestamp, pod.Finalizers = &now, []string{"test/hold"}
+				case "other-node":
+					pod.Spec.NodeName = "node-b"
+				}
+				objects = append(objects, pod)
+			}
+			r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(objects...).Build()
+			plan, err := r.planSentinel(t.Context(), gs, tmpl, tc.idle)
+			if err != nil || plan.wantSentinel != tc.retain || !plan.blockGame {
+				t.Fatalf("NotReady plan = %+v, %v; retain=%t", plan, err, tc.retain)
+			}
+			r.SentinelImage = "sentinel:pending-upgrade"
+			if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err != nil {
+				t.Fatal(err)
+			}
+			var current appsv1.Deployment
+			err = r.Get(t.Context(), client.ObjectKeyFromObject(original), &current)
+			if !tc.retain {
+				if !apierrors.IsNotFound(err) {
+					t.Fatalf("plan retained a listener that cannot be preserved: %v", err)
+				}
+				return
+			}
+			if err != nil || !reflect.DeepEqual(original.Spec, current.Spec) {
+				t.Fatalf("NotReady plan changed the running listener: %v", err)
+			}
+		})
+	}
+}
+
+func TestHostportSentinelMutationDoesNotStartOnNotReadyNode(t *testing.T) {
+	t.Parallel()
+	for _, existing := range []bool{false, true} {
+		t.Run(fmt.Sprintf("existing=%t", existing), func(t *testing.T) {
+			r, gs, tmpl, plan, original := hostportSentinelMutationFixture(t, existing)
+			if existing {
+				zero := int32(0)
+				original.Spec.Replicas = &zero
+				if err := r.Update(t.Context(), original); err != nil {
+					t.Fatal(err)
+				}
+			}
+			r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(gs, hostportIdentityNode("node-uid", corev1.ConditionFalse)).Build()
+			if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err != nil {
+				t.Fatal(err)
+			}
+			var current appsv1.Deployment
+			if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-waker"}, &current); err != nil {
+				t.Fatal(err)
+			}
+			if current.Spec.Replicas == nil || *current.Spec.Replicas != 0 {
+				t.Fatal("stale healthy plan started a listener on a NotReady node")
+			}
+		})
 	}
 }
