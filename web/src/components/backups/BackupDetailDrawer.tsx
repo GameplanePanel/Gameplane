@@ -74,7 +74,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
                 <RotateCcw className="h-4 w-4" />{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.restore", defaultMessage: "Restore", description: "Backup details drawer: visible text of the restore button in the drawer header and of the primary restore button in the footer; keep it short" })}</Button>
             </Drawer.Header>
 
-            <Drawer.Body className="min-h-0 space-y-4 overflow-y-auto p-5 text-sm">
+            <Drawer.Body className="m-0 min-h-0 space-y-4 overflow-y-auto p-5 text-sm text-foreground">
               {error && <ErrorBanner err={error} />}
               {backup && (
                 <>
@@ -131,7 +131,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
               {remove.error && <ErrorBanner err={remove.error} />}
             </Drawer.Body>
 
-            <Drawer.Footer className="shrink-0 flex items-center justify-end gap-2 border-t border-border p-4">
+            <Drawer.Footer className="mt-0 shrink-0 flex items-center justify-end gap-2 border-t border-border p-4">
               <Button
                 variant="danger"
                 size="sm"
