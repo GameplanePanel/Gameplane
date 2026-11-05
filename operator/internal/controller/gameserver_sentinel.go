@@ -237,6 +237,36 @@ func (r *GameServerReconciler) reconcileSentinel(
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, dep, func() error {
 		replicas := int32(1)
+		if gs.Spec.Networking.Expose == "Hostport" {
+			var live gameplanev1alpha1.GameServer
+			if err := r.hostportReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
+				return err
+			}
+			if live.UID != gs.UID || !live.DeletionTimestamp.IsZero() {
+				return fmt.Errorf("GameServer changed identity or is deleting before sentinel mutation")
+			}
+			if live.Spec.Networking.Expose != "Hostport" ||
+				live.Annotations[hostportNodeAnnotation] != gs.Annotations[hostportNodeAnnotation] ||
+				live.Annotations[hostportNodeUIDAnnotation] != gs.Annotations[hostportNodeUIDAnnotation] {
+				return fmt.Errorf("Hostport endpoint changed before sentinel mutation")
+			}
+			if dep.ResourceVersion != "" && !metav1.IsControlledBy(dep, &live) {
+				return fmt.Errorf("sentinel Deployment is not owned by this GameServer")
+			}
+			node, err := r.hostportEndpointNode(ctx, &live)
+			if err != nil {
+				return err
+			}
+			if node == nil {
+				// A node can be replaced after the sleep plan. Fence this
+				// producer before it creates a listener on the reused name.
+				replicas = 0
+				dep.Spec.Replicas = &replicas
+				if dep.ResourceVersion != "" {
+					return nil // Stop without rolling the existing pod template.
+				}
+			}
+		}
 		dep.Spec.Replicas = &replicas
 		dep.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: map[string]string{

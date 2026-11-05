@@ -168,3 +168,124 @@ func TestHostportNodeReadErrorDoesNotMutateWorkload(t *testing.T) {
 		t.Fatalf("failed node read changed the workload: %+v", ss.Spec)
 	}
 }
+
+func hostportSentinelMutationFixture(t *testing.T, existing bool) (*GameServerReconciler, *gameplanev1alpha1.GameServer, *gameplanev1alpha1.GameTemplate, sentinelPlan, *appsv1.Deployment) {
+	t.Helper()
+	r, gs, tmpl := hostportFixture(t)
+	gs.Annotations = map[string]string{hostportNodeAnnotation: "node-a", hostportNodeUIDAnnotation: "node-uid"}
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	plan, err := r.planSentinel(t.Context(), gs, tmpl, idleAsleep)
+	if err != nil || !plan.wantSentinel {
+		t.Fatalf("sleep plan did not authorize the healthy endpoint: %+v, %v", plan, err)
+	}
+	var original appsv1.Deployment
+	if existing {
+		if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err != nil {
+			t.Fatal(err)
+		}
+		if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-waker"}, &original); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return r, gs, tmpl, plan, &original
+}
+
+func TestHostportSentinelMutationFencesNodeIdentityLoss(t *testing.T) {
+	t.Parallel()
+	deleting := hostportIdentityNode("node-uid", corev1.ConditionTrue)
+	now := metav1.Now()
+	deleting.DeletionTimestamp, deleting.Finalizers = &now, []string{"test/hold"}
+	for _, tc := range []struct {
+		name string
+		node *corev1.Node
+	}{
+		{"replacement", hostportIdentityNode("replacement-node", corev1.ConditionTrue)},
+		{"missing", nil},
+		{"deleting", deleting},
+	} {
+		for _, existing := range []bool{false, true} {
+			mode := "create"
+			if existing {
+				mode = "update"
+			}
+			t.Run(tc.name+"/"+mode, func(t *testing.T) {
+				r, gs, tmpl, plan, original := hostportSentinelMutationFixture(t, existing)
+				objects := []client.Object{gs}
+				if tc.node != nil {
+					objects = append(objects, tc.node)
+				}
+				// The cache retains the healthy node that authorized the plan.
+				// Only the uncached reader observes its subsequent identity loss.
+				r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(objects...).Build()
+				if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err != nil {
+					t.Fatal(err)
+				}
+				var current appsv1.Deployment
+				if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-waker"}, &current); err != nil {
+					t.Fatal(err)
+				}
+				if current.Spec.Replicas == nil || *current.Spec.Replicas != 0 {
+					t.Fatalf("stale sleep plan authorized a sentinel after node identity loss: %+v", current.Spec.Replicas)
+				}
+				if existing && !reflect.DeepEqual(original.Spec.Template, current.Spec.Template) {
+					t.Fatal("identity fence rolled the existing sentinel template")
+				}
+			})
+		}
+	}
+}
+
+func TestHostportSentinelMutationRejectsChangedGameServer(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name   string
+		change func(*gameplanev1alpha1.GameServer)
+	}{
+		{"identity", func(gs *gameplanev1alpha1.GameServer) { gs.UID = "replacement-game" }},
+		{"endpoint-name", func(gs *gameplanev1alpha1.GameServer) { gs.Annotations[hostportNodeAnnotation] = "node-b" }},
+		{"endpoint-uid", func(gs *gameplanev1alpha1.GameServer) { gs.Annotations[hostportNodeUIDAnnotation] = "replacement-node" }},
+		{"expose-mode", func(gs *gameplanev1alpha1.GameServer) { gs.Spec.Networking.Expose = "NodePort" }},
+		{"deleting", func(gs *gameplanev1alpha1.GameServer) {
+			now := metav1.Now()
+			gs.DeletionTimestamp, gs.Finalizers = &now, []string{"test/hold"}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r, gs, tmpl, plan, original := hostportSentinelMutationFixture(t, true)
+			live := gs.DeepCopy()
+			tc.change(live)
+			r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(live, hostportIdentityNode("node-uid", corev1.ConditionTrue)).Build()
+			if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err == nil {
+				t.Fatal("stale GameServer authorized sentinel mutation")
+			}
+			var current appsv1.Deployment
+			if err := r.Get(t.Context(), client.ObjectKeyFromObject(original), &current); err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(original.Spec, current.Spec) {
+				t.Fatal("stale GameServer changed the sentinel")
+			}
+		})
+	}
+}
+
+func TestHostportSentinelMutationRetainsListenerOnNotReadyNode(t *testing.T) {
+	t.Parallel()
+	r, gs, tmpl, plan, original := hostportSentinelMutationFixture(t, true)
+	r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(gs, hostportIdentityNode("node-uid", corev1.ConditionFalse)).Build()
+	if err := r.reconcileSentinel(t.Context(), gs, tmpl, plan.wantSentinel); err != nil {
+		t.Fatal(err)
+	}
+	var current appsv1.Deployment
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(original), &current); err != nil {
+		t.Fatal(err)
+	}
+	if current.Spec.Replicas == nil || *current.Spec.Replicas != 1 {
+		t.Fatal("transient NotReady stopped the listener on the original node")
+	}
+	if !reflect.DeepEqual(original.Spec.Template, current.Spec.Template) {
+		t.Fatal("transient NotReady rolled the listener template")
+	}
+}

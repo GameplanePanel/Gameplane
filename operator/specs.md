@@ -64,7 +64,9 @@ A missing, deleting or replaced endpoint Node forces the game StatefulSet to
 zero replicas even if a replacement game Pod already exists. The live Node
 identity is checked again immediately before workload mutation, including
 backup replica preservation and restore startup; the existing pod template is
-left intact. A transient NotReady condition on the same Node UID preserves an
+left intact. The sentinel Deployment also rechecks the live GameServer endpoint
+and Node UID before mutation; a stale sleep plan cannot start a listener on a
+replacement node. A transient NotReady condition on the same Node UID preserves an
 existing running game, while Pending or terminating Pods do not authorize a wake.
 
 After restoring node capacity/readiness, reconciliation resumes automatically.

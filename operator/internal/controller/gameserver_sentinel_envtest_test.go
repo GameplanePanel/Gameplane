@@ -182,8 +182,16 @@ func TestSentinelReconciliation(t *testing.T) {
 		}
 		deleteCleanup(t, tmpl)
 
+		node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: uniqueName("sentinel-node")}}
+		if err := k8sClient.Create(ctx, node); err != nil {
+			t.Fatalf("create node: %v", err)
+		}
+		deleteCleanup(t, node)
+
 		gs := &gameplanev1alpha1.GameServer{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-sentinel-hostport", Namespace: ns, Annotations: map[string]string{hostportNodeAnnotation: "node-a"}},
+			ObjectMeta: metav1.ObjectMeta{Name: "test-sentinel-hostport", Namespace: ns, Annotations: map[string]string{
+				hostportNodeAnnotation: node.Name, hostportNodeUIDAnnotation: string(node.UID),
+			}},
 			Spec: gameplanev1alpha1.GameServerSpec{
 				TemplateRef: gameplanev1alpha1.GameTemplateRef{Name: tmpl.Name},
 				Idle:        armedIdleSpec(),
@@ -207,6 +215,9 @@ func TestSentinelReconciliation(t *testing.T) {
 		}
 		if len(dep.Spec.Template.Spec.Containers) == 0 {
 			t.Fatal("no containers in sentinel deployment")
+		}
+		if dep.Spec.Replicas == nil || *dep.Spec.Replicas != 1 {
+			t.Fatal("valid endpoint did not start the sentinel")
 		}
 		container := dep.Spec.Template.Spec.Containers[0]
 		if len(container.Ports) == 0 {
