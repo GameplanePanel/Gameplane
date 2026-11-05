@@ -119312,12 +119312,15 @@
                       "height": 16
                     },
                     "eWkIT/r4VbAi": {
+                      "type": "text",
+                      "id": "h309Rt",
+                      "name": "Label",
+                      "fill": "$foreground/foreground",
                       "content": "Restore",
-                      "fontSize": 14,
                       "lineHeight": 1.4285714285714286,
-                      "fontWeight": "500",
-                      "width": 51,
-                      "textGrowth": "auto"
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
                     }
                   }
                 }
@@ -119675,11 +119678,15 @@
                       "gap": 6
                     },
                     "E4lQce/IUtnC": {
-                      "fontSize": 14,
+                      "type": "text",
+                      "id": "mZOXu",
+                      "name": "Label",
+                      "fill": "$danger/foreground",
+                      "content": "Delete",
                       "lineHeight": 1.4285714285714286,
-                      "fontWeight": "500",
-                      "width": 43,
-                      "textGrowth": "auto"
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
                     }
                   }
                 },
@@ -119702,12 +119709,15 @@
                       "icon": "rotate-ccw"
                     },
                     "IVgQ8/U1xvSo": {
+                      "type": "text",
+                      "id": "rxpIV",
+                      "name": "Label",
+                      "fill": "$accent/foreground",
                       "content": "Restore",
-                      "fontSize": 14,
                       "lineHeight": 1.4285714285714286,
-                      "fontWeight": "500",
-                      "width": 51,
-                      "textGrowth": "auto"
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
                     }
                   }
                 }
