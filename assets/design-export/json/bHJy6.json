@@ -5,7 +5,7 @@
   "y": 4461,
   "name": "Gameplane/Backup Volume Coverage — Recorded",
   "reusable": true,
-  "width": 396,
+  "width": 400,
   "fill": "$surface/surface",
   "layout": "vertical",
   "gap": 4,
