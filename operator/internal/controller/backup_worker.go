@@ -89,6 +89,9 @@ func (r *BackupReconciler) prepareBackupWorkerSource(ctx context.Context, b *gam
 	}
 	var ss appsv1.StatefulSet
 	if err := r.backupAPIReader().Get(ctx, client.ObjectKey{Namespace: b.Namespace, Name: b.Spec.ServerRef.Name}, &ss); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("%w: source workload absent after fencing", errBackupSourceChanged)
+		}
 		return nil, err
 	}
 	source.Tolerations = ss.Spec.Template.Spec.Tolerations
@@ -101,7 +104,7 @@ func (r *BackupReconciler) prepareBackupWorkerSource(ctx context.Context, b *gam
 	if stored := b.Annotations[backupWorkerSourceAnnotation]; stored != "" {
 		var previous backupWorkerSource
 		if err := json.Unmarshal([]byte(stored), &previous); err != nil {
-			return nil, fmt.Errorf("decode worker source: %w", err)
+			return nil, fmt.Errorf("%w: decode worker source: %v", errBackupSourceChanged, err)
 		}
 		if previous.PodUID != source.PodUID || previous.NodeName != source.NodeName {
 			return nil, fmt.Errorf("%w: worker source relocated or replaced", errBackupSourceChanged)
@@ -177,7 +180,17 @@ func (r *BackupReconciler) preparedBackupWorker(ctx context.Context, b *gameplan
 	return candidate, nil
 }
 
-func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gameplanev1alpha1.Backup) (result ctrl.Result, reconcileErr error) {
+	authorizedThisPass := false
+	defer func() {
+		// A previous token must not authorize a waiting worker while a current
+		// source/readiness check is unavailable. Revocation does not stop an
+		// already running copy, so retain its owner, quiesce debt and deadline.
+		// Projection can lag; only actual worker drain permits save-on.
+		if !authorizedThisPass && b.Annotations[backupPreparationDeadlineAnnotation] != "" {
+			reconcileErr = errors.Join(reconcileErr, r.revokeBackupStart(ctx, b))
+		}
+	}()
 	// Existing Jobs use their original execution protocol. Never replace a
 	// running pre-upgrade Job with a gated worker or claim it was prepared.
 	var job batchv1.Job
@@ -244,7 +257,10 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 	}
 	source, err := r.prepareBackupWorkerSource(ctx, b)
 	if err != nil {
-		return r.abortResticCopy(ctx, b, err.Error())
+		if errors.Is(err, errBackupSourceChanged) {
+			return r.abortResticCopy(ctx, b, err.Error())
+		}
+		return ctrl.Result{}, err
 	}
 	if source == nil {
 		if err := r.setBackupProgress(ctx, b, "WorkerPreparing", "waiting for the source workload to be created and scheduled"); err != nil {
@@ -324,7 +340,10 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		return res, err
 	}
 	if _, err := r.prepareBackupWorkerSource(ctx, b); err != nil {
-		return r.abortResticCopy(ctx, b, err.Error())
+		if errors.Is(err, errBackupSourceChanged) {
+			return r.abortResticCopy(ctx, b, err.Error())
+		}
+		return ctrl.Result{}, err
 	}
 	// Re-read readiness after the RPC. A replacement worker cannot inherit
 	// the first pod's authorization, including during a Job retry.
@@ -351,6 +370,7 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 			return ctrl.Result{}, err
 		}
 	}
+	authorizedThisPass = true
 	if err := r.setBackupProgress(ctx, b, "WorkerAuthorized", "prepared worker authorized; copy deadline "+deadline.UTC().Format(time.RFC3339)); err != nil {
 		return ctrl.Result{}, err
 	}

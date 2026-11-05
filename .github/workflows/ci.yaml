@@ -2298,6 +2298,16 @@ jobs:
           install_only: true
       - name: load images
         uses: ./.github/actions/e2e-images
+      - name: free runner disk for Garry's Mod image
+        if: matrix.test == 'TestGameServer_GarrysModBot_Query'
+        # The pre-baked game image exhausts the standard runner while containerd
+        # unpacks it. These unused SDKs and the already-loaded archive share
+        # the node's host filesystem. Keep the real game/protocol test intact.
+        run: |
+          df -h /
+          sudo rm -rf -- /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          rm -f -- "$RUNNER_TEMP/e2e-images/e2e-images.tar"
+          df -h /
       - name: bring up cluster + helm install
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
       - name: run go e2e (game bot)

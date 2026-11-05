@@ -107,6 +107,12 @@ worker to that source. This wait uses the preparation budget and does not disabl
 saving. A pod or node replacement after binding still fails the copy. Raw backups
 of intentionally stopped workloads remain eligible without a source pod.
 
+Temporary Kubernetes source-read failures allow retries within the backup's
+existing deadline. An unsuccessful source/readiness check revokes the start
+token until the operator can verify the source again. Revocation can take time
+to reach a worker and does not stop an already running copy, so lifecycle
+ownership and save-on obligations remain until worker drain is confirmed.
+
 The install settings are `operator.backupPreparationTimeout: 10m`,
 `operator.backupQuiesceTimeout: 5m`, and `operator.backupCSICaptureTimeout: 10m`.
 Equivalent operator flags use kebab-case names. The recorded deadlines remain
