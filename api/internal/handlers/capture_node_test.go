@@ -108,6 +108,35 @@ func TestNodeExceptionRequiresAdministratorOnSelectedCluster(t *testing.T) {
 	}
 }
 
+func TestNodeExceptionLocalAdministratorCannotEscalateRemoteCaptureGrant(t *testing.T) {
+	gs := newCaptureServerObj("game", true)
+	gs.SetUID("remote-server-uid")
+	remote := fakeCaptureClient(gs)
+	reg := kube.NewRegistry(scope.DefaultCluster)
+	reg.Set(scope.DefaultCluster, fakeCaptureClient())
+	reg.Set("remote", remote)
+	store := newTestStore(t)
+	router := chi.NewRouter()
+	MountCapture(router, reg, audit.New(store), CaptureConfig{FeatureEnabled: true}, "", "", "")
+	user := testAdminUser()
+	user.Perms["remote"] = map[string]map[string]struct{}{scope.DefaultNamespace: {"captures:manage": {}}}
+	rr := doWithUser(t, router, http.MethodPost, "/servers/game:capture-node-enable?cluster=remote", nil, user)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("home administrator acquired remote host privileges: %d %s", rr.Code, rr.Body)
+	}
+	live, err := remote.GetServer(t.Context(), scope.DefaultNamespace, "game")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if enabled, _, _ := unstructured.NestedBool(live.Object, "spec", "capture", "nodeDiagnostic"); enabled {
+		t.Fatal("denied request granted the remote diagnostic exception")
+	}
+	var denied int
+	if err := store.DB.QueryRowContext(t.Context(), "SELECT COUNT(*) FROM audit_events WHERE reason = ? AND status = ?", "node_diagnostics_admin_required", http.StatusForbidden).Scan(&denied); err != nil || denied != 1 {
+		t.Fatalf("denial was not audited: count=%d err=%v", denied, err)
+	}
+}
+
 func TestNodeExceptionCannotBeGrantedByGenericEditOrClone(t *testing.T) {
 	src := newServerObj("gameplane-games", "alpha")
 	if err := unstructured.SetNestedField(src.Object, true, "spec", "capture", "nodeDiagnostic"); err != nil {
