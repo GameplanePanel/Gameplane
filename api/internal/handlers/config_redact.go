@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"slices"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -64,7 +66,8 @@ type configRuleCache struct {
 // A revision is content-addressed, but snapshot ownership belongs to one
 // server. Never reuse a verified snapshot for a replacement or another server.
 type configRuleKey struct {
-	template, namespace, name, uid, revision string
+	template, namespace, name, uid, revision, protected string
+	protectedPresent                                    bool
 }
 
 func newConfigRuleCache(k *kube.Client) *configRuleCache {
@@ -78,7 +81,8 @@ func (c *configRuleCache) rulesFor(ctx context.Context, gs *unstructured.Unstruc
 		return configRules{failClosed: true}
 	}
 	templateName, _, _ := unstructured.NestedString(gs.Object, "spec", "templateRef", "name")
-	key := configRuleKey{template: templateName, namespace: gs.GetNamespace(), name: gs.GetName(), uid: string(gs.GetUID()), revision: gs.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation]}
+	protectedJSON, protectedPresent := gs.GetAnnotations()[kube.ProtectedConfigKeysAnnotation]
+	key := configRuleKey{template: templateName, namespace: gs.GetNamespace(), name: gs.GetName(), uid: string(gs.GetUID()), revision: gs.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation], protected: protectedJSON, protectedPresent: protectedPresent}
 	c.mu.Lock()
 	cached, ok := c.entries[key]
 	c.mu.Unlock()
@@ -92,6 +96,13 @@ func (c *configRuleCache) rulesFor(ctx context.Context, gs *unstructured.Unstruc
 	rules := rulesFromTemplate(tmpl)
 	if rules.failClosed {
 		return rules
+	}
+	protected, err := kube.ProtectedConfigKeys(gs.GetAnnotations())
+	if err != nil {
+		return configRules{failClosed: true}
+	}
+	for _, key := range protected {
+		rules.password[key] = true
 	}
 	c.mu.Lock()
 	c.entries[key] = rules
@@ -137,13 +148,10 @@ func (c *configRuleCache) redactList(ctx context.Context, list *unstructured.Uns
 	}
 }
 
-// validateCloneConfig prevents secrets copied from a pinned source from
-// becoming ordinary config on an unpinned clone. Redacting only the POST reply
-// would still expose them on the clone's subsequent GET/list/event responses.
+// validateCloneConfig persists source password classification with the clone.
+// The catalog can change after validation and before the operator's first pin,
+// so every response and admission must retain this protected metadata.
 func (c *configRuleCache) validateCloneConfig(ctx context.Context, source, clone *unstructured.Unstructured) error {
-	if source.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation] == "" {
-		return nil
-	}
 	cfg, _, err := unstructured.NestedMap(source.Object, "spec", "config")
 	if err != nil {
 		return errors.New("cannot clone: source config is malformed")
@@ -152,6 +160,7 @@ func (c *configRuleCache) validateCloneConfig(ctx context.Context, source, clone
 		return nil
 	}
 	sourceRules, targetRules := c.rulesFor(ctx, source), c.rulesFor(ctx, clone)
+	var protected []string
 	for key, value := range cfg {
 		if s, ok := value.(string); ok && s == "" {
 			continue
@@ -159,6 +168,22 @@ func (c *configRuleCache) validateCloneConfig(ctx context.Context, source, clone
 		if sourceRules.redacts(key) && (targetRules.failClosed || !targetRules.password[key]) {
 			return errors.New("cannot clone: the current template does not protect copied passwords; restore its password field types or create a new server with fresh configuration")
 		}
+		if sourceRules.redacts(key) {
+			protected = append(protected, key)
+		}
+	}
+	if len(protected) != 0 {
+		slices.Sort(protected)
+		data, err := json.Marshal(protected)
+		if err != nil {
+			return err
+		}
+		annotations := clone.GetAnnotations()
+		if annotations == nil {
+			annotations = map[string]string{}
+		}
+		annotations[kube.ProtectedConfigKeysAnnotation] = string(data)
+		clone.SetAnnotations(annotations)
 	}
 	return nil
 }
