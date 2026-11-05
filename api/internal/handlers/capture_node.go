@@ -33,7 +33,7 @@ func (h *captureHandler) captureNodeOptIn(w http.ResponseWriter, req *http.Reque
 	}
 	name := chi.URLParam(req, "name")
 	u := auth.UserFromContext(req.Context())
-	if u == nil || (u.Role != "admin" && !u.Can("*", true, scope.RequestedCluster(req), "*")) {
+	if !u.Can("*", true, scope.RequestedCluster(req), "*") {
 		if h.auditWriteOrFail(w, req, req.Method, req.URL.Path, name, "node_diagnostics_admin_required", http.StatusForbidden) {
 			httperr.WriteCode(w, req, http.StatusForbidden, errors.New("node diagnostic exception requires administrator privileges"))
 		}
