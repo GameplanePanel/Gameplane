@@ -168,6 +168,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if err != nil {
 				return nil, false, err
 			}
+			if err := validateTemplatePasswordTransition(gs, effective, target); err != nil {
+				return nil, false, err
+			}
 			if _, err := materializeConfig(gs, target); err != nil {
 				return nil, false, err
 			}
@@ -182,6 +185,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			drained, err := r.templateWorkloadDrained(ctx, gs)
 			if err != nil || !drained {
 				return effective, false, err
+			}
+			if err := pruneEmptyProtectedConfigKeys(gs); err != nil {
+				return nil, false, err
 			}
 			gs.Annotations[effectiveTemplateAnnotation] = op.Token
 			delete(gs.Annotations, stopRequestedAtAnnotation)
@@ -210,6 +216,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		policy := gs.Spec.TemplateRollout
 		admit := pin == "" || policy == nil || policy.Policy == "" || policy.Policy == "Automatic" || policy.RequestedRevision == desired
 		if admit {
+			if err := validateTemplatePasswordTransition(gs, effective, &installed); err != nil {
+				return nil, false, err
+			}
 			if _, err := materializeConfig(gs, &installed); err != nil {
 				return nil, false, err
 			}
@@ -267,11 +276,15 @@ func (r *GameServerReconciler) baselineRenderInputs(gs *gameplanev1alpha1.GameSe
 }
 
 func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, gs *gameplanev1alpha1.GameServer, op lifecycleOperation) error {
-	if _, err := loadTemplateSnapshot(ctx, r.wipeReader(), gs, op.Token); err != nil {
+	target, err := loadTemplateSnapshot(ctx, r.wipeReader(), gs, op.Token)
+	if err != nil {
+		return err
+	}
+	if err := validateTemplatePasswordTransition(gs, nil, target); err != nil {
 		return err
 	}
 	var ss appsv1.StatefulSet
-	err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
+	err = r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
@@ -290,6 +303,9 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 			gs.Annotations[baselineWorkloadAnnotation] = string(ss.UID)
 			gs.Annotations[baselineInputsAnnotation] = inputs
 		}
+	}
+	if err := pruneEmptyProtectedConfigKeys(gs); err != nil {
+		return err
 	}
 	gs.Annotations[effectiveTemplateAnnotation] = op.Token
 	if err := clearLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, op.lifecycleIdentity); err != nil {

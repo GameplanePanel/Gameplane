@@ -86,6 +86,18 @@ not recreated to enable remote parity.
 
 ## Template revision admission
 
+- Admission and the final pin update reject removing or retyping a populated
+  password field from the previous effective schema. This check precedes value
+  validation so rejected values cannot enter public status messages. The same
+  rule applies to inherited clone password keys before the first pin. Errors
+  preserve the current pin and stored config. Clear or remove the protected
+  value before requesting the incompatible target.
+- Clones carry `gameplane.local/protected-config-keys`, a JSON array of key
+  names stamped by the API in the same Create as their config. Invalid metadata
+  fails closed. Successful pin updates retire keys whose stored values are
+  empty or absent in that same resourceVersion-fenced update, allowing a later
+  ordinary value under the new schema. Populated keys retain protection.
+
 - `GameServer.spec.templateRollout.policy` defaults to Automatic; OnRequest
   admits only `requestedRevision == status.templateRevision.desired`. Initial
   provisioning/baseline always adopts the installed content. No fleet scheduler,

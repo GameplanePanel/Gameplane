@@ -295,7 +295,7 @@ func TestRedact_PinnedFleetAndEventsUseSelectedClusterSnapshot(t *testing.T) {
 	}
 	fw := watch.NewFake()
 	k.Dynamic.(*dynamicfake.FakeDynamicClient).PrependWatchReactor("gameservers", func(clienttesting.Action) (bool, watch.Interface, error) { return true, fw, nil })
-	ctx, cancel := context.WithCancel(auth.WithUser(t.Context(), testAdminUser()))
+	ctx, cancel := context.WithCancel(auth.WithUser(t.Context(), inventoryUser("remote", gs.GetNamespace(), "servers:read")))
 	defer cancel()
 	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?cluster=remote", nil)
 	w := &lockedBuffer{header: http.Header{}}

@@ -310,8 +310,8 @@ func (r *NetworkCaptureReconciler) validateNodeCaptureNamespace(ctx context.Cont
 	if r.DiagnosticsNamespace == "" {
 		return "node diagnostics require cluster deployment opt-in and a configured diagnostics namespace", nil
 	}
-	if err := ValidateNodeDiagnosticsNamespace(r.DiagnosticsNamespace, r.ProtectedNamespaces); err != nil {
-		return err.Error(), nil
+	if failure := nodeDiagnosticsNamespaceFailure(r.DiagnosticsNamespace, r.ProtectedNamespaces); failure != "" {
+		return failure, nil
 	}
 	if r.DiagnosticsNamespace == nc.Namespace || r.DiagnosticsNamespace == r.AgentCASecretNamespace {
 		return "node diagnostics namespace must be separate from the games and control-plane namespaces", nil
