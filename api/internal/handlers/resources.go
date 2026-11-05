@@ -219,6 +219,10 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 					writeServerValidationError(w, req, err)
 					return
 				}
+				if err := newConfigRuleCache(k).protectUnpinnedConfig(req.Context(), obj, nil); err != nil {
+					writeServerValidationError(w, req, err)
+					return
+				}
 			}
 			created, err = k.Dynamic.Resource(gvr).Namespace(ns).Create(req.Context(), obj, metav1.CreateOptions{})
 		}
@@ -281,9 +285,13 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			// The dashboard sends spec back wholesale, so password config values
 			// arrive as the redaction marker: keep the stored value for those.
 			cfgRules = newConfigRuleCache(k)
-			restoreRedactedConfig(req.Context(), cfgRules, obj, live)
+			writeRules := restoreRedactedConfig(req.Context(), cfgRules, obj, live)
 			cl := scope.RequestedCluster(req)
 			if err := validateAndProtectGameServer(req.Context(), k, cl, ns, name, obj, live); err != nil {
+				writeServerValidationError(w, req, err)
+				return
+			}
+			if err := cfgRules.protectUnpinnedConfig(req.Context(), obj, &writeRules); err != nil {
 				writeServerValidationError(w, req, err)
 				return
 			}
