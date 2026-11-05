@@ -124,7 +124,8 @@ func TestProtectedConfigMetadataFailsClosedAndCannotBeForged(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, found := stored.GetAnnotations()[kube.ProtectedConfigKeysAnnotation]; found {
-		t.Fatal("generic create accepted protected metadata from client")
+	keys, err := kube.ProtectedConfigKeys(stored.GetAnnotations())
+	if err != nil || !reflect.DeepEqual(keys, []string{"ADMIN_PASSWORD", "RCON_PASSWORD"}) {
+		t.Fatalf("generic create did not replace client metadata with verified password keys: %v %v", keys, err)
 	}
 }

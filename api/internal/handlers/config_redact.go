@@ -148,6 +148,42 @@ func (c *configRuleCache) redactList(ctx context.Context, list *unstructured.Uns
 	}
 }
 
+// protectUnpinnedConfig retains password classification until the operator can
+// safely pin a template. PUT passes the exact rules already used by
+// restoreRedactedConfig, including a failed lookup. Failed schema reads protect every value, matching
+// redaction's fail-closed behavior without changing write errors.
+func (c *configRuleCache) protectUnpinnedConfig(ctx context.Context, gs *unstructured.Unstructured, writeRules *configRules) error {
+	if gs.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation] != "" {
+		return nil
+	}
+	cfg, _, err := unstructured.NestedMap(gs.Object, "spec", "config")
+	if err != nil || len(cfg) == 0 {
+		// Leave malformed config to the Kubernetes API's existing validation.
+		return nil
+	}
+	protected, err := kube.ProtectedConfigKeys(gs.GetAnnotations())
+	if err != nil {
+		// Keep malformed metadata fail-closed; a PUT must not repair it by
+		// silently losing its protection for future config edits.
+		return nil
+	}
+	var rules configRules
+	if writeRules != nil {
+		rules = *writeRules
+	} else {
+		rules = c.rulesFor(ctx, gs)
+	}
+	for key, value := range cfg {
+		if s, ok := value.(string); ok && s == "" {
+			continue
+		}
+		if rules.redacts(key) {
+			protected = append(protected, key)
+		}
+	}
+	return setProtectedConfigKeys(gs, protected)
+}
+
 // validateCloneConfig persists source password classification with the clone.
 // The catalog can change after validation and before the operator's first pin,
 // so every response and admission must retain this protected metadata.
@@ -172,18 +208,23 @@ func (c *configRuleCache) validateCloneConfig(ctx context.Context, source, clone
 			protected = append(protected, key)
 		}
 	}
+	return setProtectedConfigKeys(clone, protected)
+}
+
+func setProtectedConfigKeys(gs *unstructured.Unstructured, protected []string) error {
 	if len(protected) != 0 {
 		slices.Sort(protected)
+		protected = slices.Compact(protected)
 		data, err := json.Marshal(protected)
 		if err != nil {
 			return err
 		}
-		annotations := clone.GetAnnotations()
+		annotations := gs.GetAnnotations()
 		if annotations == nil {
 			annotations = map[string]string{}
 		}
 		annotations[kube.ProtectedConfigKeysAnnotation] = string(data)
-		clone.SetAnnotations(annotations)
+		gs.SetAnnotations(annotations)
 	}
 	return nil
 }
@@ -192,7 +233,7 @@ func (c *configRuleCache) validateCloneConfig(ctx context.Context, source, clone
 // values the client sent back do not overwrite stored passwords. live is the
 // stored object (nil when it does not exist). The rules are documented in
 // api/specs.md ("GameServer config password redaction").
-func restoreRedactedConfig(ctx context.Context, c *configRuleCache, desired, live *unstructured.Unstructured) {
+func restoreRedactedConfig(ctx context.Context, c *configRuleCache, desired, live *unstructured.Unstructured) configRules {
 	var incoming, stored map[string]any
 	rawIn, foundIn, _ := unstructured.NestedFieldNoCopy(desired.Object, "spec", "config")
 	if foundIn {
@@ -204,7 +245,7 @@ func restoreRedactedConfig(ctx context.Context, c *configRuleCache, desired, liv
 		stored, _ = rawStored.(map[string]any)
 	}
 	if len(incoming) == 0 && len(stored) == 0 {
-		return
+		return rules
 	}
 	if live != nil {
 		rules = c.rulesFor(ctx, live)
@@ -242,9 +283,10 @@ func restoreRedactedConfig(ctx context.Context, c *configRuleCache, desired, liv
 		}
 	}
 	if len(out) == 0 && !foundIn {
-		return
+		return rules
 	}
 	_ = unstructured.SetNestedField(desired.Object, out, "spec", "config")
+	return rules
 }
 
 // stripRedactedConfig drops marker values from a GameServer about to be
