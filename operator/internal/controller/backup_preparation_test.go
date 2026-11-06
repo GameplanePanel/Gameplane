@@ -45,7 +45,7 @@ func TestBackupInitialSourceStartupGrace(t *testing.T) {
 					}
 				case "pending":
 					pod.Status.Phase = corev1.PodPending
-					if err := r.Update(ctx, &pod); err != nil {
+					if err := r.Status().Update(ctx, &pod); err != nil {
 						t.Fatal(err)
 					}
 				case "terminating":
@@ -70,8 +70,8 @@ func TestBackupInitialSourceStartupGrace(t *testing.T) {
 				} else if first.Status.Phase == gameplanev1alpha1.BackupPhaseFailed {
 					t.Fatalf("startup race failed before grace expired: %+v", first.Status)
 				}
-				if first.Status.CaptureManifest != nil || q.quiesced != 0 || q.unquiesced != 0 {
-					t.Fatalf("unready source attempted capture: manifest=%+v agent=%+v", first.Status.CaptureManifest, q)
+				if first.Annotations[backupPreparationAnnotation] != "" || q.quiesced != 0 || q.unquiesced != 0 {
+					t.Fatalf("unready source attempted capture: preparation=%q agent=%+v", first.Annotations[backupPreparationAnnotation], q)
 				}
 				var jobs batchv1.JobList
 				if err := r.List(ctx, &jobs); err != nil || len(jobs.Items) != 0 {
@@ -102,7 +102,7 @@ func TestBackupInitialSourceStartupGrace(t *testing.T) {
 					}
 				case "pending":
 					pod.Status.Phase = corev1.PodRunning
-					if err := r.Update(ctx, &pod); err != nil {
+					if err := r.Status().Update(ctx, &pod); err != nil {
 						t.Fatal(err)
 					}
 				case "terminating":
