@@ -196,8 +196,15 @@ func TestBackupPreparedWorkerRejectsMissingEffectiveTemplate(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKey{Namespace: "ns", Name: "prepared"}})
-	if err == nil || !strings.Contains(err.Error(), "read pinned template snapshot") || q.quiesced != 0 {
-		t.Fatalf("missing pin did not fail before save-off: %v %+v", err, q)
+	b := guardGetBackup(t, r, "prepared")
+	if err != nil || b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed || !strings.Contains(b.Status.Message, "read pinned template snapshot") || q.quiesced != 0 {
+		t.Fatalf("missing pin did not fail visibly before save-off: %v %+v %+v", err, b.Status, q)
+	}
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(&gs), &gs); err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations[lifecycleOperationAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
+		t.Fatal("missing template retained lifecycle ownership")
 	}
 	var job batchv1.Job
 	if err := r.Get(t.Context(), client.ObjectKey{Namespace: "ns", Name: "prepared"}, &job); !apierrors.IsNotFound(err) {

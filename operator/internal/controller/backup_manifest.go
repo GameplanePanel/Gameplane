@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"sort"
 
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
@@ -15,6 +16,22 @@ import (
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
+var errForeignBackupWorker = errors.New("waiting for a previous backup's same-name worker to disappear")
+
+func (r *BackupReconciler) captureWorker(ctx context.Context, b *gameplanev1alpha1.Backup) (client.Object, error) {
+	var worker client.Object = &batchv1.Job{}
+	if b.Spec.Strategy == "volume-snapshot" {
+		worker = &snapshotv1.VolumeSnapshot{}
+	}
+	if err := r.backupAPIReader().Get(ctx, client.ObjectKeyFromObject(b), worker); err != nil {
+		return nil, client.IgnoreNotFound(err)
+	}
+	if !metav1.IsControlledBy(worker, b) {
+		return nil, errForeignBackupWorker
+	}
+	return worker, nil
+}
+
 // Called after lifecycle ownership and the workload fence, before a copy is
 // authorized. Requeues and later template edits never rewrite this manifest.
 func (r *BackupReconciler) recordBackupManifest(ctx context.Context, b *gameplanev1alpha1.Backup, gs *gameplanev1alpha1.GameServer) error {
@@ -22,11 +39,11 @@ func (r *BackupReconciler) recordBackupManifest(ctx context.Context, b *gameplan
 		return nil
 	}
 	reader := r.backupAPIReader()
-	var worker client.Object = &batchv1.Job{}
-	if b.Spec.Strategy == "volume-snapshot" {
-		worker = &snapshotv1.VolumeSnapshot{}
+	worker, err := r.captureWorker(ctx, b)
+	if err != nil {
+		return err
 	}
-	if err := reader.Get(ctx, client.ObjectKeyFromObject(b), worker); err == nil {
+	if worker != nil {
 		// Current prepared workers exist before capture but cannot read data
 		// without authorization. Its durable annotation is written before the
 		// projected token and never cleared, including during cancellation.
@@ -46,11 +63,9 @@ func (r *BackupReconciler) recordBackupManifest(ctx context.Context, b *gameplan
 			b.Status.CaptureManifest = &gameplanev1alpha1.BackupCaptureManifest{State: "LegacyUnknown"}
 			return r.Status().Update(ctx, b)
 		}
-	} else if !apierrors.IsNotFound(err) {
-		return err
 	}
 	var ss appsv1.StatefulSet
-	err := reader.Get(ctx, client.ObjectKeyFromObject(gs), &ss)
+	err = reader.Get(ctx, client.ObjectKeyFromObject(gs), &ss)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}

@@ -305,7 +305,7 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed && b.Spec.Strategy == "volume-snapshot" {
 			return r.abortVolumeSnapshot(ctx, &b, b.Status.Message)
 		}
-		if b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed && b.Annotations[backupPreparationDeadlineAnnotation] != "" {
+		if b.Status.Phase == gameplanev1alpha1.BackupPhaseFailed && (b.Annotations[backupPreparationDeadlineAnnotation] != "" || b.Annotations[backupSourceStartupDeadlineAnnotation] != "") {
 			return r.abortResticCopy(ctx, &b, b.Status.Message)
 		}
 		return r.runUnquiesce(ctx, &b)

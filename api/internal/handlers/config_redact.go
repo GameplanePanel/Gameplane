@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"slices"
 	"sync"
 
@@ -24,6 +25,7 @@ type configRules struct {
 	failClosed bool
 	password   map[string]bool
 	required   map[string]bool
+	ordinary   map[string]bool
 }
 
 func (r configRules) redacts(key string) bool { return r.failClosed || r.password[key] }
@@ -31,7 +33,7 @@ func (r configRules) redacts(key string) bool { return r.failClosed || r.passwor
 // rulesFromTemplate extracts the password-type fields of tmpl.spec.configSchema.
 // A malformed schema fails closed.
 func rulesFromTemplate(tmpl *unstructured.Unstructured) configRules {
-	rules := configRules{password: map[string]bool{}, required: map[string]bool{}}
+	rules := configRules{password: map[string]bool{}, required: map[string]bool{}, ordinary: map[string]bool{}}
 	fields, _, err := unstructured.NestedSlice(tmpl.Object, "spec", "configSchema")
 	if err != nil {
 		return configRules{failClosed: true}
@@ -42,6 +44,12 @@ func rulesFromTemplate(tmpl *unstructured.Unstructured) configRules {
 			continue
 		}
 		name, _ := m["name"].(string)
+		switch m["type"] {
+		case "string", "int", "bool", "enum":
+			rules.ordinary[name] = !rules.password[name]
+		case "password":
+			delete(rules.ordinary, name)
+		}
 		if name == "" || m["type"] != "password" {
 			continue
 		}
@@ -257,6 +265,32 @@ func restoreRedactedConfig(ctx context.Context, c *configRuleCache, desired, liv
 	}
 	if live != nil {
 		rules = c.rulesFor(ctx, live)
+	}
+	// A readable ordinary schema alone cannot declassify an old value: it may
+	// have been a password before a catalog edit. An explicit, different,
+	// non-empty replacement is fresh config and can recover a required field
+	// before the first pin. Markers, unchanged values and failed reads retain
+	// protection. The desired object's resourceVersion fences the replacement
+	// and metadata retirement together.
+	if live != nil && live.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation] == "" && !rules.failClosed {
+		protected, err := kube.ProtectedConfigKeys(live.GetAnnotations())
+		if err == nil {
+			retained := make([]string, 0, len(protected))
+			rules.password = maps.Clone(rules.password)
+			for _, key := range protected {
+				value, supplied := incoming[key].(string)
+				old, oldString := stored[key].(string)
+				if rules.ordinary[key] && supplied && oldString && value != "" && value != configRedactedMarker && value != old {
+					delete(rules.password, key)
+					continue
+				}
+				retained = append(retained, key)
+			}
+			annotations := desired.GetAnnotations()
+			delete(annotations, kube.ProtectedConfigKeysAnnotation)
+			desired.SetAnnotations(annotations)
+			_ = setProtectedConfigKeys(desired, retained)
+		}
 	}
 	out := make(map[string]any, len(incoming))
 	for key, val := range incoming {

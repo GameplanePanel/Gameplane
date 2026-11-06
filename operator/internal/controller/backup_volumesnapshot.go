@@ -33,6 +33,15 @@ func (r *BackupReconciler) reconcileVolumeSnapshot(
 	if b.Annotations[backupSnapshotAbortAnnotation] == "true" {
 		return r.abortVolumeSnapshot(ctx, b, "volume snapshot capture was aborted")
 	}
+	// An admitted capture's save-off budget stays authoritative even if its
+	// source/fence later becomes unavailable. Only a new capture waits for
+	// admission before creating this deadline.
+	if value := b.Annotations[backupCSIDeadlineAnnotation]; value != "" {
+		deadline, err := time.Parse(time.RFC3339Nano, value)
+		if err != nil || !time.Now().Before(deadline) {
+			return r.abortVolumeSnapshot(ctx, b, "CSI capture deadline exceeded; incomplete snapshot invalidated")
+		}
+	}
 	// An uncached read verifies that the snapshot API is served before
 	// disabling autosave. Missing CRDs (including NoMatch) and authorization
 	// errors fail safely, including cleanup of previously quiesced Backups.
@@ -41,6 +50,9 @@ func (r *BackupReconciler) reconcileVolumeSnapshot(
 		return r.abortVolumeSnapshot(ctx, b, fmt.Sprintf("volume snapshot API unavailable: %v", err))
 	}
 	if existing.Name != "" {
+		if !metav1.IsControlledBy(&existing, b) {
+			return r.waitForForeignBackupWorker(ctx, b)
+		}
 		if err := r.rememberBackupSnapshot(ctx, b, &existing); err != nil {
 			return r.abortVolumeSnapshot(ctx, b, err.Error())
 		}

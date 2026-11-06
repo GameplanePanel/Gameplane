@@ -199,7 +199,7 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		return ctrl.Result{}, err
 	}
 	if err == nil && !metav1.IsControlledBy(&job, b) {
-		return r.fail(ctx, b, "copy Job is not owned by this Backup")
+		return r.waitForForeignBackupWorker(ctx, b)
 	}
 	if err == nil && job.Annotations[backupWorkerProtocolAnnotation] != "v1" {
 		if res, err := r.prepareBackupQuiesce(ctx, b); err != nil || res.RequeueAfter > 0 {
@@ -251,10 +251,6 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 	if bound == nil {
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
-	tmpl, err := effectiveGameTemplate(ctx, r.backupAPIReader(), bound)
-	if err != nil && (bound.Annotations[effectiveTemplateAnnotation] != "" || !apierrors.IsNotFound(err)) {
-		return ctrl.Result{}, err
-	}
 	source, err := r.prepareBackupWorkerSource(ctx, b)
 	if err != nil {
 		if errors.Is(err, errBackupSourceChanged) {
@@ -281,6 +277,12 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		return ctrl.Result{}, err
 	}
 	if job.Name == "" {
+		// Existing workers retain their immutable layout and must continue
+		// through authorization/completion even if the template disappears.
+		tmpl, err := effectiveGameTemplate(ctx, r.backupAPIReader(), bound)
+		if err != nil && (bound.Annotations[effectiveTemplateAnnotation] != "" || !apierrors.IsNotFound(err)) {
+			return r.abortResticCopy(ctx, b, "cannot resolve capture template: "+err.Error())
+		}
 		backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)
 		job = batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace, Annotations: map[string]string{backupWorkerProtocolAnnotation: "v1"}}, Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline,
 			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, preparation)}}}

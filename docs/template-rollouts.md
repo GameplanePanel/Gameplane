@@ -77,6 +77,27 @@ Suspend and idle intent remain in effect. User changes to per-server overrides,
 including `spec.version`, `spec.image` and `spec.config`, remain immediate and are
 not controlled by the shared-template adoption policy.
 
+To cancel a held rollout, including one blocked by an unreadable admitted
+snapshot or failed revalidation, read its exact admitted token and annotate:
+
+```sh
+revision=$(kubectl get gameserver my-server -n gameplane-games -o json |
+  jq -r '.metadata.annotations["operations.gameplane.local/owner"] | fromjson | select(.kind == "Rollout") | .token')
+kubectl annotate gameserver my-server -n gameplane-games --overwrite \
+  "gameplane.local/cancel-template-rollout=$revision"
+```
+
+Cancellation first finishes any inherited worker/quiesce recovery, then releases
+the lifecycle owner and workload fence. It preserves the current effective pin
+and power intent, whether the workload is running or already shutting down; an
+already-issued stop may still finish and restart with the retained pin. It sets
+`OnRequest` and clears `requestedRevision`. The canceled digest remains blocked
+until an operator removes `gameplane.local/cancel-template-rollout`, so automatic
+adoption and first-pin initialization cannot immediately reacquire the owner.
+Other lifecycle operations can proceed after cleanup. A token for a different
+rollout cannot cancel the current owner. Cancellation does not roll back a pin
+that has already committed or repair an unreadable effective snapshot.
+
 Snapshots are immutable, GameServer-owned ConfigMaps, bounded to 900 KiB each.
 The current and admitted revisions are retained during adoption; obsolete copies
 are removed afterwards. Do not edit or delete them or the operator-owned revision

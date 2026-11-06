@@ -97,6 +97,9 @@ not recreated to enable remote parity.
   fails closed. Successful pin updates retire keys whose stored values are
   empty or absent in that same resourceVersion-fenced update, allowing a later
   ordinary value under the new schema. Populated keys retain protection.
+  Before the first pin, the API may retire a protected key only when a readable
+  ordinary schema and an explicit different non-empty replacement prove the
+  stored ambiguous value has been replaced. Unchanged/marker values stay protected.
 
 - `GameServer.spec.templateRollout.policy` defaults to Automatic; OnRequest
   admits only `requestedRevision == status.templateRevision.desired`. Initial
@@ -122,10 +125,18 @@ not recreated to enable remote parity.
   a checked pin update. The owner survives restart and catalog changes, releasing
   after the matching new Pod is observed or a suspended zero-replica template is
   observed. Startup health remains independent. Per-server power intent survives.
+- A token-matched `gameplane.local/cancel-template-rollout` cancels a held Rollout
+  after predecessor worker/quiesce recovery, even if its target snapshot is missing.
+  Checked workload/owner release retains the current pin and power intent; no
+  assumption is made that the workload stopped. Cancellation sets OnRequest,
+  clears the request, and blocks that digest until the annotation is removed.
+  CSI restore target cleanup is finalized before creation; target identity is
+  bound before template/ref copying. Failed cleanup clears a pending unpinned
+  template plan while retaining suspension and the guard until workload drain.
 - Desired/effective/running digests are distinct. Running requires the owned
   StatefulSet/Pod chain and a running game container; legacy or stopped Pods do
   not claim the desired revision. TemplateUpdatePending has RevisionAvailable,
-  OperationInProgress, AdoptingRevision, RevisionCurrent and TemplateUnavailable
+  OperationInProgress, AdoptingRevision, RolloutCanceled, RevisionCurrent and TemplateUnavailable
   reasons, included in the generated condition translation reference.
 - Obsolete snapshots are pruned only after old workload drain and replacement
   observation. PVCs are retained; data compatibility and runtime/data rollback
@@ -347,6 +358,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
 - **Key functions:**
   - Restic preparation precedes quiesce: claim/fence the source, persist a preparation deadline, create the waiting worker, and require an uncached Running/Ready pod controlled by the exact Job UID. Before binding the first worker, a source StatefulSet requesting replicas must have an owned pod assigned to a node; initial creation/scheduling waits within the preparation budget, while a replacement after binding fails the copy. An intentionally stopped raw source remains eligible without a pod. The worker mounts the PVC, initializes/probes the repository with a shared lock, then waits for an owned ConfigMap start token. Only after readiness does the operator persist the quiesce deadline, perform the pod-bound RPC and source postcheck, record the capture manifest, and grant the Backup UID/worker UID/source-fingerprint/expiry-bound token. Replacement pods cannot reuse it. Workers have no service-account token, use the shared backup resource settings and source tolerations, and prefer the observed game node; hard same-node affinity is opt-in.
   - Preparation defaults to 10m and live quiesce attempts to 5m (`--backup-preparation-timeout`, `--backup-quiesce-timeout`; matching Helm `operator.backupPreparationTimeout`, `operator.backupQuiesceTimeout`). Deadlines are annotations written once and survive restart/configuration changes, including when an attempted quiesce is unsupported. Copies requested raw, without an agent, or from an already-stopped source retain the full Job deadline. The waiting shell validates token expiry and bounds Restic with `timeout -s TERM -k 5`. On expiry/deletion, invalidation and token revocation precede foreground cancellation; actual live/terminating workers still block save-on and owner release. A timeout is not evidence of drainage. Existing pre-upgrade Jobs retain their observation protocol.
+  - Initial source/fence waits share an existing preparation deadline. CSI captures and older Jobs without one persist a separate two-minute source-startup deadline after acquiring lifecycle ownership; queue age and restarts do not spend or reset that budget. Expired unavailable sources fail visibly and enter normal cleanup. A foreign same-name worker is awaited before acquiring ownership or quiescing. Existing owned workers continue through their original gate/completion checks without resolving the template again; template resolution failure when constructing a new worker aborts and releases only after drainage and save-on.
   - With quiesce and an agent client enabled, preparation is recorded once in `backup.gameplane.local/preparation`, bound to the target UID and StatefulSet UID/generation. `already-stopped` requires uncached proof of desired and observed zero replicas, caught-up observed generation, and no live game/PVC user pods or pending writer Jobs. Current copy workers are excluded by Job ownership. This path sends no agent calls and preserves suspend/idle/wake intent under the shared workload fence. It applies equally to restic and CSI copies.
   - Live preparation also pins the game Pod UID. The operator checks the agent's read-only `/v1/pods/{uid}/identity` endpoint before recording the first cleanup intent, then uses pod-bound quiesce/unquiesce routes; the agent rejects a different UID before RCON. A missing endpoint or identity mismatch fails closed without a legacy-route fallback. Ambiguous quiesce errors retain cleanup intent and the original Pod UID on both the Backup and shared owner. Only confirmed save-on or uncached evidence that the original pod is absent/replaced/terminal permits cleanup; an HTTP timeout, unready pod, or terminating pod is insufficient. Legacy attempts without a UID retire only on absence/terminal proof and never adopt a new UID. `Unquiesced=True, Reason=SourceProcessGone` distinguishes process exit from an actual save-on RPC.
   - Source proof is checked before and after quiesce and on each copy reconcile. Observed workload/process replacement fails the Backup before it can report a restorable success. Owner recovery retains the pod UID even if the Backup is force-deleted, drains predecessor workers, and never sends its cleanup to a successor pod.

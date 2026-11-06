@@ -42,6 +42,14 @@ including backups with `quiesce: false` and CSI VolumeSnapshots. A held operatio
 also defers idle sleep/wake, restart, and pod-template rollout. Requests remain
 pending and reconciliation resumes after the operation's cleanup completes.
 
+Initial source admission waits within the prepared worker's persisted preparation
+budget. CSI captures and older Jobs use a separate two-minute startup deadline,
+recorded only after lifecycle ownership when the workload or its live source Pod
+is unavailable. Queue time does not spend either budget, and operator restarts do
+not extend them. Expiry fails the Backup and runs normal cleanup to release its
+owner and workload fence. Prepared source identity and outstanding worker or
+save-on obligations retain their existing safety checks.
+
 The GameServer annotation `operations.gameplane.local/owner` identifies the
 operation kind, name, UID, admitted generation and target UID. A wipe is identified
 by the GameServer UID and its request token. The existing backup, restore and wipe

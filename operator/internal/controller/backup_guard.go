@@ -247,7 +247,33 @@ func (r *BackupReconciler) legacyQuiescedBackups(ctx context.Context, b *gamepla
 	return legacy, nil
 }
 
+// A fresh Backup waits for a predecessor's resource. Once admitted, losing its
+// worker is terminal; a foreign replacement cannot suspend copy budgets or
+// inherit capture authority. Cleanup still waits for this Backup's own workers.
+func (r *BackupReconciler) waitForForeignBackupWorker(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	target, err := r.ownedBackupTarget(ctx, b)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if target == nil {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+	}
+	const message = "capture worker was replaced after lifecycle admission"
+	if b.Spec.Strategy == "volume-snapshot" {
+		return r.abortVolumeSnapshot(ctx, b, message)
+	}
+	return r.abortResticCopy(ctx, b, message)
+}
+
 func (r *BackupReconciler) prepareBackupWorkload(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	// A deleted Backup's dependent can outlive its finalizer. Wait before
+	// acquiring ownership or pausing saving; never adopt another capture.
+	if _, err := r.captureWorker(ctx, b); err != nil {
+		if errors.Is(err, errForeignBackupWorker) {
+			return r.waitForForeignBackupWorker(ctx, b)
+		}
+		return ctrl.Result{}, err
+	}
 	claimed, err := r.claimBackupTarget(ctx, b)
 	if err != nil {
 		if errors.Is(err, errLifecycleGenerationChanged) {
@@ -267,11 +293,16 @@ func (r *BackupReconciler) prepareBackupWorkload(ctx context.Context, b *gamepla
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 	fenced, err := fenceBackupWorkload(ctx, r.Client, r.backupAPIReader(), gs)
-	if err != nil || !fenced {
+	if err != nil {
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 	}
-	ready, err := r.prepareBackupSource(ctx, b, gs)
-	if errors.Is(err, errBackupSourceChanged) {
+	ready := false
+	if fenced {
+		ready, err = r.prepareBackupSource(ctx, b, gs)
+	} else {
+		_, err = r.waitForBackupSource(ctx, b, "source workload is absent or has not observed its fenced rollout")
+	}
+	if errors.Is(err, errBackupSourceChanged) || errors.Is(err, errBackupSourceStartupTimeout) {
 		_, err = r.fail(ctx, b, err.Error())
 		return ctrl.Result{RequeueAfter: time.Nanosecond}, err
 	}
@@ -303,6 +334,9 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 	}
 	if err := r.recordBackupManifest(ctx, b, gs); err != nil {
+		if errors.Is(err, errForeignBackupWorker) {
+			return r.waitForForeignBackupWorker(ctx, b)
+		}
 		// Metadata must be durable before capture. Do not leave saving paused
 		// indefinitely when a lookup/status write prevents the copy starting.
 		_, failErr := r.fail(ctx, b, "cannot record capture metadata: "+err.Error())

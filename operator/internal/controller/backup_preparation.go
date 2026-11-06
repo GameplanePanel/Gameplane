@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -18,11 +19,40 @@ import (
 )
 
 const (
-	backupPreparationAnnotation    = "backup.gameplane.local/preparation"
-	backupCleanupOutcomeAnnotation = "backup.gameplane.local/cleanup-outcome"
+	backupPreparationAnnotation           = "backup.gameplane.local/preparation"
+	backupCleanupOutcomeAnnotation        = "backup.gameplane.local/cleanup-outcome"
+	backupSourceStartupDeadlineAnnotation = "backup.gameplane.local/source-startup-deadline"
 )
 
 var errBackupSourceChanged = errors.New("backup source changed after preparation")
+
+var errBackupSourceStartupTimeout = errors.New("backup source startup grace period expired")
+
+// Allow ordinary startup/restart races without holding the workload fence
+// indefinitely when an initial live source never becomes Running.
+const backupSourceStartupGracePeriod = 2 * time.Minute
+
+// Call only after lifecycle ownership. Prepared workers share their existing
+// preparation budget; CSI and older Jobs persist a separate startup deadline.
+// Queue time and operator restarts never spend or reset an admitted budget.
+func (r *BackupReconciler) waitForBackupSource(ctx context.Context, b *gameplanev1alpha1.Backup, reason string) (bool, error) {
+	key := backupSourceStartupDeadlineAnnotation
+	if b.Annotations[backupPreparationDeadlineAnnotation] != "" {
+		key = backupPreparationDeadlineAnnotation
+	}
+	stored := b.Annotations[key] != ""
+	deadline, err := r.backupDeadline(ctx, b, key, backupSourceStartupGracePeriod)
+	if err != nil {
+		if stored {
+			return false, fmt.Errorf("%w: cannot read source startup deadline: %w", errBackupSourceStartupTimeout, err)
+		}
+		return false, err // A failed first persistence is retryable, not expiry.
+	}
+	if time.Now().Before(deadline) {
+		return false, nil
+	}
+	return false, fmt.Errorf("%w at %s: %s", errBackupSourceStartupTimeout, deadline.UTC().Format(time.RFC3339), reason)
+}
 
 type podAgentQuiescer interface {
 	CheckPod(context.Context, string, string, string) error
@@ -146,7 +176,7 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 			if p != nil {
 				return false, fmt.Errorf("%w: original pod absent", errBackupSourceChanged)
 			}
-			return false, nil
+			return r.waitForBackupSource(ctx, b, "source pod absent")
 		}
 		if err != nil {
 			return false, err
@@ -158,7 +188,7 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 			return false, fmt.Errorf("backup source pod is not owned by the bound workload")
 		}
 		if !pod.DeletionTimestamp.IsZero() || pod.Status.Phase != corev1.PodRunning {
-			return false, nil
+			return r.waitForBackupSource(ctx, b, "source pod is not Running or is terminating")
 		}
 		candidate.Outcome, candidate.PodUID = "live", pod.UID
 	}

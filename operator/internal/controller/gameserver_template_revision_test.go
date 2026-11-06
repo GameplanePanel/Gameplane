@@ -71,6 +71,130 @@ func TestTemplateOnRequestRetainsCompleteContents(t *testing.T) {
 	}
 }
 
+func TestCancelRolloutWithMissingTargetRetainsPinAndRunningWorkload(t *testing.T) {
+	r, gs, installed := revisionFixture(t)
+	pin := gs.Annotations[effectiveTemplateAnnotation]
+	installed.Spec.Image = "example.invalid/missing:target"
+	_, target, err := templateSnapshot(installed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	op := lifecycleOperation{lifecycleIdentity: lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Token: target}}
+	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+	gs.Annotations["gameplane.local/cancel-template-rollout"] = target
+	gs.Spec.TemplateRollout.Policy = "Automatic"
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	one := int32(1)
+	ss := &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace, Annotations: map[string]string{lifecycleOperationAnnotation: lifecycleOperationJSON(op)}, OwnerReferences: []metav1.OwnerReference{{APIVersion: gameplanev1alpha1.GroupVersion.String(), Kind: "GameServer", Name: gs.Name, UID: gs.UID, Controller: ownerBoolPtr(true)}}}, Spec: appsv1.StatefulSetSpec{Replicas: &one}}
+	if err := r.Create(t.Context(), ss); err != nil {
+		t.Fatal(err)
+	}
+	if _, changed, err := r.reconcileTemplateRevision(t.Context(), gs); err != nil || !changed {
+		t.Fatalf("cancel: changed=%v, err=%v", changed, err)
+	}
+	if _, held, err := lifecycleOwner(gs); err != nil || held {
+		t.Fatalf("owner retained: %v", err)
+	}
+	if gs.Annotations[effectiveTemplateAnnotation] != pin || gs.Spec.Suspend || gs.Spec.TemplateRollout.Policy != "OnRequest" || gs.Spec.TemplateRollout.RequestedRevision != "" {
+		t.Fatal("cancel changed effective pin/power intent or allows immediate readmission")
+	}
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(ss), ss); err != nil {
+		t.Fatal(err)
+	}
+	if *ss.Spec.Replicas != 1 || ss.Annotations[lifecycleOperationAnnotation] != "" {
+		t.Fatal("cancel changed running workload or retained its fence")
+	}
+}
+
+func TestCancelBaselineWithoutTargetSnapshot(t *testing.T) {
+	r, gs, _ := revisionFixture(t)
+	token := gs.Annotations[effectiveTemplateAnnotation]
+	var cm corev1.ConfigMap
+	if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: templateSnapshotName(gs, token)}, &cm); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.Delete(t.Context(), &cm); err != nil {
+		t.Fatal(err)
+	}
+	delete(gs.Annotations, effectiveTemplateAnnotation)
+	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(lifecycleOperation{lifecycleIdentity: lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Token: token, Baseline: true}})
+	gs.Annotations["gameplane.local/cancel-template-rollout"] = token
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := r.reconcileTemplateRevision(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, held, _ := lifecycleOwner(gs); held {
+		t.Fatal("missing baseline snapshot stranded owner")
+	}
+	if _, _, err := r.reconcileTemplateRevision(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, held, _ := lifecycleOwner(gs); held {
+		t.Fatal("canceled baseline immediately readmitted")
+	}
+}
+
+func TestCancelRolloutRejectsStaleToken(t *testing.T) {
+	r, gs, target := revisionFixture(t)
+	old := gs.Annotations[effectiveTemplateAnnotation]
+	target.Spec.Image = "example.invalid/new:target"
+	_, token, err := templateSnapshot(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	op := lifecycleOperation{lifecycleIdentity: lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Token: token}}
+	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+	gs.Annotations[cancelTemplateRolloutAnnotation] = old
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := r.reconcileTemplateRevision(t.Context(), gs); err == nil {
+		t.Fatal("missing target should still block the uncanceled rollout")
+	}
+	if current, held, err := lifecycleOwner(gs); err != nil || !held || current.Token != token {
+		t.Fatalf("stale cancellation released newer owner: %+v %v", current, err)
+	}
+}
+
+func TestCancelRolloutWaitsForPredecessorWorkerCleanup(t *testing.T) {
+	r, gs, _ := revisionFixture(t)
+	gs.Spec.Suspend = true
+	op := lifecycleOperation{lifecycleIdentity: lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Token: gs.Annotations[effectiveTemplateAnnotation]}, Recovery: []lifecycleIdentity{{Kind: "Backup", Name: "previous", UID: "previous-uid", TargetUID: gs.UID}}}
+	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+	gs.Annotations[cancelTemplateRolloutAnnotation] = op.Token
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	previous := &gameplanev1alpha1.Backup{ObjectMeta: metav1.ObjectMeta{Name: "previous", UID: "previous-uid"}}
+	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: "previous", Namespace: gs.Namespace, Finalizers: []string{"test.gameplane.local/hold"}, OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(previous, gameplanev1alpha1.GroupVersion.WithKind("Backup"))}}}
+	if err := r.Create(t.Context(), job); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := r.reconcileTemplateRevision(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, held, _ := lifecycleOwner(gs); !held {
+		t.Fatal("cancel released owner before predecessor drained")
+	}
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(job), job); err != nil {
+		t.Fatal(err)
+	}
+	job.Finalizers = nil
+	if err := r.Update(t.Context(), job); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := r.reconcileTemplateRevision(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, held, _ := lifecycleOwner(gs); held || !gs.Spec.Suspend {
+		t.Fatal("drained cancellation retained owner or resumed stopped server")
+	}
+}
+
 func TestTemplateSnapshotRejectsMissingCorruptAndForeign(t *testing.T) {
 	for _, mode := range []string{"missing", "corrupt", "foreign"} {
 		t.Run(mode, func(t *testing.T) {
