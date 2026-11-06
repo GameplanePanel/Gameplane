@@ -266,8 +266,11 @@ func TestBackupDisabledAgentPreservesRawCopyWithoutClaimingQuiesce(t *testing.T)
 	if err := r.Get(t.Context(), client.ObjectKey{Namespace: "ns", Name: "first"}, &job); err != nil {
 		t.Fatalf("disabled client prevented raw copy: %v", err)
 	}
-	if err := callBackupQuiesce(t.Context(), r.AgentClient, "ns", "server", "", true); err == nil {
+	if err := callBackupQuiesce(t.Context(), r.AgentClient, "ns", "server", "game-pod-uid", true); err == nil {
 		t.Fatal("disabled client cleared an existing cleanup obligation")
+	}
+	if err := callBackupQuiesce(t.Context(), r.AgentClient, "ns", "server", "", true); err == nil {
+		t.Fatal("legacy cleanup sent an unbound save-on")
 	}
 }
 
