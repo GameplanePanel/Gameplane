@@ -202,3 +202,47 @@ func TestUnpinnedUpdateKeepsMalformedProtectionFailClosed(t *testing.T) {
 		t.Fatal("PUT repaired malformed protection without authoritative admission")
 	}
 }
+
+func TestUnpinnedProtectedOrdinaryValueRequiresFreshReplacement(t *testing.T) {
+	for _, value := range []string{"hello", configRedactedMarker, "fresh ordinary value"} {
+		t.Run(value, func(t *testing.T) {
+			gs := serverWithConfig("alpha", plainConfig())
+			gs.SetAnnotations(map[string]string{kube.ProtectedConfigKeysAnnotation: `["MOTD","ADMIN_PASSWORD"]`})
+			tmpl := redactTemplate()
+			fields, _, _ := unstructured.NestedSlice(tmpl.Object, "spec", "configSchema")
+			fields[0].(map[string]any)["required"] = true
+			_ = unstructured.SetNestedSlice(tmpl.Object, fields, "spec", "configSchema")
+			k := fakeKubeClient(tmpl, gs)
+			cfg := plainConfig()
+			cfg["MOTD"] = value
+			rr := do(t, mountResourcesRouter(k), http.MethodPut, "/servers/alpha", updateBody(cfg))
+			if rr.Code != http.StatusOK {
+				t.Fatalf("update: %d %s", rr.Code, rr.Body)
+			}
+			stored, err := k.GetServer(t.Context(), redactNS, "alpha")
+			if err != nil {
+				t.Fatal(err)
+			}
+			keys, err := kube.ProtectedConfigKeys(stored.GetAnnotations())
+			if err != nil {
+				t.Fatal(err)
+			}
+			protected := false
+			for _, key := range keys {
+				protected = protected || key == "MOTD"
+			}
+			fresh := value == "fresh ordinary value"
+			if protected == fresh {
+				t.Fatalf("fresh=%v, protected=%v", fresh, protected)
+			}
+			want := any(configRedactedMarker)
+			if fresh {
+				want = value
+			}
+			if configFromBody(t, rr.Body.Bytes())["MOTD"] != want {
+				t.Fatal("unsafe response classification")
+			}
+			assertNoSecretLeak(t, rr.Body.String())
+		})
+	}
+}
