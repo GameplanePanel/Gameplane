@@ -278,7 +278,7 @@ Non-spec references:
 - `docs/dependencies.md:27` (`` `.devcontainer/post-create.sh`. ``).
 - `docs/dependencies.md:410` (golangci-lint "pinned in `.devcontainer/post-create.sh`").
 
-Spec 026 references (expected; these are the work items): `specs/026-modular-dev-containers/spec.md:13`, `:15`; `plan.md:13`, `:73`; `research.md:28`, `:53`, `:68`; `contracts/setup-and-need.md:8`; `tasks.md:37`, `:52`, `:66`, `:145`, `:151`.
+Spec 026 references (expected; these are the work items): `specs/done_026-modular-dev-containers/spec.md:13`, `:15`; `plan.md:13`, `:73`; `research.md:28`, `:53`, `:68`; `contracts/setup-and-need.md:8`; `tasks.md:37`, `:52`, `:66`, `:145`, `:151`.
 
 Submodules: no references in `modules/` or `website/`. T033 covers `website/src/content/docs/local-development-setup.mdx`, which I did not grep because it is a submodule file the task asked to leave alone.
 

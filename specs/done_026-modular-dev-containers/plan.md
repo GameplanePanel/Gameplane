@@ -2,7 +2,7 @@
 
 **Branch**: `claude/project-thread-427u3v` | **Date**: 2026-10-20 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/026-modular-dev-containers/spec.md`
+**Input**: Feature specification from `specs/done_026-modular-dev-containers/spec.md`
 
 ## Summary
 
@@ -46,7 +46,7 @@ Split today's single dev container into generated profiles at three sizes (compo
 ### Documentation (this feature)
 
 ```text
-specs/026-modular-dev-containers/
+specs/done_026-modular-dev-containers/
 ├── spec.md
 ├── plan.md
 ├── research.md

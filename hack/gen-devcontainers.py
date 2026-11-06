@@ -13,7 +13,7 @@ Generated outputs (never edit by hand):
   .devcontainer/tool-index.tsv
   --submodules: <submodule>/.devcontainer/* for the website and modules profiles
 
-Contracts: specs/026-modular-dev-containers/contracts/. Standard library only.
+Contracts: specs/done_026-modular-dev-containers/contracts/. Standard library only.
 """
 
 import argparse
