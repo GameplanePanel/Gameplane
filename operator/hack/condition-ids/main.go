@@ -68,6 +68,7 @@ var guardSkipFiles = map[string]bool{
 
 // rows is the English reference for every condition reason.
 var rows = []row{
+	{types: []string{"TemplateUpdatePending"}, reason: "RolloutCanceled", english: "Template adoption was canceled; the effective pin and power intent are retained. Remove the cancellation annotation before requesting this revision again.", description: "An operator canceled the admitted revision; its token remains blocked until the cancellation annotation is removed."},
 	{types: []string{"TemplateUpdatePending"}, reason: "AdoptingRevision", english: "The admitted template revision is being adopted.", description: "Template rollout owns the server lifecycle while draining and replacing its workload."},
 	{types: []string{"TemplateUpdatePending"}, reason: "TemplateUnavailable", english: "The installed template is unavailable; the effective snapshot is retained.", description: "Template availability is unknown but the server retains its immutable effective content."},
 	{types: []string{"TemplateUpdatePending"}, reason: "RevisionCurrent", english: "The installed template revision is effective.", description: "No newer template revision is waiting for adoption. Running revision is observed separately."},

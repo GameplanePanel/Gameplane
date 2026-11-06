@@ -20,13 +20,14 @@ import (
 )
 
 const (
-	effectiveTemplateAnnotation = "gameplane.local/effective-template-revision"
-	templateRevisionAnnotation  = "gameplane.local/template-revision"
-	templateSnapshotLabel       = "gameplane.local/template-snapshot"
-	templateSnapshotKey         = "template.json"
-	baselineTemplateAnnotation  = "gameplane.local/template-baseline"
-	baselineWorkloadAnnotation  = "gameplane.local/template-baseline-workload"
-	baselineInputsAnnotation    = "gameplane.local/template-baseline-inputs"
+	effectiveTemplateAnnotation     = "gameplane.local/effective-template-revision"
+	templateRevisionAnnotation      = "gameplane.local/template-revision"
+	templateSnapshotLabel           = "gameplane.local/template-snapshot"
+	templateSnapshotKey             = "template.json"
+	baselineTemplateAnnotation      = "gameplane.local/template-baseline"
+	baselineWorkloadAnnotation      = "gameplane.local/template-baseline-workload"
+	baselineInputsAnnotation        = "gameplane.local/template-baseline-inputs"
+	cancelTemplateRolloutAnnotation = "gameplane.local/cancel-template-rollout"
 )
 
 // Hash and persist content, not resourceVersion: status/metadata-only updates
@@ -110,6 +111,24 @@ func (r *GameServerReconciler) saveTemplateSnapshot(ctx context.Context, gs *gam
 // reconcileTemplateRevision runs before every template-dependent calculation.
 // A true second result asks the caller to re-read admission state next pass.
 func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs *gameplanev1alpha1.GameServer) (*gameplanev1alpha1.GameTemplate, bool, error) {
+	// Cancellation must work even when the admitted snapshot or catalog is
+	// missing. A Rollout has no copy worker of its own; recover predecessor
+	// workers/quiesce first, then fence stale workload writes on release.
+	if op, held, err := lifecycleOwner(gs); err != nil {
+		return nil, false, err
+	} else if held && op.Kind == "Rollout" && gs.Annotations[cancelTemplateRolloutAnnotation] == op.Token {
+		ready, err := recoverLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, op, r.OperationQuiescer)
+		if err != nil || !ready {
+			return nil, true, err
+		}
+		if err := clearLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, op.lifecycleIdentity); err != nil {
+			return nil, true, err
+		}
+		// Preserve both effective pin and power intent, whether shutdown has
+		// started or the server is still running. Prevent automatic readmission.
+		gs.Spec.TemplateRollout = &gameplanev1alpha1.TemplateRolloutSpec{Policy: "OnRequest"}
+		return nil, true, r.Update(ctx, gs)
+	}
 	var installed gameplanev1alpha1.GameTemplate
 	err := r.wipeReader().Get(ctx, client.ObjectKey{Name: gs.Spec.TemplateRef.Name}, &installed)
 	if err != nil && !apierrors.IsNotFound(err) {
@@ -147,6 +166,11 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 	}
 	if err := r.reportTemplateRevision(ctx, gs, desired, op, held); err != nil {
 		return nil, false, err
+	}
+	if pin == "" && desired != "" && gs.Annotations[cancelTemplateRolloutAnnotation] == desired {
+		// An aborted first pin must not render the canceled catalog content
+		// without admission. Existing resources remain available for cleanup.
+		return effective, true, nil
 	}
 	if pin == "" && gs.Annotations[restoreTemplateAnnotation] != "" {
 		// The Restore must copy its durable source snapshot before even a
@@ -215,6 +239,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 	if desired != "" && desired != pin {
 		policy := gs.Spec.TemplateRollout
 		admit := pin == "" || policy == nil || policy.Policy == "" || policy.Policy == "Automatic" || policy.RequestedRevision == desired
+		if gs.Annotations[cancelTemplateRolloutAnnotation] == desired {
+			admit = false
+		}
 		if admit {
 			if err := validateTemplatePasswordTransition(gs, effective, &installed); err != nil {
 				return nil, false, err
@@ -362,6 +389,8 @@ func (r *GameServerReconciler) reportTemplateRevision(ctx context.Context, gs *g
 	switch {
 	case held && op.Kind == "Rollout":
 		setTemplateCondition(gs, metav1.ConditionTrue, "AdoptingRevision", "The admitted template revision is being adopted.")
+	case gs.Annotations[cancelTemplateRolloutAnnotation] == desired && desired != "":
+		setTemplateCondition(gs, metav1.ConditionTrue, "RolloutCanceled", "Template adoption was canceled; the effective pin and power intent are retained. Remove the cancellation annotation before requesting this revision again.")
 	case desired == "":
 		setTemplateCondition(gs, metav1.ConditionUnknown, "TemplateUnavailable", "The installed template is unavailable; the effective snapshot is retained.")
 	case desired == gs.Annotations[effectiveTemplateAnnotation]:

@@ -611,6 +611,10 @@
     "defaultMessage": "The installed template revision is effective.",
     "description": "No newer template revision is waiting for adoption. Running revision is observed separately."
   },
+  "condition.templateupdatepending.rolloutcanceled": {
+    "defaultMessage": "Template adoption was canceled; the effective pin and power intent are retained. Remove the cancellation annotation before requesting this revision again.",
+    "description": "An operator canceled the admitted revision; its token remains blocked until the cancellation annotation is removed."
+  },
   "condition.templateupdatepending.templateunavailable": {
     "defaultMessage": "The installed template is unavailable; the effective snapshot is retained.",
     "description": "Template availability is unknown but the server retains its immutable effective content."

@@ -97,6 +97,9 @@ not recreated to enable remote parity.
   fails closed. Successful pin updates retire keys whose stored values are
   empty or absent in that same resourceVersion-fenced update, allowing a later
   ordinary value under the new schema. Populated keys retain protection.
+  Before the first pin, the API may retire a protected key only when a readable
+  ordinary schema and an explicit different non-empty replacement prove the
+  stored ambiguous value has been replaced. Unchanged/marker values stay protected.
 
 - `GameServer.spec.templateRollout.policy` defaults to Automatic; OnRequest
   admits only `requestedRevision == status.templateRevision.desired`. Initial
@@ -122,10 +125,18 @@ not recreated to enable remote parity.
   a checked pin update. The owner survives restart and catalog changes, releasing
   after the matching new Pod is observed or a suspended zero-replica template is
   observed. Startup health remains independent. Per-server power intent survives.
+- A token-matched `gameplane.local/cancel-template-rollout` cancels a held Rollout
+  after predecessor worker/quiesce recovery, even if its target snapshot is missing.
+  Checked workload/owner release retains the current pin and power intent; no
+  assumption is made that the workload stopped. Cancellation sets OnRequest,
+  clears the request, and blocks that digest until the annotation is removed.
+  CSI restore target cleanup is finalized before creation; target identity is
+  bound before template/ref copying. Failed cleanup clears a pending unpinned
+  template plan while retaining suspension and the guard until workload drain.
 - Desired/effective/running digests are distinct. Running requires the owned
   StatefulSet/Pod chain and a running game container; legacy or stopped Pods do
   not claim the desired revision. TemplateUpdatePending has RevisionAvailable,
-  OperationInProgress, AdoptingRevision, RevisionCurrent and TemplateUnavailable
+  OperationInProgress, AdoptingRevision, RolloutCanceled, RevisionCurrent and TemplateUnavailable
   reasons, included in the generated condition translation reference.
 - Obsolete snapshots are pruned only after old workload drain and replacement
   observation. PVCs are retained; data compatibility and runtime/data rollback
