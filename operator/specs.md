@@ -60,11 +60,19 @@ five-second backstop runs only while `HostportWakeReady` is not True. Endpoint
 diagnostics never replace an existing `Ready=False` game failure. Pending-listener
 messages omit the endpoint node name until it has been recorded.
 
-A missing, deleting or replaced endpoint Node forces the game StatefulSet to
-zero replicas even if a replacement game Pod already exists. The live Node
+A missing or replaced endpoint Node forces the game StatefulSet to zero replicas
+even if a replacement game Pod already exists. A deleting Node with the original
+UID permits only its owned original running game Pod to finish a bounded graceful
+stop. Before issuing the stop, the operator durably switches the StatefulSet to
+OnDelete and gates scheduling of replacement Pods, waiting for that generation to
+be observed. The running Pod is not rolled. The save deadline/readiness check then
+scales to zero; a Backup or inherited copy recovery retains its cleanup precedence
+before any save/stop RPC. Pending, foreign or replacement Pods receive no save window. The
+temporary gate and previous update strategy are restored during valid endpoint
+reconciliation or the documented explicit migration. The live Node
 identity is checked again immediately before workload mutation, including
-backup replica preservation and restore startup; the existing pod template is
-left intact. The sentinel Deployment also rechecks the live GameServer endpoint
+backup replica preservation and restore startup; existing container and scheduling
+settings are otherwise retained. The sentinel Deployment also rechecks the live GameServer endpoint
 and Node UID before mutation; a stale sleep plan cannot start a listener on a
 replacement node. A transient NotReady condition on the same Node UID preserves an
 existing running game or sleeping sentinel. Sentinel planning requires a running,

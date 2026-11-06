@@ -398,16 +398,17 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	replicas, stopRequeue, err := r.desiredReplicas(ctx, &gs, &tmpl, idle, &wipeState)
+	var replicas int32
+	var stopRequeue time.Duration
+	if !plan.blockGame {
+		replicas, stopRequeue, err = r.desiredReplicas(ctx, &gs, &tmpl, idle, &wipeState)
+	}
 	if err != nil {
 		if apierrors.IsConflict(err) {
 			return ctrl.Result{RequeueAfter: lifecycleConflictRetry}, nil
 		}
 		logger.Error(err, "compute desired replicas")
 		return ctrl.Result{}, err
-	}
-	if plan.blockGame {
-		replicas = 0
 	}
 	if err := r.reconcileStatefulSet(ctx, &gs, &tmpl, ver, mc, replicas, &wipeState); err != nil {
 		if apierrors.IsConflict(err) {
@@ -1529,12 +1530,14 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				// StatefulSet replacement and Node deletion run independently
 				// of the earlier sentinel plan. Identity loss must also fence
 				// stale wake decisions and lifecycle owners that retain replicas.
-				actualReplicas, replicas = 0, 0
-				ss.Spec.Replicas = &actualReplicas
 				if ss.ResourceVersion != "" {
-					return nil // Stop without rolling or changing the game template.
+					return r.stopHostportOnDeletingNode(ctx, &live, tmpl, ss)
 				}
+				actualReplicas, replicas = 0, 0
 			}
+		}
+		if err := clearHostportStopFence(ss); err != nil {
+			return err
 		}
 		op, held, err := lifecycleOwner(&live)
 		if err != nil {
