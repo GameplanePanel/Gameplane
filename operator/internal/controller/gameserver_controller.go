@@ -1536,9 +1536,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				actualReplicas, replicas = 0, 0
 			}
 		}
-		if err := clearHostportStopFence(ss); err != nil {
-			return err
-		}
+		clearHostportStopFence(ss)
 		op, held, err := lifecycleOwner(&live)
 		if err != nil {
 			return err

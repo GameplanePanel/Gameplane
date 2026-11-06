@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
 	"slices"
 	"testing"
@@ -9,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -315,5 +318,83 @@ func TestHostportMalformedStopFenceCannotGrantGrace(t *testing.T) {
 				t.Fatal("malformed or incomplete fence authorized grace or a stop RPC")
 			}
 		})
+	}
+}
+
+func TestHostportFenceCleanupRecoversInvalidMetadataWithoutGuessingStrategy(t *testing.T) {
+	partition, unavailable := int32(3), intstr.FromInt32(1)
+	saved := appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType, RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{Partition: &partition, MaxUnavailable: &unavailable}}
+	valid, err := json.Marshal(hostportStopFence{PodUID: "original-pod", NodeUID: "original-node", Strategy: saved})
+	if err != nil {
+		t.Fatal(err)
+	}
+	recreate := appsv1.StatefulSetUpdateStrategy{Type: appsv1.RecreateStatefulSetStrategyType}
+	validRecreate, err := json.Marshal(hostportStopFence{PodUID: "original-pod", NodeUID: "original-node", Strategy: recreate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	percentage := saved.DeepCopy()
+	percent := intstr.FromString("25%")
+	percentage.RollingUpdate.MaxUnavailable = &percent
+	validPercentage, err := json.Marshal(hostportStopFence{PodUID: "original-pod", NodeUID: "original-node", Strategy: *percentage})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name, raw string
+		restore   *appsv1.StatefulSetUpdateStrategy
+	}{
+		{"malformed", "malformed fence", nil},
+		{"empty-object", "{}", nil},
+		{"null", "null", nil},
+		{"missing-identities", `{"strategy":{"type":"RollingUpdate"}}`, nil},
+		{"empty-strategy", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{}}`, nil},
+		{"unknown-strategy", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{"type":"unknown"}}`, nil},
+		{"on-delete-with-rolling-fields", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{"type":"OnDelete","rollingUpdate":{}}}`, nil},
+		{"negative-partition", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{"type":"RollingUpdate","rollingUpdate":{"partition":-1}}}`, nil},
+		{"zero-max-unavailable", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{"type":"RollingUpdate","rollingUpdate":{"maxUnavailable":0}}}`, nil},
+		{"invalid-max-unavailable", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{"type":"RollingUpdate","rollingUpdate":{"maxUnavailable":"invalid"}}}`, nil},
+		{"excessive-max-unavailable-percent", `{"podUID":"original-pod","nodeUID":"original-node","strategy":{"type":"RollingUpdate","rollingUpdate":{"maxUnavailable":"101%"}}}`, nil},
+		{"valid-custom-strategy", string(valid), &saved},
+		{"valid-percentage-strategy", string(validPercentage), percentage},
+		{"valid-recreate-strategy", string(validRecreate), &recreate},
+	} {
+		for _, hostport := range []bool{false, true} {
+			for _, replicas := range []int32{0, 1} {
+				t.Run(fmt.Sprintf("%s/hostport=%t/replicas=%d", test.name, hostport, replicas), func(t *testing.T) {
+					r, gs, tmpl, _ := hostportStopFixture(t)
+					if !hostport {
+						gs.Spec.Networking.Expose = "NodePort"
+						if err := r.Update(t.Context(), gs); err != nil {
+							t.Fatal(err)
+						}
+					}
+					r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(gs, hostportIdentityNode("original-node", corev1.ConditionTrue)).Build()
+					ss := hostportStopSet(t, r, gs)
+					ss.Annotations = map[string]string{hostportStopFenceAnnotation: test.raw, "example.invalid/retained": "value"}
+					current := appsv1.StatefulSetUpdateStrategy{Type: appsv1.OnDeleteStatefulSetStrategyType}
+					ss.Spec.UpdateStrategy = current
+					otherGate := corev1.PodSchedulingGate{Name: "example.invalid/retained"}
+					ss.Spec.Template.Spec.SchedulingGates = []corev1.PodSchedulingGate{otherGate, {Name: hostportStopSchedulingGate}}
+					if err := r.Update(t.Context(), ss); err != nil {
+						t.Fatal(err)
+					}
+					if err := r.reconcileStatefulSet(t.Context(), gs, tmpl, nil, &materializedConfig{}, replicas); err != nil {
+						t.Fatal(err)
+					}
+					ss = hostportStopSet(t, r, gs)
+					want := current
+					if test.restore != nil {
+						want = *test.restore
+					}
+					if !reflect.DeepEqual(ss.Spec.UpdateStrategy, want) || ss.Spec.Replicas == nil || *ss.Spec.Replicas != replicas {
+						t.Fatalf("cleanup blocked power intent or guessed strategy: %+v", ss.Spec)
+					}
+					if !reflect.DeepEqual(ss.Spec.Template.Spec.SchedulingGates, []corev1.PodSchedulingGate{otherGate}) || ss.Annotations[hostportStopFenceAnnotation] != "" || ss.Annotations["example.invalid/retained"] != "value" {
+						t.Fatal("cleanup changed unrelated state or retained its fence")
+					}
+				})
+			}
+		}
 	}
 }

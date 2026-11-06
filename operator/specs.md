@@ -69,7 +69,11 @@ be observed. The running Pod is not rolled. The save deadline/readiness check th
 scales to zero; a Backup or inherited copy recovery retains its cleanup precedence
 before any save/stop RPC. Pending, foreign or replacement Pods receive no save window. The
 temporary gate and previous update strategy are restored during valid endpoint
-reconciliation or the documented explicit migration. The live Node
+reconciliation or the documented explicit migration. Cleanup validates saved
+identities and strategy fields, preserving valid custom RollingUpdate and Recreate
+strategies. Malformed or incomplete records retain the current update strategy
+while removing only the operator's stop gate/annotation; they cannot block a
+requested scale-down. The live Node
 identity is checked again immediately before workload mutation, including
 backup replica preservation and restore startup; existing container and scheduling
 settings are otherwise retained. The sentinel Deployment also rechecks the live GameServer endpoint

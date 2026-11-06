@@ -5,12 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -113,20 +117,53 @@ func decodeHostportStopFence(raw string) (hostportStopFence, bool) {
 	if err := json.Unmarshal([]byte(raw), &fence); err != nil {
 		return fence, false
 	}
-	return fence, true
+	if fence.PodUID == "" || fence.NodeUID == "" {
+		return fence, false
+	}
+	switch fence.Strategy.Type {
+	case appsv1.OnDeleteStatefulSetStrategyType, appsv1.RecreateStatefulSetStrategyType:
+		return fence, fence.Strategy.RollingUpdate == nil
+	case appsv1.RollingUpdateStatefulSetStrategyType:
+		rolling := fence.Strategy.RollingUpdate
+		if rolling == nil {
+			return fence, true
+		}
+		if rolling.Partition != nil && *rolling.Partition < 0 {
+			return fence, false
+		}
+		if rolling.MaxUnavailable == nil {
+			return fence, true
+		}
+		// Check the finite saved-strategy fields before restoring them: an
+		// API-invalid payload must not reject an otherwise required scale-down.
+		value := rolling.MaxUnavailable
+		switch value.Type {
+		case intstr.Int:
+			return fence, value.IntVal > 0
+		case intstr.String:
+			if len(validation.IsValidPercent(value.StrVal)) != 0 {
+				return fence, false
+			}
+			percent, err := strconv.Atoi(strings.TrimSuffix(value.StrVal, "%"))
+			return fence, err == nil && percent > 0 && percent <= 100
+		default:
+			return fence, false
+		}
+	default:
+		return fence, false
+	}
 }
 
-func clearHostportStopFence(ss *appsv1.StatefulSet) error {
+func clearHostportStopFence(ss *appsv1.StatefulSet) {
 	raw := ss.Annotations[hostportStopFenceAnnotation]
 	if raw == "" {
-		return nil
+		return
 	}
-	var fence hostportStopFence
-	if err := json.Unmarshal([]byte(raw), &fence); err != nil {
-		return fmt.Errorf("decode Hostport stop fence: %w", err)
+	if fence, valid := decodeHostportStopFence(raw); valid {
+		ss.Spec.UpdateStrategy = fence.Strategy
 	}
-	ss.Spec.UpdateStrategy = fence.Strategy
+	// Unknown saved state must not replace the live strategy or obstruct
+	// required scale-down. Keep that strategy and retire only our own fence.
 	ss.Spec.Template.Spec.SchedulingGates = slices.DeleteFunc(ss.Spec.Template.Spec.SchedulingGates, func(gate corev1.PodSchedulingGate) bool { return gate.Name == hostportStopSchedulingGate })
 	delete(ss.Annotations, hostportStopFenceAnnotation)
-	return nil
 }
