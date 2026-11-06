@@ -5,8 +5,10 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -160,8 +162,8 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	i18nInstanceDefaultMu.Lock()
 	defer i18nInstanceDefaultMu.Unlock()
 
-	// Receiver: a hard gate. The rollout waits for the TCP readiness probe, so
-	// the test-send cannot race the receiver's startup.
+	// The rollout proves the receiver is listening. The API-to-Service CGI
+	// readiness send below also gates DNS, endpoint routing, and body handling.
 	fixture, err := filepath.Abs(filepath.Join("fixtures", "notify-sink.yaml"))
 	if err != nil {
 		t.Fatalf("resolve notify-sink fixture: %v", err)
@@ -171,6 +173,29 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
 		_, _ = envInstance.Kubectl(ctx, "delete", "-f", fixture, "--ignore-not-found")
+	})
+	// Cleanup runs in reverse registration order, so retain receiver evidence
+	// before deleting it. t.Context() is already canceled when cleanups run.
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+		defer cancel()
+		commands := [][]string{
+			{"get", "pods", "-o", "wide"},
+			{"get", "service", "e2e-notify-sink", "-o", "yaml"},
+			{"get", "endpointslices", "-l", "kubernetes.io/service-name=e2e-notify-sink", "-o", "yaml"},
+			{"describe", "pods", "-l", "app.kubernetes.io/name=e2e-notify-sink"},
+			{"logs", "deploy/e2e-notify-sink", "--all-containers=true", "--tail=100"},
+			{"exec", "deploy/e2e-notify-sink", "--", "sh", "-c", `for file in /tmp/requests.log /tmp/hooks.log; do printf '\n%s\n' "$file"; cat "$file"; done`},
+		}
+		for _, args := range commands {
+			commandCtx, stop := context.WithTimeout(ctx, 7*time.Second)
+			out, err := envInstance.Kubectl(commandCtx, append([]string{"-n", "gameplane-system"}, args...)...)
+			stop()
+			t.Logf("notify sink diagnostics %v: %v\n%s", args, err, out)
+		}
 	})
 	if out, err := envInstance.Kubectl(t.Context(), "rollout", "status", "-n", "gameplane-system",
 		"deploy/e2e-notify-sink", "--timeout=2m"); err != nil {
@@ -190,11 +215,14 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 		}
 	}()
 
-	sinks := []struct{ name, query string }{
+	type sinkTarget struct{ name, query string }
+	sinks := []sinkTarget{
 		{"e2e-notify-fr", "sink=fr"},
 		{"e2e-notify-default", "sink=default"},
 	}
-	for _, s := range sinks {
+	readinessSink := sinkTarget{"e2e-notify-readiness", "probe=readiness"}
+	configuredSinks := append([]sinkTarget{readinessSink}, sinks...)
+	for _, s := range configuredSinks {
 		name := s.name
 		defer func() {
 			r, _, _ := admin.Delete("/admin/notifications/sinks/" + name + "/secret")
@@ -205,7 +233,7 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	}
 
 	// Secrets hold each sink's URL; configRef must name the returned Secret.
-	for _, s := range sinks {
+	for _, s := range configuredSinks {
 		url := fmt.Sprintf("http://e2e-notify-sink.gameplane-system.svc.cluster.local:8080/cgi-bin/hook?%s", s.query)
 		resp, body, err := admin.Do(http.MethodPut, "/admin/notifications/sinks/"+s.name+"/secret",
 			map[string]string{"kind": "webhook", "url": url, "authorization": ""})
@@ -231,9 +259,12 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	}
 
 	// The fr sink names French explicitly; the default sink omits language.
-	// Both stay disabled so the notifier never delivers real events here.
+	// All stay disabled so the notifier never delivers real events here. The
+	// readiness sink uses French too, exercising the same UTF-8 body path.
 	resp, body, err := admin.Do(http.MethodPut, "/admin/config/notifications", map[string]any{
 		"sinks": []map[string]any{
+			{"name": readinessSink.name, "kind": "webhook", "enabled": false,
+				"configRef": "gameplane-notify-" + readinessSink.name, "language": "fr"},
 			{"name": "e2e-notify-fr", "kind": "webhook", "enabled": false,
 				"configRef": "gameplane-notify-e2e-notify-fr", "language": "fr"},
 			{"name": "e2e-notify-default", "kind": "webhook", "enabled": false,
@@ -258,6 +289,45 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	if defaultTag != "en" {
 		t.Fatalf("instance default language = %q, want en before the test-send", defaultTag)
 	}
+
+	// Establish the exact API -> Service -> CGI POST path before measuring the
+	// language contract. A probe may be delivered despite a lost response, so
+	// its distinct query cannot satisfy either language assertion below.
+	readinessCtx, cancelReadiness := context.WithTimeout(t.Context(), 30*time.Second)
+	defer cancelReadiness()
+	readinessAttempts := 0
+	envInstance.Eventually(t, 30*time.Second, func() (bool, string) {
+		readinessAttempts++
+		resp, b, err := admin.DoContext(readinessCtx, http.MethodPost,
+			"/admin/notifications/sinks/"+readinessSink.name+"/test", nil)
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
+		if err != nil {
+			var networkErr net.Error
+			if !errors.As(err, &networkErr) {
+				t.Fatalf("notify sink readiness request: %v", err)
+			}
+			t.Logf("notify sink readiness attempt %d: %v", readinessAttempts, err)
+			return false, fmt.Sprintf("notify sink readiness request: %v", err)
+		}
+		if resp.StatusCode == http.StatusBadGateway &&
+			(strings.Contains(string(b), "connection refused") || strings.Contains(string(b), "context deadline exceeded")) {
+			t.Logf("notify sink readiness attempt %d: %s", readinessAttempts, b)
+			return false, fmt.Sprintf("notify sink readiness: %s", b)
+		}
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("notify sink readiness: status=%d body=%s", resp.StatusCode, b)
+		}
+		var delivered struct {
+			Delivered bool `json:"delivered"`
+		}
+		if err := json.Unmarshal(b, &delivered); err != nil || !delivered.Delivered {
+			t.Fatalf("notify sink readiness: delivered not true; body=%s", b)
+		}
+		return true, ""
+	})
+	cancelReadiness()
 
 	for _, s := range sinks {
 		// A ready pod can still refuse connections on its Service IP for a

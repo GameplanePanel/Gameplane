@@ -11,8 +11,13 @@ metadata:
 data:
   hook: |
     #!/bin/sh
-    { printf '%s\t' "$QUERY_STRING"; head -c "${CONTENT_LENGTH:-0}"; echo; } >> /tmp/hooks.log
+    set -eu
+    printf '%s\t%s\tstart\t%s\n' "$(date -u +%FT%TZ)" "$QUERY_STRING" "${CONTENT_LENGTH:-0}" >> /tmp/requests.log
+    body=$(head -c "${CONTENT_LENGTH:-0}")
+    printf '%s\t%s\n' "$QUERY_STRING" "$body" >> /tmp/hooks.log
+    printf '%s\t%s\tbody-read\n' "$(date -u +%FT%TZ)" "$QUERY_STRING" >> /tmp/requests.log
     printf 'Status: 204 No Content\r\n\r\n'
+    printf '%s\t%s\tresponse-written\n' "$(date -u +%FT%TZ)" "$QUERY_STRING" >> /tmp/requests.log
 ---
 apiVersion: apps/v1
 kind: Deployment
