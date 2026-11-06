@@ -292,3 +292,28 @@ func TestHostportDeletingNodeWaitsForCopyOwnerBeforeSaveStop(t *testing.T) {
 		})
 	}
 }
+
+func TestHostportMalformedStopFenceCannotGrantGrace(t *testing.T) {
+	for _, raw := range []string{"malformed fence", "{}", "null"} {
+		t.Run(raw, func(t *testing.T) {
+			r, gs, tmpl, stopper := hostportStopFixture(t)
+			ss := hostportStopSet(t, r, gs)
+			ss.Annotations = map[string]string{hostportStopFenceAnnotation: raw}
+			ss.Spec.UpdateStrategy = appsv1.StatefulSetUpdateStrategy{Type: appsv1.OnDeleteStatefulSetStrategyType}
+			ss.Spec.Template.Spec.SchedulingGates = []corev1.PodSchedulingGate{{Name: hostportStopSchedulingGate}}
+			if err := r.Update(t.Context(), ss); err != nil {
+				t.Fatal(err)
+			}
+			ss.Status.ObservedGeneration = ss.Generation
+			if err := r.Status().Update(t.Context(), ss); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.reconcileStatefulSet(t.Context(), gs, tmpl, nil, &materializedConfig{}, 1); err != nil {
+				t.Fatal(err)
+			}
+			if *hostportStopSet(t, r, gs).Spec.Replicas != 0 || stopper.calls != 0 {
+				t.Fatal("malformed or incomplete fence authorized grace or a stop RPC")
+			}
+		})
+	}
+}

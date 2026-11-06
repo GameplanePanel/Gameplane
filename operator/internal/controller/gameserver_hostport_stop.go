@@ -37,29 +37,35 @@ func (r *GameServerReconciler) stopHostportOnDeletingNode(ctx context.Context, g
 		return nil
 	}
 	var node corev1.Node
-	err := r.hostportReader().Get(ctx, client.ObjectKey{Name: gs.Annotations[hostportNodeAnnotation]}, &node)
-	if err != nil && !apierrors.IsNotFound(err) {
-		return err
+	if err := r.hostportReader().Get(ctx, client.ObjectKey{Name: gs.Annotations[hostportNodeAnnotation]}, &node); err != nil {
+		if apierrors.IsNotFound(err) {
+			ss.Spec.Replicas = &zero
+		}
+		return client.IgnoreNotFound(err)
 	}
-	if err != nil || node.DeletionTimestamp.IsZero() || string(node.UID) != gs.Annotations[hostportNodeUIDAnnotation] {
+	if node.DeletionTimestamp.IsZero() || string(node.UID) != gs.Annotations[hostportNodeUIDAnnotation] {
 		ss.Spec.Replicas = &zero
 		return nil
 	}
 	var pod corev1.Pod
-	err = r.hostportReader().Get(ctx, client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-0"}, &pod)
-	if err != nil && !apierrors.IsNotFound(err) {
-		return err
+	if err := r.hostportReader().Get(ctx, client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-0"}, &pod); err != nil {
+		if apierrors.IsNotFound(err) {
+			ss.Spec.Replicas = &zero
+		}
+		return client.IgnoreNotFound(err)
 	}
-	if err != nil || !metav1.IsControlledBy(ss, gs) || !metav1.IsControlledBy(&pod, ss) || pod.UID == "" || pod.Spec.NodeName != node.Name || !pod.DeletionTimestamp.IsZero() || pod.Status.Phase != corev1.PodRunning {
+	if !metav1.IsControlledBy(ss, gs) || !metav1.IsControlledBy(&pod, ss) || pod.UID == "" || pod.Spec.NodeName != node.Name || !pod.DeletionTimestamp.IsZero() || pod.Status.Phase != corev1.PodRunning {
 		ss.Spec.Replicas = &zero
 		return nil
 	}
 	fence := hostportStopFence{PodUID: pod.UID, NodeUID: node.UID, Strategy: *ss.Spec.UpdateStrategy.DeepCopy()}
 	if raw := ss.Annotations[hostportStopFenceAnnotation]; raw != "" {
-		if err := json.Unmarshal([]byte(raw), &fence); err != nil || fence.PodUID != pod.UID || fence.NodeUID != node.UID {
+		saved, valid := decodeHostportStopFence(raw)
+		if !valid || saved.PodUID != pod.UID || saved.NodeUID != node.UID {
 			ss.Spec.Replicas = &zero
 			return nil
 		}
+		fence = saved
 		if ss.Spec.UpdateStrategy.Type == appsv1.OnDeleteStatefulSetStrategyType && slices.ContainsFunc(ss.Spec.Template.Spec.SchedulingGates, func(gate corev1.PodSchedulingGate) bool { return gate.Name == hostportStopSchedulingGate }) {
 			if ss.Status.ObservedGeneration < ss.Generation {
 				return nil // Wait until the StatefulSet controller has observed the fence.
@@ -98,6 +104,16 @@ func (r *GameServerReconciler) stopHostportOnDeletingNode(ctx context.Context, g
 		ss.Spec.Template.Spec.SchedulingGates = append(ss.Spec.Template.Spec.SchedulingGates, corev1.PodSchedulingGate{Name: hostportStopSchedulingGate})
 	}
 	return nil // Commit the replacement fence before issuing the stop RPC.
+}
+
+// Malformed persisted state denies graceful-stop permission. It is a validation
+// failure, rather than an operational error that could prevent scaling to zero.
+func decodeHostportStopFence(raw string) (hostportStopFence, bool) {
+	var fence hostportStopFence
+	if err := json.Unmarshal([]byte(raw), &fence); err != nil {
+		return fence, false
+	}
+	return fence, true
 }
 
 func clearHostportStopFence(ss *appsv1.StatefulSet) error {
