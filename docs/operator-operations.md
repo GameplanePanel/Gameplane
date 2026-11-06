@@ -42,6 +42,13 @@ including backups with `quiesce: false` and CSI VolumeSnapshots. A held operatio
 also defers idle sleep/wake, restart, and pod-template rollout. Requests remain
 pending and reconciliation resumes after the operation's cleanup completes.
 
+For a quiesced backup of a running workload, an initially absent, non-Running or
+terminating source Pod gets a two-minute startup grace period from the Backup's
+creation time. If it is still unavailable afterward, the Backup fails and runs
+normal cleanup to release its lifecycle owner and workload fence. A source that
+is already Running can be admitted after that window; prepared source identity
+and outstanding worker or save-on obligations retain their existing safety checks.
+
 The GameServer annotation `operations.gameplane.local/owner` identifies the
 operation kind, name, UID, admitted generation and target UID. A wipe is identified
 by the GameServer UID and its request token. The existing backup, restore and wipe
