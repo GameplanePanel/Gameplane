@@ -124,3 +124,35 @@ func TestBackupForeignWorkerWaitsWithoutQuiescingOrInventingHistory(t *testing.T
 		})
 	}
 }
+
+func TestBackupForeignReplacementFailsAndDrainsOwnedWorkers(t *testing.T) {
+	r, q := guardFixture(t, guardBackup("first"))
+	guardPass(t, r, "first")
+	b := guardGetBackup(t, r, "first")
+	worker := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "original-copy", Namespace: b.Namespace, Labels: map[string]string{backupUIDLabel: string(b.UID)}}, Status: corev1.PodStatus{Phase: corev1.PodRunning}}
+	if err := r.Create(t.Context(), worker); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.Delete(t.Context(), &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace}}); err != nil {
+		t.Fatal(err)
+	}
+	foreign := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace, UID: "foreign-job", OwnerReferences: []metav1.OwnerReference{{APIVersion: gameplanev1alpha1.GroupVersion.String(), Kind: "Backup", Name: b.Name, UID: "foreign-backup", Controller: ownerBoolPtr(true)}}}}
+	if err := r.Create(t.Context(), foreign); err != nil {
+		t.Fatal(err)
+	}
+	guardPass(t, r, "first")
+	b = guardGetBackup(t, r, "first")
+	if b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed || q.unquiesced != 0 {
+		t.Fatalf("replacement did not fail while retaining live-worker protection: status=%+v, agent=%+v", b.Status, q)
+	}
+	if err := r.Delete(t.Context(), worker); err != nil {
+		t.Fatal(err)
+	}
+	guardPass(t, r, "first")
+	if q.unquiesced != 1 {
+		t.Fatalf("replacement stranded save-off after own workers drained: %+v", q)
+	}
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(foreign), foreign); err != nil || foreign.UID != "foreign-job" {
+		t.Fatalf("cleanup changed a foreign worker: %v", err)
+	}
+}

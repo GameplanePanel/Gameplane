@@ -373,7 +373,7 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// copy must still reach completion and drain if its snapshot disappears.
 	worker, err := r.captureWorker(ctx, &b)
 	if errors.Is(err, errForeignBackupWorker) {
-		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+		return r.waitForForeignBackupWorker(ctx, &b)
 	}
 	if err != nil {
 		return ctrl.Result{}, err

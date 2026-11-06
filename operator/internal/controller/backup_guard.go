@@ -252,7 +252,7 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 	// acquiring ownership or pausing saving; never adopt another capture.
 	if _, err := r.captureWorker(ctx, b); err != nil {
 		if errors.Is(err, errForeignBackupWorker) {
-			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+			return r.waitForForeignBackupWorker(ctx, b)
 		}
 		return ctrl.Result{}, err
 	}
@@ -301,7 +301,7 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 	}
 	if err := r.recordBackupManifest(ctx, b, gs); err != nil {
 		if errors.Is(err, errForeignBackupWorker) {
-			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+			return r.waitForForeignBackupWorker(ctx, b)
 		}
 		// Metadata must be durable before capture. Do not leave saving paused
 		// indefinitely when a lookup/status write prevents the copy starting.
@@ -309,6 +309,23 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 		return ctrl.Result{RequeueAfter: time.Second}, failErr
 	}
 	return ctrl.Result{}, nil
+}
+
+// Fresh captures wait for a predecessor's dependent to disappear. A worker
+// replaced after admission instead invalidates this capture; retrying forever
+// would retain its ownership and possibly leave the game with saving paused.
+func (r *BackupReconciler) waitForForeignBackupWorker(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	owned, err := r.ownedBackupTarget(ctx, b)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if owned == nil {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+	}
+	if _, err := r.fail(ctx, b, "capture worker was replaced by a foreign same-name worker"); err != nil {
+		return ctrl.Result{}, err
+	}
+	return r.runUnquiesce(ctx, b)
 }
 
 // Return only the originally bound GameServer. A foreign owner means this
