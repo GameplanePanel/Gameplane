@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -21,6 +22,23 @@ const sentinelIsolationLabel = "gameplane.local/sentinel-isolation"
 // are additive: these per-server grants cannot subtract a namespace-wide grant.
 func (r *GameServerReconciler) reconcileSentinelIsolation(ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
 	if !tmpl.Spec.SentinelIsolation {
+		// Probe the informer cache before making any live rollout reads. The
+		// controller's Owns(NetworkPolicy) watch is required here: delayed
+		// owned grants enqueue another pass after becoming visible in cache.
+		ownedGrant := false
+		for _, suffix := range []string{"ingress", "egress"} {
+			var policy networkingv1.NetworkPolicy
+			if err := r.Get(ctx, client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-sentinel-" + suffix}, &policy); err != nil {
+				if !apierrors.IsNotFound(err) {
+					return err
+				}
+			} else if metav1.IsControlledBy(&policy, gs) {
+				ownedGrant = true
+			}
+		}
+		if !ownedGrant {
+			return nil
+		}
 		// Workload reconciliation removes the opt-in labels by rolling both
 		// pod templates. Keep both grants until every live pod has switched
 		// back to the legacy policies, including during a partial rollout.
@@ -105,4 +123,34 @@ func (r *GameServerReconciler) reconcileSentinelIsolation(ctx context.Context, g
 		}
 	}
 	return nil
+}
+
+// Invalid isolated templates must revoke old exposure before reporting failure.
+// Read live so informer lag cannot preserve stale grants, and delete only the
+// exact owned objects observed. Agent connectivity and workload state are kept.
+func (r *GameServerReconciler) revokeInvalidSentinelIsolationExposure(ctx context.Context, gs *gameplanev1alpha1.GameServer) error {
+	objects := []client.Object{
+		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gameIngressPolicyName(gs)}},
+		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-sentinel-ingress"}},
+		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-sentinel-egress"}},
+		&corev1.Service{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name}},
+		&corev1.Service{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-game-direct"}},
+	}
+	var failures []error
+	for _, object := range objects {
+		if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(object), object); err != nil {
+			if !apierrors.IsNotFound(err) {
+				failures = append(failures, fmt.Errorf("read invalid-template exposure %s: %w", object.GetName(), err))
+			}
+			continue
+		}
+		if !metav1.IsControlledBy(object, gs) {
+			continue
+		}
+		uid, version := object.GetUID(), object.GetResourceVersion()
+		if err := r.Delete(ctx, object, client.Preconditions{UID: &uid, ResourceVersion: &version}); client.IgnoreNotFound(err) != nil {
+			failures = append(failures, fmt.Errorf("revoke invalid-template exposure %s: %w", object.GetName(), err))
+		}
+	}
+	return errors.Join(failures...)
 }

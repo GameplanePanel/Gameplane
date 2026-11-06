@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/util/cert"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -43,12 +44,20 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 		"ca.key": pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)}),
 	}}
 	c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, tmpl, caSecret).WithStatusSubresource(gs).Build()
-	reader := &wipeInventoryReader{Reader: c}
+	reader := &wipeInventoryReader{Reader: c, sentinelNamespace: gs.Namespace, sentinelServer: gs.Name}
 	r := &GameServerReconciler{Client: c, APIReader: reader, Scheme: s, AgentCASecretName: caSecret.Name, AgentCASecretNamespace: caSecret.Namespace}
 	// Exercise both initial child/status creation and the next full pass. Idle
 	// and capture reconciliation participate, rather than just lifecycle helpers.
-	for range 2 {
-		reader.jobGets, reader.podLists = 0, 0
+	for pass := range 2 {
+		if pass == 1 {
+			isolated := tmpl.DeepCopy()
+			isolated.Spec.SentinelIsolation = true
+			isolated.Spec.Ports = []gameplanev1alpha1.GamePort{{Name: "game", ContainerPort: 25565, Advertise: true}}
+			if err := r.reconcileSentinelIsolation(t.Context(), gs, isolated); err != nil {
+				t.Fatal(err)
+			}
+		}
+		reader.jobGets, reader.podLists, reader.filteredPodLists, reader.sentinelPodLists = 0, 0, 0, 0
 		if _, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}); err != nil {
 			t.Fatal(err)
 		}
@@ -61,6 +70,9 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 		}
 		if reader.jobGets != 1 || reader.podLists != 1 {
 			t.Fatalf("full reconcile repeated its uncached worker inventory: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+		}
+		if reader.filteredPodLists != pass || reader.sentinelPodLists != pass {
+			t.Fatalf("unexpected filtered inventories: all=%d sentinel=%d want=%d", reader.filteredPodLists, reader.sentinelPodLists, pass)
 		}
 	}
 }
@@ -94,7 +106,9 @@ func TestWipeInventoryCannotAuthorizeRecreatedWorkload(t *testing.T) {
 
 type wipeInventoryReader struct {
 	client.Reader
-	jobGets, podLists int
+	jobGets, podLists                  int
+	filteredPodLists, sentinelPodLists int
+	sentinelNamespace, sentinelServer  string
 }
 
 func (r *wipeInventoryReader) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
@@ -113,13 +127,19 @@ func (r *wipeInventoryReader) List(ctx context.Context, list client.ObjectList, 
 		if (options.LabelSelector == nil || options.LabelSelector.Empty()) &&
 			(options.FieldSelector == nil || options.FieldSelector.Empty()) {
 			r.podLists++
+		} else {
+			r.filteredPodLists++
+			expected := labels.SelectorFromSet(labels.Set{"app.kubernetes.io/instance": r.sentinelServer, sentinelIsolationLabel: "true"})
+			if r.sentinelServer != "" && options.Namespace == r.sentinelNamespace && options.LabelSelector != nil && options.LabelSelector.String() == expected.String() && (options.FieldSelector == nil || options.FieldSelector.Empty()) {
+				r.sentinelPodLists++
+			}
 		}
 	}
 	return r.Reader.List(ctx, list, opts...)
 }
 
 func TestWipeInventoryReaderSeparatesFilteredPodQueries(t *testing.T) {
-	reader := &wipeInventoryReader{Reader: fake.NewClientBuilder().WithScheme(wipeScheme(t)).Build()}
+	reader := &wipeInventoryReader{Reader: fake.NewClientBuilder().WithScheme(wipeScheme(t)).Build(), sentinelNamespace: "games", sentinelServer: "server"}
 	for range 2 {
 		var pods corev1.PodList
 		if err := reader.List(t.Context(), &pods, client.InNamespace("games")); err != nil {
@@ -130,9 +150,15 @@ func TestWipeInventoryReaderSeparatesFilteredPodQueries(t *testing.T) {
 		}); err != nil {
 			t.Fatal(err)
 		}
+		if err := reader.List(t.Context(), &pods, client.InNamespace("games"), client.MatchingLabels{wipeUIDLabel: "extra-wipe-query"}); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if reader.podLists != 2 {
 		t.Fatalf("duplicate unfiltered inventories must count independently of sentinel queries: got %d", reader.podLists)
+	}
+	if reader.filteredPodLists != 4 || reader.sentinelPodLists != 2 {
+		t.Fatalf("filtered inventories were hidden or misclassified: all=%d sentinel=%d", reader.filteredPodLists, reader.sentinelPodLists)
 	}
 }
 
@@ -149,8 +175,8 @@ func TestWipeInventoryIsSharedWithWorkloadMutation(t *testing.T) {
 	if err := r.reconcileStatefulSet(t.Context(), gs, &gameplanev1alpha1.GameTemplate{}, nil, &materializedConfig{}, 1, &workers); err != nil {
 		t.Fatal(err)
 	}
-	if reader.jobGets != 1 || reader.podLists != 1 {
-		t.Fatalf("ordinary reconcile inventoried workers repeatedly: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+	if reader.jobGets != 1 || reader.podLists != 1 || reader.filteredPodLists != 0 {
+		t.Fatalf("ordinary reconcile inventoried workers repeatedly: Job GETs=%d Pod LISTs=%d filtered=%d", reader.jobGets, reader.podLists, reader.filteredPodLists)
 	}
 }
 
@@ -193,8 +219,8 @@ func TestWipeInventoryRechecksChangedServerBeforeWorkloadMutation(t *testing.T) 
 			if guarded {
 				wantLists = 1
 			}
-			if reader.podLists != wantLists {
-				t.Fatalf("Pod LISTs=%d want %d", reader.podLists, wantLists)
+			if reader.podLists != wantLists || reader.filteredPodLists != 0 {
+				t.Fatalf("Pod LISTs=%d filtered=%d want %d unfiltered", reader.podLists, reader.filteredPodLists, wantLists)
 			}
 		})
 	}
@@ -218,7 +244,7 @@ func TestWipeReconcileReusesOwnedJobInventory(t *testing.T) {
 	if err := r.reconcileWipe(t.Context(), gs, &gameplanev1alpha1.GameTemplate{}, &workers); err != nil {
 		t.Fatal(err)
 	}
-	if reader.jobGets != 1 || reader.podLists != 1 {
-		t.Fatalf("active wipe repeated its worker reads: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+	if reader.jobGets != 1 || reader.podLists != 1 || reader.filteredPodLists != 0 {
+		t.Fatalf("active wipe repeated its worker reads: Job GETs=%d Pod LISTs=%d filtered=%d", reader.jobGets, reader.podLists, reader.filteredPodLists)
 	}
 }

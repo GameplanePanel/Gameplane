@@ -105,8 +105,8 @@ func TestWipeFailurePollSharesInventoryWithLifecycle(t *testing.T) {
 	if err := r.reconcileWipe(t.Context(), gs, &gameplanev1alpha1.GameTemplate{}, &workers); err != nil {
 		t.Fatal(err)
 	}
-	if reader.jobGets != 1 || reader.podLists != 1 {
-		t.Fatalf("failure polling repeated worker inventory: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+	if reader.jobGets != 1 || reader.podLists != 1 || reader.filteredPodLists != 0 {
+		t.Fatalf("failure polling repeated worker inventory: Job GETs=%d Pod LISTs=%d filtered=%d", reader.jobGets, reader.podLists, reader.filteredPodLists)
 	}
 }
 

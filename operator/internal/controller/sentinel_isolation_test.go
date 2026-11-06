@@ -174,6 +174,7 @@ func TestSentinelIsolationOptOutWaitsForBothLivePodLabels(t *testing.T) {
 func TestSentinelIsolationRejectsNoAdvertisedPortsBeforeCreatingWorkloads(t *testing.T) {
 	scheme := testScheme(t)
 	_ = batchv1.AddToScheme(scheme)
+	_ = networkingv1.AddToScheme(scheme)
 	tmpl := singlePortTemplate(false, "none")
 	tmpl.Name = "isolated"
 	tmpl.Spec.SentinelIsolation = true
