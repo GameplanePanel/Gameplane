@@ -124,11 +124,12 @@ func TestBackupManifestDoesNotInventHistoryForExistingWorker(t *testing.T) {
 			_ = batchv1.AddToScheme(scheme)
 			_ = snapshotv1.AddToScheme(scheme)
 			_ = gameplanev1alpha1.AddToScheme(scheme)
-			b := &gameplanev1alpha1.Backup{ObjectMeta: metav1.ObjectMeta{Name: "legacy", Namespace: "games"}, Spec: gameplanev1alpha1.BackupSpec{Strategy: strategy}}
+			b := &gameplanev1alpha1.Backup{ObjectMeta: metav1.ObjectMeta{Name: "legacy", Namespace: "games", UID: "legacy-backup"}, Spec: gameplanev1alpha1.BackupSpec{Strategy: strategy}}
 			var worker client.Object = &batchv1.Job{ObjectMeta: b.ObjectMeta}
 			if strategy == "volume-snapshot" {
 				worker = &snapshotv1.VolumeSnapshot{ObjectMeta: b.ObjectMeta}
 			}
+			worker.SetOwnerReferences([]metav1.OwnerReference{*metav1.NewControllerRef(b, gameplanev1alpha1.GroupVersion.WithKind("Backup"))})
 			c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(b).WithObjects(b, worker).Build()
 			r := &BackupReconciler{Client: c, APIReader: c, Scheme: scheme}
 			if err := r.recordBackupManifest(t.Context(), b, &gameplanev1alpha1.GameServer{}); err != nil {

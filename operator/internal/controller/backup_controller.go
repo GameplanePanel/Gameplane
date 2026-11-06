@@ -369,9 +369,24 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if bound == nil {
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
+	// The template is only needed to construct a new worker. An existing
+	// copy must still reach completion and drain if its snapshot disappears.
+	worker, err := r.captureWorker(ctx, &b)
+	if errors.Is(err, errForeignBackupWorker) {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+	}
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if job, ok := worker.(*batchv1.Job); ok {
+		return r.mirrorJobStatus(ctx, &b, job)
+	}
 	tmpl, err := effectiveGameTemplate(ctx, r.backupAPIReader(), bound)
 	if err != nil && (bound.Annotations[effectiveTemplateAnnotation] != "" || !apierrors.IsNotFound(err)) {
-		return ctrl.Result{}, err
+		if _, failErr := r.fail(ctx, &b, "cannot resolve capture template: "+err.Error()); failErr != nil {
+			return ctrl.Result{}, failErr
+		}
+		return r.runUnquiesce(ctx, &b)
 	}
 
 	backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)

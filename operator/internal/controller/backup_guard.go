@@ -248,6 +248,14 @@ func (r *BackupReconciler) legacyQuiescedBackups(ctx context.Context, b *gamepla
 }
 
 func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	// A deleted Backup's dependent can outlive its finalizer. Wait before
+	// acquiring ownership or pausing saving; never adopt another capture.
+	if _, err := r.captureWorker(ctx, b); err != nil {
+		if errors.Is(err, errForeignBackupWorker) {
+			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+		}
+		return ctrl.Result{}, err
+	}
 	claimed, err := r.claimBackupTarget(ctx, b)
 	if err != nil {
 		if errors.Is(err, errLifecycleGenerationChanged) {
@@ -292,6 +300,9 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 	}
 	if err := r.recordBackupManifest(ctx, b, gs); err != nil {
+		if errors.Is(err, errForeignBackupWorker) {
+			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+		}
 		// Metadata must be durable before capture. Do not leave saving paused
 		// indefinitely when a lookup/status write prevents the copy starting.
 		_, failErr := r.fail(ctx, b, "cannot record capture metadata: "+err.Error())
