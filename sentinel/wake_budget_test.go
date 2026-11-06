@@ -65,6 +65,91 @@ func TestWakeSharedFailureAndImmediateRetry(t *testing.T) {
 	}
 }
 
+func TestWakeLiveWaiterRetriesCanceledOwner(t *testing.T) {
+	started := make(chan struct{})
+	var patches atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		_, _ = io.Copy(io.Discard, req.Body)
+		if patches.Add(1) == 1 {
+			close(started)
+			<-req.Context().Done()
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"apiVersion":"gameplane.local/v1alpha1","kind":"GameServer","metadata":{"name":"alpha"}}`)
+	}))
+	defer server.Close()
+	client, err := dynamic.NewForConfig(&rest.Config{Host: server.URL})
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := newWaker(client.Resource(gameServerGVR).Namespace("games"), "alpha", time.Minute)
+	ownerCtx, cancelOwner := context.WithCancel(t.Context())
+	defer cancelOwner()
+	ownerDone := make(chan error, 1)
+	go func() { ownerDone <- w.RequestWake(ownerCtx) }()
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		t.Fatal("owning wake did not reach the API")
+	}
+	waiting := &observedWaitContext{Context: t.Context(), observed: make(chan struct{})}
+	waiterDone := make(chan error, 1)
+	go func() { waiterDone <- w.RequestWake(waiting) }()
+	select {
+	case <-waiting.observed:
+	case <-time.After(time.Second):
+		t.Fatal("live caller did not join the shared wake")
+	}
+	// Canceling a different waiter must release only that caller, without
+	// canceling the owning PATCH or the live caller's shared wait.
+	canceledCtx, cancelWaiter := context.WithCancel(t.Context())
+	defer cancelWaiter()
+	canceled := &observedWaitContext{Context: canceledCtx, observed: make(chan struct{})}
+	canceledDone := make(chan error, 1)
+	go func() { canceledDone <- w.RequestWake(canceled) }()
+	select {
+	case <-canceled.observed:
+	case <-time.After(time.Second):
+		t.Fatal("cancelable caller did not join the shared wake")
+	}
+	cancelWaiter()
+	select {
+	case err := <-canceledDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("canceled waiter: %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("canceled waiter remained blocked")
+	}
+	if patches.Load() != 1 {
+		t.Fatal("canceling a waiter started another PATCH")
+	}
+	cancelOwner()
+	select {
+	case err := <-ownerDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("owning caller: %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("owning caller remained blocked after cancellation")
+	}
+	select {
+	case err := <-waiterDone:
+		if err != nil {
+			t.Fatalf("live waiter did not complete its own wake: %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("live waiter did not retry the canceled shared wake")
+	}
+	if err := w.RequestWake(t.Context()); err != nil {
+		t.Fatalf("coalesced successful wake: %v", err)
+	}
+	if patches.Load() != 2 {
+		t.Fatalf("got %d PATCHes, want canceled owner and one successful retry", patches.Load())
+	}
+}
+
 // Done is evaluated when RequestWake waits on the shared result. This handshake
 // avoids relying on the scheduler running the second goroutine within a sleep.
 type observedWaitContext struct {

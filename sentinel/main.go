@@ -371,8 +371,9 @@ type waker struct {
 }
 
 type wakeAttempt struct {
-	done chan struct{}
-	err  error
+	done           chan struct{}
+	err            error
+	callerCanceled bool
 }
 
 func newWaker(res dynamic.ResourceInterface, name string, minInterval time.Duration) *waker {
@@ -383,31 +384,42 @@ func newWaker(res dynamic.ResourceInterface, name string, minInterval time.Durat
 // idle-wake-requested annotation via a JSON merge patch (rather than a full
 // object update), so any other annotations already on the object survive.
 func (w *waker) RequestWake(ctx context.Context) (result error) {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	w.mu.Lock()
-	now := time.Now()
-	if attempt := w.inFlight; attempt != nil {
-		w.mu.Unlock()
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-attempt.done:
-			return attempt.err
+	var attempt *wakeAttempt
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
 		}
-	}
-	if !w.lastPatch.IsZero() && now.Sub(w.lastPatch) < w.minInterval {
+		w.mu.Lock()
+		now := time.Now()
+		if shared := w.inFlight; shared != nil {
+			w.mu.Unlock()
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-shared.done:
+				// A live caller still owes a wake when the first caller's
+				// context canceled the shared PATCH. Compete for a new shared
+				// attempt within this caller's own remaining budget.
+				if shared.callerCanceled {
+					continue
+				}
+				return shared.err
+			}
+		}
+		if !w.lastPatch.IsZero() && now.Sub(w.lastPatch) < w.minInterval {
+			w.mu.Unlock()
+			return nil
+		}
+		attempt = &wakeAttempt{done: make(chan struct{})}
+		w.inFlight = attempt
 		w.mu.Unlock()
-		return nil
+		break
 	}
-	attempt := &wakeAttempt{done: make(chan struct{})}
-	w.inFlight = attempt
-	w.mu.Unlock()
 
 	defer func() {
 		w.mu.Lock()
 		attempt.err = result
+		attempt.callerCanceled = result != nil && ctx.Err() != nil
 		w.inFlight = nil
 		if result == nil {
 			w.lastPatch = time.Now()

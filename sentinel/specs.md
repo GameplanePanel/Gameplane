@@ -64,7 +64,7 @@ Single executable module; no subdirectories or packages.
 - **`UDP_PACKET_WINDOW`** (optional, default `10s`): Time window for counting UDP packets.
 - **`UDP_MAX_SOURCES`** (optional, default `4096`): Maximum number of distinct UDP sources (keyed by `ip:port`, not just IP) to track. Older sources are evicted when this limit is reached.
 - **`MAX_CONNECTIONS`** (optional, default `256`): Maximum concurrent TCP connection handlers. Excess connections queue in the OS accept backlog.
-- **`WAKE_PATCH_INTERVAL`** (optional, default `2s`): Minimum time between GameServer annotation patches. Bursts of joining clients within this window are coalesced into one apiserver call.
+- **`WAKE_PATCH_INTERVAL`** (optional, default `2s`): Minimum time between successful GameServer annotation patches. Concurrent callers share an in-flight PATCH and can cancel their own waits. If the first caller's context cancels that PATCH, live waiters retry through one new shared attempt within their own remaining budgets. API failures and the independent five-second PATCH timeout are returned to all waiters without an automatic retry.
 - **`SHUTDOWN_DRAIN_TIMEOUT`** (optional, default `4h`, must be `>= 0`): How long in-flight sessions are kept alive after SIGTERM before they are force-closed. `0s` closes them immediately. The operator always sets it: `4h0m0s` in the ClusterIP/NodePort/LoadBalancer expose modes (with `terminationGracePeriodSeconds` = drain + 30s, so the kubelet does not SIGKILL the pod mid-drain), and `0s` in Hostport mode (grace 30s), where the terminating sentinel would otherwise keep holding the host port the game pod needs.
 
 ### Kubernetes RBAC
