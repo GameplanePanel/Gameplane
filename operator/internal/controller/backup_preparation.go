@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -23,6 +24,21 @@ const (
 )
 
 var errBackupSourceChanged = errors.New("backup source changed after preparation")
+
+var errBackupSourceStartupTimeout = errors.New("backup source startup grace period expired")
+
+// Allow ordinary startup/restart races without holding the workload fence
+// indefinitely when an initial live source never becomes Running.
+const backupSourceStartupGracePeriod = 2 * time.Minute
+
+// waitForBackupSource bounds initial Pod admission using durable API creation
+// time, so operator restarts and reconcile retries cannot restart the grace.
+func waitForBackupSource(b *gameplanev1alpha1.Backup, reason string) (bool, error) {
+	if time.Since(b.CreationTimestamp.Time) < backupSourceStartupGracePeriod {
+		return false, nil
+	}
+	return false, fmt.Errorf("%w after %s: %s", errBackupSourceStartupTimeout, backupSourceStartupGracePeriod, reason)
+}
 
 type podAgentQuiescer interface {
 	CheckPod(context.Context, string, string, string) error
@@ -146,7 +162,7 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 			if p != nil {
 				return false, fmt.Errorf("%w: original pod absent", errBackupSourceChanged)
 			}
-			return false, nil
+			return waitForBackupSource(b, "source pod absent")
 		}
 		if err != nil {
 			return false, err
@@ -158,7 +174,7 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 			return false, fmt.Errorf("backup source pod is not owned by the bound workload")
 		}
 		if !pod.DeletionTimestamp.IsZero() || pod.Status.Phase != corev1.PodRunning {
-			return false, nil
+			return waitForBackupSource(b, "source pod is not Running or is terminating")
 		}
 		candidate.Outcome, candidate.PodUID = "live", pod.UID
 	}
