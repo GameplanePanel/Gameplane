@@ -142,7 +142,7 @@ description: "Task list for spec 026 modular dev containers"
 - [X] T030 [P] [US4] Add a "Dev container profiles" section to `docs/contributing.md`: a table (name, size, scope, what it installs, typical setup time from the PR-B job summary, when to use it), how to pick one in VS Code, Codespaces and the CLI, how to add a component or change a version (edit inputs, then `make devcontainers`), and what a `need:` message means.
 - [X] T031 [P] [US4] Update `docs/dependencies.md` so the devcontainer pin lines point to `.devcontainer/versions.toml`, and drop the stale "built from source" note if T001 shows it is out of date. Done with T012 in PR #809: every pin line names `versions.toml`; the "built from source" note is still true (`setup.sh` runs `go install` for golangci-lint).
 - [X] T032 [P] [US4] Update `CLAUDE.md` "Repository map" (`.devcontainer/` line, `system-deps.toml` mention) and "Commands" (`make devcontainers`, `make check-devcontainers`).
-- [ ] T033 [US4] In `GameplanePanel/website`, edit `src/content/docs/local-development-setup.mdx`: replace the `.devcontainer/post-create.sh` reference with the profile list and a link to the `docs/contributing.md` table. Text only, no new visual component (Principle II exempt, plan). Open a website PR, then bump the pointer after it merges.
+- [X] T033 [US4] In `GameplanePanel/website`, edit `src/content/docs/local-development-setup.mdx`: replace the `.devcontainer/post-create.sh` reference with the profile list and a link to the `docs/contributing.md` table. Text only, no new visual component (Principle II exempt, plan). Open a website PR, then bump the pointer after it merges.
 
 ---
 
