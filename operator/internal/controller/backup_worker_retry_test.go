@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -29,24 +30,32 @@ func TestBackupWorkerSourceReadFailureRetriesWithoutAuthorizing(t *testing.T) {
 			}
 			before := guardGetBackup(t, r, b.Name)
 			readFailure := apierrors.NewServiceUnavailable("temporary source read failure")
-			reads, failAt := 0, 1
-			if phase == "postcheck" {
-				// Raw copies read the source once before preparing the gate,
-				// then again immediately before worker authorization.
-				failAt = 2
-			}
+			failedRead := false
 			r.APIReader = interceptor.NewClient(r.Client.(client.WithWatch), interceptor.Funcs{Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 				if _, pod := obj.(*corev1.Pod); pod && key.Name == "server-0" {
-					reads++
-					if reads == failAt {
-						return readFailure
+					if phase == "postcheck" {
+						// Capturing the manifest also reads this Pod. Wait for
+						// that capture to persist before failing the source
+						// postcheck immediately before worker authorization.
+						var current gameplanev1alpha1.Backup
+						if err := c.Get(ctx, client.ObjectKeyFromObject(b), &current); err != nil {
+							return err
+						}
+						if current.Status.CaptureManifest == nil {
+							return c.Get(ctx, key, obj, opts...)
+						}
 					}
+					failedRead = true
+					return readFailure
 				}
 				return c.Get(ctx, key, obj, opts...)
 			}})
 			request := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(b)}
 			if _, err := r.Reconcile(t.Context(), request); !errors.Is(err, readFailure) {
 				t.Fatalf("source read failure was not retried: %v", err)
+			}
+			if !failedRead {
+				t.Fatal("reconcile never reached the intended source read")
 			}
 			after := guardGetBackup(t, r, b.Name)
 			if after.Status.Phase == gameplanev1alpha1.BackupPhaseFailed || after.Annotations[backupCopyAbortAnnotation] != "" {
@@ -120,6 +129,11 @@ func TestBackupWorkerInvalidSourceRemainsTerminal(t *testing.T) {
 				patchBackupAnnotations(b, map[string]string{backupWorkerSourceAnnotation: "{"})
 				if err := r.Update(t.Context(), b); err != nil {
 					t.Fatal(err)
+				}
+				_, err := r.prepareBackupWorkerSource(t.Context(), b)
+				var syntaxError *json.SyntaxError
+				if !errors.Is(err, errBackupSourceChanged) || !errors.As(err, &syntaxError) {
+					t.Fatalf("malformed source lost its terminal classification or decode cause: %v", err)
 				}
 			} else {
 				r.APIReader = interceptor.NewClient(r.Client.(client.WithWatch), interceptor.Funcs{Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {

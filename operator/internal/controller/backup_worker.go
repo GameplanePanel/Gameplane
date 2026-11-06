@@ -104,7 +104,7 @@ func (r *BackupReconciler) prepareBackupWorkerSource(ctx context.Context, b *gam
 	if stored := b.Annotations[backupWorkerSourceAnnotation]; stored != "" {
 		var previous backupWorkerSource
 		if err := json.Unmarshal([]byte(stored), &previous); err != nil {
-			return nil, fmt.Errorf("%w: decode worker source: %v", errBackupSourceChanged, err)
+			return nil, fmt.Errorf("%w: decode worker source: %w", errBackupSourceChanged, err)
 		}
 		if previous.PodUID != source.PodUID || previous.NodeName != source.NodeName {
 			return nil, fmt.Errorf("%w: worker source relocated or replaced", errBackupSourceChanged)
