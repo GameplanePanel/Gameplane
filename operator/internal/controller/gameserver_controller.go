@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/netip"
 	"path"
@@ -275,8 +276,10 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
-		return ctrl.Result{}, r.setPhase(ctx, &gs,
+		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
+		phaseErr := r.setPhase(ctx, &gs,
 			"sentinelIsolation requires at least one advertised port; advertise a game port or disable sentinelIsolation in the GameTemplate")
+		return ctrl.Result{}, errors.Join(cleanupErr, phaseErr)
 	}
 
 	// Resolve spec.config against the template's configSchema before
