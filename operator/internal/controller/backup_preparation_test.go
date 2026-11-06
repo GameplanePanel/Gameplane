@@ -45,7 +45,7 @@ func TestBackupInitialSourceStartupGrace(t *testing.T) {
 					}
 				case "pending":
 					pod.Status.Phase = corev1.PodPending
-					if err := r.Update(ctx, &pod); err != nil {
+					if err := r.Status().Update(ctx, &pod); err != nil {
 						t.Fatal(err)
 					}
 				case "terminating":
@@ -102,7 +102,7 @@ func TestBackupInitialSourceStartupGrace(t *testing.T) {
 					}
 				case "pending":
 					pod.Status.Phase = corev1.PodRunning
-					if err := r.Update(ctx, &pod); err != nil {
+					if err := r.Status().Update(ctx, &pod); err != nil {
 						t.Fatal(err)
 					}
 				case "terminating":
