@@ -271,7 +271,7 @@ func (r *BackupReconciler) prepareBackupQuiesce(ctx context.Context, b *gameplan
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 	}
 	ready, err := r.prepareBackupSource(ctx, b, gs)
-	if errors.Is(err, errBackupSourceChanged) {
+	if errors.Is(err, errBackupSourceChanged) || errors.Is(err, errBackupSourceStartupTimeout) {
 		_, err = r.fail(ctx, b, err.Error())
 		return ctrl.Result{RequeueAfter: time.Nanosecond}, err
 	}
