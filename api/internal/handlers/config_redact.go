@@ -150,21 +150,14 @@ func (c *configRuleCache) redactList(ctx context.Context, list *unstructured.Uns
 
 // protectUnpinnedConfig retains password classification until the operator can
 // safely pin a template. PUT passes the exact rules already used by
-// restoreRedactedConfig, including a failed lookup. Failed schema reads protect every value, matching
-// redaction's fail-closed behavior without changing write errors.
+// restoreRedactedConfig, including a failed lookup. Failed schema reads protect
+// every value, matching redaction's fail-closed behavior without changing write errors.
 func (c *configRuleCache) protectUnpinnedConfig(ctx context.Context, gs *unstructured.Unstructured, writeRules *configRules) error {
 	if gs.GetAnnotations()[kube.EffectiveTemplateRevisionAnnotation] != "" {
 		return nil
 	}
-	cfg, _, err := unstructured.NestedMap(gs.Object, "spec", "config")
-	if err != nil || len(cfg) == 0 {
-		// Leave malformed config to the Kubernetes API's existing validation.
-		return nil
-	}
-	protected, err := kube.ProtectedConfigKeys(gs.GetAnnotations())
-	if err != nil {
-		// Keep malformed metadata fail-closed; a PUT must not repair it by
-		// silently losing its protection for future config edits.
+	cfg, protected, eligible := unpinnedConfigProtectionInput(gs)
+	if !eligible {
 		return nil
 	}
 	var rules configRules
@@ -182,6 +175,21 @@ func (c *configRuleCache) protectUnpinnedConfig(ctx context.Context, gs *unstruc
 		}
 	}
 	return setProtectedConfigKeys(gs, protected)
+}
+
+// unpinnedConfigProtectionInput separates write eligibility from write errors.
+// Malformed config remains subject to Kubernetes validation; malformed protected
+// metadata must remain unchanged so response redaction and admission fail closed.
+func unpinnedConfigProtectionInput(gs *unstructured.Unstructured) (map[string]any, []string, bool) {
+	cfg, _, err := unstructured.NestedMap(gs.Object, "spec", "config")
+	if err != nil || len(cfg) == 0 {
+		return nil, nil, false
+	}
+	protected, err := kube.ProtectedConfigKeys(gs.GetAnnotations())
+	if err != nil {
+		return nil, nil, false
+	}
+	return cfg, protected, true
 }
 
 // validateCloneConfig persists source password classification with the clone.

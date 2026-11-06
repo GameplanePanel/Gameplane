@@ -154,6 +154,11 @@ func TestClearedClonePasswordProtectionRetiresWithInitialPin(t *testing.T) {
 			if gs.Annotations[effectiveTemplateAnnotation] == "" || gs.Annotations[protectedConfigKeysAnnotation] != "" {
 				t.Fatalf("cleared protection retained after pin: %v", gs.Annotations)
 			}
+			// The API round-trip omits an empty config map. Recreate it before
+			// simulating a later write to the newly public field.
+			if gs.Spec.Config == nil {
+				gs.Spec.Config = map[string]string{}
+			}
 			gs.Spec.Config["PASSWORD"] = "new-public-value"
 			if err := validateTemplatePasswordTransition(gs, installed, installed); err != nil {
 				t.Fatalf("retired protection blocks a later public value: %v", err)
