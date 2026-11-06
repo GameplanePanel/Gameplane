@@ -248,7 +248,7 @@ func (r *GameServerReconciler) reconcileSentinel(
 			if live.Spec.Networking.Expose != "Hostport" ||
 				live.Annotations[hostportNodeAnnotation] != gs.Annotations[hostportNodeAnnotation] ||
 				live.Annotations[hostportNodeUIDAnnotation] != gs.Annotations[hostportNodeUIDAnnotation] {
-				return fmt.Errorf("Hostport endpoint changed before sentinel mutation")
+				return fmt.Errorf("hostport endpoint changed before sentinel mutation")
 			}
 			if dep.ResourceVersion != "" && !metav1.IsControlledBy(dep, &live) {
 				return fmt.Errorf("sentinel Deployment is not owned by this GameServer")
