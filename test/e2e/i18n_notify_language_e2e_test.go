@@ -57,7 +57,7 @@ func i18nNotifyTestSend(ctx context.Context, admin *APIClient, sink string) (*ht
 	}
 }
 
-func TestI18nNotifyTestSendRateLimit(t *testing.T) {
+func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 	t.Parallel()
 	t.Run("honors retry after", func(t *testing.T) {
 		var calls atomic.Int32
