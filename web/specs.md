@@ -10,6 +10,10 @@ The Gameplane dashboard is a React SPA providing a UI layer over the Gameplane A
 
 ## Responsibilities
 
+GameServer domain types include optional `spec.templateRollout` policy/exact
+revision request and `status.templateRevision` desired/effective/running digests.
+These are CRD/API contracts; no new rollout controls or visual flow are defined.
+
 - Render all authenticated Gameplane CRDs and operations as React pages and interactive forms
 - Handle user authentication (local + OIDC) and session management (cookies + CSRF tokens)
 - Fetch and cache data via TanStack Query; invalidate caches on Kubernetes watch events (SSE)

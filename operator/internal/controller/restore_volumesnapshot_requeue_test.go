@@ -111,6 +111,14 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 						restoredCreated = true
 					}
 				case *corev1.Secret:
+					var durable gameplanev1alpha1.Restore
+					if err := c.Get(ctx, client.ObjectKeyFromObject(restore), &durable); err != nil {
+						t.Fatalf("read durable Restore before copy: %v", err)
+					}
+					target, err := parseRestoreIdentity(durable.Annotations[restoreTargetAnnotation])
+					if err != nil || target.Name != restoredName || target.UID != "uid-restored" || !controllerutil.ContainsFinalizer(&durable, restoreCleanupFinalizer) {
+						t.Fatal("copy write started before durable target identity and cleanup finalizer")
+					}
 					if failSecretCreates > 0 {
 						failSecretCreates--
 						return apierrors.NewServerTimeout(schema.GroupResource{Resource: "secrets"}, "create", 1)
@@ -143,20 +151,9 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 		return err
 	}
 
-	// Pass 1: the server is created, the copy write fails transiently.
+	// Pass 1: creation durably binds the target before the copy write fails.
 	if err := pass("create pass"); err == nil {
 		t.Fatal("create pass: want the transient copy error returned for requeue, got nil")
-	}
-	// Pass 2: the cache still misses the new server; the create path must
-	// see AlreadyExists and requeue.
-	if err := pass("stale-cache pass"); err != nil {
-		t.Fatalf("stale-cache pass: want requeue without error, got %v", err)
-	}
-	// Pass 3: cache caught up; persist the new target's UID and cleanup
-	// finalizer before claiming its durable lifecycle owner on the next pass.
-	staleRestored = false
-	if err := pass("bind target pass"); err != nil {
-		t.Fatalf("bind target pass: unexpected error: %v", err)
 	}
 	var bound gameplanev1alpha1.Restore
 	if err := cl.Get(ctx, client.ObjectKeyFromObject(restore), &bound); err != nil {
@@ -170,14 +167,26 @@ func TestVolumeSnapshotRestore_TransientErrorsRequeueNotFail(t *testing.T) {
 		t.Fatal("bound restore is missing its cleanup finalizer")
 	}
 	if failSecretCreates != 1 {
-		t.Fatalf("binding attempted a copy before admission: remaining failures = %d, want 1", failSecretCreates)
+		t.Fatalf("creation copy failure count = %d, want 1 remaining", failSecretCreates)
 	}
-	// Pass 4: the shared owner is acquired; the await path re-ensures the
-	// copy but the write still fails transiently.
+	// Pass 2: the cache still misses the new server; the create path must
+	// see AlreadyExists and requeue without attempting another copy.
+	if err := pass("stale-cache pass"); err != nil {
+		t.Fatalf("stale-cache pass: want requeue without error, got %v", err)
+	}
+	if failSecretCreates != 1 {
+		t.Fatalf("stale-cache pass attempted a copy: remaining failures = %d, want 1", failSecretCreates)
+	}
+	// Pass 3: cache caught up; the already-bound target can acquire its
+	// shared owner and retry the copy, which still fails transiently.
+	staleRestored = false
 	if err := pass("await pass with write error"); err == nil {
 		t.Fatal("await pass: want the transient copy error returned for requeue, got nil")
 	}
-	// Pass 5: errors cleared; the copy is made.
+	if failSecretCreates != 0 {
+		t.Fatalf("await pass did not exercise second transient failure: remaining = %d", failSecretCreates)
+	}
+	// Pass 4: errors cleared; the copy is made.
 	if err := pass("await pass"); err != nil {
 		t.Fatalf("await pass: unexpected error: %v", err)
 	}

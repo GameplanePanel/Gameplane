@@ -30,6 +30,7 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	gs := wipeGameServer(false, "")
+	gs.Spec.TemplateRollout = &gameplanev1alpha1.TemplateRolloutSpec{Policy: "OnRequest"}
 	tmpl := &gameplanev1alpha1.GameTemplate{ObjectMeta: metav1.ObjectMeta{Name: gs.Spec.TemplateRef.Name}, Spec: gameplanev1alpha1.GameTemplateSpec{Image: "example.invalid/game:unit"}}
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -46,10 +47,32 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 	c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, tmpl, caSecret).WithStatusSubresource(gs).Build()
 	reader := &wipeInventoryReader{Reader: c, sentinelNamespace: gs.Namespace, sentinelServer: gs.Name}
 	r := &GameServerReconciler{Client: c, APIReader: reader, Scheme: s, AgentCASecretName: caSecret.Name, AgentCASecretNamespace: caSecret.Namespace}
+	// This test measures an ordinary already-admitted reconcile. Template
+	// admission has its own live worker checks and transition tests.
+	revision, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations == nil {
+		gs.Annotations = map[string]string{}
+	}
+	gs.Annotations[effectiveTemplateAnnotation] = revision
+	if err := c.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.reportTemplateRevision(t.Context(), gs, revision, lifecycleOperation{}, false); err != nil {
+		t.Fatal(err)
+	}
 	// Exercise both initial child/status creation and the next full pass. Idle
 	// and capture reconciliation participate, rather than just lifecycle helpers.
 	for pass := range 2 {
 		if pass == 1 {
+			// An invalid unadmitted catalog revision must not revoke exposure
+			// or block rendering from the existing valid effective snapshot.
+			tmpl.Spec.SentinelIsolation = true
+			if err := c.Update(t.Context(), tmpl); err != nil {
+				t.Fatal(err)
+			}
 			isolated := tmpl.DeepCopy()
 			isolated.Spec.SentinelIsolation = true
 			isolated.Spec.Ports = []gameplanev1alpha1.GamePort{{Name: "game", ContainerPort: 25565, Advertise: true}}

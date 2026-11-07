@@ -96,6 +96,11 @@ rules:
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: [volumesnapshots]
     verbs: [get]
+  # Read owned, immutable template snapshots for pinned-server password
+  # redaction. These lookups never list or modify game namespace ConfigMaps.
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get]
   # Verify GameServer -> StatefulSet -> Pod controller ownership before
   # serving pod logs or accepting terminal input.
   - apiGroups: ["apps"]
