@@ -1892,7 +1892,7 @@ jobs:
           - bucket: recovery
             parallel: 1
             test_timeout: 20m # isolated panel backup/loss/restore; game workload stays running
-            job_timeout: 60
+            job_timeout: 60 # Boots kind, loads images and installs the chart before the bounded recovery drill.
           - bucket: restricted-workloads
             parallel: 1
             test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
