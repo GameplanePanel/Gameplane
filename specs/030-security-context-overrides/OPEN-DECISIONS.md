@@ -13,7 +13,11 @@ admin by default and to no other built-in role.
   risk, and a separate key lets an admin hand it out deliberately.)
 - C. Admins only, no new permission.
 
-## OD-2: Is run-as user or group 0 (root) allowed as an override? (OPEN)
+## OD-2: Is run-as user or group 0 (root) allowed as an override? (SETTLED: C)
+
+**Ruling (valgul, 2026-11-07):** C, root overrides are refused until an admin turns on
+a cluster-wide setting, which is off by default. Like every override, setting 0 also
+needs `servers:security` (OD-1).
 
 - A. Never: overrides must be 1 or more; a module that needs root simply sets no
   run-as user.

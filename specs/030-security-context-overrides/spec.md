@@ -167,7 +167,11 @@ carrying overrides is refused; as a user with it, confirm both work.
 - **FR-004**: The reconciler MUST be the only place that computes and applies the
   effective settings; the API only stores and validates the override.
 - **FR-005**: Override values MUST be validated as whole numbers from 0 to
-  4294967295, matching the module's own limits, with the root rule from OD-2.
+  4294967295, matching the module's own limits, with the root rule from OD-2: an
+  override of 0 for run-as user or run-as group MUST be refused unless an admin has
+  turned on a cluster-wide "allow root overrides" setting, which is off by default.
+  The setting lives in global settings (`config:manage`) and turning it on or off is
+  audited.
 - **FR-006**: The create-server wizard MUST offer a collapsed "Advanced" section that
   shows, per setting, the module default and an optional override.
 - **FR-007**: The server settings page MUST offer the same Advanced section for an
