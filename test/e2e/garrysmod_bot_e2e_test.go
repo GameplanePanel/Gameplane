@@ -15,7 +15,7 @@ import (
 //
 // Garry's Mod is part of the fast set because it uses the Source engine (A2S queries),
 // which is shared with CS2. The server boots from a pre-baked image (no steamcmd download)
-// and is lightweight.
+// so the CI job reserves disk space for both downloaded and extracted layers.
 //
 // The test is deliberately NOT t.Parallel(): concurrent real-game boots OOM-starve a
 // single kind node.

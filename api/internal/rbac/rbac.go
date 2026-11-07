@@ -246,6 +246,8 @@ var rules = []rule{
 	// that moves these rules after the servers catch-all silently grants
 	// capture access to the operator role, defeating FR-005/SC-005.
 	{method: "POST", segment: "servers", suffix: ":capture-enable", perm: "captures:manage"},
+	{method: "POST", segment: "servers", suffix: ":capture-node-enable", perm: "captures:manage"},
+	{method: "POST", segment: "servers", suffix: ":capture-node-disable", perm: "captures:manage"},
 	{method: "POST", segment: "servers", suffix: ":capture-disable", perm: "captures:manage"},
 	{method: "POST", segment: "servers", suffix: ":capture-start", perm: "captures:manage"},
 	{method: "POST", segment: "servers", suffix: ":capture-stop", perm: "captures:manage"},

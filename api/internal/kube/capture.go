@@ -100,7 +100,8 @@ type NetworkCapture struct {
 // CaptureConfiguration mirrors operator/api/v1alpha1.CaptureConfiguration
 // (only the fields the API needs to read).
 type CaptureConfiguration struct {
-	Enabled bool `json:"enabled,omitempty"`
+	Enabled        bool `json:"enabled,omitempty"`
+	NodeDiagnostic bool `json:"nodeDiagnostic,omitempty"`
 	// RetentionSeconds is the per-GameServer override of the cluster-default
 	// retention window applied when a capture-start request omits its own
 	// ttlSecondsAfterFinished. Still bounded by the cluster maximum, the same

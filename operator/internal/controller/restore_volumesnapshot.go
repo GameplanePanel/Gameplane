@@ -141,6 +141,12 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 		return r.failOrRequeue(ctx, rs, err)
 	}
 	rewriteRefs(&created.Spec, copies)
+	// Preserve the source's effective template before creating a target. A
+	// durable Restore-owned copy survives source adoption/deletion and retries;
+	// the target receives its own immutable copy before InitialStartup.
+	if err := r.planRestoredTemplate(ctx, rs, &orig, created); err != nil {
+		return r.failOrRequeue(ctx, rs, err)
+	}
 
 	// Persist the copy plan on the Restore now, before creating anything.
 	// ensureOwnedRefCopies below can fail transiently (e.g. a write
@@ -165,6 +171,14 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 	if err := r.Patch(ctx, rs, client.MergeFrom(rsBeforePatch)); err != nil {
 		return r.failOrRequeue(ctx, rs, fmt.Errorf("update restore copy plan: %w", err))
 	}
+	// Deletion immediately after Create must still discover and clean the
+	// atomically guarded target, even before its UID can be recorded.
+	if !controllerutil.ContainsFinalizer(rs, restoreCleanupFinalizer) {
+		controllerutil.AddFinalizer(rs, restoreCleanupFinalizer)
+		if err := r.Update(ctx, rs); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	if err := r.Create(ctx, created); err != nil {
 		if apierrors.IsAlreadyExists(err) {
@@ -175,6 +189,9 @@ func (r *RestoreReconciler) reconcileVolumeSnapshotRestore(
 		// used for reference-copy failures. This ensures transient errors do not
 		// cause indefinite requeuing past the deadline.
 		return r.failOrRequeue(ctx, rs, err)
+	}
+	if _, err := r.bindRestoreTarget(ctx, rs, created); err != nil {
+		return ctrl.Result{}, err
 	}
 
 	// Make the copies now that the restored server has a UID. A transient
@@ -237,6 +254,15 @@ func (r *RestoreReconciler) prepareSnapshotRestoreTarget(ctx context.Context, rs
 	}
 	if target.UID != gs.UID || target.Name != gs.Name {
 		return false, fmt.Errorf("CSI restore target changed identity")
+	}
+	if gs.Annotations[restoreGuardAnnotation] != restoreIdentityJSON(rs.Name, rs.UID) {
+		return false, fmt.Errorf("CSI restore target belongs to another Restore")
+	}
+	if gs.Annotations[effectiveTemplateAnnotation] == "" && gs.Annotations[restoreTemplateAnnotation] != "" {
+		if err := r.copyRestoredTemplate(ctx, rs, gs); err != nil {
+			return false, err
+		}
+		return false, nil
 	}
 	want := restoreLifecycleIdentity(gs, rs)
 	want.InitialStartup = true

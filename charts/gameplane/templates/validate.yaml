@@ -1,3 +1,19 @@
+{{- $diagnostics := include "gameplane.nodeDiagnostics" . | fromJson }}
+{{- if $diagnostics.enabled }}
+{{- if or (not .Values.capture.enabled) (ne (include "gameplane.operatorEnabled" .) "true") }}
+{{- fail "capture.nodeDiagnostics requires capture.enabled and the operator" }}
+{{- end }}
+{{- $protectedNamespaces := append (include "gameplane.operatorSecretNamespaces" . | fromJsonArray) .Release.Namespace }}
+{{- if or (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $diagnostics.namespace)) (gt (len $diagnostics.namespace) 63) (has $diagnostics.namespace $protectedNamespaces) }}
+{{- fail "capture.nodeDiagnostics.namespace must be a separate explicit DNS-label namespace" }}
+{{- end }}
+{{- if lt (int $diagnostics.maxCaptures) 1 }}
+{{- fail "capture.nodeDiagnostics.maxCaptures must be positive" }}
+{{- end }}
+{{- end }}
+{{- if not (regexMatch "^v1\\.[0-9]+$" (.Values.podSecurity.version | default "v1.34")) }}
+{{- fail "podSecurity.version must pin a Kubernetes minor such as v1.34" }}
+{{- end }}
 {{- if and (eq (include "gameplane.apiEnabled" .) "true") (ne (toString .Values.api.replicas) "1") }}
 {{- fail "api requires api.replicas=1; multiple API processes are not supported" }}
 {{- end }}

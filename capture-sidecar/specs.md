@@ -6,6 +6,27 @@
 
 ## Purpose
 
+### Separate node diagnostic worker (#714)
+
+The image also contains `/capture-tool` without file capabilities. Its
+`--node-worker` mode accepts only an operator-generated JSON identity tuple
+(GameServer/NetworkCapture/Pod UIDs, node, exact containerd ID), filter and
+bounded limits. It discovers a process through exact Pod/container cgroup
+matching, pins proc/network namespace descriptors, verifies cgroups immediately
+before/after setns on a dedicated locked OS thread, then opens an eth0 AF_PACKET
+socket. The locked thread exits; it is never returned to the thread pool.
+Ongoing identity checks cancel capture, including idle packet streams. No host
+PID/path, socket, mount or Kubernetes token is supplied. Linux/containerd,
+systemd/cgroupfs paths are supported; other runtimes and host networking fail.
+
+PCAP, identity and atomically published result files are group-readable only
+after finalization. A separate nonroot `--artifacts-only` process exposes
+UID-bound download/delete and header-bound status, never start/stop/raw socket
+operations. The controller removes the privileged Job/Pods before publishing
+completion. SIGTERM finalizes a partial capture; changed identity publishes a
+failed result. Host capability blast radius remains node-wide despite the
+per-server authorization and exact target selection.
+
 Optional packet capture sidecar injected into game pods to record network traffic for protocol reverse-engineering. The sidecar will use AF_PACKET live capture to collect packets matching a BPF filter expression, write them to a PCAPNG file on a pre-provisioned emptyDir volume, and expose a mTLS-authenticated HTTP control endpoint (`:9091`) for the operator and API to start/stop/monitor captures and download the resulting files.
 
 > **Current state:** Full implementation with AF_PACKET socket handling, PCAPNG writing, BPF filter compilation, mTLS authentication, and HTTP control endpoint. Real dependencies (gopacket, go-pcap) are pinned in go.mod. Unit tests for capture, filter, writer, and handlers are co-located with their implementations. TTL-based expiry reconciliation (`NetworkCaptureReconciler.expireCapture`, `operator/internal/controller/networkcapture_controller.go`) and the dashboard UI (`web/src/components/CaptureWidget.tsx`, `web/src/routes/tabs/settings/NetworkCapture.tsx`) are both implemented — see "Planned" below for the one remaining gap (F-190).

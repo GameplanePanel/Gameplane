@@ -28,11 +28,14 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
 # only mechanism that survives a non-root execve. The final stage relies on this
 # grant and runs as nonroot, accepting allowPrivilegeEscalation: true to permit
 # file capabilities to take effect (they are ignored under no_new_privs).
-RUN setcap cap_net_raw+ep /out/capture-sidecar
+RUN cp /out/capture-sidecar /out/capture-tool && setcap cap_net_raw+ep /out/capture-sidecar
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=build /out/capture-sidecar /capture-sidecar
+# No file capabilities: the artifact server is Restricted; the node worker
+# receives its explicit root capability set from its dedicated Job spec.
+COPY --from=build /out/capture-tool /capture-tool
 USER 65532:65532
 EXPOSE 9091
 ENTRYPOINT ["/capture-sidecar"]

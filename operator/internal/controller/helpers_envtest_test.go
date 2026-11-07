@@ -165,11 +165,10 @@ func startMgr(t *testing.T, ns string, setups ...setupReconciler) client.Client 
 		Scheme: scheme,
 		Logger: logr.Discard(),
 		Cache: cache.Options{
-			// Include the test namespace AND cluster scope (""). Without
-			// the "" entry, controller-runtime's namespace-restricted
-			// cache will refuse to serve reads of cluster-scoped CRDs
-			// like GameTemplate.
-			DefaultNamespaces: map[string]cache.Config{ns: {}, "": {}},
+			// Cluster-scoped kinds use the independent cluster cache. An
+			// empty namespace key means AllNamespaces and would make this
+			// manager reconcile fixtures left by every earlier test.
+			DefaultNamespaces: map[string]cache.Config{ns: {}},
 		},
 		Metrics:                metricsserver.Options{BindAddress: "0"},
 		HealthProbeBindAddress: "0",
@@ -469,6 +468,25 @@ func patchJobStatus(t *testing.T, ns, name string, mut func(s *batchv1.JobStatus
 		t.Fatalf("get job %s/%s: %v", ns, name, err)
 	}
 	mut(&job.Status)
+	if job.Annotations[backupWorkerProtocolAnnotation] == "v1" {
+		if job.Status.Succeeded > 0 || job.Status.Active > 0 {
+			prepareEnvtestBackupWorker(t, &job)
+		}
+		if job.Status.Succeeded > 0 || job.Status.Failed > 0 {
+			var worker corev1.Pod
+			if err := k8sClient.Get(context.Background(), client.ObjectKey{Namespace: ns, Name: name + "-test-worker"}, &worker); err == nil {
+				worker.Status.Phase = corev1.PodSucceeded
+				if job.Status.Failed > 0 {
+					worker.Status.Phase = corev1.PodFailed
+				}
+				if err := k8sClient.Status().Update(context.Background(), &worker); err != nil {
+					t.Fatal(err)
+				}
+			} else if !apierrors.IsNotFound(err) {
+				t.Fatal(err)
+			}
+		}
+	}
 
 	now := metav1.Now()
 
@@ -493,6 +511,34 @@ func patchJobStatus(t *testing.T, ns, name string, mut func(s *batchv1.JobStatus
 	if err := k8sClient.Status().Update(context.Background(), &job); err != nil {
 		t.Fatalf("status update job %s/%s: %v", ns, name, err)
 	}
+}
+
+// envtest has neither Job controller nor kubelet. This models their actual
+// readiness contract and waits for operator authorization before reporting a
+// successful copy. It never grants a token itself.
+func prepareEnvtestBackupWorker(t *testing.T, job *batchv1.Job) {
+	t.Helper()
+	ctx := context.Background()
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: job.Name + "-test-worker", Namespace: job.Namespace, Labels: job.Spec.Template.Labels,
+		OwnerReferences: []metav1.OwnerReference{{APIVersion: "batch/v1", Kind: "Job", Name: job.Name, UID: job.UID, Controller: ownerBoolPtr(true)}}}, Spec: job.Spec.Template.Spec}
+	pod.Spec.NodeName = "test-node"
+	if err := k8sClient.Create(ctx, pod); err != nil {
+		if !apierrors.IsAlreadyExists(err) {
+			t.Fatal(err)
+		}
+		if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(pod), pod); err != nil {
+			t.Fatal(err)
+		}
+	}
+	pod.Status.Phase = corev1.PodRunning
+	pod.Status.Conditions = []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue}}
+	if err := k8sClient.Status().Update(ctx, pod); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, func() (bool, string) {
+		backup := getBackup(t, job.Namespace, job.Name)
+		return backup.Annotations[backupAuthorizedWorkerAnnotation] == string(pod.UID), "prepared worker is not yet authorized: " + describeBackupStatus(backup)
+	})
 }
 
 // upsertJobCondition sets/replaces the JobCondition of type t to
@@ -780,6 +826,14 @@ func (f *fakeAgent) Unquiesce(_ context.Context, _, _ string) error {
 	return f.unquiesceErr
 }
 
+func (f *fakeAgent) CheckPod(context.Context, string, string, string) error { return nil }
+func (f *fakeAgent) QuiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Quiesce(ctx, namespace, server)
+}
+func (f *fakeAgent) UnquiescePod(ctx context.Context, namespace, server, _ string) error {
+	return f.Unquiesce(ctx, namespace, server)
+}
+
 func (f *fakeAgent) quiesceCount() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -830,5 +884,16 @@ func seedBackupWorkload(t *testing.T, gs *gameplanev1alpha1.GameServer) {
 	ss.Status.ObservedGeneration = ss.Generation
 	if err := k8sClient.Status().Update(context.Background(), ss); err != nil {
 		t.Fatalf("observe workload: %v", err)
+	}
+	// Envtest has no StatefulSet controller or scheduler. Model their initial
+	// pod placement before a worker binds its immutable source identity.
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: name + "-0", Namespace: ns, OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "StatefulSet", Name: name, UID: ss.UID, Controller: ownerBoolPtr(true)}}},
+		Spec: corev1.PodSpec{NodeName: "fixture-node", Containers: []corev1.Container{{Name: "game", Image: "test/game:fixture"}}}}
+	if err := k8sClient.Create(context.Background(), pod); err != nil {
+		t.Fatalf("seed scheduled source pod: %v", err)
+	}
+	pod.Status.Phase = corev1.PodRunning
+	if err := k8sClient.Status().Update(context.Background(), pod); err != nil {
+		t.Fatalf("observe running source pod: %v", err)
 	}
 }

@@ -52,6 +52,12 @@ func (h *handler) serveCapture(w http.ResponseWriter, req *http.Request, target 
 	}
 	defer transport.CloseIdleConnections()
 	host := target.Name + "-agent." + target.Namespace + ".svc.cluster.local:9091"
+	if name, namespace, node, err := kube.NodeCaptureService(nc); err != nil {
+		http.NotFound(w, req)
+		return
+	} else if node {
+		host = name + "-agent." + namespace + ".svc.cluster.local:9091"
+	}
 	proxy := &httputil.ReverseProxy{
 		Transport: transport,
 		Rewrite: func(pr *httputil.ProxyRequest) {

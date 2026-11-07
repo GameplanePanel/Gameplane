@@ -946,6 +946,14 @@ type GameStorageSpec struct {
 // primary Storage.MountPath, since these exist precisely for directories
 // that share no safe common parent with it.
 type ExtraVolumeSpec struct {
+	// BackupRole describes recovery requirements without adding this volume
+	// to a backup. "data" needs a separate copy; "rebuildable" may be recreated.
+	// Unset remains unclassified and not covered. Both backup strategies still
+	// capture only the primary data claim.
+	// +kubebuilder:validation:Enum=data;rebuildable
+	// +optional
+	BackupRole string `json:"backupRole,omitempty"`
+
 	// Name identifies the volume and forms part of its PVC name. Must be a
 	// DNS-1123 label.
 	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`

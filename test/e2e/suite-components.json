@@ -16,6 +16,7 @@
     "test/e2e/suite-components.json"
   ],
   "suites": [
+    { "tests": "^TestRestrictedWorkloads_", "components": ["operator", "api", "agent", "capture-sidecar"] },
     { "tests": "^TestManagementPlacementAndDisruption$", "components": ["operator", "api", "agent"] },
     { "tests": "^TestHelmInstall_", "components": ["*"] },
     { "tests": "^TestCRD_Validation_", "components": ["operator"] },
