@@ -128,8 +128,9 @@ carrying overrides is refused; as a user with it, confirm both work.
    open Advanced, **Then** they see the effective values but cannot edit them.
 2. **Given** such a user sends an override directly to the API, **When** the request
    is processed, **Then** it is refused with a permission error and nothing changes.
-3. **Given** a request that sets run-as user 0, **When** it is processed, **Then** it
-   follows the root rule decided in OD-2.
+3. **Given** a request that sets run-as user 0, **When** it is processed, **Then** it is
+   refused unless an admin has turned on the cluster-wide "allow root overrides"
+   setting (OD-2).
 
 ---
 
@@ -179,7 +180,7 @@ carrying overrides is refused; as a user with it, confirm both work.
   of a server that already has data.
 - **FR-008**: Changing an override on an existing server MUST take effect on the next
   restart and MUST say so in the dashboard; it MUST NOT restart the server by itself
-  [decided in OD-3].
+  (OD-3).
 - **FR-009**: The server's details MUST show each effective value and whether it comes
   from the module or from an override.
 - **FR-010**: Setting, changing or removing an override MUST require the permission
@@ -242,8 +243,9 @@ carrying overrides is refused; as a user with it, confirm both work.
 - The end-to-end proof is a Kind E2E test that creates a server with an override and
   checks the running uid, per the constitution's E2E principle.
 
-## Open decisions
+## Decisions
 
-Recorded in [`OPEN-DECISIONS.md`](OPEN-DECISIONS.md): OD-1 (who may override),
-OD-2 (whether run-as user/group 0 is allowed), OD-3 (whether a change restarts the
-server). The spec is not ready for `/speckit-plan` until all three are answered.
+All open decisions are settled in [`OPEN-DECISIONS.md`](OPEN-DECISIONS.md)
+(valgul, 2026-11-07): OD-1 new `servers:security` permission (admin only by
+default), OD-2 root overrides only when a cluster-wide setting allows them (off by
+default), OD-3 changes apply on the next restart.

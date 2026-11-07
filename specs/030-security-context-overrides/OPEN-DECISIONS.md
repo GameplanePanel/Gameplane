@@ -1,6 +1,6 @@
 # Open decisions: spec 030 security context overrides
 
-Each item stays OPEN until valgul answers that exact question.
+All three decisions were answered by valgul on 2026-11-07.
 
 ## OD-1: Who may set security overrides? (SETTLED: B)
 
@@ -27,7 +27,10 @@ needs `servers:security` (OD-1).
   for the rare image that needs it.)
 - C. Allowed only if a cluster-wide setting turns it on (off by default).
 
-## OD-3: Does changing an override on an existing server restart it? (OPEN)
+## OD-3: Does changing an override on an existing server restart it? (SETTLED: A)
+
+**Ruling (valgul, 2026-11-07):** A, a change is stored and applies on the next restart;
+the dashboard says so. Saving never restarts the server.
 
 - A. No: it applies on the next restart and the dashboard says so. (Recommended:
   matches how other settings that change the pod behave, and avoids kicking players

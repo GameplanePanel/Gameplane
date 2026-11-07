@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [X] No [NEEDS CLARIFICATION] markers remain
 - [X] Requirements are testable and unambiguous
 - [X] Success criteria are measurable
 - [X] Success criteria are technology-agnostic (no implementation details)
@@ -32,7 +32,7 @@
 ## Notes
 
 - Open questions are tracked as OD-1..OD-3 in `OPEN-DECISIONS.md` instead of inline
-  markers (project rule: unsettled values go in OPEN-DECISIONS.md). The first
-  Requirement Completeness item stays unchecked until all three are answered.
+  markers (project rule: unsettled values go in OPEN-DECISIONS.md). All three were
+  settled by valgul on 2026-11-07.
 - Names such as "reconciler", "API" and "audit log" refer to existing Gameplane
   components the stakeholders already know; no new technology is prescribed.
