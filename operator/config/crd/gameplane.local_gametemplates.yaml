@@ -2165,6 +2165,16 @@ spec:
                         primary Storage.MountPath, since these exist precisely for directories
                         that share no safe common parent with it.
                       properties:
+                        backupRole:
+                          description: |-
+                            BackupRole describes recovery requirements without adding this volume
+                            to a backup. "data" needs a separate copy; "rebuildable" may be recreated.
+                            Unset remains unclassified and not covered. Both backup strategies still
+                            capture only the primary data claim.
+                          enum:
+                          - data
+                          - rebuildable
+                          type: string
                         mountPath:
                           description: MountPath is the absolute in-container path
                             this volume is mounted at.

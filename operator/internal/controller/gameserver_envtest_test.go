@@ -978,8 +978,15 @@ func TestGameServer_NoExtraVolumesNoCaptureComponent(t *testing.T) {
 			types.NamespacedName{Namespace: ns, Name: "smp"}, &ss); err != nil {
 			return false, "statefulset: " + err.Error()
 		}
-		if len(ss.Spec.Template.Spec.Volumes) != 3 {
-			return false, fmt.Sprintf("pod volumes = %v, want exactly [data agent-tls captures]", sprintArgs(volumeNames(ss.Spec.Template.Spec.Volumes)))
+		if len(ss.Spec.Template.Spec.Volumes) != 4 {
+			return false, fmt.Sprintf("pod volumes = %v, want exactly [data agent-tls captures agent-api-token]", sprintArgs(volumeNames(ss.Spec.Template.Spec.Volumes)))
+		}
+		token := volumeByName(ss.Spec.Template.Spec.Volumes, agentTokenVolumeName)
+		if token == nil || token.Projected == nil || len(token.Projected.Sources) != 3 || token.Projected.Sources[0].ServiceAccountToken == nil {
+			return false, "agent credentials are not a rotating projection"
+		}
+		if ss.Spec.Template.Spec.AutomountServiceAccountToken == nil || *ss.Spec.Template.Spec.AutomountServiceAccountToken {
+			return false, "automatic ServiceAccount credentials are exposed"
 		}
 		captures := volumeByName(ss.Spec.Template.Spec.Volumes, "captures")
 		if captures == nil {
@@ -991,11 +998,18 @@ func TestGameServer_NoExtraVolumesNoCaptureComponent(t *testing.T) {
 		if captures.EmptyDir.SizeLimit == nil || captures.EmptyDir.SizeLimit.IsZero() {
 			return false, "captures emptyDir must carry a nonzero sizeLimit"
 		}
-		for _, c := range ss.Spec.Template.Spec.Containers {
+		for _, c := range append(ss.Spec.Template.Spec.Containers, ss.Spec.Template.Spec.InitContainers...) {
+			tokenMounted := false
 			for _, vm := range c.VolumeMounts {
 				if vm.Name == "captures" {
 					return false, "captures volume must not be mounted on container " + c.Name
 				}
+				if vm.Name == agentTokenVolumeName {
+					tokenMounted = true
+				}
+			}
+			if tokenMounted != (c.Name == "agent") {
+				return false, "agent token mount boundary violated by " + c.Name
 			}
 		}
 		if len(ss.Spec.Template.Spec.EphemeralContainers) != 0 {
@@ -2031,9 +2045,8 @@ func TestGameServer_ConfigFilesMaterialize(t *testing.T) {
 		return true, ""
 	})
 
-	// Dropping configFiles from the template must delete the Secret and
-	// strip the init container + volume. Template edits don't trigger a
-	// GameServer reconcile (no cross-watch), so poke the GameServer.
+	// Dropping configFiles from the template must adopt the new revision,
+	// delete the Secret, and strip the init container + volume.
 	// Retry on conflict — reconcilers patch status concurrently, racing a
 	// bare Get+Update's resourceVersion.
 	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
@@ -2056,14 +2069,19 @@ func TestGameServer_ConfigFilesMaterialize(t *testing.T) {
 		t.Fatalf("update gameserver: %v", err)
 	}
 	eventually(t, func() (bool, string) {
-		// Re-poke each poll: the reconcile racing the template cache
-		// update must not strand the test.
-		poke := getGameServer(t, ns, "smp")
-		if poke.Annotations == nil {
-			poke.Annotations = map[string]string{}
+		// Envtest has no StatefulSet controller. Acknowledge only the
+		// actual stop request before the rollout may change its template.
+		var observed appsv1.StatefulSet
+		if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: "smp"}, &observed); err != nil {
+			return false, "statefulset: " + err.Error()
 		}
-		poke.Annotations["test.gameplane.local/poke"] = time.Now().Format(time.RFC3339Nano)
-		_ = k8sClient.Update(context.Background(), poke)
+		if observed.Spec.Replicas != nil && *observed.Spec.Replicas == 0 && observed.Status.ObservedGeneration < observed.Generation {
+			observed.Status.ObservedGeneration = observed.Generation
+			observed.Status.Replicas, observed.Status.ReadyReplicas = 0, 0
+			if err := k8sClient.Status().Update(context.Background(), &observed); err != nil {
+				return false, "observe stopped workload: " + err.Error()
+			}
+		}
 
 		var sec corev1.Secret
 		err := k8sClient.Get(context.Background(),

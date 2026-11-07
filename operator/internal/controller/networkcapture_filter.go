@@ -7,7 +7,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -50,14 +49,14 @@ func (r *NetworkCaptureReconciler) captureFilter(
 		return nc.Spec.Filter, "", nil
 	}
 	name := gs.Spec.TemplateRef.Name
-	var tmpl gameplanev1alpha1.GameTemplate
-	if err := r.Get(ctx, types.NamespacedName{Name: name}, &tmpl); err != nil {
+	tmpl, err := effectiveGameTemplate(ctx, r.Client, gs)
+	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, fmt.Sprintf("gametemplate %s not found; cannot build the default capture filter", name), nil
 		}
 		return nil, "", fmt.Errorf("get gametemplate %s for the default capture filter: %w", name, err)
 	}
-	f := defaultCaptureFilter(&tmpl)
+	f := defaultCaptureFilter(tmpl)
 	if f == "" {
 		return nil, fmt.Sprintf("gametemplate %s advertises no ports; supply a capture filter", name), nil
 	}

@@ -84,6 +84,11 @@ def main():
     one(defaults, "ModuleSource", "default")
     api_rules = one(defaults, "ClusterRole", "gameplane-api-read")["rules"]
     assert any(rule.get("resources") == ["clusters"] and "update" in rule["verbs"] for rule in api_rules)
+    assert not any("configmaps" in rule.get("resources", []) for rule in api_rules)
+    games_role = one(defaults, "Role", "gameplane-api-games")
+    assert games_role["metadata"]["namespace"] == "gameplane-games"
+    snapshot_rules = [rule for rule in games_role["rules"] if "configmaps" in rule.get("resources", [])]
+    assert snapshot_rules == [{"apiGroups": [""], "resources": ["configmaps"], "verbs": ["get"]}]
     assert "--standalone" not in one(defaults, "Deployment", "gameplane-api")["spec"]["template"]["spec"]["containers"][0]["args"]
 
     values = {

@@ -159,6 +159,13 @@ true
 {{- end -}}
 {{- end -}}
 
+{{- /* Resolve new diagnostics defaults for upgrades using older reuse-values.
+mergeOverwrite preserves explicit zero/empty values so validation can reject them. */ -}}
+{{- define "gameplane.nodeDiagnostics" -}}
+{{- $configured := (.Values.capture | default dict).nodeDiagnostics | default dict -}}
+{{- mergeOverwrite (dict "enabled" false "namespace" "gameplane-diagnostics" "maxCaptures" 10 "storageQuota" "10Gi" "storageClass" "") $configured | toJson -}}
+{{- end -}}
+
 {{- /* Validate every namespace before it can reach RBAC or cache flags. */}}
 {{- define "gameplane.namespace" -}}
 {{- if or (not (kindIs "string" .)) (gt (len (toString .)) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" (toString .))) -}}
