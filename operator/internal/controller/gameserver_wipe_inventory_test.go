@@ -79,6 +79,19 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 			if err := r.reconcileSentinelIsolation(t.Context(), gs, isolated); err != nil {
 				t.Fatal(err)
 			}
+			// Measure a settled revision observation, as in the first pass.
+			// A status transition during reconcile changes ResourceVersion and
+			// correctly requires a fresh worker inventory before mutation.
+			if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), gs); err != nil {
+				t.Fatal(err)
+			}
+			_, desired, err := templateSnapshot(tmpl)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := r.reportTemplateRevision(t.Context(), gs, desired, lifecycleOperation{}, false); err != nil {
+				t.Fatal(err)
+			}
 		}
 		reader.jobGets, reader.podLists, reader.filteredPodLists, reader.sentinelPodLists = 0, 0, 0, 0
 		if _, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}); err != nil {
@@ -92,7 +105,7 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 			t.Fatal("ordinary reconcile did not produce a running workload")
 		}
 		if reader.jobGets != 1 || reader.podLists != 1 {
-			t.Fatalf("full reconcile repeated its uncached worker inventory: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+			t.Fatalf("full reconcile pass %d repeated its uncached worker inventory: Job GETs=%d Pod LISTs=%d", pass, reader.jobGets, reader.podLists)
 		}
 		if reader.filteredPodLists != pass || reader.sentinelPodLists != pass {
 			t.Fatalf("unexpected filtered inventories: all=%d sentinel=%d want=%d", reader.filteredPodLists, reader.sentinelPodLists, pass)
