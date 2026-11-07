@@ -86,6 +86,68 @@ start/stop and expiry remain reconciler responsibilities; the gateway cannot
 bypass them or operate an arbitrary pod. Existing game resources and storage are
 not recreated to enable remote parity.
 
+### Hostport wake handoff
+
+Hostport wake-on-connect keeps a durable endpoint node name and Node UID in
+`gameplane.local/hostport-node` / `gameplane.local/hostport-node-uid`, captured from
+the live game Pod before the first sleep. The current-node dashboard annotation
+is independent. Sleep waits for the zero-replica StatefulSet generation to be
+observed and for actual game Pod disappearance through the uncached API reader.
+Wake foreground-deletes the sentinel and waits for its Deployment and all Pods
+to disappear before scheduling the game. Both successor templates use required
+node affinity for the recorded endpoint, combined with the game's scheduling
+constraints; the sentinel carries its tolerations. Node gets are read-only RBAC.
+`HostportWakeReady` reports listener readiness, each drain and unavailable or
+unschedulable endpoints without blocking unrelated reconciliation. There is no
+automatic endpoint migration. Healthy Hostport listeners rely on watches; the
+five-second backstop runs only while `HostportWakeReady` is not True. Endpoint
+diagnostics never replace an existing `Ready=False` game failure. Pending-listener
+messages omit the endpoint node name until it has been recorded.
+
+A missing or replaced endpoint Node forces the game StatefulSet to zero replicas
+even if a replacement game Pod already exists. The stop-only path projects the
+live GameServer's explicit lifecycle annotation verbatim, or clears a stale one,
+so admitted rollouts can observe drainage without losing the endpoint fence.
+A deleting Node with the original
+UID permits only its owned original running game Pod to finish a bounded graceful
+stop. Before issuing the stop, the operator durably switches the StatefulSet to
+OnDelete and gates scheduling of replacement Pods, waiting for that generation to
+be observed. The running Pod is not rolled. The save deadline/readiness check then
+scales to zero; a Backup or inherited copy recovery retains its cleanup precedence
+before any save/stop RPC. Pending, foreign or replacement Pods receive no save window. The
+temporary gate and previous update strategy are restored during valid endpoint
+reconciliation or the documented explicit migration. Cleanup validates saved
+identities and strategy fields, preserving valid custom RollingUpdate and Recreate
+strategies. Malformed or incomplete records retain the current update strategy
+while removing only the operator's stop gate/annotation; they cannot block a
+requested scale-down. The live Node
+identity is checked again immediately before workload mutation, including
+backup replica preservation and restore startup; existing container and scheduling
+settings are otherwise retained. The sentinel Deployment also rechecks the live GameServer endpoint
+and Node UID before mutation; a stale sleep plan cannot start a listener on a
+replacement node. A transient NotReady condition on the same Node UID preserves an
+existing running game or sleeping sentinel. Sentinel planning requires a running,
+non-terminating Pod on that endpoint, and mutation preserves its Deployment without
+rolling the template or raising replicas while the node is NotReady. Pending or
+terminating Pods do not authorize a wake or a new sleep listener.
+
+After restoring node capacity/readiness, reconciliation resumes automatically.
+For intentional migration, suspend the server, wait for both game and sentinel
+Pods to disappear, clear both durable endpoint annotations, update scheduling,
+storage placement and the client-facing node address, then resume the game before
+sleeping it again. Do not clear the annotations while a listener remains active.
+An installation upgraded while already asleep without a recorded game node must
+first start its game to establish placement. Hostport clients reconnect after
+handoff; the historical "briefly Pending, self-heals" sequence in the archived
+[July design](../docs/archive/superpowers/specs/2026-07-24-wake-on-connect-design.md#sequencing-and-port-handover)
+is superseded by this specification. Service-backed wake retains its
+established-session drain behavior. Auxiliary resource defaults are defined separately.
+
+The sentinel starts the join deadline before its Kubernetes wake PATCH, whose
+separate five-second maximum fits inside that budget. Concurrent callers share
+the in-flight PATCH result. UDP reads enqueue coalesced requests to one bounded
+worker, and established TCP sessions use the longer session/drain context.
+
 ## Template revision admission
 
 - Admission and the final pin update reject removing or retyping a populated

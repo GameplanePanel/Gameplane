@@ -61,6 +61,19 @@ complete pinned render inputs and source-template preservation for CSI restore.
 - Verify the installed operator identity can read Secrets only in its configured namespaces, can mutate game-namespace Secrets, and cannot read or write unrelated namespace Secrets (`TestHelmInstall_OperatorSecretNamespaceBoundary`, operator bucket).
 - Enforce, via `buckets.sh`, that every test in the suite is assigned to exactly one CI bucket so nothing silently drops out of coverage.
 
+### Hostport wake acceptance
+
+The dedicated `wake-hostport` bucket runs on the `two-node` kind profile. It uses
+a real Hostport HTTP listener and dedicated-node taint, broadens the scheduling
+pool after recording the endpoint, and exercises two sleep/wake cycles at the
+same node address. It observes the old game still serving during termination,
+holds a terminating sentinel Pod to prove the reverse handoff waits, checks a
+cordoned endpoint remains unavailable rather than relocating, and deletes the
+node to exercise the explicit unavailable/replaced-node condition. This bucket
+runs alone because it changes node scheduling. Its GameServer and template names
+are unique per run; it uses the chart-owned game namespace so the operator's
+configured Secret scope and RBAC apply. Runtime results come from CI.
+
 ### Remote gateway parity acceptance
 
 The multicluster bucket runs `TestMultiCluster_GatewayParity` against two real
@@ -120,10 +133,12 @@ The golangci-lint job mirrors this: it must be invoked with `--build-tags=e2e` o
 
 ## The bucket contract — the module's most important invariant
 
-The `network-isolation` and `management-placement` audit buckets are registered in the change-based selector,
-with explicit component mapping and amd64-only selection-summary rows. Each
-matrix leg skips cluster setup only when its selected test pattern is empty;
-full-scope and affected-component runs must include the affected buckets.
+The `wake-hostport`, `network-isolation`, `monitoring`, `management-placement`
+and `backup-preparation` audit buckets are registered in the change-based
+selector with explicit component mapping and amd64-only selection-summary
+rows. Each matrix leg skips cluster setup only when its selected test pattern
+is empty; full-scope and affected-component runs must include the affected
+buckets.
 
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 
@@ -144,7 +159,7 @@ This is a name-matching contract, not a structural one:
 
 ## Conventions (already normative via `CLAUDE.md`, restated here for the module's own record)
 
-- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `restricted-workloads` upgrades the shared release and namespace admission policy; `postgres-availability` (`TestUpgrade_PostgresAvailability`) upgrades the shared release and interrupts PostgreSQL. These are documented exceptions.
+- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `wake-hostport` changes shared node scheduling and deletes the endpoint node; `restricted-workloads` upgrades the shared release and namespace admission policy; `postgres-availability` (`TestUpgrade_PostgresAvailability`) upgrades the shared release and interrupts PostgreSQL. These are documented exceptions.
 - **Per-test unique resource names**: CRs, namespaces, and users a test creates get a name unique to that test run (commonly time-based, e.g. `CreateUser`'s `fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())`) so parallel tests never collide on a shared cluster.
 - **`ociPushMu`**: a package-level mutex guarding tests that push through the shared, fixed-name `oras-push` Job (`module_e2e_test.go`, `module_verify_e2e_test.go`). Because the Job's name and namespace are fixed fixtures, two tests racing to apply/wait on it would stomp each other; `ociPushMu.Lock()`/`Unlock()` serializes them.
 - **`ensureResticRepo(t)`**: guards tests that run a backup against the shared restic repository fixture (`backup_e2e_test.go`, `backupschedule_e2e_test.go`, `failure_paths_e2e_test.go`) — restic repo initialization is not safe to race.

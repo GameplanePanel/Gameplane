@@ -6,7 +6,8 @@
 #   deploy/kind/e2e.sh down  [cluster-name]
 #
 # Diffs from dev-up (deploy/kind/up.sh):
-#   - Single-node by default; management profile adds two scheduling workers.
+#   - Single-node by default; two-node adds one worker for Hostport handoff,
+#     and management adds two workers for scheduling and disruption checks.
 #   - Skips ingress-nginx (the dashboard isn't exercised here).
 #   - Loads pre-built gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,fakeoidc}:<tag>
 #     images (and gameplane-test/gameprobe:<tag> when present).
@@ -33,9 +34,9 @@ kindnet | cilium) ;;
 *) echo "unsupported E2E CNI: ${CNI}" >&2; exit 2 ;;
 esac
 case "${PROFILE}" in
-default | postgres | management) ;;
+default | postgres | two-node | management) ;;
 *)
-    echo "unknown profile '${PROFILE}' (want default, postgres or management)" >&2
+    echo "unknown profile '${PROFILE}' (want default, postgres, two-node or management)" >&2
     exit 2
     ;;
 esac
@@ -201,7 +202,9 @@ up)
         kind_wait=0s # Nodes become Ready after Cilium is installed below.
     fi
     extra_nodes=""
-    if [[ "${PROFILE}" == "management" ]]; then
+    if [[ "${PROFILE}" == "two-node" ]]; then
+        extra_nodes="  - role: worker"
+    elif [[ "${PROFILE}" == "management" ]]; then
         extra_nodes=$'  - role: worker\n  - role: worker'
     fi
     kind create cluster --name "${CLUSTER}" --wait "${kind_wait}" --config - <<EOF

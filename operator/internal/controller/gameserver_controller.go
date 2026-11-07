@@ -427,7 +427,11 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	replicas, stopRequeue, err := r.desiredReplicas(ctx, &gs, &tmpl, idle, &wipeState)
+	var replicas int32
+	var stopRequeue time.Duration
+	if !plan.blockGame {
+		replicas, stopRequeue, err = r.desiredReplicas(ctx, &gs, &tmpl, idle, &wipeState)
+	}
 	if err != nil {
 		if apierrors.IsConflict(err) {
 			return ctrl.Result{RequeueAfter: lifecycleConflictRetry}, nil
@@ -491,7 +495,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer)
+	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer, plan.hostportCondition)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -504,7 +508,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
-	if plan.wantSentinel {
+	if sentinelBackstopPending(plan) {
 		// Bounded backstop for planSentinel's wait on the sentinel or the
 		// game pod. Both are owned (Owns(&appsv1.Deployment{}),
 		// Owns(&appsv1.StatefulSet{})) so a readiness transition normally
@@ -1566,6 +1570,33 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		if owner := metav1.GetControllerOf(ss); owner != nil && owner.UID != live.UID {
 			return fmt.Errorf("StatefulSet belongs to a different GameServer identity")
 		}
+		if live.Spec.Networking.Expose == "Hostport" && live.Annotations[hostportNodeAnnotation] != "" {
+			node, err := r.hostportEndpointNode(ctx, &live)
+			if err != nil {
+				return err
+			}
+			if node == nil {
+				// StatefulSet replacement and Node deletion run independently
+				// of the earlier sentinel plan. Identity loss must also fence
+				// stale wake decisions and lifecycle owners that retain replicas.
+				if ss.ResourceVersion != "" {
+					// Rollout drain checks require this exact live owner even on
+					// the stop-only path. Project metadata without parsing it:
+					// malformed ownership must not prevent identity-loss zero.
+					if value := live.Annotations[lifecycleOperationAnnotation]; value != "" {
+						if ss.Annotations == nil {
+							ss.Annotations = map[string]string{}
+						}
+						ss.Annotations[lifecycleOperationAnnotation] = value
+					} else {
+						delete(ss.Annotations, lifecycleOperationAnnotation)
+					}
+					return r.stopHostportOnDeletingNode(ctx, &live, tmpl, ss)
+				}
+				actualReplicas, replicas = 0, 0
+			}
+		}
+		clearHostportStopFence(ss)
 		op, held, err := lifecycleOwner(&live)
 		if err != nil {
 			return err
@@ -1761,7 +1792,22 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// a removed scheduling pin active on the StatefulSet.
 		ss.Spec.Template.Spec.NodeSelector = gs.Spec.NodeSelector
 		ss.Spec.Template.Spec.Tolerations = gs.Spec.Tolerations
-		ss.Spec.Template.Spec.Affinity = gs.Spec.Affinity
+		// Do not change a live Pod's template merely because its node was
+		// recorded while a graceful stop is still saving the game. Apply the
+		// endpoint pin at zero replicas, then retain it on every future wake.
+		if actualReplicas == 0 || ss.ResourceVersion == "" || ss.Spec.Template.Annotations[hostportNodeAnnotation] != "" {
+			ss.Spec.Template.Spec.Affinity = hostportAffinity(gs)
+			if gs.Spec.Networking.Expose == "Hostport" && gs.Annotations[hostportNodeAnnotation] != "" {
+				if ss.Spec.Template.Annotations == nil {
+					ss.Spec.Template.Annotations = map[string]string{}
+				}
+				ss.Spec.Template.Annotations[hostportNodeAnnotation] = gs.Annotations[hostportNodeAnnotation]
+			} else {
+				delete(ss.Spec.Template.Annotations, hostportNodeAnnotation)
+			}
+		} else {
+			ss.Spec.Template.Spec.Affinity = gs.Spec.Affinity.DeepCopy()
+		}
 		// Same unconditional-assign reasoning: removing template.spec.security
 		// must clear a previously-set pod-level FSGroup, not leave it pinned.
 		ss.Spec.Template.Spec.SecurityContext = gamePodSecurityContext(tmpl)
