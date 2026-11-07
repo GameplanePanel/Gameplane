@@ -125,7 +125,7 @@ carrying overrides is refused; as a user with it, confirm both work.
 **Acceptance Scenarios**:
 
 1. **Given** a user without permission to override security settings, **When** they
-   open Advanced, **Then** they see the effective values but cannot edit them.
+   open Advanced, **Then** they see the applied values but cannot edit them.
 2. **Given** such a user sends an override directly to the API, **When** the request
    is processed, **Then** it is refused with a permission error and nothing changes.
 3. **Given** a request that sets run-as user 0, **When** it is processed, **Then** it is
@@ -143,12 +143,12 @@ carrying overrides is refused; as a user with it, confirm both work.
 - An override sets the filesystem group but not the run-as user: allowed; it only
   changes which group the data volume is shared with.
 - A server is restored from a backup made under different security settings: the
-  restore uses the server's current effective settings.
+  restore uses the server's current applied settings.
 - The module is uninstalled or its template removed while a server has overrides:
   the override stays on the server and is reapplied if the template returns.
 - Helper containers (the management agent, config and mod init steps, backups) keep
   their own fixed users; only the game container's user/group and the pod's
-  filesystem group change. Backup and restore jobs use the effective filesystem
+  filesystem group change. Backup and restore jobs use the applied filesystem
   group so they keep access to the data.
 - The values are numeric ids only; user and group names are not accepted.
 
@@ -163,10 +163,13 @@ carrying overrides is refused; as a user with it, confirm both work.
   settings independently. Each override is one of: not set (use module default),
   a specific numeric id, or "use image default" (do not apply this setting even if
   the module sets it).
-- **FR-003**: The effective value of each setting MUST be the server's override when
-  present, otherwise the module default, otherwise nothing (image default).
+- **FR-003**: The desired value of each setting MUST be the server's override when
+  present, otherwise the module default, otherwise nothing (image default). The
+  applied value is the one the running game container actually uses; a desired value
+  becomes the applied value only when the server next (re)starts. Until then the
+  change is pending.
 - **FR-004**: The reconciler MUST be the only place that computes and applies the
-  effective settings; the API only stores and validates the override.
+  desired and applied settings; the API only stores and validates the override.
 - **FR-005**: Override values MUST be validated as whole numbers from 0 to
   4294967295, matching the module's own limits, with the root rule from OD-2: an
   override of 0 for run-as user or run-as group MUST be refused unless an admin has
@@ -181,14 +184,18 @@ carrying overrides is refused; as a user with it, confirm both work.
 - **FR-008**: Changing an override on an existing server MUST take effect on the next
   restart and MUST say so in the dashboard; it MUST NOT restart the server by itself
   (OD-3).
-- **FR-009**: The server's details MUST show each effective value and whether it comes
-  from the module or from an override.
+- **FR-009**: The server's details MUST show, for each setting, the applied value and
+  its source, one of: module default, override, "use image default" override, or image
+  default (neither the module nor the server sets it). When a saved change is not yet
+  applied, the details MUST also show the pending value and that it applies on the
+  next restart.
 - **FR-010**: Setting, changing or removing an override MUST require the permission
   decided in OD-1, enforced by the API, and MUST be recorded in the audit log with
   before and after values. Per OD-1 this is a new namespaced `servers:security`
   permission, held by the built-in admin role only; admins can add it to other roles.
-- **FR-011**: Backup and restore jobs MUST use the server's effective filesystem
-  group, not only the module's.
+- **FR-011**: Backup and restore jobs MUST use the server's applied filesystem
+  group (the one the data volume currently uses), not only the module's, so a pending
+  change never affects a job before the restart.
 - **FR-012**: Helper containers (agent, init steps, sentinel, tunnel) MUST keep their
   existing fixed security settings regardless of overrides.
 - **FR-013**: The module authoring docs MUST explain that the template's security
@@ -203,9 +210,11 @@ carrying overrides is refused; as a user with it, confirm both work.
 - **Server security override**: per server, for each of the three settings, either
   absent, a numeric id, or "use image default". Owned by the server, survives module
   upgrades and reinstalls.
-- **Effective security settings**: the result of combining the two, computed by the
-  reconciler and reported back on the server's status so the dashboard can show where
-  each value came from.
+- **Desired and applied security settings**: the desired settings combine the module
+  defaults and the server override; the applied settings are what the running game
+  container uses. The reconciler computes both and reports them, with each value's
+  source, on the server's status so the dashboard can show where each value came from
+  and whether a change is pending.
 
 ## Success Criteria *(mandatory)*
 
@@ -218,9 +227,9 @@ carrying overrides is refused; as a user with it, confirm both work.
   on a new server in under 1 minute, without editing or forking the module.
 - **SC-003**: A user without the permission cannot change any of the three settings,
   through the dashboard or the API, in 100% of attempts.
-- **SC-004**: For every server, the dashboard shows each of the three effective
-  values and its source (module or override), matching what the game container
-  actually runs with.
+- **SC-004**: For every server, the dashboard shows each of the three applied values
+  and its source, matching what the game container actually runs with, plus any
+  pending value not yet applied.
 - **SC-005**: Every override change appears in the audit log with who, when, before
   and after.
 
