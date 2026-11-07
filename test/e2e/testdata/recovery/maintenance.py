@@ -29,12 +29,16 @@ def readonly(path):
 
 
 @contextmanager
-def private_database(path):
+def private_database(path, created=None):
     previous_umask = os.umask(0o077)
     try:
         # Reject existing files atomically: umask cannot tighten their modes.
         fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-        os.close(fd)
+        try:
+            if created is not None:
+                created.append(os.fstat(fd))
+        finally:
+            os.close(fd)
         with closing(sqlite3.connect(path)) as db:
             # Check privacy before copying any sensitive rows, including on a
             # later backup/restore failure. Journals inherit the private mask.
@@ -92,22 +96,36 @@ elif op == "loss":
 elif op == "restore":
     assert not DATA.exists(), "restore only into the deleted working database"
     before = digest(ARCHIVE)
-    with closing(readonly(ARCHIVE)) as source, private_database(DATA) as dest:
-        source.backup(dest)
-        original = inventory(source)
-        assert inventory(dest) == original
-        # Invalidate restored bearer credentials on the working copy, preserving
-        # the original archive and audit chain for incident investigation.
-        dest.execute("DELETE FROM sessions")
-        dest.execute("DELETE FROM api_tokens")
-        dest.execute("UPDATE share_links SET revoked_at=? WHERE revoked_at IS NULL", (datetime.datetime.now(datetime.timezone.utc).isoformat(),))
-        dest.commit()
-        result = inventory(dest)
-        assert result["audit_digest"] == original["audit_digest"]
-        assert result["sessions"] == 0 and result["api_tokens"] == 0 and result["active_shares"] == 0
-    DATA.chmod(0o600)
-    assert digest(ARCHIVE) == before
-    result["archive_digest"] = before
+    created = []
+    try:
+        with closing(readonly(ARCHIVE)) as source, private_database(DATA, created) as dest:
+            source.backup(dest)
+            original = inventory(source)
+            assert inventory(dest) == original
+            # Invalidate restored bearer credentials on the working copy, preserving
+            # the original archive and audit chain for incident investigation.
+            dest.execute("DELETE FROM sessions")
+            dest.execute("DELETE FROM api_tokens")
+            dest.execute("UPDATE share_links SET revoked_at=? WHERE revoked_at IS NULL", (datetime.datetime.now(datetime.timezone.utc).isoformat(),))
+            dest.commit()
+            result = inventory(dest)
+            assert result["audit_digest"] == original["audit_digest"]
+            assert result["sessions"] == 0 and result["api_tokens"] == 0 and result["active_shares"] == 0
+        DATA.chmod(0o600)
+        assert digest(ARCHIVE) == before
+        result["archive_digest"] = before
+    except BaseException as failure:
+        # Both connections have closed. Only a successful exclusive creation
+        # grants cleanup authority; never remove a pre-existing/replaced file.
+        if created:
+            try:
+                if os.path.samestat(created[0], DATA.lstat()):
+                    remove_working_database()
+                else:
+                    failure.add_note("Restore destination changed identity; cleanup skipped.")
+            except OSError:
+                failure.add_note("Partial working database cleanup failed; inspect retained files.")
+        raise
 elif op == "archive":
     result = {"archive_digest": digest(ARCHIVE)}
 elif op == "http-check":

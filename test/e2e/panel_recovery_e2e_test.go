@@ -198,11 +198,15 @@ func TestPanel_OfflineRecovery(t *testing.T) {
 	}
 	backup := f.maintenance("backup")
 	report["backup"] = backup
-	backupTime, err := time.Parse(time.RFC3339Nano, backup["backup_utc"].(string))
+	backupUTC, ok := backup["backup_utc"].(string)
+	if !ok {
+		t.Fatal("recovery maintenance output lacks string field \"backup_utc\"")
+	}
+	backupTime, err := time.Parse(time.RFC3339Nano, backupUTC)
 	if err != nil {
 		t.Fatal("invalid archive recovery-point timestamp")
 	}
-	if backup["sessions"].(float64) < 2 || backup["api_tokens"] != float64(1) || backup["active_shares"].(float64) < 1 || backup["audit_rows"].(float64) < 1 {
+	if recoveryNumber(t, backup, "sessions") < 2 || backup["api_tokens"] != float64(1) || recoveryNumber(t, backup, "active_shares") < 1 || recoveryNumber(t, backup, "audit_rows") < 1 {
 		t.Fatal("backup lacks session/API-token/share/audit fixture evidence")
 	}
 	// From here on the archive is mounted read-only even in the maintenance Pod.
@@ -289,7 +293,7 @@ func TestPanel_OfflineRecovery(t *testing.T) {
 	}
 	cancelStop()
 	cancelProbe()
-	if probe["responses"] != float64(0) || probe["stopped"] != true || probe["attempts"].(float64) < 1 {
+	if probe["responses"] != float64(0) || probe["stopped"] != true || recoveryNumber(t, probe, "attempts") < 1 {
 		t.Fatal("wrong-key process served HTTP or monitor did not finish")
 	}
 	report["wrong_key_probe"] = probe
@@ -358,6 +362,15 @@ func TestPanel_OfflineRecovery(t *testing.T) {
 	report["rto_seconds"] = time.Since(lossTime).Seconds()
 	report["rto_scope"] = "loss through restore, auth invalidation, wrong-key trial, and credential-backed acceptance checks"
 	report["stage"] = "complete"
+}
+
+func recoveryNumber(t *testing.T, result map[string]any, key string) float64 {
+	t.Helper()
+	value, ok := result[key].(float64)
+	if !ok {
+		t.Fatalf("recovery maintenance output lacks numeric field %q", key)
+	}
+	return value
 }
 
 func recoveryKey(t *testing.T) []byte {
