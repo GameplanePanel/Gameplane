@@ -893,6 +893,7 @@ func seedBackupWorkload(t *testing.T, gs *gameplanev1alpha1.GameServer) {
 		t.Fatalf("seed scheduled source pod: %v", err)
 	}
 	pod.Status.Phase = corev1.PodRunning
+	pod.Status.ContainerStatuses = []corev1.ContainerStatus{backupRunningGameStatus()}
 	if err := k8sClient.Status().Update(context.Background(), pod); err != nil {
 		t.Fatalf("observe running source pod: %v", err)
 	}

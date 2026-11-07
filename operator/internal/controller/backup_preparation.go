@@ -98,6 +98,8 @@ type backupPreparation struct {
 	WorkloadUID        types.UID `json:"workloadUID"`
 	WorkloadGeneration int64     `json:"workloadGeneration"`
 	PodUID             types.UID `json:"podUID,omitempty"`
+	GameContainerID    string    `json:"gameContainerID,omitempty"`
+	GameRestartCount   *int32    `json:"gameRestartCount,omitempty"`
 }
 
 func parseBackupPreparation(b *gameplanev1alpha1.Backup) (*backupPreparation, error) {
@@ -125,12 +127,21 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 	if err != nil {
 		return false, err
 	}
+	// Old live preparations cannot prove which game incarnation was paused.
+	// Keep them parseable for cleanup, but never backfill identity after a
+	// possible save-off or copy. A pre-upgrade worker is observed separately.
+	if p != nil && p.Outcome == "live" && (p.GameContainerID == "" || p.GameRestartCount == nil) {
+		return false, fmt.Errorf("%w: live preparation lacks game container identity", errBackupSourceChanged)
+	}
+	if p == nil && b.Annotations[annoQuiesceAttempted] != "" && b.Annotations[annoQuiesceAttempted] != "unsupported" {
+		return false, fmt.Errorf("%w: quiesce attempt lacks source preparation", errBackupSourceChanged)
+	}
 	if p == nil && !agentQuiesceAvailable(r.AgentClient) {
 		return true, nil
 	}
-	// Pre-upgrade attempts have no source identity. Do not invent a new one
-	// after their RPC; preserve their existing cleanup contract.
-	if p == nil && b.Annotations[annoQuiesceAttempted] != "" {
+	// An unsupported attempt did not pause the game and retains raw-copy
+	// behavior without inventing a protected source identity.
+	if p == nil && b.Annotations[annoQuiesceAttempted] == "unsupported" {
 		return true, nil
 	}
 	var ss appsv1.StatefulSet
@@ -190,7 +201,24 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 		if !pod.DeletionTimestamp.IsZero() || pod.Status.Phase != corev1.PodRunning {
 			return r.waitForBackupSource(ctx, b, "source pod is not Running or is terminating")
 		}
+		var game *corev1.ContainerStatus
+		for i := range pod.Status.ContainerStatuses {
+			if pod.Status.ContainerStatuses[i].Name == "game" {
+				game = &pod.Status.ContainerStatuses[i]
+				break
+			}
+		}
+		if game == nil || game.ContainerID == "" || game.State.Running == nil {
+			if p != nil {
+				return false, fmt.Errorf("%w: original game container is not observably running", errBackupSourceChanged)
+			}
+			return r.waitForBackupSource(ctx, b, "game container identity or running state is unavailable")
+		}
+		if p != nil && (p.GameContainerID != game.ContainerID || *p.GameRestartCount != game.RestartCount) {
+			return false, fmt.Errorf("%w: game container restarted", errBackupSourceChanged)
+		}
 		candidate.Outcome, candidate.PodUID = "live", pod.UID
+		candidate.GameContainerID, candidate.GameRestartCount = game.ContainerID, &game.RestartCount
 	}
 	if p != nil {
 		if p.Outcome != candidate.Outcome || p.PodUID != candidate.PodUID {
