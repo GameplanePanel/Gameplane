@@ -62,7 +62,7 @@ func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 	t.Run("honors retry after", func(t *testing.T) {
 		var calls atomic.Int32
 		var rejectedAt atomic.Int64
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			if calls.Add(1) == 1 {
 				rejectedAt.Store(time.Now().UnixNano())
 				w.Header().Set("Retry-After", "1")
@@ -78,6 +78,9 @@ func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 		defer cancel()
 		resp, body, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: server.Client()}, "test")
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
 		if err != nil || resp.StatusCode != http.StatusOK || string(body) != `{"delivered":true}` || calls.Load() != 2 {
 			t.Fatalf("send: response=%v body=%s calls=%d err=%v", resp, body, calls.Load(), err)
 		}
@@ -86,7 +89,7 @@ func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 		var calls atomic.Int32
 		ctx, cancel := context.WithCancel(t.Context())
 		defer cancel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			calls.Add(1)
 			w.Header().Set("Retry-After", "30")
 			w.WriteHeader(http.StatusTooManyRequests)
@@ -103,6 +106,9 @@ func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 		done := make(chan sendResult, 1)
 		go func() {
 			resp, _, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: client}, "test")
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
 			done <- sendResult{resp: resp, err: err}
 		}()
 		deadline := time.NewTimer(5 * time.Second)
@@ -120,7 +126,7 @@ func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 	for _, status := range []int{http.StatusBadGateway, http.StatusTooManyRequests} {
 		t.Run(strconv.Itoa(status), func(t *testing.T) {
 			var calls atomic.Int32
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				calls.Add(1)
 				w.WriteHeader(status)
 				_, _ = io.WriteString(w, "rejected")
@@ -129,6 +135,9 @@ func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 			defer cancel()
 			resp, body, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: server.Client()}, "test")
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
 			if resp == nil || resp.StatusCode != status || string(body) != "rejected" || calls.Load() != 1 {
 				t.Fatalf("send: response=%v body=%s calls=%d err=%v", resp, body, calls.Load(), err)
 			}
