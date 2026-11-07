@@ -436,8 +436,17 @@ EOF
 
 unbucketed() { :; }
 
+bucket_monitoring() { cat <<'EOF'
+TestMonitoring_DiscoveryPerformanceAndPolicy
+EOF
+}
+
+bucket_network_isolation() {
+	printf '%s\n' TestNetworkIsolation_EnforcedAndUpgrade TestNetworkIsolation_ProbeOutput
+}
+
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads management-placement backup-preparation
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads network-isolation management-placement backup-preparation monitoring
 }
 
 list_bucket() {
@@ -457,9 +466,11 @@ list_bucket() {
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;
+	network-isolation) bucket_network_isolation ;;
 	restricted-workloads) bucket_restricted_workloads ;;
 	management-placement) bucket_management_placement ;;
 	backup-preparation) bucket_backup_preparation ;;
+	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
 		exit 2

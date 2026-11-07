@@ -12,6 +12,15 @@ materializes into an in-cluster `GameTemplate`.
 
 ## Quickstart: Authoring with `gp-module` CLI & Web Builder
 
+For a validated wake proxy, add `sentinelIsolation: true` under the template's
+`spec`. The operator permits that server's sentinel to reach only its own
+advertised container ports, preserving each port's TCP/UDP/SCTP protocol.
+Leave management ports unadvertised. A template with no advertised ports grants
+no sentinel access. Omission preserves legacy behavior; adoption in the
+GameplanePanel/module repository is separate from the operator upgrade.
+Test player joins, status queries and sleep/wake cycles with an enforcing CNI
+before publishing the opt-in. See [network policy migration](networking.md#networkpolicy-isolation-and-migration).
+
 Gameplane provides a unified toolkit for creating, verifying, previewing, and packaging modules:
 
 - **Command-Line Interface (`gp-module`)**: First-class Go CLI with Makefile targets.

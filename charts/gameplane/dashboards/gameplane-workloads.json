@@ -1,0 +1,345 @@
+{
+  "title": "Gameplane Workloads",
+  "uid": "gameplane-workloads",
+  "tags": [
+    "gameplane"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus"
+      },
+      {
+        "name": "namespace",
+        "type": "textbox",
+        "label": "Games namespace",
+        "current": {
+          "value": "gameplane-games",
+          "text": "gameplane-games"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Scrape health",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod,gameplane_component) (up{gameplane_component=~\"agent|tunnel\",namespace=~\"$namespace\"})",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Relay readiness",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod) (gameplane_tunnel_ready{namespace=~\"$namespace\"})",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Relay health known",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod) (gameplane_tunnel_connection_known{namespace=~\"$namespace\"})",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Game rates (declared signals)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "hertz",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "gameplane_agent_performance_value{namespace=~\"$namespace\",unit=\"hertz\"}",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Game tick duration",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "gameplane_agent_performance_value{namespace=~\"$namespace\",unit=\"seconds\"}",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Performance available",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "gameplane_agent_performance_available{namespace=~\"$namespace\"}",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Container CPU throttled periods",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod) (rate(container_cpu_cfs_throttled_periods_total{namespace=~\"$namespace\",container=\"game\"}[5m]) / rate(container_cpu_cfs_periods_total{namespace=~\"$namespace\",container=\"game\"}[5m]))",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Container working set / limit",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",container=\"game\"} / (container_spec_memory_limit_bytes{namespace=~\"$namespace\",container=\"game\"} > 0))",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Container restarts",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod,container) (increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[15m]))",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Pending Pods",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unknown",
+          "custom": {
+            "spanNulls": false
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod) (kube_pod_status_phase{namespace=~\"$namespace\",phase=\"Pending\"})",
+          "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
+        }
+      ]
+    }
+  ]
+}
