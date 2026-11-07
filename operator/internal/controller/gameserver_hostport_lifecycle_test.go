@@ -32,6 +32,7 @@ func TestHostportEndpointLossAllowsAdmittedRolloutDrain(t *testing.T) {
 				r.AgentClient = stopper
 			}
 			tmpl.Name, tmpl.Spec.Image = "hostport-rollout", "example.invalid/game:original"
+			gs.Spec.TemplateRef.Name = tmpl.Name
 			old, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
 			if err != nil {
 				t.Fatal(err)
@@ -46,7 +47,6 @@ func TestHostportEndpointLossAllowsAdmittedRolloutDrain(t *testing.T) {
 				t.Fatal(err)
 			}
 			op := lifecycleOperation{lifecycleIdentity: lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Token: revision}}
-			gs.Spec.TemplateRef.Name = target.Name
 			gs.Annotations[effectiveTemplateAnnotation] = old
 			gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
 			if err := r.Update(t.Context(), gs); err != nil {

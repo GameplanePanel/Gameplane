@@ -36,7 +36,7 @@ func hostportIdentityFixture(t *testing.T, node *corev1.Node, phase corev1.PodPh
 	if phase != "" {
 		objects = append(objects, &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-0", Namespace: gs.Namespace, Labels: map[string]string{"app.kubernetes.io/name": "gameplane-game", "app.kubernetes.io/instance": gs.Name}}, Spec: corev1.PodSpec{NodeName: "node-a"}, Status: corev1.PodStatus{Phase: phase}})
 	}
-	c := fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(objects...).Build()
+	c := fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(objects...).WithStatusSubresource(gs).Build()
 	r.Client, r.APIReader = c, c
 	return r, gs, tmpl
 }
