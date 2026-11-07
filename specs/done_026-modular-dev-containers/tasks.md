@@ -5,7 +5,7 @@ description: "Task list for spec 026 modular dev containers"
 
 # Tasks: Modular Dev Containers
 
-**Input**: Design documents from `specs/026-modular-dev-containers/`
+**Input**: Design documents from `specs/done_026-modular-dev-containers/`
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md, OPEN-DECISIONS.md (OD-1 to OD-5 settled by valgul, 2026-10-20)
 
@@ -34,7 +34,7 @@ description: "Task list for spec 026 modular dev containers"
 
 **Purpose**: the hand-written inputs every profile is generated from.
 
-- [X] T001 Scout (one agent, `haiku`, read-only): build the system dependency inventory from research R9. For each folder in `go.work`, plus `web/`, `charts/gameplane/`, `deploy/kind/`, `test/e2e/`, `website/` and `modules/`, list every toolchain, CLI, OS package, service and submodule that its Makefile targets, scripts (`modules/build.sh`, `deploy/kind/*.sh`, `web/package.json` scripts, `website/package.json` scripts and `engines`) and today's `.devcontainer/post-create.sh` invoke. Give `file:line` evidence for each entry. Also list each Go module's in-repo `require`/`replace` targets. Write the brief to `specs/026-modular-dev-containers/inventory.md`.
+- [X] T001 Scout (one agent, `haiku`, read-only): build the system dependency inventory from research R9. For each folder in `go.work`, plus `web/`, `charts/gameplane/`, `deploy/kind/`, `test/e2e/`, `website/` and `modules/`, list every toolchain, CLI, OS package, service and submodule that its Makefile targets, scripts (`modules/build.sh`, `deploy/kind/*.sh`, `web/package.json` scripts, `website/package.json` scripts and `engines`) and today's `.devcontainer/post-create.sh` invoke. Give `file:line` evidence for each entry. Also list each Go module's in-repo `require`/`replace` targets. Write the brief to `specs/done_026-modular-dev-containers/inventory.md`.
 - [X] T002 Create `.devcontainer/versions.toml` with one `[tools]` key per tool from today's `.devcontainer/devcontainer.json` and `post-create.sh` (go 1.26, node 24, kind v0.32.0, oras 1.2.0, golangci_lint v2.12.2, envtest_k8s 1.36.2, specify v1.0.3, …). Apply OD-5: `kubectl = "1.36"`, `setup_envtest = "release-0.24"`, and `helm` pinned to the current stable Helm release (record the version and date in a comment).
 - [X] T003 Create `.devcontainer/profiles.toml` per [contracts/profiles-catalogue.md](contracts/profiles-catalogue.md) and data-model "Profile" and "Baseline". The baseline carries the common-utils, git, github-cli, uv, specify and AI CLI deps (optional), `anthropic.claude-code`, and today's shared editor settings and env (`GOTOOLCHAIN=local`, `CI=1`). `[full].personal` carries today's theme and other-language extensions (Lunar Pink, darkpinkpro, Rust, Vue, Gemini, Pencil, …). It defines the 11 profiles (`web`, `api`, `operator`, `agent`, `go-services`, `website`, `modules`, `dashboard-api`, `control-plane`, `modules-gp`, `full`) with ports, extensions, checks and submodules from the contract.
 
@@ -142,15 +142,15 @@ description: "Task list for spec 026 modular dev containers"
 - [X] T030 [P] [US4] Add a "Dev container profiles" section to `docs/contributing.md`: a table (name, size, scope, what it installs, typical setup time from the PR-B job summary, when to use it), how to pick one in VS Code, Codespaces and the CLI, how to add a component or change a version (edit inputs, then `make devcontainers`), and what a `need:` message means.
 - [X] T031 [P] [US4] Update `docs/dependencies.md` so the devcontainer pin lines point to `.devcontainer/versions.toml`, and drop the stale "built from source" note if T001 shows it is out of date. Done with T012 in PR #809: every pin line names `versions.toml`; the "built from source" note is still true (`setup.sh` runs `go install` for golangci-lint).
 - [X] T032 [P] [US4] Update `CLAUDE.md` "Repository map" (`.devcontainer/` line, `system-deps.toml` mention) and "Commands" (`make devcontainers`, `make check-devcontainers`).
-- [ ] T033 [US4] In `GameplanePanel/website`, edit `src/content/docs/local-development-setup.mdx`: replace the `.devcontainer/post-create.sh` reference with the profile list and a link to the `docs/contributing.md` table. Text only, no new visual component (Principle II exempt, plan). Open a website PR, then bump the pointer after it merges.
+- [X] T033 [US4] In `GameplanePanel/website`, edit `src/content/docs/local-development-setup.mdx`: replace the `.devcontainer/post-create.sh` reference with the profile list and a link to the `docs/contributing.md` table. Text only, no new visual component (Principle II exempt, plan). Open a website PR, then bump the pointer after it merges.
 
 ---
 
 ## Phase 10: Polish & cross-cutting (PR-D)
 
 - [X] T034 Remove any leftover reference to `post-create.sh` repo-wide (`grep -rn post-create`), excluding `specs/done_*`. Checked 2026-10-29: no `post-create.sh` reference remains outside this spec folder (the website page never named it after website PR #25).
-- [X] T035 Run quickstart §1–§7 against the merged state and record the results (times, disk, pass/fail) in `specs/026-modular-dev-containers/quickstart.md` under a "Results" heading. CI results recorded 2026-10-29. The interactive steps in §1–§3 and §7 and the disk numbers were not run; valgul accepted the CI evidence on 2026-10-29 and chose to archive without them.
-- [ ] T036 Archive once every task is done and the last PR is merged: `git mv specs/026-modular-dev-containers specs/done_026-modular-dev-containers` and update in-repo references in the same commit (CLAUDE.md rule 16).
+- [X] T035 Run quickstart §1–§7 against the merged state and record the results (times, disk, pass/fail) in `specs/done_026-modular-dev-containers/quickstart.md` under a "Results" heading. CI results recorded 2026-10-29. The interactive steps in §1–§3 and §7 and the disk numbers were not run; valgul accepted the CI evidence on 2026-10-29 and chose to archive without them.
+- [X] T036 Archive once every task is done and the last PR is merged: `git mv specs/done_026-modular-dev-containers specs/done_026-modular-dev-containers` and update in-repo references in the same commit (CLAUDE.md rule 16).
 
 ---
 
