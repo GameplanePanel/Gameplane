@@ -112,6 +112,21 @@ func wantsSnapshotFinalizer(b *gameplanev1alpha1.Backup) bool {
 // forgets the restic snapshot. Unquiesce goes first because it is time
 // critical: a world left with auto-save off is worse than an orphaned snapshot.
 func (r *BackupReconciler) finalizeDelete(ctx context.Context, b *gameplanev1alpha1.Backup) (ctrl.Result, error) {
+	if b.Annotations[backupPreparationDeadlineAnnotation] != "" {
+		if err := r.revokeBackupStart(ctx, b); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	if b.Spec.Strategy == "volume-snapshot" && b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded {
+		if err := r.recordSnapshotAbort(ctx, b, "CSI capture cancelled by Backup deletion"); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	if b.Annotations[backupPreparationDeadlineAnnotation] != "" && b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded {
+		if res, err := r.abortResticCopy(ctx, b, "copy cancelled by Backup deletion"); err != nil || res.RequeueAfter > 0 {
+			return res, err
+		}
+	}
 	if controllerutil.ContainsFinalizer(b, gameplanev1alpha1.BackupFinalizer) {
 		res, err := r.finalizeUnquiesce(ctx, b)
 		if err != nil || res.RequeueAfter > 0 {

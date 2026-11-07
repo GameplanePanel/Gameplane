@@ -246,7 +246,20 @@ func (r *RestoreReconciler) cleanupRestore(ctx context.Context, rs *gameplanev1a
 	if busy {
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
-	if value := rs.Annotations[restoreTargetAnnotation]; value != "" {
+	value := rs.Annotations[restoreTargetAnnotation]
+	if value == "" {
+		// A CSI target can be created just before deletion, before its UID is
+		// persisted on the Restore. Its atomic guard proves ownership below.
+		var created gameplanev1alpha1.GameServer
+		err := r.apiReader().Get(ctx, types.NamespacedName{Namespace: rs.Namespace, Name: rs.Spec.ServerRef.Name}, &created)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
+		if err == nil && created.Annotations[restoreGuardAnnotation] == restoreIdentityJSON(rs.Name, rs.UID) {
+			value = restoreIdentityJSON(created.Name, created.UID)
+		}
+	}
+	if value != "" {
 		target, err := parseRestoreIdentity(value)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -257,6 +270,16 @@ func (r *RestoreReconciler) cleanupRestore(ctx context.Context, rs *gameplanev1a
 			return ctrl.Result{}, err
 		}
 		if err == nil && gs.UID == target.UID && gs.Annotations[restoreGuardAnnotation] == restoreIdentityJSON(rs.Name, rs.UID) {
+			if !success && gs.Annotations[effectiveTemplateAnnotation] == "" && gs.Annotations[restoreTemplateAnnotation] != "" {
+				// Allow the GameServer to render a stopped workload for cleanup
+				// even if copying its planned snapshot never succeeded.
+				gs.Spec.Suspend = true
+				delete(gs.Annotations, restoreTemplateAnnotation)
+				if err := r.Update(ctx, &gs); err != nil {
+					return ctrl.Result{}, err
+				}
+				return ctrl.Result{RequeueAfter: time.Nanosecond}, nil
+			}
 			if value := gs.Annotations[lifecycleOperationAnnotation]; value != "" {
 				op, err := parseLifecycleOperation(value)
 				if err != nil {

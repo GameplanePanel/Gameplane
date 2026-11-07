@@ -40,6 +40,14 @@ type scrapeQuiescer struct {
 
 func (q *scrapeQuiescer) Quiesce(_ context.Context, _, _ string) error { return nil }
 
+func (q *scrapeQuiescer) CheckPod(context.Context, string, string, string) error { return nil }
+func (q *scrapeQuiescer) QuiescePod(ctx context.Context, namespace, server, _ string) error {
+	return q.Quiesce(ctx, namespace, server)
+}
+func (q *scrapeQuiescer) UnquiescePod(ctx context.Context, namespace, server, _ string) error {
+	return q.Unquiesce(ctx, namespace, server)
+}
+
 func (q *scrapeQuiescer) Unquiesce(_ context.Context, _, _ string) error {
 	if q.unquiesceErr != nil {
 		return q.unquiesceErr
@@ -67,7 +75,10 @@ func scrapeScheme(t *testing.T) *runtime.Scheme {
 // matching unquiesce has not run yet.
 func quiescedBackup() *gameplanev1alpha1.Backup {
 	b := scrapeBackup()
-	b.Annotations = map[string]string{annoQuiesceAttempted: "true"}
+	b.Annotations = map[string]string{
+		annoQuiesceAttempted:        "true",
+		backupPreparationAnnotation: `{"outcome":"live","targetUID":"server-uid","workloadUID":"workload-uid","podUID":"game-pod-uid"}`,
+	}
 	return b
 }
 

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -110,27 +111,51 @@ func TestAPI_OwnerOnlyServerOperations_RequireOwnerOrAdmin(t *testing.T) {
 		}
 	})
 
+	// Creation starts controller writes that can invalidate the API's
+	// resourceVersion delete precondition. Only retry an explicit conflict,
+	// through a fresh request that must pass authorization again.
+	deleteServer := func(t *testing.T, cli *APIClient, name string) {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(t.Context(), time.Minute)
+		defer cancel()
+		servers := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns)
+		created, err := servers.Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			t.Fatalf("get server before DELETE: %v", err)
+		}
+		envInstance.Eventually(t, time.Minute, func() (bool, string) {
+			current, err := servers.Get(ctx, name, metav1.GetOptions{})
+			if err != nil || current.GetUID() != created.GetUID() {
+				t.Fatalf("server identity changed before DELETE: object=%v err=%v", current, err)
+			}
+			resp, body, err := cli.DoContext(ctx, http.MethodDelete, "/servers/"+name+"?namespace="+ns, nil)
+			if err != nil {
+				t.Fatalf("DELETE %s: %v", name, err)
+			}
+			_ = resp.Body.Close()
+			if resp.StatusCode == http.StatusConflict {
+				return false, "DELETE conflicted with a controller update: " + string(body)
+			}
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("DELETE %s: status=%d want=204 body=%s", name, resp.StatusCode, body)
+			}
+			remaining, err := servers.Get(ctx, name, metav1.GetOptions{})
+			if apierrors.IsNotFound(err) {
+				return true, ""
+			}
+			if err != nil || remaining.GetUID() != created.GetUID() || remaining.GetDeletionTimestamp().IsZero() {
+				t.Fatalf("DELETE did not remove or mark the original server for deletion: object=%v err=%v", remaining, err)
+			}
+			return true, ""
+		})
+	}
 	t.Run("operator may delete a server it owns", func(t *testing.T) {
 		createGameServerViaAPI(t, op, ns, opServer, tmpl)
-		resp, body, err := op.Delete("/servers/" + opServer + "?namespace=" + ns)
-		if err != nil {
-			t.Fatalf("operator DELETE own server: %v", err)
-		}
-		defer func() { _ = resp.Body.Close() }()
-		if resp.StatusCode != http.StatusNoContent {
-			t.Errorf("operator DELETE own server: status=%d want=204 body=%s", resp.StatusCode, string(body))
-		}
+		deleteServer(t, op, opServer)
 	})
 
 	t.Run("admin may delete a server it does not own", func(t *testing.T) {
 		createGameServerViaAPI(t, op, ns, opServer2, tmpl)
-		resp, body, err := admin.Delete("/servers/" + opServer2 + "?namespace=" + ns)
-		if err != nil {
-			t.Fatalf("admin DELETE operator's server: %v", err)
-		}
-		defer func() { _ = resp.Body.Close() }()
-		if resp.StatusCode != http.StatusNoContent {
-			t.Errorf("admin DELETE operator's server: status=%d want=204 body=%s", resp.StatusCode, string(body))
-		}
+		deleteServer(t, admin, opServer2)
 	})
 }

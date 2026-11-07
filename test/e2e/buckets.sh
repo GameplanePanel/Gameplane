@@ -63,6 +63,7 @@ TestGameServer_TemplateDefaultOverridesInstallTime
 TestGameServer_ExplicitStorageClassOverridesDefault
 TestGameServer_NonexistentStorageClassSurfacesError
 TestGameServer_VersionSwitch
+TestGameServer_TemplateOnRequestRetainsData
 TestGameServer_WipeReportsFailureOnPermissionDenied
 TestGameServer_CascadingDelete
 TestGameServer_TunnelCredentialRefusalSurfaced
@@ -84,6 +85,7 @@ TestModuleSourceUpload
 TestModule_ScaffoldAndPackage
 TestModule_SteamcmdScaffoldKeepsNonRootSecurity
 TestBackup_OperatorMaterializesJob
+TestBackup_StoppedCopiesRemainRestorable
 TestBackup_FailsOnMissingPVC
 TestBackup_FailsOnBadCredentials
 TestBackup_DeleteForgetsSnapshot
@@ -108,6 +110,7 @@ TestAddressPool_PoolExhausted
 TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions
 TestAPI_I18n_LanguagePref
 TestAPI_I18n_NotifyLanguage
+TestAPI_I18n_NotifyTestSendRateLimit
 TestAPI_I18n_InstanceDefault
 TestE2E_ResticRepoReady
 TestCISelection_AgentOnlyChange
@@ -126,6 +129,7 @@ EOF
 bucket_api_auth() { cat <<'EOF'
 TestAPI_BootstrapAndLogin
 TestAPI_LoginPrivacy
+TestAPI_LoginTransportRefusalClassification
 TestAPI_DynamicAuthProviders
 TestAPI_AuditEmitsOnMutation
 TestAPI_AuditPaginationAndFilter
@@ -410,6 +414,12 @@ TestAPIClient_ExtractIntField
 EOF
 }
 
+# Dedicated release: enables real PSA enforcement and privileged diagnostics.
+bucket_restricted_workloads() { cat <<'EOF'
+TestRestrictedWorkloads_NodeCaptureAndTokenRotation
+EOF
+}
+
 # capture-overhead is kept OUT of bot-fast on purpose: bot-fast's matrix legs
 # are blocking, while this bucket feeds the non-blocking e2e-capture-overhead
 # job (continue-on-error, never blocks a merge — spec 007 OD-1) and runs only
@@ -428,10 +438,15 @@ TestManagementPlacementAndDisruption
 EOF
 }
 
+bucket_backup_preparation() { cat <<'EOF'
+TestBackup_PreparationAndSameNodeCopy
+EOF
+}
+
 unbucketed() { :; }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components management-placement recovery
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads management-placement backup-preparation recovery
 }
 
 list_bucket() {
@@ -451,7 +466,9 @@ list_bucket() {
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;
+	restricted-workloads) bucket_restricted_workloads ;;
 	management-placement) bucket_management_placement ;;
+	backup-preparation) bucket_backup_preparation ;;
 	recovery) bucket_recovery ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2

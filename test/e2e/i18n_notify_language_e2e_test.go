@@ -5,12 +5,17 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -21,6 +26,151 @@ import (
 // (T092), which changes it. Both hold the lock for their whole body and
 // restore the default before releasing it.
 var i18nInstanceDefaultMu sync.Mutex
+
+// i18nNotifyTestSend retries only requests rejected before delivery by the
+// notification test limiter. Its delta-seconds Retry-After must elapse before
+// another send; the caller's context bounds both requests and the wait.
+func i18nNotifyTestSend(ctx context.Context, admin *APIClient, sink string) (*http.Response, []byte, error) {
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, err
+		}
+		resp, body, err := admin.DoContext(ctx, http.MethodPost,
+			"/admin/notifications/sinks/"+sink+"/test", nil)
+		if err != nil || resp.StatusCode != http.StatusTooManyRequests {
+			return resp, body, err
+		}
+		seconds, err := strconv.ParseInt(resp.Header.Get("Retry-After"), 10, 32)
+		if err != nil {
+			return resp, body, fmt.Errorf("notify test %s: parse Retry-After %q: %w", sink, resp.Header.Get("Retry-After"), err)
+		}
+		if seconds <= 0 {
+			return resp, body, fmt.Errorf("notify test %s: Retry-After must be positive, got %q", sink, resp.Header.Get("Retry-After"))
+		}
+		timer := time.NewTimer(time.Duration(seconds) * time.Second)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return resp, body, ctx.Err()
+		case <-timer.C:
+		}
+	}
+}
+
+func TestAPI_I18n_NotifyTestSendRateLimit(t *testing.T) {
+	t.Parallel()
+	t.Run("honors retry after", func(t *testing.T) {
+		var calls atomic.Int32
+		var rejectedAt atomic.Int64
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			if calls.Add(1) == 1 {
+				rejectedAt.Store(time.Now().UnixNano())
+				w.Header().Set("Retry-After", "1")
+				w.WriteHeader(http.StatusTooManyRequests)
+				return
+			}
+			if time.Since(time.Unix(0, rejectedAt.Load())) < time.Second {
+				t.Error("retried before Retry-After elapsed")
+			}
+			_, _ = io.WriteString(w, `{"delivered":true}`)
+		}))
+		defer server.Close()
+		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+		defer cancel()
+		resp, body, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: server.Client()}, "test")
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
+		if err != nil || resp.StatusCode != http.StatusOK || string(body) != `{"delivered":true}` || calls.Load() != 2 {
+			t.Fatalf("send: response=%v body=%s calls=%d err=%v", resp, body, calls.Load(), err)
+		}
+	})
+	t.Run("cancels retry wait", func(t *testing.T) {
+		var calls atomic.Int32
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			calls.Add(1)
+			w.Header().Set("Retry-After", "30")
+			w.WriteHeader(http.StatusTooManyRequests)
+		}))
+		defer server.Close()
+		// APIClient closes the consumed response before returning it. Cancel
+		// there so the retry wait, rather than the HTTP transport, sees it.
+		client := server.Client()
+		client.Transport = i18nNotifyCancelTransport{base: client.Transport, cancel: cancel}
+		type sendResult struct {
+			resp *http.Response
+			err  error
+		}
+		done := make(chan sendResult, 1)
+		go func() {
+			resp, _, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: client}, "test")
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
+			done <- sendResult{resp: resp, err: err}
+		}()
+		deadline := time.NewTimer(5 * time.Second)
+		defer deadline.Stop()
+		var result sendResult
+		select {
+		case result = <-done:
+		case <-deadline.C:
+			t.Fatal("canceled retry wait did not finish within 5 seconds")
+		}
+		if result.resp == nil || result.resp.StatusCode != http.StatusTooManyRequests || !errors.Is(result.err, context.Canceled) || calls.Load() != 1 {
+			t.Fatalf("canceled send: response=%v calls=%d err=%v", result.resp, calls.Load(), result.err)
+		}
+	})
+	for _, status := range []int{http.StatusBadGateway, http.StatusTooManyRequests} {
+		t.Run(strconv.Itoa(status), func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				calls.Add(1)
+				w.WriteHeader(status)
+				_, _ = io.WriteString(w, "rejected")
+			}))
+			defer server.Close()
+			ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+			defer cancel()
+			resp, body, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: server.Client()}, "test")
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
+			if resp == nil || resp.StatusCode != status || string(body) != "rejected" || calls.Load() != 1 {
+				t.Fatalf("send: response=%v body=%s calls=%d err=%v", resp, body, calls.Load(), err)
+			}
+			if (err != nil) != (status == http.StatusTooManyRequests) {
+				t.Fatalf("unexpected error for status %d: %v", status, err)
+			}
+		})
+	}
+}
+
+type i18nNotifyCancelTransport struct {
+	base   http.RoundTripper
+	cancel context.CancelFunc
+}
+
+func (c i18nNotifyCancelTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := c.base.RoundTrip(req)
+	if err == nil {
+		resp.Body = i18nNotifyCancelBody{ReadCloser: resp.Body, cancel: c.cancel}
+	}
+	return resp, err
+}
+
+type i18nNotifyCancelBody struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (c i18nNotifyCancelBody) Close() error {
+	err := c.ReadCloser.Close()
+	c.cancel()
+	return err
+}
 
 // i18nAuthLocale reads the unauthenticated GET /auth/locale through a
 // port-forward to the API and returns its defaultLanguage. The endpoint
@@ -160,8 +310,8 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	i18nInstanceDefaultMu.Lock()
 	defer i18nInstanceDefaultMu.Unlock()
 
-	// Receiver: a hard gate. The rollout waits for the TCP readiness probe, so
-	// the test-send cannot race the receiver's startup.
+	// The rollout proves the receiver is listening. The API-to-Service CGI
+	// readiness send below also gates DNS, endpoint routing, and body handling.
 	fixture, err := filepath.Abs(filepath.Join("fixtures", "notify-sink.yaml"))
 	if err != nil {
 		t.Fatalf("resolve notify-sink fixture: %v", err)
@@ -171,6 +321,29 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
 		_, _ = envInstance.Kubectl(ctx, "delete", "-f", fixture, "--ignore-not-found")
+	})
+	// Cleanup runs in reverse registration order, so retain receiver evidence
+	// before deleting it. t.Context() is already canceled when cleanups run.
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+		defer cancel()
+		commands := [][]string{
+			{"get", "pods", "-o", "wide"},
+			{"get", "service", "e2e-notify-sink", "-o", "yaml"},
+			{"get", "endpointslices", "-l", "kubernetes.io/service-name=e2e-notify-sink", "-o", "yaml"},
+			{"describe", "pods", "-l", "app.kubernetes.io/name=e2e-notify-sink"},
+			{"logs", "deploy/e2e-notify-sink", "--all-containers=true", "--tail=100"},
+			{"exec", "deploy/e2e-notify-sink", "--", "sh", "-c", `for file in /tmp/requests.log /tmp/hooks.log; do printf '\n%s\n' "$file"; cat "$file"; done`},
+		}
+		for _, args := range commands {
+			commandCtx, stop := context.WithTimeout(ctx, 7*time.Second)
+			out, err := envInstance.Kubectl(commandCtx, append([]string{"-n", "gameplane-system"}, args...)...)
+			stop()
+			t.Logf("notify sink diagnostics %v: %v\n%s", args, err, out)
+		}
 	})
 	if out, err := envInstance.Kubectl(t.Context(), "rollout", "status", "-n", "gameplane-system",
 		"deploy/e2e-notify-sink", "--timeout=2m"); err != nil {
@@ -190,11 +363,14 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 		}
 	}()
 
-	sinks := []struct{ name, query string }{
+	type sinkTarget struct{ name, query string }
+	sinks := []sinkTarget{
 		{"e2e-notify-fr", "sink=fr"},
 		{"e2e-notify-default", "sink=default"},
 	}
-	for _, s := range sinks {
+	readinessSink := sinkTarget{"e2e-notify-readiness", "probe=readiness"}
+	configuredSinks := append([]sinkTarget{readinessSink}, sinks...)
+	for _, s := range configuredSinks {
 		name := s.name
 		defer func() {
 			r, _, _ := admin.Delete("/admin/notifications/sinks/" + name + "/secret")
@@ -205,7 +381,7 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	}
 
 	// Secrets hold each sink's URL; configRef must name the returned Secret.
-	for _, s := range sinks {
+	for _, s := range configuredSinks {
 		url := fmt.Sprintf("http://e2e-notify-sink.gameplane-system.svc.cluster.local:8080/cgi-bin/hook?%s", s.query)
 		resp, body, err := admin.Do(http.MethodPut, "/admin/notifications/sinks/"+s.name+"/secret",
 			map[string]string{"kind": "webhook", "url": url, "authorization": ""})
@@ -231,9 +407,12 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	}
 
 	// The fr sink names French explicitly; the default sink omits language.
-	// Both stay disabled so the notifier never delivers real events here.
+	// All stay disabled so the notifier never delivers real events here. The
+	// readiness sink uses French too, exercising the same UTF-8 body path.
 	resp, body, err := admin.Do(http.MethodPut, "/admin/config/notifications", map[string]any{
 		"sinks": []map[string]any{
+			{"name": readinessSink.name, "kind": "webhook", "enabled": false,
+				"configRef": "gameplane-notify-" + readinessSink.name, "language": "fr"},
 			{"name": "e2e-notify-fr", "kind": "webhook", "enabled": false,
 				"configRef": "gameplane-notify-e2e-notify-fr", "language": "fr"},
 			{"name": "e2e-notify-default", "kind": "webhook", "enabled": false,
@@ -259,14 +438,57 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 		t.Fatalf("instance default language = %q, want en before the test-send", defaultTag)
 	}
 
+	// Establish the exact API -> Service -> CGI POST path before measuring the
+	// language contract. A probe may be delivered despite a lost response, so
+	// its distinct query cannot satisfy either language assertion below.
+	// Failed readiness deliveries also consume the shared test-send bucket.
+	// Allow its advertised 30-second cooldown within each bounded send budget.
+	const sendBudget = time.Minute
+	readinessCtx, cancelReadiness := context.WithTimeout(t.Context(), sendBudget)
+	defer cancelReadiness()
+	readinessAttempts := 0
+	envInstance.Eventually(t, sendBudget, func() (bool, string) {
+		readinessAttempts++
+		resp, b, err := i18nNotifyTestSend(readinessCtx, admin, readinessSink.name)
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
+		if err != nil {
+			var networkErr net.Error
+			if readinessCtx.Err() != nil || !errors.As(err, &networkErr) {
+				t.Fatalf("notify sink readiness request: %v", err)
+			}
+			t.Logf("notify sink readiness attempt %d: %v", readinessAttempts, err)
+			return false, fmt.Sprintf("notify sink readiness request: %v", err)
+		}
+		if resp.StatusCode == http.StatusBadGateway &&
+			(strings.Contains(string(b), "connection refused") || strings.Contains(string(b), "context deadline exceeded")) {
+			t.Logf("notify sink readiness attempt %d: %s", readinessAttempts, b)
+			return false, fmt.Sprintf("notify sink readiness: %s", b)
+		}
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("notify sink readiness: status=%d body=%s", resp.StatusCode, b)
+		}
+		var delivered struct {
+			Delivered bool `json:"delivered"`
+		}
+		if err := json.Unmarshal(b, &delivered); err != nil || !delivered.Delivered {
+			t.Fatalf("notify sink readiness: delivered not true; body=%s", b)
+		}
+		return true, ""
+	})
+	cancelReadiness()
+
 	for _, s := range sinks {
 		// A ready pod can still refuse connections on its Service IP for a
-		// moment while kube-proxy programs the new endpoint, so only that
-		// refusal is retried. A refused send reaches no receiver, so it adds
-		// no log line.
+		// moment while kube-proxy programs the new endpoint. Apart from the
+		// limiter's pre-delivery 429, only that refusal is retried. A refused
+		// send reaches no receiver, so it adds no log line.
+		sendCtx, cancelSend := context.WithTimeout(t.Context(), sendBudget)
+		defer cancelSend()
 		var body []byte
-		envInstance.Eventually(t, 30*time.Second, func() (bool, string) {
-			resp, b, err := admin.Post("/admin/notifications/sinks/"+s.name+"/test", nil)
+		envInstance.Eventually(t, sendBudget, func() (bool, string) {
+			resp, b, err := i18nNotifyTestSend(sendCtx, admin, s.name)
 			if resp != nil {
 				_ = resp.Body.Close()
 			}
@@ -282,6 +504,7 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 			body = b
 			return true, ""
 		})
+		cancelSend()
 		var delivered struct {
 			Delivered bool `json:"delivered"`
 		}

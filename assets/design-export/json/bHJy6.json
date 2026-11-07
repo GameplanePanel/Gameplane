@@ -1,0 +1,273 @@
+{
+  "type": "frame",
+  "id": "bHJy6",
+  "x": 2276,
+  "y": 4461,
+  "name": "Gameplane/Backup Volume Coverage — Recorded",
+  "reusable": true,
+  "width": 400,
+  "fill": "$surface/surface",
+  "layout": "vertical",
+  "gap": 4,
+  "children": [
+    {
+      "type": "text",
+      "id": "r8Owu",
+      "name": "Coverage label",
+      "fill": "$muted",
+      "content": "VOLUME COVERAGE",
+      "lineHeight": 1.333333,
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 12,
+      "fontWeight": "normal",
+      "letterSpacing": 0.5
+    },
+    {
+      "type": "frame",
+      "id": "mfHN5",
+      "name": "Recorded capture manifest",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 12,
+      "children": [
+        {
+          "type": "text",
+          "id": "Z5aM17",
+          "name": "Capture recorded at",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Recorded: 2026-07-13T00:12:04Z",
+          "lineHeight": 1.333333,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "etbdz",
+          "name": "Coverage scope",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Only the primary data claim is copied. Rebuildable is a declaration, not proof that recovery can reconstruct its contents.",
+          "lineHeight": 1.333333,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "zLDqu",
+          "name": "Captured volume inventory",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "jgV6n",
+              "name": "Volume game-data",
+              "width": "fill_container",
+              "cornerRadius": 4,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 4,
+              "padding": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "F0Qiz",
+                  "name": "Claim name",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "game-data",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "b4aDFu",
+                  "name": "Coverage result",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Included",
+                  "lineHeight": 1.428571,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "pq4ts",
+                  "name": "Volume classification",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Data",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "fM4kj",
+                  "name": "Mount path",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "/world",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DTQiV",
+              "name": "Volume game-extra-install",
+              "width": "fill_container",
+              "cornerRadius": 4,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 4,
+              "padding": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MiYbU",
+                  "name": "Claim name",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "game-extra-install",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "GhJX5",
+                  "name": "Coverage result",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Not covered",
+                  "lineHeight": 1.428571,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ektuq",
+                  "name": "Volume classification",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Rebuildable",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "HGTOq",
+                  "name": "Mount path",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "/serverfiles",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VdVDP",
+              "name": "Volume game-mods",
+              "width": "fill_container",
+              "cornerRadius": 4,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 4,
+              "padding": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Xox0R",
+                  "name": "Claim name",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "game-mods",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Iarhd",
+                  "name": "Coverage result",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Not covered",
+                  "lineHeight": 1.428571,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "xtjIY",
+                  "name": "Volume classification",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Unclassified",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "o9BwkI",
+                  "name": "Mount path",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "/world/mods",
+                  "lineHeight": 1.333333,
+                  "fontFamily": "$typography/font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

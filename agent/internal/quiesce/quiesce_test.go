@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/target"
 )
 
 type fakeRcon struct {
@@ -84,6 +85,33 @@ func newTestRouter(rc Rcon, spec *caps.Quiesce) *chi.Mux {
 	r := chi.NewRouter()
 	Mount(r, rc, "testgame", spec)
 	return r
+}
+
+func TestPodBoundRoutesRejectReplacementBeforeRCON(t *testing.T) {
+	for _, actual := range []string{"original", "replacement", ""} {
+		t.Run("pod="+actual, func(t *testing.T) {
+			rc := &fakeRcon{}
+			r := chi.NewRouter()
+			r.Route("/v1/pods/{uid}", func(bound chi.Router) {
+				bound.Use(target.Guard(actual))
+				Mount(bound, rc, "test", minecraftQuiesceSpec())
+			})
+			for _, path := range []string{"quiesce", "unquiesce"} {
+				response := httptest.NewRecorder()
+				r.ServeHTTP(response, httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/pods/original/"+path, nil))
+				if actual == "original" {
+					if response.Code != http.StatusOK {
+						t.Fatalf("matching process rejected: %d", response.Code)
+					}
+				} else if response.Code != http.StatusNotFound {
+					t.Fatalf("wrong process admitted: %d", response.Code)
+				}
+			}
+			if (len(rc.calls()) > 0) != (actual == "original") {
+				t.Fatalf("commands reached wrong process: %v", rc.calls())
+			}
+		})
+	}
 }
 
 func decodeResponse(t *testing.T, body []byte) response {

@@ -699,10 +699,10 @@ func TestFinalizeSnapshot_AbandonsWhenNamespaceTerminating(t *testing.T) {
 func TestFinalizeDelete_UnquiesceRunsBeforeSnapshotStage(t *testing.T) {
 	b := forgetBackup()
 	b.Finalizers = []string{gameplanev1alpha1.BackupFinalizer, gameplanev1alpha1.BackupSnapshotFinalizer}
-	b.Annotations = map[string]string{annoQuiesceAttempted: "true"}
+	b.Annotations = quiescedBackup().Annotations
 	b.Spec.ServerRef.Name = "gs1"
 	gs := &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{Name: "gs1", Namespace: "ns"}}
-	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: "ns"}}
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: "ns", UID: "game-pod-uid"}}
 
 	r, _ := newForgetReconciler(t, b, forgetRepoSecret(), gs, pod)
 	q := &scrapeQuiescer{unquiesceErr: context.DeadlineExceeded}
