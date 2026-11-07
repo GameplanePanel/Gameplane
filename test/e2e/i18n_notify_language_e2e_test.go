@@ -10,9 +10,12 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -23,6 +26,142 @@ import (
 // (T092), which changes it. Both hold the lock for their whole body and
 // restore the default before releasing it.
 var i18nInstanceDefaultMu sync.Mutex
+
+// i18nNotifyTestSend retries only requests rejected before delivery by the
+// notification test limiter. Its delta-seconds Retry-After must elapse before
+// another send; the caller's context bounds both requests and the wait.
+func i18nNotifyTestSend(ctx context.Context, admin *APIClient, sink string) (*http.Response, []byte, error) {
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, err
+		}
+		resp, body, err := admin.DoContext(ctx, http.MethodPost,
+			"/admin/notifications/sinks/"+sink+"/test", nil)
+		if err != nil || resp.StatusCode != http.StatusTooManyRequests {
+			return resp, body, err
+		}
+		seconds, err := strconv.ParseInt(resp.Header.Get("Retry-After"), 10, 32)
+		if err != nil {
+			return resp, body, fmt.Errorf("notify test %s: parse Retry-After %q: %w", sink, resp.Header.Get("Retry-After"), err)
+		}
+		if seconds <= 0 {
+			return resp, body, fmt.Errorf("notify test %s: Retry-After must be positive, got %q", sink, resp.Header.Get("Retry-After"))
+		}
+		timer := time.NewTimer(time.Duration(seconds) * time.Second)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return resp, body, ctx.Err()
+		case <-timer.C:
+		}
+	}
+}
+
+func TestI18nNotifyTestSendRateLimit(t *testing.T) {
+	t.Parallel()
+	t.Run("honors retry after", func(t *testing.T) {
+		var calls atomic.Int32
+		var rejectedAt atomic.Int64
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if calls.Add(1) == 1 {
+				rejectedAt.Store(time.Now().UnixNano())
+				w.Header().Set("Retry-After", "1")
+				w.WriteHeader(http.StatusTooManyRequests)
+				return
+			}
+			if time.Since(time.Unix(0, rejectedAt.Load())) < time.Second {
+				t.Error("retried before Retry-After elapsed")
+			}
+			_, _ = io.WriteString(w, `{"delivered":true}`)
+		}))
+		defer server.Close()
+		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+		defer cancel()
+		resp, body, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: server.Client()}, "test")
+		if err != nil || resp.StatusCode != http.StatusOK || string(body) != `{"delivered":true}` || calls.Load() != 2 {
+			t.Fatalf("send: response=%v body=%s calls=%d err=%v", resp, body, calls.Load(), err)
+		}
+	})
+	t.Run("cancels retry wait", func(t *testing.T) {
+		var calls atomic.Int32
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			calls.Add(1)
+			w.Header().Set("Retry-After", "30")
+			w.WriteHeader(http.StatusTooManyRequests)
+		}))
+		defer server.Close()
+		// APIClient closes the consumed response before returning it. Cancel
+		// there so the retry wait, rather than the HTTP transport, sees it.
+		client := server.Client()
+		client.Transport = i18nNotifyCancelTransport{base: client.Transport, cancel: cancel}
+		type sendResult struct {
+			resp *http.Response
+			err  error
+		}
+		done := make(chan sendResult, 1)
+		go func() {
+			resp, _, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: client}, "test")
+			done <- sendResult{resp: resp, err: err}
+		}()
+		deadline := time.NewTimer(5 * time.Second)
+		defer deadline.Stop()
+		var result sendResult
+		select {
+		case result = <-done:
+		case <-deadline.C:
+			t.Fatal("canceled retry wait did not finish within 5 seconds")
+		}
+		if result.resp == nil || result.resp.StatusCode != http.StatusTooManyRequests || !errors.Is(result.err, context.Canceled) || calls.Load() != 1 {
+			t.Fatalf("canceled send: response=%v calls=%d err=%v", result.resp, calls.Load(), result.err)
+		}
+	})
+	for _, status := range []int{http.StatusBadGateway, http.StatusTooManyRequests} {
+		t.Run(strconv.Itoa(status), func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				w.WriteHeader(status)
+				_, _ = io.WriteString(w, "rejected")
+			}))
+			defer server.Close()
+			ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+			defer cancel()
+			resp, body, err := i18nNotifyTestSend(ctx, &APIClient{BaseURL: server.URL, HTTP: server.Client()}, "test")
+			if resp == nil || resp.StatusCode != status || string(body) != "rejected" || calls.Load() != 1 {
+				t.Fatalf("send: response=%v body=%s calls=%d err=%v", resp, body, calls.Load(), err)
+			}
+			if (err != nil) != (status == http.StatusTooManyRequests) {
+				t.Fatalf("unexpected error for status %d: %v", status, err)
+			}
+		})
+	}
+}
+
+type i18nNotifyCancelTransport struct {
+	base   http.RoundTripper
+	cancel context.CancelFunc
+}
+
+func (c i18nNotifyCancelTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := c.base.RoundTrip(req)
+	if err == nil {
+		resp.Body = i18nNotifyCancelBody{ReadCloser: resp.Body, cancel: c.cancel}
+	}
+	return resp, err
+}
+
+type i18nNotifyCancelBody struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (c i18nNotifyCancelBody) Close() error {
+	err := c.ReadCloser.Close()
+	c.cancel()
+	return err
+}
 
 // i18nAuthLocale reads the unauthenticated GET /auth/locale through a
 // port-forward to the API and returns its defaultLanguage. The endpoint
@@ -293,19 +432,21 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 	// Establish the exact API -> Service -> CGI POST path before measuring the
 	// language contract. A probe may be delivered despite a lost response, so
 	// its distinct query cannot satisfy either language assertion below.
-	readinessCtx, cancelReadiness := context.WithTimeout(t.Context(), 30*time.Second)
+	// Failed readiness deliveries also consume the shared test-send bucket.
+	// Allow its advertised 30-second cooldown within each bounded send budget.
+	const sendBudget = time.Minute
+	readinessCtx, cancelReadiness := context.WithTimeout(t.Context(), sendBudget)
 	defer cancelReadiness()
 	readinessAttempts := 0
-	envInstance.Eventually(t, 30*time.Second, func() (bool, string) {
+	envInstance.Eventually(t, sendBudget, func() (bool, string) {
 		readinessAttempts++
-		resp, b, err := admin.DoContext(readinessCtx, http.MethodPost,
-			"/admin/notifications/sinks/"+readinessSink.name+"/test", nil)
+		resp, b, err := i18nNotifyTestSend(readinessCtx, admin, readinessSink.name)
 		if resp != nil {
 			_ = resp.Body.Close()
 		}
 		if err != nil {
 			var networkErr net.Error
-			if !errors.As(err, &networkErr) {
+			if readinessCtx.Err() != nil || !errors.As(err, &networkErr) {
 				t.Fatalf("notify sink readiness request: %v", err)
 			}
 			t.Logf("notify sink readiness attempt %d: %v", readinessAttempts, err)
@@ -331,12 +472,14 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 
 	for _, s := range sinks {
 		// A ready pod can still refuse connections on its Service IP for a
-		// moment while kube-proxy programs the new endpoint, so only that
-		// refusal is retried. A refused send reaches no receiver, so it adds
-		// no log line.
+		// moment while kube-proxy programs the new endpoint. Apart from the
+		// limiter's pre-delivery 429, only that refusal is retried. A refused
+		// send reaches no receiver, so it adds no log line.
+		sendCtx, cancelSend := context.WithTimeout(t.Context(), sendBudget)
+		defer cancelSend()
 		var body []byte
-		envInstance.Eventually(t, 30*time.Second, func() (bool, string) {
-			resp, b, err := admin.Post("/admin/notifications/sinks/"+s.name+"/test", nil)
+		envInstance.Eventually(t, sendBudget, func() (bool, string) {
+			resp, b, err := i18nNotifyTestSend(sendCtx, admin, s.name)
 			if resp != nil {
 				_ = resp.Body.Close()
 			}
@@ -352,6 +495,7 @@ func TestAPI_I18n_NotifyLanguage(t *testing.T) {
 			body = b
 			return true, ""
 		})
+		cancelSend()
 		var delivered struct {
 			Delivered bool `json:"delivered"`
 		}
