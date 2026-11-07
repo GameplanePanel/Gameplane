@@ -23,6 +23,12 @@ override that the dashboard exposes in an "Advanced" section.
 The "security settings" in this spec are the three values the template already
 supports: **run-as user**, **run-as group** and **filesystem group**.
 
+## Clarifications
+
+### Session 2026-11-07
+
+- Q: Can a module lock its security values so servers can't override them? → A: No lock. A module can mark any of its security values as risky to override; overriding a risky value stays allowed but needs an extra confirmation.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Server uses the module's security defaults (Priority: P1)
@@ -138,8 +144,8 @@ carrying overrides is refused; as a user with it, confirm both work.
 
 - A module sets only the filesystem group (Palworld, whose image must start as root
   to drop privileges): an override of run-as user on such a server would break the
-  image's own privilege drop. The Advanced section shows the module's own note (if
-  any) and a warning that the module expects the image's default user.
+  image's own privilege drop. Such a module marks run-as user as risky (FR-006a), so
+  overriding it needs the extra confirmation with the module's reason.
 - An override sets the filesystem group but not the run-as user: allowed; it only
   changes which group the data volume is shared with.
 - A server is restored from a backup made under different security settings: the
@@ -178,6 +184,10 @@ carrying overrides is refused; as a user with it, confirm both work.
   audited.
 - **FR-006**: The create-server wizard MUST offer a collapsed "Advanced" section that
   shows, per setting, the module default and an optional override.
+- **FR-006a**: A module MUST be able to mark each of its security values as risky to
+  override, with an optional short reason. Overriding a risky value (in the wizard or
+  on the settings page) MUST stay allowed for `servers:security` holders but MUST need
+  an extra confirmation that shows the module's reason. Modules cannot lock a value.
 - **FR-007**: The server settings page MUST offer the same Advanced section for an
   existing server, with a warning before saving a change to the run-as user or group
   of a server that already has data.
@@ -200,13 +210,15 @@ carrying overrides is refused; as a user with it, confirm both work.
   existing fixed security settings regardless of overrides.
 - **FR-013**: The module authoring docs MUST explain that the template's security
   block is now a default that server owners can override, and when a module author
-  should say so in the module README (for example "must start as root").
+  should mark a value as risky to override and give a reason (for example "image
+  must start as root").
 - **FR-014**: All new dashboard text MUST go through the shared language packs.
 
 ### Key Entities
 
 - **Module security defaults**: the three optional numeric values a game template
-  declares today. Unchanged by this feature, but now described as defaults.
+  declares today, now described as defaults, plus an optional per-value "risky to
+  override" flag with a short reason.
 - **Server security override**: per server, for each of the three settings, either
   absent, a numeric id, or "use image default". Owned by the server, survives module
   upgrades and reinstalls.
