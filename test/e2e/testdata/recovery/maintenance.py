@@ -4,9 +4,10 @@ The API must be stopped for backup/loss/restore. No key is mounted here. Output
 contains only counts, timestamps and digests, never rows, credentials or tokens.
 """
 import datetime
-from contextlib import closing
+from contextlib import closing, contextmanager
 import hashlib
 import json
+import os
 import pathlib
 import secrets
 import sqlite3
@@ -25,6 +26,22 @@ def digest(path):
 
 def readonly(path):
     return sqlite3.connect("file:" + str(path) + "?mode=ro", uri=True)
+
+
+@contextmanager
+def private_database(path):
+    previous_umask = os.umask(0o077)
+    try:
+        # Reject existing files atomically: umask cannot tighten their modes.
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        os.close(fd)
+        with closing(sqlite3.connect(path)) as db:
+            # Check privacy before copying any sensitive rows, including on a
+            # later backup/restore failure. Journals inherit the private mask.
+            assert path.stat().st_mode & 0o077 == 0, "database must be private from creation"
+            yield db
+    finally:
+        os.umask(previous_umask)
 
 
 def inventory(db):
@@ -60,7 +77,7 @@ if op == "seed-api-token":
         result = {"api_tokens": db.execute("SELECT COUNT(*) FROM api_tokens").fetchone()[0]}
 elif op == "backup":
     assert not ARCHIVE.exists(), "archive must not be overwritten"
-    with closing(readonly(DATA)) as source, closing(sqlite3.connect(ARCHIVE)) as dest:
+    with closing(readonly(DATA)) as source, private_database(ARCHIVE) as dest:
         source.backup(dest)
         # Make the archive self-contained; do not retain a destination WAL.
         dest.execute("PRAGMA journal_mode=DELETE")
@@ -75,7 +92,7 @@ elif op == "loss":
 elif op == "restore":
     assert not DATA.exists(), "restore only into the deleted working database"
     before = digest(ARCHIVE)
-    with closing(readonly(ARCHIVE)) as source, closing(sqlite3.connect(DATA)) as dest:
+    with closing(readonly(ARCHIVE)) as source, private_database(DATA) as dest:
         source.backup(dest)
         original = inventory(source)
         assert inventory(dest) == original

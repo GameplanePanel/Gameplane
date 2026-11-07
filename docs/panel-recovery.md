@@ -76,8 +76,9 @@ state and saves through the operational access available during the outage.
    access too. Preserve original audit rows and record recovery actions in a
    separate incident log rather than rewriting the audit chain.
 4. Invalidate restored bearer access according to the recovery policy. The drill
-   deletes all restored `sessions` and `api_tokens`, and sets `share_links.revoked_at`
-   for every active link. Do this offline in one transaction, on the working copy:
+   deletes all restored `sessions`, clears the reserved `api_tokens` table, and
+   sets `share_links.revoked_at` for every active link. Do this offline in one
+   transaction, on the working copy:
 
    ```sql
    BEGIN;
@@ -90,7 +91,8 @@ state and saves through the operational access available during the outage.
 
    Replace the timestamp placeholder before execution. Retain the archive as
    evidence, protect access to it, and tell users that they must log in again and
-   recreate shares/tokens. Do not run cleanup against the evidence archive.
+   recreate shares. API-token issuance is not implemented; `api_tokens` is reserved.
+   Do not run cleanup against the evidence archive.
 5. Mount the original standalone management key read-only from separate custody.
    For standalone recovery, start with `--panel-key-provisioned` and set
    `--panel-key-file` to that mounted original key; this prevents startup from

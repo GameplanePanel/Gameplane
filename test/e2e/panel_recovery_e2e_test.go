@@ -266,16 +266,29 @@ func TestPanel_OfflineRecovery(t *testing.T) {
 	if err != nil || !strings.Contains(string(logs), "management encryption key is inactive") {
 		t.Fatal("wrong-key startup did not report the expected inactive-key error (logs withheld)")
 	}
-	f.maintenance("probe-stop")
+	// One budget covers both the stop signal and the exec stream finishing.
+	// t.Context() is canceled only after this function returns.
+	stopCtx, cancelStop := context.WithTimeout(ctx, 30*time.Second)
+	defer cancelStop()
+	stopOutput, stopErr := f.execMaintenance(stopCtx, "probe-stop")
+	var stopResult map[string]any
+	if stopErr != nil || json.Unmarshal([]byte(stopOutput), &stopResult) != nil || stopResult["stopped"] != true {
+		cancelProbe()
+		t.Fatal("wrong-key HTTP monitor stop signal failed")
+	}
 	var probe map[string]any
 	select {
 	case result := <-probeDone:
 		if result.err != nil || json.Unmarshal([]byte(result.output), &probe) != nil {
+			cancelProbe()
 			t.Fatal("wrong-key HTTP monitor failed")
 		}
-	case <-ctx.Done():
+	case <-stopCtx.Done():
+		cancelProbe()
 		t.Fatal("wrong-key HTTP monitor did not stop")
 	}
+	cancelStop()
+	cancelProbe()
 	if probe["responses"] != float64(0) || probe["stopped"] != true || probe["attempts"].(float64) < 1 {
 		t.Fatal("wrong-key process served HTTP or monitor did not finish")
 	}
