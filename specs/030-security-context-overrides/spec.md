@@ -21,13 +21,16 @@ This feature keeps the module's values as the default and adds a per-server
 override that the dashboard exposes in an "Advanced" section.
 
 The "security settings" in this spec are the three values the template already
-supports: **run-as user**, **run-as group** and **filesystem group**.
+supports, **run-as user**, **run-as group** and **filesystem group**, plus a fourth,
+the **volume ownership check**: whether the data volume's group ownership is re-applied
+to every file on each start, or only when the volume's top folder has the wrong group.
 
 ## Clarifications
 
 ### Session 2026-11-07
 
 - Q: Can a module lock its security values so servers can't override them? → A: No lock. A module can mark any of its security values as risky to override; overriding a risky value stays allowed but needs an extra confirmation.
+- Q: Should the Advanced view also control how the volume's group is fixed on start? → A: Yes, as a fourth setting (volume ownership check: "every start" or "only when wrong"), defaulting to the faster "only when wrong".
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -62,7 +65,7 @@ as "module default".
 ### User Story 2 - Override the security settings when creating a server (Priority: P1)
 
 While creating a server, the owner opens an "Advanced" section, sees the module's
-default for each of the three settings, and forces one or more of them to a
+default for each of the four settings, and forces one or more of them to a
 different value (or explicitly clears one so the image's own default applies).
 
 **Why this priority**: This is the core ask: a way to force a different value
@@ -77,7 +80,7 @@ runs as that user while the other two settings keep the module default.
 1. **Given** the create-server wizard, **When** the owner has not opened Advanced,
    **Then** no security values are sent and the module defaults apply.
 2. **Given** the Advanced section, **When** the owner views it, **Then** each of the
-   three settings shows the module default (or "image default" when the module sets
+   four settings shows the module default (or "image default" when the module sets
    none) and an empty override field.
 3. **Given** the owner sets an override for one setting, **When** the server is
    created, **Then** only that setting differs from the module default.
@@ -163,12 +166,19 @@ carrying overrides is refused; as a user with it, confirm both work.
 ### Functional Requirements
 
 - **FR-001**: Modules MUST remain the source of the default security settings
-  (run-as user, run-as group, filesystem group); a server without overrides MUST
-  behave exactly as it does today.
-- **FR-002**: Each server MUST be able to store an override for each of the three
+  (run-as user, run-as group, filesystem group, volume ownership check); a server
+  without overrides MUST run with the same user, group and filesystem group as today.
+  The one intended change is that servers with a filesystem group switch to the
+  faster "only when wrong" ownership check unless their module says otherwise.
+- **FR-002**: Each server MUST be able to store an override for each of the four
   settings independently. Each override is one of: not set (use module default),
   a specific numeric id, or "use image default" (do not apply this setting even if
   the module sets it).
+- **FR-002a**: The volume ownership check MUST have two values: "every start" (all
+  files re-checked on each start) and "only when wrong" (re-checked only when the
+  volume's top folder does not have the filesystem group). When neither the server nor
+  the module sets it, "only when wrong" applies. It only has an effect when a
+  filesystem group applies. Its override is either not set or one of the two values.
 - **FR-003**: The desired value of each setting MUST be the server's override when
   present, otherwise the module default, otherwise nothing (image default). The
   applied value is the one the running game container actually uses; a desired value
@@ -217,9 +227,9 @@ carrying overrides is refused; as a user with it, confirm both work.
 ### Key Entities
 
 - **Module security defaults**: the three optional numeric values a game template
-  declares today, now described as defaults, plus an optional per-value "risky to
+  declares today, now described as defaults, an optional volume ownership check mode, plus an optional per-value "risky to
   override" flag with a short reason.
-- **Server security override**: per server, for each of the three settings, either
+- **Server security override**: per server, for each of the four settings, either
   absent, a numeric id, or "use image default". Owned by the server, survives module
   upgrades and reinstalls.
 - **Desired and applied security settings**: the desired settings combine the module
@@ -237,20 +247,23 @@ carrying overrides is refused; as a user with it, confirm both work.
   change).
 - **SC-002**: A server owner with the permission can force a different run-as user
   on a new server in under 1 minute, without editing or forking the module.
-- **SC-003**: A user without the permission cannot change any of the three settings,
+- **SC-003**: A user without the permission cannot change any of the four settings,
   through the dashboard or the API, in 100% of attempts.
-- **SC-004**: For every server, the dashboard shows each of the three applied values
+- **SC-004**: For every server, the dashboard shows each of the four applied values
   and its source, matching what the game container actually runs with, plus any
   pending value not yet applied.
 - **SC-005**: Every override change appears in the audit log with who, when, before
   and after.
+- **SC-006**: A server with a large world (100,000+ files) and a filesystem group set
+  starts at least as fast as it does today, and with the default "only when wrong"
+  check, a restart with unchanged ownership adds no measurable ownership pass.
 
 ## Assumptions
 
 - "Security group" in the request means the three values the template's security
-  block already supports (run-as user, run-as group, filesystem group). Other
-  container hardening (capabilities, read-only root, privilege escalation, supplemental
-  groups, the filesystem group change policy) is out of scope for this spec.
+  block already supports (run-as user, run-as group, filesystem group) plus the volume
+  ownership check (clarified 2026-11-07). Other container hardening (capabilities,
+  read-only root, privilege escalation, supplemental groups) is out of scope.
 - The override applies to the game container and the pod's filesystem group only,
   matching how the module's values are applied today.
 - The "Advanced" view is a collapsed section inside the existing create-server wizard
