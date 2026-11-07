@@ -152,7 +152,22 @@ func TestInvalidIsolatedTemplateRevokesOnlyOwnedExposure(t *testing.T) {
 				},
 			})
 			r := &GameServerReconciler{Client: cached, APIReader: c, Scheme: s}
-			_, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)})
+			revision, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
+			if err != nil {
+				t.Fatal(err)
+			}
+			gs.Annotations = map[string]string{effectiveTemplateAnnotation: revision}
+			gs.Spec.TemplateRollout = &gameplanev1alpha1.TemplateRolloutSpec{Policy: "OnRequest"}
+			if err := c.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			// A repaired catalog must not bypass validation of the still-invalid
+			// admitted snapshot or preserve its stale exposure.
+			tmpl.Spec.Ports = []gameplanev1alpha1.GamePort{{Name: "game", ContainerPort: 25565, Advertise: true}}
+			if err := c.Update(t.Context(), tmpl); err != nil {
+				t.Fatal(err)
+			}
+			_, err = r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)})
 			if mode == "retryable-delete" && !errors.Is(err, deleteErr) || mode != "retryable-delete" && err != nil {
 				t.Fatalf("cleanup error=%v", err)
 			}

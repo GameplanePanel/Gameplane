@@ -80,13 +80,13 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// the rug out from under us mid-restore.
 	if rs.Status.SnapshotID == "" {
 		var src gameplanev1alpha1.Backup
-		if err := r.Get(ctx, types.NamespacedName{Name: rs.Spec.BackupRef.Name, Namespace: rs.Namespace}, &src); err != nil {
+		if err := r.apiReader().Get(ctx, types.NamespacedName{Name: rs.Spec.BackupRef.Name, Namespace: rs.Namespace}, &src); err != nil {
 			if apierrors.IsNotFound(err) {
 				return r.fail(ctx, &rs, fmt.Sprintf("source backup %q not found", rs.Spec.BackupRef.Name))
 			}
 			return ctrl.Result{}, err
 		}
-		if src.Status.Phase == gameplanev1alpha1.BackupPhaseFailed {
+		if src.Status.Phase == gameplanev1alpha1.BackupPhaseFailed || src.Annotations[backupSnapshotAbortAnnotation] == "true" || src.Annotations[backupCopyAbortAnnotation] != "" {
 			// Terminal: a Failed backup will never grow a snapshotID, so
 			// waiting would leave the Restore Pending forever.
 			return r.fail(ctx, &rs, fmt.Sprintf(
@@ -125,7 +125,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// touch an existing server — they provision a new one seeded from the
 	// CSI snapshot — so they branch off here, before the suspend/Job flow.
 	var src gameplanev1alpha1.Backup
-	if err := r.Get(ctx, types.NamespacedName{Name: rs.Spec.BackupRef.Name, Namespace: rs.Namespace}, &src); err != nil {
+	if err := r.apiReader().Get(ctx, types.NamespacedName{Name: rs.Spec.BackupRef.Name, Namespace: rs.Namespace}, &src); err != nil {
 		if apierrors.IsNotFound(err) {
 			return r.fail(ctx, &rs, fmt.Sprintf("source backup %q disappeared", rs.Spec.BackupRef.Name))
 		}
@@ -135,6 +135,9 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// preparation path checks that binding before awaiting startup, repairing
 	// references and enforcing the deadline on every subsequent reconcile.
 	if src.Spec.Strategy == "volume-snapshot" {
+		if src.Annotations[backupSnapshotAbortAnnotation] == "true" || src.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded || src.Status.SnapshotID != rs.Status.SnapshotID {
+			return r.fail(ctx, &rs, "source CSI capture is no longer valid")
+		}
 		return r.reconcileVolumeSnapshotRestore(ctx, &rs, &src)
 	}
 
@@ -180,12 +183,13 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
-	// A missing template is not fatal: it only refines the FSGroup, and
-	// buildBackupPodSecurityContext falls back to 65532 for a zero template.
-	var tmpl gameplanev1alpha1.GameTemplate
-	if err := r.Get(ctx, types.NamespacedName{Name: gs.Spec.TemplateRef.Name}, &tmpl); err != nil && !apierrors.IsNotFound(err) {
+	// A pinned snapshot is mandatory once established. Legacy targets retain
+	// the historical missing-template fallback for their initial operation.
+	effective, err := effectiveGameTemplate(ctx, r.apiReader(), &gs)
+	if err != nil && (gs.Annotations[effectiveTemplateAnnotation] != "" || !apierrors.IsNotFound(err)) {
 		return ctrl.Result{}, err
 	}
+	tmpl := *effective
 
 	if rs.Status.Phase == gameplanev1alpha1.RestorePhaseSuspending {
 		if gs.Status.Phase != gameplanev1alpha1.GameServerPhaseSuspended &&

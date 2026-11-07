@@ -1259,10 +1259,12 @@ jobs:
         run: python3 charts/tests/check_gateway.py
       - name: standalone panel isolation and persistence chart renders
         run: python3 charts/tests/check_standalone.py
-      - name: auxiliary resources and management placement chart renders
-        run: python3 charts/tests/check_workloads.py
       - name: strict network profile and sentinel policy selectors
         run: python3 charts/tests/check_network_isolation.py
+      - name: workload security chart contract
+        run: python3 charts/tests/check_workload_security.py
+      - name: auxiliary resources and management placement chart renders
+        run: python3 charts/tests/check_workloads.py
       - name: operator Secret namespace permissions and cache configuration
         run: python3 charts/tests/check_operator_secrets.py
       - name: sanity-check rendered manifests
@@ -1833,7 +1835,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # The arm64 job below uses the same steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, management-placement, network-isolation, monitoring]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, network-isolation, management-placement, backup-preparation, monitoring]
         arch: [amd64]
         include:
           - bucket: monitoring
@@ -1849,6 +1851,10 @@ jobs:
             test_timeout: 20m
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
           - bucket: management-placement
+            parallel: 1
+            test_timeout: 15m
+            job_timeout: 60
+          - bucket: backup-preparation
             parallel: 1
             test_timeout: 15m
             job_timeout: 60
@@ -1881,6 +1887,10 @@ jobs:
             parallel: 1
             test_timeout: 35m # lifecycle plus two-GameServer TCP/UDP relay identity, outage and recovery checks
             job_timeout: 75 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: restricted-workloads
+            parallel: 1
+            test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -1909,8 +1919,8 @@ jobs:
       - name: bring up cluster + helm install
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
         env:
-          GAMEPLANE_E2E_PROFILE: ${{ matrix.bucket == 'management-placement' && 'management' || 'default' }}
           GAMEPLANE_E2E_CNI: ${{ (matrix.bucket == 'network-isolation' || matrix.bucket == 'monitoring') && 'cilium' || 'kindnet' }}
+          GAMEPLANE_E2E_PROFILE: ${{ (matrix.bucket == 'management-placement' || matrix.bucket == 'backup-preparation') && 'management' || 'default' }}
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e "$GAMEPLANE_E2E_PROFILE"
       - name: install real monitoring fixture
         if: matrix.bucket == 'monitoring' && env.RUN_REGEX != ''
@@ -1958,7 +1968,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # Mirrors e2e-go's steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads]
         arch: [arm64]
         include:
           - bucket: operator
@@ -1994,6 +2004,10 @@ jobs:
             parallel: 1
             test_timeout: 35m # lifecycle plus two-GameServer TCP/UDP relay identity, outage and recovery checks
             job_timeout: 75 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: restricted-workloads
+            parallel: 1
+            test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -2305,6 +2319,16 @@ jobs:
           install_only: true
       - name: load images
         uses: ./.github/actions/e2e-images
+      - name: free runner disk for Garry's Mod image
+        if: matrix.test == 'TestGameServer_GarrysModBot_Query'
+        # The pre-baked game image exhausts the standard runner while containerd
+        # unpacks it. These unused SDKs and the already-loaded archive share
+        # the node's host filesystem. Keep the real game/protocol test intact.
+        run: |
+          df -h /
+          sudo rm -rf -- /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          rm -f -- "$RUNNER_TEMP/e2e-images/e2e-images.tar"
+          df -h /
       - name: bring up cluster + helm install
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
       - name: run go e2e (game bot)
@@ -2727,8 +2751,8 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement|network-isolation|monitoring) \//.test(n) && n.includes('/ amd64 '),
-              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ arm64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|network-isolation|management-placement|backup-preparation|monitoring) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
               'e2e-upgrade': (n) => n.startsWith('e2e upgrade /') && n.includes('/ amd64 '),
@@ -2880,7 +2904,7 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement|network-isolation|monitoring) \//);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|network-isolation|management-placement|backup-preparation|monitoring) \//);
               if (m) bucketSet.add(m[1]);
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');

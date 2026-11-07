@@ -183,6 +183,15 @@ func TestSentinelIsolationRejectsNoAdvertisedPortsBeforeCreatingWorkloads(t *tes
 	gs.Spec.TemplateRef.Name = tmpl.Name
 	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(gs).WithObjects(gs, tmpl).Build()
 	r := &GameServerReconciler{Client: c, APIReader: c, Scheme: scheme}
+	// Admission is a separate durable transition before template validation.
+	revision, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gs.Annotations = map[string]string{effectiveTemplateAnnotation: revision}
+	if err := c.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}); err != nil {
 		t.Fatal(err)
 	}

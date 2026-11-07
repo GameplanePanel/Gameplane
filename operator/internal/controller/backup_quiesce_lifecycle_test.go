@@ -120,7 +120,7 @@ func TestReconcile_DeleteReleasesQuiescedWorldBeforeFinalizerClears(t *testing.T
 		ObjectMeta: metav1.ObjectMeta{Name: "gs1", Namespace: b.Namespace},
 	}
 	pod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: b.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: b.Namespace, UID: "game-pod-uid"},
 	}
 
 	q := &scrapeQuiescer{unquiesceErr: errors.New("agent unreachable")}
@@ -320,7 +320,7 @@ func TestReconcile_DeleteRetriesWhileTargetStillExists(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "gs1", Namespace: b.Namespace},
 	}
 	pod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: b.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: b.Namespace, UID: "game-pod-uid"},
 	}
 	q := &scrapeQuiescer{unquiesceErr: errors.New("agent unreachable")}
 	r := newScrapeReconcilerWithObjects(t, b, q, gs, pod)
@@ -358,7 +358,7 @@ func TestReconcile_DeleteBoundedRetryReleasesFinalizerAfterMaxAge(t *testing.T) 
 		ObjectMeta: metav1.ObjectMeta{Name: "gs1", Namespace: b.Namespace},
 	}
 	pod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: b.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "gs1-0", Namespace: b.Namespace, UID: "game-pod-uid"},
 	}
 	q := &scrapeQuiescer{unquiesceErr: errors.New("agent unreachable")}
 	r := newScrapeReconcilerWithObjects(t, b, q, gs, pod)
