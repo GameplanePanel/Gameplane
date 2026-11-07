@@ -344,6 +344,8 @@ func TestHostportFenceCleanupRecoversInvalidMetadataWithoutGuessingStrategy(t *t
 		name, raw string
 		restore   *appsv1.StatefulSetUpdateStrategy
 	}{
+		{"empty-annotation", "", nil},
+		{"missing-annotation", "", nil},
 		{"malformed", "malformed fence", nil},
 		{"empty-object", "{}", nil},
 		{"null", "null", nil},
@@ -371,7 +373,10 @@ func TestHostportFenceCleanupRecoversInvalidMetadataWithoutGuessingStrategy(t *t
 					}
 					r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithObjects(gs, hostportIdentityNode("original-node", corev1.ConditionTrue)).Build()
 					ss := hostportStopSet(t, r, gs)
-					ss.Annotations = map[string]string{hostportStopFenceAnnotation: test.raw, "example.invalid/retained": "value"}
+					ss.Annotations = map[string]string{"example.invalid/retained": "value"}
+					if test.name != "missing-annotation" {
+						ss.Annotations[hostportStopFenceAnnotation] = test.raw
+					}
 					current := appsv1.StatefulSetUpdateStrategy{Type: appsv1.OnDeleteStatefulSetStrategyType}
 					ss.Spec.UpdateStrategy = current
 					otherGate := corev1.PodSchedulingGate{Name: "example.invalid/retained"}
@@ -390,7 +395,8 @@ func TestHostportFenceCleanupRecoversInvalidMetadataWithoutGuessingStrategy(t *t
 					if !reflect.DeepEqual(ss.Spec.UpdateStrategy, want) || ss.Spec.Replicas == nil || *ss.Spec.Replicas != replicas {
 						t.Fatalf("cleanup blocked power intent or guessed strategy: %+v", ss.Spec)
 					}
-					if !reflect.DeepEqual(ss.Spec.Template.Spec.SchedulingGates, []corev1.PodSchedulingGate{otherGate}) || ss.Annotations[hostportStopFenceAnnotation] != "" || ss.Annotations["example.invalid/retained"] != "value" {
+					_, fenceRemains := ss.Annotations[hostportStopFenceAnnotation]
+					if !reflect.DeepEqual(ss.Spec.Template.Spec.SchedulingGates, []corev1.PodSchedulingGate{otherGate}) || fenceRemains || ss.Annotations["example.invalid/retained"] != "value" {
 						t.Fatal("cleanup changed unrelated state or retained its fence")
 					}
 				})

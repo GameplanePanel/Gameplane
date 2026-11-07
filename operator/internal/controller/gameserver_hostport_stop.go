@@ -156,9 +156,6 @@ func decodeHostportStopFence(raw string) (hostportStopFence, bool) {
 
 func clearHostportStopFence(ss *appsv1.StatefulSet) {
 	raw := ss.Annotations[hostportStopFenceAnnotation]
-	if raw == "" {
-		return
-	}
 	if fence, valid := decodeHostportStopFence(raw); valid {
 		ss.Spec.UpdateStrategy = fence.Strategy
 	}
