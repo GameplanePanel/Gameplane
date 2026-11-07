@@ -105,7 +105,10 @@ diagnostics never replace an existing `Ready=False` game failure. Pending-listen
 messages omit the endpoint node name until it has been recorded.
 
 A missing or replaced endpoint Node forces the game StatefulSet to zero replicas
-even if a replacement game Pod already exists. A deleting Node with the original
+even if a replacement game Pod already exists. The stop-only path projects the
+live GameServer's explicit lifecycle annotation verbatim, or clears a stale one,
+so admitted rollouts can observe drainage without losing the endpoint fence.
+A deleting Node with the original
 UID permits only its owned original running game Pod to finish a bounded graceful
 stop. Before issuing the stop, the operator durably switches the StatefulSet to
 OnDelete and gates scheduling of replacement Pods, waiting for that generation to

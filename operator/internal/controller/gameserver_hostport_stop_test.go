@@ -282,6 +282,9 @@ func TestHostportDeletingNodeWaitsForCopyOwnerBeforeSaveStop(t *testing.T) {
 			if stopper.calls != 0 || gs.Annotations[stopRequestedAtAnnotation] != "" || *hostportStopSet(t, r, gs).Spec.Replicas != 1 {
 				t.Fatal("endpoint stop RPC overlapped copy/save-off ownership")
 			}
+			if hostportStopSet(t, r, gs).Annotations[lifecycleOperationAnnotation] != gs.Annotations[lifecycleOperationAnnotation] {
+				t.Fatal("fenced copy owner was not projected to the workload")
+			}
 			delete(gs.Annotations, lifecycleOperationAnnotation)
 			if err := r.Update(t.Context(), gs); err != nil {
 				t.Fatal(err)
@@ -291,6 +294,9 @@ func TestHostportDeletingNodeWaitsForCopyOwnerBeforeSaveStop(t *testing.T) {
 			}
 			if stopper.calls != 1 {
 				t.Fatal("copy cleanup did not permit graceful stop")
+			}
+			if _, held := hostportStopSet(t, r, gs).Annotations[lifecycleOperationAnnotation]; held {
+				t.Fatal("endpoint stop retained a released copy owner")
 			}
 		})
 	}

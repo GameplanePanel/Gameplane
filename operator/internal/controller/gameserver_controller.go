@@ -1580,6 +1580,17 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				// of the earlier sentinel plan. Identity loss must also fence
 				// stale wake decisions and lifecycle owners that retain replicas.
 				if ss.ResourceVersion != "" {
+					// Rollout drain checks require this exact live owner even on
+					// the stop-only path. Project metadata without parsing it:
+					// malformed ownership must not prevent identity-loss zero.
+					if value := live.Annotations[lifecycleOperationAnnotation]; value != "" {
+						if ss.Annotations == nil {
+							ss.Annotations = map[string]string{}
+						}
+						ss.Annotations[lifecycleOperationAnnotation] = value
+					} else {
+						delete(ss.Annotations, lifecycleOperationAnnotation)
+					}
 					return r.stopHostportOnDeletingNode(ctx, &live, tmpl, ss)
 				}
 				actualReplicas, replicas = 0, 0
