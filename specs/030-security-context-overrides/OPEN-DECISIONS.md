@@ -2,7 +2,10 @@
 
 Each item stays OPEN until valgul answers that exact question.
 
-## OD-1: Who may set security overrides? (OPEN)
+## OD-1: Who may set security overrides? (SETTLED: B)
+
+**Ruling (valgul, 2026-11-07):** B, a new `servers:security` permission, granted to
+admin by default and to no other built-in role.
 
 - A. Anyone with `servers:write` on that server's namespace.
 - B. A new permission `servers:security`, granted to admin by default and to no other

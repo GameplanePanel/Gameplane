@@ -180,7 +180,8 @@ carrying overrides is refused; as a user with it, confirm both work.
   from the module or from an override.
 - **FR-010**: Setting, changing or removing an override MUST require the permission
   decided in OD-1, enforced by the API, and MUST be recorded in the audit log with
-  before and after values.
+  before and after values. Per OD-1 this is a new namespaced `servers:security`
+  permission, held by the built-in admin role only; admins can add it to other roles.
 - **FR-011**: Backup and restore jobs MUST use the server's effective filesystem
   group, not only the module's.
 - **FR-012**: Helper containers (agent, init steps, sentinel, tunnel) MUST keep their
