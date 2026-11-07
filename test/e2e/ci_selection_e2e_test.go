@@ -22,7 +22,7 @@ import (
 // ciSelectionBuckets mirrors E2E_BUCKETS in hack/ci_scope.py (the e2e-go matrix).
 var ciSelectionBuckets = []string{
 	"operator", "api-auth", "api-roles", "api-rbac", "api-agent", "api-mods",
-	"telemetry", "optional-components", "restricted-workloads", "wake-hostport", "management-placement", "backup-preparation",
+	"telemetry", "optional-components", "restricted-workloads", "wake-hostport", "network-isolation", "management-placement", "backup-preparation", "monitoring",
 }
 
 // ciSelection is the decoded output of one `ci_scope.py e2e` run.

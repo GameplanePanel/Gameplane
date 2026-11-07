@@ -1,0 +1,3 @@
+{{- if and (eq (include "gameplane.operatorEnabled" .) "true") .Values.serviceMonitors.enabled .Values.networkPolicies.enabled (not .Values.serviceMonitors.scrapeNamespaceSelector) (not .Values.serviceMonitors.externallyManagedPolicy) }}
+{{- fail "serviceMonitors.enabled with networkPolicies.enabled requires serviceMonitors.scrapeNamespaceSelector (for example matchLabels: {kubernetes.io/metadata.name: monitoring}); alternatively set serviceMonitors.externallyManagedPolicy=true and supply your own scrape ingress policies" }}
+{{- end }}

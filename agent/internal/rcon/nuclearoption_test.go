@@ -740,7 +740,7 @@ func TestNuclearOptionWriteBodyError(t *testing.T) {
 }
 
 // TestNuclearOptionSetDeadlineError verifies that a failure setting the
-// response read deadline (after the request was fully written) is reported
+// exchange deadline (before sending the request) is reported
 // and the connection is reset.
 func TestNuclearOptionSetDeadlineError(t *testing.T) {
 	local, remote := net.Pipe()

@@ -6,6 +6,13 @@
 
 ## Purpose
 
+The amd64 `network-isolation` bucket requires the Cilium fixture
+(`GAMEPLANE_E2E_CNI=cilium`) and strict chart CIDRs derived from the single-node
+cluster. It tests actual legacy versus isolated sentinel connections, an
+existing template's opt-in rollout without selector changes, HTTP kubelet
+readiness, fresh agent heartbeats, and API-to-agent mTLS access. It uses one
+admin login and runs separately from the kindnet shape-only checks.
+
 ### Restricted workload drill (#714)
 
 The dedicated `restricted-workloads` bucket runs on amd64 and arm64. It
@@ -42,6 +49,8 @@ stop, status reset/leader recovery, exact request binding, snapshot integrity,
 complete pinned render inputs and source-template preservation for CSI restore.
 
 - Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
+- The serial `monitoring` bucket installs a checksum-pinned Prometheus Operator and Prometheus in a distinct namespace on the Cilium profile. It discovers real agent/tunnel targets through the documented chart values, verifies cached numeric samples, valid zero, invalid-value omission, no scrape-driven commands, policy revocation/recovery and refusal from an unapproved namespace. It performs no API login and does not opt in external modules.
+
 - The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
 
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
@@ -124,11 +133,12 @@ The golangci-lint job mirrors this: it must be invoked with `--build-tags=e2e` o
 
 ## The bucket contract — the module's most important invariant
 
-The `wake-hostport` and `management-placement` audit buckets are registered in
-the change-based selector with explicit component mapping and amd64-only
-selection-summary rows. Each matrix leg skips cluster setup only when its
-selected test pattern is empty; full-scope and affected-component runs must
-include both buckets.
+The `wake-hostport`, `network-isolation`, `monitoring`, `management-placement`
+and `backup-preparation` audit buckets are registered in the change-based
+selector with explicit component mapping and amd64-only selection-summary
+rows. Each matrix leg skips cluster setup only when its selected test pattern
+is empty; full-scope and affected-component runs must include the affected
+buckets.
 
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 

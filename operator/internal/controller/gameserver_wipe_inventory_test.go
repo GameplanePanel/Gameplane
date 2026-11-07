@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/util/cert"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -29,6 +30,7 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	gs := wipeGameServer(false, "")
+	gs.Spec.TemplateRollout = &gameplanev1alpha1.TemplateRolloutSpec{Policy: "OnRequest"}
 	tmpl := &gameplanev1alpha1.GameTemplate{ObjectMeta: metav1.ObjectMeta{Name: gs.Spec.TemplateRef.Name}, Spec: gameplanev1alpha1.GameTemplateSpec{Image: "example.invalid/game:unit"}}
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -43,7 +45,7 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 		"ca.key": pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)}),
 	}}
 	c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, tmpl, caSecret).WithStatusSubresource(gs).Build()
-	reader := &wipeInventoryReader{Reader: c}
+	reader := &wipeInventoryReader{Reader: c, sentinelNamespace: gs.Namespace, sentinelServer: gs.Name}
 	r := &GameServerReconciler{Client: c, APIReader: reader, Scheme: s, AgentCASecretName: caSecret.Name, AgentCASecretNamespace: caSecret.Namespace}
 	// This test measures an ordinary already-admitted reconcile. Template
 	// admission has its own live worker checks and transition tests.
@@ -63,8 +65,35 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 	}
 	// Exercise both initial child/status creation and the next full pass. Idle
 	// and capture reconciliation participate, rather than just lifecycle helpers.
-	for range 2 {
-		reader.jobGets, reader.podLists = 0, 0
+	for pass := range 2 {
+		if pass == 1 {
+			// An invalid unadmitted catalog revision must not revoke exposure
+			// or block rendering from the existing valid effective snapshot.
+			tmpl.Spec.SentinelIsolation = true
+			if err := c.Update(t.Context(), tmpl); err != nil {
+				t.Fatal(err)
+			}
+			isolated := tmpl.DeepCopy()
+			isolated.Spec.SentinelIsolation = true
+			isolated.Spec.Ports = []gameplanev1alpha1.GamePort{{Name: "game", ContainerPort: 25565, Advertise: true}}
+			if err := r.reconcileSentinelIsolation(t.Context(), gs, isolated); err != nil {
+				t.Fatal(err)
+			}
+			// Measure a settled revision observation, as in the first pass.
+			// A status transition during reconcile changes ResourceVersion and
+			// correctly requires a fresh worker inventory before mutation.
+			if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), gs); err != nil {
+				t.Fatal(err)
+			}
+			_, desired, err := templateSnapshot(tmpl)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := r.reportTemplateRevision(t.Context(), gs, desired, lifecycleOperation{}, false); err != nil {
+				t.Fatal(err)
+			}
+		}
+		reader.jobGets, reader.podLists, reader.filteredPodLists, reader.sentinelPodLists = 0, 0, 0, 0
 		if _, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}); err != nil {
 			t.Fatal(err)
 		}
@@ -76,7 +105,10 @@ func TestGameServerReconcileInventoriesWipeWorkersOnce(t *testing.T) {
 			t.Fatal("ordinary reconcile did not produce a running workload")
 		}
 		if reader.jobGets != 1 || reader.podLists != 1 {
-			t.Fatalf("full reconcile repeated its uncached worker inventory: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+			t.Fatalf("full reconcile pass %d repeated its uncached worker inventory: Job GETs=%d Pod LISTs=%d", pass, reader.jobGets, reader.podLists)
+		}
+		if reader.filteredPodLists != pass || reader.sentinelPodLists != pass {
+			t.Fatalf("unexpected filtered inventories: all=%d sentinel=%d want=%d", reader.filteredPodLists, reader.sentinelPodLists, pass)
 		}
 	}
 }
@@ -110,7 +142,9 @@ func TestWipeInventoryCannotAuthorizeRecreatedWorkload(t *testing.T) {
 
 type wipeInventoryReader struct {
 	client.Reader
-	jobGets, podLists int
+	jobGets, podLists                  int
+	filteredPodLists, sentinelPodLists int
+	sentinelNamespace, sentinelServer  string
 }
 
 func (r *wipeInventoryReader) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
@@ -122,9 +156,46 @@ func (r *wipeInventoryReader) Get(ctx context.Context, key client.ObjectKey, obj
 
 func (r *wipeInventoryReader) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	if _, ok := list.(*corev1.PodList); ok {
-		r.podLists++
+		options := (&client.ListOptions{}).ApplyOptions(opts)
+		// Wipe inventory deliberately reads every Pod in the namespace so
+		// unlabeled legacy workers remain visible. Filtered safety queries,
+		// such as sentinel opt-out drainage, are separate inventories.
+		if (options.LabelSelector == nil || options.LabelSelector.Empty()) &&
+			(options.FieldSelector == nil || options.FieldSelector.Empty()) {
+			r.podLists++
+		} else {
+			r.filteredPodLists++
+			expected := labels.SelectorFromSet(labels.Set{"app.kubernetes.io/instance": r.sentinelServer, sentinelIsolationLabel: "true"})
+			if r.sentinelServer != "" && options.Namespace == r.sentinelNamespace && options.LabelSelector != nil && options.LabelSelector.String() == expected.String() && (options.FieldSelector == nil || options.FieldSelector.Empty()) {
+				r.sentinelPodLists++
+			}
+		}
 	}
 	return r.Reader.List(ctx, list, opts...)
+}
+
+func TestWipeInventoryReaderSeparatesFilteredPodQueries(t *testing.T) {
+	reader := &wipeInventoryReader{Reader: fake.NewClientBuilder().WithScheme(wipeScheme(t)).Build(), sentinelNamespace: "games", sentinelServer: "server"}
+	for range 2 {
+		var pods corev1.PodList
+		if err := reader.List(t.Context(), &pods, client.InNamespace("games")); err != nil {
+			t.Fatal(err)
+		}
+		if err := reader.List(t.Context(), &pods, client.InNamespace("games"), client.MatchingLabels{
+			"app.kubernetes.io/instance": "server", sentinelIsolationLabel: "true",
+		}); err != nil {
+			t.Fatal(err)
+		}
+		if err := reader.List(t.Context(), &pods, client.InNamespace("games"), client.MatchingLabels{wipeUIDLabel: "extra-wipe-query"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if reader.podLists != 2 {
+		t.Fatalf("duplicate unfiltered inventories must count independently of sentinel queries: got %d", reader.podLists)
+	}
+	if reader.filteredPodLists != 4 || reader.sentinelPodLists != 2 {
+		t.Fatalf("filtered inventories were hidden or misclassified: all=%d sentinel=%d", reader.filteredPodLists, reader.sentinelPodLists)
+	}
 }
 
 func TestWipeInventoryIsSharedWithWorkloadMutation(t *testing.T) {
@@ -140,8 +211,8 @@ func TestWipeInventoryIsSharedWithWorkloadMutation(t *testing.T) {
 	if err := r.reconcileStatefulSet(t.Context(), gs, &gameplanev1alpha1.GameTemplate{}, nil, &materializedConfig{}, 1, &workers); err != nil {
 		t.Fatal(err)
 	}
-	if reader.jobGets != 1 || reader.podLists != 1 {
-		t.Fatalf("ordinary reconcile inventoried workers repeatedly: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+	if reader.jobGets != 1 || reader.podLists != 1 || reader.filteredPodLists != 0 {
+		t.Fatalf("ordinary reconcile inventoried workers repeatedly: Job GETs=%d Pod LISTs=%d filtered=%d", reader.jobGets, reader.podLists, reader.filteredPodLists)
 	}
 }
 
@@ -184,8 +255,8 @@ func TestWipeInventoryRechecksChangedServerBeforeWorkloadMutation(t *testing.T) 
 			if guarded {
 				wantLists = 1
 			}
-			if reader.podLists != wantLists {
-				t.Fatalf("Pod LISTs=%d want %d", reader.podLists, wantLists)
+			if reader.podLists != wantLists || reader.filteredPodLists != 0 {
+				t.Fatalf("Pod LISTs=%d filtered=%d want %d unfiltered", reader.podLists, reader.filteredPodLists, wantLists)
 			}
 		})
 	}
@@ -209,7 +280,7 @@ func TestWipeReconcileReusesOwnedJobInventory(t *testing.T) {
 	if err := r.reconcileWipe(t.Context(), gs, &gameplanev1alpha1.GameTemplate{}, &workers); err != nil {
 		t.Fatal(err)
 	}
-	if reader.jobGets != 1 || reader.podLists != 1 {
-		t.Fatalf("active wipe repeated its worker reads: Job GETs=%d Pod LISTs=%d", reader.jobGets, reader.podLists)
+	if reader.jobGets != 1 || reader.podLists != 1 || reader.filteredPodLists != 0 {
+		t.Fatalf("active wipe repeated its worker reads: Job GETs=%d Pod LISTs=%d filtered=%d", reader.jobGets, reader.podLists, reader.filteredPodLists)
 	}
 }
