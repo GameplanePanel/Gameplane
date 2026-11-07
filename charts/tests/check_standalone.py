@@ -91,6 +91,8 @@ def main():
     assert snapshot_rules == [{"apiGroups": [""], "resources": ["configmaps"], "verbs": ["get"]}]
     assert "--standalone" not in one(defaults, "Deployment", "gameplane-api")["spec"]["template"]["spec"]["containers"][0]["args"]
 
+    # With the operator disabled no chart NetworkPolicies render, so monitors
+    # must remain valid without a game-namespace scrape selector.
     values = {
         "operator": {"enabled": False}, "api": {"standalone": True},
         "serviceMonitors": {"enabled": True}, "prometheusRules": {"enabled": True},

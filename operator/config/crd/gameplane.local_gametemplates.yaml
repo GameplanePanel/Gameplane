@@ -960,6 +960,41 @@ spec:
                               maxLength: 63
                               pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$
                               type: string
+                            performance:
+                              description: |-
+                                Performance opts this existing readout into cached numeric monitoring.
+                                Display-only strings are never inferred to be performance measurements.
+                              properties:
+                                degradedThreshold:
+                                  description: |-
+                                    DegradedThreshold is a finite nonnegative decimal string in the input
+                                    unit. Rates below it, or durations above it, are degraded. Omit to
+                                    disable alerts. A string keeps JSON/schema handling portable.
+                                  maxLength: 16
+                                  pattern: ^(0|[1-9][0-9]{0,8})(\.[0-9]{1,6})?$
+                                  type: string
+                                signal:
+                                  enum:
+                                  - tick_rate
+                                  - tick_duration
+                                  - frame_rate
+                                  type: string
+                                unit:
+                                  enum:
+                                  - per_second
+                                  - seconds
+                                  - milliseconds
+                                  type: string
+                              required:
+                              - signal
+                              - unit
+                              type: object
+                              x-kubernetes-validations:
+                              - message: duration requires seconds/milliseconds; rates
+                                  require per_second
+                                rule: 'self.signal == ''tick_duration'' ? self.unit
+                                  in [''seconds'', ''milliseconds''] : self.unit ==
+                                  ''per_second'''
                             regex:
                               description: |-
                                 Regex extracts the value via the named group "value", e.g.
@@ -2113,6 +2148,12 @@ spec:
                     minimum: 0
                     type: integer
                 type: object
+              sentinelIsolation:
+                description: |-
+                  SentinelIsolation restricts a wake sentinel to its own server's advertised
+                  ports. Templates opt in after module connectivity validation; absent or
+                  false retains the legacy namespace-wide sentinel allowances.
+                type: boolean
               storage:
                 description: Storage describes the default persistent storage layout.
                 properties:

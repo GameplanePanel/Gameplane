@@ -230,6 +230,9 @@ func (r *GameServerReconciler) reconcileSentinel(
 			sentinelLabel:                sentinelValue,
 			"app.kubernetes.io/instance": gs.Name,
 		}
+		if tmpl.Spec.SentinelIsolation {
+			dep.Spec.Template.Labels[sentinelIsolationLabel] = "true"
+		}
 
 		// Container ports: advertised ports only, mirroring buildGameContainer.
 		ports := make([]corev1.ContainerPort, 0)

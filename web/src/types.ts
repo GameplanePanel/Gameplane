@@ -47,6 +47,11 @@ export interface StatusMetricDecl {
   command?: string;
   regex?: string;
   unit?: string;
+  performance?: {
+    signal: "tick_rate" | "tick_duration" | "frame_rate";
+    unit: "per_second" | "seconds" | "milliseconds";
+    degradedThreshold?: string;
+  };
 }
 
 // Install policy for the mods capability (spec.capabilities.mods.install).

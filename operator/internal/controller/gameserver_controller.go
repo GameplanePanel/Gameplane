@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/netip"
 	"path"
@@ -287,6 +288,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	tmpl := *effective
 
+	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
+		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
+		phaseErr := r.setPhase(ctx, &gs,
+			"sentinelIsolation requires at least one advertised port; advertise a game port or disable sentinelIsolation in the GameTemplate")
+		return ctrl.Result{}, errors.Join(cleanupErr, phaseErr)
+	}
+
 	// Resolve spec.config against the template's configSchema before
 	// touching any children: invalid config must fail loudly (mirroring
 	// the missing-template path) instead of materializing a pod that
@@ -328,6 +336,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileNetworkPolicy(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile ingress NetworkPolicy")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileSentinelIsolation(ctx, &gs, &tmpl); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileAgentTLS(ctx, &gs); err != nil {
@@ -1640,7 +1651,13 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		ss.Spec.ServiceName = gs.Name
 		ss.Spec.Selector = &metav1.LabelSelector{MatchLabels: labels}
-		ss.Spec.Template.Labels = labels
+		ss.Spec.Template.Labels = make(map[string]string, len(labels)+1)
+		for key, value := range labels {
+			ss.Spec.Template.Labels[key] = value
+		}
+		if tmpl.Spec.SentinelIsolation {
+			ss.Spec.Template.Labels[sentinelIsolationLabel] = "true"
+		}
 		// Stamp (or clear) the config fingerprint without touching
 		// annotations other actors may have set on the pod template.
 		ann := ss.Spec.Template.Annotations

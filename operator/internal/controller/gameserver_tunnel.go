@@ -258,6 +258,12 @@ func (r *GameServerReconciler) reconcileTunnel(
 				ContainerPort: p.ContainerPort,
 				Protocol:      p.Protocol,
 			}
+			// The generated health port owns this discovery name. Forwarded
+			// port metadata is optional; the provider still uses the unchanged
+			// template/API name in its actual mapping.
+			if cp.Name == "relay-metrics" {
+				cp.Name = ""
+			}
 			ports = append(ports, cp)
 		}
 
@@ -431,6 +437,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 			readiness = &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromInt(8091)}}, PeriodSeconds: 5, TimeoutSeconds: 2, FailureThreshold: 1}
 		}
 		dep.Spec.Template.Spec.Volumes = volumes
+		ports = append(ports, corev1.ContainerPort{Name: "relay-metrics", ContainerPort: 8091, Protocol: corev1.ProtocolTCP})
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
 			Name:           "tunnel",
 			Image:          image,

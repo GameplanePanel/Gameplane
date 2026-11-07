@@ -38,15 +38,14 @@ func withForgetBackupReconciler(rec *events.FakeRecorder) setupReconciler {
 	}
 }
 
-// startForgetFixture boots a manager, seeds a GameServer and repo Secret, creates
-// a restic Backup named name, waits for the reconciler to put the snapshot
-// finalizer on it, then marks it Succeeded with snapshotID, the state a finished
-// backup is in when someone deletes it.
+// startForgetFixture seeds a finished restic Backup before starting its manager,
+// then waits for the reconciler to add the snapshot finalizer. Starting with a
+// Pending Backup races the copy Job's creation against the terminal status write;
+// envtest has no garbage collector to finish deleting that unrelated copy Job.
 func startForgetFixture(t *testing.T, name, snapshotID string) (string, *events.FakeRecorder) {
 	t.Helper()
 	ns := newNamespace(t)
 	rec := events.NewFakeRecorder(32)
-	startMgr(t, ns, withForgetBackupReconciler(rec))
 	seedGameServer(t, ns, "smp")
 
 	if err := k8sClient.Create(context.Background(), buildResticRepoSecret(ns, "repo")); err != nil {
@@ -55,6 +54,15 @@ func startForgetFixture(t *testing.T, name, snapshotID string) (string, *events.
 	if err := k8sClient.Create(context.Background(), buildBackup(ns, name, "smp", "repo")); err != nil {
 		t.Fatalf("create backup: %v", err)
 	}
+	b := getBackup(t, ns, name)
+	now := metav1.Now()
+	b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
+	b.Status.SnapshotID = snapshotID
+	b.Status.CompletionTime = &now
+	if err := k8sClient.Status().Update(context.Background(), b); err != nil {
+		t.Fatalf("mark backup succeeded: %v", err)
+	}
+	startMgr(t, ns, withForgetBackupReconciler(rec))
 	eventually(t, func() (bool, string) {
 		b := getBackup(t, ns, name)
 		for _, f := range b.Finalizers {
@@ -64,21 +72,8 @@ func startForgetFixture(t *testing.T, name, snapshotID string) (string, *events.
 		}
 		return false, "snapshot finalizer not yet added: " + strings.Join(b.Finalizers, ",")
 	})
-
-	// The reconciler also writes status while the backup Job is Pending, so the
-	// update can conflict; retry on a fresh read.
-	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		var b gameplanev1alpha1.Backup
-		if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: name}, &b); err != nil {
-			return err
-		}
-		now := metav1.Now()
-		b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
-		b.Status.SnapshotID = snapshotID
-		b.Status.CompletionTime = &now
-		return k8sClient.Status().Update(context.Background(), &b)
-	}); err != nil {
-		t.Fatalf("mark backup succeeded: %v", err)
+	if _, exists := getJob(t, ns, name); exists {
+		t.Fatal("finished backup unexpectedly created a copy Job")
 	}
 	return ns, rec
 }

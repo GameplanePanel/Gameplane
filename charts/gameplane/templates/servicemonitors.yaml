@@ -107,6 +107,34 @@ spec:
     - port: metrics
       interval: 30s
       path: /metrics
+      relabelings:
+        - targetLabel: gameplane_component
+          replacement: agent
+        - sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+          targetLabel: server
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: gameplane-tunnel
+  namespace: {{ .Values.gamesNamespace }}
+  labels:
+    {{- include "gameplane.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitors.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels: { app.kubernetes.io/name: gameplane-tunnel }
+  podMetricsEndpoints:
+    - port: relay-metrics
+      interval: 15s
+      path: /metrics
+      relabelings:
+        - targetLabel: gameplane_component
+          replacement: tunnel
+        - sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+          targetLabel: server
 {{- end }}
 
 {{- end }}

@@ -19,6 +19,8 @@
     { "tests": "^(TestPanel_OfflineRecovery|TestAPIClient_DoContextResponseBody|TestAPIClient_ExtractIntField)$", "components": ["operator", "api", "agent"],
       "paths": ["test/e2e/testdata/recovery/"] },
 
+    { "tests": "^TestNetworkIsolation_", "components": ["operator", "api", "agent"] },
+    { "tests": "^TestMonitoring_DiscoveryPerformanceAndPolicy$", "components": ["operator", "api", "agent", "tunnel"] },
     { "tests": "^TestRestrictedWorkloads_", "components": ["operator", "api", "agent", "capture-sidecar"] },
     { "tests": "^TestManagementPlacementAndDisruption$", "components": ["operator", "api", "agent"] },
     { "tests": "^TestHelmInstall_", "components": ["*"] },
