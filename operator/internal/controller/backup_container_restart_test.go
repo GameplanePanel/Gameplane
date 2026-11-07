@@ -58,11 +58,12 @@ func TestBackupGameContainerChangesAbortAndDrain(t *testing.T) {
 				budgetPass(t, r, "first")
 				worker := budgetReadyWorker(t, r, "first", "copy-worker")
 				mutate := func() { changeBackupGamePod(t, r, change) }
-				if stage == "during-quiesce" {
+				switch stage {
+				case "during-quiesce":
 					q.afterQuiesce = mutate
-				} else if stage == "before-quiesce" {
+				case "before-quiesce":
 					mutate()
-				} else {
+				default:
 					budgetPass(t, r, "first")
 					if q.quiesced != 1 {
 						t.Fatalf("copy was not quiesced before source change: %+v", q)
