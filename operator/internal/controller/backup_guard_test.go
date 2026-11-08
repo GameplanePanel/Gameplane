@@ -75,7 +75,7 @@ func guardFixtureWorkers(t *testing.T, automatic bool, backups ...*gameplanev1al
 	objects := []client.Object{&gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{Name: "server", Namespace: "ns", UID: "server-uid"}, Spec: gameplanev1alpha1.GameServerSpec{TemplateRef: gameplanev1alpha1.GameTemplateRef{Name: "template"}}}, &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "repo", Namespace: "ns"}, Data: map[string][]byte{"repo": []byte("repo"), "password": []byte("password")}}}
 	one := int32(1)
 	objects = append(objects, &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{Name: "server", Namespace: "ns", UID: "workload-uid", OwnerReferences: []metav1.OwnerReference{{APIVersion: gameplanev1alpha1.GroupVersion.String(), Kind: "GameServer", Name: "server", UID: "server-uid", Controller: ownerBoolPtr(true)}}}, Spec: appsv1.StatefulSetSpec{Replicas: &one}})
-	objects = append(objects, &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "server-0", Namespace: "ns", UID: "game-pod-uid", OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "StatefulSet", Name: "server", UID: "workload-uid", Controller: ownerBoolPtr(true)}}}, Spec: corev1.PodSpec{NodeName: "node-a"}, Status: corev1.PodStatus{Phase: corev1.PodRunning}})
+	objects = append(objects, &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "server-0", Namespace: "ns", UID: "game-pod-uid", OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "StatefulSet", Name: "server", UID: "workload-uid", Controller: ownerBoolPtr(true)}}}, Spec: corev1.PodSpec{NodeName: "node-a", Containers: []corev1.Container{{Name: "game"}, {Name: "agent"}}}, Status: corev1.PodStatus{Phase: corev1.PodRunning, ContainerStatuses: []corev1.ContainerStatus{backupRunningGameStatus()}}})
 	for _, b := range backups {
 		objects = append(objects, b)
 	}
@@ -265,7 +265,21 @@ func TestBackupGuardRolloutWaitsForLegacyWorkersAndCleanup(t *testing.T) {
 	legacy := guardBackup("legacy")
 	legacy.Annotations = map[string]string{annoQuiesceAttempted: "true"}
 	r, q := guardFixture(t, legacy, guardBackup("new"))
+	// An upgrade can observe an existing pre-v1 copy without source proof;
+	// that proof must never be invented to start a fresh worker after save-off.
+	podSpec := r.buildBackupPodSpec(legacy, &gameplanev1alpha1.GameTemplate{})
+	podSpec.RestartPolicy = corev1.RestartPolicyNever
+	backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)
+	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: legacy.Name, Namespace: legacy.Namespace,
+		OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(legacy, gameplanev1alpha1.GroupVersion.WithKind("Backup"))}},
+		Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline, Template: corev1.PodTemplateSpec{Spec: podSpec}}}
+	if err := r.Create(t.Context(), job); err != nil {
+		t.Fatal(err)
+	}
 	guardPass(t, r, "legacy")
+	if got := guardGetBackup(t, r, "legacy"); got.Annotations[backupPreparationAnnotation] != "" || got.Status.CaptureManifest != nil {
+		t.Fatalf("pre-upgrade Job acquired invented capture history: %+v", got)
+	}
 	guardPass(t, r, "new")
 	var jobs batchv1.JobList
 	if err := r.List(context.Background(), &jobs); err != nil {
@@ -589,7 +603,23 @@ func TestBackupGuardPendingSnapshotCancellationInvalidatesBeforeSaveOn(t *testin
 				a.Annotations = map[string]string{annoQuiesceAttempted: "true"}
 			}
 			r, q := guardFixture(t, a, guardBackup("next"))
+			if mode == "legacy" {
+				// Model a pending capture created before the source-proof protocol,
+				// rather than asking the upgraded operator to create one unsafely.
+				pvc := a.Spec.ServerRef.Name + "-data"
+				snapshot := &snapshotv1.VolumeSnapshot{ObjectMeta: metav1.ObjectMeta{Name: a.Name, Namespace: a.Namespace,
+					OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(a, gameplanev1alpha1.GroupVersion.WithKind("Backup"))}},
+					Spec: snapshotv1.VolumeSnapshotSpec{Source: snapshotv1.VolumeSnapshotSource{PersistentVolumeClaimName: &pvc}, VolumeSnapshotClassName: a.Spec.VolumeSnapshotClassName}}
+				if err := r.Create(t.Context(), snapshot); err != nil {
+					t.Fatal(err)
+				}
+			}
 			guardPass(t, r, "snapshot")
+			if mode == "legacy" {
+				if got := guardGetBackup(t, r, "snapshot"); got.Annotations[backupPreparationAnnotation] != "" || got.Status.CaptureManifest != nil {
+					t.Fatalf("pre-upgrade CSI capture acquired invented history: %+v", got)
+				}
+			}
 			switch mode {
 			case "orphan":
 				forceDeleteGuardBackup(t, r, "snapshot")
