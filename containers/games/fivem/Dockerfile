@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.title="Gameplane FiveM Dedicated Server" \
 
 RUN apk add --no-cache \
     bash~=5.3.9 \
-    curl~=8.22.0 \
+    curl~=8.23.0 \
     ca-certificates~=20261020 \
     tini~=0.19.0 \
     procps-ng~=4.0.6 \
