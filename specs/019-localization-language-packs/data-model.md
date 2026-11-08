@@ -38,7 +38,8 @@ Stored in `i18n/locales/<tag>/meta.json`. `en` is always listed (completeness 10
 
 | Field | Type | Rules |
 |---|---|---|
-| entries | map `id → {defaultMessage, description?, sourceHash?}` | `defaultMessage` here is the translation |
+| entries | map `id → {defaultMessage, description?, sourceHash?}` | `defaultMessage` here is the translation; `sourceHash?` is legacy (read only, moved out on stamp) |
+| review file | map `id → sourceHash` in `<tag>/.review.json` (app) or `locales/.review.json` as `tag → id → sourceHash` (module) | the hash the translation was made from; wins over an inline `sourceHash` for the same id; written only by stamp, never by translation platforms (research R8) |
 | per-entry status | derived | `translated` (present, placeholders match, hash current) · `needs-review` (hash stale, placeholders still match → shown) · `invalid` (placeholders mismatch or markup → not shown) · `missing` |
 | completeness | derived | `translated + needs-review` ÷ reference entries, per text source; never stored by hand |
 

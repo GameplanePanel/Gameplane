@@ -186,13 +186,13 @@ description: "Task list for 019 App Localization & Community Language Packs"
 
 **Independent Test**: quickstart.md scenario 13.
 
-- [ ] T075 [US3] Apply for the Hosted Weblate libre plan and create project `gameplane` (maintainer account; record the project URL in `docs/translating.md` and `README.md`)
-- [ ] T076 [US3] Create component `app`: repo `GameplanePanel/Gameplane`, file mask `i18n/locales/*/app.json`, monolingual base `i18n/locales/en/app.json`, format `formatjs`, push branch `weblate/translations` in GitHub pull request mode, review workflow on, machine suggestions never auto-approved; add the Weblate GitHub webhook (research R10)
-- [ ] T077 [US3] Verify on the live instance whether Weblate imports `description` from the Format.JS base; if not, add CI job `weblate-explanations` in `.github/workflows/` that pushes descriptions as Weblate explanations through the Weblate API (token in a repository secret)
-- [ ] T078 [US3] Verify Weblate preserves `sourceHash`; if it does not, move hashes to `i18n/locales/<tag>/.review.json` in `i18n/pack` and `i18n-check --stamp` (research R8) and update contracts/pack-format.md
-- [ ] T079 [US3] Create per-module components in `GameplanePanel/module` with the Component discovery add-on (file mask `*/locales/*.json`, base `*/locales/en.json`)
+- [X] T075 [US3] Apply for the Hosted Weblate libre plan and create project `gameplane` (maintainer account; record the project URL in `docs/translating.md` and `README.md`) (done 2026-10-26: Libre plan approved, ticket 2015034; URL in `docs/translating.md` and the README badge)
+- [X] T076 [US3] Create component `app`: repo `GameplanePanel/Gameplane`, file mask `i18n/locales/*/app.json`, monolingual base `i18n/locales/en/app.json`, format `formatjs`, push branch `weblate/translations` in GitHub pull request mode, review workflow on, machine suggestions never auto-approved; add the Weblate GitHub webhook (research R10) (done 2026-11-07: GitHub app integration with pull request mode and reviews on; Weblate names the push branch itself, `weblate-gameplane-app`, instead of `weblate/translations`, and the GitHub app replaces the webhook)
+- [X] T077 [US3] Verify on the live instance whether Weblate imports `description` from the Format.JS base; if not, add CI job `weblate-explanations` in `.github/workflows/` that pushes descriptions as Weblate explanations through the Weblate API (token in a repository secret) (done 2026-11-07: Weblate imports `description` as the string note, so no `weblate-explanations` job is needed)
+- [X] T078 [US3] Verify Weblate preserves `sourceHash`; if it does not, move hashes to `i18n/locales/<tag>/.review.json` in `i18n/pack` and `i18n-check --stamp` (research R8) and update contracts/pack-format.md (done 2026-11-07: Weblate drops `sourceHash`; hashes now live in `<tag>/.review.json` for app packs and `locales/.review.json` for module packs, fr hashes moved)
+- [X] T079 [US3] Create per-module components in `GameplanePanel/module` with the Component discovery add-on (file mask `*/locales/*.json`, base `*/locales/en.json`) (done 2026-11-07: discovery add-on created `module-minecraft-java`, `module-terraria`, `module-valheim`)
 - [ ] T080 [US3] Configure a French "Reviewers" group and document the reviewer role and approval rules in `docs/translating.md`
-- [ ] T081 [US3] Trial: submit and approve one translation on Weblate, confirm a PR from `weblate/translations` arrives and passes the `i18n` CI job (US3 AS1–4)
+- [X] T081 [US3] Trial: submit and approve one translation on Weblate, confirm a PR from `weblate/translations` arrives and passes the `i18n` CI job (US3 AS1–4) (done 2026-11-07: two French strings approved; Weblate PR #847 arrived from `weblate-gameplane-app` and passed CI, `i18n` job included)
 
 ---
 

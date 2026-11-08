@@ -14,7 +14,7 @@ go run ./i18n/cmd/i18n-check [flags] <locales-dir>
   --check-server            fail if the registry and the reference differ
   --used-ids <file>         ids referenced by code (from extract + Go registry) → unused report
   --manifest <out.json>     write languages.json
-  --stamp                   write sourceHash for translated entries
+  --stamp                   record sourceHash in <tag>/.review.json for translated entries (moves inline hashes out of app.json)
   --module <template.yaml>  module mode (see below)
   --summary <file>          GitHub job summary markdown
 ```
@@ -39,7 +39,7 @@ Findings that apply to a whole file rather than one entry use a fixed sentinel i
 | `extract-drift` | error | committed English reference ≠ extracted |
 | `server-drift` | error | Go registry ≠ `server.*` entries |
 | `unused-id` | error | reference id used nowhere (FR-023) |
-| `needs-review` | info | sourceHash stale, placeholders still match |
+| `needs-review` | info | recorded source hash stale, placeholders still match |
 
 Summary table: tag, completeness (base → head), listed yes/no.
 
