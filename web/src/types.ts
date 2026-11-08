@@ -47,6 +47,11 @@ export interface StatusMetricDecl {
   command?: string;
   regex?: string;
   unit?: string;
+  performance?: {
+    signal: "tick_rate" | "tick_duration" | "frame_rate";
+    unit: "per_second" | "seconds" | "milliseconds";
+    degradedThreshold?: string;
+  };
 }
 
 // Install policy for the mods capability (spec.capabilities.mods.install).
@@ -551,6 +556,7 @@ export interface GameServer {
   metadata: ObjectMeta & { resourceVersion?: string };
   spec: {
     templateRef: { name: string };
+    templateRollout?: { policy?: "Automatic" | "OnRequest"; requestedRevision?: string };
     suspend?: boolean;
     // Seconds the operator waits for the template's stop sequence to run
     // over RCON before scaling the pod down (soft-stop). Range 0–600,
@@ -586,6 +592,7 @@ export interface GameServer {
   };
   status?: {
     phase?: GameServerPhase;
+    templateRevision?: { desired?: string; effective?: string; running?: string };
     endpoints?: GameServerEndpoint[];
     agent?: {
       lastHeartbeat?: string;
@@ -654,6 +661,23 @@ export interface ServerEvent {
   count: number;
 }
 
+export interface BackupCaptureManifest {
+  state: "Recorded" | "LegacyUnknown";
+  recordedAt?: string;
+  serverUID?: string;
+  strategy?: string;
+  layoutSource?: string;
+  quiesceOutcome?: string;
+  volumes?: Array<{
+    claimName: string;
+    claimUID?: string;
+    mountPaths?: string[];
+    included: boolean;
+    classification: "data" | "rebuildable" | "unclassified";
+    reason: string;
+  }>;
+}
+
 export interface Backup {
   metadata: ObjectMeta;
   // strategy: restic-snapshot writes to a restic repo; volume-snapshot takes a
@@ -665,6 +689,8 @@ export interface Backup {
     completionTime?: string;
     snapshotID?: string;
     size?: string;
+    captureManifest?: BackupCaptureManifest;
+    conditions?: Array<{ type: string; status: string; reason?: string; message?: string }>;
   };
 }
 

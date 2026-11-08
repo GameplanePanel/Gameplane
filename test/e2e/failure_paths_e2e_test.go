@@ -123,7 +123,8 @@ func TestBackup_FailsOnBadCredentials(t *testing.T) {
 		}
 		phase, _, _ := unstructured.NestedString(got.Object, "status", "phase")
 		if phase != "Succeeded" {
-			return false, "seed phase=" + phase
+			message, _, _ := unstructured.NestedString(got.Object, "status", "message")
+			return false, "seed phase=" + phase + ": " + message
 		}
 		return true, ""
 	})

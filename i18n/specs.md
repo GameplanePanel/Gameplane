@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (spec 019)
 **Module / package:** `github.com/GameplanePanel/gameplane/i18n`
-**Dependencies:** stdlib, `golang.org/x/text` and `gopkg.in/yaml.v3` (the `i18n-check --module` mode reads module manifests; Go 1.26+)
+**Dependencies:** stdlib, `golang.org/x/text` and `gopkg.in/yaml.v3` (the `i18n-check --module` mode reads module manifests; Go 1.27+)
 
 ## Purpose
 

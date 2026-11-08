@@ -2,9 +2,37 @@
 
 **Status:** pre-v1 (v0.3.0)
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e`
-**Go version:** 1.26.0
+**Go version:** 1.27.0
 
 ## Purpose
+
+The amd64 `network-isolation` bucket requires the Cilium fixture
+(`GAMEPLANE_E2E_CNI=cilium`) and strict chart CIDRs derived from the single-node
+cluster. It tests actual legacy versus isolated sentinel connections, an
+existing template's opt-in rollout without selector changes, HTTP kubelet
+readiness, fresh agent heartbeats, and API-to-agent mTLS access. It uses one
+admin login and runs separately from the kindnet shape-only checks.
+
+### Restricted workload drill (#714)
+
+The dedicated `restricted-workloads` bucket runs on amd64 and arm64. It
+is registered in the CI selector for operator, API, agent and capture-sidecar
+changes, including the node capture worker. Full-scope and affected-component
+runs retain the drill on both architectures. It
+upgrades a compatible existing game to the real enforced PSA profile, asserts
+nonroot config-init/writable data preservation, rejects root admission and an
+incompatible template, and checks agent-only credential mounts. It observes a
+kubelet-projected token hash change (never logs tokens) and a heartbeat after
+the original 600s token expires. Node capture checks exercise audited per-server
+opt-in, traffic-bearing PCAP download, unchanged game Pod UID/restart counts,
+worker cleanup on completion/revocation, and cross-namespace resource cleanup
+after GameServer deletion. Local work compiles test sources only; CI executes
+the drill and all unit/chart regressions. Idempotent capture-setting requests
+retry only HTTP 409 conflicts with controller updates; capture creation and
+transport or authorization failures are never retried. Completion still
+requires all capture workers to have been drained before `Completed` is reported.
+The drill explicitly verifies that shared PID remains enabled for agent metrics
+after the Restricted upgrade and after capture completion and revocation.
 
 The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
 
@@ -12,7 +40,17 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 
 ## Responsibilities
 
+The operator bucket includes `TestGameServer_TemplateOnRequestRetainsData`: a
+live busybox workload keeps its Pod and old rendered config after a shared
+template update, then admits the exact desired digest and verifies a replacement
+Pod, the same PVC UID, preserved save marker and updated config-init output.
+Operator regression sources cover lifecycle exclusion, old-template graceful
+stop, status reset/leader recovery, exact request binding, snapshot integrity,
+complete pinned render inputs and source-template preservation for CSI restore.
+
 - Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
+- The serial `monitoring` bucket installs a checksum-pinned Prometheus Operator and Prometheus in a distinct namespace on the Cilium profile. It discovers real agent/tunnel targets through the documented chart values, verifies cached numeric samples, valid zero, invalid-value omission, no scrape-driven commands, policy revocation/recovery and refusal from an unapproved namespace. It performs no API login and does not opt in external modules.
+
 - The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
 
 - Boot and tear down (or reuse) a kind cluster, install the working-tree Helm chart, and wait for every component to come up healthy.
@@ -22,6 +60,34 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 - Validate multi-cluster dispatch, upgrade-from-previous-release, wake-on-connect, module signing/SSRF rejection, and backup/restore round trips end to end.
 - Verify the installed operator identity can read Secrets only in its configured namespaces, can mutate game-namespace Secrets, and cannot read or write unrelated namespace Secrets (`TestHelmInstall_OperatorSecretNamespaceBoundary`, operator bucket).
 - Enforce, via `buckets.sh`, that every test in the suite is assigned to exactly one CI bucket so nothing silently drops out of coverage.
+
+### Panel recovery drill
+
+The amd64 `recovery` bucket runs `TestPanel_OfflineRecovery` in a unique namespace
+with its own standalone API, SQL database/archive PVCs, separately mounted keys
+and private login budget. It exercises stopped SQLite backup, working database
+loss, restore and offline bearer invalidation. It verifies correct-key users,
+custom roles/scoped grants, encrypted-registration-backed GameServer UID reads,
+wrong-key startup failure/no HTTP response, old session/share rejection, retained
+audit evidence and an unchanged continuously running game Pod/container. The
+read-only original archive is never changed by invalidation. Actual fixture
+recovery-point age/RTO and acceptance evidence are uploaded as JSON, with no key,
+credential, cookie, share token or raw SQL rows. It does not stop the installed
+panel/operator or claim PostgreSQL PITR coverage. Initial scoped grants wait for
+Healthy cluster discovery so the asynchronous registry has loaded the connection.
+The locally bootstrapped administrator receives an explicit fixture-cluster/gameplane-games
+grant and logs in again after that change invalidates its session. Both administrator
+and reader cookies are accepted before backup and rejected through `/users/me` after
+offline recovery; remote server UID and share checks retain their scoped authorization.
+Because API-token issuance and Bearer authentication are not implemented, the drill
+seeds one row in the reserved `api_tokens` table offline after stopping the API.
+It requires that row in the archive and zero API-token rows after restoration.
+The JSON bearer-invalidation result combines that database check with the actual
+administrator/reader session and share-link HTTP rejection results.
+The Kubernetes-created game initially has no panel owner: the drill requires share
+creation to fail for the scoped administrator until the authorized transfer endpoint
+assigns that administrator ownership, then creates the share used for recovery checks.
+See `docs/panel-recovery.md`.
 
 ### Remote gateway parity acceptance
 
@@ -55,6 +121,17 @@ a cordon, readiness of the surviving replica, and singleton API eviction. Node
 labels and cordons are restored in cleanup. This validates scheduler/PDB behavior,
 not application HA or storage migration.
 
+### Backup preparation acceptance
+
+The `backup-preparation` bucket also uses the `management` Kind profile and zero
+API logins. It verifies a real RWO copy on the game's node across two schedulable
+workers, repository authentication failure before quiesce/authorization, retry after
+repository recovery, token-gated Restic execution and restoration of a marker.
+Kind local-path PV affinity supplies the storage placement constraint; this is
+not an attachable CSI driver or multi-attach qualification. Unit/envtest regressions
+cover stale worker/source identity, persisted budgets, delayed drainage, CSI
+abort/reclamation, retained/replaced content and raw snapshot-source rejection.
+
 ## Non-goals / boundaries
 
 - Does **not** replace the unit or envtest tiers for any other module — it exercises integration behavior, not the exhaustive branch coverage those tiers own (this module carries no `.testcoverage.yml` coverage gate).
@@ -71,10 +148,10 @@ The golangci-lint job mirrors this: it must be invoked with `--build-tags=e2e` o
 
 ## The bucket contract — the module's most important invariant
 
-The `management-placement` audit bucket is registered in the change-based selector,
-with explicit component mapping and an amd64-only selection-summary row. Its
+The `network-isolation` and `management-placement` audit buckets are registered in the change-based selector,
+with explicit component mapping and amd64-only selection-summary rows. Each
 matrix leg skips cluster setup only when its selected test pattern is empty;
-full-scope and affected-component runs must include it.
+full-scope and affected-component runs must include the affected buckets.
 
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 
@@ -91,10 +168,11 @@ This is a name-matching contract, not a structural one:
 
 - **`Kubectl(ctx, args...)`** and **`KubectlWithStdin(ctx, stdin, args...)`** both run `exec.CommandContext(ctx, "kubectl", all...)`. Both still validate every argument up to a literal `--` separator against shell metacharacters (`|;&$\`<>()\\`) before building `all` — this is the caller-supplied-args gosec finding scoped by the `.golangci.yml` G204 exclusion on `env.go`: gosec can't see that the args come from the suite's own test code and are pre-validated, not from untrusted external input.
 - **`tryPortForward(ctx, ns, target, remotePort)`** (the single-attempt implementation behind the public, retrying `PortForward`) also runs its `kubectl port-forward` child via `exec.CommandContext(ctx, ...)`. **The context passed here must outlive the call that starts the forward** — it only bounds the *maximum* process lifetime, not the normal teardown path. The returned `stop` func is the real owner of the forward's lifecycle: every caller `defer`/`t.Cleanup`s it well before the test (and therefore its context) ends. Binding the forward to anything shorter-lived than the test itself — e.g. a context scoped to just the readiness-poll loop — would risk the process being killed by context expiry out from under an in-flight caller still using the tunnel. `PortForward` retries `tryPortForward` up to 4 times on a fresh local port before giving up, tolerating a loaded self-hosted runner where a single attempt's readiness window is too short.
+- **`APIClient` initial login** may reopen its forward at most once when a typed dial error reports `ECONNREFUSED`, proving the local listener did not receive the request. The reconnect consumes an attempt from the existing seven-attempt login budget and remains bound to the test context. Read/write errors, resets, timeouts, ambiguous failures and HTTP errors retain their existing failure behavior (apart from the existing bounded HTTP 429 backoff). Established clients never reconnect or replay requests. `TestAPI_LoginTransportRefusalClassification` covers accepted and rejected transport errors in `api-auth` without consuming a cluster login.
 
 ## Conventions (already normative via `CLAUDE.md`, restated here for the module's own record)
 
-- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `postgres-availability` (`TestUpgrade_PostgresAvailability`) upgrades the shared release and interrupts PostgreSQL. These are documented exceptions.
+- **`t.Parallel()`**: tests call it unless shared infrastructure requires serialization. The `ratelimit` bucket deliberately drains the shared login limiter; gateway parity temporarily changes the shared remote Helm release and trust; `restricted-workloads` upgrades the shared release and namespace admission policy; `postgres-availability` (`TestUpgrade_PostgresAvailability`) upgrades the shared release and interrupts PostgreSQL. These are documented exceptions.
 - **Per-test unique resource names**: CRs, namespaces, and users a test creates get a name unique to that test run (commonly time-based, e.g. `CreateUser`'s `fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())`) so parallel tests never collide on a shared cluster.
 - **`ociPushMu`**: a package-level mutex guarding tests that push through the shared, fixed-name `oras-push` Job (`module_e2e_test.go`, `module_verify_e2e_test.go`). Because the Job's name and namespace are fixed fixtures, two tests racing to apply/wait on it would stomp each other; `ociPushMu.Lock()`/`Unlock()` serializes them.
 - **`ensureResticRepo(t)`**: guards tests that run a backup against the shared restic repository fixture (`backup_e2e_test.go`, `backupschedule_e2e_test.go`, `failure_paths_e2e_test.go`) — restic repo initialization is not safe to race.
@@ -144,6 +222,7 @@ This module has no runtime HTTP/RPC surface of its own — its "interface" is th
 - **`PodIsReady`, `CRDExists`** — typed/dynamic client lookups used by convergence checks.
 - **`PortForward(t, ns, target, remotePort)`** — retrying wrapper over `tryPortForward`; returns `(localPort, stopFunc)`.
 - **`APIClient(t, username, password)`** — logs in over a fresh port-forward (retrying through 429s with backoff, since the shared IP shares the login limiter across parallel tests), returns a session+CSRF-aware HTTP client whose `Do`/`Get`/`Post`/`Patch`/`Delete` attach `X-Gameplane-CSRF` on mutating methods.
+- **Response reads:** `DoContext` closes response bodies after reading them. Complete responses preserve their status and bytes, including non-2xx statuses. A body read failure returns the response (including status and headers), partial bytes, and a wrapped method/path error. Callers must check that error before treating the body as complete; callers inspecting only status still receive a valid response. `TestAPIClient_DoContextResponseBody` exercises both cases through real local HTTP transport in the `recovery` bucket without panel logins.
 - **`BootstrapAdmin(t, username, password)`** — runs the API's `bootstrap-admin` subcommand once per test process (`sync.Once`); a second call with a different credential pair fails loudly rather than silently using stale creds, since argon2id hashing inside the running pod is heavy enough that repeating it per test risks an OOM-kill.
 - **`OCIPush`/`OCIPushFromFixture`** — apply a ConfigMap+Job fixture and wait for it to succeed; guarded by `ociPushMu` at call sites that share the fixed job name.
 - **`CreateUser(t, admin, role, prefix)`** — creates a uniquely-named user via the admin `APIClient`; caller owns cleanup registration.

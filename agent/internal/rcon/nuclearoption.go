@@ -112,14 +112,21 @@ func (c *NuclearOption) Close() error {
 // If the response has no body (body length = 0), an empty string is returned.
 // Non-2000 status codes produce an error that includes the status code and,
 // if present, the error detail from the response body.
+// One deadline bounds the complete exchange, including dialing and request writes.
 func (c *NuclearOption) Exec(cmd string) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	d := c.execDeadline
+	if d <= 0 {
+		d = defaultNuclearOptionExecDeadline
+	}
+	exchangeDeadline := time.Now().Add(d)
+
 	// Ensure connection is open.
 	if c.conn == nil {
 		d := net.Dialer{Timeout: c.dialTimeout}
-		ctx, cancel := context.WithTimeout(context.Background(), c.dialTimeout)
+		ctx, cancel := context.WithDeadline(context.Background(), exchangeDeadline)
 		defer cancel()
 		conn, err := d.DialContext(ctx, "tcp", net.JoinHostPort(c.host, fmt.Sprint(c.port)))
 		if err != nil {
@@ -144,6 +151,14 @@ func (c *NuclearOption) Exec(cmd string) (string, error) {
 		return "", fmt.Errorf("nuclearoption rcon: marshal request: %w", err)
 	}
 
+	// Bound writes as well as reads. Arm this before sending anything: a
+	// server that stops reading must not retain the shared client forever.
+	if err := c.conn.SetDeadline(exchangeDeadline); err != nil {
+		_ = c.conn.Close()
+		c.conn = nil
+		return "", fmt.Errorf("nuclearoption rcon: set deadline: %w", err)
+	}
+
 	// Write request: 4-byte LE length + body.
 	reqLen := len(reqBody)
 	if reqLen < 0 || reqLen > math.MaxUint32 {
@@ -160,17 +175,6 @@ func (c *NuclearOption) Exec(cmd string) (string, error) {
 		_ = c.conn.Close()
 		c.conn = nil
 		return "", fmt.Errorf("nuclearoption rcon: write body: %w", err)
-	}
-
-	// Set deadline for the entire response read.
-	d := c.execDeadline
-	if d <= 0 {
-		d = defaultNuclearOptionExecDeadline
-	}
-	if err := c.conn.SetDeadline(time.Now().Add(d)); err != nil {
-		_ = c.conn.Close()
-		c.conn = nil
-		return "", fmt.Errorf("nuclearoption rcon: set deadline: %w", err)
 	}
 
 	// Read response: 4-byte status + 4-byte body length + body.

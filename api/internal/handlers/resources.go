@@ -219,6 +219,10 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 					writeServerValidationError(w, req, err)
 					return
 				}
+				if err := newConfigRuleCache(k).protectUnpinnedConfig(req.Context(), obj, nil); err != nil {
+					writeServerValidationError(w, req, err)
+					return
+				}
 			}
 			created, err = k.Dynamic.Resource(gvr).Namespace(ns).Create(req.Context(), obj, metav1.CreateOptions{})
 		}
@@ -281,9 +285,13 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			// The dashboard sends spec back wholesale, so password config values
 			// arrive as the redaction marker: keep the stored value for those.
 			cfgRules = newConfigRuleCache(k)
-			restoreRedactedConfig(req.Context(), cfgRules, obj, live)
+			writeRules := restoreRedactedConfig(req.Context(), cfgRules, obj, live)
 			cl := scope.RequestedCluster(req)
 			if err := validateAndProtectGameServer(req.Context(), k, cl, ns, name, obj, live); err != nil {
+				writeServerValidationError(w, req, err)
+				return
+			}
+			if err := cfgRules.protectUnpinnedConfig(req.Context(), obj, &writeRules); err != nil {
 				writeServerValidationError(w, req, err)
 				return
 			}
@@ -574,6 +582,27 @@ func validateAndProtectGameServer(
 	}
 
 	// 2. Validate spec.serviceAccountName
+	// A host-capable diagnostic exception must be a separate, synchronously
+	// audited administrator action. Generic edits may preserve an existing
+	// opt-in, but cannot grant/revoke it or inherit it on a clone.
+	nodeDiagnostic, hasNodeDiagnostic, err := unstructured.NestedBool(desired.Object, "spec", "capture", "nodeDiagnostic")
+	if err != nil {
+		return errors.New("spec.capture.nodeDiagnostic must be a boolean")
+	}
+	liveNodeDiagnostic := false
+	if live != nil {
+		liveNodeDiagnostic, _, _ = unstructured.NestedBool(live.Object, "spec", "capture", "nodeDiagnostic")
+		if !hasNodeDiagnostic && liveNodeDiagnostic {
+			if err := unstructured.SetNestedField(desired.Object, true, "spec", "capture", "nodeDiagnostic"); err != nil {
+				return fmt.Errorf("preserve node diagnostic exception: %w", err)
+			}
+			nodeDiagnostic = true
+		}
+	}
+	if nodeDiagnostic != liveNodeDiagnostic {
+		return errors.New("change the node diagnostic exception through the administrator capture-node-enable/capture-node-disable action")
+	}
+
 	sa, hasSA, _ := unstructured.NestedString(desired.Object, "spec", "serviceAccountName")
 	if !isAdmin {
 		if live == nil {

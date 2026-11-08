@@ -9,8 +9,10 @@ import (
 	"testing"
 	"time"
 
+	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -210,6 +212,10 @@ func TestRestore_VolumeSnapshotRejectsExistingTarget(t *testing.T) {
 func TestGameServer_DataSourceSeedsPVC(t *testing.T) {
 	ns := newNamespace(t)
 	startMgr(t, ns, withGameServerReconciler(t, ns))
+	sourcePVC := "external-source-data"
+	if err := k8sClient.Create(context.Background(), &snapshotv1.VolumeSnapshot{ObjectMeta: metav1.ObjectMeta{Name: "snap-1", Namespace: ns}, Spec: snapshotv1.VolumeSnapshotSpec{Source: snapshotv1.VolumeSnapshotSource{PersistentVolumeClaimName: &sourcePVC}}}); err != nil {
+		t.Fatal(err)
+	}
 
 	tmpl := buildGameTemplate(uniqueName("minecraft"))
 	if err := k8sClient.Create(context.Background(), tmpl); err != nil {

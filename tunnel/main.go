@@ -231,7 +231,7 @@ func run(ctx context.Context, cfg Config) error {
 		}()
 	}
 
-	h := &relayHealth{}
+	h := &relayHealth{connectionUnsupported: cfg.TunnelType == "playit"}
 	if ctx.Err() != nil {
 		return nil
 	}

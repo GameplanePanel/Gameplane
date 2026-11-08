@@ -2,6 +2,66 @@
 
 Gameplane exposes game servers through Kubernetes Services, with optional integration with your cluster's load-balancer address manager to assign specific public addresses or address pools to each server.
 
+## NetworkPolicy isolation and migration
+
+NetworkPolicies are additive. An allowance in one policy cannot be narrowed by
+another policy. Enforcement also requires a CNI that implements NetworkPolicy.
+
+Modules may set `GameTemplate.spec.sentinelIsolation: true`. The operator then
+labels the game and sentinel pod templates and creates two owned policies:
+`<server>-sentinel-ingress` and `<server>-sentinel-egress`. They allow a sentinel
+to reach only its own server's advertised container ports, with the declared
+protocol. Zero advertised ports creates no allowance. Management ports must
+remain `advertise: false`. The legacy chart policies exclude opted-in sources
+and destinations. Templates without the field retain the existing broad
+sentinel-to-game allowance; module maintainers can adopt it after validating
+their proxy traffic.
+
+Upgrade the CRDs, operator and chart together before opting in a template.
+Existing game pods roll out to acquire the isolation label; StatefulSet
+selectors stay unchanged. Do not claim isolation until both game and sentinel
+pods have the label and the per-server policies exist. Other administrator-added
+policies can still grant wider access. Disabling chart NetworkPolicies or using
+a non-enforcing CNI does not provide this boundary.
+
+Probe and API-server narrowing is a separate installation option:
+
+```yaml
+networkPolicies:
+  enabled: true
+  strict: true
+  kubeletCIDRs: ["192.0.2.10/32"]       # Replace with observed kubelet sources.
+  probePorts:
+    - {protocol: TCP, port: 25565}    # Replace with all configured probe ports.
+  apiServerCIDRs: ["198.51.100.20/32"] # Replace with actual API endpoints.
+```
+
+Strict mode rejects missing/empty lists, malformed CIDRs and invalid probe
+ports. It never supplies broad fallback ranges. API egress is limited to the
+listed addresses on TCP 443/6443. Choose addresses based on your CNI's policy
+evaluation point: service DNAT or source SNAT can change which address it sees.
+Include every control-plane endpoint and kubelet source that can host a server;
+update these lists when nodes or endpoints change. CNI host-traffic exceptions
+may still apply.
+
+On Cilium, CIDR rules exclude node identities by default. For a self-hosted
+API server on a node, configure `policyCIDRMatchMode=nodes` before using these
+plain NetworkPolicy endpoint CIDRs, or provide equivalent Cilium-specific
+API-server policy. The CI fixture uses nodes mode. See
+[Cilium CIDR policy semantics](https://docs.cilium.io/en/stable/security/policy/layer3/#selecting-pods-or-nodes-with-cidr-ipblock)
+and validate kubelet source handling for your Cilium configuration as well.
+
+Before enabling strict mode, inventory the actual endpoints and configured
+game probes, observe their traffic in the CNI, then validate game readiness,
+agent heartbeats, wake requests and API/operator agent access in a staging
+namespace. The default profile retains RFC1918/link-local API egress and
+unrestricted probe ports for compatibility; it does not isolate those paths.
+Narrowing sentinel traffic alone cannot remove those separate grants.
+
+The dedicated CI `network-isolation` bucket installs pinned Cilium, exercises
+real allowed/denied connections, and upgrades existing legacy templates.
+The default kindnet fixture only verifies policy shape.
+
 ## Address Pool Overview
 
 When a GameServer is exposed as a LoadBalancer (`spec.networking.expose: LoadBalancer`), it can request a specific external address or address pool. The operator translates this request to your cluster's load-balancer flavor so the same CRD works whether you run MetalLB, Cilium, or no address manager at all.

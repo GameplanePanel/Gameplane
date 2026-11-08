@@ -245,7 +245,27 @@ test.describe("Slice 3: Create Server, Modules, Backups (Desktop — 1440x900) @
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("a1b2c3d4e5f6", { exact: true })).toBeVisible();
     await expect(dialog.getByText("1.4 GiB", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("Consistency has not been reported.")).toBeVisible();
+    await expect(dialog.getByText("Capture-time volume metadata is unavailable.", { exact: false })).toBeVisible();
     await captureLocator(page, "zhLZN", dialog);
+  });
+
+  test("bHJy6: Backup recorded volume coverage", async ({ page }) => {
+    await setTheme(page, "light");
+    await page.context().addCookies([{
+      name: "e2e_backup_coverage", value: "recorded", domain: "localhost", path: "/",
+    }]);
+    await page.goto("/backups");
+    const row = page.getByRole("row").filter({ hasText: "mc-survival-nightly-0713" }).filter({ hasText: "local / default" });
+    await row.getByRole("rowheader").click();
+    const dialog = page.getByRole("dialog", { name: /backup details/i });
+    await expect(dialog.getByText("The game does not support quiesce.")).toBeVisible();
+    const coverage = dialog.getByText("Volume coverage", { exact: true }).locator("..");
+    await expect(coverage.getByText("Included", { exact: true })).toHaveCount(1);
+    await expect(coverage.getByText("Not covered", { exact: true })).toHaveCount(2);
+    await expect(coverage.getByText("Rebuildable", { exact: true })).toBeVisible();
+    await expect(coverage.getByText("Unclassified", { exact: true })).toBeVisible();
+    await captureLocator(page, "bHJy6", coverage);
   });
 
   test("E9EEv0: Restore Backup dialog", async ({ page }) => {

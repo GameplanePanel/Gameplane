@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (v0.3.0)  
 **Module / package:** `github.com/GameplanePanel/gameplane/gameaction`  
-**Dependencies:** stdlib only (Go 1.26+)
+**Dependencies:** stdlib only (Go 1.27+)
 
 ## Purpose
 

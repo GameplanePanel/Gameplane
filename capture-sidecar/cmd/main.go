@@ -12,6 +12,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"log/slog"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/GameplanePanel/gameplane/capture-sidecar/internal/auth"
 	"github.com/GameplanePanel/gameplane/capture-sidecar/internal/httpserver"
+	"github.com/GameplanePanel/gameplane/capture-sidecar/internal/nodecapture"
 )
 
 // Version is overridden at build time via -ldflags (see Dockerfile).
@@ -68,6 +70,8 @@ func main() {
 	keyFile := flag.String("tls-key", envOrDefault("TLS_KEY_FILE", "/etc/tls/tls.key"), "Server key file")
 	caFile := flag.String("tls-client-ca", envOrDefault("TLS_CA_FILE", "/etc/tls/ca.crt"), "Client CA certificate file")
 	captureDataDir := flag.String("capture-dir", "/tmp/captures", "Directory for capture files")
+	nodeWorker := flag.Bool("node-worker", false, "Run one operator-bound node diagnostic capture and exit")
+	artifactOnly := flag.Bool("artifacts-only", false, "Serve completed node capture artifacts without capture controls")
 
 	// The operator sets CAPTURE_VOLUME_BUDGET_BYTES on the capture ephemeral
 	// container (see buildCaptureEphemeralContainer in
@@ -89,6 +93,18 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if *nodeWorker {
+		var cfg nodecapture.Config
+		if *artifactOnly || json.Unmarshal([]byte(os.Getenv("NODE_CAPTURE_CONFIG")), &cfg) != nil {
+			slog.Error("invalid node capture configuration")
+			os.Exit(1)
+		}
+		if err := nodecapture.Run(ctx, cfg, *captureDataDir); err != nil {
+			slog.Error("node capture failed", "err", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// Create capture server. ctx (cancelled on SIGTERM/SIGINT) is the parent
 	// for every capture goroutine, so shutdown cancels in-flight captures
@@ -111,6 +127,9 @@ func main() {
 	// (see HandleHealthz's doc comment for why nothing actually calls this
 	// route today; F-193).
 	mux := captureServer.Routes(auth.Middleware)
+	if *artifactOnly {
+		mux = captureServer.ArtifactRoutes(auth.Middleware)
+	}
 
 	server := &http.Server{
 		Addr:      *listenAddr,

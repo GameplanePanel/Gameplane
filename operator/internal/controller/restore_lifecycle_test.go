@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 	"testing"
 
@@ -68,6 +69,68 @@ func lifecycleRestore(name string, uid types.UID) *gameplanev1alpha1.Restore {
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "ns", UID: uid},
 		Spec:       gameplanev1alpha1.RestoreSpec{ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "server"}, BackupRef: gameplanev1alpha1.LocalObjectRef{Name: "backup"}},
 		Status:     gameplanev1alpha1.RestoreStatus{Phase: gameplanev1alpha1.RestorePhaseSuspending, SnapshotID: "snapshot"},
+	}
+}
+
+func TestPendingRestoreTemplateBindsBeforeCopyFailure(t *testing.T) {
+	r, gs, rs := restoreLifecycleFixture(t)
+	gs.Annotations = map[string]string{restoreGuardAnnotation: restoreIdentityJSON(rs.Name, rs.UID), restoreTemplateAnnotation: "missing-plan"}
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.prepareSnapshotRestoreTarget(t.Context(), rs, gs); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.Get(t.Context(), client.ObjectKeyFromObject(rs), rs); err != nil {
+		t.Fatal(err)
+	}
+	if rs.Annotations[restoreTargetAnnotation] != restoreIdentityJSON(gs.Name, gs.UID) || !slices.Contains(rs.Finalizers, restoreCleanupFinalizer) {
+		t.Fatal("copy not protected by durable target/finalizer")
+	}
+	if _, err := r.prepareSnapshotRestoreTarget(t.Context(), rs, gs); err == nil {
+		t.Fatal("missing plan unexpectedly copied")
+	}
+}
+
+func TestCanceledRestoreClearsPendingTemplateBeforeWorkloadExists(t *testing.T) {
+	for _, bound := range []bool{false, true} {
+		t.Run(fmt.Sprint(bound), func(t *testing.T) {
+			r, gs, rs := restoreLifecycleFixture(t)
+			var ss appsv1.StatefulSet
+			if err := r.Get(t.Context(), client.ObjectKeyFromObject(gs), &ss); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Delete(t.Context(), &ss); err != nil {
+				t.Fatal(err)
+			}
+			gs.Spec.Suspend = false
+			gs.Annotations = map[string]string{restoreGuardAnnotation: restoreIdentityJSON(rs.Name, rs.UID), restoreTemplateAnnotation: "missing-plan"}
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			rs.Finalizers = []string{restoreCleanupFinalizer}
+			if bound {
+				rs.Annotations = map[string]string{restoreTargetAnnotation: restoreIdentityJSON(gs.Name, gs.UID)}
+			}
+			if err := r.Update(t.Context(), rs); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Delete(t.Context(), rs); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Get(t.Context(), client.ObjectKeyFromObject(rs), rs); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := r.cleanupRestore(t.Context(), rs); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Get(t.Context(), client.ObjectKeyFromObject(gs), gs); err != nil {
+				t.Fatal(err)
+			}
+			if gs.Annotations[restoreTemplateAnnotation] != "" || !gs.Spec.Suspend || gs.Annotations[restoreGuardAnnotation] == "" {
+				t.Fatal("pending restore template blocks safe stopped workload rendering")
+			}
+		})
 	}
 }
 

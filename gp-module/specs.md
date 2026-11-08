@@ -2,7 +2,7 @@
 
 **Status:** Active Development  
 **Module / command:** `github.com/GameplanePanel/gameplane/gp-module`  
-**Dependencies:** `gopkg.in/yaml.v3`, `k8s.io/apimachinery` (Go 1.26+)
+**Dependencies:** `gopkg.in/yaml.v3`, `k8s.io/apimachinery` (Go 1.27+)
 
 ## Purpose
 

@@ -3,7 +3,7 @@
 // (spec 013 G2, T031). Not part of go.work; tunnel/Dockerfile.frp builds it.
 module github.com/GameplanePanel/Gameplane/tunnel/frpc
 
-go 1.26.0
+go 1.27.0
 
 // Mirrors the replace in frp v0.71.0's own go.mod, which does not apply to
 // dependents.
@@ -38,7 +38,7 @@ require (
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/xtaci/kcp-go/v5 v5.6.13 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
