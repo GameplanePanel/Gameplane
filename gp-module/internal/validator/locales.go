@@ -21,6 +21,9 @@ func localeTag(name string) (string, bool) {
 	if !strings.HasPrefix(name, localesDir) || !strings.HasSuffix(name, localesSuffix) {
 		return "", false
 	}
+	if name == localesDir+pack.ReviewFile {
+		return "", false
+	}
 	tag := strings.TrimSuffix(strings.TrimPrefix(name, localesDir), localesSuffix)
 	if tag == "" || strings.Contains(tag, "/") {
 		return "", false
@@ -43,8 +46,20 @@ func validateLocales(files map[string][]byte) []Finding {
 	}
 	sort.Strings(names)
 
-	ref, ok := localeReference(files)
 	var findings []Finding
+	review := map[string]map[string]string{}
+	if data, found := files[localesDir+pack.ReviewFile]; found {
+		parsed, err := pack.ParseModuleReview(data)
+		if err != nil {
+			findings = append(findings, localeFinding(localesDir+pack.ReviewFile, "",
+				fmt.Sprintf("review file is malformed: %v", err),
+				"Run 'gp-module i18n stamp' to rewrite it, or delete it."))
+		} else {
+			review = parsed
+		}
+	}
+
+	ref, ok := localeReference(files)
 	for _, name := range names {
 		tag, _ := localeTag(name)
 		if tag == englishLocale {
@@ -61,6 +76,7 @@ func validateLocales(files map[string][]byte) []Finding {
 				"Make the file a JSON object mapping message ids to {\"defaultMessage\": \"...\"}."))
 			continue
 		}
+		tr = pack.ApplyReview(tr, review[tag])
 		if !ok {
 			continue
 		}

@@ -74,7 +74,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fset.BoolVar(&o.checkServer, "check-server", false, "report server.* and notify.* entries that differ from the registry")
 	fset.StringVar(&o.usedIDs, "used-ids", "", "file listing the message ids code uses, one per line")
 	fset.StringVar(&o.manifest, "manifest", "", "write the language manifest JSON to this file")
-	fset.BoolVar(&o.stamp, "stamp", false, "record sourceHash on translated entries that lack one")
+	fset.BoolVar(&o.stamp, "stamp", false, "record sourceHash in <tag>/.review.json for translated entries that lack one")
 	fset.StringVar(&o.module, "module", "", "module mode: check flat <tag>.json packs against this template")
 	fset.StringVar(&o.summary, "summary", "", "append a markdown summary to this file")
 	fset.StringVar(&o.validOut, "valid-out", "", "write each pack's usable entries (the ones the dashboard shows) to <dir>/<tag>/app.json")
@@ -245,12 +245,28 @@ func runModule(o options, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, fmt.Errorf("read locales: %w", err))
 	}
+	// The review file maps each tag to its recorded hashes. A missing file means
+	// none; one that does not parse is reported and ignored.
+	var review map[string]map[string]string
+	reviewData, err := os.ReadFile(filepath.Clean(filepath.Join(o.dir, pack.ReviewFile)))
+	switch {
+	case err == nil:
+		parsed, parseErr := pack.ParseModuleReview(reviewData)
+		if parseErr != nil {
+			findings = append(findings, errFinding(pack.CodeMalformedPack, pack.ReviewFile, pack.IDPack, parseErr.Error()))
+		} else {
+			review = parsed
+		}
+	case !errors.Is(err, fs.ErrNotExist):
+		return fail(stderr, fmt.Errorf("read %s: %w", pack.ReviewFile, err))
+	}
 	for _, d := range dirEntries {
 		name := d.Name()
-		if d.IsDir() || name == refFile || !strings.HasSuffix(name, ".json") {
+		if d.IsDir() || name == refFile || name == pack.ReviewFile || !strings.HasSuffix(name, ".json") {
 			continue
 		}
-		if stem := strings.TrimSuffix(name, ".json"); !pack.ValidTag(stem) {
+		stem := strings.TrimSuffix(name, ".json")
+		if !pack.ValidTag(stem) {
 			findings = append(findings, errFinding(pack.CodeMalformedPack, name, pack.IDPack, fmt.Sprintf("%q is not a valid language tag", stem)))
 			continue
 		}
@@ -263,6 +279,7 @@ func runModule(o options, stdout, stderr io.Writer) int {
 			findings = append(findings, errFinding(pack.CodeMalformedPack, name, pack.IDPack, err.Error()))
 			continue
 		}
+		tr = pack.ApplyReview(tr, review[stem])
 		findings = append(findings, pack.ValidateTranslation(ref, tr, name)...)
 	}
 
@@ -324,6 +341,7 @@ type translation struct {
 	entries map[string]pack.Entry
 	meta    pack.Meta
 	metaOK  bool
+	inline  bool // app.json still carries sourceHash keys
 }
 
 // loadTranslations validates every other directory that has an app.json.
@@ -362,8 +380,17 @@ func loadTranslations(dir, reference string, ref map[string]pack.Entry) ([]trans
 			findings = append(findings, errFinding(pack.CodeMalformedPack, file, pack.IDPack, err.Error()))
 			continue
 		}
+		inline := pack.HasInlineHashes(entries)
+		hashes, reviewFindings, err := loadReview(packDir, tag)
+		if err != nil {
+			return nil, nil, err
+		}
+		findings = append(findings, reviewFindings...)
+		if hashes != nil {
+			entries = pack.ApplyReview(entries, hashes)
+		}
 		findings = append(findings, pack.ValidateTranslation(ref, entries, file)...)
-		out = append(out, translation{tag: tag, dir: packDir, entries: entries, meta: meta, metaOK: metaOK})
+		out = append(out, translation{tag: tag, dir: packDir, entries: entries, meta: meta, metaOK: metaOK, inline: inline})
 	}
 	return out, findings, nil
 }
@@ -388,22 +415,55 @@ func readMeta(path, tag, file string, required bool) (meta pack.Meta, ok bool, f
 	return meta, parseErr == nil && !hasErrors(findings), findings, nil
 }
 
-// stampTranslations records the English source hash on every translated entry
-// that lacks one, and rewrites the packs it changed.
+// loadReview reads a pack's review file. A missing file means there are no
+// recorded hashes (nil, no findings). A file that does not parse is reported as
+// a finding and ignored, so the pack is still validated. Only an unreadable
+// file is returned as an error.
+func loadReview(packDir, tag string) (map[string]string, []pack.Finding, error) {
+	file := tag + "/" + pack.ReviewFile
+	data, err := os.ReadFile(filepath.Clean(filepath.Join(packDir, pack.ReviewFile)))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil, nil
+	}
+	if err != nil {
+		return nil, nil, fmt.Errorf("read %s/%s: %w", tag, pack.ReviewFile, err)
+	}
+	hashes, err := pack.ParseReview(data)
+	if err != nil {
+		return nil, []pack.Finding{errFinding(pack.CodeMalformedPack, file, pack.IDPack, err.Error())}, nil
+	}
+	return hashes, nil, nil
+}
+
+// stampTranslations records the English source hash of every translated entry
+// that lacks one in <tag>/.review.json, and moves any inline sourceHash there
+// from app.json. It rewrites only the files it changed.
 func stampTranslations(ref map[string]pack.Entry, trs []translation) error {
 	for i := range trs {
 		tr := &trs[i]
 		stamped, changed := pack.Stamp(ref, tr.entries)
-		if !changed {
+		if !changed && !tr.inline {
 			continue
 		}
 		tr.entries = stamped
-		data, err := pack.Marshal(tr.entries)
+		stripped, hashes := pack.SplitReview(stamped)
+		if tr.inline {
+			// Move the hashes out of app.json, which Weblate rewrites.
+			data, err := pack.Marshal(stripped)
+			if err != nil {
+				return fmt.Errorf("stamp %s: %w", tr.tag, err)
+			}
+			if err := writeInDir(tr.dir, "app.json", data); err != nil {
+				return fmt.Errorf("write stamped %s/app.json: %w", tr.tag, err)
+			}
+			tr.inline = false
+		}
+		data, err := pack.MarshalReview(hashes)
 		if err != nil {
 			return fmt.Errorf("stamp %s: %w", tr.tag, err)
 		}
-		if err := writeInDir(tr.dir, "app.json", data); err != nil {
-			return fmt.Errorf("write stamped %s/app.json: %w", tr.tag, err)
+		if err := writeInDir(tr.dir, pack.ReviewFile, data); err != nil {
+			return fmt.Errorf("write stamped %s/%s: %w", tr.tag, pack.ReviewFile, err)
 		}
 	}
 	return nil
