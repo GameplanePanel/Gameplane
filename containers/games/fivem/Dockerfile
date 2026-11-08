@@ -18,7 +18,7 @@ RUN apk add --no-cache \
     mariadb-client~=11.8.9 \
     mariadb-server-utils~=11.8.9 \
     sqlite~=3.53.4 \
-    tzdata~=2026e
+    tzdata~=2026f
 
 # Create gameplane runtime user with fixed UID/GID 1000
 RUN addgroup -g 1000 gameplane && \

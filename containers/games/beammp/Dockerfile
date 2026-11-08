@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     libstdc++~=15.2.0 \
     libgcc~=15.2.0 \
     openssl~=3.5.9 \
-    zlib~=1.3.2
+    zlib~=1.4
 
 # Create gameplane runtime user with fixed UID/GID 1000
 RUN addgroup -g 1000 gameplane && \
