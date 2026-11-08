@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestParseReviewCases checks ParseReview across valid and invalid app review inputs.
 func TestParseReviewCases(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -42,6 +43,7 @@ func TestParseReviewCases(t *testing.T) {
 	}
 }
 
+// TestMarshalReviewRoundTripAndBytes checks that MarshalReview round-trips through ParseReview and produces the expected bytes.
 func TestMarshalReviewRoundTripAndBytes(t *testing.T) {
 	data, err := MarshalReview(map[string]string{"b": "y", "a": "x"})
 	if err != nil {
@@ -59,6 +61,7 @@ func TestMarshalReviewRoundTripAndBytes(t *testing.T) {
 	}
 }
 
+// TestMarshalReviewNilEncodesEmptyObject checks that a nil review map marshals to an empty JSON object.
 func TestMarshalReviewNilEncodesEmptyObject(t *testing.T) {
 	data, err := MarshalReview(nil)
 	if err != nil {
@@ -69,6 +72,7 @@ func TestMarshalReviewNilEncodesEmptyObject(t *testing.T) {
 	}
 }
 
+// TestParseModuleReviewCases checks ParseModuleReview across valid and invalid module review inputs.
 func TestParseModuleReviewCases(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -106,6 +110,7 @@ func TestParseModuleReviewCases(t *testing.T) {
 	}
 }
 
+// TestMarshalModuleReviewRoundTrip checks that MarshalModuleReview round-trips through ParseModuleReview.
 func TestMarshalModuleReviewRoundTrip(t *testing.T) {
 	data, err := MarshalModuleReview(map[string]map[string]string{
 		"fr":  {"x": "111111111111"},
@@ -127,6 +132,7 @@ func TestMarshalModuleReviewRoundTrip(t *testing.T) {
 	}
 }
 
+// TestMarshalModuleReviewInvalidTagRejectedOnParse checks that an invalid language tag in a module review is rejected on parse.
 func TestMarshalModuleReviewInvalidTagRejectedOnParse(t *testing.T) {
 	data, err := MarshalModuleReview(map[string]map[string]string{"BAD TAG": {"x": "1"}})
 	if err != nil {
@@ -137,6 +143,7 @@ func TestMarshalModuleReviewInvalidTagRejectedOnParse(t *testing.T) {
 	}
 }
 
+// TestApplyReview checks that ApplyReview applies review hashes to translated entries.
 func TestApplyReview(t *testing.T) {
 	entries := map[string]Entry{
 		"a": {DefaultMessage: "A", SourceHash: "inline00000"},
@@ -159,6 +166,7 @@ func TestApplyReview(t *testing.T) {
 	}
 }
 
+// TestSplitReview checks that SplitReview separates review hashes from inline translation content.
 func TestSplitReview(t *testing.T) {
 	entries := map[string]Entry{
 		"a": {DefaultMessage: "A", Description: "d", SourceHash: "aaaaaaaaaaaa"},
@@ -184,6 +192,7 @@ func TestSplitReview(t *testing.T) {
 	}
 }
 
+// TestHasInlineHashes checks that HasInlineHashes detects inline source hashes in translation content.
 func TestHasInlineHashes(t *testing.T) {
 	if !HasInlineHashes(map[string]Entry{"a": {DefaultMessage: "A", SourceHash: "x"}}) {
 		t.Error("HasInlineHashes = false; want true")

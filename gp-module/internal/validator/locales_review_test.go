@@ -6,6 +6,7 @@ import (
 	"github.com/GameplanePanel/gameplane/i18n/pack"
 )
 
+// TestValidateLocalesReviewStaleHashIsWarning checks that a review hash that no longer matches the English source is a warning.
 func TestValidateLocalesReviewStaleHashIsWarning(t *testing.T) {
 	t.Parallel()
 	files := localeFiles(map[string]string{
@@ -22,6 +23,7 @@ func TestValidateLocalesReviewStaleHashIsWarning(t *testing.T) {
 	}
 }
 
+// TestValidateLocalesReviewFileIsNotATag checks that the review file is not treated as a language tag.
 func TestValidateLocalesReviewFileIsNotATag(t *testing.T) {
 	t.Parallel()
 	files := localeFiles(map[string]string{
@@ -33,6 +35,7 @@ func TestValidateLocalesReviewFileIsNotATag(t *testing.T) {
 	}
 }
 
+// TestValidateLocalesMalformedReviewFile checks that a malformed review file is reported by the locale validator.
 func TestValidateLocalesMalformedReviewFile(t *testing.T) {
 	t.Parallel()
 	files := localeFiles(map[string]string{

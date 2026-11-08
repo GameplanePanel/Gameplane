@@ -6,6 +6,7 @@ import (
 	"github.com/GameplanePanel/gameplane/i18n/pack"
 )
 
+// TestReadLocaleFilesSkipsReviewFile checks that the packager skips the review file when reading locale files.
 func TestReadLocaleFilesSkipsReviewFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()

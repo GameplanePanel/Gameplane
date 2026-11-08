@@ -9,6 +9,7 @@ import (
 	"github.com/GameplanePanel/gameplane/i18n/pack"
 )
 
+// TestStaleReviewHashNeedsReview checks that a stale review hash makes i18n-check report a needs-review finding.
 func TestStaleReviewHashNeedsReview(t *testing.T) {
 	root := t.TempDir()
 	writeTree(t, root, map[string]string{
@@ -26,6 +27,7 @@ func TestStaleReviewHashNeedsReview(t *testing.T) {
 	}
 }
 
+// TestStampMovesInlineSourceHashToReviewFile checks that i18n-check stamp moves inline source hashes into the review file.
 func TestStampMovesInlineSourceHashToReviewFile(t *testing.T) {
 	root := t.TempDir()
 	want := pack.SourceHash("A")
@@ -50,6 +52,7 @@ func TestStampMovesInlineSourceHashToReviewFile(t *testing.T) {
 	}
 }
 
+// TestMalformedReviewFileReported checks that i18n-check reports a malformed review file.
 func TestMalformedReviewFileReported(t *testing.T) {
 	root := t.TempDir()
 	writeTree(t, root, map[string]string{
@@ -68,6 +71,7 @@ func TestMalformedReviewFileReported(t *testing.T) {
 	}
 }
 
+// TestModuleReviewClearsNoTagFinding checks that a module review file clears the no-tag finding.
 func TestModuleReviewClearsNoTagFinding(t *testing.T) {
 	files := map[string]string{
 		"en.json": derivedReference(),
@@ -86,6 +90,7 @@ func TestModuleReviewClearsNoTagFinding(t *testing.T) {
 	}
 }
 
+// TestModuleMalformedReviewReported checks that i18n-check reports a malformed module review file.
 func TestModuleMalformedReviewReported(t *testing.T) {
 	files := map[string]string{"en.json": derivedReference()}
 	files[pack.ReviewFile] = `{"not a tag":{}}`

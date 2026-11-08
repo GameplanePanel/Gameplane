@@ -9,6 +9,7 @@ import (
 	"github.com/GameplanePanel/gameplane/i18n/pack"
 )
 
+// TestStampMovesInlineHashToReview checks that Stamp moves an inline source hash into the review file.
 func TestStampMovesInlineHashToReview(t *testing.T) {
 	t.Parallel()
 	dir := writeModule(t, testModule, testTemplate)
@@ -50,6 +51,7 @@ func TestStampMovesInlineHashToReview(t *testing.T) {
 	}
 }
 
+// TestStampKeepsExistingReview checks that Stamp keeps an existing review entry instead of overwriting it.
 func TestStampKeepsExistingReview(t *testing.T) {
 	t.Parallel()
 	dir := writeModule(t, testModule, testTemplate)
@@ -79,6 +81,7 @@ func TestStampKeepsExistingReview(t *testing.T) {
 	}
 }
 
+// TestStampMalformedReviewIsError checks that Stamp reports an error when the review file is malformed.
 func TestStampMalformedReviewIsError(t *testing.T) {
 	t.Parallel()
 	dir := writeModule(t, testModule, testTemplate)
