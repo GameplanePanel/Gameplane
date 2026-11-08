@@ -60,7 +60,7 @@ ARG GAMESERVER_GID=10000
 # install is idempotent and cheap either way, so it stays as a safety net —
 # `apt-get install` on an already-installed package is a no-op.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates=20260816ubuntu0.26.04.1 && \
+    apt-get install -y --no-install-recommends ca-certificates=20260816ubuntu0.26.04.2 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the shared installation helper script.
