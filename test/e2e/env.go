@@ -616,7 +616,10 @@ func (c *APIClient) DoContext(ctx context.Context, method, path string, body any
 		return nil, nil, fmt.Errorf("do %s %s: %w", method, path, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	rb, _ := io.ReadAll(resp.Body)
+	rb, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp, rb, fmt.Errorf("read response for %s %s: %w", method, path, err)
+	}
 	return resp, rb, nil
 }
 
