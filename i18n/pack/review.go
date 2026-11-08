@@ -47,11 +47,7 @@ func MarshalReview(hashes map[string]string) ([]byte, error) {
 	if hashes == nil {
 		hashes = map[string]string{}
 	}
-	data, err := encodeJSON(hashes)
-	if err != nil {
-		return nil, fmt.Errorf("pack: marshal review: %w", err)
-	}
-	return data, nil
+	return encodeJSON(hashes, "review")
 }
 
 // ParseModuleReview decodes a module review file: a JSON object that maps each
@@ -97,11 +93,7 @@ func MarshalModuleReview(review map[string]map[string]string) ([]byte, error) {
 		}
 		out[tag] = hashes
 	}
-	data, err := encodeJSON(out)
-	if err != nil {
-		return nil, fmt.Errorf("pack: marshal module review: %w", err)
-	}
-	return data, nil
+	return encodeJSON(out, "module review")
 }
 
 // ApplyReview returns a copy of entries in which the SourceHash of every id that
@@ -149,13 +141,14 @@ func HasInlineHashes(entries map[string]Entry) bool {
 
 // encodeJSON encodes v with the layout used for pack files: sorted keys,
 // two-space indentation, HTML characters unescaped, and a trailing newline.
-func encodeJSON(v any) ([]byte, error) {
+// On error the returned message names what, which says what was being encoded.
+func encodeJSON(v any, what string) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(v); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("pack: marshal %s: %w", what, err)
 	}
 	return buf.Bytes(), nil
 }
