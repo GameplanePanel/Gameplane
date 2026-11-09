@@ -450,10 +450,13 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 	}
 	if rs.Status.RecoveryPlan != nil {
 		recoveryWorkerVolumes(&spec, rs.Status.RecoveryPlan.Volumes, false)
-		args := []string{"restore", rs.Status.SnapshotID, "--target", "/", "--delete", "--retry-lock", "10m"}
+		// Restore the archive subtree itself so restic never applies the
+		// archived /volumes ancestor metadata to the read-only container root.
+		// Includes are relative to that subtree; physical PVC paths stay fixed.
+		args := []string{"restore", rs.Status.SnapshotID + ":/volumes", "--target", "/volumes", "--delete", "--retry-lock", "10m"}
 		for _, v := range rs.Status.RecoveryPlan.Volumes {
 			if v.Included {
-				args = append(args, "--include", v.SnapshotRoot)
+				args = append(args, "--include", "/"+v.LogicalName)
 			}
 		}
 		spec.Containers[0].Args = args

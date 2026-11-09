@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"path"
 	"strings"
 	"testing"
 
@@ -86,5 +87,58 @@ func TestSelectedClaimDrainMatchesForeignClaims(t *testing.T) {
 	pod := &corev1.Pod{Spec: corev1.PodSpec{Volumes: []corev1.Volume{{Name: "foreign", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "external-world"}}}}}}
 	if !podMountsRecoveryClaims(pod, []v1.BackupVolumeCoverage{{ClaimName: "external-world", Included: true}}) {
 		t.Fatal("foreign claim writer ignored")
+	}
+}
+
+// Restic restores metadata on every ancestor of selected files, even when the
+// ancestor is not itself included. Selecting the /volumes subtree makes that
+// ancestor the metadata-free restore target instead of a read-only image path.
+func TestRecoveryRestoreScopesArchiveSubtreeToMountedClaims(t *testing.T) {
+	volumes := []v1.BackupVolumeCoverage{
+		{ClaimName: "world", LogicalName: "primary", SnapshotRoot: "/volumes/primary", Included: true},
+		{ClaimName: "mods", LogicalName: "mods-v1", SnapshotRoot: "/volumes/mods-v1", Included: true},
+		{ClaimName: "cache", LogicalName: "extra-cache", Included: false},
+	}
+	rs := &v1.Restore{Status: v1.RestoreStatus{SnapshotID: "0123456789abcdef", RecoveryPlan: &v1.RestoreRecoveryPlan{Volumes: volumes}}}
+	src := &v1.Backup{Spec: v1.BackupSpec{RepoRef: &v1.SecretKeySelector{Name: "repo"}}}
+	spec := (&RestoreReconciler{}).buildRestorePodSpec(rs, src, &v1.GameTemplate{})
+	worker := spec.Containers[0]
+	if worker.SecurityContext.ReadOnlyRootFilesystem == nil || !*worker.SecurityContext.ReadOnlyRootFilesystem {
+		t.Fatal("restore weakened container root filesystem protection")
+	}
+	if worker.Args[1] != rs.Status.SnapshotID+":/volumes" {
+		t.Fatalf("restore would apply archive ancestor metadata: %v", worker.Args)
+	}
+	target := ""
+	includes := []string{}
+	deleteEnabled := false
+	for i, arg := range worker.Args {
+		switch arg {
+		case "--target":
+			target = worker.Args[i+1]
+		case "--include":
+			includes = append(includes, worker.Args[i+1])
+		case "--delete":
+			deleteEnabled = true
+		}
+	}
+	if target != "/volumes" || len(includes) != 2 || !deleteEnabled {
+		t.Fatalf("incorrect restore scope: %v", worker.Args)
+	}
+	mounted := map[string]bool{}
+	for _, mount := range worker.VolumeMounts {
+		if mount.MountPath != "/tmp" {
+			mounted[mount.MountPath] = !mount.ReadOnly
+		}
+	}
+	for _, include := range includes {
+		if strings.ContainsAny(include, "*?[") || !mounted[path.Join(target, include)] {
+			t.Fatalf("include %q does not resolve to an exact writable PVC: %v", include, mounted)
+		}
+	}
+	for _, volume := range spec.Volumes {
+		if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName == "cache" {
+			t.Fatal("restore mounted excluded rebuildable claim")
+		}
 	}
 }
