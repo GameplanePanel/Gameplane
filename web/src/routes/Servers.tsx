@@ -114,7 +114,7 @@ export function ServersPage() {
   const appliedFacetCount = appliedGames.size + appliedNamespaces.size + (location ? 1 : 0);
   const locationChoices = [...(scopes?.scopes ?? []).map((scope) => scope.cluster), ...(scopes?.items ?? []).map((item) => item.target.cluster), ...(scopes?.issues ?? []).map((issue) => issue.cluster)];
   const locationField = <div className="space-y-1">
-    <div className="text-xs font-semibold text-muted">{intl.formatMessage({ id: "web.routes.servers.location", defaultMessage: "Location", description: "Servers: label of the location filter in the filter panel; the choices are the clusters the user can access" })}</div>
+    <div className="text-xs font-semibold text-muted">{intl.formatMessage({ id: "web.routes.servers.location", defaultMessage: "Cluster", description: "Servers: label of the cluster filter in the filter panel; the choices are the clusters the user can access" })}</div>
     <FleetScopeFilter value={draftLocation} onChange={setDraftLocation} clusters={locationChoices} />
   </div>;
 
@@ -181,7 +181,7 @@ export function ServersPage() {
       {!isMobile && (
         <PageHeader
           title={intl.formatMessage({ id: "web.routes.servers.servers", defaultMessage: "Servers", description: "Servers: page title of the server list page; keep it short" })}
-          subtitle={intl.formatMessage({ id: "web.routes.servers.manage_your_game_servers_across_all", defaultMessage: "Manage your game servers across all authorized locations.", description: "Servers: subtitle under the page title saying the list covers game servers in all locations the user may access" })}
+          subtitle={intl.formatMessage({ id: "web.routes.servers.manage_your_game_servers_across_all", defaultMessage: "Manage your game servers across all authorized clusters.", description: "Servers: subtitle under the page title saying the list covers game servers in all clusters the user may access" })}
           actions={canCreate ?
             <Link to="/servers/new" className={cn(buttonVariants({ variant: "primary" }), "rounded-full")}>
               <Plus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.servers.create_server", defaultMessage: "Create server", description: "Servers: button at the top right that opens the form to create a new game server; shown only to users who can create servers; keep it short" })}</Link> : undefined

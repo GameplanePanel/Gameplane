@@ -209,7 +209,6 @@ describe("AdminSettingsPage", () => {
     for (const label of [
       "General",
       "Authentication",
-      "Backup destinations",
       "Module sources",
       "Notifications",
       "Telemetry",
@@ -218,6 +217,7 @@ describe("AdminSettingsPage", () => {
     ]) {
       expect(screen.getByRole("button", { name: new RegExp(label, "i") })).toBeInTheDocument();
     }
+    expect(screen.queryByRole("button", { name: "Backup destinations" })).not.toBeInTheDocument();
   });
 
   it("shows loading state when config is loading", async () => {
@@ -541,62 +541,6 @@ describe("AdminSettingsPage", () => {
     renderWithQuery(<AdminSettingsPage />);
     await userEvent.click(screen.getByRole("button", { name: /Mod registries/i }));
     expect(await screen.findByText("Configured")).toBeInTheDocument();
-  });
-
-  it("navigates to Backup Destinations section", async () => {
-    server.use(
-      http.get("/admin/config", () =>
-        HttpResponse.json({}),
-      ),
-      // BackupDestinations.list() hits /backup-destinations, not the
-      // /admin-prefixed path — that prefix is only used for the auth
-      // provider / mod registry secret write endpoints.
-      http.get("/backup-destinations", () =>
-        HttpResponse.json({
-          items: [
-            {
-              name: "primary-backup",
-              url: "s3:s3.example.com/bucket",
-              hasPassword: true,
-              createdAt: "2026-01-01T00:00:00Z",
-            },
-          ],
-        }),
-      ),
-    );
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(screen.getByRole("button", { name: /Backup destinations/i }));
-    expect(await screen.findByText("primary-backup")).toBeInTheDocument();
-  });
-
-  it("shows error when backup destinations fail to load", async () => {
-    server.use(
-      http.get("/admin/config", () =>
-        HttpResponse.json({}),
-      ),
-      http.get("/backup-destinations", () =>
-        new HttpResponse("Server error", { status: 500 }),
-      ),
-    );
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(screen.getByRole("button", { name: /Backup destinations/i }));
-    expect(await screen.findByText(/error/i)).toBeInTheDocument();
-  });
-
-  it("shows empty state for backup destinations", async () => {
-    server.use(
-      http.get("/admin/config", () =>
-        HttpResponse.json({}),
-      ),
-      http.get("/backup-destinations", () =>
-        HttpResponse.json({ items: [] }),
-      ),
-    );
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(screen.getByRole("button", { name: /Backup destinations/i }));
-    expect(
-      await screen.findByText(/No backup destinations configured/i),
-    ).toBeInTheDocument();
   });
 
   it("disables last enabled auth provider toggle", async () => {

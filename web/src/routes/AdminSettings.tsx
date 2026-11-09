@@ -2,7 +2,6 @@ import { useInstallation } from "@/lib/useInstallation";
 import { useState, useEffect, useRef, type ChangeEvent, type ComponentType, type ReactNode, type SetStateAction } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Archive,
   Bell,
   BellRing,
   CircleHelp,
@@ -43,15 +42,12 @@ import { RemovableGroupChip } from "@/components/ui/RemovableGroupChip";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
 import { SlackIcon } from "@/components/ui/SlackIcon";
 import { SettingsNav, type SettingsSectionKey } from "@/components/ui/SettingsNav";
-import { cn, formatRelative } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { errorTextIntl } from "@/lib/errors";
 import { Telemetry, type TelemetryInfo } from "@/lib/api";
 import { TELEMETRY_STATEMENT_URL } from "@/lib/links";
-import { Auth, AuthProviders, createResourceClient, Cluster, Clusters, ModRegistries, Notifications, type SinkSecretBody } from "@/lib/endpoints";
-import { useCurrentCluster } from "@/lib/cluster";
-import { ClusterSelector } from "@/components/ClusterSelector";
-import { LoadingCard } from "@/components/ui/LoadingCard";
-import { ErrorCard } from "@/components/ui/ErrorCard";
+import { Auth, AuthProviders, Cluster, ModRegistries, Notifications, type SinkSecretBody } from "@/lib/endpoints";
+import { LegacyBackupSettings } from "@/components/clusters/LegacyBackupSettings";
 import { can, useMe } from "@/lib/auth";
 import type { ClusterInfo } from "@/types";
 import {
@@ -77,7 +73,6 @@ import {
   type SinkKind,
   type TelemetryCfg,
 } from "@/lib/config";
-import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ModuleSourcesPanel } from "@/components/modules/ModuleSourcesPanel";
 import { defineMessages, type IntlShape } from "react-intl";
 import { useFormat, useOptionalIntl, type FormatApi } from "@/lib/i18n/format";
@@ -127,7 +122,7 @@ export function AdminSettingsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
         {/* /admin is gated on config:manage, so every section is reachable. */}
-        <SettingsNav active={section} onSelect={selectSection} showAdminSections />
+        <SettingsNav active={section === "backups" ? undefined : section} onSelect={selectSection} showAdminSections />
 
         <div className="space-y-6">
           {cfg.isLoading && (
@@ -143,7 +138,7 @@ export function AdminSettingsPage() {
           {cfg.data && section === "general"       && <GeneralSection       initial={cfg.data.general} />}
           {cfg.data && section === "general"       && <LanguageSection      initial={cfg.data.i18n} />}
           {cfg.data && section === "auth"          && <AuthSection          initial={cfg.data.auth} general={cfg.data.general} installTimeSettings={cfg.data.installTimeSettings} />}
-          {section === "backups"                   && <BackupDestSection />}
+          {section === "backups"                   && <LegacyBackupSettings />}
           {section === "modules"                   && <ModuleSourcesPanel />}
           {cfg.data && section === "modRegistries" && <ModRegistriesSection initial={cfg.data.modRegistries} />}
           {cfg.data && section === "notifications" && <NotificationsSection initial={cfg.data.notifications} />}
@@ -948,173 +943,6 @@ function AddProviderForm({
           submit();
         }}
       />
-    </div>
-  );
-}
-
-function BackupDestSection() {
-  const intl = useOptionalIntl();
-  const installation = useInstallation();
-  const selected = useCurrentCluster();
-  const registry = useQuery({
-    queryKey: ["clusters"], queryFn: () => Clusters.list(),
-    enabled: installation.data?.standalone === true,
-  });
-  if (installation.isPending) return <LoadingCard message={intl.formatMessage({ id: "web.routes.admin_settings.loading_installation", defaultMessage: "Loading installation…", description: "Admin settings: loading text in the backup destinations area while installation details are fetched" })} />;
-  if (installation.isError) return <ErrorCard message={intl.formatMessage({ id: "web.routes.admin_settings.couldn_t_load_installation_capabilities", defaultMessage: "Couldn't load installation capabilities.", description: "Admin settings: error message in the backup destinations area when installation details fail to load; a retry button follows it" })} onRetry={() => void installation.refetch()} />;
-  if (!installation.data.standalone) return <ClusterBackupDestSection cluster="local" />;
-  const target = registry.data?.items.find((cluster) => cluster.name === selected);
-  return <div className="space-y-4">
-    <ClusterSelector />
-    {registry.isPending ? <LoadingCard message={intl.formatMessage({ id: "web.routes.admin_settings.loading_clusters", defaultMessage: "Loading clusters…", description: "Admin settings: loading text in the backup destinations area while the list of registered clusters loads" })} />
-      : registry.isError ? <ErrorCard message={intl.formatMessage({ id: "web.routes.admin_settings.couldn_t_load_registered_clusters", defaultMessage: "Couldn't load registered clusters.", description: "Admin settings: error message in the backup destinations area when the list of registered clusters fails to load" })} onRetry={() => void registry.refetch()} />
-      : target ? <ClusterBackupDestSection key={target.name} cluster={target.name} />
-      : <SectionCard title={intl.formatMessage({ id: "web.routes.admin_settings.select_a_workload_cluster", defaultMessage: "Select a workload cluster", description: "Admin settings: title of the placeholder card shown when no workload cluster is selected for backup destinations" })} subtitle={intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations_are_stored_on_the", defaultMessage: "Backup destinations are stored on the workload cluster that runs your servers.", description: "Admin settings: subtitle under the select-a-cluster title saying backup destinations live on the workload cluster that runs your servers" })}>
-        <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.choose_a_registered_cluster_above_or", defaultMessage: "Choose a registered cluster above, or register one on the Clusters page.", description: "Admin settings: text in the select-a-cluster card asking the user to pick a cluster above or register one on the Clusters page" })}</p>
-      </SectionCard>}
-  </div>;
-}
-
-function ClusterBackupDestSection({ cluster }: { cluster: string }) {
-  const intl = useOptionalIntl();
-  const qc = useQueryClient();
-  const { BackupDestinations } = createResourceClient({ cluster });
-  const [adding, setAdding] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
-
-  const list = useQuery({
-    queryKey: ["backup-destinations", cluster],
-    queryFn: () => BackupDestinations.list(),
-  });
-  const remove = useMutation({
-    mutationFn: (name: string) => BackupDestinations.remove(name),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["backup-destinations", cluster] });
-      setDeleting(null);
-    },
-  });
-
-  const items = list.data?.items ?? [];
-
-  return (
-    <SectionCard
-      title={intl.formatMessage({ id: "web.routes.admin_settings.backup_destinations", defaultMessage: "Backup destinations", description: "Admin settings: title of the backup destinations section card for one cluster; keep it short" })}
-      subtitle={intl.formatMessage({ id: "web.routes.admin_settings.restic_repositories_for_snapshots", defaultMessage: "Restic repositories for snapshots. Stored as labelled Kubernetes Secrets in the configured namespace.", description: "Admin settings: subtitle under Backup destinations: Restic repositories for snapshots, stored as labelled Kubernetes Secrets (Restic: technical term, usually left untranslated)" })}
-      footer={
-        <Button onPress={() => setAdding(true)} isDisabled={adding}>
-          <Plus className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.admin_settings.add_destination", defaultMessage: "Add destination", description: "Admin settings: button that opens the form to add a backup destination, and the heading of that form; keep it short" })}</Button>
-      }
-    >
-      {list.isLoading && <div className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.loading_destinations", defaultMessage: "Loading destinations…", description: "Admin settings: loading text in the backup destinations card while the list is fetched" })}</div>}
-      {list.isError && <ErrorBanner err={list.error} />}
-      {!list.isLoading && items.length === 0 && !adding && (
-        <div className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.no_backup_destinations_configured_add", defaultMessage: "No backup destinations configured. Add one to enable snapshots.", description: "Admin settings: empty-state text in the backup destinations card when none exist, asking the user to add one to enable snapshots" })}</div>
-      )}
-      {adding && <NewDestinationForm cluster={cluster} onClose={() => setAdding(false)} />}
-      <ul className="divide-y divide-border">
-        {items.map((d) => (
-          <li key={d.name} className="flex items-center gap-3 py-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-surface">
-              <Archive className="h-4 w-4 text-muted" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm">{d.name}</div>
-              <div className="truncate font-mono text-xs text-muted">{d.url}</div>
-            </div>
-            <span className="rounded bg-success/15 px-2 py-0.5 text-[10px] font-mono uppercase text-success">
-              {d.hasPassword ? intl.formatMessage({ id: "web.routes.admin_settings.configured_lower", defaultMessage: "configured", description: "Admin settings: badge on a backup destination whose password is stored" }) : intl.formatMessage({ id: "web.routes.admin_settings.no_password", defaultMessage: "no-password", description: "Admin settings: badge on a backup destination with no stored password" })}
-            </span>
-            {d.createdAt && (
-              <span className="text-[11px] text-muted">{formatRelative(d.createdAt, intl)}</span>
-            )}
-            <button
-              type="button"
-              aria-label={intl.formatMessage({ id: "web.routes.admin_settings.delete_destination", defaultMessage: "Delete {name}", description: "Admin settings: aria-label of the button that deletes a backup destination; {name} is the destination name" }, { name: d.name })}
-              onClick={() => setDeleting(d.name)}
-              className="rounded p-1 text-muted hover:bg-surface/60 hover:text-danger"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </li>
-        ))}
-      </ul>
-      {remove.error && <ErrorBanner err={remove.error} />}
-      <ConfirmDialog
-        open={deleting !== null}
-        onOpenChange={(open) => { if (!open) setDeleting(null); }}
-        title={intl.formatMessage({ id: "web.routes.admin_settings.delete_backup_destination", defaultMessage: "Delete backup destination?", description: "Admin settings: title of the confirmation dialog that asks whether to delete a backup destination" })}
-        description={
-          <>
-            <p>{intl.formatMessage({ id: "web.routes.admin_settings.the_repository_at_this_destination_will", defaultMessage: "The repository at this destination will", description: "Admin settings: opening words of the delete dialog text, followed by the emphasised word not and the rest of the sentence" })} <strong>{intl.formatMessage({ id: "web.routes.admin_settings.not", defaultMessage: "not", description: "Admin settings: the word not, shown in bold in the delete dialog text to stress the repository is not erased" })}</strong> {intl.formatMessage({ id: "web.routes.admin_settings.be_erased_only_the_credentials", defaultMessage: "be erased — only the credentials Gameplane uses to reach it. Existing backups remain intact; new backups against this destination will fail until it's re-added.", description: "Admin settings: end of the delete dialog text: only Gameplane's credentials for the destination are removed, existing backups stay and new backups fail" })}</p>
-            {deleting && (
-              <p className="pt-2">{intl.formatMessage({ id: "web.routes.admin_settings.type", defaultMessage: "Type", description: "Admin settings: first word of the line in the delete dialog asking the user to type the destination name to confirm" })} <span className="font-mono">{deleting}</span> {intl.formatMessage({ id: "web.routes.admin_settings.to_confirm", defaultMessage: "to confirm.", description: "Admin settings: last words of the line asking the user to type the destination name to confirm; the name is shown in monospace before them" })}</p>
-            )}
-          </>
-        }
-        confirmPhrase={deleting ?? undefined}
-        confirmLabel={intl.formatMessage({ id: "web.routes.admin_settings.delete", defaultMessage: "Delete", description: "Admin settings: confirm button of the delete backup destination dialog; keep it short" })}
-        destructive
-        busy={remove.isPending}
-        onConfirm={() => deleting && remove.mutate(deleting)}
-      />
-    </SectionCard>
-  );
-}
-
-function NewDestinationForm({ cluster, onClose }: { cluster: string; onClose: () => void }) {
-  const intl = useOptionalIntl();
-  const qc = useQueryClient();
-  const { BackupDestinations } = createResourceClient({ cluster });
-  const [form, setForm] = useState({ name: "", url: "", password: "" });
-  const create = useMutation({
-    mutationFn: () => BackupDestinations.upsert(form),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["backup-destinations", cluster] });
-      onClose();
-    },
-  });
-  const valid =
-    /^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/.test(form.name) &&
-    form.url.length > 0 &&
-    form.password.length > 0;
-  return (
-    <div className="space-y-3 rounded-md border border-border bg-surface/30 p-4">
-      <div className="text-sm font-medium">{intl.formatMessage({ id: "web.routes.admin_settings.add_destination", defaultMessage: "Add destination", description: "Admin settings: button that opens the form to add a backup destination, and the heading of that form; keep it short" })}</div>
-      <p className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.restic_url_hint", defaultMessage: "Stored as a Secret labelled {secret}. Restic URL formats: {s3}, {b2}, {azure}, etc.", description: "Admin settings: hint under the backup destination form; {secret} is the Secret label, {s3}, {b2} and {azure} are example Restic URL formats" }, { secret: <span className="font-mono">{intl.formatMessage({ id: "web.routes.admin_settings.gameplane_local_backup_destination_true", defaultMessage: "gameplane.local/backup-destination=true", description: "Admin settings: the Secret label example in the backup destination hint" })}</span>, s3: <span className="font-mono">{intl.formatMessage({ id: "web.routes.admin_settings.s3_host_bucket", defaultMessage: "s3:host/bucket", description: "Admin settings: example Restic URL format for S3" })}</span>, b2: <span className="font-mono">{intl.formatMessage({ id: "web.routes.admin_settings.b2_bucket", defaultMessage: "b2:bucket", description: "Admin settings: example Restic URL format for Backblaze B2" })}</span>, azure: <span className="font-mono">{intl.formatMessage({ id: "web.routes.admin_settings.azure_account_container", defaultMessage: "azure:account/container", description: "Admin settings: example Restic URL format for Azure" })}</span> })}</p>
-      <div className="grid gap-3 md:grid-cols-2">
-        <Field label={intl.formatMessage({ id: "web.routes.admin_settings.name_dns_label", defaultMessage: "Name (DNS label)", description: "Admin settings: label of the destination name field, which must be a DNS label of lowercase letters, digits and dashes (DNS label: technical term, usually left untranslated)" })}>
-          <HeroInput
-            placeholder={intl.formatMessage({ id: "web.routes.admin_settings.gameplane_backup_repo", defaultMessage: "gameplane-backup-repo", description: "Admin settings: grey example name inside the destination name field, shown only while it is empty" })}
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-        </Field>
-        <Field label={intl.formatMessage({ id: "web.routes.admin_settings.restic_url", defaultMessage: "Restic URL", description: "Admin settings: label of the field for the Restic repository URL (Restic: technical term, usually left untranslated)" })}>
-          <HeroInput
-            placeholder={intl.formatMessage({ id: "web.routes.admin_settings.s3_s3_example_com_gameplane_bucket", defaultMessage: "s3:s3.example.com/gameplane-bucket", description: "Admin settings: grey example Restic URL inside the URL field, pointing at an S3 bucket (S3: technical term, usually left untranslated)" })}
-            value={form.url}
-            onChange={(e) => setForm({ ...form, url: e.target.value })}
-          />
-        </Field>
-        <Field label={intl.formatMessage({ id: "web.routes.admin_settings.repository_password", defaultMessage: "Repository password", description: "Admin settings: label of the password field for the Restic backup repository" })}>
-          <HeroInput
-            type="password"
-            placeholder={intl.formatMessage({ id: "web.routes.admin_settings.strong_unique_passphrase", defaultMessage: "Strong, unique passphrase", description: "Admin settings: grey hint inside the repository password field, suggesting a strong unique passphrase; shown only while it is empty" })}
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-          />
-        </Field>
-      </div>
-      {create.error && <ErrorBanner err={create.error} />}
-      <div className="flex justify-end gap-2 pt-1">
-        <Button variant="ghost" onPress={onClose}>{intl.formatMessage({ id: "web.routes.admin_settings.cancel", defaultMessage: "Cancel", description: "Admin settings: button that closes an add or set form without saving; keep it short" })}</Button>
-        <Button
-          onPress={() => create.mutate()}
-          isDisabled={!valid || create.isPending}
-        >
-          {create.isPending ? intl.formatMessage({ id: "web.routes.admin_settings.saving_destination", defaultMessage: "Saving…", description: "Admin settings: button label while a backup destination is being saved" }) : intl.formatMessage({ id: "web.routes.admin_settings.save_destination", defaultMessage: "Save destination", description: "Admin settings: button label that saves a new backup destination" })}
-        </Button>
-      </div>
     </div>
   );
 }

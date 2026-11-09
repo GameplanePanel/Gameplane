@@ -96,7 +96,7 @@ test.describe("live: login and shell", () => {
       { name: "Servers", path: "/servers" },
       { name: "Modules", path: "/modules" },
       { name: "Backups", path: "/backups" },
-      { name: "Cluster", path: "/cluster" },
+      { name: "Nodes", path: "/nodes" },
       { name: "Users & RBAC", path: "/users" },
       { name: "Audit log", path: "/admin/audit" },
       // The "System logs" nav item links to /admin/logs (AppLayout.tsx),

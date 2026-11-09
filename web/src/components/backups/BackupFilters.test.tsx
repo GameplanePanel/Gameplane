@@ -69,18 +69,18 @@ describe("BackupFilters", () => {
   it("discards a location draft when closed and applies only the reopened selection", async () => {
     const onLocationChange = vi.fn();
     render(<BackupFilters {...baseProps} onLocationChange={onLocationChange} />);
-    expect(screen.queryByRole("button", { name: /Filter by location/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
-    await userEvent.click(screen.getByRole("button", { name: /Filter by location/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
     await userEvent.click(screen.getByRole("option", { name: "remote" }));
     // Dismiss the outer filter menu, not the nested Select trigger.
     screen.getByRole("button", { name: "Clear" }).focus();
     await userEvent.keyboard("{Escape}");
-    expect(screen.queryByRole("button", { name: /Filter by location/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
     expect(onLocationChange).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
-    expect(screen.getByRole("button", { name: /Filter by location/ })).toHaveTextContent("All locations");
-    await userEvent.click(screen.getByRole("button", { name: /Filter by location/ }));
+    expect(screen.getByRole("button", { name: /Filter by cluster/ })).toHaveTextContent("All clusters");
+    await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
     await userEvent.click(screen.getByRole("option", { name: "remote" }));
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onLocationChange).toHaveBeenCalledWith("remote");

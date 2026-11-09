@@ -90,7 +90,7 @@ export function BackupFilters({
           }}
           fields={<>
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-muted">{intl.formatMessage({ id: "web.components.backups.backup_filters.location", defaultMessage: "Location", description: "Backup filters: label above the location dropdown in the filter panel" })}</div>
+              <div className="text-xs font-semibold text-muted">{intl.formatMessage({ id: "web.components.backups.backup_filters.location", defaultMessage: "Cluster", description: "Backup filters: label above the cluster dropdown in the filter panel" })}</div>
               <FleetScopeFilter value={draftLocation} onChange={(next) => {
                 setDraftLocation(next);
                 if (next && servers.find((item) => serverOptionID(item) === draftServer)?.fleetTarget?.cluster !== next) setDraftServer("");
@@ -141,5 +141,5 @@ function serverOptionID(s: GameServer & { fleetTarget?: ResourceTarget }) {
 }
 function serverOptionLabel(s: GameServer & { fleetTarget?: ResourceTarget }, intl: IntlShape) {
   const t = s.fleetTarget;
-  return t ? intl.formatMessage({ id: "web.components.backups.backup_filters.server_option_label", defaultMessage: "{name} · {cluster} / {namespace}", description: "Backup filters: server option label with its location; {name} is the server name, {cluster} the cluster, {namespace} the namespace" }, { name: s.metadata.name, cluster: t.cluster, namespace: t.namespace }) : s.metadata.name;
+  return t ? intl.formatMessage({ id: "web.components.backups.backup_filters.server_option_label", defaultMessage: "{name} · {cluster} / {namespace}", description: "Backup filters: server option label with its cluster; {name} is the server name, {cluster} the cluster, {namespace} the namespace" }, { name: s.metadata.name, cluster: t.cluster, namespace: t.namespace }) : s.metadata.name;
 }

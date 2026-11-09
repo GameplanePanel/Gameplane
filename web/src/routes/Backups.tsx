@@ -85,7 +85,7 @@ export function BackupsPage() {
     <div className="space-y-5 p-6">
       <PageHeader
         title={intl.formatMessage({ id: "web.routes.backups.backups", defaultMessage: "Backups", description: "Backups: page title at the top of the backups screen, also the name of the backups tab and its table; keep it short" })}
-        subtitle={intl.formatMessage({ id: "web.routes.backups.snapshots_schedules_and_restores_across", defaultMessage: "Snapshots, schedules, and restores across your authorized locations.", description: "Backups: subtitle under the page title saying the screen covers snapshots, schedules and restores across your authorised locations" })}
+        subtitle={intl.formatMessage({ id: "web.routes.backups.snapshots_schedules_and_restores_across", defaultMessage: "Snapshots, schedules, and restores across your authorized clusters.", description: "Backups: subtitle under the page title saying the screen covers snapshots, schedules and restores across your authorised clusters" })}
         actions={
           <Button onPress={() => setBackupNow(true)}>
             <Plus className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.backups.back_up_now", defaultMessage: "Back up now", description: "Backups: button that opens the dialog for a one-off snapshot, and the heading of that dialog; keep it short" })}</Button>

@@ -1207,6 +1207,134 @@
     "defaultMessage": "Language",
     "description": "Label beside the language select of each notification sink row on the admin Notifications card"
   },
+  "web.cluster_configuration.access": {
+    "defaultMessage": "Access",
+    "description": "Cluster configuration access section"
+  },
+  "web.cluster_configuration.access_description": {
+    "defaultMessage": "Download credentials for Kubernetes access when this cluster supports it.",
+    "description": "Cluster access section description"
+  },
+  "web.cluster_configuration.access_permission": {
+    "defaultMessage": "Cluster management permission is required to download a kubeconfig.",
+    "description": "Cluster access permission hint"
+  },
+  "web.cluster_configuration.backups_moved": {
+    "defaultMessage": "Backup destinations moved",
+    "description": "Legacy admin backup destination deep link title"
+  },
+  "web.cluster_configuration.backups_moved_description": {
+    "defaultMessage": "Backup destinations belong to each cluster. Open the cluster's Configuration tab to manage them.",
+    "description": "Legacy backup settings guidance"
+  },
+  "web.cluster_configuration.choose_cluster": {
+    "defaultMessage": "Choose a cluster",
+    "description": "Legacy backup settings link to cluster directory when no valid target exists"
+  },
+  "web.cluster_configuration.destinations_denied": {
+    "defaultMessage": "You don't have permission to view backup destinations on this cluster.",
+    "description": "Cluster configuration: backup destination access denied"
+  },
+  "web.cluster_configuration.enable_ops": {
+    "defaultMessage": "Enable {setting} in the Helm values to download kubeconfigs.",
+    "description": "Disabled local kubeconfig capability hint"
+  },
+  "web.cluster_configuration.loading": {
+    "defaultMessage": "Loading cluster configuration…",
+    "description": "Cluster configuration loading state"
+  },
+  "web.cluster_configuration.loading_permissions": {
+    "defaultMessage": "Loading permissions…",
+    "description": "Cluster configuration: identity loading state"
+  },
+  "web.cluster_configuration.loading_storage": {
+    "defaultMessage": "Loading storage settings…",
+    "description": "Cluster storage loading state"
+  },
+  "web.cluster_configuration.open_named_configuration": {
+    "defaultMessage": "Open {name} configuration",
+    "description": "Legacy backup settings link to selected cluster configuration"
+  },
+  "web.cluster_configuration.permissions_error": {
+    "defaultMessage": "Couldn't load your permissions.",
+    "description": "Cluster configuration: identity loading failure"
+  },
+  "web.cluster_configuration.remote_access": {
+    "defaultMessage": "Kubeconfig downloads and install-time storage settings are managed at this remote cluster.",
+    "description": "Cluster configuration: unsupported remote access and storage guidance"
+  },
+  "web.cluster_configuration.remove_registration": {
+    "defaultMessage": "Remove registration",
+    "description": "Cluster removal section title"
+  },
+  "web.cluster_configuration.storage_error": {
+    "defaultMessage": "Couldn't load storage settings.",
+    "description": "Cluster storage read failure"
+  },
+  "web.cluster_detail.all_nodes": {
+    "defaultMessage": "View all nodes",
+    "description": "Link from cluster nodes to fleet nodes"
+  },
+  "web.cluster_detail.back_to_clusters": {
+    "defaultMessage": "Back to clusters",
+    "description": "Return to cluster directory"
+  },
+  "web.cluster_detail.configuration": {
+    "defaultMessage": "Configuration",
+    "description": "Cluster detail configuration tab"
+  },
+  "web.cluster_detail.connectivity": {
+    "defaultMessage": "API connectivity",
+    "description": "Cluster overview connectivity section"
+  },
+  "web.cluster_detail.connectivity_description": {
+    "defaultMessage": "Status reports Kubernetes API connectivity, not game or gateway health.",
+    "description": "Cluster health scope explanation"
+  },
+  "web.cluster_detail.description": {
+    "defaultMessage": "Cluster connectivity, nodes and configuration.",
+    "description": "Cluster detail page description"
+  },
+  "web.cluster_detail.fixed_cluster": {
+    "defaultMessage": "Cluster: {name}",
+    "description": "Fixed cluster scope label above embedded nodes"
+  },
+  "web.cluster_detail.identity": {
+    "defaultMessage": "Cluster identity",
+    "description": "Cluster overview identity section"
+  },
+  "web.cluster_detail.inventory_denied": {
+    "defaultMessage": "You don't have permission to view node inventory on this cluster.",
+    "description": "Cluster node inventory access denied"
+  },
+  "web.cluster_detail.kubernetes_version": {
+    "defaultMessage": "Kubernetes version",
+    "description": "Cluster Kubernetes version label"
+  },
+  "web.cluster_detail.loading": {
+    "defaultMessage": "Loading cluster…",
+    "description": "Cluster detail loading state"
+  },
+  "web.cluster_detail.nodes": {
+    "defaultMessage": "Nodes",
+    "description": "Cluster detail nodes tab"
+  },
+  "web.cluster_detail.overview": {
+    "defaultMessage": "Overview",
+    "description": "Cluster detail overview tab"
+  },
+  "web.cluster_detail.registration_id": {
+    "defaultMessage": "Registration ID",
+    "description": "Cluster registration identifier label"
+  },
+  "web.cluster_detail.tabs": {
+    "defaultMessage": "Cluster detail tabs",
+    "description": "Accessible cluster tab navigation label"
+  },
+  "web.cluster_detail.unavailable": {
+    "defaultMessage": "Cluster unavailable",
+    "description": "Cluster detail requested registration is absent or inaccessible"
+  },
   "web.common.close_glyph": {
     "defaultMessage": "×",
     "description": "Multiplication sign used as the close icon on dismiss buttons"
@@ -1251,10 +1379,6 @@
     "defaultMessage": "Central management.",
     "description": "Bold lead-in of the central-management note shown above page content"
   },
-  "web.components.app_layout.cluster": {
-    "defaultMessage": "Cluster",
-    "description": "Sidebar: navigation link to the cluster page"
-  },
   "web.components.app_layout.clusters": {
     "defaultMessage": "Clusters",
     "description": "Sidebar: navigation link to the clusters page"
@@ -1270,6 +1394,10 @@
   "web.components.app_layout.modules": {
     "defaultMessage": "Modules",
     "description": "Sidebar: navigation link to modules"
+  },
+  "web.components.app_layout.nodes": {
+    "defaultMessage": "Nodes",
+    "description": "Sidebar: navigation link to nodes across all authorized clusters"
   },
   "web.components.app_layout.page_not_found": {
     "defaultMessage": "Page not found",
@@ -1288,8 +1416,8 @@
     "description": "Sidebar: navigation link to system logs"
   },
   "web.components.app_layout.this_catalog_account_or_installation": {
-    "defaultMessage": "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
-    "description": "App layout: note shown when central management applies; catalog, account or installation settings belong to the central installation, while server actions use each server's location"
+    "defaultMessage": "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.",
+    "description": "App layout: note shown when central management applies; catalog, account or installation settings belong to the central installation, while server actions use each server's cluster"
   },
   "web.components.app_layout.users_rbac": {
     "defaultMessage": "Users & RBAC",
@@ -1408,8 +1536,8 @@
     "description": "Backup filters: screen-reader label for the server dropdown in the filter panel; not visible on screen"
   },
   "web.components.backups.backup_filters.location": {
-    "defaultMessage": "Location",
-    "description": "Backup filters: label above the location dropdown in the filter panel"
+    "defaultMessage": "Cluster",
+    "description": "Backup filters: label above the cluster dropdown in the filter panel"
   },
   "web.components.backups.backup_filters.phase": {
     "defaultMessage": "Phase",
@@ -1457,7 +1585,7 @@
   },
   "web.components.backups.backup_filters.server_option_label": {
     "defaultMessage": "{name} · {cluster} / {namespace}",
-    "description": "Backup filters: server option label with its location; {name} is the server name, {cluster} the cluster, {namespace} the namespace"
+    "description": "Backup filters: server option label with its cluster; {name} is the server name, {cluster} the cluster, {namespace} the namespace"
   },
   "web.components.backups.backup_filters.server_options": {
     "defaultMessage": "Server options",
@@ -1640,8 +1768,8 @@
     "description": "Capture widget: button that closes the delete confirmation or the Start Capture dialog without making changes; keep it short"
   },
   "web.components.capture_widget.capture_access_unavailable": {
-    "defaultMessage": "Capture access is temporarily unavailable at this location.",
-    "description": "Capture widget: status line when capture access is unavailable at this location"
+    "defaultMessage": "Capture access is temporarily unavailable at this cluster.",
+    "description": "Capture widget: status line when capture access is unavailable at this cluster"
   },
   "web.components.capture_widget.capture_is_not_enabled_on_this_server": {
     "defaultMessage": "Capture is not enabled on this server.",
@@ -1660,8 +1788,8 @@
     "description": "Capture widget: section heading above the table of completed and failed captures for this server"
   },
   "web.components.capture_widget.captures_disabled_at_location": {
-    "defaultMessage": "New captures are disabled at this location. Existing capture files remain available.",
-    "description": "Capture widget: status line when new captures are disabled at this location"
+    "defaultMessage": "New captures are disabled at this cluster. Existing capture files remain available.",
+    "description": "Capture widget: status line when new captures are disabled at this cluster"
   },
   "web.components.capture_widget.capturing": {
     "defaultMessage": "Capturing…",
@@ -1744,8 +1872,8 @@
     "description": "Capture widget: column heading for the packet filter used by each capture in the captures table; keep it short"
   },
   "web.components.capture_widget.gateway_update_needed": {
-    "defaultMessage": "This location needs a gateway update before captures can be managed here.",
-    "description": "Capture widget: status line when the location's gateway is too old for captures"
+    "defaultMessage": "This cluster needs a gateway update before captures can be managed here.",
+    "description": "Capture widget: status line when the cluster's gateway is too old for captures"
   },
   "web.components.capture_widget.gb": {
     "defaultMessage": "GB",
@@ -1988,20 +2116,20 @@
     "description": "Cluster selector: typeahead text of the view-all-clusters item"
   },
   "web.components.fleet_scope.all_locations": {
-    "defaultMessage": "All locations",
-    "description": "Fleet scope: first option in the location dropdown that clears the location filter and shows every location; keep it short"
+    "defaultMessage": "All clusters",
+    "description": "Fleet scope: first option in the cluster dropdown that clears the cluster filter and shows every cluster; keep it short"
   },
   "web.components.fleet_scope.all_locations_text": {
-    "defaultMessage": "All locations",
-    "description": "Fleet scope: typeahead text of the all-locations option"
+    "defaultMessage": "All clusters",
+    "description": "Fleet scope: typeahead text of the all-clusters option"
   },
   "web.components.fleet_scope.counts_cover_only_returned_resources": {
     "defaultMessage": "Counts cover only returned resources.",
     "description": "Fleet scope: second part of the partial-results warning, after the heading, saying counts include only the resources that were returned"
   },
   "web.components.fleet_scope.filter_by_location": {
-    "defaultMessage": "Filter by location",
-    "description": "Fleet scope: screen-reader label for the location dropdown that narrows the view to one location; not visible on screen"
+    "defaultMessage": "Filter by cluster",
+    "description": "Fleet scope: screen-reader label for the cluster dropdown that narrows the view to one cluster; not visible on screen"
   },
   "web.components.fleet_scope.label_are_partial": {
     "defaultMessage": "{label} are partial.",
@@ -2016,8 +2144,8 @@
     "description": "Fleet scope: warning shown when results are capped"
   },
   "web.components.fleet_scope.location_options": {
-    "defaultMessage": "Location options",
-    "description": "Fleet scope: screen-reader name of the list of location choices inside the location dropdown; not visible on screen"
+    "defaultMessage": "Cluster options",
+    "description": "Fleet scope: screen-reader name of the list of cluster choices inside the cluster dropdown; not visible on screen"
   },
   "web.components.fleet_scope.results": {
     "defaultMessage": "Results",
@@ -3735,6 +3863,10 @@
     "defaultMessage": "New",
     "description": "Breadcrumb: label for the create-new crumb"
   },
+  "web.components.ui.breadcrumbs.nodes": {
+    "defaultMessage": "Nodes",
+    "description": "Breadcrumb: label for the node inventory crumb"
+  },
   "web.components.ui.breadcrumbs.servers": {
     "defaultMessage": "Servers",
     "description": "Breadcrumb: label for the servers list crumb"
@@ -4051,10 +4183,6 @@
     "defaultMessage": "Authentication",
     "description": "Settings nav: label of the Authentication settings section"
   },
-  "web.components.ui.settings_nav.backup_destinations": {
-    "defaultMessage": "Backup destinations",
-    "description": "Settings nav: label of the Backup destinations settings section"
-  },
   "web.components.ui.settings_nav.general": {
     "defaultMessage": "General",
     "description": "Settings nav: label of the General settings section"
@@ -4300,7 +4428,7 @@
     "description": "Theme import error: the document's version field is not a number"
   },
   "web.lib.use_server_capabilities.capture_unavailable": {
-    "defaultMessage": "Capture limits are unavailable for this location.",
+    "defaultMessage": "Capture limits are unavailable for this cluster.",
     "description": "Error shown when the server reports packet capture limits that are not usable"
   },
   "web.lib.use_server_capabilities.identity_changed": {
@@ -4410,6 +4538,262 @@
   "web.lib.validation.whole_number": {
     "defaultMessage": "Must be a whole number.",
     "description": "Config field validation: integer field value is not a whole number"
+  },
+  "web.nodes.all_clusters": {
+    "defaultMessage": "All clusters",
+    "description": "Nodes: option to include every authorized cluster"
+  },
+  "web.nodes.all_statuses": {
+    "defaultMessage": "All statuses",
+    "description": "Nodes: option to include every node status"
+  },
+  "web.nodes.ascending": {
+    "defaultMessage": "Ascending",
+    "description": "Nodes: ascending sort direction"
+  },
+  "web.nodes.cluster": {
+    "defaultMessage": "Cluster",
+    "description": "Nodes: cluster identity column label"
+  },
+  "web.nodes.cluster_description": {
+    "defaultMessage": "Node inventory for {cluster}.",
+    "description": "Nodes inventory description fixed to one cluster"
+  },
+  "web.nodes.cores": {
+    "defaultMessage": "{used} / {capacity} cores",
+    "description": "Nodes: measured CPU usage and total core capacity"
+  },
+  "web.nodes.count": {
+    "defaultMessage": "{count, plural, one {# node} other {# nodes}}",
+    "description": "Nodes: count of visible returned rows"
+  },
+  "web.nodes.coverage": {
+    "defaultMessage": "Node results",
+    "description": "Nodes: resource label in fleet coverage notice"
+  },
+  "web.nodes.cpu": {
+    "defaultMessage": "CPU",
+    "description": "Nodes: CPU usage column and summary label"
+  },
+  "web.nodes.descending": {
+    "defaultMessage": "Descending",
+    "description": "Nodes: descending sort direction"
+  },
+  "web.nodes.description": {
+    "defaultMessage": "Monitor nodes and resource usage across your clusters.",
+    "description": "Nodes inventory description"
+  },
+  "web.nodes.empty": {
+    "defaultMessage": "No nodes are reporting in this scope.",
+    "description": "Nodes: complete empty inventory"
+  },
+  "web.nodes.enrollment.add": {
+    "defaultMessage": "Add node",
+    "description": "Nodes: opens node enrollment or creates a command for the selected local cluster"
+  },
+  "web.nodes.enrollment.capabilities": {
+    "defaultMessage": "Couldn't load installation capabilities.",
+    "description": "Nodes: enrollment unavailable because installation capabilities failed"
+  },
+  "web.nodes.enrollment.choose": {
+    "defaultMessage": "Choose a cluster before enrolling a node.",
+    "description": "Nodes: prompt requiring an explicit enrollment cluster"
+  },
+  "web.nodes.enrollment.clusters": {
+    "defaultMessage": "Couldn't load registered clusters.",
+    "description": "Nodes: enrollment cluster discovery failed"
+  },
+  "web.nodes.enrollment.copy": {
+    "defaultMessage": "Copy",
+    "description": "Nodes: copies the generated join command"
+  },
+  "web.nodes.enrollment.copy_failed": {
+    "defaultMessage": "Couldn't copy the command. Select and copy it manually.",
+    "description": "Nodes: clipboard failure"
+  },
+  "web.nodes.enrollment.denied": {
+    "defaultMessage": "You don't have permission to do that.",
+    "description": "Nodes: enrollment request was denied"
+  },
+  "web.nodes.enrollment.disabled": {
+    "defaultMessage": "Enable clusterOps.enabled in the Helm values to mint node-join tokens.",
+    "description": "Nodes: explanation when cluster operations are disabled; clusterOps.enabled is a machine configuration key"
+  },
+  "web.nodes.enrollment.dismiss": {
+    "defaultMessage": "Dismiss",
+    "description": "Nodes: closes the enrollment result or cluster chooser"
+  },
+  "web.nodes.enrollment.empty": {
+    "defaultMessage": "Register a workload cluster on the Clusters page to enroll nodes.",
+    "description": "Nodes: no registered enrollment targets exist"
+  },
+  "web.nodes.enrollment.failed": {
+    "defaultMessage": "That operation failed. Check the API logs.",
+    "description": "Nodes: generic enrollment failure"
+  },
+  "web.nodes.enrollment.forbidden": {
+    "defaultMessage": "You don't have permission to enroll nodes.",
+    "description": "Nodes: enrollment permission requirement"
+  },
+  "web.nodes.enrollment.generate": {
+    "defaultMessage": "Generate join command",
+    "description": "Nodes: creates the join command after selecting an enrollment cluster"
+  },
+  "web.nodes.enrollment.instruction": {
+    "defaultMessage": "Run this on the machine you want to join (token expires {expiresAt}):",
+    "description": "Nodes: join command instructions and token expiration"
+  },
+  "web.nodes.enrollment.join": {
+    "defaultMessage": "Join a node to {cluster}",
+    "description": "Nodes: title of a generated command, with explicit cluster identity"
+  },
+  "web.nodes.enrollment.no_local": {
+    "defaultMessage": "No local workload cluster is available on this installation.",
+    "description": "Nodes: local enrollment is unavailable on a standalone panel"
+  },
+  "web.nodes.enrollment.not_enabled": {
+    "defaultMessage": "Cluster operations aren't enabled on this install (set clusterOps.enabled).",
+    "description": "Nodes: enrollment error for a disabled cluster-operations endpoint"
+  },
+  "web.nodes.enrollment.remote": {
+    "defaultMessage": "Node enrollment is managed at this remote cluster.",
+    "description": "Nodes: explanation for unsupported remote enrollment"
+  },
+  "web.nodes.enrollment.target": {
+    "defaultMessage": "Enrollment cluster",
+    "description": "Nodes: accessible label for enrollment cluster selection"
+  },
+  "web.nodes.filter_cluster": {
+    "defaultMessage": "Filter by cluster",
+    "description": "Nodes: cluster filter accessible label"
+  },
+  "web.nodes.filter_status": {
+    "defaultMessage": "Filter by status",
+    "description": "Nodes: status filter accessible label"
+  },
+  "web.nodes.list": {
+    "defaultMessage": "Node inventory",
+    "description": "Nodes: accessible table and mobile list name"
+  },
+  "web.nodes.loading": {
+    "defaultMessage": "Loading nodes…",
+    "description": "Nodes: initial inventory loading state"
+  },
+  "web.nodes.measured": {
+    "defaultMessage": "Capacity-weighted usage",
+    "description": "Nodes: CPU and memory summary uses summed usage and capacity"
+  },
+  "web.nodes.memory": {
+    "defaultMessage": "Memory",
+    "description": "Nodes: memory usage column and summary label"
+  },
+  "web.nodes.memory_usage": {
+    "defaultMessage": "{used} / {capacity}",
+    "description": "Nodes: memory usage and capacity, both formatted sizes"
+  },
+  "web.nodes.missing_inventory": {
+    "defaultMessage": "Node inventory was not reported.",
+    "description": "Nodes: a returned cluster omitted its node inventory"
+  },
+  "web.nodes.no_data": {
+    "defaultMessage": "No node data is available for this scope.",
+    "description": "Nodes: no returned data when inventory is incomplete or failed"
+  },
+  "web.nodes.no_match": {
+    "defaultMessage": "No nodes match these filters.",
+    "description": "Nodes: search and status filters matched no nodes"
+  },
+  "web.nodes.node": {
+    "defaultMessage": "Node",
+    "description": "Nodes: node identity column label"
+  },
+  "web.nodes.of_capacity": {
+    "defaultMessage": "of {capacity}",
+    "description": "Nodes: capacity shown when usage is unreported"
+  },
+  "web.nodes.percent": {
+    "defaultMessage": "{value}%",
+    "description": "Nodes: resource usage percentage"
+  },
+  "web.nodes.pod_usage": {
+    "defaultMessage": "{used} / {capacity}",
+    "description": "Nodes: pod count and capacity; either missing value is an em dash"
+  },
+  "web.nodes.pods": {
+    "defaultMessage": "Pods",
+    "description": "Nodes: pod usage column label"
+  },
+  "web.nodes.ready": {
+    "defaultMessage": "Ready nodes",
+    "description": "Nodes: summary count of ready nodes"
+  },
+  "web.nodes.ready_count": {
+    "defaultMessage": "{ready} / {total}",
+    "description": "Nodes: ready count out of visible returned nodes"
+  },
+  "web.nodes.reporting": {
+    "defaultMessage": "Reporting clusters",
+    "description": "Nodes: number of clusters represented by visible nodes"
+  },
+  "web.nodes.retry": {
+    "defaultMessage": "Retry",
+    "description": "Nodes: retries failed inventory loading"
+  },
+  "web.nodes.returned": {
+    "defaultMessage": "Returned nodes only",
+    "description": "Nodes: incomplete coverage summary qualifier"
+  },
+  "web.nodes.search": {
+    "defaultMessage": "Search nodes",
+    "description": "Nodes: accessible search field label"
+  },
+  "web.nodes.search_placeholder": {
+    "defaultMessage": "Search nodes, clusters or labels…",
+    "description": "Nodes: search field placeholder"
+  },
+  "web.nodes.sort": {
+    "defaultMessage": "Sort by {column}",
+    "description": "Nodes: accessible column sort button label"
+  },
+  "web.nodes.sort_by": {
+    "defaultMessage": "Sort nodes by",
+    "description": "Nodes: accessible mobile sort column selector"
+  },
+  "web.nodes.status": {
+    "defaultMessage": "Status",
+    "description": "Nodes: status column label"
+  },
+  "web.nodes.status_not_ready": {
+    "defaultMessage": "Not ready",
+    "description": "Nodes: unhealthy node status"
+  },
+  "web.nodes.status_ready": {
+    "defaultMessage": "Ready",
+    "description": "Nodes: healthy node status"
+  },
+  "web.nodes.status_unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Nodes: unreported or unrecognized status filter"
+  },
+  "web.nodes.title": {
+    "defaultMessage": "Nodes",
+    "description": "Nodes inventory page and embedded tab heading"
+  },
+  "web.nodes.unavailable": {
+    "defaultMessage": "Inventory unavailable",
+    "description": "Nodes: inventory cannot provide a reliable count"
+  },
+  "web.nodes.unknown_metric": {
+    "defaultMessage": "Measurement unavailable",
+    "description": "Nodes: absent or incomplete resource usage summary"
+  },
+  "web.nodes.uptime": {
+    "defaultMessage": "Uptime",
+    "description": "Nodes: uptime column label"
+  },
+  "web.nodes.visible": {
+    "defaultMessage": "Matching nodes",
+    "description": "Nodes: scope of the filtered summary"
   },
   "web.routes.admin_logs.component_api": {
     "defaultMessage": "API server",
@@ -4607,10 +4991,6 @@
     "defaultMessage": "Backup destinations",
     "description": "Admin settings: title of the backup destinations section card for one cluster; keep it short"
   },
-  "web.routes.admin_settings.backup_destinations_are_stored_on_the": {
-    "defaultMessage": "Backup destinations are stored on the workload cluster that runs your servers.",
-    "description": "Admin settings: subtitle under the select-a-cluster title saying backup destinations live on the workload cluster that runs your servers"
-  },
   "web.routes.admin_settings.basic_identity_for_this_gameplane": {
     "defaultMessage": "Basic identity for this Gameplane instance.",
     "description": "Admin settings: subtitle under the General title describing the basic identity of this Gameplane instance"
@@ -4638,10 +5018,6 @@
   "web.routes.admin_settings.channel": {
     "defaultMessage": "Channel",
     "description": "Admin settings: label of the update channel row; its value is set by the container image tags"
-  },
-  "web.routes.admin_settings.choose_a_registered_cluster_above_or": {
-    "defaultMessage": "Choose a registered cluster above, or register one on the Clusters page.",
-    "description": "Admin settings: text in the select-a-cluster card asking the user to pick a cluster above or register one on the Clusters page"
   },
   "web.routes.admin_settings.client_id": {
     "defaultMessage": "Client ID",
@@ -4674,14 +5050,6 @@
   "web.routes.admin_settings.could_not_refresh_configuration": {
     "defaultMessage": "Could not refresh configuration. Retry the refresh before saving.",
     "description": "Admin settings: error shown when the config could not be re-fetched before a save"
-  },
-  "web.routes.admin_settings.couldn_t_load_installation_capabilities": {
-    "defaultMessage": "Couldn't load installation capabilities.",
-    "description": "Admin settings: error message in the backup destinations area when installation details fail to load; a retry button follows it"
-  },
-  "web.routes.admin_settings.couldn_t_load_registered_clusters": {
-    "defaultMessage": "Couldn't load registered clusters.",
-    "description": "Admin settings: error message in the backup destinations area when the list of registered clusters fails to load"
   },
   "web.routes.admin_settings.data_handling_statement": {
     "defaultMessage": "Data-handling statement",
@@ -4959,10 +5327,6 @@
     "defaultMessage": "— like",
     "description": "Admin settings: the words for example in the scopes hint, introducing the example scope named groups"
   },
-  "web.routes.admin_settings.loading_clusters": {
-    "defaultMessage": "Loading clusters…",
-    "description": "Admin settings: loading text in the backup destinations area while the list of registered clusters loads"
-  },
   "web.routes.admin_settings.loading_configuration": {
     "defaultMessage": "Loading configuration…",
     "description": "Admin settings: loading text shown in a card while the configuration is fetched"
@@ -4970,10 +5334,6 @@
   "web.routes.admin_settings.loading_destinations": {
     "defaultMessage": "Loading destinations…",
     "description": "Admin settings: loading text in the backup destinations card while the list is fetched"
-  },
-  "web.routes.admin_settings.loading_installation": {
-    "defaultMessage": "Loading installation…",
-    "description": "Admin settings: loading text in the backup destinations area while installation details are fetched"
   },
   "web.routes.admin_settings.mail_example_com": {
     "defaultMessage": "mail.example.com",
@@ -5278,10 +5638,6 @@
   "web.routes.admin_settings.scopes_optional": {
     "defaultMessage": "Scopes (optional)",
     "description": "Admin settings: label of the optional field for extra OAuth scopes"
-  },
-  "web.routes.admin_settings.select_a_workload_cluster": {
-    "defaultMessage": "Select a workload cluster",
-    "description": "Admin settings: title of the placeholder card shown when no workload cluster is selected for backup destinations"
   },
   "web.routes.admin_settings.send_basic_usage_metrics": {
     "defaultMessage": "Send basic usage metrics",
@@ -5788,8 +6144,8 @@
     "description": "Backups: column heading for the size of each backup; keep it short"
   },
   "web.routes.backups.snapshots_schedules_and_restores_across": {
-    "defaultMessage": "Snapshots, schedules, and restores across your authorized locations.",
-    "description": "Backups: subtitle under the page title saying the screen covers snapshots, schedules and restores across your authorised locations"
+    "defaultMessage": "Snapshots, schedules, and restores across your authorized clusters.",
+    "description": "Backups: subtitle under the page title saying the screen covers snapshots, schedules and restores across your authorised clusters"
   },
   "web.routes.backups.starting": {
     "defaultMessage": "Starting…",
@@ -5835,25 +6191,9 @@
     "defaultMessage": "Type {name} ({target}) to confirm.",
     "description": "Backups: confirmation hint under the delete-schedule dialog; {name} is the schedule name in monospace, {target} is its cluster and namespace"
   },
-  "web.routes.cluster.add_node": {
-    "defaultMessage": "Add node",
-    "description": "Cluster: button that creates a node-join token so a new machine can be added to the cluster; keep it short"
-  },
-  "web.routes.cluster.choose_a_registered_cluster_to_view_its": {
-    "defaultMessage": "Choose a registered cluster to view its node inventory. Register workload clusters on the Clusters page.",
-    "description": "Cluster: hint under the empty-state heading saying a registered cluster must be picked to see its nodes and that clusters are registered on the Clusters page"
-  },
-  "web.routes.cluster.cluster": {
-    "defaultMessage": "Cluster",
-    "description": "Cluster: page title of the node inventory view at the top of the page; keep it short"
-  },
   "web.routes.cluster.cluster_default": {
     "defaultMessage": "Cluster default",
     "description": "Cluster: badge shown instead of a storage class name when none is set, meaning new volumes use the cluster's default; keep it short"
-  },
-  "web.routes.cluster.copy": {
-    "defaultMessage": "Copy",
-    "description": "Cluster: button that copies the join command to the clipboard; keep it short"
   },
   "web.routes.cluster.couldn_t_load_installation_capabilities": {
     "defaultMessage": "Couldn't load installation capabilities.",
@@ -5863,77 +6203,13 @@
     "defaultMessage": "Couldn't load registered clusters.",
     "description": "Cluster: error message shown when the list of registered clusters fails to load; a retry button appears below it"
   },
-  "web.routes.cluster.cpu": {
-    "defaultMessage": "CPU",
-    "description": "Cluster: label for CPU on a node card, used both for the core count figure and for the CPU usage bar; CPU is a technical term, usually left untranslated"
-  },
-  "web.routes.cluster.cpu_cores": {
-    "defaultMessage": "{cores} cores",
-    "description": "Cluster: node CPU capacity; {cores} is the core count"
-  },
-  "web.routes.cluster.dismiss": {
-    "defaultMessage": "Dismiss",
-    "description": "Cluster: button that closes the join-a-node card; keep it short"
-  },
   "web.routes.cluster.download_kubeconfig": {
     "defaultMessage": "Download kubeconfig",
     "description": "Cluster: button that downloads the cluster's kubeconfig file; keep it short; kubeconfig is a technical term, usually left untranslated"
   },
-  "web.routes.cluster.enable_helm_note": {
-    "defaultMessage": "Enable {setting} in the Helm values to mint node-join tokens and kubeconfigs.",
-    "description": "Cluster: note under the action buttons when operations are disabled; {setting} is the Helm key, shown as code"
-  },
   "web.routes.cluster.game_data_storage_class": {
     "defaultMessage": "Game data storage class",
     "description": "Cluster: label of the setting that names the storage class used for new game server data volumes; storage class is a technical term, usually left untranslated"
-  },
-  "web.routes.cluster.join_a_node": {
-    "defaultMessage": "Join a node",
-    "description": "Cluster: heading of the card that shows the command to run on a machine that should join the cluster as a node"
-  },
-  "web.routes.cluster.loading_clusters": {
-    "defaultMessage": "Loading clusters…",
-    "description": "Cluster: loading text shown while the list of registered clusters is being fetched, before a cluster can be chosen"
-  },
-  "web.routes.cluster.loading_installation": {
-    "defaultMessage": "Loading installation…",
-    "description": "Cluster: loading text shown in place of the node inventory while the installation capabilities are being fetched"
-  },
-  "web.routes.cluster.loading_nodes_for": {
-    "defaultMessage": "Loading nodes for {clusterId}…",
-    "description": "Cluster: message of LoadingCard; {clusterId} is the cluster id"
-  },
-  "web.routes.cluster.memory": {
-    "defaultMessage": "Memory",
-    "description": "Cluster: label of the memory usage bar on a node card, showing memory in use against the node's total memory"
-  },
-  "web.routes.cluster.memory_of_capacity": {
-    "defaultMessage": "of {capacity}",
-    "description": "Cluster: node memory capacity shown when usage is unknown; {capacity} is a formatted byte size"
-  },
-  "web.routes.cluster.memory_used_of_capacity": {
-    "defaultMessage": "{used} / {capacity}",
-    "description": "Cluster: node memory as used / capacity; both are formatted byte sizes"
-  },
-  "web.routes.cluster.no_node_data_yet": {
-    "defaultMessage": "No node data yet.",
-    "description": "Cluster: empty-state heading shown when no node information has arrived for the cluster; the line below it says what to check"
-  },
-  "web.routes.cluster.no_nodes_are_reporting_yet_check_the": {
-    "defaultMessage": "No nodes are reporting yet — check the API and operator connection.",
-    "description": "Cluster: hint under the empty-state heading asking the user to check the API and operator connection because no nodes report yet"
-  },
-  "web.routes.cluster.node_inventory_for": {
-    "defaultMessage": "Node inventory for selected cluster: {clusterId}.",
-    "description": "Cluster: page subtitle shown before node data loads; {clusterId} is the cluster id"
-  },
-  "web.routes.cluster.node_status_badge": {
-    "defaultMessage": "● {status}",
-    "description": "Cluster: node status badge; {status} is the node status, or Unknown when none is reported"
-  },
-  "web.routes.cluster.nodes_load_failed": {
-    "defaultMessage": "Couldn't load node inventory for {clusterId}. Check your cluster access and connection.",
-    "description": "Cluster: error card message when node inventory fails to load; {clusterId} is the cluster id"
   },
   "web.routes.cluster.op_failed": {
     "defaultMessage": "That operation failed. Check the API logs.",
@@ -5947,53 +6223,9 @@
     "defaultMessage": "Cluster operations aren't enabled on this install (set clusterOps.enabled).",
     "description": "Cluster: error shown when the operator has cluster operations turned off (HTTP 501)"
   },
-  "web.routes.cluster.ops_disabled_hint": {
-    "defaultMessage": "Cluster operations are disabled on this install.",
-    "description": "Cluster: tooltip on the node action buttons when cluster operations are off"
-  },
-  "web.routes.cluster.pods": {
-    "defaultMessage": "Pods",
-    "description": "Cluster: label of the pod figure on a node card; the value shows pods in use out of the node's pod capacity, or only the capacity when usage is unknown"
-  },
-  "web.routes.cluster.pods_of_capacity": {
-    "defaultMessage": "of {capacity}",
-    "description": "Cluster: node pod capacity shown when usage is unknown; {capacity} is the pod limit"
-  },
-  "web.routes.cluster.pods_used_of_capacity": {
-    "defaultMessage": "{used}/{capacity}",
-    "description": "Cluster: node pod count as used/capacity; {used} and {capacity} are numbers"
-  },
-  "web.routes.cluster.remote_managed_note": {
-    "defaultMessage": "Node enrollment and kubeconfig downloads are managed at this remote cluster.",
-    "description": "Cluster: note under the action buttons on a remote cluster"
-  },
-  "web.routes.cluster.role_worker": {
-    "defaultMessage": "worker",
-    "description": "Cluster: role label shown for a node that reports no Kubernetes roles"
-  },
-  "web.routes.cluster.run_this_on_the_machine_you_want_to": {
-    "defaultMessage": "Run this on the machine you want to join (token expires {expiresAt}):",
-    "description": "Cluster: sentence with expiresAt in p"
-  },
-  "web.routes.cluster.select_a_workload_cluster": {
-    "defaultMessage": "Select a workload cluster",
-    "description": "Cluster: heading of the empty-state card shown when no workload cluster is selected"
-  },
   "web.routes.cluster.set_at_install_time_via_helm_values_not": {
     "defaultMessage": "Set at install time via Helm values — not editable from the dashboard.",
     "description": "Cluster: hint under the storage heading explaining that these values come from Helm values at install time and cannot be edited in the dashboard"
-  },
-  "web.routes.cluster.status_not_ready": {
-    "defaultMessage": "NotReady",
-    "description": "Cluster: node status label for a node that is not ready"
-  },
-  "web.routes.cluster.status_ready": {
-    "defaultMessage": "Ready",
-    "description": "Cluster: node status label for a node that is ready"
-  },
-  "web.routes.cluster.status_unknown": {
-    "defaultMessage": "Unknown",
-    "description": "Cluster: node status shown when the node reports none"
   },
   "web.routes.cluster.storage": {
     "defaultMessage": "Storage",
@@ -6007,16 +6239,8 @@
     "defaultMessage": "StorageClass for new GameServers' game-data volumes — set by the operator.gameDataStorage.storageClassName Helm value and applied by the operator to every new PVC; the API is passed the same value as --game-data-storage-class only to report it here.",
     "description": "Cluster: explanation under the game data storage class label; a Helm value sets it and it applies to new volumes; StorageClass is a technical term, usually left untranslated"
   },
-  "web.routes.cluster.summary": {
-    "defaultMessage": "{name} · {version} · {ready}/{total} nodes healthy",
-    "description": "Cluster: page subtitle; {name} is the cluster name, {version} the Kubernetes version, {ready} and {total} the node counts"
-  },
-  "web.routes.cluster.uptime": {
-    "defaultMessage": "Uptime",
-    "description": "Cluster: label of the uptime figure on a node card, showing how long the node has been running; keep it short"
-  },
   "web.routes.clusters.administration_of_registered_locations": {
-    "defaultMessage": "Administration of registered locations, connectivity and node inventory.",
+    "defaultMessage": "Registered clusters, connectivity and node inventory.",
     "description": "Clusters: subtitle under the page title saying the page covers registered locations, their connectivity and node inventory"
   },
   "web.routes.clusters.api": {
@@ -6034,10 +6258,6 @@
   "web.routes.clusters.central_cluster": {
     "defaultMessage": "Central cluster",
     "description": "Clusters: note on the cluster card of the built-in local cluster that the panel itself runs in"
-  },
-  "web.routes.clusters.cluster_administration_requires": {
-    "defaultMessage": "Cluster administration requires inventory or cluster-management access.",
-    "description": "Clusters: error card shown instead of the cluster list to users who have neither cluster management nor inventory access"
   },
   "web.routes.clusters.clusters": {
     "defaultMessage": "Clusters",
@@ -6067,6 +6287,14 @@
     "defaultMessage": "No clusters available",
     "description": "Clusters: heading of the empty-state card shown when no cluster is registered or visible to the user"
   },
+  "web.routes.clusters.open_cluster": {
+    "defaultMessage": "Open cluster",
+    "description": "Open cluster details button"
+  },
+  "web.routes.clusters.open_cluster_named": {
+    "defaultMessage": "Open cluster {name}",
+    "description": "Accessible cluster details button label"
+  },
   "web.routes.clusters.phase_healthy": {
     "defaultMessage": "Healthy",
     "description": "Clusters: API status label for a cluster the panel reports as healthy"
@@ -6087,10 +6315,6 @@
     "defaultMessage": "Register a workload cluster to deploy and manage game servers. This panel can run without a local cluster.",
     "description": "Clusters: empty-state hint shown to users who can manage clusters"
   },
-  "web.routes.clusters.remove": {
-    "defaultMessage": "Remove",
-    "description": "Clusters: button on a cluster card that removes its registration; not shown for the local cluster; keep it short"
-  },
   "web.routes.clusters.remove_cluster": {
     "defaultMessage": "Remove cluster",
     "description": "Clusters: confirm button in the remove-cluster dialog, shown in a destructive style; keep it short"
@@ -6106,10 +6330,6 @@
   "web.routes.clusters.removes_this_panel_s_connection_to_the": {
     "defaultMessage": "Removes this panel's connection to the cluster. Running workloads remain on the cluster.",
     "description": "Clusters: text in the remove-cluster confirmation dialog saying the panel's connection is removed while running workloads stay on the cluster"
-  },
-  "web.routes.clusters.selected": {
-    "defaultMessage": "Selected",
-    "description": "Clusters: small badge on a cluster card marking the cluster currently selected; keep it short"
   },
   "web.routes.clusters.view_nodes": {
     "defaultMessage": "View nodes",
@@ -6156,8 +6376,8 @@
     "description": "Create server: template category chip that shows every template"
   },
   "web.routes.create_server.changing_location_starts_a_fresh_draft": {
-    "defaultMessage": "Changing location starts a fresh draft. The chosen location handles all creation steps.",
-    "description": "Create server: hint under the location dropdown warning that switching location starts a fresh draft and the chosen location handles all steps"
+    "defaultMessage": "Changing cluster starts a fresh draft. The chosen cluster handles all creation steps.",
+    "description": "Create server: hint under the cluster dropdown warning that switching cluster starts a fresh draft and the chosen cluster handles all steps"
   },
   "web.routes.create_server.choose_a_version": {
     "defaultMessage": "Choose a version",
@@ -6169,7 +6389,7 @@
   },
   "web.routes.create_server.cluster_namespace": {
     "defaultMessage": "{cluster} / {namespace}",
-    "description": "Create server: location choice label; {cluster} is the cluster name and {namespace} the namespace"
+    "description": "Create server: cluster choice label; {cluster} is the cluster name and {namespace} the namespace"
   },
   "web.routes.create_server.comma_or_space_separated": {
     "defaultMessage": "Comma or space separated.",
@@ -6284,8 +6504,8 @@
     "description": "Create server: memory hint in the YAML preview panel asking the user to allow for mod or plugin overhead; the example is about 1.5 GB for 4 Minecraft Vanilla players"
   },
   "web.routes.create_server.finding_available_locations": {
-    "defaultMessage": "Finding available locations…",
-    "description": "Create server: loading text shown while the list of server locations is being fetched"
+    "defaultMessage": "Finding available clusters…",
+    "description": "Create server: loading text shown while the list of server clusters is being fetched"
   },
   "web.routes.create_server.frp_server_port_placeholder": {
     "defaultMessage": "7000",
@@ -6328,12 +6548,12 @@
     "description": "Create server: loader line under a version option; {loader} is the loader name"
   },
   "web.routes.create_server.location": {
-    "defaultMessage": "Location",
-    "description": "Create server: label of the location dropdown in the wizard header, which chooses the cluster and namespace the server is created in"
+    "defaultMessage": "Cluster / namespace",
+    "description": "Create server: label of the cluster dropdown in the wizard header, which chooses the cluster and namespace the server is created in"
   },
   "web.routes.create_server.locations_unavailable": {
-    "defaultMessage": "Locations unavailable",
-    "description": "Create server: title of the error card shown when the list of authorized server locations fails to load"
+    "defaultMessage": "Clusters unavailable",
+    "description": "Create server: title of the error card shown when the list of authorized server clusters fails to load"
   },
   "web.routes.create_server.map_at_least_one_port_name_to_a_remote": {
     "defaultMessage": "Map at least one port name to a remote port (1–65535).",
@@ -6392,8 +6612,8 @@
     "description": "Create server: heading of the wizard dialog for creating a new game server, shown at the top left"
   },
   "web.routes.create_server.no_available_location": {
-    "defaultMessage": "No available location",
-    "description": "Create server: title of the error card shown when no location is available to create a server in"
+    "defaultMessage": "No available cluster",
+    "description": "Create server: title of the error card shown when no cluster is available to create a server in"
   },
   "web.routes.create_server.no_description": {
     "defaultMessage": "No description.",
@@ -6529,7 +6749,7 @@
   },
   "web.routes.create_server.review_configuration": {
     "defaultMessage": "Configuration",
-    "description": "Create server: review section title for the server name, location and resources"
+    "description": "Create server: review section title for the server name, cluster and resources"
   },
   "web.routes.create_server.review_cpu": {
     "defaultMessage": "CPU",
@@ -6568,7 +6788,7 @@
     "description": "Create server: review row label for the load balancer source IP allow-list"
   },
   "web.routes.create_server.review_location": {
-    "defaultMessage": "Location",
+    "defaultMessage": "Cluster / namespace",
     "description": "Create server: review row label for the cluster and namespace the server is created in"
   },
   "web.routes.create_server.review_memory": {
@@ -6648,8 +6868,8 @@
     "description": "Create server: field label for the port of the frp relay server"
   },
   "web.routes.create_server.some_locations_are_unavailable": {
-    "defaultMessage": "Some locations are unavailable. Available locations are shown.",
-    "description": "Create server: status note under the location dropdown shown when some locations are unavailable and only the available ones are listed"
+    "defaultMessage": "Some clusters are unavailable. Available clusters are shown.",
+    "description": "Create server: status note under the cluster dropdown shown when some clusters are unavailable and only the available ones are listed"
   },
   "web.routes.create_server.source_ranges_placeholder": {
     "defaultMessage": "203.0.113.0/24 10.0.0.0/8",
@@ -6712,8 +6932,8 @@
     "description": "Create server: small uppercase heading above the template-specific settings, shown only when the template has such settings"
   },
   "web.routes.create_server.the_selected_location_is_unavailable_or": {
-    "defaultMessage": "The selected location is unavailable or no reachable location permits creation. Restore its access or return to the server list to choose an available location.",
-    "description": "Create server: explanation under the no-location title; tells the user to restore access to the location or go back to the server list"
+    "defaultMessage": "The selected cluster is unavailable or no reachable cluster permits creation. Restore its access or return to the server list to choose an available cluster.",
+    "description": "Create server: explanation under the no-cluster title; tells the user to restore access to the cluster or go back to the server list"
   },
   "web.routes.create_server.tunnel_name_optional": {
     "defaultMessage": "Tunnel name (optional)",
@@ -6728,8 +6948,8 @@
     "description": "Create server: field label above the choice of tunnel provider, shown when the tunnel is enabled"
   },
   "web.routes.create_server.unable_to_load_authorized_server": {
-    "defaultMessage": "Unable to load authorized server locations.",
-    "description": "Create server: message under the locations error title, saying the authorized server locations could not be loaded"
+    "defaultMessage": "Unable to load authorized server clusters.",
+    "description": "Create server: message under the clusters error title, saying the authorized server clusters could not be loaded"
   },
   "web.routes.create_server.used_as_pod_name_and_subdomain": {
     "defaultMessage": "Used as pod name and subdomain. Lowercase, dash-separated.",
@@ -6936,7 +7156,7 @@
     "description": "Dashboard: empty Recent backups card when the backup list is complete"
   },
   "web.routes.dashboard.no_issues_partial": {
-    "defaultMessage": "No issues among returned servers; some locations are unavailable.",
+    "defaultMessage": "No issues among returned servers; some clusters are unavailable.",
     "description": "Dashboard: Needs attention message when the fleet is partial and no returned server needs attention"
   },
   "web.routes.dashboard.no_node_data": {
@@ -7071,13 +7291,13 @@
     "defaultMessage": "View all",
     "description": "Dashboard: link in the recent activity card to the full audit log, and in the recent backups card to the backups page; keep it short"
   },
-  "web.routes.dashboard.view_clusters": {
-    "defaultMessage": "View clusters",
-    "description": "Dashboard: link at the top right of the cluster resources card that opens the clusters page; keep it short"
+  "web.routes.dashboard.view_nodes": {
+    "defaultMessage": "View nodes",
+    "description": "Dashboard: link from cluster resources to node inventory, retaining the current cluster filter"
   },
   "web.routes.dashboard.your_game_servers_and_resources_across": {
-    "defaultMessage": "Your game servers and resources across authorized locations.",
-    "description": "Dashboard: subtitle under the page title saying the page shows game servers and resources in the locations the user may access"
+    "defaultMessage": "Your game servers and resources across authorized clusters.",
+    "description": "Dashboard: subtitle under the page title saying the page shows game servers and resources in the clusters the user may access"
   },
   "web.routes.login.agpl_3_0": {
     "defaultMessage": "AGPL-3.0",
@@ -7372,8 +7592,8 @@
     "description": "Server detail: error card shown when the server's identity no longer matches the one the link was for; asks the user to reload its current identity"
   },
   "web.routes.server_detail.this_server_could_not_be_loaded_at_its": {
-    "defaultMessage": "This server could not be loaded at its recorded location. Check your access and the site's connection.",
-    "description": "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded location; a retry button is on the card"
+    "defaultMessage": "This server could not be loaded at its recorded cluster. Check your access and the site's connection.",
+    "description": "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded cluster; a retry button is on the card"
   },
   "web.routes.server_detail.up_uptime": {
     "defaultMessage": "up {uptime}",
@@ -7444,12 +7664,12 @@
     "description": "Servers: table empty state while servers load"
   },
   "web.routes.servers.location": {
-    "defaultMessage": "Location",
-    "description": "Servers: label of the location filter in the filter panel; the choices are the clusters the user can access"
+    "defaultMessage": "Cluster",
+    "description": "Servers: label of the cluster filter in the filter panel; the choices are the clusters the user can access"
   },
   "web.routes.servers.manage_your_game_servers_across_all": {
-    "defaultMessage": "Manage your game servers across all authorized locations.",
-    "description": "Servers: subtitle under the page title saying the list covers game servers in all locations the user may access"
+    "defaultMessage": "Manage your game servers across all authorized clusters.",
+    "description": "Servers: subtitle under the page title saying the list covers game servers in all clusters the user may access"
   },
   "web.routes.servers.memory": {
     "defaultMessage": "Memory",

@@ -1083,10 +1083,6 @@
     "defaultMessage": "Gestion centralisée.",
     "description": "Bold lead-in of the central-management note shown above page content"
   },
-  "web.components.app_layout.cluster": {
-    "defaultMessage": "Cluster",
-    "description": "Sidebar: navigation link to the cluster page"
-  },
   "web.components.app_layout.clusters": {
     "defaultMessage": "Clusters",
     "description": "Sidebar: navigation link to the clusters page"
@@ -1118,10 +1114,6 @@
   "web.components.app_layout.system_logs": {
     "defaultMessage": "Journaux système",
     "description": "Sidebar: navigation link to system logs"
-  },
-  "web.components.app_layout.this_catalog_account_or_installation": {
-    "defaultMessage": "Ce catalogue, ce compte ou ce paramètre d’installation appartient à l’installation Gameplane centrale. Les actions sur les serveurs utilisent l’emplacement de chaque serveur.",
-    "description": "App layout: note shown when central management applies; catalog, account or installation settings belong to the central installation, while server actions use each server's location"
   },
   "web.components.app_layout.users_rbac": {
     "defaultMessage": "Utilisateurs et RBAC",
@@ -1198,10 +1190,6 @@
   "web.components.backups.backup_filters.filter_by_server": {
     "defaultMessage": "Filtrer par serveur",
     "description": "Backup filters: screen-reader label for the server dropdown in the filter panel; not visible on screen"
-  },
-  "web.components.backups.backup_filters.location": {
-    "defaultMessage": "Emplacement",
-    "description": "Backup filters: label above the location dropdown in the filter panel"
   },
   "web.components.backups.backup_filters.phase": {
     "defaultMessage": "Phase",
@@ -1431,10 +1419,6 @@
     "defaultMessage": "Annuler",
     "description": "Capture widget: button that closes the delete confirmation or the Start Capture dialog without making changes; keep it short"
   },
-  "web.components.capture_widget.capture_access_unavailable": {
-    "defaultMessage": "L'accès aux captures est temporairement indisponible à cet emplacement.",
-    "description": "Capture widget: status line when capture access is unavailable at this location"
-  },
   "web.components.capture_widget.capture_is_not_enabled_on_this_server": {
     "defaultMessage": "La capture n'est pas activée sur ce serveur.",
     "description": "Capture widget: heading in the empty-state card shown when packet capture is turned off for this server"
@@ -1450,10 +1434,6 @@
   "web.components.capture_widget.captures": {
     "defaultMessage": "Captures",
     "description": "Capture widget: section heading above the table of completed and failed captures for this server"
-  },
-  "web.components.capture_widget.captures_disabled_at_location": {
-    "defaultMessage": "Les nouvelles captures sont désactivées à cet emplacement. Les fichiers de capture existants restent disponibles.",
-    "description": "Capture widget: status line when new captures are disabled at this location"
   },
   "web.components.capture_widget.capturing": {
     "defaultMessage": "Capture en cours…",
@@ -1534,10 +1514,6 @@
   "web.components.capture_widget.filter_2": {
     "defaultMessage": "Filtre",
     "description": "Capture widget: column heading for the packet filter used by each capture in the captures table; keep it short"
-  },
-  "web.components.capture_widget.gateway_update_needed": {
-    "defaultMessage": "Cet emplacement nécessite une mise à jour de la passerelle avant que les captures puissent y être gérées.",
-    "description": "Capture widget: status line when the location's gateway is too old for captures"
   },
   "web.components.capture_widget.gb": {
     "defaultMessage": "GB",
@@ -1779,21 +1755,9 @@
     "defaultMessage": "Voir tous les clusters",
     "description": "Cluster selector: typeahead text of the view-all-clusters item"
   },
-  "web.components.fleet_scope.all_locations": {
-    "defaultMessage": "Tous les emplacements",
-    "description": "Fleet scope: first option in the location dropdown that clears the location filter and shows every location; keep it short"
-  },
-  "web.components.fleet_scope.all_locations_text": {
-    "defaultMessage": "Tous les emplacements",
-    "description": "Fleet scope: typeahead text of the all-locations option"
-  },
   "web.components.fleet_scope.counts_cover_only_returned_resources": {
     "defaultMessage": "Les totaux ne portent que sur les ressources renvoyées.",
     "description": "Fleet scope: second part of the partial-results warning, after the heading, saying counts include only the resources that were returned"
-  },
-  "web.components.fleet_scope.filter_by_location": {
-    "defaultMessage": "Filtrer par emplacement",
-    "description": "Fleet scope: screen-reader label for the location dropdown that narrows the view to one location; not visible on screen"
   },
   "web.components.fleet_scope.label_are_partial": {
     "defaultMessage": "{label} sont partiels.",
@@ -1806,10 +1770,6 @@
   "web.components.fleet_scope.limit_reached": {
     "defaultMessage": "Limite de résultats atteinte.",
     "description": "Fleet scope: warning shown when results are capped"
-  },
-  "web.components.fleet_scope.location_options": {
-    "defaultMessage": "Options d'emplacement",
-    "description": "Fleet scope: screen-reader name of the list of location choices inside the location dropdown; not visible on screen"
   },
   "web.components.fleet_scope.results": {
     "defaultMessage": "Résultats",
@@ -3843,10 +3803,6 @@
     "defaultMessage": "Authentification",
     "description": "Settings nav: label of the Authentication settings section"
   },
-  "web.components.ui.settings_nav.backup_destinations": {
-    "defaultMessage": "Destinations de sauvegarde",
-    "description": "Settings nav: label of the Backup destinations settings section"
-  },
   "web.components.ui.settings_nav.general": {
     "defaultMessage": "Général",
     "description": "Settings nav: label of the General settings section"
@@ -4090,10 +4046,6 @@
   "web.lib.theme_export.version_not_number": {
     "defaultMessage": "export de thème invalide : version doit être un nombre",
     "description": "Theme import error: the document's version field is not a number"
-  },
-  "web.lib.use_server_capabilities.capture_unavailable": {
-    "defaultMessage": "Les limites de capture ne sont pas disponibles pour cet emplacement.",
-    "description": "Error shown when the server reports packet capture limits that are not usable"
   },
   "web.lib.use_server_capabilities.identity_changed": {
     "defaultMessage": "L'identité du serveur a changé. Rechargez ce serveur avant de continuer.",
@@ -4399,10 +4351,6 @@
     "defaultMessage": "Destinations de sauvegarde",
     "description": "Admin settings: title of the backup destinations section card for one cluster; keep it short"
   },
-  "web.routes.admin_settings.backup_destinations_are_stored_on_the": {
-    "defaultMessage": "Les destinations de sauvegarde sont stockées sur le cluster de charge de travail qui exécute vos serveurs.",
-    "description": "Admin settings: subtitle under the select-a-cluster title saying backup destinations live on the workload cluster that runs your servers"
-  },
   "web.routes.admin_settings.basic_identity_for_this_gameplane": {
     "defaultMessage": "Identité de base de cette instance Gameplane.",
     "description": "Admin settings: subtitle under the General title describing the basic identity of this Gameplane instance"
@@ -4430,10 +4378,6 @@
   "web.routes.admin_settings.channel": {
     "defaultMessage": "Canal",
     "description": "Admin settings: label of the update channel row; its value is set by the container image tags"
-  },
-  "web.routes.admin_settings.choose_a_registered_cluster_above_or": {
-    "defaultMessage": "Choisissez un cluster enregistré ci-dessus, ou enregistrez-en un sur la page Clusters.",
-    "description": "Admin settings: text in the select-a-cluster card asking the user to pick a cluster above or register one on the Clusters page"
   },
   "web.routes.admin_settings.client_id": {
     "defaultMessage": "ID client",
@@ -4466,14 +4410,6 @@
   "web.routes.admin_settings.could_not_refresh_configuration": {
     "defaultMessage": "Impossible d'actualiser la configuration. Réessayez l'actualisation avant d'enregistrer.",
     "description": "Admin settings: error shown when the config could not be re-fetched before a save"
-  },
-  "web.routes.admin_settings.couldn_t_load_installation_capabilities": {
-    "defaultMessage": "Impossible de charger les capacités de l'installation.",
-    "description": "Admin settings: error message in the backup destinations area when installation details fail to load; a retry button follows it"
-  },
-  "web.routes.admin_settings.couldn_t_load_registered_clusters": {
-    "defaultMessage": "Impossible de charger les clusters enregistrés.",
-    "description": "Admin settings: error message in the backup destinations area when the list of registered clusters fails to load"
   },
   "web.routes.admin_settings.data_handling_statement": {
     "defaultMessage": "Déclaration de traitement des données",
@@ -4751,10 +4687,6 @@
     "defaultMessage": "— par exemple",
     "description": "Admin settings: the words for example in the scopes hint, introducing the example scope named groups"
   },
-  "web.routes.admin_settings.loading_clusters": {
-    "defaultMessage": "Chargement des clusters…",
-    "description": "Admin settings: loading text in the backup destinations area while the list of registered clusters loads"
-  },
   "web.routes.admin_settings.loading_configuration": {
     "defaultMessage": "Chargement de la configuration…",
     "description": "Admin settings: loading text shown in a card while the configuration is fetched"
@@ -4762,10 +4694,6 @@
   "web.routes.admin_settings.loading_destinations": {
     "defaultMessage": "Chargement des destinations…",
     "description": "Admin settings: loading text in the backup destinations card while the list is fetched"
-  },
-  "web.routes.admin_settings.loading_installation": {
-    "defaultMessage": "Chargement de l'installation…",
-    "description": "Admin settings: loading text in the backup destinations area while installation details are fetched"
   },
   "web.routes.admin_settings.mail_example_com": {
     "defaultMessage": "mail.example.com",
@@ -5070,10 +4998,6 @@
   "web.routes.admin_settings.scopes_optional": {
     "defaultMessage": "Étendues (facultatif)",
     "description": "Admin settings: label of the optional field for extra OAuth scopes"
-  },
-  "web.routes.admin_settings.select_a_workload_cluster": {
-    "defaultMessage": "Sélectionnez un cluster de charge de travail",
-    "description": "Admin settings: title of the placeholder card shown when no workload cluster is selected for backup destinations"
   },
   "web.routes.admin_settings.send_basic_usage_metrics": {
     "defaultMessage": "Envoyer les métriques d'utilisation de base",
@@ -5579,10 +5503,6 @@
     "defaultMessage": "Taille",
     "description": "Backups: column heading for the size of each backup; keep it short"
   },
-  "web.routes.backups.snapshots_schedules_and_restores_across": {
-    "defaultMessage": "Instantanés, planifications et restaurations dans vos emplacements autorisés.",
-    "description": "Backups: subtitle under the page title saying the screen covers snapshots, schedules and restores across your authorised locations"
-  },
   "web.routes.backups.starting": {
     "defaultMessage": "Démarrage…",
     "description": "Backups: label of the Run snapshot button while the request is in flight"
@@ -5627,25 +5547,9 @@
     "defaultMessage": "Saisissez {name} ({target}) pour confirmer.",
     "description": "Backups: confirmation hint under the delete-schedule dialog; {name} is the schedule name in monospace, {target} is its cluster and namespace"
   },
-  "web.routes.cluster.add_node": {
-    "defaultMessage": "Ajouter un nœud",
-    "description": "Cluster: button that creates a node-join token so a new machine can be added to the cluster; keep it short"
-  },
-  "web.routes.cluster.choose_a_registered_cluster_to_view_its": {
-    "defaultMessage": "Choisissez un cluster enregistré pour afficher son inventaire de nœuds. Enregistrez les clusters de charge de travail sur la page Clusters.",
-    "description": "Cluster: hint under the empty-state heading saying a registered cluster must be picked to see its nodes and that clusters are registered on the Clusters page"
-  },
-  "web.routes.cluster.cluster": {
-    "defaultMessage": "Cluster",
-    "description": "Cluster: page title of the node inventory view at the top of the page; keep it short"
-  },
   "web.routes.cluster.cluster_default": {
     "defaultMessage": "Par défaut du cluster",
     "description": "Cluster: badge shown instead of a storage class name when none is set, meaning new volumes use the cluster's default; keep it short"
-  },
-  "web.routes.cluster.copy": {
-    "defaultMessage": "Copier",
-    "description": "Cluster: button that copies the join command to the clipboard; keep it short"
   },
   "web.routes.cluster.couldn_t_load_installation_capabilities": {
     "defaultMessage": "Impossible de charger les capacités d'installation.",
@@ -5655,77 +5559,13 @@
     "defaultMessage": "Impossible de charger les clusters enregistrés.",
     "description": "Cluster: error message shown when the list of registered clusters fails to load; a retry button appears below it"
   },
-  "web.routes.cluster.cpu": {
-    "defaultMessage": "CPU",
-    "description": "Cluster: label for CPU on a node card, used both for the core count figure and for the CPU usage bar; CPU is a technical term, usually left untranslated"
-  },
-  "web.routes.cluster.cpu_cores": {
-    "defaultMessage": "{cores} cœurs",
-    "description": "Cluster: node CPU capacity; {cores} is the core count"
-  },
-  "web.routes.cluster.dismiss": {
-    "defaultMessage": "Ignorer",
-    "description": "Cluster: button that closes the join-a-node card; keep it short"
-  },
   "web.routes.cluster.download_kubeconfig": {
     "defaultMessage": "Télécharger le kubeconfig",
     "description": "Cluster: button that downloads the cluster's kubeconfig file; keep it short; kubeconfig is a technical term, usually left untranslated"
   },
-  "web.routes.cluster.enable_helm_note": {
-    "defaultMessage": "Activez {setting} dans les valeurs Helm pour générer des jetons d'adhésion de nœud et des kubeconfigs.",
-    "description": "Cluster: note under the action buttons when operations are disabled; {setting} is the Helm key, shown as code"
-  },
   "web.routes.cluster.game_data_storage_class": {
     "defaultMessage": "Classe de stockage des données de jeu",
     "description": "Cluster: label of the setting that names the storage class used for new game server data volumes; storage class is a technical term, usually left untranslated"
-  },
-  "web.routes.cluster.join_a_node": {
-    "defaultMessage": "Rejoindre un nœud",
-    "description": "Cluster: heading of the card that shows the command to run on a machine that should join the cluster as a node"
-  },
-  "web.routes.cluster.loading_clusters": {
-    "defaultMessage": "Chargement des clusters…",
-    "description": "Cluster: loading text shown while the list of registered clusters is being fetched, before a cluster can be chosen"
-  },
-  "web.routes.cluster.loading_installation": {
-    "defaultMessage": "Chargement de l'installation…",
-    "description": "Cluster: loading text shown in place of the node inventory while the installation capabilities are being fetched"
-  },
-  "web.routes.cluster.loading_nodes_for": {
-    "defaultMessage": "Chargement des nœuds pour {clusterId}…",
-    "description": "Cluster: message of LoadingCard; {clusterId} is the cluster id"
-  },
-  "web.routes.cluster.memory": {
-    "defaultMessage": "Mémoire",
-    "description": "Cluster: label of the memory usage bar on a node card, showing memory in use against the node's total memory"
-  },
-  "web.routes.cluster.memory_of_capacity": {
-    "defaultMessage": "sur {capacity}",
-    "description": "Cluster: node memory capacity shown when usage is unknown; {capacity} is a formatted byte size"
-  },
-  "web.routes.cluster.memory_used_of_capacity": {
-    "defaultMessage": "{used} / {capacity}",
-    "description": "Cluster: node memory as used / capacity; both are formatted byte sizes"
-  },
-  "web.routes.cluster.no_node_data_yet": {
-    "defaultMessage": "Aucune donnée de nœud pour l'instant.",
-    "description": "Cluster: empty-state heading shown when no node information has arrived for the cluster; the line below it says what to check"
-  },
-  "web.routes.cluster.no_nodes_are_reporting_yet_check_the": {
-    "defaultMessage": "Aucun nœud ne remonte d'information pour l'instant. Vérifiez la connexion à l'API et à l'opérateur.",
-    "description": "Cluster: hint under the empty-state heading asking the user to check the API and operator connection because no nodes report yet"
-  },
-  "web.routes.cluster.node_inventory_for": {
-    "defaultMessage": "Inventaire des nœuds du cluster sélectionné : {clusterId}.",
-    "description": "Cluster: page subtitle shown before node data loads; {clusterId} is the cluster id"
-  },
-  "web.routes.cluster.node_status_badge": {
-    "defaultMessage": "● {status}",
-    "description": "Cluster: node status badge; {status} is the node status, or Unknown when none is reported"
-  },
-  "web.routes.cluster.nodes_load_failed": {
-    "defaultMessage": "Impossible de charger l'inventaire des nœuds pour {clusterId}. Vérifiez votre accès au cluster et votre connexion.",
-    "description": "Cluster: error card message when node inventory fails to load; {clusterId} is the cluster id"
   },
   "web.routes.cluster.op_failed": {
     "defaultMessage": "Cette opération a échoué. Consultez les journaux de l'API.",
@@ -5739,53 +5579,9 @@
     "defaultMessage": "Les opérations sur les clusters ne sont pas activées sur cette installation (définissez clusterOps.enabled).",
     "description": "Cluster: error shown when the operator has cluster operations turned off (HTTP 501)"
   },
-  "web.routes.cluster.ops_disabled_hint": {
-    "defaultMessage": "Les opérations sur les clusters sont désactivées sur cette installation.",
-    "description": "Cluster: tooltip on the node action buttons when cluster operations are off"
-  },
-  "web.routes.cluster.pods": {
-    "defaultMessage": "Pods",
-    "description": "Cluster: label of the pod figure on a node card; the value shows pods in use out of the node's pod capacity, or only the capacity when usage is unknown"
-  },
-  "web.routes.cluster.pods_of_capacity": {
-    "defaultMessage": "sur {capacity}",
-    "description": "Cluster: node pod capacity shown when usage is unknown; {capacity} is the pod limit"
-  },
-  "web.routes.cluster.pods_used_of_capacity": {
-    "defaultMessage": "{used}/{capacity}",
-    "description": "Cluster: node pod count as used/capacity; {used} and {capacity} are numbers"
-  },
-  "web.routes.cluster.remote_managed_note": {
-    "defaultMessage": "L'ajout de nœuds et le téléchargement des kubeconfigs sont gérés sur ce cluster distant.",
-    "description": "Cluster: note under the action buttons on a remote cluster"
-  },
-  "web.routes.cluster.role_worker": {
-    "defaultMessage": "worker",
-    "description": "Cluster: role label shown for a node that reports no Kubernetes roles"
-  },
-  "web.routes.cluster.run_this_on_the_machine_you_want_to": {
-    "defaultMessage": "Exécutez ceci sur la machine à rejoindre (jeton valable jusqu'à {expiresAt}) :",
-    "description": "Cluster: sentence with expiresAt in p"
-  },
-  "web.routes.cluster.select_a_workload_cluster": {
-    "defaultMessage": "Sélectionner un cluster de charge de travail",
-    "description": "Cluster: heading of the empty-state card shown when no workload cluster is selected"
-  },
   "web.routes.cluster.set_at_install_time_via_helm_values_not": {
     "defaultMessage": "Défini à l'installation via les valeurs Helm, non modifiable depuis le tableau de bord.",
     "description": "Cluster: hint under the storage heading explaining that these values come from Helm values at install time and cannot be edited in the dashboard"
-  },
-  "web.routes.cluster.status_not_ready": {
-    "defaultMessage": "Non prêt",
-    "description": "Cluster: node status label for a node that is not ready"
-  },
-  "web.routes.cluster.status_ready": {
-    "defaultMessage": "Prêt",
-    "description": "Cluster: node status label for a node that is ready"
-  },
-  "web.routes.cluster.status_unknown": {
-    "defaultMessage": "Inconnu",
-    "description": "Cluster: node status shown when the node reports none"
   },
   "web.routes.cluster.storage": {
     "defaultMessage": "Stockage",
@@ -5798,18 +5594,6 @@
   "web.routes.cluster.storageclass_for_new_gameservers_game": {
     "defaultMessage": "StorageClass pour les volumes de données de jeu des nouveaux GameServers : définie par la valeur Helm operator.gameDataStorage.storageClassName et appliquée par l'opérateur à chaque nouveau PVC ; l'API reçoit la même valeur via --game-data-storage-class uniquement pour l'afficher ici.",
     "description": "Cluster: explanation under the game data storage class label; a Helm value sets it and it applies to new volumes; StorageClass is a technical term, usually left untranslated"
-  },
-  "web.routes.cluster.summary": {
-    "defaultMessage": "{name} · {version} · {ready}/{total} nœuds en bon état",
-    "description": "Cluster: page subtitle; {name} is the cluster name, {version} the Kubernetes version, {ready} and {total} the node counts"
-  },
-  "web.routes.cluster.uptime": {
-    "defaultMessage": "Temps de fonctionnement",
-    "description": "Cluster: label of the uptime figure on a node card, showing how long the node has been running; keep it short"
-  },
-  "web.routes.clusters.administration_of_registered_locations": {
-    "defaultMessage": "Administration des emplacements enregistrés, de leur connectivité et de l'inventaire des nœuds.",
-    "description": "Clusters: subtitle under the page title saying the page covers registered locations, their connectivity and node inventory"
   },
   "web.routes.clusters.api": {
     "defaultMessage": "API :",
@@ -5826,10 +5610,6 @@
   "web.routes.clusters.central_cluster": {
     "defaultMessage": "Cluster central",
     "description": "Clusters: note on the cluster card of the built-in local cluster that the panel itself runs in"
-  },
-  "web.routes.clusters.cluster_administration_requires": {
-    "defaultMessage": "L'administration des clusters requiert un accès à l'inventaire ou à la gestion des clusters.",
-    "description": "Clusters: error card shown instead of the cluster list to users who have neither cluster management nor inventory access"
   },
   "web.routes.clusters.clusters": {
     "defaultMessage": "Clusters",
@@ -5879,10 +5659,6 @@
     "defaultMessage": "Enregistrez un cluster de charge de travail pour déployer et gérer des serveurs de jeu. Ce panneau peut fonctionner sans cluster local.",
     "description": "Clusters: empty-state hint shown to users who can manage clusters"
   },
-  "web.routes.clusters.remove": {
-    "defaultMessage": "Supprimer",
-    "description": "Clusters: button on a cluster card that removes its registration; not shown for the local cluster; keep it short"
-  },
   "web.routes.clusters.remove_cluster": {
     "defaultMessage": "Supprimer le cluster",
     "description": "Clusters: confirm button in the remove-cluster dialog, shown in a destructive style; keep it short"
@@ -5898,10 +5674,6 @@
   "web.routes.clusters.removes_this_panel_s_connection_to_the": {
     "defaultMessage": "Supprime la connexion de ce panneau au cluster. Les charges de travail en cours restent sur le cluster.",
     "description": "Clusters: text in the remove-cluster confirmation dialog saying the panel's connection is removed while running workloads stay on the cluster"
-  },
-  "web.routes.clusters.selected": {
-    "defaultMessage": "Sélectionné",
-    "description": "Clusters: small badge on a cluster card marking the cluster currently selected; keep it short"
   },
   "web.routes.clusters.view_nodes": {
     "defaultMessage": "Voir les nœuds",
@@ -5946,10 +5718,6 @@
   "web.routes.create_server.category_all": {
     "defaultMessage": "Tous",
     "description": "Create server: template category chip that shows every template"
-  },
-  "web.routes.create_server.changing_location_starts_a_fresh_draft": {
-    "defaultMessage": "Changer d'emplacement crée un nouveau brouillon. L'emplacement choisi gère toutes les étapes de création.",
-    "description": "Create server: hint under the location dropdown warning that switching location starts a fresh draft and the chosen location handles all steps"
   },
   "web.routes.create_server.choose_a_version": {
     "defaultMessage": "Choisissez une version",
@@ -6075,10 +5843,6 @@
     "defaultMessage": "Prévoyez la surcharge des mods et plugins ; Minecraft Vanilla utilise environ 1,5 GB pour 4 joueurs.",
     "description": "Create server: memory hint in the YAML preview panel asking the user to allow for mod or plugin overhead; the example is about 1.5 GB for 4 Minecraft Vanilla players"
   },
-  "web.routes.create_server.finding_available_locations": {
-    "defaultMessage": "Recherche des emplacements disponibles…",
-    "description": "Create server: loading text shown while the list of server locations is being fetched"
-  },
   "web.routes.create_server.frp_server_port_placeholder": {
     "defaultMessage": "7000",
     "description": "Create server: placeholder of the frp server port input, an example port number"
@@ -6118,14 +5882,6 @@
   "web.routes.create_server.loader_loader": {
     "defaultMessage": "Loader : {loader}",
     "description": "Create server: loader line under a version option; {loader} is the loader name"
-  },
-  "web.routes.create_server.location": {
-    "defaultMessage": "Emplacement",
-    "description": "Create server: label of the location dropdown in the wizard header, which chooses the cluster and namespace the server is created in"
-  },
-  "web.routes.create_server.locations_unavailable": {
-    "defaultMessage": "Emplacements indisponibles",
-    "description": "Create server: title of the error card shown when the list of authorized server locations fails to load"
   },
   "web.routes.create_server.map_at_least_one_port_name_to_a_remote": {
     "defaultMessage": "Associez au moins un nom de port à un port distant (1–65535).",
@@ -6182,10 +5938,6 @@
   "web.routes.create_server.new_game_server": {
     "defaultMessage": "Nouveau serveur de jeu",
     "description": "Create server: heading of the wizard dialog for creating a new game server, shown at the top left"
-  },
-  "web.routes.create_server.no_available_location": {
-    "defaultMessage": "Aucun emplacement disponible",
-    "description": "Create server: title of the error card shown when no location is available to create a server in"
   },
   "web.routes.create_server.no_description": {
     "defaultMessage": "Aucune description.",
@@ -6359,10 +6111,6 @@
     "defaultMessage": "Liste d'autorisation IP",
     "description": "Create server: review row label for the load balancer source IP allow-list"
   },
-  "web.routes.create_server.review_location": {
-    "defaultMessage": "Emplacement",
-    "description": "Create server: review row label for the cluster and namespace the server is created in"
-  },
   "web.routes.create_server.review_memory": {
     "defaultMessage": "Mémoire",
     "description": "Create server: review row label for the memory limit"
@@ -6439,10 +6187,6 @@
     "defaultMessage": "Port du serveur",
     "description": "Create server: field label for the port of the frp relay server"
   },
-  "web.routes.create_server.some_locations_are_unavailable": {
-    "defaultMessage": "Certains emplacements sont indisponibles. Seuls les emplacements disponibles sont affichés.",
-    "description": "Create server: status note under the location dropdown shown when some locations are unavailable and only the available ones are listed"
-  },
   "web.routes.create_server.source_ranges_placeholder": {
     "defaultMessage": "203.0.113.0/24 10.0.0.0/8",
     "description": "Create server: placeholder of the IP allow-list textarea, example CIDR ranges one per line"
@@ -6503,10 +6247,6 @@
     "defaultMessage": "Configuration du modèle",
     "description": "Create server: small uppercase heading above the template-specific settings, shown only when the template has such settings"
   },
-  "web.routes.create_server.the_selected_location_is_unavailable_or": {
-    "defaultMessage": "L'emplacement sélectionné est indisponible, ou aucun emplacement accessible n'autorise la création. Rétablissez son accès ou revenez à la liste des serveurs pour choisir un emplacement disponible.",
-    "description": "Create server: explanation under the no-location title; tells the user to restore access to the location or go back to the server list"
-  },
   "web.routes.create_server.tunnel_name_optional": {
     "defaultMessage": "Nom du tunnel (facultatif)",
     "description": "Create server: field label for the optional playit tunnel name; playit is a technical term, usually left untranslated"
@@ -6518,10 +6258,6 @@
   "web.routes.create_server.tunnel_provider": {
     "defaultMessage": "Fournisseur de tunnel",
     "description": "Create server: field label above the choice of tunnel provider, shown when the tunnel is enabled"
-  },
-  "web.routes.create_server.unable_to_load_authorized_server": {
-    "defaultMessage": "Impossible de charger les emplacements de serveur autorisés.",
-    "description": "Create server: message under the locations error title, saying the authorized server locations could not be loaded"
   },
   "web.routes.create_server.used_as_pod_name_and_subdomain": {
     "defaultMessage": "Utilisé comme nom de pod et sous-domaine. En minuscules, séparés par des tirets.",
@@ -6727,10 +6463,6 @@
     "defaultMessage": "Aucun backup pour le moment.",
     "description": "Dashboard: empty Recent backups card when the backup list is complete"
   },
-  "web.routes.dashboard.no_issues_partial": {
-    "defaultMessage": "Aucun problème parmi les serveurs renvoyés ; certains emplacements sont indisponibles.",
-    "description": "Dashboard: Needs attention message when the fleet is partial and no returned server needs attention"
-  },
   "web.routes.dashboard.no_node_data": {
     "defaultMessage": "aucune donnée de nœud",
     "description": "Dashboard: sub-label on the Nodes ready card when no nodes are reported"
@@ -6862,14 +6594,6 @@
   "web.routes.dashboard.view_all": {
     "defaultMessage": "Tout voir",
     "description": "Dashboard: link in the recent activity card to the full audit log, and in the recent backups card to the backups page; keep it short"
-  },
-  "web.routes.dashboard.view_clusters": {
-    "defaultMessage": "Voir les clusters",
-    "description": "Dashboard: link at the top right of the cluster resources card that opens the clusters page; keep it short"
-  },
-  "web.routes.dashboard.your_game_servers_and_resources_across": {
-    "defaultMessage": "Vos serveurs de jeu et ressources dans les emplacements autorisés.",
-    "description": "Dashboard: subtitle under the page title saying the page shows game servers and resources in the locations the user may access"
   },
   "web.routes.login.agpl_3_0": {
     "defaultMessage": "AGPL-3.0",
@@ -7163,10 +6887,6 @@
     "defaultMessage": "Ce serveur a changé pendant son chargement. Rechargez son identité actuelle avant de continuer.",
     "description": "Server detail: error card shown when the server's identity no longer matches the one the link was for; asks the user to reload its current identity"
   },
-  "web.routes.server_detail.this_server_could_not_be_loaded_at_its": {
-    "defaultMessage": "Ce serveur n'a pas pu être chargé à son emplacement enregistré. Vérifiez vos accès et la connexion du site.",
-    "description": "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded location; a retry button is on the card"
-  },
   "web.routes.server_detail.up_uptime": {
     "defaultMessage": "actif depuis {uptime}",
     "description": "Server detail: header line with uptime; {uptime} is the formatted uptime"
@@ -7234,14 +6954,6 @@
   "web.routes.servers.loading_servers": {
     "defaultMessage": "Chargement…",
     "description": "Servers: table empty state while servers load"
-  },
-  "web.routes.servers.location": {
-    "defaultMessage": "Emplacement",
-    "description": "Servers: label of the location filter in the filter panel; the choices are the clusters the user can access"
-  },
-  "web.routes.servers.manage_your_game_servers_across_all": {
-    "defaultMessage": "Gérez vos serveurs de jeu dans tous les emplacements autorisés.",
-    "description": "Servers: subtitle under the page title saying the list covers game servers in all locations the user may access"
   },
   "web.routes.servers.memory": {
     "defaultMessage": "Mémoire",

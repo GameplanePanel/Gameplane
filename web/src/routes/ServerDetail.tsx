@@ -104,7 +104,7 @@ function ResolveServerDetail({ target }: { target: ResourceTarget }) {
     }
   }, [target.cluster, target.namespace, target.name, server.data?.metadata.namespace, navigate]);
   const retry = () => { void server.refetch(); void access.refetch(); };
-  if (server.error || access.error) return <div className="p-6"><ErrorCard message={intl.formatMessage({ id: "web.routes.server_detail.this_server_could_not_be_loaded_at_its", defaultMessage: "This server could not be loaded at its recorded location. Check your access and the site's connection.", description: "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded location; a retry button is on the card" })} onRetry={retry} /></div>;
+  if (server.error || access.error) return <div className="p-6"><ErrorCard message={intl.formatMessage({ id: "web.routes.server_detail.this_server_could_not_be_loaded_at_its", defaultMessage: "This server could not be loaded at its recorded cluster. Check your access and the site's connection.", description: "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded cluster; a retry button is on the card" })} onRetry={retry} /></div>;
   if (!server.data || !access.data) return <div className="p-6"><LoadingCard message={intl.formatMessage({ id: "web.routes.server_detail.loading_server", defaultMessage: "Loading server…", description: "Server detail: loading text shown while the server and the user's access to it are being fetched" })} /></div>;
   const authorized = access.data.target;
   if (authorized.cluster !== resolved.cluster || authorized.namespace !== resolved.namespace || authorized.name !== resolved.name || (resolved.uid && authorized.uid !== resolved.uid)) {

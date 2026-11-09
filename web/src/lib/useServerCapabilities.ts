@@ -12,7 +12,7 @@ const MESSAGES = defineMessages({
   },
   capture_unavailable: {
     id: "web.lib.use_server_capabilities.capture_unavailable",
-    defaultMessage: "Capture limits are unavailable for this location.",
+    defaultMessage: "Capture limits are unavailable for this cluster.",
     description: "Error shown when the server reports packet capture limits that are not usable",
   },
 });

@@ -19,7 +19,7 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 - Fetch and cache data via TanStack Query; invalidate caches on Kubernetes watch events (SSE)
 - Stream console input/output (WebSocket) and pod/game logs (WebSocket) to the Console and Logs tabs
 - Wrap the API client in three layers: thin fetch wrapper (`api<T>()`), typed endpoint namespaces (`Servers`, `Templates`, `Cluster`, etc.), and domain helpers (validations, RCON mode resolution, mod/modpack capability detection)
-- Present authorized resources from all locations by default, with optional filters; bind each resource operation to its explicit cluster and namespace rather than an ambient global selection
+- Present authorized resources from all clusters by default, with optional filters; bind each resource operation to its explicit cluster and namespace rather than an ambient global selection
 - Enforce role-based access control (RBAC) on frontend routes via `<RequirePermission>` middleware
 - Validate form inputs against declared server/template schema before submit
 - Display real-time resource status (CPU, memory, uptime) and live action metrics from RCON/agent
@@ -52,20 +52,20 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 
 **Cluster-bound WebSocket:** Server streams carry the open server's explicit cluster and namespace. Reconnects retain that target; leaving the server view closes its streams. Changing an infrastructure selection cannot retarget a stream. Pod logs and PTY attach use the target Kubernetes client; remote agent streams use the configured authenticated gateway and fail closed when unavailable.
 
-## Unified location views
+## Unified cluster views
 
 The [unified dashboard](../docs/unified-dashboard.md) combines authorized
-resources across locations. [Cluster administration](../docs/multicluster-ui.md)
+resources across clusters. [Cluster administration](../docs/multicluster-ui.md)
 retains a separate inventory selection. `design.pen` and the
 [design exports](../assets/design-export/MANIFEST.md) define the visual surface.
 
-- Dashboard, Servers, Backups and global Search consume `/fleet/*` envelopes. Exact location/namespace filters request narrower backend results so they can recover resources omitted by the combined result limit. Authorized scope metadata keeps filter options available for empty or unavailable locations.
-- Each row retains `{cluster, namespace, name, uid}`, resource data and exact target permissions. Same-named resources in different locations remain distinct. Server routes carry `cluster` and `ns`; legacy routes without a cluster resolve local, independently of remembered infrastructure selection.
+- Dashboard, Servers, Backups and global Search consume `/fleet/*` envelopes. Exact cluster/namespace filters request narrower backend results so they can recover resources omitted by the combined result limit. Authorized scope metadata keeps filter options available for empty or unavailable clusters.
+- Each row retains `{cluster, namespace, name, uid}`, resource data and exact target permissions. Same-named resources in different clusters remain distinct. Server routes carry `cluster` and `ns`; legacy routes without a cluster resolve local, independently of remembered infrastructure selection.
 - `createRequestClient`, `createResourceClient` and `ResourceTargetProvider` bind JSON requests, raw file/download paths, dialogs, chained mutations and WebSocket URLs to the original scope. Detail waits for matching resource/access identity before mounting actionable children. Instance query keys include UID; the current server-object lookup and namespace collections use stable scope keys so a replacement object can be detected and forms remounted.
 - Server controls consume `/servers/{name}/access` capabilities and exact named permissions. Owner/collaborator operations remain distinct from full-object writes, owner/admin management, strictly owner-only share links, backup permissions and capture management. The API remains authoritative.
 - Fleet totals visibly distinguish complete, partial, failed and truncated reads. CPU/memory percentages use summed measured usage divided by matching capacity; missing measurements are unknown. Storage reports provisioned capacity, not actual disk usage. Player totals indicate missing server readings.
 - Cluster registration and node selection remain in infrastructure administration; ordinary pages have no global cluster switcher. Accounts, roles, modules, audit and installation settings retain central ownership.
-- Creation uses eligible placements and templates supplied by `/fleet/placements`. An initial location is captured once, changing location resets the draft, and losing that location does not automatically choose another. All creation follow-ups and success navigation retain the captured target. This adds no cross-cluster scheduler or data migration.
+- Creation uses eligible placements and templates supplied by `/fleet/placements`. An initial placement is captured once, changing placement resets the draft, and losing that placement does not automatically choose another. All creation follow-ups and success navigation retain the captured target. This adds no cross-cluster scheduler or data migration.
 
 Coverage includes duplicate-name navigation, exact permission boundaries, asynchronous target retention, unavailable and capped responses, weighted metrics, and desktop/mobile filtering. Repository suites run in GitHub Actions.
 
@@ -137,7 +137,7 @@ The multi-slice rebuild is complete: the previous Radix-based primitives that us
 - **`PageHeader.tsx` (T043)** — route-level page header: thin wrapper around `ui/PageHeader` (slice-0 atom), passing through `title/subtitle/actions/breadcrumbs` unchanged. Called by ~30+ route pages; no changes required in call sites.
 - **`ClusterSelector.tsx` (T044)** — HeroUI dropdown on the Cluster inventory page, with authorized registrations, phase colors and a **View all clusters** action. It changes the infrastructure selection without setting a default target for server operations.
 - **`Login.tsx` (T040)** — login form: refactored from raw DOM to HeroUI `TextField`/`Label`/`Input`/`InputGroup`, `Alert` for errors, `Button` for actions. Kept all state, error handling, SSO provider rendering, and marketing panel. Verified compliant with FR-005 (login privacy).
-- **`Dashboard.tsx` (T041)** — landing page: renders fleet server/player summaries and inventory statistics, with optional location filtering and partial-coverage indicators. Missing measurements remain unknown. Recent-activity rows for audit entries whose path ends in `/auth/login` read "<actor> signed in" for a 2xx status and "<actor> failed to sign in" otherwise.
+- **`Dashboard.tsx` (T041)** — landing page: renders fleet server/player summaries and inventory statistics, with optional cluster filtering and partial-coverage indicators. Missing measurements remain unknown. Recent-activity rows for audit entries whose path ends in `/auth/login` read "<actor> signed in" for a 2xx status and "<actor> failed to sign in" otherwise.
 
 ### Design Import Rule (FR-012)
 
@@ -828,9 +828,11 @@ package.json                # @gameplane/web v0.3.0; dev: vite, npm scripts for 
      - **Step 2 (Container & Ports)**: Configure container image ref (with digest pinning verification badge), custom TCP/UDP ports with advertise flags, and persistent volume size and mount path.
      - **Step 3 (Review & Export)**: Dual-pane view with syntax-editable YAML manifests (`module.yaml`, `template.yaml`, `README.md`), live offline validation diagnostics, memory scaling simulation (`autoFromMemoryLimit`), and action buttons to download a `.tar.gz` archive or install directly into a cluster upload `ModuleSource`.
 
-7. **Cluster** (`/cluster`) → `ClusterPage` (gated by `cluster:read` permission)
-   - Selected cluster health and node inventory; **Clusters** (`/clusters`) lists authorized registrations
-   - Kubeconfig download and node join credentials are local-only and require the corresponding cluster-operation permission and enabled configuration
+7. **Clusters** (`/clusters`) → `ClustersPage`; **Nodes** (`/nodes`) → `NodesPage`
+   - Clusters lists authorized registrations and opens `/clusters/$clusterId` with Overview, Nodes and Configuration tabs.
+   - Nodes combines authorized inventory by default with URL cluster, text and status filters, sortable columns and responsive stacked rows. Cluster details reuse the same inventory with a fixed target. Incomplete coverage and missing metrics remain visible.
+   - Add node requires an explicit target; node join and kubeconfig download remain local-only and capability/permission gated. Configuration owns kubeconfig, read-only storage, target-bound backup destinations and confirmed remote removal.
+   - `/cluster` remains a compatibility redirect to Nodes. Navigation and filters never retarget an existing server or pending mutation.
 
 8. **Users** (`/users`) → `UsersPage` (gated by `users:manage` permission)
    - Create/edit/delete users and OIDC links
@@ -838,8 +840,8 @@ package.json                # @gameplane/web v0.3.0; dev: vite, npm scripts for 
 
 9. **AdminSettings** (`/admin`) → `AdminSettingsPage` (gated by `config:manage` permission)
    - Sections: General (version), Telemetry (destination, tiers, install ID, preview, status), Authentication (OIDC providers), Mod registries (API keys),
-     Notification sinks (Discord/Slack/SMTP/webhook), Backup destinations
-   - **General:** Instance name is optional. It names this install on the Cluster page and in notifications, which fall back to "Gameplane" when it is blank
+     Notification sinks (Discord/Slack/SMTP/webhook). Backup destinations belong to cluster Configuration; legacy `section=backups` provides a link there.
+   - **General:** Instance name is optional. It names this install in cluster configuration and in notifications, which fall back to "Gameplane" when it is blank
    - **Telemetry (spec 022):** the section reads `GET /admin/telemetry` (`Telemetry.get()`, query key `["telemetry"]`, refetched after a save and after an install-ID reset) and the stored consent via `GET /admin/config`. It shows the destination in effect (`default`, `custom`, `bundled`, `disabled` by the operator, `none`) with a link to the data-handling statement (`TELEMETRY_STATEMENT_URL` in `src/lib/links.ts`), two switches ("Enable/Disable telemetry" for basic, "Enable/Disable extended telemetry" for extended), the install ID with a confirmed "Reset ID" (`POST /admin/telemetry/install-id`), a read-only next-report preview identical to the payload, and a fixed-phrase delivery status (never, ok, failed, plus "Install ID replaced on <date>" when `lastIdRotationAt` is set; no failure detail is ever shown). Extended is disabled and shown off while basic is off, and turning basic off clears extended in the draft (the server also normalises it). When the operator disabled telemetry both switches are disabled and shown off and Save is disabled. Saves still go through `useSectionForm` and `PUT /admin/config/telemetry`.
    - **Telemetry notice (spec 022):** `src/components/ui/TelemetryNotice.tsx` renders the first-login banner at the top of the dashboard body for users with `config:manage` while `GET /admin/telemetry/notice` reports `pending`. It posts `seen` once on first render, offers "Keep sharing", "Turn off extended" and "Turn off all" (each posts the matching ack and hides the banner), and links to Admin Settings → Telemetry and to `TELEMETRY_STATEMENT_URL`. It has no dismiss button.
    - **Section save semantics:** each config section edits a local draft (`useSectionForm`). Nothing is stored until
@@ -861,7 +863,7 @@ package.json                # @gameplane/web v0.3.0; dev: vite, npm scripts for 
 - `oidcHelmProvider` — OIDC provider metadata: `groupsClaim` (string), `defaultRole` (string), and `roleMappings` (the **Helm-seeded** role mappings as `{ admin?, operator?, viewer? }`, each role key optionally present)
 
 **Split display across two routes (not one):**
-1. **Cluster.tsx** displays the **storage class card** — `gameDataStorageClass` value or "Cluster default" badge if unset; rendered with a contextual hint when unset
+1. **ClusterConfiguration.tsx** displays the **storage class card** — `gameDataStorageClass` value or "Cluster default" badge if unset; rendered with a contextual hint when unset
 2. **AdminSettings.tsx** displays the **OIDC provider and role mappings overrides** — all auth-related configuration
 
 Admin settings section drafts follow refreshed configuration while pristine,
@@ -877,12 +879,12 @@ values cannot reset that draft. Save requires a successful refresh before any
 further writes when the last configuration read failed.
 
 **Why the split:**  
-A StorageClass is a cluster infrastructure concern, not an authentication concern. Cluster.tsx is the natural home for infrastructure settings; AdminSettings.tsx owns auth-only config. This separation keeps concerns aligned with where users expect to find them.
+A StorageClass is a cluster infrastructure concern, not an authentication concern. ClusterConfiguration.tsx is the natural home for infrastructure settings; AdminSettings.tsx owns auth-only config. This separation keeps concerns aligned with where users expect to find them.
 
 **Permission gating:**  
 - **Route guard (web/src/router/tree.tsx):** The `/admin` route itself is guarded by `config:manage` permission (admin and operator roles only).
 - **AdminSettings.tsx** (OIDC/auth section): The `RoleMappingOverridesCard` component is gated by `config:manage` permission check at render time — since it is an editing surface for role mappings (not read-only display). The route-level and component-level gates are now aligned.
-- **Cluster.tsx** (storage card): Is **not** already admin-only, so it requires an explicit `can(me, "config:read")` permission check on both the query (to avoid 403 errors) and the rendered card (to hide it from viewers lacking permission). Precedent: Dashboard.tsx:51 and Users.tsx:688.
+- **ClusterConfiguration.tsx** (storage card): Is **not** already admin-only, so it requires an explicit `can(me, "config:read")` permission check on both the query (to avoid 403 errors) and the rendered card (to hide it from viewers lacking permission). Precedent: Dashboard.tsx:51 and Users.tsx:688.
 
 **OIDC Role Mapping Overrides (AdminSettings.tsx):**
 

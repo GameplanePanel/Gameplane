@@ -747,7 +747,7 @@ describe("explicit creation location", () => {
     search = { cluster: "local", template: "minecraft-java" };
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ items: [{ cluster: "remote", namespace: "games", templates: [template()] }], partial: false, issues: [], totalReturned: 1 }), { status: 200, headers: { "Content-Type": "application/json" } }));
     renderWithQuery(<CreateServerWizard />);
-    expect(await screen.findByText("No available location")).toBeInTheDocument();
+    expect(await screen.findByText("No available cluster")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Continue to Configure/i })).not.toBeInTheDocument();
     expect(fetchMock.mock.calls.every(([, options]) => !options?.method || options.method === "GET")).toBe(true);
   });
