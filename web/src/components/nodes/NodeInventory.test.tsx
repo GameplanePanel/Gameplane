@@ -223,6 +223,6 @@ describe("NodeInventory", () => {
     expect(screen.getByRole("button", { name: /^Filter$/ })).toBeInTheDocument();
     expect(changeCluster).not.toHaveBeenCalled();
     expect(requests).toEqual(["east"]);
-    expect(screen.getByRole("row", { name: /same.*East/ })).toBeInTheDocument();
+    expect(within(screen.getByRole("row", { name: "same", exact: true })).getByText("East")).toBeInTheDocument();
   });
 });
