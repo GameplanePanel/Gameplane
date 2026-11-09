@@ -96,13 +96,14 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
   const sort = (column: NodeSortColumn) => { setSortColumn(column); setSortDirection(column === sortColumn && sortDirection === "ascending" ? "descending" : "ascending"); };
   const percentage = (value: number | undefined) => value === undefined || inventory.error ? "—" : intl.formatMessage(messages.percent, { value: String(Math.round(value)) });
   const qualifier = intl.formatMessage(unknownCounts ? messages.unavailable : partial ? messages.returned : messages.visible);
+  const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
 
   return <div className={embedded ? "min-w-0 space-y-5" : "min-w-0 space-y-6 p-4 sm:p-6"}>
     <PageHeader title={intl.formatMessage(messages.title)} description={intl.formatMessage(clusterId ? messages.clusterDescription : messages.description, { cluster: names.get(clusterId) || clusterId })} actions={<NodeEnrollment clusterId={clusterId} />} />
     {mobile ? <div role="group" aria-label={intl.formatMessage(messages.ready)} className="rounded-lg border border-border bg-surface px-3 py-2">
       <dl className="grid grid-cols-2 gap-4 text-xs">
-        <div className="flex min-w-0 items-center justify-between gap-2"><dt className="text-muted">{intl.formatMessage(messages.ready)}</dt><dd className="shrink-0 font-mono font-semibold">{unknownCounts ? "—" : intl.formatMessage(messages.readyCount, { ready: summary.ready, total: summary.total })}</dd></div>
-        <div className="flex min-w-0 items-center justify-between gap-2"><dt className="text-muted">{intl.formatMessage(messages.reporting)}</dt><dd className="shrink-0 font-mono font-semibold">{unknownCounts ? "—" : summary.clusters}</dd></div>
+        <div className="flex min-w-0 items-center justify-between gap-2"><dt className="text-muted">{intl.formatMessage(messages.ready)}</dt><dd className="shrink-0 font-mono font-semibold">{unknownCounts ? emptyValue : intl.formatMessage(messages.readyCount, { ready: summary.ready, total: summary.total })}</dd></div>
+        <div className="flex min-w-0 items-center justify-between gap-2"><dt className="text-muted">{intl.formatMessage(messages.reporting)}</dt><dd className="shrink-0 font-mono font-semibold">{unknownCounts ? emptyValue : summary.clusters}</dd></div>
       </dl>
       <p className="pt-1 text-[10px] text-muted">{qualifier}</p>
     </div> : <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
