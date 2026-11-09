@@ -21,3 +21,7 @@
 - Signed design and implementation commits verified and pushed to personal fork. Full CI dispatched (42651832916). CI found three untranslated JSX literals; fixed with Intl messages and a machine-setting constant. Hidden Select-option status assertions scoped to their node rows.
 - Desktop/mobile interactive inspection completed: all nodes and exact remote filter, directory details, active-tab breadcrumbs, remote disabled/local enabled access, scoped Nodes tab, and all-cluster sidebar return. No browser console errors observed. Demo server sends the existing multi-cluster fixture cookie for predictable initial review.
 - A draft PR in the personal fork will run normal changed-path CI for follow-up commits; no merge or upstream PR.
+
+- CI on ede0434 passed i18n, ESLint and build; 3,014 unit tests passed and 81 browser tests passed. Remaining failures were old terminology, early loading assertions and hidden-option selectors; fixed without dropping behavior coverage. Kubeconfig now also stays disabled while the initial capability request is pending.
+- Migrated legacy screenshot routes to OecJ5/T70dJ cluster Configuration and added BdmAW/N2nTf Nodes captures. Existing screenshot data is local/three ready nodes; remote and enrollment design exports remain outside this fixture's captures.
+- Fork CI dependency review is blocked because Dependency graph is disabled in Baylem/Gameplane; workflow was not weakened. Draft PR: https://github.com/Baylem/Gameplane/pull/13.

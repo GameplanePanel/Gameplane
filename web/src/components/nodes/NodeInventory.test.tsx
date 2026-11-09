@@ -59,8 +59,9 @@ describe("NodeInventory", () => {
   it("shows unknown measurements separately from measured zero", async () => {
     server.use(http.get("/fleet/inventory", () => HttpResponse.json(result(items))));
     renderWithQuery(<NodeInventory embedded clusterId="east" />);
-    await waitFor(() => expect(screen.getAllByRole("row")).toHaveLength(2));
-    const row = screen.getAllByRole("row")[1];
+    await screen.findByText("same");
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    const row = screen.getByRole("row", { name: /same/ });
     expect(within(row).getByText("0%")).toBeInTheDocument();
     expect(within(row).getAllByText("—").length).toBeGreaterThanOrEqual(2);
     expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();

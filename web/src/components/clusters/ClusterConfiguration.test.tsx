@@ -18,15 +18,19 @@ describe("ClusterConfiguration", () => {
   it.each([false, true, undefined])("honors clusterOps=%s while retaining compatibility with an unavailable info endpoint", async (clusterOps) => {
     server.use(http.get("/cluster/info", () => clusterOps === undefined ? HttpResponse.error() : HttpResponse.json({ clusterOps })));
     const { client } = renderWithQuery(<ClusterPage />);
-    await waitFor(() => expect(client.getQueryState(["cluster-info", "local"])?.fetchStatus).toBe("idle"));
+    await waitFor(() => expect(client.getQueryState(["cluster-info", "local"])?.status).toBe(clusterOps === undefined ? "error" : "success"));
     const button = await screen.findByRole("button", { name: /download kubeconfig/i });
-    if (clusterOps === false) expect(button).toBeDisabled(); else expect(button).toBeEnabled();
+    await waitFor(() => {
+      if (clusterOps === false) expect(button).toBeDisabled(); else expect(button).toBeEnabled();
+    });
   });
 
   it("shows the local operation-disabled error returned by the API", async () => {
     server.use(http.post("/cluster/kubeconfig", () => HttpResponse.text("disabled", { status: 501 })));
     renderWithQuery(<ClusterPage />);
-    await userEvent.click(await screen.findByRole("button", { name: /download kubeconfig/i }));
+    const button = await screen.findByRole("button", { name: /download kubeconfig/i });
+    await waitFor(() => expect(button).toBeEnabled());
+    await userEvent.click(button);
     expect(await screen.findByText(/aren't enabled/)).toBeInTheDocument();
   });
 
@@ -54,7 +58,9 @@ describe("ClusterConfiguration", () => {
     const blob = vi.fn(() => "blob:test");
     globalThis.URL.createObjectURL = blob;
     const view = renderWithQuery(<ClusterPage />);
-    await userEvent.click(await screen.findByRole("button", { name: /download kubeconfig/i }));
+    const button = await screen.findByRole("button", { name: /download kubeconfig/i });
+    await waitFor(() => expect(button).toBeEnabled());
+    await userEvent.click(button);
     await waitFor(() => expect(requested).toBe(true));
     view.rerender(<QueryClientProvider client={view.client}><ClusterConfiguration cluster={{ ...local, name: "east" }} /></QueryClientProvider>);
     await act(async () => { release(); await pending; });
@@ -116,6 +122,7 @@ describe("ClusterConfiguration", () => {
 
     renderWithQuery(<ClusterPage />);
     const downloadBtn = await screen.findByRole("button", { name: /download kubeconfig/i });
+    await waitFor(() => expect(downloadBtn).toBeEnabled());
 
     // Mock createElement and click
     const originalCreateElement = document.createElement.bind(document);
@@ -147,6 +154,7 @@ describe("ClusterConfiguration", () => {
     );
     renderWithQuery(<ClusterPage />);
     const downloadBtn = await screen.findByRole("button", { name: /download kubeconfig/i });
+    await waitFor(() => expect(downloadBtn).toBeEnabled());
     await userEvent.click(downloadBtn);
     expect(await screen.findByText(/don't have permission/i, {}, { timeout: 10000 })).toBeInTheDocument();
   });
@@ -159,6 +167,7 @@ describe("ClusterConfiguration", () => {
     );
     renderWithQuery(<ClusterPage />);
     const downloadBtn = await screen.findByRole("button", { name: /download kubeconfig/i });
+    await waitFor(() => expect(downloadBtn).toBeEnabled());
     await userEvent.click(downloadBtn);
     expect(await screen.findByText(/operation failed/i)).toBeInTheDocument();
   });

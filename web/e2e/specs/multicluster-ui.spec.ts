@@ -25,7 +25,8 @@ async function expectInventoryFits(page: Page, nodeName: string) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   const nodeBounds = await main.getByText(nodeName, { exact: true }).boundingBox();
-  const statusBounds = await main.getByText("Ready", { exact: true }).boundingBox();
+  const inventory = main.getByRole(viewport.width < 768 ? "list" : "grid", { name: "Node inventory" });
+  const statusBounds = await inventory.getByText("Ready", { exact: true }).boundingBox();
   expect(nodeBounds).not.toBeNull();
   expect(statusBounds).not.toBeNull();
   expect(nodeBounds!.x + nodeBounds!.width).toBeLessThanOrEqual(statusBounds!.x);

@@ -38,7 +38,7 @@ function ConfigurationTarget({ cluster }: { cluster: ClusterRegistry }) {
   const info = useQuery({ queryKey: ["cluster-info", cluster.name], queryFn: ({ signal }) => Cluster.info(cluster.name, signal), enabled: isLocal && cluster.canViewInventory === true });
   const config = useQuery({ queryKey: ["config"], queryFn: ({ signal }) => api<AllConfig>("/admin/config", { signal }), enabled: canReadConfig });
   // Older APIs omit clusterOps. Preserve server-side 501 as the backstop.
-  const opsDisabled = !isLocal || !canManage || info.data?.clusterOps === false;
+  const opsDisabled = !isLocal || !canManage || info.isLoading || info.data?.clusterOps === false;
   const download = useMutation({
     mutationFn: () => Cluster.kubeconfig(cluster.name),
     onSuccess: (blob) => {
