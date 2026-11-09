@@ -44,8 +44,11 @@ The folder name must equal the `tag` in `meta.json`.
 - Use 2-space indentation, UTF-8, and end the file with a newline.
 - Do not invent ids. An id that English does not have is an error. You may
   leave out any id you have not translated yet.
-- `sourceHash` is written by the checker. It records which English text
-  your translation was made from. Leave it alone when you edit by hand.
+- The checker records which English text each translation was made from in
+  `<tag>/.review.json`, a separate file next to `app.json`. Do not edit it by
+  hand. An older `sourceHash` key inside `app.json` is moved there by the
+  next `--stamp`. Translation platforms rewrite `app.json`, so the hashes
+  are kept apart from it.
 
 ### meta.json
 
@@ -141,7 +144,8 @@ The checker has more options:
 
 - `--base <dir>` compares completeness with an older copy of the packs.
 - `--summary <file>` writes a markdown summary.
-- `--stamp` adds `sourceHash` to translated entries that lack one.
+- `--stamp` records the source hash of translated entries that lack one in
+  `<tag>/.review.json`, and moves any inline `sourceHash` out of `app.json`.
 - `--manifest <file>` writes the language list as JSON.
 
 You can run the checker on your machine to see findings early. It is not a
@@ -185,9 +189,13 @@ shows English.
    gets `type: docs`. Add a `docs:` prefix to be sure.
 
 You can also translate in the browser on Hosted Weblate:
-<https://hosted.weblate.org/projects/gameplane/>. Only translations that a
-human reviewer approves are merged. They arrive as a pull request from the
-`weblate/translations` branch and pass the same checks.
+<https://hosted.weblate.org/projects/gameplane/>. Reviews are on: members of a
+language's reviewers team in Weblate (for example "French reviewers", which
+has the "Review strings" role for French) approve strings there. Weblate
+sends its changes as a pull request from its `weblate-gameplane-app` branch.
+That pull request passes the same checks and needs one maintainer approval
+before it merges. Weblate rewrites `app.json` and drops keys it does not know,
+which is why the review hashes live in `.review.json`.
 
 ## Adding text to the dashboard (developers)
 

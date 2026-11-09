@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/GameplanePanel/gameplane/i18n/pack"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	"github.com/GameplanePanel/gameplane/operator/internal/oci"
 )
@@ -166,7 +167,9 @@ func bundleFromDir(fsys fs.FS, dir, digest string) (*Bundle, error) {
 // place so the reconciler reports the language instead of dropping it. The
 // files together are also bounded by oci.MaxLocaleTotalSize: languages are
 // counted in name order, and one that would exceed the total is recorded as
-// oversized the same way.
+// oversized the same way. The review file (pack.ReviewFile, translator source
+// hashes) is not a language and is skipped, so it neither becomes a locale nor
+// counts toward the size budget.
 func readLocaleFiles(fsys fs.FS, dir string, files map[string][]byte) {
 	entries, err := fs.ReadDir(fsys, path.Join(dir, "locales"))
 	if err != nil {
@@ -175,7 +178,7 @@ func readLocaleFiles(fsys fs.FS, dir string, files map[string][]byte) {
 	var budget oci.LocaleBudget
 	for _, e := range entries {
 		name := e.Name()
-		if !e.Type().IsRegular() || !strings.HasSuffix(name, ".json") {
+		if !e.Type().IsRegular() || !strings.HasSuffix(name, ".json") || name == pack.ReviewFile {
 			continue
 		}
 		key := oci.LocaleLayerPrefix + name
