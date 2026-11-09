@@ -2925,12 +2925,13 @@ jobs:
             for (const j of apiJobs) {
               const n = j.name || '';
               const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//);
-              if (m && m[1] !== 'recovery') bucketSet.add(m[1]);
-              // Partial selection can complete the recovery leg without
-              // running its drill. Count completed execution, including failure.
-              if (m && m[1] === 'recovery' && Array.isArray(j.steps)) {
-                const recovery = j.steps.find((s) => s.name === 'run go e2e (recovery)');
-                if (recovery && ['success', 'failure'].includes(recovery.conclusion)) bucketSet.add('recovery');
+              const executionGated = m && ['wake-hostport', 'recovery'].includes(m[1]);
+              if (m && !executionGated) bucketSet.add(m[1]);
+              // Partial selection can complete these legs without running
+              // their drills. Count completed execution, including failure.
+              if (executionGated && Array.isArray(j.steps)) {
+                const drill = j.steps.find((s) => s.name === `run go e2e (${m[1]})`);
+                if (drill && ['success', 'failure'].includes(drill.conclusion)) bucketSet.add(m[1]);
               }
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');

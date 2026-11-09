@@ -168,6 +168,10 @@ rows. Each matrix leg skips cluster setup only when its selected test pattern
 is empty; full-scope and affected-component runs must include the affected
 buckets.
 
+The CI report counts `wake-hostport` and `recovery` only when their exact
+`run go e2e (<bucket>)` test step completes with success or failure. Skipped,
+cancelled or absent test steps do not count as executed drills.
+
 `buckets.sh` is the single source of truth for how CI's e2e suite is sharded into parallel jobs (`operator`, `api-auth`, `api-roles`, `api-rbac`, `api-agent`, `api-mods`, `ratelimit`, `bot-fast`, `bot-heavy`, `multicluster`, `upgrade`). Each bucket is a flat list of **exact Go function names** (e.g. `TestGameServer_MinecraftJavaBot_Joined`), and `buckets.sh regex <name>` turns that list into an **anchored** `^(A|B|...)$` regex passed to `go test -run`.
 
 This is a name-matching contract, not a structural one:
