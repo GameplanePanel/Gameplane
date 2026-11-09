@@ -441,7 +441,10 @@ func (w *waker) RequestWake(ctx context.Context) (result error) {
 		return fmt.Errorf("encode wake patch: %w", err)
 	}
 
-	if _, err := w.res.Patch(patchCtx, w.name, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
+	if err := retryWakePatch(patchCtx, func(attemptCtx context.Context) error {
+		_, err := w.res.Patch(attemptCtx, w.name, types.MergePatchType, patch, metav1.PatchOptions{})
+		return err
+	}); err != nil {
 		return fmt.Errorf("patch %s annotation: %w", idleWakeRequestedAnnotation, err)
 	}
 	return nil

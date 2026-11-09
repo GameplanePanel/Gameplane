@@ -36,6 +36,11 @@ Wake-on-connect daemon that runs as a replacement pod for dormant game servers. 
 sentinel/
 ├── main.go          # Entry point, config parsing, listeners, handlers, upstream polling, proxying
 ├── main_test.go     # Config parsing, ports parsing, UDP heuristic, waker, TCP/UDP handlers, proxying, bidirectional copy
+├── wake_retry.go    # Bounded transient retry inside the shared wake operation
+├── wake_retry_test.go # Retry limits, classification, deadlines, sharing, jitter
+├── wake_load_test.go # Mixed TCP/UDP outage, recovery, cold start and drain fixture
+├── wake_budget_test.go # Wake/join budgets, UDP worker and session regressions
+├── udp_wake.go      # Capacity-one coalescing UDP wake worker
 ├── Dockerfile       # Image build (sets Version at compile time)
 ├── go.mod           # Dependencies: k8s.io/client-go, k8s.io/apimachinery, github.com/GameplanePanel/gameplane/gameproto
 ├── go.sum           # Locked versions
@@ -246,14 +251,14 @@ Each accepted TCP connection runs as a *session* under its own context, separate
 
 5. **No data duplication or loss.** The complete original stream is: `Consumed + remaining(bufio.Reader) + new-data-from-client`. Both classifiers and proxying preserve this boundary.
 
-6. **Annotation patch coalesces bursts.** Callers awaiting an in-flight PATCH observe that attempt's completion and error, unless their own context expires first. Only successful attempts start the `wakePatchInterval` cooldown; failures release the shared attempt so a later request can retry. One worker per UDP listener accepts a one-entry coalescing queue; packet reception and bounded source tracking continue while Kubernetes is stalled. Listener shutdown cancels and joins that worker.
+6. **Annotation patch coalesces bursts.** Callers share an in-flight wake operation, including its retries and final error, unless their own context expires first. Each operation makes at most four application-level PATCH calls, reusing one immutable merge patch/token. It retries recognizable transient API failures (service unavailable, throttling, API/server timeout, internal error) and transport failures (EOF, reset/refused connections, broken pipes, network timeouts). Permanent API statuses (including authorization, invalid requests and missing resources), context cancellation and unknown errors return without retry. Backoff starts at 100 ms, doubles per failure, uses +/-25% jitter and is capped at 800 ms after jitter. A Kubernetes suggested retry delay is a minimum and may exceed that cap. All PATCH calls and waits share the original five-second budget, further bounded by the owning caller's join context; client-go's own transport retries are also within that context. Errors retain the final underlying cause for `errors.Is/As`, including context expiry during backoff. Canceled callers never retry; live waiters may replace a canceled owner within their own remaining budget. Only successful operations start the `wakePatchInterval` cooldown; terminal failures release the operation for a later caller. One worker per UDP listener accepts a one-entry coalescing queue; packet reception and bounded source tracking continue while Kubernetes is stalled. Listener shutdown cancels and joins that worker.
 
 7. **UDP sources are evicted fairly.** The least-recently-active source is evicted (LRU), not a random or oldest source, so brief bursts of scanners don't unfairly starve legitimate players trying to rejoin.
 
 ## Dependencies
 
 **Stdlib:**
-- `bufio`, `bytes`, `context`, `encoding/json`, `fmt`, `io`, `log`, `net`, `os`, `os/signal`, `strconv`, `strings`, `sync`, `syscall`, `time`.
+- `bufio`, `bytes`, `context`, `encoding/json`, `fmt`, `io`, `log`, `math/rand/v2`, `net`, `os`, `os/signal`, `strconv`, `strings`, `sync`, `syscall`, `time`.
 
 **Kubernetes:**
 - `k8s.io/apimachinery/pkg/apis/meta/v1` — metav1 types (PatchOptions, GetOptions).
@@ -293,6 +298,8 @@ Each accepted TCP connection runs as a *session* under its own context, separate
 - **Shutdown drain (F-179):** `TestRunDrainsProxiedSessionAfterContextCancel` (replaces `TestProxyBidirectionalStopsOnContextCancel`, which asserted the old cut-on-cancel behaviour) verifies that after cancel new connections are refused while a handed-through session keeps working in both directions and `run` returns only once it ends; `TestRunForceClosesSessionsAfterDrainTimeout` verifies the drain is bounded; `TestLoadConfigShutdownDrainTimeout` covers `SHUTDOWN_DRAIN_TIMEOUT` parsing.
 - **Listener failure (F-180):** `TestRunSurfacesUDPListenFailureWhileTCPHealthy` verifies a UDP bind failure is returned promptly while a TCP listener is still healthy.
 - **Waker (annotation patching):** `TestWakerRequestWakeSetsAnnotation`, `TestWakerRequestWakePreservesOtherAnnotations`, `TestWakerRequestWakeCoalescesBursts` verify merge patch isolation, burst coalescing.
+- **Wake retries:** `wake_retry_test.go` covers transient failure then success, shared callers observing one retry sequence, immutable patch bytes, four-attempt exhaustion, permanent/unknown errors, cancellation/deadlines during backoff, retry-after and jitter bounds. Runtime red/green verification runs in CI only.
+- **Mixed load:** `TestWakeMixedLoadOutageRecovery` uses real loopback listeners and an HTTP fake Kubernetes endpoint. A concurrent burst of 16 TCP players and 25 UDP sources joins a stalled shared PATCH; an outage response forces retry, followed by deliberately delayed game startup. Observable receive/waiter barriers assert UDP reception during the API stall, one shared PATCH at a time and one active plus one queued UDP wake. All TCP players exchange bytes after handoff, beyond their recorded join deadlines and during listener shutdown/session drain. The conditional verbose sentinel CI step logs actual attempts, handoffs, UDP receives, maximum concurrency, elapsed time and handoff latency, with race detection. These are measurements of the fixture, not a production capacity maximum; every player retains its own upstream connection.
 - **Wake availability:** `wake_budget_test.go` covers a hanging HTTP API, shared failure and retry, the total join deadline, worker cancellation/coalescing, successful gameplay beyond the join deadline, and receiving a 101-datagram burst while wake is stalled. CI logs elapsed receive time; this fixture does not establish a production capacity ceiling.
 - **Registry dispatch:** `TestRegistryProtocolDispatchMinecraftJoinWakes`, `TestRegistryProtocolDispatchMinecraftStatusPingNoWake`, `TestRegistryProtocolDispatchTerrariaJoinWakes`, `TestRegistryProtocolDispatchUnknownNoWake`, `TestRegistryProtocolReplayConsumedBytes` verify registry lookup, Classifier.Classify invocation, protocol-agnostic join/status/unknown handling, and consumed-byte replay.
 - **Startup validation:** `TestParsePortsConfigRejectsUnknownProtocol` verifies that unknown protocol names cause a fatal startup error with a clear message listing available protocols.
