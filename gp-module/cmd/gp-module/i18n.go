@@ -43,9 +43,10 @@ Subcommands:
       and write the English reference pack, with translator descriptions
       (default: <MODULE_PATH>/locales/en.json).
   stamp [MODULE_PATH]
-      Record the current English text hash (sourceHash) on every translated
-      entry of <MODULE_PATH>/locales/<tag>.json (except en.json) that lacks
-      one, so a later English change shows up as needs-review.
+      Record the current English text hash of every translated entry of
+      <MODULE_PATH>/locales/<tag>.json (except en.json) that lacks one in
+      <MODULE_PATH>/locales/.review.json, so a later English change shows up
+      as needs-review. Hashes still inside a <tag>.json are moved there.
 `
 
 func i18nExtract(args []string, stdout, stderr io.Writer) int {

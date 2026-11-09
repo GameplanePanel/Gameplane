@@ -17,8 +17,8 @@ require (
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/prometheus/client_golang v1.25.0
 	golang.org/x/sys v0.49.0
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
+	k8s.io/apimachinery v0.37.2
+	k8s.io/client-go v0.37.2
 )
 
 require (

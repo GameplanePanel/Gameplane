@@ -189,12 +189,15 @@ func TestStampWritesSourceHash(t *testing.T) {
 	if got := run([]string{"--stamp", root}, &stdout, &stderr); got != 0 {
 		t.Fatalf("exit = %d; want 0 (stdout: %s)", got, stdout.String())
 	}
-	entries, err := pack.ParseEntries([]byte(readFile(t, filepath.Join(root, "fr", "app.json"))))
+	hashes, err := pack.ParseReview([]byte(readFile(t, filepath.Join(root, "fr", pack.ReviewFile))))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := pack.SourceHash("A"); entries["a"].SourceHash != want {
-		t.Errorf("sourceHash = %q; want %q", entries["a"].SourceHash, want)
+	if want := pack.SourceHash("A"); hashes["a"] != want {
+		t.Errorf("review hash = %q; want %q", hashes["a"], want)
+	}
+	if strings.Contains(readFile(t, filepath.Join(root, "fr", "app.json")), "sourceHash") {
+		t.Error("app.json still carries sourceHash")
 	}
 	if strings.Contains(readFile(t, filepath.Join(root, "en", "app.json")), "sourceHash") {
 		t.Error("reference was stamped")

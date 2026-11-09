@@ -236,8 +236,8 @@ events fire only when the list of problems changes, not on every re-pull.
 Message ids may contain upper case letters (for example
 `config.MAX_PLAYERS.displayName`) and `~` as the reversible escapes `~0` and
 `~1`. Run `gp-module i18n stamp` after translating to record the English text
-each entry was made from (`sourceHash`); if the English text changes later,
-`gp-module validate` warns with `locale-needs-review`.
+each entry was made from in `locales/.review.json`; if the English text
+changes later, `gp-module validate` warns with `locale-needs-review`.
 
 Manifest:
 

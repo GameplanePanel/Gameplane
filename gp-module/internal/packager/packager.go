@@ -242,9 +242,10 @@ func ReadModuleFiles(dirPath string) (map[string][]byte, error) {
 }
 
 // ReadLocaleFiles reads the translation files of a module directory. Keys are
-// "locales/<tag>.json"; the English reference en.json is not shipped, and
-// non-JSON files are ignored. A missing locales directory yields an empty map.
-// Symbolic links and files whose name is not a valid language tag are errors.
+// "locales/<tag>.json"; the English reference en.json and the review file
+// (pack.ReviewFile) are not shipped, and non-JSON files are ignored. A missing
+// locales directory yields an empty map. Symbolic links and files whose name is
+// not a valid language tag are errors.
 func ReadLocaleFiles(dirPath string) (map[string][]byte, error) {
 	dir := filepath.Join(dirPath, "locales")
 	entries, err := os.ReadDir(dir)
@@ -257,7 +258,7 @@ func ReadLocaleFiles(dirPath string) (map[string][]byte, error) {
 	out := make(map[string][]byte)
 	for _, entry := range entries {
 		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".json") {
+		if entry.IsDir() || !strings.HasSuffix(name, ".json") || name == pack.ReviewFile {
 			continue
 		}
 		if entry.Type()&os.ModeSymlink != 0 {

@@ -6,7 +6,7 @@ require (
 	github.com/GameplanePanel/gameplane/telemetryschema v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.25.0
 	golang.org/x/mod v0.42.0
-	modernc.org/sqlite v1.61.0
+	modernc.org/sqlite v1.61.1
 )
 
 // telemetryschema is an in-repo module (no published version); resolve it

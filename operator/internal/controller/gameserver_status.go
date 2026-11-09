@@ -43,6 +43,7 @@ func (r *GameServerReconciler) reconcileStatus(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	idle idleState, idleStatus *gameplanev1alpha1.IdleStatus, idleScheduleErr error, tunnelPlan tunnelPlan,
 	tmpl *gameplanev1alpha1.GameTemplate, svcEvents []corev1.Event, conflictingServer string,
+	hostportConditions ...*metav1.Condition,
 ) (time.Duration, error) {
 	// base captures the object as fetched so we can issue a JSON merge
 	// patch of only the fields this reconciler owns. The agent sidecar
@@ -194,6 +195,11 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Compute tunnel conditions.
 	gs.Status.Conditions = computeTunnelConditions(gs, tunnelPlan, tunnelDep)
+	if len(hostportConditions) != 0 && hostportConditions[0] != nil {
+		gs.Status.Conditions = applyHostportCondition(gs.Status.Conditions, hostportConditions[0])
+	} else {
+		gs.Status.Conditions = removeCondition(gs.Status.Conditions, hostportWakeCondition)
+	}
 
 	// Validate and merge playit tunnel endpoints if present.
 	var playitErr string
@@ -317,6 +323,19 @@ func (r *GameServerReconciler) reconcileStatus(
 		return heartbeatFreshness, nil
 	}
 	return 15 * time.Second, nil
+}
+
+// applyHostportCondition preserves the more specific failure already computed
+// for the game while still exposing the independent endpoint diagnostic.
+func applyHostportCondition(conditions []metav1.Condition, hostport *metav1.Condition) []metav1.Condition {
+	conditions = upsertCondition(conditions, *hostport)
+	ready := meta.FindStatusCondition(conditions, "Ready")
+	if hostport.Status != metav1.ConditionTrue && (ready == nil || ready.Status != metav1.ConditionFalse) {
+		condition := *hostport
+		condition.Type = "Ready"
+		conditions = upsertCondition(conditions, condition)
+	}
+	return conditions
 }
 
 func derivePhase(
