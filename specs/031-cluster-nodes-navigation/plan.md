@@ -76,4 +76,12 @@ Files: `web/src/router/tree.tsx`, `web/src/components/AppLayout.tsx`, `web/src/c
 - [x] Compile/build, obtain independent diff review and fix material findings.
 - [x] Signed commit and verify signature; push feature branch to personal fork; inspect applicable CI.
 - [x] Run branch demo in Docker with coherent multi-cluster fixtures and inspect desktop/mobile Nodes, filters, details/configuration and navigation in browser.
-- [ ] Deliver branch URL, local URL, verification results and remaining limitations.
+- [x] Deliver branch URL, local URL, verification results and remaining limitations.
+
+## Follow-up: Match the Backups filter toolbar
+
+- [x] Update canonical fleet desktop/mobile and cluster Nodes designs, export touched nodes, and save through Pen.
+- [x] Reuse the shared FilterPopover with draft Cluster/Status fields and an applied-filter count; match Backups search sizing and preserve fixed cluster scope.
+- [x] Update behavioral assertions for Apply/Clear/dismissal and browser navigation; compile locally and inspect the running demo.
+- [ ] Validate the follow-up suites through CI.
+- [ ] Sign and push the follow-up on the existing feature branch and refresh its local Docker preview.

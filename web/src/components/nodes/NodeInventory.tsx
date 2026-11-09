@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Chip, Input, ListBox, ListBoxItem, Select, Table } from "@heroui/react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Cpu, Layers, Search, Server, MemoryStick } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Cpu, Filter, Layers, Server, MemoryStick } from "lucide-react";
 import { defineMessages, type MessageDescriptor } from "react-intl";
 import { FleetCoverage } from "@/components/FleetScope";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { Meter } from "@/components/ui/Meter";
+import { FilterPopover } from "@/components/ui/FilterPopover";
 import { Fleet } from "@/lib/fleet";
 import { filterNodes, flattenNodes, nodeMeasurement, nodeStatus, sortNodes, summarizeNodes, validNodeNumber, type InventoryNode, type NodeSortColumn, type NodeSortDirection } from "@/lib/nodes";
 import { useMediaQuery } from "@/lib/media";
@@ -37,6 +38,7 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
   searchPlaceholder: { id: "web.nodes.search_placeholder", defaultMessage: "Search nodes, clusters or labels…", description: "Nodes: search field placeholder" },
   filterCluster: { id: "web.nodes.filter_cluster", defaultMessage: "Filter by cluster", description: "Nodes: cluster filter accessible label" },
   filterStatus: { id: "web.nodes.filter_status", defaultMessage: "Filter by status", description: "Nodes: status filter accessible label" },
+  filter: { id: "web.nodes.filter", defaultMessage: "Filter", description: "Nodes: button that opens the Cluster and Status filter panel, with a count of applied filters; search is not included in the count" },
   allClusters: { id: "web.nodes.all_clusters", defaultMessage: "All clusters", description: "Nodes: option to include every authorized cluster" },
   allStatuses: { id: "web.nodes.all_statuses", defaultMessage: "All statuses", description: "Nodes: option to include every node status" },
   statusReady: { id: "web.nodes.status_ready", defaultMessage: "Ready", description: "Nodes: healthy node status" },
@@ -71,6 +73,9 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
   const intl = useOptionalIntl();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [draftCluster, setDraftCluster] = useState(clusterId);
+  const [draftStatus, setDraftStatus] = useState(status);
   const [sortColumn, setSortColumn] = useState<NodeSortColumn>("name");
   const [sortDirection, setSortDirection] = useState<NodeSortDirection>("ascending");
   const mobile = useMediaQuery("(max-width: 767px)");
@@ -97,6 +102,14 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
   const percentage = (value: number | undefined) => value === undefined || inventory.error ? "—" : intl.formatMessage(messages.percent, { value: String(Math.round(value)) });
   const qualifier = intl.formatMessage(unknownCounts ? messages.unavailable : partial ? messages.returned : messages.visible);
   const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
+  const filterCount = Number(!embedded && Boolean(clusterId)) + Number(Boolean(status));
+  const onFiltersOpenChange = (open: boolean) => {
+    if (open) {
+      setDraftCluster(clusterId);
+      setDraftStatus(status);
+    }
+    setFiltersOpen(open);
+  };
 
   return <div className={embedded ? "min-w-0 space-y-5" : "min-w-0 space-y-6 p-4 sm:p-6"}>
     <PageHeader title={intl.formatMessage(messages.title)} description={intl.formatMessage(clusterId ? messages.clusterDescription : messages.description, { cluster: names.get(clusterId) || clusterId })} actions={<NodeEnrollment clusterId={clusterId} />} />
@@ -112,11 +125,30 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
       <StatCard label={intl.formatMessage(messages.cpu)} value={percentage(summary.cpu)} sub={intl.formatMessage(summary.cpu === undefined ? messages.unknownMetric : partial ? messages.returned : messages.measured)} icon={<Cpu className="h-5 w-5" />} />
       <StatCard label={intl.formatMessage(messages.memory)} value={percentage(summary.memory)} sub={intl.formatMessage(summary.memory === undefined ? messages.unknownMetric : partial ? messages.returned : messages.measured)} icon={<MemoryStick className="h-5 w-5" />} accent="violet" />
     </div>}
-    <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center">
-      <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" /><Input aria-label={intl.formatMessage(messages.search)} placeholder={intl.formatMessage(messages.searchPlaceholder)} value={search} onChange={(event) => setSearch(event.target.value)} className="w-full pl-9" /></div>
-      <div className={embedded ? "min-w-0 md:flex" : "grid min-w-0 grid-cols-2 gap-3 md:flex"}>
-        {!embedded && <NodeSelect label={intl.formatMessage(messages.filterCluster)} value={clusterId} onChange={(value) => onClusterChange?.(value)} choices={[{ value: "", label: intl.formatMessage(messages.allClusters) }, ...choices.map((value) => ({ value, label: names.get(value) || value }))]} />}
-        <NodeSelect label={intl.formatMessage(messages.filterStatus)} value={status} onChange={setStatus} choices={[{ value: "", label: intl.formatMessage(messages.allStatuses) }, ...["Ready", "NotReady", "Unknown"].map((value) => ({ value, label: statusLabel(value) }))]} />
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <Input aria-label={intl.formatMessage(messages.search)} placeholder={intl.formatMessage(messages.searchPlaceholder)} value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 basis-40 max-w-xs" type="text" />
+      <div className="ml-auto flex items-center gap-3">
+        <FilterPopover isOpen={filtersOpen} onOpenChange={onFiltersOpenChange}
+          onApply={() => {
+            if (!embedded) onClusterChange?.(draftCluster);
+            setStatus(draftStatus);
+            setFiltersOpen(false);
+          }}
+          onClear={() => { setDraftCluster(""); setDraftStatus(""); }}
+          fields={<>
+            {!embedded && <div className="space-y-1">
+              <div className="text-xs font-semibold text-muted">{intl.formatMessage(messages.cluster)}</div>
+              <NodeSelect label={intl.formatMessage(messages.filterCluster)} value={draftCluster} onChange={setDraftCluster} className="w-full" choices={[{ value: "", label: intl.formatMessage(messages.allClusters) }, ...choices.map((value) => ({ value, label: names.get(value) || value }))]} />
+            </div>}
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-muted">{intl.formatMessage(messages.status)}</div>
+              <NodeSelect label={intl.formatMessage(messages.filterStatus)} value={draftStatus} onChange={setDraftStatus} className="w-full" choices={[{ value: "", label: intl.formatMessage(messages.allStatuses) }, ...["Ready", "NotReady", "Unknown"].map((value) => ({ value, label: statusLabel(value) }))]} />
+            </div>
+          </>}>
+          <div className="inline-flex items-center gap-2 rounded-[6px] px-3 py-2 text-sm font-medium border border-default-300 bg-default-100 hover:bg-default-200 cursor-pointer transition-colors">
+            <Filter className="h-4 w-4" /> {intl.formatMessage(messages.filter)}{filterCount > 0 && <Chip size="sm" variant="soft">{filterCount}</Chip>}
+          </div>
+        </FilterPopover>
       </div>
     </div>
     <FleetCoverage partial={partial} issues={issues} error={inventory.error} label={intl.formatMessage(messages.coverage)} />
@@ -154,8 +186,8 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
   </div>;
 }
 
-function NodeSelect({ label, value, onChange, choices }: { label: string; value: string; onChange: (value: string) => void; choices: { value: string; label: string }[] }) {
-  return <Select aria-label={label} value={value} onChange={(next) => onChange(String(next ?? ""))} className="w-full md:w-48 md:shrink-0"><Select.Trigger><Select.Value /><Select.Indicator className="ml-auto h-4 w-4" /></Select.Trigger><Select.Popover><ListBox aria-label={label}>{choices.map((choice) => <ListBoxItem id={choice.value} key={choice.value} textValue={choice.label}>{choice.label}</ListBoxItem>)}</ListBox></Select.Popover></Select>;
+function NodeSelect({ label, value, onChange, choices, className = "w-full md:w-48 md:shrink-0" }: { label: string; value: string; onChange: (value: string) => void; choices: { value: string; label: string }[]; className?: string }) {
+  return <Select aria-label={label} value={value} onChange={(next) => onChange(String(next ?? ""))} className={className}><Select.Trigger><Select.Value /><Select.Indicator className="ml-auto h-4 w-4" /></Select.Trigger><Select.Popover><ListBox aria-label={label}>{choices.map((choice) => <ListBoxItem id={choice.value} key={choice.value} textValue={choice.label}>{choice.label}</ListBoxItem>)}</ListBox></Select.Popover></Select>;
 }
 
 function NodeIdentity({ row }: { row: InventoryNode }) {

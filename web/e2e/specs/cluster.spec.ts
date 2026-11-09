@@ -55,6 +55,7 @@ test.describe("nodes and cluster configuration", () => {
     await expect(nodes).toHaveAttribute("href", "/nodes");
     await nodes.click();
     await expect(page).toHaveURL(/\/nodes$/);
+    await page.getByRole("button", { name: "Filter", exact: true }).click();
     await expect(page.getByRole("button", { name: /Filter by cluster/ })).toContainText("All clusters");
   });
 });

@@ -4667,6 +4667,10 @@
     "defaultMessage": "Enrollment cluster",
     "description": "Nodes: accessible label for enrollment cluster selection"
   },
+  "web.nodes.filter": {
+    "defaultMessage": "Filter",
+    "description": "Nodes: button that opens the Cluster and Status filter panel, with a count of applied filters; search is not included in the count"
+  },
   "web.nodes.filter_cluster": {
     "defaultMessage": "Filter by cluster",
     "description": "Nodes: cluster filter accessible label"

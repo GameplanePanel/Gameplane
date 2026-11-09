@@ -196,7 +196,9 @@ test.describe("shell", () => {
       await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: /select cluster/i })).toHaveCount(0);
       await page.goto("/nodes");
-      const clusterSelector = page.getByRole("main").getByRole("button", { name: /Filter by cluster/ });
+      await expect(page.getByRole("button", { name: /Filter by cluster/ })).toHaveCount(0);
+      await page.getByRole("button", { name: "Filter", exact: true }).click();
+      const clusterSelector = page.getByRole("button", { name: /Filter by cluster/ });
       await expect(clusterSelector).toBeVisible();
       await expect(clusterSelector).toContainText("All clusters");
     });
@@ -205,6 +207,7 @@ test.describe("shell", () => {
       await page.goto("/nodes");
       await loginIfNeeded(page);
 
+      await page.getByRole("button", { name: "Filter", exact: true }).click();
       const clusterSelector = page.getByRole("button", { name: /Filter by cluster/ });
       await clusterSelector.click();
       await expect(page.getByRole("listbox", { name: /Filter by cluster/ })).toBeVisible();

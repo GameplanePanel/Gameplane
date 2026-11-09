@@ -190,49 +190,11 @@
               ]
             },
             {
-              "type": "frame",
-              "id": "M9Q71",
-              "name": "Inventory filters",
-              "width": "fill_container",
-              "gap": 12,
-              "children": [
-                {
-                  "id": "JNPZj",
-                  "type": "ref",
-                  "ref": "Lmaf1",
-                  "name": "Search nodes",
-                  "width": "fill_container",
-                  "descendants": {
-                    "EJMtX": {
-                      "content": "Search nodes…"
-                    }
-                  }
-                },
-                {
-                  "id": "VSGgf",
-                  "type": "ref",
-                  "ref": "AT7ya",
-                  "name": "Cluster filter",
-                  "width": 220,
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "All clusters"
-                    }
-                  }
-                },
-                {
-                  "id": "IjpNF",
-                  "type": "ref",
-                  "ref": "AT7ya",
-                  "name": "Status filter",
-                  "width": 180,
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "All statuses"
-                    }
-                  }
-                }
-              ]
+              "id": "f42Iv",
+              "type": "ref",
+              "ref": "b2JF52",
+              "name": "Search and Filters",
+              "width": "fill_container"
             },
             {
               "type": "frame",

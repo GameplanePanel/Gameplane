@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { act, screen, waitFor, within } from "@testing-library/react";
@@ -36,6 +37,7 @@ describe("NodeInventory", () => {
     renderWithQuery(<NodeInventory clusterId="west" onClusterChange={() => {}} />);
     await screen.findByText("same");
     expect(requests).toContain("west");
+    await userEvent.click(screen.getByRole("button", { name: /^Filter\s*1$/ }));
     await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
     expect(await screen.findByRole("option", { name: "east" })).toBeInTheDocument();
   });
@@ -48,8 +50,11 @@ describe("NodeInventory", () => {
     expect(within(screen.getAllByRole("row")[1]).getByText("West")).toBeInTheDocument();
     await userEvent.type(screen.getByRole("textbox", { name: "Search nodes" }), "east");
     expect(screen.getAllByText("same")).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
     await userEvent.click(screen.getByRole("button", { name: /Filter by status/ }));
     await userEvent.click(await screen.findByRole("option", { name: "Not ready" }));
+    expect(screen.getAllByText("same")).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(await screen.findByText("No nodes match these filters.")).toBeInTheDocument();
   });
   it("does not report unavailable inventory as a healthy empty fleet", async () => {
@@ -67,6 +72,7 @@ describe("NodeInventory", () => {
     const row = screen.getByRole("row", { name: /same/ });
     expect(within(row).getByText("0%")).toBeInTheDocument();
     expect(within(row).getAllByText("—").length).toBeGreaterThanOrEqual(2);
+    await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
     expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
   });
   it("does not paint a late local response over explicitly selected remote inventory", async () => {
@@ -136,7 +142,87 @@ describe("NodeInventory", () => {
     expect(within(cards[0]).getByText("CPU")).toBeInTheDocument();
     expect(within(cards[0]).getByText("Memory")).toBeInTheDocument();
     expect(screen.queryByRole("grid", { name: "Node inventory" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
     expect(screen.getByRole("button", { name: /Filter by cluster/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Filter by status/ })).toBeInTheDocument();
+  });
+  it("applies cluster and status drafts together and clears filters without clearing search", async () => {
+    const requests: Array<string | null> = [];
+    const changeCluster = vi.fn();
+    server.use(http.get("/fleet/inventory", ({ request }) => {
+      const cluster = new URL(request.url).searchParams.get("cluster");
+      requests.push(cluster);
+      return HttpResponse.json(result(cluster ? items.filter((item) => item.cluster === cluster) : items));
+    }));
+    function InventoryFilters() {
+      const [clusterId, setClusterId] = useState("");
+      return <NodeInventory clusterId={clusterId} onClusterChange={(value) => { changeCluster(value); setClusterId(value); }} />;
+    }
+    renderWithQuery(<InventoryFilters />);
+    await screen.findAllByText("same");
+    await userEvent.type(screen.getByRole("textbox", { name: "Search nodes" }), "same");
+    const filter = screen.getByRole("button", { name: /^Filter$/ });
+    await userEvent.click(filter);
+    await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "West" }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by status/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "Not ready" }));
+    expect(changeCluster).not.toHaveBeenCalled();
+    expect(requests).not.toContain("west");
+    expect(filter).toHaveTextContent(/^Filter$/);
+    expect(screen.getAllByText("same")).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(requests).toContain("west"));
+    expect(changeCluster).toHaveBeenLastCalledWith("west");
+    await waitFor(() => expect(screen.getAllByText("same")).toHaveLength(1));
+    const appliedFilter = screen.getByRole("button", { name: /^Filter\s*2$/ });
+    await userEvent.click(appliedFilter);
+    await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+    expect(changeCluster).toHaveBeenCalledTimes(1);
+    expect(appliedFilter).toHaveTextContent(/^Filter\s*2$/);
+    expect(screen.getAllByText("same")).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(changeCluster).toHaveBeenLastCalledWith(""));
+    expect(screen.getByRole("textbox", { name: "Search nodes" })).toHaveValue("same");
+    await waitFor(() => expect(screen.getAllByText("same")).toHaveLength(2));
+    expect(screen.getByRole("button", { name: /^Filter$/ })).toBeInTheDocument();
+  });
+  it("discards dismissed drafts and restores the applied values when reopening", async () => {
+    const changeCluster = vi.fn();
+    server.use(http.get("/fleet/inventory", () => HttpResponse.json(result(items))));
+    renderWithQuery(<NodeInventory clusterId="west" onClusterChange={changeCluster} />);
+    await screen.findByText("same");
+    await userEvent.click(screen.getByRole("button", { name: /^Filter\s*1$/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "East" }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by status/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "Ready" }));
+    screen.getByRole("button", { name: "Clear" }).focus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Apply" })).not.toBeInTheDocument());
+    expect(changeCluster).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: /^Filter\s*1$/ }));
+    expect(screen.getByRole("button", { name: /Filter by cluster/ })).toHaveTextContent("West");
+    expect(screen.getByRole("button", { name: /Filter by status/ })).toHaveTextContent("All statuses");
+  });
+  it("counts only status in embedded inventory and keeps its fixed cluster when clearing", async () => {
+    const changeCluster = vi.fn();
+    const requests: Array<string | null> = [];
+    server.use(http.get("/fleet/inventory", ({ request }) => { requests.push(new URL(request.url).searchParams.get("cluster")); return HttpResponse.json(result(items)); }));
+    renderWithQuery(<NodeInventory embedded clusterId="east" onClusterChange={changeCluster} />);
+    await screen.findByText("same");
+    await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
+    expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Filter by status/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "Ready" }));
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Filter\s*1$/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(screen.getByRole("button", { name: /^Filter$/ })).toBeInTheDocument();
+    expect(changeCluster).not.toHaveBeenCalled();
+    expect(requests).toEqual(["east"]);
+    expect(screen.getByRole("row", { name: /same.*East/ })).toBeInTheDocument();
   });
 });

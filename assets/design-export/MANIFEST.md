@@ -2858,3 +2858,19 @@ Changed 51 product-copy entries from location/locations to cluster/clusters acro
 
 **Method and verification:** Edited only through Pencil MCP. JSON came from `Get` at depth 9 with targeted expansion of elided child trees; exports retain component references, with referenced changed components exported separately. PNG came from `Export(..., "png", ..., {scale: 2})`. All 54 JSON files parse, match their root IDs, have no elided children or placeholder flags, and have nonempty PNGs with valid dimensions. Existing CRLF line endings were preserved for 23 JSON files. Canonical desktop, cluster-detail, enrollment-dialog, mobile, dashboard, and representative filter layouts were visually checked with `TakeScreenshot`. The document visitor's known descendant-walk error was avoided by enumerating top-level roots with `skipChildren()` and reading each tree directly. No application tests or lint suites were run.
 
+### Nodes search and filter controls — 2026-11-09
+
+Nodes now follows the Backups toolbar: a plain search input, capped at 320px on desktop and flexible on mobile, plus one right-aligned **Filter** trigger. Cluster and Status move into the existing Clear/Apply popover pattern. The count badge reflects applied Cluster and Status filters only, excludes search, and is hidden at zero. Opening copies applied values into drafts; Clear resets drafts; Apply commits and closes; dismissing discards drafts. Within cluster details, only Status is editable and counted; the fixed cluster remains visible as read-only context.
+
+| Node | Exported change |
+| --- | --- |
+| `BdmAW` | Desktop Nodes uses the compact search and Filter row. |
+| `N2nTf` | Mobile Nodes uses the same controls on one row; sorting and stacked node cards remain below. |
+| `J8GzM9` | Cluster-scoped Nodes keeps its fixed-cluster label beside the Status-only Filter trigger. |
+| `IBUqJ` | The enrollment design's background inventory toolbar uses the same shared row. |
+| `b2JF52` | New reusable Nodes Search and Filters Row, with optional read-only cluster scope. |
+| `xrNf3` | New reusable Nodes Filters Button; its component preview demonstrates the two-active-filter badge. |
+| `xjVA4` | New reusable Nodes Filters Popover, adapted from Backups with Cluster and Status fields. |
+
+All seven roots have JSON from Pencil `Get` and 2× PNG from `Export`. Toolbar, popover, desktop, fixed-cluster and mobile layouts were inspected using `TakeScreenshot`; the full screens retain their previous dimensions and content. JSON exports retain component references without elided children or editing placeholders. No React source, tests or lint suites were changed or run for this design update.
+

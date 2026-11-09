@@ -134580,49 +134580,11 @@
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "M9Q71",
-                  "name": "Inventory filters",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "children": [
-                    {
-                      "id": "JNPZj",
-                      "type": "ref",
-                      "ref": "Lmaf1",
-                      "name": "Search nodes",
-                      "width": "fill_container",
-                      "descendants": {
-                        "EJMtX": {
-                          "content": "Search nodes…"
-                        }
-                      }
-                    },
-                    {
-                      "id": "VSGgf",
-                      "type": "ref",
-                      "ref": "AT7ya",
-                      "name": "Cluster filter",
-                      "width": 220,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "All clusters"
-                        }
-                      }
-                    },
-                    {
-                      "id": "IjpNF",
-                      "type": "ref",
-                      "ref": "AT7ya",
-                      "name": "Status filter",
-                      "width": 180,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "All statuses"
-                        }
-                      }
-                    }
-                  ]
+                  "id": "f42Iv",
+                  "type": "ref",
+                  "ref": "b2JF52",
+                  "name": "Search and Filters",
+                  "width": "fill_container"
                 },
                 {
                   "type": "frame",
@@ -135142,78 +135104,17 @@
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "S7eN3",
-                  "name": "Fixed-cluster inventory filters",
+                  "id": "FBDxe",
+                  "type": "ref",
+                  "ref": "b2JF52",
+                  "name": "Search and Filters — fixed Local cluster",
                   "width": "fill_container",
-                  "gap": 12,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "id": "G0NGKT",
-                      "type": "ref",
-                      "ref": "Lmaf1",
-                      "name": "Search cluster nodes",
-                      "width": "fill_container",
-                      "descendants": {
-                        "EJMtX": {
-                          "content": "Search nodes…"
-                        }
-                      }
-                    },
-                    {
-                      "id": "nhO37",
-                      "type": "ref",
-                      "ref": "AT7ya",
-                      "name": "Node status filter",
-                      "width": 180,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "All statuses"
-                        }
-                      }
-                    },
-                    {
-                      "type": "frame",
-                      "id": "g5TxN7",
-                      "name": "Fixed cluster scope",
-                      "width": 180,
-                      "height": 36,
-                      "fill": "$surface/secondary",
-                      "cornerRadius": 12,
-                      "gap": 8,
-                      "padding": [
-                        0,
-                        12
-                      ],
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "UeJSU",
-                          "name": "Fixed cluster icon",
-                          "width": 16,
-                          "height": 16,
-                          "icon": "network",
-                          "library": "lucide",
-                          "fill": "$muted"
-                        },
-                        {
-                          "type": "text",
-                          "id": "J9VoOZ",
-                          "name": "Current cluster",
-                          "fill": "$muted",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "Cluster: Local",
-                          "lineHeight": 1.45,
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        }
-                      ]
+                  "context": "Popover contains Status only. Cluster: Local is fixed and does not count as an active filter.",
+                  "descendants": {
+                    "LMf8L": {
+                      "enabled": true
                     }
-                  ]
+                  }
                 },
                 {
                   "type": "text",
@@ -136224,49 +136125,11 @@
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "MGjEK",
-                  "name": "Inventory filters",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "children": [
-                    {
-                      "id": "O2TNN2",
-                      "type": "ref",
-                      "ref": "Lmaf1",
-                      "name": "Search nodes",
-                      "width": "fill_container",
-                      "descendants": {
-                        "EJMtX": {
-                          "content": "Search nodes…"
-                        }
-                      }
-                    },
-                    {
-                      "id": "f6MixM",
-                      "type": "ref",
-                      "ref": "AT7ya",
-                      "name": "Cluster filter",
-                      "width": 220,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "All clusters"
-                        }
-                      }
-                    },
-                    {
-                      "id": "nyGBd",
-                      "type": "ref",
-                      "ref": "AT7ya",
-                      "name": "Status filter",
-                      "width": 180,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "All statuses"
-                        }
-                      }
-                    }
-                  ]
+                  "id": "ptSqT",
+                  "type": "ref",
+                  "ref": "b2JF52",
+                  "name": "Search and Filters",
+                  "width": "fill_container"
                 },
                 {
                   "type": "frame",
@@ -136513,49 +136376,19 @@
               ]
             },
             {
-              "id": "mdhiP",
+              "id": "n6oP59",
               "type": "ref",
-              "ref": "Lmaf1",
-              "name": "Search nodes",
+              "ref": "b2JF52",
+              "name": "Search and Filters — mobile",
               "width": "fill_container",
               "descendants": {
-                "EJMtX": {
-                  "content": "Search nodes…"
+                "lFVUp": {
+                  "width": "fill_container"
+                },
+                "SJPou": {
+                  "enabled": false
                 }
               }
-            },
-            {
-              "type": "frame",
-              "id": "XdMFy",
-              "name": "Cluster and status filters",
-              "width": "fill_container",
-              "gap": 8,
-              "children": [
-                {
-                  "id": "w3tz0",
-                  "type": "ref",
-                  "ref": "AT7ya",
-                  "name": "Cluster filter",
-                  "width": "fill_container",
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "All clusters"
-                    }
-                  }
-                },
-                {
-                  "id": "f9HaG",
-                  "type": "ref",
-                  "ref": "AT7ya",
-                  "name": "Status filter",
-                  "width": "fill_container",
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "All statuses"
-                    }
-                  }
-                }
-              ]
             },
             {
               "id": "lPwhX",
@@ -138148,6 +137981,295 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "xrNf3",
+      "x": -1400,
+      "y": -516,
+      "name": "Gameplane/Nodes Filters Button",
+      "context": "Same trigger style as Backups. Badge counts applied Cluster + Status filters, never search. Hide badge at zero. Fixed-cluster detail counts Status only.",
+      "reusable": true,
+      "height": 36,
+      "fill": "$default/default",
+      "cornerRadius": 6,
+      "stroke": "$border/border",
+      "strokeWidth": 1,
+      "gap": 8,
+      "padding": [
+        8,
+        12
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "YMMQj",
+          "name": "Filter icon",
+          "width": 16,
+          "height": 16,
+          "icon": "list-filter",
+          "library": "lucide",
+          "fill": "$foreground/foreground"
+        },
+        {
+          "type": "text",
+          "id": "UTUE9",
+          "name": "Filter label",
+          "fill": "$foreground/foreground",
+          "content": "Filter",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "500"
+        },
+        {
+          "id": "Wfxw3",
+          "type": "ref",
+          "ref": "KmZnF",
+          "name": "Active filters count",
+          "descendants": {
+            "xZ9ah": {
+              "content": "2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "xjVA4",
+      "x": -1207,
+      "y": -516,
+      "name": "Gameplane/Nodes Filters Popover",
+      "context": "Backups pattern: opening copies applied Cluster and Status into drafts. Apply commits and closes; Clear resets drafts only. Closing without Apply discards drafts. Search remains outside the popover and badge. Cluster options: All clusters and authorized clusters. Status options: All statuses, Ready, Not ready, Unknown. In fixed-cluster detail hide Cluster and count Status only.",
+      "reusable": true,
+      "width": 280,
+      "fill": "$surface/surface",
+      "cornerRadius": "$radius/3xl",
+      "stroke": "$border/border",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 12,
+      "padding": 12,
+      "children": [
+        {
+          "type": "frame",
+          "id": "d7pVy",
+          "name": "Cluster field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "Q5X01",
+              "name": "Cluster label",
+              "fill": "$muted",
+              "content": "Cluster",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "XQluj",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Cluster select",
+              "width": "fill_container",
+              "descendants": {
+                "cFsFk": {
+                  "content": "All clusters",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "m2s7S",
+          "name": "Status field",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "b2uTl4",
+              "name": "Status label",
+              "fill": "$muted",
+              "content": "Status",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "O1IZPo",
+              "type": "ref",
+              "ref": "AT7ya",
+              "name": "Status select",
+              "width": "fill_container",
+              "descendants": {
+                "cFsFk": {
+                  "content": "All statuses",
+                  "fill": "$foreground/foreground"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EHlqt",
+          "name": "Clear and Apply",
+          "width": "fill_container",
+          "gap": 8,
+          "padding": [
+            6,
+            8
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Zq2ru",
+              "name": "btnClear",
+              "height": 28,
+              "cornerRadius": 6,
+              "padding": [
+                0,
+                8
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "DEESq",
+                  "fill": "$foreground/foreground",
+                  "content": "Clear",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rKBVi",
+              "name": "btnApply",
+              "height": 28,
+              "fill": "$accent/accent",
+              "cornerRadius": 6,
+              "padding": [
+                0,
+                8
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qH69x",
+                  "fill": "$accent/foreground",
+                  "content": "Apply",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "b2JF52",
+      "x": -847,
+      "y": -516,
+      "name": "Gameplane/Nodes Search and Filters Row",
+      "context": "Search matches Backups plain HeroUI Input, maximum 320px desktop, flexible on narrow screens. Filters stays at the right. Optional fixed-cluster pill is read-only and never increases the badge count. Opens Gameplane/Nodes Filters Popover.",
+      "reusable": true,
+      "width": 1124,
+      "gap": 12,
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "lFVUp",
+          "type": "ref",
+          "ref": "D0cDM",
+          "name": "Search nodes",
+          "width": 320,
+          "descendants": {
+            "PJERm": {
+              "content": "Search nodes…"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SJPou",
+          "name": "Flexible space",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "frame",
+          "id": "LMf8L",
+          "x": 952,
+          "y": 0,
+          "name": "Fixed cluster scope",
+          "enabled": false,
+          "width": 180,
+          "height": 36,
+          "fill": "$surface/secondary",
+          "cornerRadius": 12,
+          "gap": 8,
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "T9hiu",
+              "name": "Fixed cluster icon",
+              "width": 16,
+              "height": 16,
+              "icon": "network",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "text",
+              "id": "y6hK9",
+              "name": "Current cluster",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Cluster: Local",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "id": "xJuXI",
+          "type": "ref",
+          "ref": "xrNf3",
+          "name": "Filters trigger",
+          "descendants": {
+            "Wfxw3": {
+              "enabled": false
+            }
+          }
         }
       ]
     }

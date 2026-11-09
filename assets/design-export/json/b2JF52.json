@@ -1,0 +1,87 @@
+{
+  "type": "frame",
+  "id": "b2JF52",
+  "x": -847,
+  "y": -516,
+  "name": "Gameplane/Nodes Search and Filters Row",
+  "context": "Search matches Backups plain HeroUI Input, maximum 320px desktop, flexible on narrow screens. Filters stays at the right. Optional fixed-cluster pill is read-only and never increases the badge count. Opens Gameplane/Nodes Filters Popover.",
+  "reusable": true,
+  "width": 1124,
+  "gap": 12,
+  "alignItems": "center",
+  "children": [
+    {
+      "id": "lFVUp",
+      "type": "ref",
+      "ref": "D0cDM",
+      "name": "Search nodes",
+      "width": 320,
+      "descendants": {
+        "PJERm": {
+          "content": "Search nodes…"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "SJPou",
+      "name": "Flexible space",
+      "width": "fill_container",
+      "height": 1
+    },
+    {
+      "type": "frame",
+      "id": "LMf8L",
+      "x": 952,
+      "y": 0,
+      "name": "Fixed cluster scope",
+      "enabled": false,
+      "width": 180,
+      "height": 36,
+      "fill": "$surface/secondary",
+      "cornerRadius": 12,
+      "gap": 8,
+      "padding": [
+        0,
+        12
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "icon",
+          "id": "T9hiu",
+          "name": "Fixed cluster icon",
+          "width": 16,
+          "height": 16,
+          "icon": "network",
+          "library": "lucide",
+          "fill": "$muted"
+        },
+        {
+          "type": "text",
+          "id": "y6hK9",
+          "name": "Current cluster",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Cluster: Local",
+          "lineHeight": 1.45,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "id": "xJuXI",
+      "type": "ref",
+      "ref": "xrNf3",
+      "name": "Filters trigger",
+      "descendants": {
+        "Wfxw3": {
+          "enabled": false
+        }
+      }
+    }
+  ]
+}

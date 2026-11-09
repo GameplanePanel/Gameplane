@@ -149,78 +149,17 @@
               ]
             },
             {
-              "type": "frame",
-              "id": "S7eN3",
-              "name": "Fixed-cluster inventory filters",
+              "id": "FBDxe",
+              "type": "ref",
+              "ref": "b2JF52",
+              "name": "Search and Filters — fixed Local cluster",
               "width": "fill_container",
-              "gap": 12,
-              "alignItems": "center",
-              "children": [
-                {
-                  "id": "G0NGKT",
-                  "type": "ref",
-                  "ref": "Lmaf1",
-                  "name": "Search cluster nodes",
-                  "width": "fill_container",
-                  "descendants": {
-                    "EJMtX": {
-                      "content": "Search nodes…"
-                    }
-                  }
-                },
-                {
-                  "id": "nhO37",
-                  "type": "ref",
-                  "ref": "AT7ya",
-                  "name": "Node status filter",
-                  "width": 180,
-                  "descendants": {
-                    "cFsFk": {
-                      "content": "All statuses"
-                    }
-                  }
-                },
-                {
-                  "type": "frame",
-                  "id": "g5TxN7",
-                  "name": "Fixed cluster scope",
-                  "width": 180,
-                  "height": 36,
-                  "fill": "$surface/secondary",
-                  "cornerRadius": 12,
-                  "gap": 8,
-                  "padding": [
-                    0,
-                    12
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "UeJSU",
-                      "name": "Fixed cluster icon",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "network",
-                      "library": "lucide",
-                      "fill": "$muted"
-                    },
-                    {
-                      "type": "text",
-                      "id": "J9VoOZ",
-                      "name": "Current cluster",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Cluster: Local",
-                      "lineHeight": 1.45,
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
-                    }
-                  ]
+              "context": "Popover contains Status only. Cluster: Local is fixed and does not count as an active filter.",
+              "descendants": {
+                "LMf8L": {
+                  "enabled": true
                 }
-              ]
+              }
             },
             {
               "type": "text",

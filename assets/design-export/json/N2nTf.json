@@ -82,49 +82,19 @@
           ]
         },
         {
-          "id": "mdhiP",
+          "id": "n6oP59",
           "type": "ref",
-          "ref": "Lmaf1",
-          "name": "Search nodes",
+          "ref": "b2JF52",
+          "name": "Search and Filters — mobile",
           "width": "fill_container",
           "descendants": {
-            "EJMtX": {
-              "content": "Search nodes…"
+            "lFVUp": {
+              "width": "fill_container"
+            },
+            "SJPou": {
+              "enabled": false
             }
           }
-        },
-        {
-          "type": "frame",
-          "id": "XdMFy",
-          "name": "Cluster and status filters",
-          "width": "fill_container",
-          "gap": 8,
-          "children": [
-            {
-              "id": "w3tz0",
-              "type": "ref",
-              "ref": "AT7ya",
-              "name": "Cluster filter",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "All clusters"
-                }
-              }
-            },
-            {
-              "id": "f9HaG",
-              "type": "ref",
-              "ref": "AT7ya",
-              "name": "Status filter",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "All statuses"
-                }
-              }
-            }
-          ]
         },
         {
           "id": "lPwhX",
