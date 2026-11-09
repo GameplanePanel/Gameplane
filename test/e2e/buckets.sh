@@ -433,6 +433,11 @@ EOF
 # Tests that exist in the suite but deliberately run in NO bucket. Every
 # entry needs a reason; `verify` fails on any unlisted stray so additions
 # here are a conscious, reviewed act. Currently empty.
+bucket_wake_hostport() { cat <<'EOF'
+TestGameServer_HostportWakeStableEndpoint
+EOF
+}
+
 bucket_management_placement() { cat <<'EOF'
 TestManagementPlacementAndDisruption
 EOF
@@ -455,7 +460,7 @@ bucket_network_isolation() {
 }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads network-isolation management-placement backup-preparation monitoring recovery
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
 }
 
 list_bucket() {
@@ -475,6 +480,7 @@ list_bucket() {
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;
+	wake-hostport) bucket_wake_hostport ;;
 	network-isolation) bucket_network_isolation ;;
 	restricted-workloads) bucket_restricted_workloads ;;
 	management-placement) bucket_management_placement ;;

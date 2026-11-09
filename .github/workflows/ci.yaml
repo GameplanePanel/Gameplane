@@ -1835,9 +1835,9 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # The arm64 job below uses the same steps/settings except for the
-        # network-isolation, management-placement, backup-preparation,
-        # monitoring, and recovery drills, which run once on amd64.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, network-isolation, management-placement, backup-preparation, monitoring, recovery]
+        # wake-hostport, network-isolation, management-placement,
+        # backup-preparation, monitoring, and recovery drills, which run once on amd64.
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, wake-hostport, network-isolation, management-placement, backup-preparation, monitoring, recovery]
         arch: [amd64]
         include:
           - bucket: monitoring
@@ -1852,10 +1852,14 @@ jobs:
             parallel: 8
             test_timeout: 20m
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: wake-hostport
+            parallel: 1
+            test_timeout: 15m
+            job_timeout: 60 # Boots two-node kind, installs the chart and exercises repeated Hostport sleep/wake handoffs.
           - bucket: management-placement
             parallel: 1
             test_timeout: 15m
-            job_timeout: 60
+            job_timeout: 60 # Boots management kind, installs the chart and checks placement/disruption behavior.
           - bucket: backup-preparation
             parallel: 1
             test_timeout: 15m
@@ -1926,7 +1930,7 @@ jobs:
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
         env:
           GAMEPLANE_E2E_CNI: ${{ (matrix.bucket == 'network-isolation' || matrix.bucket == 'monitoring') && 'cilium' || 'kindnet' }}
-          GAMEPLANE_E2E_PROFILE: ${{ (matrix.bucket == 'management-placement' || matrix.bucket == 'backup-preparation') && 'management' || 'default' }}
+          GAMEPLANE_E2E_PROFILE: ${{ matrix.bucket == 'wake-hostport' && 'two-node' || (matrix.bucket == 'management-placement' || matrix.bucket == 'backup-preparation') && 'management' || 'default' }}
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e "$GAMEPLANE_E2E_PROFILE"
       - name: install real monitoring fixture
         if: matrix.bucket == 'monitoring' && env.RUN_REGEX != ''
@@ -2767,7 +2771,7 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//.test(n) && n.includes('/ amd64 '),
               'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
@@ -2920,13 +2924,14 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//);
-              if (m && m[1] !== 'recovery') bucketSet.add(m[1]);
-              // Partial selection can complete the recovery leg without
-              // running its drill. Count completed execution, including failure.
-              if (m && m[1] === 'recovery' && Array.isArray(j.steps)) {
-                const recovery = j.steps.find((s) => s.name === 'run go e2e (recovery)');
-                if (recovery && ['success', 'failure'].includes(recovery.conclusion)) bucketSet.add('recovery');
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//);
+              const executionGated = m && ['wake-hostport', 'recovery'].includes(m[1]);
+              if (m && !executionGated) bucketSet.add(m[1]);
+              // Partial selection can complete these legs without running
+              // their drills. Count completed execution, including failure.
+              if (executionGated && Array.isArray(j.steps)) {
+                const drill = j.steps.find((s) => s.name === `run go e2e (${m[1]})`);
+                if (drill && ['success', 'failure'].includes(drill.conclusion)) bucketSet.add(m[1]);
               }
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');
