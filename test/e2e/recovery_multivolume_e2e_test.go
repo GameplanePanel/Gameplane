@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -101,6 +102,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 	}
 	exec("echo changed > /data/marker; echo changed > /world/marker; echo changed > /data/mods/marker; echo cache-after > /rebuild/marker; touch /data/stale /world/stale /data/mods/stale; sync")
 	restore := gs + "-restore"
+	watchRecoveryRestoreWorkers(t, ctx, ns, restore)
 	createRestoreContext(ctx, t, ns, restore, gs, backup)
 	waitRestoreSucceededContext(ctx, t, ns, restore, 6*time.Minute)
 	ready(gs)
@@ -125,6 +127,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			})
 			capture(gs + "-" + mode)
 			name := gs + "-restore-" + mode
+			watchRecoveryRestoreWorkers(t, ctx, ns, name)
 			createRestoreContext(ctx, t, ns, name, gs, backup)
 			waitRestoreSucceededContext(ctx, t, ns, name, 6*time.Minute)
 			envInstance.Eventually(t, time.Minute, func() (bool, string) {
@@ -168,6 +171,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			})
 			ready(target)
 			name := target + "-restore"
+			watchRecoveryRestoreWorkers(t, ctx, ns, name)
 			createRestoreContext(ctx, t, ns, name, target, backup)
 			envInstance.Eventually(t, time.Minute, func() (bool, string) {
 				rs, err := envInstance.Dyn.Resource(restoreGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
@@ -190,4 +194,47 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Start before creating the Restore so foreground cleanup cannot erase the
+// failed worker evidence. This fixture uses only its disposable test repository;
+// raw termination messages are deliberately confined to CI diagnostics.
+func watchRecoveryRestoreWorkers(t *testing.T, ctx context.Context, ns, restoreName string) {
+	t.Helper()
+	watchCtx, cancel := context.WithCancel(ctx)
+	workerWatch, err := envInstance.K8s.CoreV1().Pods(ns).Watch(watchCtx, metav1.ListOptions{LabelSelector: "job-name=restore-" + restoreName})
+	if err != nil {
+		cancel()
+		t.Fatalf("watch restore workers: %v", err)
+	}
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for event := range workerWatch.ResultChan() {
+			pod, ok := event.Object.(*corev1.Pod)
+			if !ok {
+				continue
+			}
+			for _, status := range pod.Status.ContainerStatuses {
+				if status.State.Terminated == nil && !status.Ready {
+					continue
+				}
+				state, _ := json.Marshal(status)
+				t.Logf("restore worker %s event=%s uid=%s phase=%s status=%s", pod.Name, event.Type, pod.UID, pod.Status.Phase, state)
+				// Capture the persisted gate identity and deadline alongside the
+				// worker exit to distinguish preparation from authorized copying.
+				readCtx, cancelRead := context.WithTimeout(watchCtx, 5*time.Second)
+				rs, err := envInstance.Dyn.Resource(restoreGVR).Namespace(ns).Get(readCtx, restoreName, metav1.GetOptions{})
+				cancelRead()
+				if err == nil {
+					t.Logf("restore %s authorization=%s deadline=%s", restoreName, rs.GetAnnotations()["restore.gameplane.local/authorized-worker"], rs.GetAnnotations()["restore.gameplane.local/copy-deadline"])
+				}
+			}
+		}
+	}()
+	t.Cleanup(func() {
+		cancel()
+		workerWatch.Stop()
+		<-done
+	})
 }

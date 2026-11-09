@@ -103,6 +103,9 @@ func TestRecoveryRestoreScopesArchiveSubtreeToMountedClaims(t *testing.T) {
 	src := &v1.Backup{Spec: v1.BackupSpec{RepoRef: &v1.SecretKeySelector{Name: "repo"}}}
 	spec := (&RestoreReconciler{}).buildRestorePodSpec(rs, src, &v1.GameTemplate{})
 	worker := spec.Containers[0]
+	if worker.TerminationMessagePolicy != corev1.TerminationMessageFallbackToLogsOnError {
+		t.Fatal("restore failure would lose worker stderr before cleanup")
+	}
 	if worker.SecurityContext.ReadOnlyRootFilesystem == nil || !*worker.SecurityContext.ReadOnlyRootFilesystem {
 		t.Fatal("restore weakened container root filesystem protection")
 	}

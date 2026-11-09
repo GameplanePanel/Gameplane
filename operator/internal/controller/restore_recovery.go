@@ -210,7 +210,7 @@ func (r *RestoreReconciler) authorizeRecoveryRestore(ctx context.Context, rs *v1
 		return true, nil
 	}
 	if jobPermanentlyFailed(job) {
-		return false, fmt.Errorf("restore job reported Failed")
+		return false, r.restoreJobFailure(ctx, job)
 	}
 	if !time.Now().Before(deadline) {
 		return false, fmt.Errorf("restore copy deadline expired")

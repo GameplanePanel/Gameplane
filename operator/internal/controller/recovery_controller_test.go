@@ -1025,3 +1025,29 @@ func TestRecoveryQuiesceOutcomeFinalizedOnlyBeforeFirstAuthorization(t *testing.
 		t.Fatal("live multi-volume copy overclaimed consistency")
 	}
 }
+
+func TestRestoreFailurePreservesExactWorkerDiagnosticsBeforeCleanup(t *testing.T) {
+	c, _, _, rs := recoveryFixture(t)
+	r := &RestoreReconciler{Client: c, APIReader: c, Scheme: c.Scheme()}
+	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: "restore-worker", Namespace: rs.Namespace, UID: "worker-job"}, Status: batchv1.JobStatus{Conditions: []batchv1.JobCondition{{Type: batchv1.JobFailed, Status: corev1.ConditionTrue, Reason: "BackoffLimitExceeded", Message: "Job has reached its retry limit"}}}}
+	controller := true
+	for _, tc := range []struct{ name, owner, message string }{{"ours", "worker-job", "Fatal: repository https://user:secret@example.invalid failed"}, {"foreign", "replaced-job", "foreign diagnostic must not leak"}} {
+		pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: tc.name, Namespace: rs.Namespace, OwnerReferences: []metav1.OwnerReference{{APIVersion: "batch/v1", Kind: "Job", Name: job.Name, UID: types.UID(tc.owner), Controller: &controller}}}, Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{{Name: "restic", State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 1, Reason: "Error", Message: tc.message}}}}}}
+		if err := c.Create(t.Context(), pod); err != nil {
+			t.Fatal(err)
+		}
+	}
+	message := r.restoreJobFailure(t.Context(), job).Error()
+	if !strings.Contains(message, "BackoffLimitExceeded") || !strings.Contains(message, "exited 1 (Error)") || strings.Contains(message, "secret") || strings.Contains(message, "repository") || strings.Contains(message, "foreign diagnostic") {
+		t.Fatalf("incomplete or foreign failure evidence: %s", message)
+	}
+	if _, err := r.fail(t.Context(), rs, message); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Get(t.Context(), client.ObjectKeyFromObject(rs), rs); err != nil {
+		t.Fatal(err)
+	}
+	if rs.Status.Phase != v1.RestorePhaseFailed || rs.Status.Message != message {
+		t.Fatalf("cleanup lost persisted worker failure: %+v", rs.Status)
+	}
+}

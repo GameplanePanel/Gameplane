@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -333,7 +334,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	case jobPermanentlyFailed(job):
 		// Leave the server suspended; surface the failure.
-		return r.fail(ctx, &rs, "restore job reported Failed")
+		return r.fail(ctx, &rs, r.restoreJobFailure(ctx, job).Error())
 
 	default:
 		if rs.Status.StartTime == nil && job.Status.StartTime != nil {
@@ -344,6 +345,44 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
+}
+
+// Preserve worker failure evidence in Restore status before cleanup deletes
+// the Job and its Pods. Only diagnostics from this exact Job are admitted.
+// Raw termination messages can contain repository credentials and remain on Pods.
+func (r *RestoreReconciler) restoreJobFailure(ctx context.Context, job *batchv1.Job) error {
+	details := []string{"restore job reported Failed"}
+	for _, condition := range job.Status.Conditions {
+		if condition.Type == batchv1.JobFailed && condition.Status == corev1.ConditionTrue {
+			details = append(details, condition.Reason)
+		}
+	}
+	if job.UID == "" {
+		return errors.New(strings.Join(details, "; "))
+	}
+	var pods corev1.PodList
+	if err := r.apiReader().List(ctx, &pods, client.InNamespace(job.Namespace)); err != nil {
+		details = append(details, "worker diagnostics unavailable")
+		return errors.New(strings.Join(details, "; "))
+	}
+	for i := range pods.Items {
+		pod := &pods.Items[i]
+		if !metav1.IsControlledBy(pod, job) {
+			continue
+		}
+		statuses := append(append([]corev1.ContainerStatus{}, pod.Status.InitContainerStatuses...), pod.Status.ContainerStatuses...)
+		for _, status := range statuses {
+			terminated := status.State.Terminated
+			if terminated == nil || terminated.ExitCode == 0 {
+				continue
+			}
+			details = append(details, fmt.Sprintf("Pod %s container %s exited %d (%s)", pod.Name, status.Name, terminated.ExitCode, terminated.Reason))
+			if len(details) >= 5 {
+				return errors.New(strings.Join(details, "; "))
+			}
+		}
+	}
+	return errors.New(strings.Join(details, "; "))
 }
 
 func (r *RestoreReconciler) fail(ctx context.Context, rs *gameplanev1alpha1.Restore, msg string) (ctrl.Result, error) {
@@ -385,9 +424,10 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 	spec := corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		Containers: []corev1.Container{{
-			Name:      "restic",
-			Image:     resticImageOrDefault(r.ResticImage),
-			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
+			Name:                     "restic",
+			TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
+			Image:                    resticImageOrDefault(r.ResticImage),
+			Resources:                auxiliaryResources(r.BackupResources, "100m", "128Mi"),
 			// --target / restores each snapshot entry at its original
 			// absolute path. The companion backup runs `restic backup
 			// /data`, so the snapshot tree is rooted at /data/...; with
