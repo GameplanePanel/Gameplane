@@ -127593,7 +127593,7 @@
                   "fill": "$muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Only the primary data claim is copied. Rebuildable is a declaration, not proof that recovery can reconstruct its contents.",
+                  "content": "Included claims are copied at the recorded archive roots. Rebuildable volumes are excluded. Check their recovery prerequisites before restarting.",
                   "lineHeight": 1.333333,
                   "fontFamily": "$typography/font-sans",
                   "fontSize": 12,
