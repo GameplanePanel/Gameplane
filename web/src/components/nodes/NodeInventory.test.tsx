@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { act, screen, waitFor, within } from "@testing-library/react";
@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
 import type { FleetInventory, FleetResult } from "@/lib/fleet";
+import * as media from "@/lib/media";
 import { NodeInventory } from "./NodeInventory";
 
 function result(items: FleetInventory[], extra: Partial<FleetResult<FleetInventory>> = {}) {
@@ -15,6 +16,8 @@ const items: FleetInventory[] = [
   { cluster: "east", name: "East", stats: {}, view: { nodes: [{ name: "same", status: "Ready", cpu: { used: 0, capacity: 4 } }] } },
   { cluster: "west", name: "West", stats: {}, view: { nodes: [{ name: "same", status: "NotReady", cpu: { used: 3, capacity: 4 } }, { name: "unknown" }] } },
 ];
+
+afterEach(() => vi.restoreAllMocks());
 
 describe("NodeInventory", () => {
   it("requests all nodes by default and keeps duplicate names in separate rows", async () => {
@@ -114,5 +117,26 @@ describe("NodeInventory", () => {
     expect(screen.getByText("1 / 3")).toBeInTheDocument();
     await userEvent.type(screen.getByRole("textbox", { name: "Search nodes" }), "east");
     expect(screen.getByText("1 / 1")).toBeInTheDocument();
+  });
+  it("keeps the mobile summary compact while retaining per-node metrics and coverage", async () => {
+    vi.spyOn(media, "useMediaQuery").mockReturnValue(true);
+    server.use(http.get("/fleet/inventory", () => HttpResponse.json(result(items, { partial: true }))));
+    renderWithQuery(<NodeInventory />);
+    await screen.findAllByText("same");
+    const summary = within(screen.getByRole("group", { name: "Ready nodes" }));
+    expect(summary.getByText("1 / 3")).toBeInTheDocument();
+    expect(summary.getByText("Reporting clusters")).toBeInTheDocument();
+    expect(summary.getByText("2")).toBeInTheDocument();
+    expect(summary.getByText("Returned nodes only")).toBeInTheDocument();
+    expect(summary.queryByText("CPU")).not.toBeInTheDocument();
+    expect(summary.queryByText("Memory")).not.toBeInTheDocument();
+    const list = within(screen.getByRole("list", { name: "Node inventory" }));
+    const cards = list.getAllByRole("listitem");
+    expect(cards).toHaveLength(3);
+    expect(within(cards[0]).getByText("CPU")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Memory")).toBeInTheDocument();
+    expect(screen.queryByRole("grid", { name: "Node inventory" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Filter by cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Filter by status/ })).toBeInTheDocument();
   });
 });

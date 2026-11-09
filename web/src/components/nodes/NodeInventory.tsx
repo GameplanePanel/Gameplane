@@ -99,16 +99,24 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
 
   return <div className={embedded ? "min-w-0 space-y-5" : "min-w-0 space-y-6 p-4 sm:p-6"}>
     <PageHeader title={intl.formatMessage(messages.title)} description={intl.formatMessage(clusterId ? messages.clusterDescription : messages.description, { cluster: names.get(clusterId) || clusterId })} actions={<NodeEnrollment clusterId={clusterId} />} />
-    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    {mobile ? <div role="group" aria-label={intl.formatMessage(messages.ready)} className="rounded-lg border border-border bg-surface px-3 py-2">
+      <dl className="grid grid-cols-2 gap-4 text-xs">
+        <div className="flex min-w-0 items-center justify-between gap-2"><dt className="text-muted">{intl.formatMessage(messages.ready)}</dt><dd className="shrink-0 font-mono font-semibold">{unknownCounts ? "—" : intl.formatMessage(messages.readyCount, { ready: summary.ready, total: summary.total })}</dd></div>
+        <div className="flex min-w-0 items-center justify-between gap-2"><dt className="text-muted">{intl.formatMessage(messages.reporting)}</dt><dd className="shrink-0 font-mono font-semibold">{unknownCounts ? "—" : summary.clusters}</dd></div>
+      </dl>
+      <p className="pt-1 text-[10px] text-muted">{qualifier}</p>
+    </div> : <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       <StatCard label={intl.formatMessage(messages.ready)} value={unknownCounts ? "—" : intl.formatMessage(messages.readyCount, { ready: summary.ready, total: summary.total })} sub={qualifier} icon={<Server className="h-5 w-5" />} accent="success" />
       <StatCard label={intl.formatMessage(messages.reporting)} value={unknownCounts ? "—" : summary.clusters} sub={qualifier} icon={<Layers className="h-5 w-5" />} />
       <StatCard label={intl.formatMessage(messages.cpu)} value={percentage(summary.cpu)} sub={intl.formatMessage(summary.cpu === undefined ? messages.unknownMetric : partial ? messages.returned : messages.measured)} icon={<Cpu className="h-5 w-5" />} />
       <StatCard label={intl.formatMessage(messages.memory)} value={percentage(summary.memory)} sub={intl.formatMessage(summary.memory === undefined ? messages.unknownMetric : partial ? messages.returned : messages.measured)} icon={<MemoryStick className="h-5 w-5" />} accent="violet" />
-    </div>
+    </div>}
     <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center">
       <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" /><Input aria-label={intl.formatMessage(messages.search)} placeholder={intl.formatMessage(messages.searchPlaceholder)} value={search} onChange={(event) => setSearch(event.target.value)} className="w-full pl-9" /></div>
-      {!embedded && <NodeSelect label={intl.formatMessage(messages.filterCluster)} value={clusterId} onChange={(value) => onClusterChange?.(value)} choices={[{ value: "", label: intl.formatMessage(messages.allClusters) }, ...choices.map((value) => ({ value, label: names.get(value) || value }))]} />}
-      <NodeSelect label={intl.formatMessage(messages.filterStatus)} value={status} onChange={setStatus} choices={[{ value: "", label: intl.formatMessage(messages.allStatuses) }, ...["Ready", "NotReady", "Unknown"].map((value) => ({ value, label: statusLabel(value) }))]} />
+      <div className={embedded ? "min-w-0 md:flex" : "grid min-w-0 grid-cols-2 gap-3 md:flex"}>
+        {!embedded && <NodeSelect label={intl.formatMessage(messages.filterCluster)} value={clusterId} onChange={(value) => onClusterChange?.(value)} choices={[{ value: "", label: intl.formatMessage(messages.allClusters) }, ...choices.map((value) => ({ value, label: names.get(value) || value }))]} />}
+        <NodeSelect label={intl.formatMessage(messages.filterStatus)} value={status} onChange={setStatus} choices={[{ value: "", label: intl.formatMessage(messages.allStatuses) }, ...["Ready", "NotReady", "Unknown"].map((value) => ({ value, label: statusLabel(value) }))]} />
+      </div>
     </div>
     <FleetCoverage partial={partial} issues={issues} error={inventory.error} label={intl.formatMessage(messages.coverage)} />
     {!!inventory.error && <Button variant="outline" onPress={() => void inventory.refetch()}>{intl.formatMessage(messages.retry)}</Button>}
