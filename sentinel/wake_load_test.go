@@ -56,6 +56,15 @@ func (c *loadWaitContext) Done() <-chan struct{} {
 	return c.Context.Done()
 }
 
+// observeLoadWait derives the observation wrapper from the caller's context;
+// cancellation and deadlines still come directly from that parent.
+func observeLoadWait(ctx context.Context, joined chan struct{}) context.Context {
+	if joined == nil {
+		return ctx
+	}
+	return &loadWaitContext{Context: ctx, joined: joined}
+}
+
 type loadWakeObserver struct {
 	wake      wakeRequester
 	joined    chan struct{}
@@ -74,10 +83,7 @@ func (w *loadWakeObserver) RequestWake(ctx context.Context) error {
 		deadline, _ := ctx.Deadline()
 		w.deadlines <- deadline
 	}
-	if w.joined != nil {
-		ctx = &loadWaitContext{Context: ctx, joined: w.joined}
-	}
-	err := w.wake.RequestWake(ctx)
+	err := w.wake.RequestWake(observeLoadWait(ctx, w.joined))
 	w.finished <- err
 	return err
 }

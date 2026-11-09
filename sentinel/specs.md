@@ -258,7 +258,7 @@ Each accepted TCP connection runs as a *session* under its own context, separate
 ## Dependencies
 
 **Stdlib:**
-- `bufio`, `bytes`, `context`, `encoding/json`, `fmt`, `io`, `log`, `math/rand/v2`, `net`, `os`, `os/signal`, `strconv`, `strings`, `sync`, `syscall`, `time`.
+- `bufio`, `bytes`, `context`, `encoding/json`, `fmt`, `io`, `log`, `crypto/rand`, `net`, `os`, `os/signal`, `strconv`, `strings`, `sync`, `syscall`, `time`.
 
 **Kubernetes:**
 - `k8s.io/apimachinery/pkg/apis/meta/v1` — metav1 types (PatchOptions, GetOptions).

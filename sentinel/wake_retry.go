@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"fmt"
 	"io"
-	"math/rand/v2"
 	"net"
 	"syscall"
 	"time"
@@ -36,7 +37,11 @@ func retryWakePatch(ctx context.Context, patch func(context.Context) error) erro
 		if !retryableWakeError(lastErr) || attempt == wakePatchAttempts-1 {
 			return lastErr
 		}
-		timer := time.NewTimer(wakeRetryDelay(attempt, lastErr, rand.Float64()))
+		var sample [1]byte
+		if _, err := rand.Read(sample[:]); err != nil {
+			return errors.Join(lastErr, fmt.Errorf("generate wake retry jitter: %w", err))
+		}
+		timer := time.NewTimer(wakeRetryDelay(attempt, lastErr, float64(sample[0])/255))
 		select {
 		case <-ctx.Done():
 			timer.Stop()
