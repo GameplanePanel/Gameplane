@@ -405,6 +405,15 @@ TestOptionalComponents_Lifecycle
 EOF
 }
 
+# recovery owns a separate standalone API/database/key in a unique namespace.
+# Zero shared panel logins; the fixture has its own login limiter and storage.
+bucket_recovery() { cat <<'EOF'
+TestPanel_OfflineRecovery
+TestAPIClient_DoContextResponseBody
+TestAPIClient_ExtractIntField
+EOF
+}
+
 # Dedicated release: enables real PSA enforcement and privileged diagnostics.
 bucket_restricted_workloads() { cat <<'EOF'
 TestRestrictedWorkloads_NodeCaptureAndTokenRotation
@@ -451,7 +460,7 @@ bucket_network_isolation() {
 }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
 }
 
 list_bucket() {
@@ -476,6 +485,7 @@ list_bucket() {
 	restricted-workloads) bucket_restricted_workloads ;;
 	management-placement) bucket_management_placement ;;
 	backup-preparation) bucket_backup_preparation ;;
+	recovery) bucket_recovery ;;
 	monitoring) bucket_monitoring ;;
 	*)
 		echo "unknown bucket: $1 (known: $(bucket_names | tr '\n' ' '))" >&2
