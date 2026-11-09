@@ -1,0 +1,27 @@
+name: Install pinned Trivy
+description: Install the checksum-verified Linux amd64 scanner from its GitHub release.
+runs:
+  using: composite
+  steps:
+    - name: Download and verify Trivy
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ "$(uname -s)" != Linux || "$(uname -m)" != x86_64 ]]; then
+          echo "This installer requires a Linux amd64 runner" >&2
+          exit 1
+        fi
+        version=0.74.0
+        sha256=2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a
+        archive="trivy_${version}_Linux-64bit.tar.gz"
+        download_dir=$(mktemp -d "${RUNNER_TEMP:?}/trivy-download.XXXXXX")
+        trap 'rm -rf -- "$download_dir"' EXIT
+        # Bound DNS, connection and HTTP retries. Verify before extraction or execution.
+        curl --fail --show-error --location --retry 3 --retry-all-errors \
+          --retry-delay 2 --retry-max-time 180 --connect-timeout 15 --max-time 90 \
+          --output "$download_dir/$archive" \
+          "https://github.com/aquasecurity/trivy/releases/download/v${version}/${archive}"
+        printf '%s  %s\n' "$sha256" "$download_dir/$archive" | sha256sum --check --status
+        tar -xzf "$download_dir/$archive" -C "$download_dir" trivy
+        sudo install -m 0755 "$download_dir/trivy" /usr/local/bin/trivy
+        trivy --version

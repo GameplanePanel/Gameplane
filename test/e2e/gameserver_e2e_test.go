@@ -867,6 +867,29 @@ func TestGameServer_NetworkCaptureEphemeralContainer(t *testing.T) {
 	// Created WITHOUT capture enabled — this test drives enable/disable
 	// entirely through the :capture-enable/:capture-disable HTTP routes.
 	applyBusyboxGameServer(t, ns, gsName, tmpl)
+	// Register after fixture creation so failure evidence is collected before
+	// its cleanup deletes the Pod and workflow-level diagnostics lose it.
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+		diagnosticCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		obj, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(diagnosticCtx, gsName, metav1.GetOptions{})
+		if err != nil {
+			t.Logf("capture failure diagnostics: get GameServer: %v", err)
+		} else {
+			capture, _, _ := unstructured.NestedMap(obj.Object, "status", "capture")
+			t.Logf("capture failure diagnostics: GameServer UID=%s capture=%v", obj.GetUID(), capture)
+		}
+		pod, err := envInstance.K8s.CoreV1().Pods(ns).Get(diagnosticCtx, gsName+"-0", metav1.GetOptions{})
+		if err != nil {
+			t.Logf("capture failure diagnostics: get Pod: %v", err)
+		} else {
+			t.Logf("capture failure diagnostics: Pod UID=%s phase=%s capture=%+v", pod.UID, pod.Status.Phase,
+				findContainerStatusByName(pod.Status.EphemeralContainerStatuses, "capture"))
+		}
+	})
 	waitPVCBound(t, ns, gsName+"-data", 90*time.Second)
 	requireAgentReady(t, ns, gsName)
 

@@ -187,18 +187,19 @@ export async function captureLocator(page: Page, id: string, locator: Locator): 
   // (4 device px) per edge, so a genuine size regression still reaches the
   // scale gate.
   //
-  // This is specifically a *modal backdrop* artifact: only dialogs (or
-  // captures nested inside one) sit on top of a backdrop that can bleed in
-  // this way. A non-dialog element crop (a chip, a badge, an alert banner)
-  // has no backdrop, and its own top/bottom edge row is frequently a solid
+  // This is specifically a *modal backdrop* artifact: only whole-dialog
+  // captures can include the backdrop outside the panel. A nested content
+  // crop (such as backup volume coverage) contains the panel's own pixels,
+  // which must be preserved. A non-dialog element crop (a chip, a badge, an
+  // alert banner) has no backdrop, and its top/bottom edge is frequently a solid
   // fill or border that legitimately matches its corner pixel — stripping it
   // would eat real content (m1hP1j: the alert's own uniform red top/bottom
   // edge was mistaken for backdrop and trimmed, moving the crop out of
   // alignment with the design reference). Gate the strip on the capture
   // actually being a dialog.
   const isDialogCapture = handle
-    ? await handle.evaluate((el) => el.closest('[role="dialog"],[role="alertdialog"]') !== null)
-    : await locator.evaluate((el) => el.closest('[role="dialog"],[role="alertdialog"]') !== null);
+    ? await handle.evaluate((el) => el.matches('[role="dialog"],[role="alertdialog"]'))
+    : await locator.evaluate((el) => el.matches('[role="dialog"],[role="alertdialog"]'));
   if (isDialogCapture) {
     const NEAR_UNIFORM_TOLERANCE = 6; // per RGB channel, 0-255
     const stripBudget = Math.max(0, 4 - heightAlreadyRemoved); // device px per edge

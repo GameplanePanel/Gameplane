@@ -43,6 +43,7 @@ on:
       - "**/Dockerfile"
       - "**/Dockerfile.*"
       - ".github/workflows/publish-edge.yaml"
+      - ".github/actions/install-trivy/**"
       - "hack/ci_scope.py"
       - ".dockerignore"
       - "signing/cosign.pub"
@@ -149,9 +150,7 @@ jobs:
       # Spec 013 G2: never sign an image that has a fixed HIGH/CRITICAL
       # vulnerability. Same flags as the `vuln (images)` CI gate.
       - name: install trivy
-        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
-        with:
-          version: v0.74.0
+        uses: ./.github/actions/install-trivy
       - name: scan pushed image
         env:
           IMAGE: ${{ steps.image.outputs.name }}

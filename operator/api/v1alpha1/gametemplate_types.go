@@ -89,6 +89,12 @@ type GameTemplateSpec struct {
 	// +optional
 	Ports []GamePort `json:"ports,omitempty"`
 
+	// SentinelIsolation restricts a wake sentinel to its own server's advertised
+	// ports. Templates opt in after module connectivity validation; absent or
+	// false retains the legacy namespace-wide sentinel allowances.
+	// +optional
+	SentinelIsolation bool `json:"sentinelIsolation,omitempty"`
+
 	// Storage describes the default persistent storage layout.
 	// +optional
 	Storage GameStorageSpec `json:"storage,omitempty"`
@@ -735,6 +741,28 @@ type StatusMetricSpec struct {
 	// Unit is an optional suffix shown after the value (e.g. "ms", "TPS").
 	// +optional
 	Unit string `json:"unit,omitempty"`
+
+	// Performance opts this existing readout into cached numeric monitoring.
+	// Display-only strings are never inferred to be performance measurements.
+	// +optional
+	Performance *PerformanceMetricSpec `json:"performance,omitempty"`
+}
+
+// PerformanceMetricSpec gives a status readout explicit numeric semantics.
+// Rate signals use per_second; duration accepts seconds or milliseconds.
+// +kubebuilder:validation:XValidation:rule="self.signal == 'tick_duration' ? self.unit in ['seconds', 'milliseconds'] : self.unit == 'per_second'",message="duration requires seconds/milliseconds; rates require per_second"
+type PerformanceMetricSpec struct {
+	// +kubebuilder:validation:Enum=tick_rate;tick_duration;frame_rate
+	Signal string `json:"signal"`
+	// +kubebuilder:validation:Enum=per_second;seconds;milliseconds
+	Unit string `json:"unit"`
+	// DegradedThreshold is a finite nonnegative decimal string in the input
+	// unit. Rates below it, or durations above it, are degraded. Omit to
+	// disable alerts. A string keeps JSON/schema handling portable.
+	// +kubebuilder:validation:Pattern=`^(0|[1-9][0-9]{0,8})(\.[0-9]{1,6})?$`
+	// +kubebuilder:validation:MaxLength=16
+	// +optional
+	DegradedThreshold *string `json:"degradedThreshold,omitempty"`
 }
 
 // PlayerActionsSpec maps moderation actions to console commands. Each
@@ -946,6 +974,14 @@ type GameStorageSpec struct {
 // primary Storage.MountPath, since these exist precisely for directories
 // that share no safe common parent with it.
 type ExtraVolumeSpec struct {
+	// BackupRole describes recovery requirements without adding this volume
+	// to a backup. "data" needs a separate copy; "rebuildable" may be recreated.
+	// Unset remains unclassified and not covered. Both backup strategies still
+	// capture only the primary data claim.
+	// +kubebuilder:validation:Enum=data;rebuildable
+	// +optional
+	BackupRole string `json:"backupRole,omitempty"`
+
 	// Name identifies the volume and forms part of its PVC name. Must be a
 	// DNS-1123 label.
 	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`

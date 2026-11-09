@@ -7,7 +7,7 @@ metadata:
     {{- include "gameplane.labels" . | nindent 4 }}
     {{- if .Values.podSecurity.enforceRestricted }}
     pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/enforce-version: {{ .Values.podSecurity.version | default "v1.34" | quote }}
     {{- end }}
   annotations:
     # F-212: exclude the games Namespace from Helm's ownership so

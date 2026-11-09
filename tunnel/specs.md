@@ -10,6 +10,8 @@ Relay client supervisor that configures and supervises frp/playit child processe
 
 ## Responsibilities
 
+- Expose cached provider evidence as bounded Prometheus gauges on `/metrics` at the existing health port 8091, including known/unknown connection, confirmed forwards/assignment and observation timestamp. Scraping never queries the provider; unknown or stale connection evidence has no `connected` value. Tailscale uses the same snapshot for readiness and metrics. See `docs/monitoring.md`.
+
 1. Parse environment variables to determine the tunnel provider (frp, tailscale, or playit), backing service address, and provider-specific config.
 2. Read provider-specific credentials from the mounted Secret at `/etc/gameplane/tunnel-auth` (read-only).
 3. Render frp TOML or playit credentials at fixed paths, with secrets excluded from argv.
@@ -298,6 +300,14 @@ readiness so a late response cannot resurrect the exited child. Queries have a
 two-second deadline and two-second cadence. Observations expire after ten
 seconds. All health responses use closed-set state; raw provider errors and
 credentials are not exposed.
+
+Tailscale reports observed failures as unavailable. While no forwarding attempt
+is serving, including retry backoff and replacement registration, the supervisor
+retains that known unavailable state without a provider-observation timestamp.
+This local lifecycle fact does not expire. Once forwarding is established, fresh
+provider observations replace it and retain the ten-second staleness limit.
+The served health handler and metrics are checked after a real listener failure,
+during a blocked replacement join, and after recovery in the regression source.
 
 frpc's authenticated loopback API `/api/status` on 127.0.0.1:7400 must confirm
 every configured proxy is running without error, with the expected protocol.
