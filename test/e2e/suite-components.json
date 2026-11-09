@@ -16,6 +16,7 @@
     "test/e2e/suite-components.json"
   ],
   "suites": [
+    { "tests": "^TestGameServer_HostportWakeStableEndpoint$", "components": ["operator", "api", "agent", "sentinel", "gameproto"] },
     { "tests": "^(TestPanel_OfflineRecovery|TestAPIClient_DoContextResponseBody|TestAPIClient_ExtractIntField)$", "components": ["operator", "api", "agent"],
       "paths": ["test/e2e/testdata/recovery/"] },
 

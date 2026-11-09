@@ -22,8 +22,8 @@ func TestI18nStampCommand(t *testing.T) {
 	if got := i18nCommand([]string{"stamp", dir}, &out, &errb); got != 0 || !strings.Contains(out.String(), "stamped") {
 		t.Fatalf("exit = %d out=%q err=%q", got, out.String(), errb.String())
 	}
-	if data, _ := os.ReadFile(fr); !strings.Contains(string(data), "sourceHash") {
-		t.Errorf("fr.json = %s", data)
+	if data, _ := os.ReadFile(filepath.Join(dir, "locales", ".review.json")); !strings.Contains(string(data), "template.displayName") {
+		t.Errorf(".review.json = %s", data)
 	}
 	out.Reset()
 	if got := i18nCommand([]string{"stamp", dir}, &out, &errb); got != 0 || !strings.Contains(out.String(), "nothing to stamp") {
