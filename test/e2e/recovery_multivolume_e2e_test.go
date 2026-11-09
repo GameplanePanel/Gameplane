@@ -29,7 +29,11 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 	backup := gs + "-backup"
 	ensureResticRepo(t)
 	applyBusyboxTemplate(t, tmpl)
+	// Kind's hostPath provisioner does not apply fsGroup ownership. Run the
+	// fixture as the existing Restic worker UID so overwriting existing files
+	// exercises recovery rather than unsupported root-owned file permissions.
 	patch := map[string]any{"spec": map[string]any{
+		"security":     map[string]any{"runAsUser": int64(65532), "runAsGroup": int64(65532), "fsGroup": int64(65532)},
 		"storage":      map[string]any{"size": "1Gi", "mountPath": "/data", "extra": []any{map[string]any{"name": "world", "mountPath": "/world", "size": "1Gi", "backupRole": "data"}, map[string]any{"name": "cache", "mountPath": "/rebuild", "size": "1Gi", "backupRole": "rebuildable"}}},
 		"versions":     []any{map[string]any{"id": "v1", "displayName": "Test loader", "image": "busybox:1.36", "loader": "paper", "default": true}},
 		"capabilities": map[string]any{"mods": map[string]any{"loaders": map[string]any{"paper": map[string]any{"path": "mods"}}}},
@@ -61,7 +65,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 		}
 	}
 	ready(gs)
-	exec("echo primary-before > /data/marker; echo extra-before > /world/marker; echo mods-before > /data/mods/marker; echo cache-before > /rebuild/marker; sync")
+	exec("test $(id -u) = 65532; test $(id -g) = 65532; echo primary-before > /data/marker; echo extra-before > /world/marker; echo mods-before > /data/mods/marker; echo cache-before > /rebuild/marker; sync")
 	capture := func(name string) {
 		t.Helper()
 		obj := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "gameplane.local/v1alpha1", "kind": "Backup", "metadata": map[string]any{"name": name, "namespace": ns}, "spec": map[string]any{"serverRef": map[string]any{"name": gs}, "repoRef": map[string]any{"name": "e2e-restic-creds", "key": "repo"}, "quiesce": false, "powerPolicy": "stop-copy-restart", "volumePolicy": "all-data"}}}
@@ -102,7 +106,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 	}
 	exec("echo changed > /data/marker; echo changed > /world/marker; echo changed > /data/mods/marker; echo cache-after > /rebuild/marker; touch /data/stale /world/stale /data/mods/stale; sync")
 	restore := gs + "-restore"
-	watchRecoveryRestoreWorkers(t, ctx, ns, restore)
+	watchRecoveryRestoreWorkers(ctx, t, ns, restore)
 	createRestoreContext(ctx, t, ns, restore, gs, backup)
 	waitRestoreSucceededContext(ctx, t, ns, restore, 6*time.Minute)
 	ready(gs)
@@ -127,7 +131,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			})
 			capture(gs + "-" + mode)
 			name := gs + "-restore-" + mode
-			watchRecoveryRestoreWorkers(t, ctx, ns, name)
+			watchRecoveryRestoreWorkers(ctx, t, ns, name)
 			createRestoreContext(ctx, t, ns, name, gs, backup)
 			waitRestoreSucceededContext(ctx, t, ns, name, 6*time.Minute)
 			envInstance.Eventually(t, time.Minute, func() (bool, string) {
@@ -171,7 +175,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			})
 			ready(target)
 			name := target + "-restore"
-			watchRecoveryRestoreWorkers(t, ctx, ns, name)
+			watchRecoveryRestoreWorkers(ctx, t, ns, name)
 			createRestoreContext(ctx, t, ns, name, target, backup)
 			envInstance.Eventually(t, time.Minute, func() (bool, string) {
 				rs, err := envInstance.Dyn.Resource(restoreGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
@@ -199,7 +203,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 // Start before creating the Restore so foreground cleanup cannot erase the
 // failed worker evidence. This fixture uses only its disposable test repository;
 // raw termination messages are deliberately confined to CI diagnostics.
-func watchRecoveryRestoreWorkers(t *testing.T, ctx context.Context, ns, restoreName string) {
+func watchRecoveryRestoreWorkers(ctx context.Context, t *testing.T, ns, restoreName string) {
 	t.Helper()
 	watchCtx, cancel := context.WithCancel(ctx)
 	workerWatch, err := envInstance.K8s.CoreV1().Pods(ns).Watch(watchCtx, metav1.ListOptions{LabelSelector: "job-name=restore-" + restoreName})

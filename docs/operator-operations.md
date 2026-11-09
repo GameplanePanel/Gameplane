@@ -74,6 +74,19 @@ uses the lifecycle guard to stop without changing user suspend intent. Success
 releases the guard and preserves current suspend/idle/restart intent; failed or
 cancelled writes leave the target suspended for inspection.
 
+Restic backup and restore workers run as UID 65532, with the template's
+`security.fsGroup` (65532 by default). Source files must be readable by that
+identity; restore requires writable existing files and writable/searchable
+parent directories on every included claim. A successful backup does not prove
+that an in-place restore can overwrite existing files. Configure ownership,
+group permissions or ACLs for the worker before recovery. `fsGroup` relies on the
+storage driver applying ownership; hostPath-based provisioners may not do so.
+For example, a root-owned mode-0644 file remains unwritable to this worker even
+when its parent directory is writable. Game containers may use other UIDs when
+their storage permissions provide the required access. Permission failures are
+reported as failed restores and leave the target suspended; recovery does not
+elevate worker privileges or bypass filesystem permissions.
+
 Legacy primary-only snapshots retain `/data` restore semantics. Missing historical
 metadata or `LegacyUnknown` never receives fabricated coverage. All-data archives
 cannot downgrade into that legacy path. Inspect original module/server settings

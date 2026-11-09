@@ -10,3 +10,5 @@
 CI acceptance includes running/suspended/idle backup, stop/copy failure, cancellation and owner loss, claim replacement, changed paths, missing required extras, rebuildable exclusion, malicious roots, legacy and CSI compatibility; Kind round-trip covers primary + extra + separate mod volume.
 
 Restic v2 restore selects `<snapshot>:/volumes` with target `/volumes`; each validated root `/volumes/<logical-name>` receives the subtree-relative include `/<logical-name>`. This preserves the exact mounted PVC paths and scoped deletion while preventing restoration of archived ancestor metadata onto the container's read-only `/volumes` directory. The snapshot and persisted manifest retain their original absolute roots.
+
+Recovery retains the existing non-root Restic worker identity (UID 65532 with the template fsGroup). Included data must grant it backup read access and restore write access to existing files and parent directories. Storage-driver ownership behavior is a deployment prerequisite; manifest identity validation does not establish filesystem permissions. Failed permission checks during copying keep the target suspended and never trigger privilege escalation.
