@@ -33,7 +33,7 @@ describe("NodeInventory", () => {
     renderWithQuery(<NodeInventory clusterId="west" onClusterChange={() => {}} />);
     await screen.findByText("same");
     expect(requests).toContain("west");
-    await userEvent.click(screen.getByRole("button", { name: "Filter by cluster" }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
     expect(await screen.findByRole("option", { name: "east" })).toBeInTheDocument();
   });
   it("combines search and status filters and sorts the table", async () => {
@@ -45,7 +45,7 @@ describe("NodeInventory", () => {
     expect(within(screen.getAllByRole("row")[1]).getByText("West")).toBeInTheDocument();
     await userEvent.type(screen.getByRole("textbox", { name: "Search nodes" }), "east");
     expect(screen.getAllByText("same")).toHaveLength(1);
-    await userEvent.click(screen.getByRole("button", { name: "Filter by status" }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by status/ }));
     await userEvent.click(await screen.findByRole("option", { name: "Not ready" }));
     expect(await screen.findByText("No nodes match these filters.")).toBeInTheDocument();
   });
@@ -63,7 +63,7 @@ describe("NodeInventory", () => {
     const row = screen.getAllByRole("row")[1];
     expect(within(row).getByText("0%")).toBeInTheDocument();
     expect(within(row).getAllByText("—").length).toBeGreaterThanOrEqual(2);
-    expect(screen.queryByRole("button", { name: "Filter by cluster" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
   });
   it("does not paint a late local response over explicitly selected remote inventory", async () => {
     let release: () => void = () => {};

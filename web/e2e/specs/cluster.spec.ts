@@ -36,7 +36,7 @@ test.describe("nodes and cluster configuration", () => {
     await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
     await expect(page.getByText("Ready nodes", { exact: true })).toBeVisible();
     await expect(page.getByText("Reporting clusters", { exact: true })).toBeVisible();
-    await expect(page.getByRole("table", { name: "Node inventory" })).toBeVisible();
+    await expect(page.getByRole("grid", { name: "Node inventory" })).toBeVisible();
   });
 
   test("keeps enrollment in Nodes and kubeconfig in the owning cluster configuration", async ({ page }) => {
@@ -55,6 +55,6 @@ test.describe("nodes and cluster configuration", () => {
     await expect(nodes).toHaveAttribute("href", "/nodes");
     await nodes.click();
     await expect(page).toHaveURL(/\/nodes$/);
-    await expect(page.getByRole("button", { name: "Filter by cluster" })).toContainText("All clusters");
+    await expect(page.getByRole("button", { name: /Filter by cluster/ })).toContainText("All clusters");
   });
 });

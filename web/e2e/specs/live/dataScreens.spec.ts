@@ -55,7 +55,7 @@ test.describe("live: data screens render real backend data", () => {
     await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
     await expect(page.getByText("Ready nodes", { exact: true })).toBeVisible();
     // The kind cluster always returns at least its control-plane node.
-    const table = page.getByRole("table", { name: "Node inventory" });
+    const table = page.getByRole("grid", { name: "Node inventory" });
     await expect(table).toBeVisible();
     await expect.poll(() => table.getByRole("row").count()).toBeGreaterThan(1);
   });

@@ -16,7 +16,7 @@ describe("NodeEnrollment", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Add node" })).toBeEnabled());
     await userEvent.click(screen.getByRole("button", { name: "Add node" }));
     expect(join).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole("button", { name: "Enrollment cluster" }));
+    await userEvent.click(screen.getByRole("button", { name: /Enrollment cluster/ }));
     await userEvent.click(await screen.findByRole("option", { name: "local" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Generate join command" })).toBeEnabled());
     await userEvent.click(screen.getByRole("button", { name: "Generate join command" }));

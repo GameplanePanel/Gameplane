@@ -10,7 +10,7 @@ async function expectInventoryFits(page: Page, nodeName: string) {
   for (const control of [
     heading,
     main.getByRole("button", { name: /Add node/i }),
-    main.getByRole("button", { name: "Filter by cluster", exact: true }),
+    main.getByRole("button", { name: /Filter by cluster/ }),
   ]) {
     const bounds = await control.boundingBox();
     expect(bounds).not.toBeNull();
@@ -98,12 +98,12 @@ test.describe("multicluster administration", () => {
       await expect(page.getByRole("heading", { name: "Remote demo", exact: true })).toBeVisible();
       await page.getByRole("button", { name: "View nodes in Remote demo", exact: true }).click();
       await expect(page).toHaveURL(/\/nodes\?cluster=remote-demo$/);
-      await expect(page.getByRole("main").getByRole("button", { name: "Filter by cluster", exact: true })).toBeVisible();
+      await expect(page.getByRole("main").getByRole("button", { name: /Filter by cluster/ })).toBeVisible();
       await expect(page.getByText(remoteNode, { exact: true })).toBeVisible();
       await expect(page.getByText(localNode, { exact: true })).toHaveCount(0);
       await expect(page.getByRole("button", { name: /Add node/i })).toBeDisabled();
       await expectInventoryFits(page, remoteNode);
-      await page.getByRole("button", { name: "Filter by cluster", exact: true }).click();
+      await page.getByRole("button", { name: /Filter by cluster/ }).click();
       await page.getByRole("option", { name: "local", exact: true }).click();
       await expect(page).toHaveURL(/\/nodes\?cluster=local$/);
       await expect(page.getByText(localNode, { exact: true })).toBeVisible();
