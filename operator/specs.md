@@ -123,7 +123,10 @@ while removing only the operator's stop gate/annotation; they cannot block a
 requested scale-down. The live Node
 identity is checked again immediately before workload mutation, including
 backup replica preservation and restore startup; existing container and scheduling
-settings are otherwise retained. The sentinel Deployment also rechecks the live GameServer endpoint
+settings are otherwise retained. Normal StatefulSet rendering rejects planned
+exposure mode, endpoint node name or Node UID that differ from the fresh GameServer
+snapshot, so affinity cannot use an endpoint different from the one checked. The stop-only
+identity-loss path retains priority over this retry. The sentinel Deployment also rechecks the live GameServer endpoint
 and Node UID before mutation; a stale sleep plan cannot start a listener on a
 replacement node. A transient NotReady condition on the same Node UID preserves an
 existing running game or sleeping sentinel. Sentinel planning requires a running,

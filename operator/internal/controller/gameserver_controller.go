@@ -1596,6 +1596,14 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				actualReplicas, replicas = 0, 0
 			}
 		}
+		// The endpoint checked above must be the one used to render affinity.
+		// Keep the stop-only path first so changed inputs cannot prevent a
+		// required identity-loss stop or its fenced graceful-stop sequence.
+		if live.Spec.Networking.Expose != gs.Spec.Networking.Expose ||
+			live.Annotations[hostportNodeAnnotation] != gs.Annotations[hostportNodeAnnotation] ||
+			live.Annotations[hostportNodeUIDAnnotation] != gs.Annotations[hostportNodeUIDAnnotation] {
+			return fmt.Errorf("hostport endpoint changed before StatefulSet mutation")
+		}
 		clearHostportStopFence(ss)
 		op, held, err := lifecycleOwner(&live)
 		if err != nil {
