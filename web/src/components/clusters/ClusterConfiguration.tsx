@@ -17,6 +17,8 @@ import { LoadingCard } from "@/components/ui/LoadingCard";
 import { BackupDestinationsPanel } from "./BackupDestinationsPanel";
 import { ClusterSection } from "./ClusterSection";
 
+const CLUSTER_OPS_KEY = "clusterOps.enabled";
+
 export function ClusterConfiguration({ cluster }: { cluster: ClusterRegistry }) {
   return <ConfigurationTarget key={cluster.name} cluster={cluster} />;
 }
@@ -81,7 +83,7 @@ function ConfigurationTarget({ cluster }: { cluster: ClusterRegistry }) {
       <Button variant="outline" isDisabled={opsDisabled || download.isPending} onPress={() => download.mutate()}><Download className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.cluster.download_kubeconfig", defaultMessage: "Download kubeconfig", description: "Cluster: button that downloads the cluster's kubeconfig file; keep it short; kubeconfig is a technical term, usually left untranslated" })}</Button>
       {!isLocal ? <p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.remote_access", defaultMessage: "Kubeconfig downloads and install-time storage settings are managed at this remote cluster.", description: "Cluster configuration: unsupported remote access and storage guidance" })}</p>
         : !canManage ? <p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.access_permission", defaultMessage: "Cluster management permission is required to download a kubeconfig.", description: "Cluster access permission hint" })}</p>
-          : info.data?.clusterOps === false && <p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.enable_ops", defaultMessage: "Enable {setting} in the Helm values to download kubeconfigs.", description: "Disabled local kubeconfig capability hint" }, { setting: <code>clusterOps.enabled</code> })}</p>}
+          : info.data?.clusterOps === false && <p className="text-sm text-muted">{intl.formatMessage({ id: "web.cluster_configuration.enable_ops", defaultMessage: "Enable {setting} in the Helm values to download kubeconfigs.", description: "Disabled local kubeconfig capability hint" }, { setting: <code>{CLUSTER_OPS_KEY}</code> })}</p>}
       {download.error && <p role="alert" className="text-sm text-danger">{errorText}</p>}
     </ClusterSection>
     {canReadConfig && config.isPending && <LoadingCard message={intl.formatMessage({ id: "web.cluster_configuration.loading_storage", defaultMessage: "Loading storage settings…", description: "Cluster storage loading state" })} />}

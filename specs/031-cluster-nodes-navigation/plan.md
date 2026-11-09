@@ -74,6 +74,6 @@ Files: `web/src/router/tree.tsx`, `web/src/components/AppLayout.tsx`, `web/src/c
 - [x] Replace cluster-related Location labels, using Cluster / namespace for combined placement choices; retain non-cluster uses.
 - [x] Regenerate English catalog with existing extraction workflow; update relevant docs and tests.
 - [x] Compile/build, obtain independent diff review and fix material findings.
-- [ ] Signed commit and verify signature; push feature branch to personal fork; inspect applicable CI.
-- [ ] Run branch demo in Docker with coherent multi-cluster fixtures and inspect desktop/mobile Nodes, filters, details/configuration and navigation in browser.
+- [x] Signed commit and verify signature; push feature branch to personal fork; inspect applicable CI.
+- [x] Run branch demo in Docker with coherent multi-cluster fixtures and inspect desktop/mobile Nodes, filters, details/configuration and navigation in browser.
 - [ ] Deliver branch URL, local URL, verification results and remaining limitations.

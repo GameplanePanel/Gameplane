@@ -92,8 +92,8 @@ describe("NodeInventory", () => {
     expect(screen.getByText("master, control-plane")).toBeInTheDocument();
     expect(screen.getByText("zone=north")).toBeInTheDocument();
     expect(screen.getByText("45d 3h 22m")).toBeInTheDocument();
-    expect(screen.getByText("Not ready")).toBeInTheDocument();
-    expect(screen.getByText("Unknown")).toBeInTheDocument();
+    expect(within(screen.getByRole("row", { name: /worker-1/ })).getByText("Not ready")).toBeInTheDocument();
+    expect(within(screen.getByRole("row", { name: /unknown-node/ })).getByText("Unknown")).toBeInTheDocument();
     expect(screen.getAllByRole("row")).toHaveLength(4);
   });
   it("reports complete emptiness separately from errors and retries inventory loading", async () => {

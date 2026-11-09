@@ -17,3 +17,7 @@
 - Local compile passed: Go auth/handlers, TypeScript project and E2E sources. Production frontend build passed using valid language packs (existing Vite chunk-size warning). No test/lint suites run locally.
 - English catalog regenerated; 72 obsolete/stale French entries removed for documented fallback; remaining 2,592 translations retain review state (93.54% coverage).
 - Branch demo gameplane-ui-cluster-nodes runs at localhost:5174. Desktop 1440px and mobile 375px Nodes inspected; multi-cluster fixtures return two independent rows. Configuration interaction and CI follow-up pending.
+
+- Signed design and implementation commits verified and pushed to personal fork. Full CI dispatched (42651832916). CI found three untranslated JSX literals; fixed with Intl messages and a machine-setting constant. Hidden Select-option status assertions scoped to their node rows.
+- Desktop/mobile interactive inspection completed: all nodes and exact remote filter, directory details, active-tab breadcrumbs, remote disabled/local enabled access, scoped Nodes tab, and all-cluster sidebar return. No browser console errors observed. Demo server sends the existing multi-cluster fixture cookie for predictable initial review.
+- A draft PR in the personal fork will run normal changed-path CI for follow-up commits; no merge or upstream PR.

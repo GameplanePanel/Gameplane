@@ -4559,6 +4559,10 @@
     "defaultMessage": "Node inventory for {cluster}.",
     "description": "Nodes inventory description fixed to one cluster"
   },
+  "web.nodes.cluster_identity": {
+    "defaultMessage": "{name} · {id}",
+    "description": "Nodes: mobile row cluster identity when its display name differs from its registration ID; {name} is the display name and {id} is the registration ID"
+  },
   "web.nodes.cores": {
     "defaultMessage": "{used} / {capacity} cores",
     "description": "Nodes: measured CPU usage and total core capacity"
@@ -4710,6 +4714,10 @@
   "web.nodes.of_capacity": {
     "defaultMessage": "of {capacity}",
     "description": "Nodes: capacity shown when usage is unreported"
+  },
+  "web.nodes.partial_count": {
+    "defaultMessage": "{count, plural, one {# node} other {# nodes}} · Returned nodes only",
+    "description": "Nodes: footer count when inventory coverage is partial; {count} is the number of matching nodes returned, not the complete fleet count"
   },
   "web.nodes.percent": {
     "defaultMessage": "{value}%",

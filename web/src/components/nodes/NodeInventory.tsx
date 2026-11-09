@@ -26,6 +26,7 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
   uptime: { id: "web.nodes.uptime", defaultMessage: "Uptime", description: "Nodes: uptime column label" },
   node: { id: "web.nodes.node", defaultMessage: "Node", description: "Nodes: node identity column label" },
   cluster: { id: "web.nodes.cluster", defaultMessage: "Cluster", description: "Nodes: cluster identity column label" },
+  clusterIdentity: { id: "web.nodes.cluster_identity", defaultMessage: "{name} · {id}", description: "Nodes: mobile row cluster identity when its display name differs from its registration ID; {name} is the display name and {id} is the registration ID" },
   status: { id: "web.nodes.status", defaultMessage: "Status", description: "Nodes: status column label" },
   visible: { id: "web.nodes.visible", defaultMessage: "Matching nodes", description: "Nodes: scope of the filtered summary" },
   returned: { id: "web.nodes.returned", defaultMessage: "Returned nodes only", description: "Nodes: incomplete coverage summary qualifier" },
@@ -59,6 +60,7 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
   percent: { id: "web.nodes.percent", defaultMessage: "{value}%", description: "Nodes: resource usage percentage" },
   readyCount: { id: "web.nodes.ready_count", defaultMessage: "{ready} / {total}", description: "Nodes: ready count out of visible returned nodes" },
   count: { id: "web.nodes.count", defaultMessage: "{count, plural, one {# node} other {# nodes}}", description: "Nodes: count of visible returned rows" },
+  partialCount: { id: "web.nodes.partial_count", defaultMessage: "{count, plural, one {# node} other {# nodes}} · Returned nodes only", description: "Nodes: footer count when inventory coverage is partial; {count} is the number of matching nodes returned, not the complete fleet count" },
   missingInventory: { id: "web.nodes.missing_inventory", defaultMessage: "Node inventory was not reported.", description: "Nodes: a returned cluster omitted its node inventory" },
 });
 
@@ -116,7 +118,7 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
         {!visible.length && <Card className="p-8 text-center text-sm text-muted">{intl.formatMessage(empty)}</Card>}
         {visible.map((row) => <Card key={row.key} role="listitem" className="min-w-0 space-y-3 p-4">
           <div className="flex min-w-0 items-start justify-between gap-2"><NodeIdentity row={row} /><NodeStatus row={row} /></div>
-          <p className="break-all text-xs text-muted">{row.clusterName}{row.clusterName !== row.cluster ? ` · ${row.cluster}` : ""}</p>
+          <p className="break-all text-xs text-muted">{row.clusterName !== row.cluster ? intl.formatMessage(messages.clusterIdentity, { name: row.clusterName, id: row.cluster }) : row.clusterName}</p>
           <div className="grid grid-cols-2 gap-4"><NodeMetric row={row} kind="cpu" /><NodeMetric row={row} kind="memory" /></div>
           <div className="flex justify-between gap-3 text-xs"><span>{intl.formatMessage(messages.pods)} <NodePods row={row} /></span><span>{intl.formatMessage(messages.uptime)} {nodeUptime(row, intl)}</span></div>
         </Card>)}
@@ -139,7 +141,7 @@ export function NodeInventory({ clusterId = "", onClusterChange, embedded = fals
         </Table.Body>
       </Table.Content></Table.ScrollContainer></Table.Root>
     </div>}
-    <p className="text-xs text-muted">{unknownCounts ? intl.formatMessage(messages.unavailable) : intl.formatMessage(messages.count, { count: visible.length })}{partial && !unknownCounts ? ` · ${intl.formatMessage(messages.returned)}` : ""}</p>
+    <p className="text-xs text-muted">{unknownCounts ? intl.formatMessage(messages.unavailable) : intl.formatMessage(partial ? messages.partialCount : messages.count, { count: visible.length })}</p>
   </div>;
 }
 
