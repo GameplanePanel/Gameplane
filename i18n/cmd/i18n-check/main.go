@@ -336,12 +336,13 @@ func checkModuleDrift(ref, derived map[string]pack.Entry, file string) []pack.Fi
 
 // translation is one non-reference app pack under the locales directory.
 type translation struct {
-	tag     string
-	dir     string
-	entries map[string]pack.Entry
-	meta    pack.Meta
-	metaOK  bool
-	inline  bool // app.json still carries sourceHash keys
+	tag       string
+	dir       string
+	entries   map[string]pack.Entry
+	meta      pack.Meta
+	metaOK    bool
+	inline    bool // app.json still carries sourceHash keys
+	reviewBad bool // .review.json did not parse; --stamp leaves this pack alone
 }
 
 // loadTranslations validates every other directory that has an app.json.
@@ -390,7 +391,7 @@ func loadTranslations(dir, reference string, ref map[string]pack.Entry) ([]trans
 			entries = pack.ApplyReview(entries, hashes)
 		}
 		findings = append(findings, pack.ValidateTranslation(ref, entries, file)...)
-		out = append(out, translation{tag: tag, dir: packDir, entries: entries, meta: meta, metaOK: metaOK, inline: inline})
+		out = append(out, translation{tag: tag, dir: packDir, entries: entries, meta: meta, metaOK: metaOK, inline: inline, reviewBad: len(reviewFindings) > 0})
 	}
 	return out, findings, nil
 }
@@ -437,16 +438,29 @@ func loadReview(packDir, tag string) (map[string]string, []pack.Finding, error) 
 
 // stampTranslations records the English source hash of every translated entry
 // that lacks one in <tag>/.review.json, and moves any inline sourceHash there
-// from app.json. It rewrites only the files it changed.
+// from app.json. It rewrites only the files it changed. A pack whose review
+// file does not parse is left alone, so its recorded hashes can be recovered.
+// The review file is written before app.json loses its inline hashes, so a
+// failed write never drops a hash.
 func stampTranslations(ref map[string]pack.Entry, trs []translation) error {
 	for i := range trs {
 		tr := &trs[i]
+		if tr.reviewBad {
+			continue
+		}
 		stamped, changed := pack.Stamp(ref, tr.entries)
 		if !changed && !tr.inline {
 			continue
 		}
 		tr.entries = stamped
 		stripped, hashes := pack.SplitReview(stamped)
+		data, err := pack.MarshalReview(hashes)
+		if err != nil {
+			return fmt.Errorf("stamp %s: %w", tr.tag, err)
+		}
+		if err := writeInDir(tr.dir, pack.ReviewFile, data); err != nil {
+			return fmt.Errorf("write stamped %s/%s: %w", tr.tag, pack.ReviewFile, err)
+		}
 		if tr.inline {
 			// Move the hashes out of app.json, which Weblate rewrites.
 			data, err := pack.Marshal(stripped)
@@ -457,13 +471,6 @@ func stampTranslations(ref map[string]pack.Entry, trs []translation) error {
 				return fmt.Errorf("write stamped %s/app.json: %w", tr.tag, err)
 			}
 			tr.inline = false
-		}
-		data, err := pack.MarshalReview(hashes)
-		if err != nil {
-			return fmt.Errorf("stamp %s: %w", tr.tag, err)
-		}
-		if err := writeInDir(tr.dir, pack.ReviewFile, data); err != nil {
-			return fmt.Errorf("write stamped %s/%s: %w", tr.tag, pack.ReviewFile, err)
 		}
 	}
 	return nil

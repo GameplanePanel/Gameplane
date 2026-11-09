@@ -1,6 +1,8 @@
 package i18n
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,5 +97,39 @@ func TestStampMalformedReviewIsError(t *testing.T) {
 	_, err := Stamp(dir)
 	if err == nil || !strings.Contains(err.Error(), pack.ReviewFile) {
 		t.Fatalf("Stamp error = %v; want one naming %s", err, pack.ReviewFile)
+	}
+}
+
+// TestStampWritesNothingWhenALocaleIsMalformed checks that a malformed locale
+// stops Stamp before any locale file loses its inline hashes.
+func TestStampWritesNothingWhenALocaleIsMalformed(t *testing.T) {
+	t.Parallel()
+	dir := writeModule(t, testModule, testTemplate)
+	locales := filepath.Join(dir, "locales")
+	if err := os.MkdirAll(locales, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(locales, "en.json"), []byte(`{}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	de := `{"template.displayName":{"defaultMessage":"Spiel","sourceHash":"000000000000"}}`
+	if err := os.WriteFile(filepath.Join(locales, "de.json"), []byte(de), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(locales, "fr.json"), []byte(`{`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Stamp(dir); err == nil {
+		t.Fatal("Stamp succeeded with a malformed fr.json")
+	}
+	got, err := os.ReadFile(filepath.Join(locales, "de.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != de {
+		t.Errorf("de.json = %q; want it unchanged", got)
+	}
+	if _, err := os.Stat(filepath.Join(locales, pack.ReviewFile)); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("review file exists or stat failed: %v", err)
 	}
 }

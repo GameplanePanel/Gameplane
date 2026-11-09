@@ -17,8 +17,9 @@ import (
 // in locales/.review.json, keyed by tag, because translation platforms rewrite
 // the translation files and drop unknown keys; a sourceHash still inside a
 // <tag>.json is read and moved there. The English reference en.json is left
-// alone. It returns the files it rewrote, sorted. A file that does not parse is
-// an error and nothing after it is touched.
+// alone. It returns the files it rewrote, sorted. Nothing is written until
+// every locale parses, and the review file is written before any locale file
+// loses its inline hashes, so a failure never drops a hash.
 func Stamp(dir string) ([]string, error) {
 	ref, err := reference(dir)
 	if err != nil {
@@ -36,7 +37,11 @@ func Stamp(dir string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var stamped []string
+	type pending struct {
+		name string
+		data []byte
+	}
+	var writes []pending
 	reviewChanged := false
 	for _, e := range entries {
 		name := e.Name()
@@ -48,16 +53,16 @@ func Stamp(dir string) ([]string, error) {
 			continue
 		}
 		if !pack.ValidTag(tag) {
-			return stamped, fmt.Errorf("locales/%s: %q is not a valid language tag", name, tag)
+			return nil, fmt.Errorf("locales/%s: %q is not a valid language tag", name, tag)
 		}
 		path := filepath.Join(localesDir, name)
 		data, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
-			return stamped, fmt.Errorf("read locales/%s: %w", name, err)
+			return nil, fmt.Errorf("read locales/%s: %w", name, err)
 		}
 		tr, err := pack.ParseEntries(data)
 		if err != nil {
-			return stamped, fmt.Errorf("locales/%s: %w", name, err)
+			return nil, fmt.Errorf("locales/%s: %w", name, err)
 		}
 		inline := pack.HasInlineHashes(tr)
 		tr = pack.ApplyReview(tr, review[tag])
@@ -75,13 +80,11 @@ func Stamp(dir string) ([]string, error) {
 		// platforms rewrite.
 		encoded, err := pack.Marshal(stripped)
 		if err != nil {
-			return stamped, fmt.Errorf("encode locales/%s: %w", name, err)
+			return nil, fmt.Errorf("encode locales/%s: %w", name, err)
 		}
-		if err := writeInDir(localesDir, name, encoded); err != nil {
-			return stamped, fmt.Errorf("write locales/%s: %w", name, err)
-		}
-		stamped = append(stamped, path)
+		writes = append(writes, pending{name: name, data: encoded})
 	}
+	var stamped []string
 	if reviewChanged {
 		encoded, err := pack.MarshalModuleReview(review)
 		if err != nil {
@@ -91,6 +94,12 @@ func Stamp(dir string) ([]string, error) {
 			return stamped, fmt.Errorf("write locales/%s: %w", pack.ReviewFile, err)
 		}
 		stamped = append(stamped, filepath.Join(localesDir, pack.ReviewFile))
+	}
+	for _, w := range writes {
+		if err := writeInDir(localesDir, w.name, w.data); err != nil {
+			return stamped, fmt.Errorf("write locales/%s: %w", w.name, err)
+		}
+		stamped = append(stamped, filepath.Join(localesDir, w.name))
 	}
 	sort.Strings(stamped)
 	return stamped, nil

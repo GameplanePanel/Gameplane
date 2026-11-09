@@ -99,3 +99,24 @@ func TestModuleMalformedReviewReported(t *testing.T) {
 		t.Fatalf("exit = %d; want 1 with malformed-pack for %s: %s", code, pack.ReviewFile, out)
 	}
 }
+
+// TestStampKeepsMalformedReviewFile checks that --stamp leaves a pack with a
+// malformed review file untouched.
+func TestStampKeepsMalformedReviewFile(t *testing.T) {
+	root := t.TempDir()
+	inline := `{"a":{"defaultMessage":"Afr","sourceHash":"` + pack.SourceHash("A") + `"}}`
+	writeTree(t, root, map[string]string{
+		"en/app.json":  `{"a":{"defaultMessage":"A","description":"d"}}`,
+		"fr/app.json":  inline,
+		"fr/meta.json": metaJSON("fr", "ltr"),
+	})
+	writeTree(t, root, map[string]string{"fr/" + pack.ReviewFile: `[`})
+	var stdout, stderr bytes.Buffer
+	_ = run([]string{"--stamp", root}, &stdout, &stderr)
+	if got := readFile(t, filepath.Join(root, "fr", pack.ReviewFile)); got != `[` {
+		t.Errorf("fr/%s = %q; want the malformed file kept", pack.ReviewFile, got)
+	}
+	if got := readFile(t, filepath.Join(root, "fr", "app.json")); got != inline {
+		t.Errorf("fr/app.json = %q; want it unchanged", got)
+	}
+}
