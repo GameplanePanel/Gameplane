@@ -804,3 +804,18 @@ CI run: `make cover` generates merged profile (unit + envtest), `make cover-ratc
 - **CRD YAML:** `operator/config/crd/gameplane.local_*.yaml` (generated from types).
 - **RBAC YAML:** `operator/config/rbac/*.yaml` (generated, defines operator ServiceAccount + permissions).
 - **Helm integration:** `charts/gameplane/charts/gameplane-crds/crds/` (native CRDs) + `charts/gameplane/crd-manifests/` and `charts/gameplane/templates/crd-apply-hook.yaml` (pre-upgrade CRD sync).
+
+## Stopped multi-volume recovery
+
+Backup/BackupSchedule powerPolicy defaults to preserve; stop-copy-restart uses
+durable lifecycle ownership and graceful stopping without spec.suspend mutation.
+volumePolicy defaults to primary-only; all-data Restic includes classified data
+extras and active separate mod claims, excluding rebuildable prerequisites.
+CSI rejects the opt-in policies. All-data manifests and restore plans pin logical
+roots, paths, claim UIDs and template/version provenance. Prepared restore workers
+receive Pod-bound authorization only after mounted claims and mapping revalidate.
+V2 restores stop through lifecycle guards and preserve current power intent on
+success. Failed/cancelled writes stay suspended. Orphan stopped backups recover
+autonomously through the GameServer owner; unknown provenance remains fenced.
+See [the recovery contract](../specs/032-stopped-multivolume-recovery/contracts/recovery.md)
+and [operator operations](../docs/operator-operations.md) for defaults and failures.

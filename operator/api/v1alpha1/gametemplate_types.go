@@ -974,10 +974,10 @@ type GameStorageSpec struct {
 // primary Storage.MountPath, since these exist precisely for directories
 // that share no safe common parent with it.
 type ExtraVolumeSpec struct {
-	// BackupRole describes recovery requirements without adding this volume
-	// to a backup. "data" needs a separate copy; "rebuildable" may be recreated.
-	// Unset remains unclassified and not covered. Both backup strategies still
-	// capture only the primary data claim.
+	// BackupRole declares recovery scope. all-data Restic backups include data
+	// extras and report rebuildable extras as excluded reconstruction prerequisites.
+	// Unset is unclassified and rejects all-data admission. Default primary-only
+	// backups and CSI snapshots still capture only the primary data claim.
 	// +kubebuilder:validation:Enum=data;rebuildable
 	// +optional
 	BackupRole string `json:"backupRole,omitempty"`

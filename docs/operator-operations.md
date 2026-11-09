@@ -2,38 +2,82 @@
 
 ## Backup consistency and volume coverage
 
-A successful copy is not necessarily a complete server recovery point.
-`status.conditions[type=Consistency]` reports the achieved result separately
-from `Completed`: Quiesced means the agent confirmed the module's quiesce
-commands before the completed copy; it does not prove those commands flush all
-application state. UnsupportedRawCopy, RawCopy and AgentUnavailableRawCopy
-describe restic copies without confirmed quiesce. CSI without confirmed
-quiesce reports CrashConsistentSnapshot. StoppedSource means the source was
-already stopped and its writers drained before capture; the backup did not stop
-it. Failed or unfinished copies, including completed Jobs still awaiting a
-snapshot ID, cannot report achieved quiesce or stopped-source consistency.
+A successful copy is not necessarily a complete recovery point. Defaults remain
+`powerPolicy: preserve` and `volumePolicy: primary-only`: only `<server>-data`
+is captured, using the existing quiesce behavior. Explicit opt-in is available on
+Backup, BackupSchedule and GameServer's inline backupPolicy through the CRD/API:
 
-`status.captureManifest` is recorded once before copy authorization or CSI
-capture, after lifecycle ownership and quiesce preparation. It lists the primary
-`<server>-data` claim as included and every other observed persistent claim as
-uncovered, including extra volumes, nested mod/loader mounts and retained
-server-owned claims. It records claim UIDs, observed mount paths, source layout
-and optional `data`/`rebuildable` declarations. Included describes copy scope;
-check the Backup's phase and snapshot ID for copy success. A declaration that
-an uncovered claim is rebuildable is not a recovery guarantee.
+```yaml
+spec:
+  serverRef: {name: my-game}
+  repoRef: {name: restic-credentials, key: repo}
+  strategy: restic-snapshot
+  powerPolicy: stop-copy-restart
+  volumePolicy: all-data
+  quiesce: true
+```
 
-The API returns this status and the backup details drawer displays consistency
-and coverage. Capture metadata is immutable through ordinary reconciliation:
-editing a template later never changes the historical list. This release does
-not add multi-volume restic, automatic game stopping or a stricter consistency
-request policy.
+The two policies are independent. CSI (`volume-snapshot`) rejects stopped or
+all-data policies; it remains primary-only and offers no cross-volume atomicity.
+A preserve/all-data Restic copy captures one snapshot but reports
+`Consistency=False/LiveMultiVolumeCopy`, even when primary-game quiesce succeeds.
+Only a stopped, fully drained source supports consistency across included roots.
+Quiesce still depends on the module's commands and cannot prove application state.
+`Completed`/phase and snapshot ID report copy success separately from consistency.
 
-Pre-upgrade captures have missing metadata or `state: LegacyUnknown`; their
-Consistency condition is Unknown. The operator never reconstructs their history
-from the current template. Before recovery, inspect the original restic snapshot
-or CSI source claim, recover the original module/server configuration and arrange
-separate recovery of extra/mod volumes. Use an isolated recovery server to
-verify those prerequisites before replacing a live world.
+`stop-copy-restart` acquires shared lifecycle ownership, persists original intent
+and process identity, requests the existing graceful stop, and waits for zero
+replicas, observed workload generation and all selected-claim users to drain.
+It never changes `spec.suspend`. The source's planned stop precedes worker binding;
+replacements after that binding invalidate the copy. Existing persisted preparation
+and copy deadlines remain in force across controller restart. Failed stop/copy or
+cancellation revokes authorization and drains workers before release. A grace
+backstop may force Kubernetes shutdown; timeout alone is never proof of drainage.
+After cleanup, only current allowed power intent resumes: manual suspension,
+idle markers and pending restart/wake requests are preserved. A force-deleted
+Backup leaves its stop debt on the GameServer; autonomous reconciliation drains
+orphan workers and continues the original stop before releasing ownership.
+`RecoveryIntervention=True` retains the fence when provenance is missing or a
+workload was replaced. Inspect those identities and resolve the conflicting
+workload/worker before recovery; deleting an owner marker does not prove safety.
+
+`all-data` includes primary data, explicitly classified `data` extra volumes and
+active separate loader/mod volumes. Every observed or declared required claim
+must be classified and have a stable identity. Unknown or retained unmounted
+claims reject admission rather than silently reporting a complete backup.
+Declare genuinely reconstructible extra volumes `backupRole: rebuildable`;
+these are excluded and reported as recovery prerequisites. Optional excluded
+claims may be absent on the target; recovery never mounts or overwrites them.
+Reconstruction remains an administrator/module responsibility and is not verified
+by copy success. Suspend a recovery target until its prerequisites are prepared
+if starting the game would otherwise be unsafe.
+
+A v2 `status.captureManifest` pins template digest/name, selected game version,
+claim names/UIDs, logical identities, original paths and exact disjoint
+`/volumes/<logical-name>` archive roots. A single Restic invocation receives an
+explicit argument per included root, mounted read-only; nested game mounts never
+alias one another in the archive. The API and existing coverage rows expose
+included/excluded volumes, roots and prerequisites. Captures keep that metadata
+across later template changes.
+
+V2 restore preflights the saved manifest against an existing target before
+stopping it or creating a writer. Same-server recovery requires original claim
+UIDs; another existing server must match the exact logical layout, template digest
+and selected version, and its target claim UIDs are pinned. Missing/replaced
+included claims, changed paths, duplicate/traversing roots or missing/downgraded
+all-data metadata fail visibly without suspension or destructive work. A prepared
+restore Pod mounts only validated included roots; after readiness the operator
+revalidates the mapping, claim UIDs and PVC protection before issuing a Pod-bound,
+expiring authorization. Retries need their own authorization. Only those explicit
+roots receive `--delete`/`--include`; excluded roots are untouched. V2 restore
+uses the lifecycle guard to stop without changing user suspend intent. Success
+releases the guard and preserves current suspend/idle/restart intent; failed or
+cancelled writes leave the target suspended for inspection.
+
+Legacy primary-only snapshots retain `/data` restore semantics. Missing historical
+metadata or `LegacyUnknown` never receives fabricated coverage. All-data archives
+cannot downgrade into that legacy path. Inspect original module/server settings
+and recover uncovered volumes separately before using an old primary-only copy.
 
 ## Shared operation ownership
 

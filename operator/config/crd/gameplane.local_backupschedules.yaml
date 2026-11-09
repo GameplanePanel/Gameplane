@@ -71,6 +71,13 @@ spec:
                 - Forbid
                 - Replace
                 type: string
+              powerPolicy:
+                description: PowerPolicy preserves power by default; stop-copy-restart
+                  temporarily stops under lifecycle ownership.
+                enum:
+                - preserve
+                - stop-copy-restart
+                type: string
               quiesce:
                 default: true
                 description: |-
@@ -162,6 +169,13 @@ spec:
                 default: false
                 description: Suspend pauses the schedule without deleting it.
                 type: boolean
+              volumePolicy:
+                description: VolumePolicy captures primary-only by default; all-data
+                  includes classified persistent data.
+                enum:
+                - primary-only
+                - all-data
+                type: string
             required:
             - schedule
             - serverRef
@@ -169,6 +183,10 @@ spec:
             x-kubernetes-validations:
             - message: repoRef is required for the restic-snapshot strategy
               rule: self.strategy == 'volume-snapshot' || has(self.repoRef)
+            - message: stopped and all-data policies require restic-snapshot
+              rule: self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy)
+                || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) ||
+                self.volumePolicy == 'primary-only'))
           status:
             description: BackupScheduleStatus is the observed state of a BackupSchedule.
             properties:

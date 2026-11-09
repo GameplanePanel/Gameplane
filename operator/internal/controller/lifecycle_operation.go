@@ -24,14 +24,18 @@ var errLifecycleGenerationChanged = errors.New("lifecycle operation spec changed
 // request token and GameServer UID identify the operation. Generation is pinned
 // at admission; subsequent power requests must not change that identity.
 type lifecycleIdentity struct {
-	Kind           string    `json:"kind"`
-	Name           string    `json:"name"`
-	UID            types.UID `json:"uid"`
-	TargetUID      types.UID `json:"targetUID"`
-	Generation     int64     `json:"generation"`
-	Token          string    `json:"token,omitempty"`
-	NeedsUnquiesce bool      `json:"needsUnquiesce,omitempty"`
-	QuiescePodUID  types.UID `json:"quiescePodUID,omitempty"`
+	// PreservePower allows v2 restores to stop with the guard, without altering user suspend intent.
+	PreservePower bool `json:"preservePower,omitempty"`
+
+	StoppedBackup  *stoppedBackup `json:"stoppedBackup,omitempty"`
+	Kind           string         `json:"kind"`
+	Name           string         `json:"name"`
+	UID            types.UID      `json:"uid"`
+	TargetUID      types.UID      `json:"targetUID"`
+	Generation     int64          `json:"generation"`
+	Token          string         `json:"token,omitempty"`
+	NeedsUnquiesce bool           `json:"needsUnquiesce,omitempty"`
+	QuiescePodUID  types.UID      `json:"quiescePodUID,omitempty"`
 	// InitialStartup permits only the first workload of a CSI restore's new
 	// target (including WaitForFirstConsumer PVCs), while other operations wait.
 	InitialStartup bool `json:"initialStartup,omitempty"`
@@ -69,11 +73,15 @@ func parseLifecycleOperation(value string) (lifecycleOperation, error) {
 }
 
 func backupLifecycleIdentity(gs *gameplanev1alpha1.GameServer, b *gameplanev1alpha1.Backup, quiesce bool) lifecycleIdentity {
-	return lifecycleIdentity{Kind: "Backup", Name: b.Name, UID: b.UID, TargetUID: gs.UID, Generation: b.Generation, NeedsUnquiesce: quiesce}
+	id := lifecycleIdentity{Kind: "Backup", Name: b.Name, UID: b.UID, TargetUID: gs.UID, Generation: b.Generation, NeedsUnquiesce: quiesce}
+	if b.Spec.PowerPolicy == "stop-copy-restart" {
+		id.StoppedBackup = newStoppedBackup(gs)
+	}
+	return id
 }
 
 func restoreLifecycleIdentity(gs *gameplanev1alpha1.GameServer, rs *gameplanev1alpha1.Restore) lifecycleIdentity {
-	return lifecycleIdentity{Kind: "Restore", Name: rs.Name, UID: rs.UID, TargetUID: gs.UID, Generation: rs.Generation}
+	return lifecycleIdentity{Kind: "Restore", Name: rs.Name, UID: rs.UID, TargetUID: gs.UID, Generation: rs.Generation, PreservePower: rs.Status.RecoveryPlan != nil}
 }
 
 func wipeLifecycleIdentity(gs *gameplanev1alpha1.GameServer, token string) lifecycleIdentity {
@@ -168,6 +176,9 @@ func claimLifecycleOperation(ctx context.Context, c client.Client, reader client
 		return false, errLifecycleGenerationChanged
 	}
 	*gs = live
+	if want.StoppedBackup != nil {
+		want.StoppedBackup = newStoppedBackup(gs)
+	}
 	op, occupied, err := lifecycleOwner(gs)
 	if err != nil {
 		return false, err
@@ -225,7 +236,7 @@ func claimLifecycleOperation(ctx context.Context, c client.Client, reader client
 		gs.Annotations[backupGuardAnnotation] = backupIdentityJSON(want.Name, want.UID)
 	case "Restore":
 		gs.Annotations[restoreGuardAnnotation] = restoreIdentityJSON(want.Name, want.UID)
-		if !op.InitialStartup {
+		if !op.InitialStartup && !op.PreservePower {
 			gs.Spec.Suspend = true
 		}
 	case "Wipe":
@@ -270,7 +281,7 @@ func legacyLifecycleCopiesLive(ctx context.Context, c client.Client, reader clie
 
 func lifecycleRecoveryNeedsStop(op lifecycleOperation) bool {
 	for _, predecessor := range op.Recovery {
-		if predecessor.Kind == "Restore" {
+		if predecessor.Kind == "Restore" || (predecessor.StoppedBackup != nil && predecessor.StoppedBackup.Stage == "Drained") {
 			return true
 		}
 	}
@@ -303,6 +314,12 @@ func recoverLifecycleOperation(ctx context.Context, c client.Client, reader clie
 		}
 	}
 	for _, predecessor := range op.Recovery {
+		if predecessor.StoppedBackup != nil {
+			ready, err := stoppedBackupCleanup(ctx, c, reader, gs, predecessor.StoppedBackup)
+			if err != nil || !ready {
+				return false, err
+			}
+		}
 		if !predecessor.NeedsUnquiesce {
 			continue
 		}

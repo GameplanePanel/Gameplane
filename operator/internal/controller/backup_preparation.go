@@ -120,7 +120,7 @@ func parseBackupPreparation(b *gameplanev1alpha1.Backup) (*backupPreparation, er
 // Call only after the shared owner and StatefulSet fence are held. Readiness
 // and desired suspend/idle state are not evidence that writers have exited.
 func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplanev1alpha1.Backup, gs *gameplanev1alpha1.GameServer) (bool, error) {
-	if !b.Spec.Quiesce {
+	if !b.Spec.Quiesce && b.Spec.PowerPolicy != "stop-copy-restart" {
 		return true, nil
 	}
 	p, err := parseBackupPreparation(b)
@@ -136,7 +136,7 @@ func (r *BackupReconciler) prepareBackupSource(ctx context.Context, b *gameplane
 	if p == nil && b.Annotations[annoQuiesceAttempted] != "" && b.Annotations[annoQuiesceAttempted] != "unsupported" {
 		return false, fmt.Errorf("%w: quiesce attempt lacks source preparation", errBackupSourceChanged)
 	}
-	if p == nil && !agentQuiesceAvailable(r.AgentClient) {
+	if p == nil && !agentQuiesceAvailable(r.AgentClient) && b.Spec.PowerPolicy != "stop-copy-restart" {
 		return true, nil
 	}
 	// An unsupported attempt did not pause the game and retains raw-copy
@@ -242,6 +242,18 @@ func (r *BackupReconciler) backupSourceDrained(ctx context.Context, b *gameplane
 	if err := r.backupAPIReader().List(ctx, &jobs, client.InNamespace(gs.Namespace)); err != nil {
 		return false, err
 	}
+	var selected []gameplanev1alpha1.BackupVolumeCoverage
+	if b.Status.CaptureManifest != nil {
+		selected = b.Status.CaptureManifest.Volumes
+	}
+	if b.Status.CaptureManifest == nil {
+		if op, _, err := lifecycleOwner(gs); err == nil && op.Kind == "Backup" && op.UID == b.UID && op.StoppedBackup != nil {
+			selected = op.StoppedBackup.Claims
+		}
+	}
+	mounts := func(pod *corev1.Pod) bool {
+		return podMountsRestoreTarget(pod, gs.Name) || podMountsRecoveryClaims(pod, selected)
+	}
 	copyJobs := map[types.UID]bool{}
 	for i := range jobs.Items {
 		job := &jobs.Items[i]
@@ -249,7 +261,7 @@ func (r *BackupReconciler) backupSourceDrained(ctx context.Context, b *gameplane
 			copyJobs[job.UID] = true
 			continue
 		}
-		if ((job.Status.Succeeded == 0 && !jobPermanentlyFailed(job)) || job.Status.Active > 0 || !job.DeletionTimestamp.IsZero()) && podMountsRestoreTarget(&corev1.Pod{Spec: job.Spec.Template.Spec}, gs.Name) {
+		if ((job.Status.Succeeded == 0 && !jobPermanentlyFailed(job)) || job.Status.Active > 0 || !job.DeletionTimestamp.IsZero()) && mounts(&corev1.Pod{Spec: job.Spec.Template.Spec}) {
 			return false, nil
 		}
 	}
@@ -266,7 +278,7 @@ func (r *BackupReconciler) backupSourceDrained(ctx context.Context, b *gameplane
 		if owner != nil && owner.Kind == "Job" && copyJobs[owner.UID] {
 			continue
 		}
-		if metav1.IsControlledBy(pod, ss) || metav1.IsControlledBy(pod, gs) || pod.Name == gs.Name+"-0" || podMountsRestoreTarget(pod, gs.Name) {
+		if metav1.IsControlledBy(pod, ss) || metav1.IsControlledBy(pod, gs) || pod.Name == gs.Name+"-0" || mounts(pod) {
 			return false, nil
 		}
 	}

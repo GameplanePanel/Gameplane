@@ -29,6 +29,25 @@ describe("BackupDetailDrawer", () => {
     expect(screen.getByText("Rebuildable")).toBeInTheDocument();
   });
 
+  it("shows named archive roots and the saved prerequisites for missing and intact excluded claims", async () => {
+    server.use(http.get("/backups/recovery", () => HttpResponse.json(makeBackup({
+      metadata: { name: "recovery" },
+      status: { phase: "Succeeded", snapshotID: "snapshot", captureManifest: {
+        state: "Recorded", formatVersion: 2, volumePolicy: "all-data", volumes: [
+          { claimName: "world", claimUID: "world-uid", logicalName: "primary", snapshotRoot: "/volumes/primary", included: true, classification: "data", reason: "IncludedData" },
+          { claimName: "missing-install", included: false, classification: "rebuildable", reason: "RebuildRequired", recoveryPrerequisite: "Missing install files must be reconstructed from the module." },
+          { claimName: "intact-cache", claimUID: "cache-uid", included: false, classification: "rebuildable", reason: "RebuildRequired", recoveryPrerequisite: "Keep compatible existing cache content; reconstruct only if needed." },
+        ],
+      } },
+    }))));
+    renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="recovery" onClose={() => {}} onRestore={() => {}} />);
+    expect(await screen.findByText("/volumes/primary")).toBeInTheDocument();
+    expect(screen.getByText("Missing install files must be reconstructed from the module.")).toBeInTheDocument();
+    expect(screen.getByText("Keep compatible existing cache content; reconstruct only if needed.")).toBeInTheDocument();
+    expect(screen.getAllByText("Not covered")).toHaveLength(2);
+    expect(screen.queryByText(/must be reconstructed before recovery can run/)).not.toBeInTheDocument();
+  });
+
   it("shows legacy coverage as unknown without inventing a current layout", async () => {
     server.use(http.get("/backups/legacy", () => HttpResponse.json(makeBackup({ metadata: { name: "legacy" }, status: { phase: "Succeeded" } }))));
     renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="legacy" onClose={() => {}} onRestore={() => {}} />);

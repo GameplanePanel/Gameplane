@@ -35,7 +35,17 @@ const BackupSnapshotFinalizer = "gameplane.local/backup-snapshot-finalizer"
 
 // BackupSpec is the desired state of a one-shot backup.
 // +kubebuilder:validation:XValidation:rule="self.strategy == 'volume-snapshot' || has(self.repoRef)",message="repoRef is required for the restic-snapshot strategy"
+// +kubebuilder:validation:XValidation:rule="self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy) || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) || self.volumePolicy == 'primary-only'))",message="stopped and all-data policies require restic-snapshot"
 type BackupSpec struct {
+	// PowerPolicy preserves power by default; stop-copy-restart temporarily stops under lifecycle ownership.
+	// +kubebuilder:validation:Enum=preserve;stop-copy-restart
+	// +optional
+	PowerPolicy string `json:"powerPolicy,omitempty"`
+	// VolumePolicy captures primary-only by default; all-data includes classified persistent data.
+	// +kubebuilder:validation:Enum=primary-only;all-data
+	// +optional
+	VolumePolicy string `json:"volumePolicy,omitempty"`
+
 	// ServerRef is the GameServer whose data volume should be backed up.
 	ServerRef LocalObjectRef `json:"serverRef"`
 
@@ -137,6 +147,18 @@ type BackupStatus struct {
 // BackupCaptureManifest pins the layout and quiesce result at capture admission.
 // Recorded coverage does not imply a successful or complete server backup.
 type BackupCaptureManifest struct {
+	// FormatVersion 2 uses validated disjoint roots. Absent means legacy /data.
+	// +optional
+	FormatVersion int32 `json:"formatVersion,omitempty"`
+	// +optional
+	VolumePolicy string `json:"volumePolicy,omitempty"`
+	// +optional
+	TemplateName string `json:"templateName,omitempty"`
+	// +optional
+	TemplateRevision string `json:"templateRevision,omitempty"`
+	// +optional
+	GameVersion string `json:"gameVersion,omitempty"`
+
 	// State is Recorded for new captures, LegacyUnknown for an existing worker
 	// whose original layout was never recorded.
 	// +kubebuilder:validation:Enum=Recorded;LegacyUnknown
@@ -161,6 +183,16 @@ type BackupCaptureManifest struct {
 // BackupVolumeCoverage describes one persistent claim. Extra and loader/mod
 // claims remain uncovered even when mounted beneath the primary data directory.
 type BackupVolumeCoverage struct {
+	// LogicalName identifies the primary, declared extra, or active loader volume.
+	// +optional
+	LogicalName string `json:"logicalName,omitempty"`
+	// SnapshotRoot is the explicit disjoint archive root; never a glob.
+	// +optional
+	SnapshotRoot string `json:"snapshotRoot,omitempty"`
+	// RecoveryPrerequisite explains excluded content that must be reconstructed.
+	// +optional
+	RecoveryPrerequisite string `json:"recoveryPrerequisite,omitempty"`
+
 	ClaimName string `json:"claimName"`
 	// ClaimUID is empty if the claim did not yet exist at admission.
 	// +optional

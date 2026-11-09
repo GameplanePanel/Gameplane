@@ -178,10 +178,12 @@ func (r *BackupScheduleReconciler) fire(
 			Labels:    map[string]string{"gameplane.local/backup-schedule": sched.Name},
 		},
 		Spec: gameplanev1alpha1.BackupSpec{
-			ServerRef: sched.Spec.ServerRef,
-			RepoRef:   sched.Spec.RepoRef,
-			Strategy:  sched.Spec.Strategy,
-			Quiesce:   sched.Spec.Quiesce,
+			ServerRef:    sched.Spec.ServerRef,
+			RepoRef:      sched.Spec.RepoRef,
+			Strategy:     sched.Spec.Strategy,
+			PowerPolicy:  sched.Spec.PowerPolicy,
+			VolumePolicy: sched.Spec.VolumePolicy,
+			Quiesce:      sched.Spec.Quiesce,
 		},
 	}
 	return r.Create(ctx, b)

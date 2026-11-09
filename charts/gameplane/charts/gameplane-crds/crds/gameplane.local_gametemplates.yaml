@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: bf84afb28a947929dcc56cef655364589a4be2e498da9eafb35363eda630676c
+    gameplane.local/crd-bundle-sha256: 87025215c484916aa3580ec6a5cca2f6a9f48fd5548b2288875e004bfa064628
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -2209,10 +2209,10 @@ spec:
                       properties:
                         backupRole:
                           description: |-
-                            BackupRole describes recovery requirements without adding this volume
-                            to a backup. "data" needs a separate copy; "rebuildable" may be recreated.
-                            Unset remains unclassified and not covered. Both backup strategies still
-                            capture only the primary data claim.
+                            BackupRole declares recovery scope. all-data Restic backups include data
+                            extras and report rebuildable extras as excluded reconstruction prerequisites.
+                            Unset is unclassified and rejects all-data admission. Default primary-only
+                            backups and CSI snapshots still capture only the primary data claim.
                           enum:
                           - data
                           - rebuildable

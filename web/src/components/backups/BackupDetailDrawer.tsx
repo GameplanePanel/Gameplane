@@ -89,7 +89,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
                     {manifest?.state === "Recorded" ? (
                       <div className="space-y-3">
                         {manifest.recordedAt && <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_recorded", defaultMessage: "Recorded: {time}", description: "Backup details: timestamp of the immutable capture manifest" }, { time: manifest.recordedAt })}</div>}
-                        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_scope", defaultMessage: "Only the primary data claim is copied. Rebuildable is a declaration, not proof that recovery can reconstruct its contents.", description: "Backup details: explains the current single-volume backup scope and rebuildable declarations" })}</p>
+                        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_scope", defaultMessage: "Included claims are copied at the recorded archive roots. Rebuildable volumes are excluded. Check their recovery prerequisites before restarting.", description: "Backup details: explains recorded volume coverage and excluded rebuildable recovery prerequisites" })}</p>
                         <ul className="space-y-3">
                           {manifest.volumes?.map((volume) => (
                             <li key={volume.claimName} className="rounded border border-border p-2 space-y-1">
@@ -98,7 +98,8 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
                                 ? intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.included", defaultMessage: "Included", description: "Backup volume: this claim is selected for copying; success is reported separately" })
                                 : intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.not_covered", defaultMessage: "Not covered", description: "Backup volume: contents of this claim are not included" })}</div>
                               <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.classification", defaultMessage: "{role, select, data {Data} rebuildable {Rebuildable} other {Unclassified}}", description: "Backup volume: optional declaration from the module or server at capture time" }, { role: volume.classification })}</div>
-                              {volume.mountPaths?.map((path) => <div key={path} className="font-mono text-xs break-all">{path}</div>)}
+                              {[...(volume.mountPaths ?? []), ...(volume.snapshotRoot ? [volume.snapshotRoot] : [])].map((path) => <div key={path} className="font-mono text-xs break-all">{path}</div>)}
+                              {volume.recoveryPrerequisite && <div className="text-xs text-muted">{volume.recoveryPrerequisite}</div>}
                               {volume.reason === "RetainedUnmountedClaim" && <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.retained_unmounted", defaultMessage: "Retained claim; not mounted in the captured workload.", description: "Backup volume: an older server-owned claim was retained but was not part of the observed pod layout" })}</div>}
                             </li>
                           ))}

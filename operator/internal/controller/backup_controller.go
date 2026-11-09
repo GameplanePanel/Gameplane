@@ -310,6 +310,9 @@ func (r *BackupReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 		return r.runUnquiesce(ctx, &b)
 	}
+	if b.Spec.Strategy == "volume-snapshot" && (b.Spec.PowerPolicy == "stop-copy-restart" || b.Spec.VolumePolicy == "all-data") {
+		return r.fail(ctx, &b, "stopped and all-data policies require restic-snapshot")
+	}
 	// Observe pre-upgrade workers even when multiple legacy quiesced copies
 	// already overlap. They must finish and unquiesce before new admission;
 	// trying to acquire exclusive ownership first would deadlock their cleanup.
@@ -1033,7 +1036,7 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 		args = append(args, "--tag", t)
 	}
 
-	return corev1.PodSpec{
+	spec := corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		InitContainers: []corev1.Container{{
 			Name:      "restic-init",
@@ -1077,6 +1080,17 @@ func (r *BackupReconciler) buildBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl 
 			},
 		},
 	}
+	if b.Spec.VolumePolicy == "all-data" && b.Status.CaptureManifest != nil {
+		recoveryWorkerVolumes(&spec, b.Status.CaptureManifest.Volumes, true)
+		roots := []string{"backup"}
+		for _, volume := range b.Status.CaptureManifest.Volumes {
+			if volume.Included {
+				roots = append(roots, volume.SnapshotRoot)
+			}
+		}
+		spec.Containers[0].Args = append(roots, args[2:]...)
+	}
+	return spec
 }
 
 // resticEnv is the container environment shared by every Job that talks to a
