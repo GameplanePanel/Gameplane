@@ -27,16 +27,16 @@ func TestStampRecordsSourceHash(t *testing.T) {
 	if err != nil || len(stamped) != 1 {
 		t.Fatalf("Stamp = %v, %v", stamped, err)
 	}
-	data, err := os.ReadFile(fr)
+	data, err := os.ReadFile(filepath.Join(dir, "locales", pack.ReviewFile))
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := pack.ParseEntries(data)
+	review, err := pack.ParseModuleReview(data)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got["template.displayName"].SourceHash != pack.SourceHash("Demo Game") {
-		t.Errorf("entry = %+v", got["template.displayName"])
+	if got := review["fr"]["template.displayName"]; got != pack.SourceHash("Demo Game") {
+		t.Errorf("review hash = %q", got)
 	}
 	if b, _ := os.ReadFile(en); string(b) != `{}` {
 		t.Errorf("en.json was rewritten: %q", b)

@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.title="Gameplane FiveM Dedicated Server" \
 
 RUN apk add --no-cache \
     bash~=5.3.9 \
-    curl~=8.22.0 \
+    curl~=8.23.0 \
     ca-certificates~=20261020 \
     tini~=0.19.0 \
     procps-ng~=4.0.6 \
@@ -18,7 +18,7 @@ RUN apk add --no-cache \
     mariadb-client~=11.8.9 \
     mariadb-server-utils~=11.8.9 \
     sqlite~=3.53.4 \
-    tzdata~=2026e
+    tzdata~=2026f
 
 # Create gameplane runtime user with fixed UID/GID 1000
 RUN addgroup -g 1000 gameplane && \

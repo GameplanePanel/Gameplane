@@ -153,10 +153,10 @@ const SCALE_ALLOWLIST = {
 // alpha >= 250 bounding box. Re-measure it whenever the id is re-exported
 // or its shadow/size changes.
 const REFERENCE_CROP_ALLOWLIST = {
-  // Backup Detail Drawer: 440x760 panel at 2x; shadow offset x -12 / blur 32 /
-  // spread -8 leaves 44 CSS px bleed left, 20 right, 32 top and bottom (bbox
-  // (88,64)-(968,1584) => 880x1520).
-  zhLZN: { left: 88, top: 64, width: 880, height: 1520 },
+  // Backup Detail Drawer: 440x760 panel at 2x. The refreshed Pencil export's
+  // shadow leaves 60 CSS px bleed left, 36 right, and 48 top and bottom;
+  // its alpha >= 250 panel bounds are (120,96)-(1000,1616) => 880x1520.
+  zhLZN: { left: 120, top: 96, width: 880, height: 1520 },
   // Add module source dialog: 480x882 panel at 2x, bounding box re-verified
   // via PIL alpha>=250 scan of assets/design-export/screenshots/DMnEi.png (now
   // 1088x1898, bbox (64,40)-(1024,1810) => 960x1770).

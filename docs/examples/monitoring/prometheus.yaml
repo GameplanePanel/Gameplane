@@ -1,0 +1,71 @@
+# Requires the Prometheus Operator and its CRDs. The monitoring namespace must
+# match serviceMonitors.scrapeNamespaceSelector in gameplane-values.yaml.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gameplane-prometheus
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gameplane-prometheus-discovery
+rules:
+  - apiGroups: [""]
+    resources: [nodes, nodes/metrics, services, endpoints, pods]
+    verbs: [get, list, watch]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list, watch]
+  - nonResourceURLs: [/metrics]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gameplane-prometheus-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gameplane-prometheus-discovery
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-prometheus
+    namespace: monitoring
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: gameplane
+  namespace: monitoring
+spec:
+  version: v3.13.4
+  serviceAccountName: gameplane-prometheus
+  replicas: 1
+  retention: 24h
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 1Gi }
+  serviceMonitorSelector:
+    matchLabels: { monitoring: gameplane }
+  serviceMonitorNamespaceSelector:
+    matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values: [gameplane-system, gameplane-games]
+  podMonitorSelector:
+    matchLabels: { monitoring: gameplane }
+  podMonitorNamespaceSelector:
+    matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values: [gameplane-system, gameplane-games]
+  ruleSelector:
+    matchLabels: { monitoring: gameplane }
+  ruleNamespaceSelector:
+    matchLabels: { kubernetes.io/metadata.name: gameplane-system }

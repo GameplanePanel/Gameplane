@@ -25,7 +25,7 @@ Ids use the YAML identifiers with a reversible escape (JSON Pointer style): `~` 
 
 Upper case is allowed because ids embed names from the YAML (for example `config.MAX_PLAYERS.displayName`). Dashboard and server ids keep the strict lower-case regex in [data-model.md](../data-model.md). The shared derivation and the rule live in `i18n/modlocale` (`Derive`, `ValidID`); `gp-module i18n extract`, `i18n-check --module` and the operator all use it. Open risk: a YAML identifier or enum value containing a space, `/`, `:` or `+` yields an id outside the character set; see OPEN-DECISIONS.md (OD-007).
 
-Module translations carry `sourceHash` like app packs: the first 12 hex characters of the SHA-256 of the English text, written by `gp-module i18n stamp`. A changed English text makes the entry `needs-review` (still shown; `gp-module validate` warns with rule `locale-needs-review`).
+Module translations record a source hash like app packs: the first 12 hex characters of the SHA-256 of the English text, kept in `locales/.review.json` (`tag → id → hash`) and written by `gp-module i18n stamp`. A legacy inline `sourceHash` in `<tag>.json` is still read and moved to the review file on the next stamp. A changed English text makes the entry `needs-review` (still shown; `gp-module validate` warns with rule `locale-needs-review`).
 
 ## 2. Packaging (all module sources)
 

@@ -46,11 +46,16 @@ type row struct {
 // guardCalls maps a helper that takes a condition reason as a string literal
 // to the index of that argument.
 var guardCalls = map[string]int{
+	"hostportCondition":             1,
+	"hostportPending":               0,
+	"setTemplateCondition":          2,
 	"markUnhealthy":                 2,
 	"markFailed":                    2,
 	"markPending":                   2,
 	"failWithReason":                2,
 	"setSnapshotForgottenCondition": 3,
+	"setBackupProgress":             2,
+	"snapshotCleanupCondition":      3,
 }
 
 // guardReturnFuncs are the functions whose first string result is a reason.
@@ -67,6 +72,20 @@ var guardSkipFiles = map[string]bool{
 
 // rows is the English reference for every condition reason.
 var rows = []row{
+	{types: []string{"CaptureReady"}, reason: "WorkerPreparing", english: "Waiting for worker scheduling, source mount and repository preparation.", description: "Backup preparation before saving is disabled."},
+	{types: []string{"CaptureReady"}, reason: "WorkerAuthorized", english: "The prepared worker is authorized to capture data within its deadline.", description: "Backup copy authorization granted after preparation."},
+	{types: []string{"CaptureReady"}, reason: "WorkerDrainPending", english: "The copy is invalid. Waiting for workers to stop before restoring saving.", description: "Backup cancellation awaiting worker drainage."},
+	{types: []string{"CaptureReady"}, reason: "SnapshotCapturePending", english: "Waiting for CSI capture within its persisted deadline.", description: "Bounded CSI capture is pending."},
+	{types: []string{"SnapshotCleaned"}, reason: "SnapshotCleanupPending", english: "Aborted snapshot reclamation is pending. {detail}", description: "Aborted snapshot deletion has not completed; detail includes resource identities."},
+	{types: []string{"SnapshotCleaned"}, reason: "SnapshotCleanupUnverified", english: "A snapshot resource was replaced. It was not deleted. {detail}", description: "Snapshot identity verification refused deletion."},
+	{types: []string{"SnapshotCleaned"}, reason: "SnapshotCleanupRetained", english: "Snapshot content requires administrator reclamation. {detail}", description: "Retained or replacement snapshot content is left for an administrator."},
+	{types: []string{"SnapshotCleaned"}, reason: "SnapshotCleanupComplete", english: "Aborted snapshot resources are absent.", description: "Snapshot reclamation completed."},
+	{types: []string{"TemplateUpdatePending"}, reason: "RolloutCanceled", english: "Template adoption was canceled; the effective pin and power intent are retained. Remove the cancellation annotation before requesting this revision again.", description: "An operator canceled the admitted revision; its token remains blocked until the cancellation annotation is removed."},
+	{types: []string{"TemplateUpdatePending"}, reason: "AdoptingRevision", english: "The admitted template revision is being adopted.", description: "Template rollout owns the server lifecycle while draining and replacing its workload."},
+	{types: []string{"TemplateUpdatePending"}, reason: "TemplateUnavailable", english: "The installed template is unavailable; the effective snapshot is retained.", description: "Template availability is unknown but the server retains its immutable effective content."},
+	{types: []string{"TemplateUpdatePending"}, reason: "RevisionCurrent", english: "The installed template revision is effective.", description: "No newer template revision is waiting for adoption. Running revision is observed separately."},
+	{types: []string{"TemplateUpdatePending"}, reason: "OperationInProgress", english: "Template adoption waits for the active lifecycle operation to finish.", description: "A backup, restore or wipe prevents admitting an available template revision."},
+	{types: []string{"TemplateUpdatePending"}, reason: "RevisionAvailable", english: "An installed template revision is waiting for admission.", description: "An installed template differs from the server's immutable effective revision."},
 	// GameServer: Ready
 	{types: []string{"Ready"}, reason: "Running", english: "The server is running and the agent is reporting heartbeats.", description: "Ready condition while the game server is up."},
 	{types: []string{"Ready"}, reason: "Pending", english: "The server is waiting to start.", description: "Ready condition while the game server is being created."},
@@ -120,6 +139,15 @@ var rows = []row{
 	{types: []string{"AddressAssignment"}, reason: "AssignmentPending", english: "Requested $REQ: the address manager has not assigned an address yet.", description: "AddressAssignment condition while the address manager works."},
 	{types: []string{"AddressAssignment"}, reason: "Assigned", english: "{assignedFrom, select, pool {Address {address} assigned from pool ''{pool}''.} other {Address {address} assigned.}}", description: "AddressAssignment condition once an address is assigned. assignedFrom is pool or default."},
 
+	// Hostport endpoint handoff; Ready can mirror the same reason.
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "EndpointNodeUnknown", english: "No game endpoint node has been recorded; start the game before enabling sleep.", description: "Hostport endpoint handoff status: EndpointNodeUnknown."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "EndpointNodeUnavailable", english: "The Hostport endpoint node is missing, replaced or not Ready; restore that node or explicitly migrate the endpoint.", description: "Hostport endpoint handoff status: EndpointNodeUnavailable."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "GameDraining", english: "Waiting for the game Pod to disappear before acquiring its Hostport.", description: "Hostport endpoint handoff status: GameDraining."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "SentinelDraining", english: "Waiting for the sentinel Deployment and Pods to disappear before scheduling the game on its endpoint node.", description: "Hostport endpoint handoff status: SentinelDraining."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "EndpointUnschedulable", english: "The Hostport listener cannot schedule on its endpoint node. Inspect the Pod scheduling events for details.", description: "Hostport endpoint handoff status: EndpointUnschedulable."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "ListenerReady", english: "The listener is Ready on the Hostport endpoint node.", description: "Hostport endpoint handoff status: ListenerReady."},
+	{types: []string{"HostportWakeReady", "Ready"}, reason: "ListenerPending", english: "Waiting for a Ready listener on the Hostport endpoint node.", description: "Hostport endpoint handoff status: ListenerPending."},
+
 	// GameServer: tunnel and other
 	{types: []string{"TunnelReady"}, reason: "UnsupportedProtocol", english: "Tailscale forwards only advertised TCP and UDP ports. Remove unsupported protocols from the advertised ports.", description: "TunnelReady condition when a Tailscale template advertises a protocol other than TCP or UDP."},
 	{types: []string{"TunnelReady"}, reason: "InvalidTailscaleTags", english: "Correct the Tailscale tags: use an optional tag: prefix, a letter first, then only letters, digits or hyphens.", description: "TunnelReady condition when Tailscale access-control tags have invalid syntax."},
@@ -144,9 +172,21 @@ var rows = []row{
 	{types: []string{"Completed"}, reason: "Pending", english: "The backup is waiting to start.", description: "Completed condition on a Backup that has not started (dynamic: reason is the phase).", dynamic: true},
 	{types: []string{"Completed"}, reason: "Running", english: "The backup is running.", description: "Completed condition on a Backup in progress (dynamic: reason is the phase).", dynamic: true},
 	{types: []string{"Unquiesced"}, reason: "Unquiesced", english: "The server was resumed after the backup.", description: "Unquiesced condition when the world was unfrozen."},
+	{types: []string{"Unquiesced"}, reason: "SourceProcessGone", english: "The original game process has exited. No resume command was needed.", description: "Unquiesced condition when the original source pod no longer runs."},
 	{types: []string{"Unquiesced"}, reason: "Failed", english: "The server could not be resumed after the backup. Its world may still have auto-save turned off.", description: "Unquiesced condition when the unfreeze failed."},
 	{types: []string{"SnapshotForgotten"}, reason: "Forgotten", english: "The snapshot was removed from the backup repository.", description: "SnapshotForgotten condition after a deleted Backup's snapshot was forgotten."},
 	{types: []string{"SnapshotForgotten"}, reason: "ForgetAbandoned", english: "The snapshot was not removed from the backup repository when the backup was deleted.", description: "SnapshotForgotten condition when the forget step was abandoned."},
+
+	// Consistency is separate from copy completion and volume coverage.
+	{types: []string{"Consistency"}, reason: "CaptureFailed", english: "The capture failed; no usable consistency guarantee was achieved.", description: "Backup achieved consistency: CaptureFailed."},
+	{types: []string{"Consistency"}, reason: "LegacyMetadataUnknown", english: "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template.", description: "Backup achieved consistency: LegacyMetadataUnknown."},
+	{types: []string{"Consistency"}, reason: "CapturePending", english: "The capture has not completed; its achieved consistency is not yet known.", description: "Backup achieved consistency: CapturePending."},
+	{types: []string{"Consistency"}, reason: "Quiesced", english: "The primary volume copy completed after the agent confirmed quiesce. This depends on the module's quiesce commands; other volumes remain outside this backup.", description: "Backup achieved consistency: Quiesced."},
+	{types: []string{"Consistency"}, reason: "StoppedSource", english: "The primary volume copy completed from a source that was already stopped and drained before capture. Other volumes remain outside this backup.", description: "Backup achieved consistency: StoppedSource."},
+	{types: []string{"Consistency"}, reason: "CrashConsistentSnapshot", english: "The primary CSI snapshot is crash-consistent; application quiesce was not confirmed.", description: "Backup achieved consistency: CrashConsistentSnapshot."},
+	{types: []string{"Consistency"}, reason: "UnsupportedRawCopy", english: "The game does not support quiesce. The primary volume was copied while it could still change.", description: "Backup achieved consistency: UnsupportedRawCopy."},
+	{types: []string{"Consistency"}, reason: "AgentUnavailableRawCopy", english: "No agent quiesce capability was configured. The primary volume was copied without pausing game writes.", description: "Backup achieved consistency: AgentUnavailableRawCopy."},
+	{types: []string{"Consistency"}, reason: "RawCopy", english: "The primary volume was copied without confirmed application quiesce.", description: "Backup achieved consistency: RawCopy."},
 
 	// BackupSchedule
 	{types: []string{"ScheduleValid"}, reason: "CronParseError", english: "The schedule is not a valid cron expression.", description: "ScheduleValid condition for an unparseable schedule."},

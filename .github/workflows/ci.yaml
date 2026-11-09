@@ -624,9 +624,7 @@ jobs:
           path: ~/.cache/trivy
           key: trivy-db-${{ steps.week.outputs.week }}
       - name: install trivy
-        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
-        with:
-          version: v0.74.0
+        uses: ./.github/actions/install-trivy
       - name: prove the gate rejects a vulnerable image
         run: ./hack/check-image-scan_test.sh
       - name: scan every e2e image
@@ -1196,6 +1194,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - run: helm lint charts/gameplane
+      - name: evaluate monitoring rules
+        run: bash charts/gameplane/tests/monitoring-rules.sh
 
   standalone-compose:
     name: standalone Compose smoke
@@ -1259,6 +1259,10 @@ jobs:
         run: python3 charts/tests/check_gateway.py
       - name: standalone panel isolation and persistence chart renders
         run: python3 charts/tests/check_standalone.py
+      - name: strict network profile and sentinel policy selectors
+        run: python3 charts/tests/check_network_isolation.py
+      - name: workload security chart contract
+        run: python3 charts/tests/check_workload_security.py
       - name: auxiliary resources and management placement chart renders
         run: python3 charts/tests/check_workloads.py
       - name: operator Secret namespace permissions and cache configuration
@@ -1347,10 +1351,16 @@ jobs:
             | grep -q 'app.kubernetes.io/name: gameplane-telemetry-receiver'
           awk '/kind: Service/,/^---$/' /tmp/telemetry-receiver-scrape.yaml \
             | grep -q 'name: dashboard'
-          # scrapeNamespaceSelector unset (the chart default): neither
-          # exception renders, matching the pre-fix behavior.
+          # Missing scrape ingress must fail with actionable guidance.
+          if helm template gameplane charts/gameplane --set serviceMonitors.enabled=true > /tmp/monitoring-invalid.txt 2>&1; then
+            echo "::error::monitoring without a scrape selector unexpectedly rendered"
+            exit 1
+          fi
+          grep -q 'serviceMonitors.scrapeNamespaceSelector' /tmp/monitoring-invalid.txt
+          # Explicit external policy ownership renders no chart exception.
           helm template gameplane charts/gameplane \
             --set serviceMonitors.enabled=true \
+            --set serviceMonitors.externallyManagedPolicy=true \
             --show-only templates/networkpolicies.yaml > /tmp/netpol-default.yaml
           if grep -q 'allow-prometheus-to-agent' /tmp/netpol-default.yaml; then
             echo "::error::allow-prometheus-to-agent rendered without serviceMonitors.scrapeNamespaceSelector set"
@@ -1527,7 +1537,8 @@ jobs:
           # keeps working without api.telemetry.enabled.
           helm template gameplane charts/gameplane \
             --set api.telemetry.receiver.enabled=true \
-            --set serviceMonitors.enabled=true > /tmp/rendered-reuse-values-receiver.yaml
+            --set serviceMonitors.enabled=true \
+            --set serviceMonitors.externallyManagedPolicy=true > /tmp/rendered-reuse-values-receiver.yaml
           python3 - <<'PY'
           import yaml
           docs = [d for d in yaml.safe_load_all(open('/tmp/rendered-reuse-values-receiver.yaml')) if d]
@@ -1668,7 +1679,7 @@ jobs:
       - name: CI scope regression tests
         run: make test-ci-scope
       - name: zizmor
-        uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
           inputs: .github
           advanced-security: false
@@ -1823,15 +1834,33 @@ jobs:
         # t.Parallel(); `parallel` bounds in-flight tests per bucket
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
-        # The arm64 job below uses the same steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, management-placement]
+        # The arm64 job below uses the same steps/settings except for the
+        # wake-hostport, network-isolation, management-placement,
+        # backup-preparation, monitoring, and recovery drills, which run once on amd64.
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads, wake-hostport, network-isolation, management-placement, backup-preparation, monitoring, recovery]
         arch: [amd64]
         include:
+          - bucket: monitoring
+            parallel: 1
+            test_timeout: 20m
+            job_timeout: 75
+          - bucket: network-isolation
+            parallel: 1
+            test_timeout: 15m
+            job_timeout: 60
           - bucket: operator
             parallel: 8
             test_timeout: 20m
             job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: wake-hostport
+            parallel: 1
+            test_timeout: 15m
+            job_timeout: 60 # Boots two-node kind, installs the chart and exercises repeated Hostport sleep/wake handoffs.
           - bucket: management-placement
+            parallel: 1
+            test_timeout: 15m
+            job_timeout: 60 # Boots management kind, installs the chart and checks placement/disruption behavior.
+          - bucket: backup-preparation
             parallel: 1
             test_timeout: 15m
             job_timeout: 60
@@ -1864,6 +1893,14 @@ jobs:
             parallel: 1
             test_timeout: 35m # lifecycle plus two-GameServer TCP/UDP relay identity, outage and recovery checks
             job_timeout: 75 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: recovery
+            parallel: 1
+            test_timeout: 20m # isolated panel backup/loss/restore; game workload stays running
+            job_timeout: 60 # Boots kind, loads images and installs the chart before the bounded recovery drill.
+          - bucket: restricted-workloads
+            parallel: 1
+            test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -1881,7 +1918,7 @@ jobs:
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
       - name: install kind
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
@@ -1892,16 +1929,30 @@ jobs:
       - name: bring up cluster + helm install
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
         env:
-          GAMEPLANE_E2E_PROFILE: ${{ matrix.bucket == 'management-placement' && 'management' || 'default' }}
+          GAMEPLANE_E2E_CNI: ${{ (matrix.bucket == 'network-isolation' || matrix.bucket == 'monitoring') && 'cilium' || 'kindnet' }}
+          GAMEPLANE_E2E_PROFILE: ${{ matrix.bucket == 'wake-hostport' && 'two-node' || (matrix.bucket == 'management-placement' || matrix.bucket == 'backup-preparation') && 'management' || 'default' }}
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e "$GAMEPLANE_E2E_PROFILE"
+      - name: install real monitoring fixture
+        if: matrix.bucket == 'monitoring' && env.RUN_REGEX != ''
+        run: bash deploy/kind/monitoring.sh
       - name: run go e2e (${{ matrix.bucket }})
         if: env.RUN_REGEX != ''
+        env:
+          GAMEPLANE_RECOVERY_REPORT_DIR: ${{ github.workspace }}/recovery-reports
         run: |
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout ${{ matrix.test_timeout }} -v \
               -parallel ${{ matrix.parallel }} -run "$RUN_REGEX" ./...
+      - name: upload measured panel recovery report
+        if: always() && matrix.bucket == 'recovery'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: panel-recovery-${{ matrix.arch }}-${{ github.run_attempt }}
+          path: recovery-reports/*.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: run go e2e (ratelimit tail)
         # LAST on purpose: this test deliberately drains the shared per-IP
         # and per-username login buckets; anything running after it queues
@@ -1917,7 +1968,7 @@ jobs:
         uses: ./.github/actions/dump-cluster-state
         with:
           context: ${{ env.CTX }}
-          namespaces: "gameplane-system,gameplane-games"
+          namespaces: "${{ matrix.bucket == 'monitoring' && 'gameplane-system,gameplane-games,monitoring' || 'gameplane-system,gameplane-games' }}"
           include-previous-logs: "true"
 
   e2e-go-arm64:
@@ -1937,7 +1988,7 @@ jobs:
         # (operator does zero logins and is wait-dominated, so it runs
         # wide; the api buckets stay within the login limiter's budget).
         # Mirrors e2e-go's steps and per-bucket settings.
-        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components]
+        bucket: [operator, api-auth, api-roles, api-rbac, api-agent, api-mods, telemetry, optional-components, restricted-workloads]
         arch: [arm64]
         include:
           - bucket: operator
@@ -1973,6 +2024,10 @@ jobs:
             parallel: 1
             test_timeout: 35m # lifecycle plus two-GameServer TCP/UDP relay identity, outage and recovery checks
             job_timeout: 75 # Boots a kind cluster, installs the chart, runs the bucket's suite.
+          - bucket: restricted-workloads
+            parallel: 1
+            test_timeout: 25m # Includes real projected-token rotation and node capture cleanup.
+            job_timeout: 60 # Boots a kind cluster, installs the chart, runs the bucket's suite.
     env:
       CLUSTER: gameplane-e2e
       CTX: kind-gameplane-e2e
@@ -2010,7 +2065,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
@@ -2103,7 +2158,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
@@ -2172,7 +2227,7 @@ jobs:
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
@@ -2279,11 +2334,21 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
         uses: ./.github/actions/e2e-images
+      - name: free runner disk for Garry's Mod image
+        if: matrix.test == 'TestGameServer_GarrysModBot_Query'
+        # The pre-baked game image exhausts the standard runner while containerd
+        # unpacks it. These unused SDKs and the already-loaded archive share
+        # the node's host filesystem. Keep the real game/protocol test intact.
+        run: |
+          df -h /
+          sudo rm -rf -- /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          rm -f -- "$RUNNER_TEMP/e2e-images/e2e-images.tar"
+          df -h /
       - name: bring up cluster + helm install
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
       - name: run go e2e (game bot)
@@ -2339,7 +2404,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
@@ -2401,7 +2466,7 @@ jobs:
           key-suffix: e2e
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: load images
@@ -2489,7 +2554,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: install kind
-        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           install_only: true
       - name: read ingress-nginx version pin from up.sh
@@ -2706,8 +2771,8 @@ jobs:
               'go-e2e-unit': (n) => n === 'go (test/e2e)',
               'api-postgres': (n) => n === 'api (postgres)',
               'e2e-buckets': (n) => n === 'e2e bucket coverage',
-              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement) \//.test(n) && n.includes('/ amd64 '),
-              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components) \//.test(n) && n.includes('/ arm64 '),
+              'e2e-go': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//.test(n) && n.includes('/ amd64 '),
+              'e2e-go-arm64': (n) => /^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads) \//.test(n) && n.includes('/ arm64 '),
               'e2e-multicluster': (n) => n.startsWith('e2e multicluster /') && n.includes('/ amd64 '),
               'e2e-multicluster-arm64': (n) => n.startsWith('e2e multicluster /') && n.includes('/ arm64 '),
               'e2e-upgrade': (n) => n.startsWith('e2e upgrade /') && n.includes('/ amd64 '),
@@ -2859,8 +2924,15 @@ jobs:
             const bucketSet = new Set();
             for (const j of apiJobs) {
               const n = j.name || '';
-              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|management-placement) \//);
-              if (m) bucketSet.add(m[1]);
+              const m = n.match(/^e2e (operator|api-auth|api-roles|api-rbac|api-agent|api-mods|telemetry|optional-components|restricted-workloads|wake-hostport|network-isolation|management-placement|backup-preparation|monitoring|recovery) \//);
+              const executionGated = m && ['wake-hostport', 'recovery'].includes(m[1]);
+              if (m && !executionGated) bucketSet.add(m[1]);
+              // Partial selection can complete these legs without running
+              // their drills. Count completed execution, including failure.
+              if (executionGated && Array.isArray(j.steps)) {
+                const drill = j.steps.find((s) => s.name === `run go e2e (${m[1]})`);
+                if (drill && ['success', 'failure'].includes(drill.conclusion)) bucketSet.add(m[1]);
+              }
               if (/^e2e multicluster \//.test(n)) bucketSet.add('multicluster');
               if (/^e2e upgrade \//.test(n)) bucketSet.add('upgrade');
               if (/^e2e postgres \//.test(n) && Array.isArray(j.steps)) {

@@ -5,6 +5,16 @@
 
 ## Purpose
 
+### Kubernetes token projection (#714)
+
+Game Pods disable automatic credentials. The agent alone mounts a rotating
+projected token plus kube-root CA and namespace at client-go's standard path;
+`rest.InClusterConfig` preserves `BearerTokenFile` refresh. No token is mounted
+into game/config-init. Shared PID remains intentional for process metrics and
+is residual in-Pod trust; mount isolation does not make the agent safe from
+all processes in its Pod. CI exercises live projection rotation and a heartbeat
+after the original short token expires.
+
 The agent is a per-pod HTTP/HTTPS sidecar that runs inside every game pod to expose the game server's operations to the control plane and dashboard. It translates dashboard requests into game-protocol actions (RCON, file I/O, container logs, player queries) and reports liveness, resource usage, and player metrics back to the operator via Kubernetes API patches, decoupling game-specific behavior from the cluster control plane.
 
 ## Responsibilities
@@ -21,7 +31,7 @@ The agent is a per-pod HTTP/HTTPS sidecar that runs inside every game pod to exp
 - **Quiesce**: Pause auto-saves and flush in-flight state before snapshots; run module-declared sequences over RCON and handle games that don't support it gracefully.
 - **Lifecycle**: Run module-declared stop sequences over RCON before the operator scales the server to zero.
 - **Actions**: Execute module-declared operator actions (templated RCON commands with user parameters) without agent code changes.
-- **Status metrics**: Query live game metrics (TPS, world time, etc.) via RCON and regex extraction; module-declared in `capabilities.status.metrics[]`.
+- **Status metrics**: Query live game metrics (TPS, world time, etc.) via RCON and regex extraction; module-declared in `capabilities.status.metrics[]`. Optional `performance` declarations add closed numeric signal/unit semantics and decimal degradation thresholds. One shared source serves both protected route mounts and Prometheus: opted-in templates use a 30-second interval cache, 3-second command/10-second cycle budgets, one outstanding legacy RCON call, and 75-second sample freshness. Scrapes issue no commands; invalid or stale values are absent and valid zero is retained. See `docs/monitoring.md` for bounds and metric families.
 - **Mods**: List, install, and uninstall game mods from a registry; track per-volume metadata; guard downloads with strict SSRF egress validation.
 - **Heartbeat**: Periodically patch the owning GameServer's status with lastHeartbeat, playersOnline, playersMax, gameVersion, and resource usage (CPU, memory, disk).
 
@@ -86,7 +96,7 @@ Per-package roles:
 - **`mods`**: Tracks installed mods in a per-volume manifest (`.gameplane-mods.json`); downloads from registry with strict egress validation via `netguard.IsPublic`.
 - **`players`**: Queries player count, names, ban lists, and runs moderation actions over RCON; a single template-driven `commander` renders each moderation command from the module's declared `capabilities.players` templates (no per-game Go implementations), and reports capabilities from what the template declares.
 - **`quiesce`**: Runs module-declared sequences (e.g., Minecraft's `save-off` + `save-all flush`) over RCON; responds `quiesced: false` + reason when unsupported (not an error).
-- **`rcon`**: Factory pattern for wire-protocol clients (`Valve/Source`, `Telnet`, `WebSocket`, `BattlEye`, `Satisfactory`, `Palworld`, `NuclearOption`, `REST`, `CLI`, `Disabled`); `Exec(cmd) (string, error)` interface. RCON reply packets are accepted up to 16394 bytes (a 4096-character Minecraft chunk at its worst-case UTF-8 byte length, plus the 10-byte packet header) and rejected as malformed outside `[10, 16394]` (F-104).
+- **`rcon`**: Factory pattern for wire-protocol clients (`Valve/Source`, `Telnet`, `WebSocket`, `BattlEye`, `Satisfactory`, `Palworld`, `NuclearOption`, `REST`, `CLI`, `Disabled`); `Exec(cmd) (string, error)` interface. RCON reply packets are accepted up to 16394 bytes (a 4096-character Minecraft chunk at its worst-case UTF-8 byte length, plus the 10-byte packet header) and rejected as malformed outside `[10, 16394]` (F-104). Source RCON also caps aggregate response text at 8 MiB and enforces an absolute 30-second command exchange deadline after connection/authentication; each 400-ms fragment idle window is clamped to that deadline. Exceeding the aggregate cap or hard deadline drops the connection and returns an error without partial output. The status collector separately accepts at most 64 KiB.
 - **`status`**: Runs module-declared metrics queries over RCON; each metric specifies a command and a regex with named group `"value"` for extraction.
 - **`usage`**: Reads CPU/memory from `/proc` (proc mode, default) or cgroup v2; disk via `statfs`; exposes `Sample` with `Known` flags so callers distinguish "unknown" from "zero".
 
@@ -177,6 +187,8 @@ Resource usage env vars (set by the operator):
 | `/players/banned` | GET | Currently banned players; response: `[ { name, reason?, source? } ]`; 502 if RCON unavailable |
 | `/quiesce` | POST | Pause auto-saves before snapshot; response: `{ quiesced, reason? }` (boolean, reason optional); unsupported games return `quiesced: false` with a reason |
 | `/unquiesce` | POST | Resume auto-saves after snapshot; response: `{ quiesced, reason? }` |
+| `/v1/pods/{uid}/identity` | GET | Operator preflight: 204 only when `{uid}` matches `GAMEPLANE_POD_UID`; never mutates game state |
+| `/v1/pods/{uid}/quiesce`, `/v1/pods/{uid}/unquiesce` | POST | Pod-bound backup RPCs with the same response contract as the legacy routes; reject missing/mismatched Pod UID with 404 before RCON |
 | `/lifecycle/stop` | POST | Run stop sequence before scale-to-zero; RCON connection drop is the expected outcome |
 | `/actions/run` | POST | Execute module-declared operator action; request: `{ id, params }`; response: `{ ok, raw? }` |
 | `/status` | GET | Live game metrics (module-declared); response: bare JSON array `[ { id, displayName?, value, unit? } ]` |
@@ -209,8 +221,9 @@ All endpoints on the `--addr` control mux, except `/healthz`, return `401 Unauth
 - **Extracted mod files stay world-readable**: `mods.moduleFileMode` is `0o644`, not a tighter `0o600`, because the mods volume is shared with the game container, which runs as whatever uid its image needs — a different uid than the agent's own. At `0o600` the game process couldn't read its own mods. This is the rationale behind the `.golangci.yml` gosec G302 exclusion scoped to `agent/internal/mods/mods.go`.
 - **Resource usage is in-pod**: The `usage` package reads from `/proc` or cgroups; no external metrics pipeline required. Cgroup mode is a fallback for older clusters; proc mode (default in production) requires the operator to set `ShareProcessNamespace: true`.
 - **Module capabilities drive behavior**: Every game-specific handler (players, quiesce, lifecycle, status, actions) reads its config from `--capabilities` (JSON unmarshaled into `caps.Spec`). New games require no agent code change.
+- **Backup process identity**: The operator injects `GAMEPLANE_POD_UID` from `metadata.uid` through the DownwardAPI. Pod-bound backup routes require the existing mTLS authentication and check this UID at the final network hop, including when the Service resolves to a replacement pod. Missing UID fails closed. Deploy the updated agent image and allow pod rollout when upgrading the operator; older agents return 404 and the operator does not fall back to unbound routes. Legacy endpoints remain available to existing callers during rollout.
 - **RCON connection errors are graceful**: A lost RCON connection does not crash the agent. `console`, `players`, `quiesce`, and `lifecycle` handlers catch connection errors and return appropriate HTTP status (e.g., `502 Bad Gateway`).
-- **Source RCON sends complete frames**: Each AUTH or command frame is submitted in one socket write, with its existing byte-size limit, request ID, type, body, and two NUL terminators preserved. This avoids separate header-only writes rejected by vanilla Minecraft's RCON reader. A short write is an error and drops the connection without replaying the command; response grace and healthy connection reuse remain unchanged.
+- **Source RCON sends complete frames**: Each AUTH or command frame is submitted in one socket write, with its existing byte-size limit, request ID, type, body, and two NUL terminators preserved. This avoids separate header-only writes rejected by vanilla Minecraft's RCON reader. A short write is an error and drops the connection without replaying the command. Dialing has a five-second limit; authentication has an absolute ten-second limit including continuous preamble packets. Healthy idle completion permits connection reuse; aggregate response overflow or absolute command deadline exhaustion discards partial output and drops the connection.
 - **Log streams are tail-only**: The `logs` package does not support random-access reads. It streams from the current end (live mode) or from file start (backlog mode); clients must handle partial output and reconnection.
 
 ## Dependencies
@@ -244,7 +257,7 @@ The agent and operator modules use `k8s.io/apimachinery`/`k8s.io/client-go` v0.3
   - `battleye`: UDP-based CRC32 packet framing.
   - `satisfactory`: HTTPS JSON function-call API with session token.
   - `palworld`: HTTP Basic REST admin API.
-  - `nuclearoption`: Dedicated TCP stream for Nuclear Option remote command protocol.
+  - `nuclearoption`: Dedicated TCP stream for Nuclear Option remote command protocol. One 30-second deadline bounds dialing, request writes, and response reads; responses are capped at 10 MiB. A timed-out partial exchange closes the connection before the next command.
   - `rest`: Generic HTTP/JSON REST console client with lazy auth (`PassFn`), 1 MiB bounded body read, configurable timeouts, auth failure cooldown, and loopback TLS protection. Provides adapters for FiveM (txAdmin: `POST /fxserver/commands`, bearer/X-TxAdmin-Token, `{"action":"console","parameter":"<cmd>"}`), Farming Simulator 25 (`POST /api/console`, Basic auth, `{"command":"<cmd>"}`), and generic REST (`POST /api/command`).
   - `cli`: Container stdin/PTY / local execution client (Option A in OPEN-DECISIONS.md). Drives commands via named FIFO pipe (`GAMEPLANE_CLI_PIPE`) or local process shell execution without requiring remote TCP networking or password secrets, while web console continues to attach via pod-attach PTY.
 

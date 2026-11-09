@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/actions"
 	"github.com/GameplanePanel/gameplane/agent/internal/auth"
@@ -178,6 +179,7 @@ func main() {
 	// and isn't meant to be trusted with the console/files/RCON routes that
 	// cert would also unlock.
 
+	statusSource := status.New(rconClient, statusSpec)
 	mountProtected := func(protected chi.Router) {
 
 		// Console/Logs open long-lived WebSockets and Mods installs can run
@@ -198,7 +200,7 @@ func main() {
 			quiesce.Mount(bounded, rconClient, gameName, quiesceSpec)
 			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
 			actions.Mount(bounded, rconClient, gameName, actionSpecs)
-			status.Mount(bounded, rconClient, statusSpec)
+			statusSource.Mount(bounded)
 		})
 	}
 	r.Group(func(protected chi.Router) {
@@ -208,6 +210,13 @@ func main() {
 	r.Route("/v1/targets/{uid}", func(protected chi.Router) {
 		protected.Use(authCheck.Middleware, target.Guard(serverUID))
 		mountProtected(protected)
+	})
+	// Backups bind save-off/save-on to the process they prepared. The service
+	// may already route to a replacement pod, which must reject the old UID.
+	r.Route("/v1/pods/{uid}", func(protected chi.Router) {
+		protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
+		protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
+		quiesce.Mount(protected, rconClient, gameName, quiesceSpec)
 	})
 
 	srv := &http.Server{
@@ -230,6 +239,8 @@ func main() {
 	// Prometheus metrics for per-server resource usage and player counts.
 	// Registered with the default registry so promhttp.Handler() picks it up.
 	m := metrics.New()
+	prometheus.MustRegister(statusSource)
+	go statusSource.Run(ctx)
 
 	// Resource usage: in proc mode (the operator shares the pod's PID
 	// namespace and sets GAMEPLANE_USAGE_PROC) the agent reports the game

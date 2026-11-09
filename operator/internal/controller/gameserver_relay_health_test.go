@@ -37,6 +37,15 @@ func TestRelayDeploymentIdentityProbesAndResourceRemoval(t *testing.T) {
 				t.Fatal("relay permits overlapping identities")
 			}
 			container := dep.Spec.Template.Spec.Containers[0]
+			metricsPorts := 0
+			for _, port := range container.Ports {
+				if port.Name == "relay-metrics" && port.ContainerPort == 8091 {
+					metricsPorts++
+				}
+			}
+			if metricsPorts != 1 {
+				t.Fatal("tunnel metrics port missing or duplicated")
+			}
 			if container.StartupProbe == nil || container.StartupProbe.HTTPGet == nil || container.StartupProbe.HTTPGet.Path != "/healthz" || !hasRelayReadinessProbe(&dep) || container.LivenessProbe != nil {
 				t.Fatal("provider outage must affect readiness without restarting the supervisor")
 			}

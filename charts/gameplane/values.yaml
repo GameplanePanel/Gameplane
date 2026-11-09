@@ -56,6 +56,8 @@ crds:
     pullPolicy: IfNotPresent
 
 operator:
+  # Bound, rotating agent-only token; 600 supports short rotation drills.
+  agentTokenExpirationSeconds: 3600
   # Disable the operator and bundled native CRDs for a standalone central panel.
   enabled: true
   replicas: 1
@@ -132,6 +134,13 @@ operator:
   # pod cannot hold a Backup/Restore in flight forever. Defaults: 2 and 86400 (24h).
   backupJobBackoffLimit: 2
   backupJobActiveDeadlineSeconds: 86400
+  # Preparation (scheduling, image pull, PVC mount, repository/lock probe)
+  # precedes save-off. Quiesce expiry cancels and drains the copy before save-on.
+  backupPreparationTimeout: 10m
+  backupQuiesceTimeout: 5m
+  backupCSICaptureTimeout: 10m
+  # Prefer the observed game's node by default; opt in to a hard requirement.
+  backupHardSameNode: false
   # Mount a directory of module bundles into the operator so local-type
   # ModuleSources can index it (homelab: drop module dirs on disk and
   # they appear in the catalog). Provide exactly one of existingClaim
@@ -555,6 +564,9 @@ gamesNamespace: gameplane-games
 
 networkPolicies:
   enabled: true
+  # Fail closed unless actual kubelet source CIDRs/probe ports and apiserver
+  # endpoint CIDRs are supplied. Defaults retain the legacy broad allowances.
+  strict: false
   # CIDRs that hold kubelet source IPs for liveness/readiness probes.
   # If unset, the chart falls back to RFC1918 + link-local ranges,
   # which cover most clusters without opening the public internet.
@@ -686,6 +698,9 @@ updates:
   channel: ""
 
 serviceMonitors:
+  # Explicit escape for independently managed scrape ingress policies. This
+  # does not open any ports; you must install and verify those policies.
+  externallyManagedPolicy: false
   enabled: false   # when true, creates ServiceMonitors for operator/api/telemetry-receiver and a PodMonitor for agent sidecars on their separate plain metrics port 9090 (the control port 8090 stays mTLS-only)
   labels: {}       # additional labels applied to ServiceMonitor/PodMonitor objects for Prometheus selector matching
   # Namespace selector (standard Kubernetes namespaceSelector label match
@@ -697,9 +712,9 @@ serviceMonitors:
   # so the receiver ServiceMonitor also needs
   # api.telemetry.receiver.dashboard.tokenSecretRef.name) when
   # networkPolicies.enabled is also true. Required
-  # alongside enabled: true whenever networkPolicies.enabled is also true;
-  # left empty, both stay unreachable to Prometheus even though their
-  # ServiceMonitor/PodMonitor objects are rendered. Example:
+  # alongside enabled: true when the operator and networkPolicies are enabled;
+  # left empty, chart validation fails unless externallyManagedPolicy is true.
+  # Also permits tunnel health/metrics on port 8091. Example:
   # `{matchLabels: {kubernetes.io/metadata.name: monitoring}}`.
   scrapeNamespaceSelector: {}
 
@@ -722,7 +737,8 @@ grafanaDashboards:
     grafana_dashboard: "1"
 
 podSecurity:
-  enforceRestricted: false   # label gamesNamespace with pod-security.kubernetes.io/enforce=restricted
+  enforceRestricted: false   # require compatible nonroot templates and enforce Restricted game pods
+  version: v1.34             # pinned admission policy; change after testing workload compatibility
 
 # Default ModuleSource shipped with the chart. Disable when you manage
 # ModuleSource resources via GitOps. The operator indexes this source on a
@@ -810,6 +826,14 @@ uploadModuleSource:
 # opt in has no capture sidecar attached. Off by default.
 capture:
   enabled: false
+  # Separate host-capable Linux/containerd worker; each server also needs an
+  # audited administrator opt-in. Never enables privileges in game Pods.
+  nodeDiagnostics:
+    enabled: false
+    namespace: gameplane-diagnostics
+    storageClass: ""
+    maxCaptures: 10
+    storageQuota: 10Gi
   # Default retention window for completed captures (seconds). Per-server overrides
   # are clamped to the cluster maximum below; this is the default when a server does
   # not specify a retention policy.

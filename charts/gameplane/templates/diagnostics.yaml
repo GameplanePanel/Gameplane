@@ -1,0 +1,122 @@
+{{- $d := include "gameplane.nodeDiagnostics" . | fromJson }}
+{{- if $d.enabled }}
+# This namespace is an explicit host-privilege exception. Never share it with
+# games or the control plane; the worker has no Kubernetes token or host mount.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $d.namespace }}
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: {{ .Values.podSecurity.version | default "v1.34" | quote }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gameplane-diagnostics
+  namespace: {{ $d.namespace }}
+spec:
+  hard:
+    persistentvolumeclaims: {{ $d.maxCaptures | quote }}
+    requests.storage: {{ $d.storageQuota | quote }}
+    pods: {{ mul (int $d.maxCaptures) 2 | quote }}
+    count/jobs.batch: {{ $d.maxCaptures | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-diagnostics-namespace
+rules:
+  - apiGroups: [""]
+    resources: [namespaces]
+    resourceNames: [{{ $d.namespace | quote }}]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-diagnostics-namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-diagnostics-namespace
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-operator
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gameplane-diagnostics
+  namespace: {{ $d.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: [pods, services, persistentvolumeclaims, configmaps, secrets]
+    verbs: [get, list, create, update, patch, delete]
+  - apiGroups: ["batch"]
+    resources: [jobs]
+    verbs: [get, list, create, update, patch, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gameplane-diagnostics
+  namespace: {{ $d.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gameplane-diagnostics
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-operator
+    namespace: {{ .Release.Namespace }}
+---
+# Files remain behind mTLS and UID-bound routes. Workers need no network
+# egress: their AF_PACKET socket receives traffic in the selected game netns.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gameplane-diagnostics
+  namespace: {{ $d.namespace }}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  egress: []
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [gameplane-operator, gameplane-api, gameplane-gateway]
+      ports:
+        - { protocol: TCP, port: 9091 }
+{{- if (.Values.gateway | default dict).enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gameplane-gateway-diagnostics
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gameplane-gateway
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $d.namespace }}
+          podSelector:
+            matchLabels:
+              gameplane.local/capture-component: artifacts
+      ports:
+        - { protocol: TCP, port: 9091 }
+{{- end }}
+{{- end }}

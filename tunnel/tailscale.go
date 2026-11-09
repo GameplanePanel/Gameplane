@@ -80,11 +80,12 @@ func runTailscale(ctx context.Context, cfg Config, authKey string) error {
 		return err
 	}
 	var ready atomic.Bool
+	healthHistory := &relayHealth{}
 	listener, err := (&net.ListenConfig{}).Listen(ctx, "tcp", ":8091")
 	if err != nil {
 		return fmt.Errorf("tailscale health listener: %w", err)
 	}
-	health := &http.Server{Handler: tailscaleHealth(&ready), ReadHeaderTimeout: 2 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second, IdleTimeout: 10 * time.Second}
+	health := &http.Server{Handler: relayHealthHandler(healthHistory), ReadHeaderTimeout: 2 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second, IdleTimeout: 10 * time.Second}
 	healthDone := make(chan error, 1)
 	go func() { healthDone <- health.Serve(listener) }()
 	defer func() { _ = health.Close() }()
@@ -94,8 +95,7 @@ func runTailscale(ctx context.Context, cfg Config, authKey string) error {
 		if err != nil {
 			return err
 		}
-		healthHistory := &relayHealth{}
-		err = serveTailnetObserved(ctx, embeddedTailnet{server}, tags, ports, &ready, 2*time.Second, tailnetRetryObserver(healthHistory, backoff, time.Now))
+		err = serveTailnetWithHealth(ctx, embeddedTailnet{server}, tags, ports, &ready, 2*time.Second, healthHistory, backoff)
 		ready.Store(false)
 		_ = server.Close()
 		if ctx.Err() != nil {
@@ -116,16 +116,6 @@ func runTailscale(ctx context.Context, cfg Config, authKey string) error {
 	return nil
 }
 
-func tailnetRetryObserver(history *relayHealth, backoff *exponentialBackoff, now func() time.Time) func(bool) {
-	return func(healthy bool) {
-		observation := relayObservation{Connection: "unknown"}
-		if healthy {
-			observation = relayObservation{Connection: "connected", Forwards: true, Assigned: true}
-		}
-		history.observe(now(), observation, backoff)
-	}
-}
-
 func waitTailnetRetry(ctx context.Context, healthDone <-chan error, delay time.Duration) error {
 	timer := time.NewTimer(delay)
 	defer timer.Stop()
@@ -139,17 +129,27 @@ func waitTailnetRetry(ctx context.Context, healthDone <-chan error, delay time.D
 	}
 }
 
-func tailscaleHealth(ready *atomic.Bool) http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
-	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
-		if !ready.Load() {
-			http.Error(w, "tailnet or forwarding listeners unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-	})
-	return mux
+// serveTailnetWithHealth preserves a known outage while a replacement joins
+// and after an attempt exits, until serving forwards provide fresh evidence.
+func serveTailnetWithHealth(ctx context.Context, node tailnetNode, tags []string, ports []forwardPort, ready *atomic.Bool, poll time.Duration, history *relayHealth, backoff *exponentialBackoff) error {
+	history.markUnavailable()
+	defer history.markUnavailable()
+	return serveTailnetObserved(ctx, node, tags, ports, ready, poll, tailnetRetryObserver(history, backoff, time.Now))
+}
+
+func tailnetRetryObserver(history *relayHealth, backoff *exponentialBackoff, now func() time.Time) func(bool) {
+	return func(healthy bool) {
+		history.observe(now(), tailnetHealthObservation(healthy), backoff)
+	}
+}
+
+func tailnetHealthObservation(healthy bool) relayObservation {
+	if healthy {
+		return relayObservation{Connection: "connected", Forwards: true, Assigned: true}
+	}
+	// Unlike Playit's cached assignment, tsnet provides an observed failure.
+	// Keep it known so an outage raises the unavailable alert.
+	return relayObservation{Connection: "unavailable"}
 }
 
 func tailnetReady(status *ipnstate.Status, tags []string) bool {
