@@ -3,10 +3,11 @@
 package controller
 
 import (
+	"testing"
+
 	v1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func TestCRDValidation_RecoveryPoliciesRejectCSI(t *testing.T) {

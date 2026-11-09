@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"strings"
+	"testing"
+
 	v1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
-	"testing"
 )
 
 // Runtime execution is CI-only; these regression sources precede implementation.

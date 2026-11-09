@@ -67,8 +67,12 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 		if _, err := envInstance.Dyn.Resource(backupGVR).Namespace(ns).Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 			t.Fatal(err)
 		}
-		t.Cleanup(func() { deleteBackupCR(t, ns, name) })
-		waitBackupSucceeded(t, ns, name, 6*time.Minute)
+		t.Cleanup(func() {
+			cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+			defer cancel()
+			deleteBackupCRContext(cleanupCtx, t, ns, name)
+		})
+		waitBackupSucceededContext(ctx, t, ns, name, 6*time.Minute)
 	}
 	capture(backup)
 	ready(gs)
@@ -97,8 +101,8 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 	}
 	exec("echo changed > /data/marker; echo changed > /world/marker; echo changed > /data/mods/marker; echo cache-after > /rebuild/marker; touch /data/stale /world/stale /data/mods/stale; sync")
 	restore := gs + "-restore"
-	createRestore(t, ns, restore, gs, backup)
-	waitRestoreSucceeded(t, ns, restore, 6*time.Minute)
+	createRestoreContext(ctx, t, ns, restore, gs, backup)
+	waitRestoreSucceededContext(ctx, t, ns, restore, 6*time.Minute)
 	ready(gs)
 	exec("test $(cat /data/marker) = primary-before; test $(cat /world/marker) = extra-before; test $(cat /data/mods/marker) = mods-before; test $(cat /rebuild/marker) = cache-after; test ! -e /data/stale; test ! -e /world/stale; test ! -e /data/mods/stale")
 
@@ -121,8 +125,8 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			})
 			capture(gs + "-" + mode)
 			name := gs + "-restore-" + mode
-			createRestore(t, ns, name, gs, backup)
-			waitRestoreSucceeded(t, ns, name, 6*time.Minute)
+			createRestoreContext(ctx, t, ns, name, gs, backup)
+			waitRestoreSucceededContext(ctx, t, ns, name, 6*time.Minute)
 			envInstance.Eventually(t, time.Minute, func() (bool, string) {
 				obj, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gs, metav1.GetOptions{})
 				if err != nil {
@@ -164,7 +168,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			})
 			ready(target)
 			name := target + "-restore"
-			createRestore(t, ns, name, target, backup)
+			createRestoreContext(ctx, t, ns, name, target, backup)
 			envInstance.Eventually(t, time.Minute, func() (bool, string) {
 				rs, err := envInstance.Dyn.Resource(restoreGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
 				if err != nil {

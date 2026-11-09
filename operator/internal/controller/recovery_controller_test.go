@@ -202,9 +202,9 @@ func TestRecoveryAntiDowngradeAndConsistency(t *testing.T) {
 		t.Fatal("drained all-data not recognized")
 	}
 	for _, state := range []string{"LegacyUnknown", "Unknown"} {
-		copy := b.DeepCopy()
-		copy.Status.CaptureManifest.State = state
-		if _, err := recoveryCaptureMode(copy); err == nil {
+		candidate := b.DeepCopy()
+		candidate.Status.CaptureManifest.State = state
+		if _, err := recoveryCaptureMode(candidate); err == nil {
 			t.Fatal("unknown manifest downgraded")
 		}
 	}
@@ -302,7 +302,7 @@ func TestStoppedPredecessorClaimsSurviveSuccessorAdmission(t *testing.T) {
 			t.Fatalf("predecessor writer ignored: %v %v", ready, err)
 		}
 		op.Recovery = append(op.Recovery, op.lifecycleIdentity)
-		op.lifecycleIdentity.UID = types.UID("another-successor")
+		op.UID = types.UID("another-successor")
 		gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
 		if err := c.Update(t.Context(), gs); err != nil {
 			t.Fatal(err)

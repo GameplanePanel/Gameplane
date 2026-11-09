@@ -58,7 +58,7 @@ func (r *BackupReconciler) prepareStoppedBackup(ctx context.Context, b *v1.Backu
 		if b.Spec.VolumePolicy == "all-data" {
 			m, err := recoveryLayout(ctx, r.backupAPIReader(), gs)
 			if err != nil {
-				return false, fmt.Errorf("%w: %v", errBackupSourceChanged, err)
+				return false, fmt.Errorf("%w: %w", errBackupSourceChanged, err)
 			}
 			s.Claims = m.Volumes
 		} else {

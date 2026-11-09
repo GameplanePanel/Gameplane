@@ -142,14 +142,15 @@ func recoveryLayout(ctx context.Context, reader client.Reader, gs *v1.GameServer
 			return nil, fmt.Errorf("required claim %s is absent from frozen workload", name)
 		}
 		v.ClaimName, v.ClaimUID = name, uids[name]
-		if v.Classification == "data" {
+		switch v.Classification {
+		case "data":
 			v.Included = true
 			v.SnapshotRoot = "/volumes/" + v.LogicalName
 			v.CoverageReason = "IncludedData"
-		} else if v.Classification == "rebuildable" {
+		case "rebuildable":
 			v.CoverageReason = "RebuildRequired"
 			v.RecoveryPrerequisite = "If its contents are missing or incompatible, reconstruct this excluded volume from the declared module and installation sources before starting the recovered game."
-		} else {
+		default:
 			return nil, fmt.Errorf("claim %s must declare backupRole data or rebuildable", name)
 		}
 		m.Volumes = append(m.Volumes, v)

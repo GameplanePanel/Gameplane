@@ -92,6 +92,7 @@ spec:
             - serverRef
             type: object
           status:
+            description: RestoreStatus is the observed state of a Restore.
             properties:
               completionTime:
                 format: date-time
@@ -170,9 +171,8 @@ spec:
                 - Failed
                 type: string
               recoveryPlan:
-                description: |-
-                  RestoreStatus is the observed state of a Restore.
-                  RestoreRecoveryPlan pins a validated target mapping before any power mutation.
+                description: RestoreRecoveryPlan pins a validated target mapping before
+                  any power mutation.
                 properties:
                   admittedGeneration:
                     format: int64

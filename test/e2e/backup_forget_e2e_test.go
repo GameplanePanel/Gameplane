@@ -103,8 +103,13 @@ func TestBackup_DeleteForgetsSnapshot(t *testing.T) {
 // deleteBackupCR deletes a Backup CR, tolerating one that is already gone.
 func deleteBackupCR(t *testing.T, ns, name string) {
 	t.Helper()
+	deleteBackupCRContext(context.Background(), t, ns, name)
+}
+
+func deleteBackupCRContext(ctx context.Context, t *testing.T, ns, name string) {
+	t.Helper()
 	err := envInstance.Dyn.Resource(backupGVR).Namespace(ns).
-		Delete(context.Background(), name, metav1.DeleteOptions{})
+		Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		t.Fatalf("delete backup %s/%s: %v", ns, name, err)
 	}

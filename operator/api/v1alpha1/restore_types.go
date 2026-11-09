@@ -37,7 +37,6 @@ type RestoreSpec struct {
 	ServerRef LocalObjectRef `json:"serverRef"`
 }
 
-// RestoreStatus is the observed state of a Restore.
 // RestoreRecoveryPlan pins a validated target mapping before any power mutation.
 type RestoreRecoveryPlan struct {
 	// Admitted power intent is informational; cleanup never overwrites newer user intent.
@@ -54,6 +53,7 @@ type RestoreRecoveryPlan struct {
 	Volumes          []BackupVolumeCoverage `json:"volumes"`
 }
 
+// RestoreStatus is the observed state of a Restore.
 type RestoreStatus struct {
 	// +optional
 	RecoveryPlan *RestoreRecoveryPlan `json:"recoveryPlan,omitempty"`
