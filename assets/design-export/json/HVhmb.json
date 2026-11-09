@@ -3,8 +3,8 @@
   "id": "HVhmb",
   "x": 8200,
   "y": 63932,
-  "name": "Screen/Standalone — Remove cluster",
-  "context": "Removal errors stay inside the confirmation and reset when dismissed or reopened. Successful removal clears a matching current selection to empty without selecting local or another remote.",
+  "name": "Legacy/Clusters list — Remove registration — Moved",
+  "context": "Superseded by Cluster Details Overview, Nodes and Configuration. Backup destinations and registration removal are scoped to cluster Configuration.",
   "theme": {
     "semantic": "dark"
   },
@@ -85,7 +85,7 @@
                   "content": "Clusters"
                 },
                 "VbHwU": {
-                  "content": "Administration of registered locations, connectivity and node inventory."
+                  "content": "Administration of registered clusters, connectivity and node inventory."
                 },
                 "TgdLz": {
                   "type": "frame",

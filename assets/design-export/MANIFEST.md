@@ -2825,3 +2825,36 @@ Source: `web/src/components/backups/BackupDetailDrawer.tsx`. The recorded state 
 ### Follow-up alignment — 2026-11-04
 
 Re-exported `zhLZN` and `bHJy6` from Pencil after reviewing the CI captures. The drawer now explicitly removes HeroUI body/footer margins and uses foreground text for values, matching the design's 20px content inset. The recorded reference is 400px wide (440px drawer minus two 20px insets); native Windows scrollbars consume additional space in the live scroll area. Coverage cards remain 98px tall. Header/footer heights, field line heights, the phase chip, and action-button typography now match the component styles. Both nodes were visually inspected in Pencil and the recorded state was inspected in Chrome; no comparison thresholds were changed. JSON and 2× PNG exports use the same methods above.
+
+
+## Incremental export 2026-11-09 — Clusters and all-cluster Nodes navigation
+
+The canonical infrastructure navigation is **Clusters** plus **Nodes**. Nodes lists inventory across authorized clusters with search, cluster/status filters, sortable columns, explicit partial coverage, and unknown metric values. Cluster details reuse that inventory table with a fixed cluster scope and separate Overview, Nodes, and Configuration tabs.
+
+| Node | Name | Change |
+| --- | --- | --- |
+| `BdmAW` | Screen/Nodes — All clusters | New desktop inventory: readiness and reporting totals, CPU/memory coverage, filters, partial-inventory notice, shared sortable table, and Add node. |
+| `I38x1` | Gameplane/Node Inventory Table | New reusable table composed from existing HeroUI column/cell primitives. Columns: Node, Cluster, Status, CPU, Memory, Pods, Uptime. |
+| `wqnM9` | Screen/Cluster Details — Overview | New registration identity, API connectivity, node readiness, Kubernetes version, and workload/inventory links. |
+| `J8GzM9` | Screen/Cluster Details — Nodes | New fixed-cluster variant of the same inventory table, with search/status filtering and View all nodes. |
+| `OecJ5` | Screen/Cluster Details — Configuration — Local | New local access/download, read-only storage class, and scoped backup destinations. Built-in local registration cannot be removed. |
+| `T70dJ` | Screen/Cluster Details — Configuration — Default storage | New empty-storage-class variant; new volumes use the cluster default. |
+| `t56aLu` | Screen/Cluster Details — Configuration — Remote | New remote-managed access/storage state, scoped backup destinations, and separated registration-removal section. |
+| `IBUqJ` | Screen/Nodes — Add node target | New explicit target-cluster selection before enrollment. Remote management and local operations availability remain capability dependent. |
+| `N2nTf` | Screen/Mobile — Nodes — All clusters | New 390px-wide stacked rows with search, cluster/status filters, sorting, readiness, and partial coverage. |
+| `kKFX9` | Gameplane/App Sidebar | Added Nodes (`VqyiS`) after Clusters. |
+| `Mp7Ep` | Gameplane/Admin Settings Nav | Removed Backup destinations; it now belongs to cluster Configuration. |
+| `iYUWc`, `WrmU5` | Registered cluster lists | Open cluster plus View nodes entry points; registration removal is in detail Configuration. |
+| `Y96CaE` | Gameplane/Cluster Resources Card | View nodes opens `/nodes` while preserving the Dashboard cluster filter. Canonical dashboard instances updated. |
+| `FyV6E`, `rCQaM` | Shared fleet filters | Cluster and All clusters terminology. |
+
+The previous mixed Cluster Settings screens (`j9W8A`, `dxdEi`), Admin backup-destination screens (`RC3Kf`, `D9QYZ`), standalone inventory-selection screen (`Be7ZW`), and list-based removal screen (`HVhmb`) are retained under **Legacy/** names with explicit supersession context. Their old storage and form states remain available as historical reference.
+
+Changed 51 product-copy entries from location/locations to cluster/clusters across fleet screens, wizard selection, central-management explanations, and reusable filters. Technical identifiers and URLs were not renamed.
+
+**Export coverage:** 54 objects have refreshed `json/<id>.json` and 2× `screenshots/<id>.png`:
+
+`kKFX9`, `Mp7Ep`, `I38x1`, `BdmAW`, `wqnM9`, `J8GzM9`, `OecJ5`, `t56aLu`, `IBUqJ`, `N2nTf`, `iYUWc`, `WrmU5`, `j9W8A`, `dxdEi`, `RC3Kf`, `D9QYZ`, `Be7ZW`, `HVhmb`, `T70dJ`, `j24cXg`, `W8idqY`, `nNL3E`, `vUqMl`, `f1Vga`, `UMJli`, `kK8Ji`, `DPrYX`, `fK8Bi`, `tTSdi`, `uMiwd`, `Wj0V4`, `zFiOW`, `F9pUrx`, `oyoTs`, `QQtUD`, `UCNBm`, `pnAbF`, `Cb3eC`, `fbBqA`, `YPKbV`, `NKiqf`, `zj5a3`, `GR1G9`, `n2qdi`, `RpHBg`, `l64bd`, `Uzzje`, `FOVMf`, `r139UP`, `w34N9`, `FyV6E`, `rCQaM`, `NLu2I`, `Y96CaE`.
+
+**Method and verification:** Edited only through Pencil MCP. JSON came from `Get` at depth 9 with targeted expansion of elided child trees; exports retain component references, with referenced changed components exported separately. PNG came from `Export(..., "png", ..., {scale: 2})`. All 54 JSON files parse, match their root IDs, have no elided children or placeholder flags, and have nonempty PNGs with valid dimensions. Existing CRLF line endings were preserved for 23 JSON files. Canonical desktop, cluster-detail, enrollment-dialog, mobile, dashboard, and representative filter layouts were visually checked with `TakeScreenshot`. The document visitor's known descendant-walk error was avoided by enumerating top-level roots with `skipChildren()` and reading each tree directly. No application tests or lint suites were run.
+

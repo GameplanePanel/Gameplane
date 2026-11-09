@@ -238,7 +238,7 @@
           "id": "lZ6pP",
           "type": "ref",
           "ref": "W8XiN",
-          "name": "navCluster",
+          "name": "navClusters",
           "width": "fill_container",
           "cornerRadius": 6,
           "padding": [
@@ -255,6 +255,30 @@
             },
             "Ra9NK": {
               "content": "Clusters"
+            }
+          }
+        },
+        {
+          "id": "VqyiS",
+          "type": "ref",
+          "ref": "W8XiN",
+          "name": "navNodes",
+          "width": "fill_container",
+          "cornerRadius": 6,
+          "padding": [
+            8,
+            12
+          ],
+          "gap": 12,
+          "height": 36,
+          "alignItems": "center",
+          "fill": "#00000000",
+          "descendants": {
+            "Sr2Q5": {
+              "icon": "server"
+            },
+            "Ra9NK": {
+              "content": "Nodes"
             }
           }
         },

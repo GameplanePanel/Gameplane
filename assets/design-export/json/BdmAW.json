@@ -1,0 +1,289 @@
+{
+  "type": "frame",
+  "id": "BdmAW",
+  "x": 11480,
+  "y": 63932,
+  "name": "Screen/Nodes — All clusters",
+  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "grYDZ",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "VqyiS": {
+          "fill": "$accent/soft"
+        },
+        "VqyiS/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "VqyiS/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "gVOTp",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "r4xdRg",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Nodes"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "q7GH0",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "ofhIo",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Nodes"
+                },
+                "VbHwU": {
+                  "content": "Health and capacity across your authorized clusters."
+                },
+                "TgdLz": {
+                  "id": "kEFDn",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "Add node",
+                  "descendants": {
+                    "U6q13B": {
+                      "content": "Add node"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "F9AoB3",
+              "name": "Node inventory totals",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "eMCSg",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "NODES READY",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "NODES READY"
+                    },
+                    "QdcEm": {
+                      "icon": "server"
+                    },
+                    "vj2Ru": {
+                      "content": "4 / 5"
+                    },
+                    "h0n7zo": {
+                      "content": "returned nodes"
+                    }
+                  }
+                },
+                {
+                  "id": "Xs472",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "CLUSTERS REPORTING",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "CLUSTERS REPORTING"
+                    },
+                    "QdcEm": {
+                      "icon": "network"
+                    },
+                    "vj2Ru": {
+                      "content": "2 / 3"
+                    },
+                    "h0n7zo": {
+                      "content": "one cluster unavailable"
+                    }
+                  }
+                },
+                {
+                  "id": "OOeYI",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "CPU USAGE",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "CPU USAGE"
+                    },
+                    "QdcEm": {
+                      "icon": "cpu"
+                    },
+                    "vj2Ru": {
+                      "content": "32%"
+                    },
+                    "h0n7zo": {
+                      "content": "4 nodes reporting"
+                    }
+                  }
+                },
+                {
+                  "id": "Jk6tu",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "MEMORY USAGE",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "MEMORY USAGE"
+                    },
+                    "QdcEm": {
+                      "icon": "memory-stick"
+                    },
+                    "vj2Ru": {
+                      "content": "43%"
+                    },
+                    "h0n7zo": {
+                      "content": "4 nodes reporting"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "M9Q71",
+              "name": "Inventory filters",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "JNPZj",
+                  "type": "ref",
+                  "ref": "Lmaf1",
+                  "name": "Search nodes",
+                  "width": "fill_container",
+                  "descendants": {
+                    "EJMtX": {
+                      "content": "Search nodes…"
+                    }
+                  }
+                },
+                {
+                  "id": "VSGgf",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Cluster filter",
+                  "width": 220,
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "All clusters"
+                    }
+                  }
+                },
+                {
+                  "id": "IjpNF",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Status filter",
+                  "width": 180,
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "All statuses"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "otKLx",
+              "name": "Partial inventory notice",
+              "width": "fill_container",
+              "fill": "$warning/soft",
+              "cornerRadius": 12,
+              "padding": [
+                12,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "y4htvj",
+                  "name": "Coverage warning",
+                  "fill": "$warning/soft-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Partial inventory · West is unavailable. Showing 5 returned nodes from 2 clusters.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "oIZu6",
+              "type": "ref",
+              "ref": "I38x1",
+              "name": "All authorized nodes",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "dpgR1",
+              "name": "Inventory count",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "5 nodes shown · Select a cluster name to open its details.",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

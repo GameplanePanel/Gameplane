@@ -3,7 +3,7 @@
   "id": "UCNBm",
   "x": 3280,
   "y": 14602,
-  "name": "Screen/Servers — Location filters open",
+  "name": "Screen/Servers — Cluster filters open",
   "context": "Implemented at 8e08a60f. Filter fields are drafts; Apply commits, Clear resets drafts, dismissal discards edits. Server choices retain location and namespace.",
   "theme": {
     "semantic": "dark"
@@ -115,7 +115,7 @@
                   "content": "Servers"
                 },
                 "VbHwU": {
-                  "content": "Manage your game servers across all authorized locations."
+                  "content": "Manage your game servers across all authorized clusters."
                 },
                 "TgdLz": {
                   "children": [

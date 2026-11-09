@@ -3,7 +3,8 @@
   "id": "dxdEi",
   "x": 1640,
   "y": 65232,
-  "name": "Screen/Cluster Settings — Default storage class",
+  "name": "Legacy/Cluster Settings — Default storage — Superseded",
+  "context": "Superseded by Cluster Details Configuration and Nodes screens. Preserved for historical install-time storage states.",
   "theme": {
     "semantic": "dark"
   },

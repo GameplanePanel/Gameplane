@@ -4,6 +4,7 @@
   "x": 3889,
   "y": 7617,
   "name": "Gameplane/Cluster Resources Card",
+  "context": "View nodes opens the all-cluster inventory at /nodes and preserves the Dashboard cluster filter.",
   "reusable": true,
   "width": "fill_container(546)",
   "fill": "$surface/surface",
@@ -48,7 +49,7 @@
           "id": "RD2NC",
           "name": "link",
           "fill": "$accent/accent",
-          "content": "View cluster",
+          "content": "View nodes",
           "fontFamily": "$typography/font-sans",
           "fontSize": 12,
           "fontWeight": "normal"

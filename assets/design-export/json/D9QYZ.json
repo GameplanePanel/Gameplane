@@ -3,8 +3,8 @@
   "id": "D9QYZ",
   "x": 1640,
   "y": 82231,
-  "name": "Screen/Standalone — Settings · Backup destinations",
-  "context": "PR #630 standalone installation. No local Kubernetes metadata or local workload fallback. Master-key storage and offline rotation have no dashboard controls.",
+  "name": "Legacy/Standalone — Backup destinations — Moved",
+  "context": "Superseded by Cluster Details Overview, Nodes and Configuration. Backup destinations and registration removal are scoped to cluster Configuration.",
   "theme": {
     "semantic": "dark"
   },
@@ -85,7 +85,7 @@
               "fill": "$muted",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
+              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.",
               "lineHeight": 1.5,
               "fontFamily": "$typography/font-sans",
               "fontSize": 14,
@@ -143,15 +143,6 @@
                     },
                     "DpMnt": {
                       "fill": "$muted"
-                    },
-                    "fOAMd": {
-                      "fill": "$surface/secondary"
-                    },
-                    "TWq2N": {
-                      "fill": "$foreground/foreground"
-                    },
-                    "E3ECJ": {
-                      "fill": "$foreground/foreground"
                     }
                   }
                 },

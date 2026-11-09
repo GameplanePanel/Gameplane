@@ -1,0 +1,350 @@
+{
+  "type": "frame",
+  "id": "t56aLu",
+  "x": 18040,
+  "y": 63932,
+  "name": "Screen/Cluster Details — Configuration — Remote",
+  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1060,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "qjaPk",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP": {
+          "fill": "$accent/soft"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "oyYlV",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Twrfz",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Clusters  ›  Remote lab  ›  Configuration"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "iAnOJ",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "diWXH",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Remote lab"
+                },
+                "VbHwU": {
+                  "content": "remote-lab · Registered workload cluster"
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "kQWhP",
+              "name": "Cluster detail tabs",
+              "width": "fill_container",
+              "stroke": "$separator/separator",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 4,
+              "padding": [
+                0,
+                0,
+                12,
+                0
+              ],
+              "children": [
+                {
+                  "id": "Mc5Lj",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Overview tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Overview"
+                    }
+                  }
+                },
+                {
+                  "id": "GHUO8",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Nodes tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Nodes"
+                    }
+                  }
+                },
+                {
+                  "id": "XmsVL",
+                  "type": "ref",
+                  "ref": "CEWo3",
+                  "name": "Configuration tab",
+                  "descendants": {
+                    "YUR8N": {
+                      "content": "Configuration"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "P0wXMc",
+              "name": "Access",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "E9Yw2",
+                  "name": "Access heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Access",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "pgCgw",
+                  "name": "Access description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Node enrollment and kubeconfig downloads are managed at this remote cluster.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Q90Zz",
+              "name": "Storage",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VctHF",
+                  "name": "Storage heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Storage",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "kC6jR",
+                  "name": "Storage description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Storage settings are managed on this cluster. Install-time storage values are available only for the built-in local cluster.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "dalvF",
+              "name": "Backup destinations",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xR3KG",
+                  "name": "Backup destinations heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Backup destinations",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "L42aR",
+                  "name": "Backup destinations description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Repositories used by servers running on Remote lab.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "N5Xfuf",
+                  "name": "Empty backup destinations",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "No backup destinations configured. Add one to enable snapshots.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "hGg1x",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "Add remote backup destination",
+                  "descendants": {
+                    "U6q13B": {
+                      "content": "Add destination"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iue9v",
+              "name": "Remove cluster",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$danger/soft",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "aUbTB",
+                  "name": "Remove cluster heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Remove cluster",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "M1ms36",
+                  "name": "Remove cluster description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Remove this panel’s connection to Remote lab. Running workloads remain on the cluster.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "Bfl2v",
+                  "type": "ref",
+                  "ref": "f3m06I",
+                  "name": "Remove cluster registration",
+                  "descendants": {
+                    "sCPUE": {
+                      "icon": "trash-2"
+                    },
+                    "RY93S": {
+                      "content": "Remove cluster"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,837 @@
+{
+  "type": "frame",
+  "id": "I38x1",
+  "x": 3049,
+  "y": 949,
+  "name": "Gameplane/Node Inventory Table",
+  "reusable": true,
+  "clip": true,
+  "width": 1132,
+  "fill": "$surface/secondary",
+  "cornerRadius": 20,
+  "layout": "vertical",
+  "padding": [
+    0,
+    4,
+    4,
+    4
+  ],
+  "children": [
+    {
+      "type": "frame",
+      "id": "u0ZgPI",
+      "name": "Sortable column headers",
+      "width": "fill_container",
+      "height": 44,
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "R8zOyV",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "Node ↑",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "Node ↑"
+            }
+          }
+        },
+        {
+          "id": "MEgE7",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "Cluster ↕",
+          "width": 160,
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "Cluster ↕"
+            }
+          }
+        },
+        {
+          "id": "lh3Jh",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "Status ↕",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "Status ↕"
+            }
+          }
+        },
+        {
+          "id": "b65Z84",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "CPU ↕",
+          "width": 130,
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "CPU ↕"
+            }
+          }
+        },
+        {
+          "id": "JT6pI",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "Memory ↕",
+          "width": 150,
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "Memory ↕"
+            }
+          }
+        },
+        {
+          "id": "bDTM0",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "Pods ↕",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "Pods ↕"
+            }
+          }
+        },
+        {
+          "id": "v81JU",
+          "type": "ref",
+          "ref": "DYYKO",
+          "name": "Uptime ↕",
+          "width": 95,
+          "height": "fill_container",
+          "descendants": {
+            "SIu74": {
+              "content": "Uptime ↕"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "u91Ykc",
+      "name": "Node row kubelab-control",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$surface/surface",
+      "children": [
+        {
+          "id": "WIEOH",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Node ↑ kubelab-control",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "kubelab-control",
+              "fontSize": 13,
+              "fontWeight": "500",
+              "fontFamily": "$typography/font-mono",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "eKC7K",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Cluster ↕ Local",
+          "width": 160,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Local",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$accent/accent",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "wzVRy",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Status ↕ Ready",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Ready",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$success/success",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "YlI00",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "CPU ↕ 24% · 1.9 / 8",
+          "width": 130,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "24% · 1.9 / 8",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "TxOIO",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Memory ↕ 42% · 6.7 / 16 GiB",
+          "width": 150,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "42% · 6.7 / 16 GiB",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "T1qux",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Pods ↕ 18 / 110",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "18 / 110",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "m6IC5",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Uptime ↕ 12d 4h",
+          "width": 95,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "12d 4h",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "EmG5k",
+      "name": "Node row kubelab-worker-1",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$surface/surface",
+      "children": [
+        {
+          "id": "IBkte",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Node ↑ kubelab-worker-1",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "kubelab-worker-1",
+              "fontSize": 13,
+              "fontWeight": "500",
+              "fontFamily": "$typography/font-mono",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "Pg190",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Cluster ↕ Local",
+          "width": 160,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Local",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$accent/accent",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "WNTFz",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Status ↕ Ready",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Ready",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$success/success",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "iS3O8",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "CPU ↕ 56% · 4.5 / 8",
+          "width": 130,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "56% · 4.5 / 8",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "ngIDi",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Memory ↕ 65% · 10.4 / 16 GiB",
+          "width": 150,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "65% · 10.4 / 16 GiB",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "Mz5Rh",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Pods ↕ 24 / 110",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "24 / 110",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "nv9Ri",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Uptime ↕ 12d 4h",
+          "width": 95,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "12d 4h",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "p2FxaN",
+      "name": "Node row kubelab-worker-2",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$surface/surface",
+      "children": [
+        {
+          "id": "F5r32J",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Node ↑ kubelab-worker-2",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "kubelab-worker-2",
+              "fontSize": 13,
+              "fontWeight": "500",
+              "fontFamily": "$typography/font-mono",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "P4LYb",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Cluster ↕ Local",
+          "width": 160,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Local",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$accent/accent",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "H9OueY",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Status ↕ NotReady",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "NotReady",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$danger/danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "v4TV8j",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "CPU ↕ Unknown",
+          "width": 130,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Unknown",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "G8B8YF",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Memory ↕ Unknown",
+          "width": 150,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Unknown",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "E7e2f",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Pods ↕ Unknown",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Unknown",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "Ur3ZP",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Uptime ↕ Unknown",
+          "width": 95,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Unknown",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "LUWVT",
+      "name": "Node row remote-worker-1",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$surface/surface",
+      "children": [
+        {
+          "id": "oKp79",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Node ↑ remote-worker-1",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "remote-worker-1",
+              "fontSize": 13,
+              "fontWeight": "500",
+              "fontFamily": "$typography/font-mono",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "qm8e8",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Cluster ↕ Remote lab",
+          "width": 160,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Remote lab",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$accent/accent",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "fT3QE",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Status ↕ Ready",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Ready",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$success/success",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "VGdRN",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "CPU ↕ 31% · 2.5 / 8",
+          "width": 130,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "31% · 2.5 / 8",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "qqcxe",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Memory ↕ 28% · 4.5 / 16 GiB",
+          "width": 150,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "28% · 4.5 / 16 GiB",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "A58ok",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Pods ↕ 14 / 110",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "14 / 110",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "nRX4f",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Uptime ↕ 5d 2h",
+          "width": 95,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "5d 2h",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "g269sj",
+      "name": "Node row remote-worker-2",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$surface/surface",
+      "children": [
+        {
+          "id": "U5fdeZ",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Node ↑ remote-worker-2",
+          "width": "fill_container",
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "remote-worker-2",
+              "fontSize": 13,
+              "fontWeight": "500",
+              "fontFamily": "$typography/font-mono",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "nweDg",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Cluster ↕ Remote lab",
+          "width": 160,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Remote lab",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$accent/accent",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "dp3cy",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Status ↕ Ready",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "Ready",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$success/success",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "PMlmq",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "CPU ↕ 18% · 1.4 / 8",
+          "width": 130,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "18% · 1.4 / 8",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "WRazE",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Memory ↕ 36% · 5.8 / 16 GiB",
+          "width": 150,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "36% · 5.8 / 16 GiB",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "mXEif",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Pods ↕ 12 / 110",
+          "width": 110,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "12 / 110",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        },
+        {
+          "id": "y7535Y",
+          "type": "ref",
+          "ref": "TDRJE",
+          "name": "Uptime ↕ 5d 2h",
+          "width": 95,
+          "height": "fill_container",
+          "descendants": {
+            "HNAOu": {
+              "content": "5d 2h",
+              "fontSize": 13,
+              "fontWeight": "normal",
+              "fontFamily": "$typography/font-sans",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

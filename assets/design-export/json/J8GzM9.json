@@ -1,0 +1,274 @@
+{
+  "type": "frame",
+  "id": "J8GzM9",
+  "x": 14760,
+  "y": 63932,
+  "name": "Screen/Cluster Details — Nodes",
+  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "Q0pqx",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP": {
+          "fill": "$accent/soft"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "S1Pit",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "v7q5NI",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Clusters  ›  Local  ›  Nodes"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "bAyuY",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "k1ONI",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Local"
+                },
+                "VbHwU": {
+                  "content": "local · Built-in cluster"
+                },
+                "TgdLz": {
+                  "id": "ZrORy",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "Add node",
+                  "descendants": {
+                    "U6q13B": {
+                      "content": "Add node"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "enFs0",
+              "name": "Cluster detail tabs",
+              "width": "fill_container",
+              "stroke": "$separator/separator",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 4,
+              "padding": [
+                0,
+                0,
+                12,
+                0
+              ],
+              "children": [
+                {
+                  "id": "KFwE8",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Overview tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Overview"
+                    }
+                  }
+                },
+                {
+                  "id": "R9kSft",
+                  "type": "ref",
+                  "ref": "CEWo3",
+                  "name": "Nodes tab",
+                  "descendants": {
+                    "YUR8N": {
+                      "content": "Nodes"
+                    }
+                  }
+                },
+                {
+                  "id": "C4iex",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Configuration tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Configuration"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "S7eN3",
+              "name": "Fixed-cluster inventory filters",
+              "width": "fill_container",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "G0NGKT",
+                  "type": "ref",
+                  "ref": "Lmaf1",
+                  "name": "Search cluster nodes",
+                  "width": "fill_container",
+                  "descendants": {
+                    "EJMtX": {
+                      "content": "Search nodes…"
+                    }
+                  }
+                },
+                {
+                  "id": "nhO37",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Node status filter",
+                  "width": 180,
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "All statuses"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "g5TxN7",
+                  "name": "Fixed cluster scope",
+                  "width": 180,
+                  "height": 36,
+                  "fill": "$surface/secondary",
+                  "cornerRadius": 12,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "UeJSU",
+                      "name": "Fixed cluster icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "network",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "J9VoOZ",
+                      "name": "Current cluster",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Cluster: Local",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "odI4L",
+              "name": "Cluster node total",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "2 / 3 nodes ready · 3 nodes shown",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "C6ZG2",
+              "type": "ref",
+              "ref": "I38x1",
+              "name": "Shared inventory table scoped to Local",
+              "width": "fill_container",
+              "descendants": {
+                "LUWVT": {
+                  "enabled": false,
+                  "width": 1124
+                },
+                "g269sj": {
+                  "enabled": false,
+                  "width": 1124
+                }
+              }
+            },
+            {
+              "id": "gxSZu",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "View all nodes",
+              "descendants": {
+                "FCYQ9": {
+                  "enabled": false
+                },
+                "GqVun": {
+                  "content": "View all nodes"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

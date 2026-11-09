@@ -3,7 +3,8 @@
   "id": "RC3Kf",
   "x": 0,
   "y": 82231,
-  "name": "Screen/Admin Settings — Backup destinations",
+  "name": "Legacy/Admin Settings — Backup destinations — Moved",
+  "context": "Superseded by Cluster Details Overview, Nodes and Configuration. Backup destinations and registration removal are scoped to cluster Configuration.",
   "theme": {
     "semantic": "dark"
   },
@@ -108,15 +109,6 @@
                     },
                     "DpMnt": {
                       "fill": "$muted"
-                    },
-                    "fOAMd": {
-                      "fill": "$surface/secondary"
-                    },
-                    "TWq2N": {
-                      "fill": "$foreground/foreground"
-                    },
-                    "E3ECJ": {
-                      "fill": "$foreground/foreground"
                     }
                   }
                 },

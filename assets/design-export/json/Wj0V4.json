@@ -409,7 +409,7 @@
               "id": "jrzYL",
               "name": "Central management explanation",
               "fill": "$muted",
-              "content": "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
+              "content": "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.",
               "lineHeight": 1.4285714286,
               "fontFamily": "$typography/font-sans",
               "fontSize": 14,

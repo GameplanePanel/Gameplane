@@ -1,0 +1,398 @@
+{
+  "type": "frame",
+  "id": "IBUqJ",
+  "x": 19680,
+  "y": 63932,
+  "name": "Screen/Nodes — Add node target",
+  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "DJiPT",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "VqyiS": {
+          "fill": "$accent/soft"
+        },
+        "VqyiS/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "VqyiS/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "srews",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "JK792",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Nodes"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SrXXC",
+          "name": "Body",
+          "opacity": 0.24,
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "yW6ns",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Nodes"
+                },
+                "VbHwU": {
+                  "content": "Health and capacity across your authorized clusters."
+                },
+                "TgdLz": {
+                  "id": "U4n9S",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "Add node",
+                  "descendants": {
+                    "U6q13B": {
+                      "content": "Add node"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "VrP1N",
+              "name": "Node inventory totals",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "tquyo",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "NODES READY",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "NODES READY"
+                    },
+                    "QdcEm": {
+                      "icon": "server"
+                    },
+                    "vj2Ru": {
+                      "content": "4 / 5"
+                    },
+                    "h0n7zo": {
+                      "content": "returned nodes"
+                    }
+                  }
+                },
+                {
+                  "id": "dapf3",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "CLUSTERS REPORTING",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "CLUSTERS REPORTING"
+                    },
+                    "QdcEm": {
+                      "icon": "network"
+                    },
+                    "vj2Ru": {
+                      "content": "2 / 3"
+                    },
+                    "h0n7zo": {
+                      "content": "one cluster unavailable"
+                    }
+                  }
+                },
+                {
+                  "id": "xjon9",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "CPU USAGE",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "CPU USAGE"
+                    },
+                    "QdcEm": {
+                      "icon": "cpu"
+                    },
+                    "vj2Ru": {
+                      "content": "32%"
+                    },
+                    "h0n7zo": {
+                      "content": "4 nodes reporting"
+                    }
+                  }
+                },
+                {
+                  "id": "jRaMd",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "MEMORY USAGE",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "MEMORY USAGE"
+                    },
+                    "QdcEm": {
+                      "icon": "memory-stick"
+                    },
+                    "vj2Ru": {
+                      "content": "43%"
+                    },
+                    "h0n7zo": {
+                      "content": "4 nodes reporting"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MGjEK",
+              "name": "Inventory filters",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "O2TNN2",
+                  "type": "ref",
+                  "ref": "Lmaf1",
+                  "name": "Search nodes",
+                  "width": "fill_container",
+                  "descendants": {
+                    "EJMtX": {
+                      "content": "Search nodes…"
+                    }
+                  }
+                },
+                {
+                  "id": "f6MixM",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Cluster filter",
+                  "width": 220,
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "All clusters"
+                    }
+                  }
+                },
+                {
+                  "id": "nyGBd",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Status filter",
+                  "width": 180,
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "All statuses"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "m3CJ2",
+              "name": "Partial inventory notice",
+              "width": "fill_container",
+              "fill": "$warning/soft",
+              "cornerRadius": 12,
+              "padding": [
+                12,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LtwZm",
+                  "name": "Coverage warning",
+                  "fill": "$warning/soft-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Partial inventory · West is unavailable. Showing 5 returned nodes from 2 clusters.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "G1Vny",
+              "type": "ref",
+              "ref": "I38x1",
+              "name": "All authorized nodes",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "DdpCr",
+              "name": "Inventory count",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "5 nodes shown · Select a cluster name to open its details.",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "mQHbL",
+      "layoutPosition": "absolute",
+      "x": 480,
+      "y": 220,
+      "name": "Add node target dialog",
+      "width": 600,
+      "fill": "$surface/surface",
+      "cornerRadius": 24,
+      "stroke": "$border/border",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 20,
+      "padding": 28,
+      "children": [
+        {
+          "type": "text",
+          "id": "mGk1c",
+          "name": "Add node title",
+          "fill": "$foreground/foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Add node",
+          "lineHeight": 1.45,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 22,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "F4bIn",
+          "name": "Add node instructions",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Choose the cluster this machine should join.",
+          "lineHeight": 1.45,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "id": "s3Xk1E",
+          "type": "ref",
+          "ref": "AT7ya",
+          "name": "Target cluster selection",
+          "width": "fill_container",
+          "descendants": {
+            "cFsFk": {
+              "content": "Select a cluster…"
+            }
+          }
+        },
+        {
+          "type": "text",
+          "id": "rRscs",
+          "name": "Cluster enrollment capability",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Local enrollment is available when cluster operations are enabled. Remote clusters provide their own enrollment instructions.",
+          "lineHeight": 1.45,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 13,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "nFrXM",
+          "name": "Enrollment dialog actions",
+          "width": "fill_container",
+          "gap": 12,
+          "justifyContent": "end",
+          "children": [
+            {
+              "id": "HSLjL",
+              "type": "ref",
+              "ref": "i6gfu",
+              "name": "Cancel",
+              "descendants": {
+                "FCYQ9": {
+                  "enabled": false
+                },
+                "GqVun": {
+                  "content": "Cancel"
+                }
+              }
+            },
+            {
+              "id": "JsWf8",
+              "type": "ref",
+              "ref": "cb4rt",
+              "name": "Continue after target selection",
+              "opacity": 0.45,
+              "descendants": {
+                "Xpn7K": {
+                  "enabled": false
+                },
+                "U6q13B": {
+                  "content": "Continue"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
