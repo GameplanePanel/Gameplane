@@ -2,25 +2,20 @@ module github.com/GameplanePanel/gameplane/test/e2e
 
 go 1.27.0
 
-require github.com/GameplanePanel/gameplane/gp-module v0.0.0
-
 replace github.com/GameplanePanel/gameplane/gp-module => ../../gp-module
-
-require github.com/GameplanePanel/gameplane/i18n v0.0.0 // indirect
 
 replace github.com/GameplanePanel/gameplane/i18n => ../../i18n
 
-require github.com/GameplanePanel/gameplane/telemetryschema v0.0.0
-
 replace github.com/GameplanePanel/gameplane/telemetryschema => ../../telemetryschema
-
-require github.com/GameplanePanel/gameplane/gameproto v0.0.0
 
 replace github.com/GameplanePanel/gameplane/gameproto => ../../gameproto
 
 require (
+	github.com/GameplanePanel/gameplane/gameproto v0.0.0
+	github.com/GameplanePanel/gameplane/gp-module v0.0.0
+	github.com/GameplanePanel/gameplane/telemetryschema v0.0.0
 	github.com/coder/websocket v1.8.15
-	github.com/gopacket/gopacket v1.7.4
+	github.com/gopacket/gopacket v1.7.7
 	k8s.io/api v0.37.2
 	k8s.io/apimachinery v0.37.2
 	k8s.io/client-go v0.37.2
@@ -28,6 +23,7 @@ require (
 )
 
 require (
+	github.com/GameplanePanel/gameplane/i18n v0.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
