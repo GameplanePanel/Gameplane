@@ -73,9 +73,9 @@ describe("unified fleet pages", () => {
     }));
     renderWithQuery(<ServersPage />);
     await screen.findByText(/Server results are partial/);
-    expect(screen.queryByRole("button", { name: /Filter by location/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
-    await userEvent.click(screen.getByRole("button", { name: /Filter by location/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
     await userEvent.click(await screen.findByRole("option", { name: "remote" }));
     expect(requested).not.toContain("remote");
     await userEvent.click(screen.getByRole("button", { name: "Apply" }));

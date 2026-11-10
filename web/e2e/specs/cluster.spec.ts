@@ -17,7 +17,7 @@ async function loginIfNeeded(page: Page): Promise<void> {
   }
 }
 
-test.describe("cluster page", () => {
+test.describe("nodes and cluster configuration", () => {
   // Mock mode serves a deterministic 3-node view. Live mode's cluster data
   // depends on clusterOps being enabled on the e2e cluster, so the node
   // summary isn't guaranteed there — keep this spec deterministic.
@@ -30,18 +30,32 @@ test.describe("cluster page", () => {
     await loginIfNeeded(page);
   });
 
-  test("renders the cluster header and node summary", async ({ page }) => {
-    await page.goto("/cluster");
-    await expect(page).toHaveURL(/\/cluster$/);
-    await expect(page.getByRole("heading", { name: /cluster/i }).first()).toBeVisible();
-    // The header subtitle always reports node health ("X/Y nodes healthy"),
-    // independent of how many nodes the install actually has.
-    await expect(page.getByText(/nodes healthy/i)).toBeVisible();
+  test("renders the Nodes header and filtered node summary", async ({ page }) => {
+    await page.goto("/nodes");
+    await expect(page).toHaveURL(/\/nodes$/);
+    await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
+    await expect(page.getByText("Ready nodes", { exact: true })).toBeVisible();
+    await expect(page.getByText("Reporting clusters", { exact: true })).toBeVisible();
+    await expect(page.getByRole("grid", { name: "Node inventory" })).toBeVisible();
   });
 
-  test("exposes the cluster operation actions", async ({ page }) => {
-    await page.goto("/cluster");
+  test("keeps enrollment in Nodes and kubeconfig in the owning cluster configuration", async ({ page }) => {
+    await page.goto("/nodes?cluster=local");
     await expect(page.getByRole("button", { name: /add node/i })).toBeVisible();
+    await page.goto("/clusters/local?tab=configuration");
     await expect(page.getByRole("button", { name: /download kubeconfig/i })).toBeVisible();
+  });
+
+  test("preserves a legacy inventory bookmark while the Nodes sidebar opens all clusters", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("gameplane.cluster", "local"));
+    await page.goto("/cluster");
+    await expect(page).toHaveURL(/\/nodes\?cluster=local$/);
+    const sidebar = page.getByRole("navigation", { name: "Primary" });
+    const nodes = sidebar.getByRole("link", { name: "Nodes", exact: true });
+    await expect(nodes).toHaveAttribute("href", "/nodes");
+    await nodes.click();
+    await expect(page).toHaveURL(/\/nodes$/);
+    await page.getByRole("button", { name: "Filter", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Filter by cluster/ })).toContainText("All clusters");
   });
 });

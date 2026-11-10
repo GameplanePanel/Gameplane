@@ -85,7 +85,7 @@
                   "content": "Clusters"
                 },
                 "VbHwU": {
-                  "content": "Administration of registered locations, connectivity and node inventory."
+                  "content": "Registered clusters, connectivity and node inventory."
                 },
                 "TgdLz": {
                   "type": "frame",
@@ -236,14 +236,14 @@
                           "id": "i0uSmF",
                           "type": "ref",
                           "ref": "cb4rt",
-                          "name": "View servers",
+                          "name": "Open cluster",
                           "opacity": 1,
                           "descendants": {
                             "Xpn7K": {
                               "enabled": false
                             },
                             "U6q13B": {
-                              "content": "View servers"
+                              "content": "Open cluster"
                             }
                           }
                         },
@@ -259,21 +259,6 @@
                             },
                             "GqVun": {
                               "content": "View nodes"
-                            }
-                          }
-                        },
-                        {
-                          "id": "W1073i",
-                          "type": "ref",
-                          "ref": "i6gfu",
-                          "name": "Remove",
-                          "opacity": 1,
-                          "descendants": {
-                            "FCYQ9": {
-                              "enabled": false
-                            },
-                            "GqVun": {
-                              "content": "Remove"
                             }
                           }
                         }
@@ -373,14 +358,14 @@
                           "id": "U7jY7p",
                           "type": "ref",
                           "ref": "cb4rt",
-                          "name": "View servers",
+                          "name": "Open cluster",
                           "opacity": 1,
                           "descendants": {
                             "Xpn7K": {
                               "enabled": false
                             },
                             "U6q13B": {
-                              "content": "View servers"
+                              "content": "Open cluster"
                             }
                           }
                         },
@@ -398,21 +383,6 @@
                               "content": "View nodes"
                             }
                           }
-                        },
-                        {
-                          "id": "Bd9ic",
-                          "type": "ref",
-                          "ref": "i6gfu",
-                          "name": "Remove",
-                          "opacity": 1,
-                          "descendants": {
-                            "FCYQ9": {
-                              "enabled": false
-                            },
-                            "GqVun": {
-                              "content": "Remove"
-                            }
-                          }
                         }
                       ]
                     }
@@ -426,4 +396,3 @@
     }
   ]
 }
-

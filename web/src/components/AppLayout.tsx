@@ -97,8 +97,8 @@ export function AppLayout() {
   const installation = useInstallation();
   const { data: registry } = useQuery({ queryKey: ["clusters"], queryFn: () => Clusters.list() });
   const canViewInventory = registry?.items.some((item) => item.canViewInventory === true) === true;
-  const canManageInfrastructure = can(me, "cluster:manage") || canViewInventory;
-  const { pathname } = useLocation();
+  const canManageInfrastructure = can(me, "cluster:manage") || (registry?.items.length ?? 0) > 0;
+  const { pathname, search } = useLocation();
   const matches = useMatches();
   const navigate = useNavigate();
   const [theme, setTheme, isCustomColorsActive] = useAppearance(me);
@@ -182,7 +182,7 @@ export function AppLayout() {
       items: [
         ...(canManageInfrastructure ? [{ to: "/clusters", label: intl.formatMessage({ id: "web.components.app_layout.clusters", defaultMessage: "Clusters", description: "Sidebar: navigation link to the clusters page" }), icon: Network }] : []),
         ...(canViewInventory
-          ? [{ to: "/cluster", label: intl.formatMessage({ id: "web.components.app_layout.cluster", defaultMessage: "Cluster", description: "Sidebar: navigation link to the cluster page" }), icon: Server }]
+          ? [{ to: "/nodes", label: intl.formatMessage({ id: "web.components.app_layout.nodes", defaultMessage: "Nodes", description: "Sidebar: navigation link to nodes across all authorized clusters" }), icon: Server }]
           : []),
         ...(can(me, "users:manage")
           ? [{ to: "/users", label: intl.formatMessage({ id: "web.components.app_layout.users_rbac", defaultMessage: "Users & RBAC", description: "Sidebar: navigation link to users and roles" }), icon: Users }]
@@ -207,7 +207,7 @@ export function AppLayout() {
   const onNotFound = matches.some((m) => m.routeId.endsWith("$"));
   const crumbs = onNotFound
     ? [{ label: "gameplane", to: "/" }, { label: intl.formatMessage({ id: "web.components.app_layout.page_not_found", defaultMessage: "Page not found", description: "Breadcrumb for the 404 page" }) }]
-    : buildCrumbs(pathname, intl);
+    : buildCrumbs(pathname, intl, search?.tab);
   // Extract the last breadcrumb label as the mobile title
   const mobileTitle = crumbs.length > 0 ? crumbs[crumbs.length - 1].label : "";
   const centralManagement = ["/users", "/admin", "/settings", ...(installation.data?.standalone === false ? ["/modules"] : [])].some(
@@ -258,7 +258,7 @@ export function AppLayout() {
         {can(me, "config:manage") && <TelemetryNotice onOpenSettings={openTelemetrySettings} />}
         {centralManagement && (
           <div role="note" className="border-b border-border bg-surface px-4 py-3 text-sm text-muted sm:px-6">
-            <strong className="font-medium text-foreground">{intl.formatMessage({ id: "web.components.app_layout.central_management_lead", defaultMessage: "Central management.", description: "Bold lead-in of the central-management note shown above page content" })}</strong> {intl.formatMessage({ id: "web.components.app_layout.this_catalog_account_or_installation", defaultMessage: "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.", description: "App layout: note shown when central management applies; catalog, account or installation settings belong to the central installation, while server actions use each server's location" })}</div>
+            <strong className="font-medium text-foreground">{intl.formatMessage({ id: "web.components.app_layout.central_management_lead", defaultMessage: "Central management.", description: "Bold lead-in of the central-management note shown above page content" })}</strong> {intl.formatMessage({ id: "web.components.app_layout.this_catalog_account_or_installation", defaultMessage: "This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.", description: "App layout: note shown when central management applies; catalog, account or installation settings belong to the central installation, while server actions use each server's cluster" })}</div>
         )}
         <Outlet />
       </AppShell>

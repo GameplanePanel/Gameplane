@@ -352,29 +352,6 @@ describe("AdminSettings sections", () => {
     expect(await screen.findByRole("switch", { name: /Disable sink/i })).toBeInTheDocument();
   });
 
-  it("lists backup destinations and opens the add form", async () => {
-    renderWithQuery(<AdminSettingsPage />);
-    await gotoSection(/Backup destinations/i);
-    // The default handler returns one destination ("default").
-    await userEvent.click(await screen.findByRole("button", { name: /Add destination/i }));
-    const nameField = await screen.findByPlaceholderText("gameplane-backup-repo");
-    await userEvent.type(nameField, "repo1");
-    await userEvent.type(screen.getByPlaceholderText(/s3:s3.example.com/i), "s3:host/bucket");
-    await userEvent.type(screen.getByPlaceholderText(/passphrase/i), "a-strong-passphrase");
-    const save = screen.getByRole("button", { name: /Save destination/i });
-    await waitFor(() => expect(save).toBeEnabled());
-    await userEvent.click(save);
-    // On success the form closes; the Add button returns.
-    expect(await screen.findByRole("button", { name: /Add destination/i })).toBeInTheDocument();
-  });
-
-  it("prompts before deleting a backup destination", async () => {
-    renderWithQuery(<AdminSettingsPage />);
-    await gotoSection(/Backup destinations/i);
-    await userEvent.click(await screen.findByRole("button", { name: /Delete default/i }));
-    expect(await screen.findByText(/Delete backup destination\?/i)).toBeInTheDocument();
-  });
-
   it("renders the About section with the license", async () => {
     renderWithQuery(<AdminSettingsPage />);
     await gotoSection(/About/i);

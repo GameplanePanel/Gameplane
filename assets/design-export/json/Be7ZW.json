@@ -3,8 +3,8 @@
   "id": "Be7ZW",
   "x": 4920,
   "y": 63932,
-  "name": "Screen/Standalone — Cluster inventory (No selection)",
-  "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
+  "name": "Legacy/Standalone — Cluster inventory selection — Superseded",
+  "context": "Superseded by Cluster Details Overview, Nodes and Configuration. Backup destinations and registration removal are scoped to cluster Configuration.",
   "theme": {
     "semantic": "dark"
   },
@@ -175,4 +175,3 @@
     }
   ]
 }
-

@@ -16,6 +16,7 @@ const routeLabelMessages = defineMessages({
   modules: { id: "web.components.ui.breadcrumbs.modules", defaultMessage: "Modules", description: "Breadcrumb: label for the modules crumb" },
   cluster: { id: "web.components.ui.breadcrumbs.cluster", defaultMessage: "Cluster", description: "Breadcrumb: label for the cluster crumb" },
   clusters: { id: "web.components.ui.breadcrumbs.clusters", defaultMessage: "Clusters", description: "Breadcrumb: label for the clusters crumb" },
+  nodes: { id: "web.components.ui.breadcrumbs.nodes", defaultMessage: "Nodes", description: "Breadcrumb: label for the node inventory crumb" },
   users: { id: "web.components.ui.breadcrumbs.users_rbac", defaultMessage: "Users & RBAC", description: "Breadcrumb: label for the users and roles crumb" },
   admin: { id: "web.components.ui.breadcrumbs.settings", defaultMessage: "Settings", description: "Breadcrumb: label for the settings crumb (also used for the theme settings page)" },
   audit: { id: "web.components.ui.breadcrumbs.audit_log", defaultMessage: "Audit log", description: "Breadcrumb: label for the audit log crumb" },
@@ -27,6 +28,12 @@ const routeLabelMessages = defineMessages({
 const dashboardLeafMessage = defineMessages({
   dashboard: { id: "web.components.ui.breadcrumbs.dashboard", defaultMessage: "Dashboard", description: "Breadcrumb: label of the leaf crumb on the root (dashboard) page" },
 }).dashboard;
+
+const clusterTabMessages = defineMessages({
+  overview: { id: "web.cluster_detail.overview", defaultMessage: "Overview", description: "Cluster detail overview tab" },
+  nodes: { id: "web.cluster_detail.nodes", defaultMessage: "Nodes", description: "Cluster detail nodes tab" },
+  configuration: { id: "web.cluster_detail.configuration", defaultMessage: "Configuration", description: "Cluster detail configuration tab" },
+});
 
 function routeLabel(intl: IntlShape, part: string): string {
   return Object.prototype.hasOwnProperty.call(routeLabelMessages, part)
@@ -41,7 +48,7 @@ function routeLabel(intl: IntlShape, part: string): string {
  * when on the root path. Pass the app's intl to translate the labels;
  * without it the English labels are returned.
  */
-export function buildCrumbs(pathname: string, intl: IntlShape = englishIntl): Crumb[] {
+export function buildCrumbs(pathname: string, intl: IntlShape = englishIntl, clusterTab?: string): Crumb[] {
   const crumbs: Crumb[] = [{ label: "gameplane", to: "/" }];
   const parts = pathname.split("/").filter(Boolean);
   let acc = "";
@@ -56,6 +63,10 @@ export function buildCrumbs(pathname: string, intl: IntlShape = englishIntl): Cr
     crumbs.push({ label, to: acc });
   }
   if (parts.length === 0) crumbs.push({ label: intl.formatMessage(dashboardLeafMessage) });
+  if (parts[0] === "clusters" && parts.length === 2) {
+    const tab = clusterTab === "nodes" || clusterTab === "configuration" ? clusterTab : "overview";
+    crumbs.push({ label: intl.formatMessage(clusterTabMessages[tab]) });
+  }
   return crumbs;
 }
 

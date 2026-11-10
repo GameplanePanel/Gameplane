@@ -44,7 +44,7 @@ test.describe("error handling", () => {
     await page.waitForURL((u) => u.pathname.startsWith("/login"), { timeout: 10_000 });
   });
 
-  test("500 on /cluster shows an error UI rather than a blank screen", async ({ page }) => {
+  test("failed cluster inventory shows incomplete coverage on Nodes", async ({ page }) => {
     // Cookie-selected, not page.route: MSW's Service Worker answers
     // /cluster and /cluster/stats itself in mock mode (see handlers.ts's
     // e2e_cluster_500 branch).
@@ -52,22 +52,13 @@ test.describe("error handling", () => {
       { name: "e2e_cluster_500", value: "1", url: "http://localhost:5173" },
     ]);
     await loginIfNeeded(page);
-    await page.goto("/cluster");
+    await page.goto("/nodes");
     await page.waitForLoadState("domcontentloaded");
 
-    // The page must render *something* — heading or any visible text —
-    // not a blank page, and it must be the error UI, not still the loading
-    // skeleton. Poll instead of a single read to avoid a race against the
-    // SPA's async data-fetch-then-render cycle. A detailed error-card
-    // assertion lives in the Cluster component test.
-    await expect.poll(
-      async () => {
-        const skeleton = await page.locator('[role="status"][aria-label="Loading"]').count();
-        if (skeleton > 0) return "";
-        return page.locator("body").innerText();
-      },
-      { timeout: 10_000 },
-    ).not.toBe("");
+    await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
+    await expect(page.getByText("Node results are partial.", { exact: true })).toBeVisible();
+    await expect(page.getByText("No node data is available for this scope.", { exact: true })).toBeVisible();
+    await expect(page.getByText("0 / 0", { exact: true })).toHaveCount(0);
   });
 
   test("pre-auth /login does not call /users or /cluster", async ({ page }) => {
@@ -78,7 +69,8 @@ test.describe("error handling", () => {
         u.pathname === "/users" ||
         u.pathname === "/cluster" ||
         u.pathname === "/cluster/info" ||
-        u.pathname === "/cluster/stats"
+        u.pathname === "/cluster/stats" ||
+        u.pathname === "/fleet/inventory"
       ) {
         forbidden.push(`${req.method()} ${u.pathname}`);
       }

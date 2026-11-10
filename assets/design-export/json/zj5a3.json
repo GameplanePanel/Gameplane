@@ -75,7 +75,7 @@
               "width": "fill_container",
               "descendants": {
                 "VbHwU": {
-                  "content": "Your game servers and resources across authorized locations."
+                  "content": "Your game servers and resources across authorized clusters."
                 },
                 "TgdLz": {
                   "children": [
@@ -107,7 +107,7 @@
               "context": "Optional location filter; All locations combines authorized inventory.",
               "descendants": {
                 "cFsFk": {
-                  "content": "All locations",
+                  "content": "All clusters",
                   "fill": "$foreground/foreground"
                 }
               }
@@ -149,7 +149,12 @@
                   "type": "ref",
                   "ref": "Y96CaE",
                   "name": "Cluster Resources Card",
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "descendants": {
+                    "RD2NC": {
+                      "content": "View nodes"
+                    }
+                  }
                 }
               ]
             },

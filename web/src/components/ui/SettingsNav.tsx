@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Archive,
   Bell,
   Boxes,
   Cog,
@@ -30,7 +29,6 @@ export type SettingsNavKey =
   | "general"
   | "theme"
   | "auth"
-  | "backups"
   | "modules"
   | "modRegistries"
   | "notifications"
@@ -46,7 +44,6 @@ const navMessages = defineMessages({
   general: { id: "web.components.ui.settings_nav.general", defaultMessage: "General", description: "Settings nav: label of the General settings section" },
   theme: { id: "web.components.ui.settings_nav.theme", defaultMessage: "Theme", description: "Settings nav: label of the Theme settings page" },
   auth: { id: "web.components.ui.settings_nav.authentication", defaultMessage: "Authentication", description: "Settings nav: label of the Authentication settings section" },
-  backups: { id: "web.components.ui.settings_nav.backup_destinations", defaultMessage: "Backup destinations", description: "Settings nav: label of the Backup destinations settings section" },
   modules: { id: "web.components.ui.settings_nav.module_sources", defaultMessage: "Module sources", description: "Settings nav: label of the Module sources settings section" },
   modRegistries: { id: "web.components.ui.settings_nav.mod_registries", defaultMessage: "Mod registries", description: "Settings nav: label of the Mod registries settings section" },
   notifications: { id: "web.components.ui.settings_nav.notifications", defaultMessage: "Notifications", description: "Settings nav: label of the Notifications settings section" },
@@ -59,7 +56,6 @@ const navItems: Array<{ key: SettingsNavKey; label: MessageDescriptor; icon: Com
   { key: "general",       label: navMessages.general,       icon: Cog },
   { key: "theme",         label: navMessages.theme,         icon: Palette },
   { key: "auth",          label: navMessages.auth,          icon: ShieldCheck },
-  { key: "backups",       label: navMessages.backups,       icon: Archive },
   { key: "modules",       label: navMessages.modules,       icon: Boxes },
   { key: "modRegistries", label: navMessages.modRegistries, icon: Key },
   { key: "notifications", label: navMessages.notifications, icon: Bell },
@@ -80,7 +76,7 @@ export function SettingsNav({
   onSelect,
   showAdminSections,
 }: {
-  active: SettingsNavKey;
+  active?: SettingsNavKey;
   onSelect: (key: SettingsSectionKey) => void;
   /** false hides every admin section (they need config:manage), leaving only Theme. */
   showAdminSections: boolean;

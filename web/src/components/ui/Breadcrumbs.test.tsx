@@ -15,6 +15,24 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 describe("buildCrumbs", () => {
+  it("keeps fleet nodes separate from cluster details", () => {
+    expect(buildCrumbs("/nodes")).toEqual([
+      { label: "gameplane", to: "/" },
+      { label: "Nodes", to: "/nodes" },
+    ]);
+    expect(buildCrumbs("/clusters/remote-demo")).toEqual([
+      { label: "gameplane", to: "/" },
+      { label: "Clusters", to: "/clusters" },
+      { label: "remote-demo", to: "/clusters/remote-demo" },
+      { label: "Overview" },
+    ]);
+  });
+
+  it.each(["nodes", "configuration"])("includes the active cluster %s tab", (tab) => {
+    const crumbs = buildCrumbs("/clusters/east", undefined, tab);
+    expect(crumbs.at(-1)?.label).toBe(tab === "nodes" ? "Nodes" : "Configuration");
+    expect(crumbs.at(-2)).toEqual({ label: "east", to: "/clusters/east" });
+  });
   it("returns home and dashboard crumb for root path", () => {
     const crumbs = buildCrumbs("/");
     expect(crumbs).toEqual([

@@ -123,9 +123,10 @@ describe("AppLayout", () => {
     expect(nav.getByRole("link", { name: /Servers/i })).toBeInTheDocument();
     expect(nav.getByRole("link", { name: /Modules/i })).toBeInTheDocument();
     expect(nav.getByRole("link", { name: /Backups/i })).toBeInTheDocument();
-    // Server visibility alone does not expose infrastructure administration.
-    expect(nav.queryByRole("link", { name: "Cluster" })).not.toBeInTheDocument();
-    expect(nav.queryByRole("link", { name: "Clusters" })).not.toBeInTheDocument();
+    // Discovered registrations remain reachable for configuration roles,
+    // while node inventory still requires its explicit capability.
+    expect(nav.queryByRole("link", { name: "Nodes" })).not.toBeInTheDocument();
+    expect(nav.getByRole("link", { name: "Clusters" })).toHaveAttribute("href", "/clusters");
     expect(nav.queryByRole("link", { name: /Audit log/i })).not.toBeInTheDocument();
   });
 
@@ -136,7 +137,7 @@ describe("AppLayout", () => {
     );
     renderWithQuery(<AppLayout />);
     await waitFor(() =>
-      expect(screen.getByRole("link", { name: /^Cluster$/i })).toBeInTheDocument(),
+      expect(screen.getByRole("link", { name: "Nodes" })).toHaveAttribute("href", "/nodes"),
     );
     expect(screen.getByRole("link", { name: "Clusters" })).toHaveAttribute("href", "/clusters");
     expect(screen.queryByRole("button", { name: "Select cluster" })).not.toBeInTheDocument();

@@ -49,13 +49,15 @@ test.describe("live: data screens render real backend data", () => {
     await loginIfNeeded(page);
   });
 
-  test("cluster page shows real node health", async ({ page }) => {
-    await page.goto("/cluster");
-    await expect(page).toHaveURL(/\/cluster$/);
-    await expect(page.getByRole("heading", { name: /cluster/i }).first()).toBeVisible();
-    // "X/Y nodes healthy" is computed from the live ClusterView (real K8s
-    // node list) — the kind cluster always has at least its control-plane.
-    await expect(page.getByText(/nodes healthy/i)).toBeVisible();
+  test("Nodes shows real node health", async ({ page }) => {
+    await page.goto("/nodes");
+    await expect(page).toHaveURL(/\/nodes$/);
+    await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
+    await expect(page.getByText("Ready nodes", { exact: true })).toBeVisible();
+    // The kind cluster always returns at least its control-plane node.
+    const table = page.getByRole("grid", { name: "Node inventory" });
+    await expect(table).toBeVisible();
+    await expect.poll(() => table.getByRole("row").count()).toBeGreaterThan(1);
   });
 
   test("users page lists the bootstrapped admin and real builtin roles", async ({ page }) => {
