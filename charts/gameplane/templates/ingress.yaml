@@ -28,7 +28,8 @@ spec:
     - hosts: [{{ .Values.ingress.host }}]
       secretName: gameplane-tls
   {{- end }}
-{{- if .Values.ingress.shareLinks.disableAccessLog }}
+{{- /* dig: values reused from a release before shareLinks existed lack the key. */}}
+{{- if dig "shareLinks" "disableAccessLog" true .Values.ingress }}
 ---
 # Share links carry their token in the path (/share/<token> for the page,
 # /shares/<token> for its API calls). This second Ingress holds only those
@@ -43,7 +44,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
   annotations:
-    {{- toYaml (merge (dict "nginx.ingress.kubernetes.io/enable-access-log" "false") .Values.ingress.shareLinks.annotations (omit .Values.ingress.annotations "nginx.ingress.kubernetes.io/enable-access-log")) | nindent 4 }}
+    {{- toYaml (merge (dict "nginx.ingress.kubernetes.io/enable-access-log" "false") (dig "shareLinks" "annotations" (dict) .Values.ingress) (omit .Values.ingress.annotations "nginx.ingress.kubernetes.io/enable-access-log")) | nindent 4 }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
