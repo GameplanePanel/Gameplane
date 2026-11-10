@@ -926,6 +926,12 @@ jobs:
           read -r -a packages <<<"$GO_PACKAGES"
           go test -covermode=atomic -coverpkg=./... \
             -coverprofile=coverage/unit.out "${packages[@]}"
+      - name: sentinel mixed-load regression measurements
+        if: matrix.module == 'sentinel' && env.GO_PACKAGES != ''
+        working-directory: sentinel
+        # Keep successful fixture measurements visible, including race checks,
+        # without changing the matrix or package-selection policy.
+        run: go test -race -count=1 -v -run '^TestWakeMixedLoadOutageRecovery$' ./...
       - name: agent file access across real UIDs
         if: matrix.module == 'agent' && matrix.arch == 'amd64'
         working-directory: agent
