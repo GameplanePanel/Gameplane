@@ -639,10 +639,12 @@ networkPolicies:
   # Ingress allowance for the game port(s) themselves. The operator
   # reconciles one NetworkPolicy per GameServer, opening only that game's
   # `Advertise: true` container ports (read from its GameTemplate) — this
-  # policy itself does not open RCON or the agent's own port. However,
-  # those ports remain reachable from kubeletCIDRs via the separate
-  # allow-kubelet-probes policy until probePorts (above) is narrowed from
-  # its default of []; this policy now makes that safe to do.
+  # policy itself does not open RCON or the agent's own port. With
+  # probeIngress.enabled (the default), kubeletCIDRs reach only each
+  # server's probe ports, through its <server>-probes policy. With
+  # probeIngress.enabled: false and probePorts left at [], the chart's
+  # allow-kubelet-probes rule opens every game-pod port to kubeletCIDRs;
+  # list probePorts in that case.
   # 0.0.0.0/0 is the default because game servers exist to be reached by
   # players, wherever they connect from. Narrow fromCIDRs to restrict who
   # can reach the game port, e.g. to a LAN range for a homelab install.

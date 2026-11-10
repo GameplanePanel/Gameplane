@@ -264,6 +264,8 @@ var (
 	// cssExternalRefRE finds an absolute or protocol-relative reference
 	// anywhere in the stylesheet, inside or outside url().
 	cssExternalRefRE = regexp.MustCompile(`(?i)(https?:|["'(\s,]//)`)
+	// urlControlStripper removes the characters URL parsing ignores.
+	urlControlStripper = strings.NewReplacer("\t", "", "\n", "", "\r", "")
 )
 
 // sanitizeCustomCSS applies the FR-013 rules to a submitted stylesheet,
@@ -302,7 +304,9 @@ func sanitizeCustomCSS(css string) string {
 	if strings.Contains(css, `\`) {
 		return "customCss rejected: CSS escapes (\\) are not allowed"
 	}
-	if cssExternalRefRE.MatchString(css) {
+	// URL parsing drops ASCII tab and newline, so "ht\ttps://" still
+	// fetches: check the text with them removed as well.
+	if cssExternalRefRE.MatchString(css) || cssExternalRefRE.MatchString(urlControlStripper.Replace(css)) {
 		return "customCss rejected: external references are not allowed"
 	}
 	return ""

@@ -64,7 +64,9 @@ export function sanitizeCustomCss(css: string): SanitizeResult {
   if (css.includes("\\")) {
     return { ok: false, error: "customCss rejected: CSS escapes (\\) are not allowed" };
   }
-  if (CSS_EXTERNAL_REF_RE.test(css)) {
+  // URL parsing drops ASCII tab and newline, so "ht\ttps://" still
+  // fetches: check the text with them removed as well.
+  if (CSS_EXTERNAL_REF_RE.test(css) || CSS_EXTERNAL_REF_RE.test(css.replace(/[\t\n\r]/g, ""))) {
     return { ok: false, error: "customCss rejected: external references are not allowed" };
   }
   return { ok: true };
