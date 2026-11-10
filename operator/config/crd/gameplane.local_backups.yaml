@@ -57,6 +57,13 @@ spec:
           spec:
             description: BackupSpec is the desired state of a one-shot backup.
             properties:
+              powerPolicy:
+                description: PowerPolicy preserves power by default; stop-copy-restart
+                  temporarily stops under lifecycle ownership.
+                enum:
+                - preserve
+                - stop-copy-restart
+                type: string
               quiesce:
                 default: true
                 description: |-
@@ -112,6 +119,13 @@ spec:
                 items:
                   type: string
                 type: array
+              volumePolicy:
+                description: VolumePolicy captures primary-only by default; all-data
+                  includes classified persistent data.
+                enum:
+                - primary-only
+                - all-data
+                type: string
               volumeSnapshotClassName:
                 description: |-
                   VolumeSnapshotClassName names the VolumeSnapshotClass to use when
@@ -125,6 +139,10 @@ spec:
             x-kubernetes-validations:
             - message: repoRef is required for the restic-snapshot strategy
               rule: self.strategy == 'volume-snapshot' || has(self.repoRef)
+            - message: stopped and all-data policies require restic-snapshot
+              rule: self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy)
+                || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) ||
+                self.volumePolicy == 'primary-only'))
           status:
             description: BackupStatus is the observed state of a Backup.
             properties:
@@ -134,6 +152,13 @@ spec:
                   It describes persistent-volume coverage independently of copy success.
                   Missing on pre-upgrade backups; never reconstruct it from current layout.
                 properties:
+                  formatVersion:
+                    description: FormatVersion 2 uses validated disjoint roots. Absent
+                      means legacy /data.
+                    format: int32
+                    type: integer
+                  gameVersion:
+                    type: string
                   layoutSource:
                     description: LayoutSource identifies the frozen workload used
                       for mount paths.
@@ -158,6 +183,12 @@ spec:
                     type: string
                   strategy:
                     type: string
+                  templateName:
+                    type: string
+                  templateRevision:
+                    type: string
+                  volumePolicy:
+                    type: string
                   volumes:
                     items:
                       description: |-
@@ -181,11 +212,23 @@ spec:
                           type: string
                         included:
                           type: boolean
+                        logicalName:
+                          description: LogicalName identifies the primary, declared
+                            extra, or active loader volume.
+                          type: string
                         mountPaths:
                           items:
                             type: string
                           type: array
                         reason:
+                          type: string
+                        recoveryPrerequisite:
+                          description: RecoveryPrerequisite explains excluded content
+                            that must be reconstructed.
+                          type: string
+                        snapshotRoot:
+                          description: SnapshotRoot is the explicit disjoint archive
+                            root; never a glob.
                           type: string
                       required:
                       - claimName

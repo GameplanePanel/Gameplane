@@ -499,6 +499,13 @@ type PlayitTunnelSpec struct {
 // configure when enabling backups directly from GameServer. The
 // operator materializes this into a managed BackupSchedule.
 type InlineBackupPolicy struct {
+	// +kubebuilder:validation:Enum=preserve;stop-copy-restart
+	// +optional
+	PowerPolicy string `json:"powerPolicy,omitempty"`
+	// +kubebuilder:validation:Enum=primary-only;all-data
+	// +optional
+	VolumePolicy string `json:"volumePolicy,omitempty"`
+
 	// Schedule is a standard cron expression; same structural guard as
 	// BackupScheduleSpec.Schedule so typos are rejected at admission
 	// instead of failing inside the reconcile loop of the materialized

@@ -977,6 +977,11 @@ spec:
                   the operator creates/maintains a BackupSchedule owned by this
                   GameServer. Remove to stop scheduled backups.
                 properties:
+                  powerPolicy:
+                    enum:
+                    - preserve
+                    - stop-copy-restart
+                    type: string
                   repoRef:
                     description: |-
                       RepoRef points at a BackupRepo (cluster-scoped resource, TBD) or
@@ -1027,6 +1032,11 @@ spec:
                     type: string
                   suspend:
                     type: boolean
+                  volumePolicy:
+                    enum:
+                    - primary-only
+                    - all-data
+                    type: string
                 required:
                 - repoRef
                 - schedule
@@ -2221,10 +2231,10 @@ spec:
                       properties:
                         backupRole:
                           description: |-
-                            BackupRole describes recovery requirements without adding this volume
-                            to a backup. "data" needs a separate copy; "rebuildable" may be recreated.
-                            Unset remains unclassified and not covered. Both backup strategies still
-                            capture only the primary data claim.
+                            BackupRole declares recovery scope. all-data Restic backups include data
+                            extras and report rebuildable extras as excluded reconstruction prerequisites.
+                            Unset is unclassified and rejects all-data admission. Default primary-only
+                            backups and CSI snapshots still capture only the primary data claim.
                           enum:
                           - data
                           - rebuildable

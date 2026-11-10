@@ -39,6 +39,18 @@ func (r *BackupReconciler) recordBackupManifest(ctx context.Context, b *gameplan
 		return nil
 	}
 	reader := r.backupAPIReader()
+	if b.Spec.VolumePolicy == "all-data" {
+		manifest, err := recoveryLayout(ctx, reader, gs)
+		if err != nil {
+			return err
+		}
+		now := metav1.Now()
+		manifest.RecordedAt = &now
+		manifest.QuiesceOutcome = backupQuiesceOutcome(b)
+		b.Status.CaptureManifest = manifest
+		return r.Status().Update(ctx, b)
+	}
+
 	worker, err := r.captureWorker(ctx, b)
 	if err != nil {
 		return err
@@ -184,10 +196,12 @@ func backupConsistencyCondition(b *gameplanev1alpha1.Backup) metav1.Condition {
 		condition.Reason, condition.Message = "LegacyMetadataUnknown", "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template."
 	case b.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded || b.Status.SnapshotID == "":
 		condition.Reason, condition.Message = "CapturePending", "The capture has not completed; its achieved consistency is not yet known."
+	case b.Status.CaptureManifest.VolumePolicy == "all-data" && b.Status.CaptureManifest.QuiesceOutcome != "already-stopped":
+		condition.Status, condition.Reason, condition.Message = metav1.ConditionFalse, "LiveMultiVolumeCopy", "Included volumes share one snapshot, but live copies have no atomic cross-volume consistency guarantee, even when the primary game's quiesce succeeds."
 	case b.Status.CaptureManifest.QuiesceOutcome == "confirmed":
-		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "Quiesced", "The primary volume copy completed after the agent confirmed quiesce. This depends on the module's quiesce commands; other volumes remain outside this backup."
+		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "Quiesced", "The included volumes were copied after the agent confirmed quiesce. This depends on the module's quiesce commands; consult the manifest for excluded volumes."
 	case b.Status.CaptureManifest.QuiesceOutcome == "already-stopped":
-		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "StoppedSource", "The primary volume copy completed from a source that was already stopped and drained before capture. Other volumes remain outside this backup."
+		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "StoppedSource", "The included volumes were copied from a stopped and drained source. Consult the manifest for excluded volumes and recovery prerequisites."
 	case b.Status.CaptureManifest.Strategy == "volume-snapshot":
 		condition.Status, condition.Reason, condition.Message = metav1.ConditionFalse, "CrashConsistentSnapshot", "The primary CSI snapshot is crash-consistent; application quiesce was not confirmed ("+b.Status.CaptureManifest.QuiesceOutcome+")."
 	case b.Status.CaptureManifest.QuiesceOutcome == "unsupported":
@@ -206,5 +220,20 @@ func (r *BackupReconciler) syncBackupConsistency(ctx context.Context, b *gamepla
 		return nil
 	}
 	b.Status.Conditions = conditions
+	return r.Status().Update(ctx, b)
+}
+
+// The all-data layout must precede worker creation, while the quiesce RPC
+// deliberately follows worker readiness. Finalize only its outcome before the
+// first authorization; the claim selection and provenance never change.
+func (r *BackupReconciler) finalizeBackupCaptureOutcome(ctx context.Context, b *gameplanev1alpha1.Backup) error {
+	if b.Spec.VolumePolicy != "all-data" || b.Status.CaptureManifest == nil || b.Annotations[backupAuthorizedWorkerAnnotation] != "" {
+		return nil
+	}
+	outcome := backupQuiesceOutcome(b)
+	if b.Status.CaptureManifest.QuiesceOutcome == outcome {
+		return nil
+	}
+	b.Status.CaptureManifest.QuiesceOutcome = outcome
 	return r.Status().Update(ctx, b)
 }

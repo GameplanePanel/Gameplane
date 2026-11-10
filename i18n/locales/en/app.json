@@ -211,8 +211,12 @@
     "defaultMessage": "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template.",
     "description": "Backup achieved consistency: LegacyMetadataUnknown."
   },
+  "condition.consistency.livemultivolumecopy": {
+    "defaultMessage": "Included volumes share one snapshot, but live copies have no atomic cross-volume consistency guarantee, even when the primary game's quiesce succeeds.",
+    "description": "Backup achieved consistency: LiveMultiVolumeCopy."
+  },
   "condition.consistency.quiesced": {
-    "defaultMessage": "The primary volume copy completed after the agent confirmed quiesce. This depends on the module's quiesce commands; other volumes remain outside this backup.",
+    "defaultMessage": "The included volumes were copied after the agent confirmed quiesce. This depends on the module's quiesce commands; consult the manifest for excluded volumes.",
     "description": "Backup achieved consistency: Quiesced."
   },
   "condition.consistency.rawcopy": {
@@ -220,7 +224,7 @@
     "description": "Backup achieved consistency: RawCopy."
   },
   "condition.consistency.stoppedsource": {
-    "defaultMessage": "The primary volume copy completed from a source that was already stopped and drained before capture. Other volumes remain outside this backup.",
+    "defaultMessage": "The included volumes were copied from a stopped and drained source. Consult the manifest for excluded volumes and recovery prerequisites.",
     "description": "Backup achieved consistency: StoppedSource."
   },
   "condition.consistency.unsupportedrawcopy": {
@@ -618,6 +622,10 @@
   "condition.ready.waitingforcatalog": {
     "defaultMessage": "Waiting for the module source to index this module.",
     "description": "Module condition while the source has no catalog entry yet."
+  },
+  "condition.recoveryintervention.provenanceunavailable": {
+    "defaultMessage": "Recovery cannot continue safely because the original operation metadata is unavailable. An administrator must inspect the server and its active workers.",
+    "description": "Recovery requires intervention when the original operation provenance cannot be established."
   },
   "condition.retentionstopfailed.sidecar_stop_failed": {
     "defaultMessage": "Stopping the capture sidecar at the end of retention failed.",
@@ -1452,8 +1460,8 @@
     "description": "Backup details: timestamp of the immutable capture manifest"
   },
   "web.components.backups.backup_detail_drawer.coverage_scope": {
-    "defaultMessage": "Only the primary data claim is copied. Rebuildable is a declaration, not proof that recovery can reconstruct its contents.",
-    "description": "Backup details: explains the current single-volume backup scope and rebuildable declarations"
+    "defaultMessage": "Included claims are copied at the recorded archive roots. Primary-only backups exclude extra data volumes and separate mod claims. Rebuildable volumes are excluded. Check recovery prerequisites before restarting.",
+    "description": "Backup details: explains recorded volume coverage, primary-only exclusions, and recovery prerequisites for excluded volumes"
   },
   "web.components.backups.backup_detail_drawer.delete": {
     "defaultMessage": "Delete",

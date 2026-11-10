@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: bf84afb28a947929dcc56cef655364589a4be2e498da9eafb35363eda630676c
+    gameplane.local/crd-bundle-sha256: e900c220cd57442f03e3264da6ad0a2e746450523b88edf38affff441b150072
     controller-gen.kubebuilder.io/version: v0.22.0
   name: backupschedules.gameplane.local
 spec:
@@ -71,6 +71,13 @@ spec:
                 - Allow
                 - Forbid
                 - Replace
+                type: string
+              powerPolicy:
+                description: PowerPolicy preserves power by default; stop-copy-restart
+                  temporarily stops under lifecycle ownership.
+                enum:
+                - preserve
+                - stop-copy-restart
                 type: string
               quiesce:
                 default: true
@@ -163,6 +170,13 @@ spec:
                 default: false
                 description: Suspend pauses the schedule without deleting it.
                 type: boolean
+              volumePolicy:
+                description: VolumePolicy captures primary-only by default; all-data
+                  includes classified persistent data.
+                enum:
+                - primary-only
+                - all-data
+                type: string
             required:
             - schedule
             - serverRef
@@ -170,6 +184,10 @@ spec:
             x-kubernetes-validations:
             - message: repoRef is required for the restic-snapshot strategy
               rule: self.strategy == 'volume-snapshot' || has(self.repoRef)
+            - message: stopped and all-data policies require restic-snapshot
+              rule: self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy)
+                || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) ||
+                self.volumePolicy == 'primary-only'))
           status:
             description: BackupScheduleStatus is the observed state of a BackupSchedule.
             properties:

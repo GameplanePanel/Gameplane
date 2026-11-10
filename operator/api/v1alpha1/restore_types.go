@@ -37,8 +37,27 @@ type RestoreSpec struct {
 	ServerRef LocalObjectRef `json:"serverRef"`
 }
 
+// RestoreRecoveryPlan pins a validated target mapping before any power mutation.
+type RestoreRecoveryPlan struct {
+	// Admitted power intent is informational; cleanup never overwrites newer user intent.
+	AdmittedSuspend bool `json:"admittedSuspend"`
+	// +optional
+	AdmittedIdle       string `json:"admittedIdle,omitempty"`
+	AdmittedGeneration int64  `json:"admittedGeneration"`
+
+	BackupUID        string                 `json:"backupUID"`
+	ManifestDigest   string                 `json:"manifestDigest"`
+	TargetUID        string                 `json:"targetUID"`
+	TemplateRevision string                 `json:"templateRevision"`
+	GameVersion      string                 `json:"gameVersion"`
+	Volumes          []BackupVolumeCoverage `json:"volumes"`
+}
+
 // RestoreStatus is the observed state of a Restore.
 type RestoreStatus struct {
+	// +optional
+	RecoveryPlan *RestoreRecoveryPlan `json:"recoveryPlan,omitempty"`
+
 	// +optional
 	Phase RestorePhase `json:"phase,omitempty"`
 

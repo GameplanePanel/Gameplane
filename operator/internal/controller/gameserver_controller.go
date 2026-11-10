@@ -268,6 +268,11 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	} else if changed {
 		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
+	if changed, err := r.recoverStoppedBackupOwner(ctx, &gs); err != nil {
+		return requeueOnConflict(ctrl.Result{}, err)
+	} else if changed {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+	}
 	// Exposure compatibility depends only on the server. Reject it before
 	// resolving/adopting a template, which may otherwise initiate a rollout.
 	if r.RestrictedWorkloads && gs.Spec.Networking.Expose == "Hostport" {
@@ -1276,6 +1281,10 @@ func (r *GameServerReconciler) desiredReplicas(
 			poll = restartDrainPoll
 		}
 		return replicas, poll, err
+	} else if held && lifecycleStoppingBackup(op) != nil {
+		return r.continueBackupStop(ctx, &live, tmpl, lifecycleStoppingBackup(op))
+	} else if held && op.Kind == "Backup" && op.StoppedBackup != nil && op.StoppedBackup.Stage == "Drained" {
+		return 0, 5 * time.Second, nil
 	} else if held && op.InitialStartup && len(op.Recovery) == 0 {
 		if live.Spec.Suspend {
 			return 0, 5 * time.Second, nil
@@ -1623,6 +1632,16 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					// Orphaned restores may leave a running initial workload.
 					// Stop it while preserving its complete pod template. Other
 					// protected operations also preserve the replica count.
+					if (op.StoppedBackup != nil && op.StoppedBackup.Stage != "Admitted") || lifecycleStoppingBackup(op) != nil {
+						// A replica decision may predate admission. Never raise a stopped
+						// workload with that stale decision, including during a copy.
+						if op.StoppedBackup != nil && op.StoppedBackup.Stage == "Drained" {
+							zero := int32(0)
+							ss.Spec.Replicas = &zero
+						} else if ss.Spec.Replicas != nil && replicas < *ss.Spec.Replicas {
+							ss.Spec.Replicas = &replicas
+						}
+					}
 					if lifecycleRecoveryNeedsStop(op) {
 						zero := int32(0)
 						ss.Spec.Replicas = &zero
@@ -2627,6 +2646,8 @@ func (r *GameServerReconciler) reconcileBackupSchedule(
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, bs, func() error {
 		bs.Spec.ServerRef = gameplanev1alpha1.LocalObjectRef{Name: gs.Name}
+		bs.Spec.PowerPolicy = gs.Spec.BackupPolicy.PowerPolicy
+		bs.Spec.VolumePolicy = gs.Spec.BackupPolicy.VolumePolicy
 		bs.Spec.Schedule = gs.Spec.BackupPolicy.Schedule
 		bs.Spec.RepoRef = &gs.Spec.BackupPolicy.RepoRef
 		bs.Spec.Retention = gs.Spec.BackupPolicy.Retention

@@ -36,7 +36,7 @@ const (
 const resticWorkerScript = `set -eu
 for utility in timeout date cat touch sleep restic; do command -v "$utility" >/dev/null; done
 timeout -s TERM -k 5 1 /bin/sh -c ':'
-test -d /data && test -r /data && test -x /data
+test -d /tmp && test -w /tmp
 restic snapshots --json --retry-lock 10m >/dev/null
 touch /tmp/prepared
 while :; do
@@ -251,6 +251,20 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 	if bound == nil {
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
+	if b.Spec.VolumePolicy == "all-data" {
+		if b.Annotations[captureFormatAnnotation] != "all-data-v2" {
+			patchBackupAnnotations(b, map[string]string{captureFormatAnnotation: "all-data-v2"})
+			if err := r.Update(ctx, b); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		if err := r.recordBackupManifest(ctx, b, bound); err != nil {
+			return r.abortResticCopy(ctx, b, err.Error())
+		}
+		if err := r.validateBackupRecoveryLayout(ctx, b, bound); err != nil {
+			return r.abortResticCopy(ctx, b, err.Error())
+		}
+	}
 	source, err := r.prepareBackupWorkerSource(ctx, b)
 	if err != nil {
 		if errors.Is(err, errBackupSourceChanged) {
@@ -359,10 +373,21 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 	if !time.Now().Before(deadline) {
 		return r.abortResticCopy(ctx, b, "maximum quiesce duration exceeded before start authorization")
 	}
+	if err := r.finalizeBackupCaptureOutcome(ctx, b); err != nil {
+		return ctrl.Result{}, err
+	}
 	if b.Annotations[backupAuthorizedWorkerAnnotation] != string(worker.UID) {
 		patchBackupAnnotations(b, map[string]string{backupAuthorizedWorkerAnnotation: string(worker.UID)})
 		if err := r.Update(ctx, b); err != nil {
 			return ctrl.Result{}, err
+		}
+	}
+	if err := r.validateBackupRecoveryLayout(ctx, b, bound); err != nil {
+		return r.abortResticCopy(ctx, b, err.Error())
+	}
+	if b.Spec.VolumePolicy == "all-data" {
+		if err := validateMountedRecoveryClaims(ctx, r.backupAPIReader(), b.Namespace, b.Status.CaptureManifest.Volumes); err != nil {
+			return r.abortResticCopy(ctx, b, err.Error())
 		}
 	}
 	token := fmt.Sprintf("v1 %s %s %s %d\n", b.UID, worker.UID, backupWorkerSourceID(b), deadline.Unix())

@@ -7,7 +7,17 @@ import (
 
 // BackupScheduleSpec defines a recurring backup policy for a GameServer.
 // +kubebuilder:validation:XValidation:rule="self.strategy == 'volume-snapshot' || has(self.repoRef)",message="repoRef is required for the restic-snapshot strategy"
+// +kubebuilder:validation:XValidation:rule="self.strategy != 'volume-snapshot' || ((!has(self.powerPolicy) || self.powerPolicy == 'preserve') && (!has(self.volumePolicy) || self.volumePolicy == 'primary-only'))",message="stopped and all-data policies require restic-snapshot"
 type BackupScheduleSpec struct {
+	// PowerPolicy preserves power by default; stop-copy-restart temporarily stops under lifecycle ownership.
+	// +kubebuilder:validation:Enum=preserve;stop-copy-restart
+	// +optional
+	PowerPolicy string `json:"powerPolicy,omitempty"`
+	// VolumePolicy captures primary-only by default; all-data includes classified persistent data.
+	// +kubebuilder:validation:Enum=primary-only;all-data
+	// +optional
+	VolumePolicy string `json:"volumePolicy,omitempty"`
+
 	// ServerRef is the GameServer to back up on this schedule.
 	ServerRef LocalObjectRef `json:"serverRef"`
 

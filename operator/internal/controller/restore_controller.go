@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -104,6 +105,21 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			}
 			return ctrl.Result{RequeueAfter: 15 * time.Second}, nil
 		}
+		all, modeErr := recoveryCaptureMode(&src)
+		if modeErr != nil {
+			return r.fail(ctx, &rs, modeErr.Error())
+		}
+		if rs.Annotations == nil {
+			rs.Annotations = map[string]string{}
+		}
+		mode := "legacy-primary"
+		if all {
+			mode = "all-data-v2"
+		}
+		rs.Annotations[restoreFormatAnnotation] = mode
+		if err := r.Update(ctx, &rs); err != nil {
+			return ctrl.Result{}, err
+		}
 		rs.Status.SnapshotID = src.Status.SnapshotID
 		if src.Spec.Strategy == "volume-snapshot" {
 			// Volume-snapshot restores stand up a brand-new server rather
@@ -134,6 +150,12 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Binding the target does not change the restore strategy. CSI's own
 	// preparation path checks that binding before awaiting startup, repairing
 	// references and enforcing the deadline on every subsequent reconcile.
+	if _, err := recoveryCaptureMode(&src); err != nil {
+		return r.fail(ctx, &rs, err.Error())
+	}
+	if rs.Annotations[restoreFormatAnnotation] == "all-data-v2" && src.Spec.Strategy == "volume-snapshot" {
+		return r.fail(ctx, &rs, "recovery mode changed")
+	}
 	if src.Spec.Strategy == "volume-snapshot" {
 		if src.Annotations[backupSnapshotAbortAnnotation] == "true" || src.Status.Phase != gameplanev1alpha1.BackupPhaseSucceeded || src.Status.SnapshotID != rs.Status.SnapshotID {
 			return r.fail(ctx, &rs, "source CSI capture is no longer valid")
@@ -151,6 +173,11 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if !gs.DeletionTimestamp.IsZero() {
 		return r.fail(ctx, &rs, "target server is being deleted")
+	}
+	if changed, err := r.preflightRecovery(ctx, &rs, &src, &gs); err != nil {
+		return r.fail(ctx, &rs, err.Error())
+	} else if changed {
+		return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
 	}
 	changed, err := r.bindRestoreTarget(ctx, &rs, &gs)
 	if err != nil {
@@ -192,7 +219,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	tmpl := *effective
 
 	if rs.Status.Phase == gameplanev1alpha1.RestorePhaseSuspending {
-		if gs.Status.Phase != gameplanev1alpha1.GameServerPhaseSuspended &&
+		if rs.Status.RecoveryPlan == nil && gs.Status.Phase != gameplanev1alpha1.GameServerPhaseSuspended &&
 			gs.Status.Phase != gameplanev1alpha1.GameServerPhaseStopped {
 			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 		}
@@ -234,11 +261,22 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if src.Spec.RepoRef == nil {
 			return r.fail(ctx, &rs, "source backup has no restic repository")
 		}
+		if _, err := r.preflightRecovery(ctx, &rs, &src, &gs); err != nil {
+			return r.fail(ctx, &rs, err.Error())
+		}
+		if rs.Status.RecoveryPlan != nil {
+			if err := r.recoveryRestoreWritersDrained(ctx, &rs, &gs); err != nil {
+				return r.fail(ctx, &rs, err.Error())
+			}
+		}
 		job.Spec.BackoffLimit = &backoff
 		job.Spec.ActiveDeadlineSeconds = &deadline
 		job.Annotations = map[string]string{restoreTargetAnnotation: rs.Annotations[restoreTargetAnnotation]}
 		job.Spec.Template.Labels = map[string]string{backupRestoreJobLabel: backupRestoreJobValue, restoreUIDLabel: string(rs.UID)}
 		job.Spec.Template.Spec = r.buildRestorePodSpec(&rs, &src, &tmpl)
+		if err := r.prepareRecoveryRestorePod(ctx, &rs, &job.Spec.Template.Spec); err != nil {
+			return r.fail(ctx, &rs, err.Error())
+		}
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
 		if err := controllerutil.SetControllerReference(&rs, job, r.Scheme); err != nil {
 			return ctrl.Result{}, err
@@ -257,6 +295,11 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return r.fail(ctx, &rs, "restore Job does not belong to this Restore and target")
 	}
 
+	if ready, err := r.authorizeRecoveryRestore(ctx, &rs, &src, &gs, job); err != nil {
+		return r.fail(ctx, &rs, err.Error())
+	} else if !ready {
+		return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
+	}
 	switch {
 	case job.Status.Succeeded > 0:
 		busy, err := r.restoreWorkersLive(ctx, rs.Namespace, restoreIdentity{Name: rs.Name, UID: rs.UID}, false)
@@ -291,7 +334,7 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	case jobPermanentlyFailed(job):
 		// Leave the server suspended; surface the failure.
-		return r.fail(ctx, &rs, "restore job reported Failed")
+		return r.fail(ctx, &rs, r.restoreJobFailure(ctx, job).Error())
 
 	default:
 		if rs.Status.StartTime == nil && job.Status.StartTime != nil {
@@ -302,6 +345,44 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
+}
+
+// Preserve worker failure evidence in Restore status before cleanup deletes
+// the Job and its Pods. Only diagnostics from this exact Job are admitted.
+// Raw termination messages can contain repository credentials and remain on Pods.
+func (r *RestoreReconciler) restoreJobFailure(ctx context.Context, job *batchv1.Job) error {
+	details := []string{"restore job reported Failed"}
+	for _, condition := range job.Status.Conditions {
+		if condition.Type == batchv1.JobFailed && condition.Status == corev1.ConditionTrue {
+			details = append(details, condition.Reason)
+		}
+	}
+	if job.UID == "" {
+		return errors.New(strings.Join(details, "; "))
+	}
+	var pods corev1.PodList
+	if err := r.apiReader().List(ctx, &pods, client.InNamespace(job.Namespace)); err != nil {
+		details = append(details, "worker diagnostics unavailable")
+		return errors.New(strings.Join(details, "; "))
+	}
+	for i := range pods.Items {
+		pod := &pods.Items[i]
+		if !metav1.IsControlledBy(pod, job) {
+			continue
+		}
+		statuses := append(append([]corev1.ContainerStatus{}, pod.Status.InitContainerStatuses...), pod.Status.ContainerStatuses...)
+		for _, status := range statuses {
+			terminated := status.State.Terminated
+			if terminated == nil || terminated.ExitCode == 0 {
+				continue
+			}
+			details = append(details, fmt.Sprintf("Pod %s container %s exited %d (%s)", pod.Name, status.Name, terminated.ExitCode, terminated.Reason))
+			if len(details) >= 5 {
+				return errors.New(strings.Join(details, "; "))
+			}
+		}
+	}
+	return errors.New(strings.Join(details, "; "))
 }
 
 func (r *RestoreReconciler) fail(ctx context.Context, rs *gameplanev1alpha1.Restore, msg string) (ctrl.Result, error) {
@@ -340,12 +421,13 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 	roRootFS := true
 	noPrivEsc := false
 	uid := int64(65532)
-	return corev1.PodSpec{
+	spec := corev1.PodSpec{
 		SecurityContext: buildBackupPodSecurityContext(tmpl),
 		Containers: []corev1.Container{{
-			Name:      "restic",
-			Image:     resticImageOrDefault(r.ResticImage),
-			Resources: auxiliaryResources(r.BackupResources, "100m", "128Mi"),
+			Name:                     "restic",
+			TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
+			Image:                    resticImageOrDefault(r.ResticImage),
+			Resources:                auxiliaryResources(r.BackupResources, "100m", "128Mi"),
 			// --target / restores each snapshot entry at its original
 			// absolute path. The companion backup runs `restic backup
 			// /data`, so the snapshot tree is rooted at /data/...; with
@@ -406,4 +488,18 @@ func (r *RestoreReconciler) buildRestorePodSpec(
 			},
 		},
 	}
+	if rs.Status.RecoveryPlan != nil {
+		recoveryWorkerVolumes(&spec, rs.Status.RecoveryPlan.Volumes, false)
+		// Restore the archive subtree itself so restic never applies the
+		// archived /volumes ancestor metadata to the read-only container root.
+		// Includes are relative to that subtree; physical PVC paths stay fixed.
+		args := []string{"restore", rs.Status.SnapshotID + ":/volumes", "--target", "/volumes", "--delete", "--retry-lock", "10m"}
+		for _, v := range rs.Status.RecoveryPlan.Volumes {
+			if v.Included {
+				args = append(args, "--include", "/"+v.LogicalName)
+			}
+		}
+		spec.Containers[0].Args = args
+	}
+	return spec
 }

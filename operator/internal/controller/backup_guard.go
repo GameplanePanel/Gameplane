@@ -297,6 +297,18 @@ func (r *BackupReconciler) prepareBackupWorkload(ctx context.Context, b *gamepla
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 	}
 	ready := false
+	if fenced && b.Spec.PowerPolicy == "stop-copy-restart" {
+		stopped, stopErr := r.prepareStoppedBackup(ctx, b, gs)
+		if stopErr != nil {
+			if errors.Is(stopErr, errBackupSourceChanged) {
+				return r.abortResticCopy(ctx, b, stopErr.Error())
+			}
+			return ctrl.Result{}, stopErr
+		}
+		if !stopped {
+			return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
+		}
+	}
 	if fenced {
 		ready, err = r.prepareBackupSource(ctx, b, gs)
 	} else {
@@ -383,6 +395,29 @@ func (r *BackupReconciler) releaseBackupTarget(ctx context.Context, b *gameplane
 	gs, err := r.ownedBackupTarget(ctx, b)
 	if err != nil || gs == nil {
 		return err
+	}
+	op, _, err := lifecycleOwner(gs)
+	if err != nil {
+		return err
+	}
+	if op.StoppedBackup != nil {
+		ready, err := stoppedBackupCleanup(ctx, r.Client, r.backupAPIReader(), gs, op.StoppedBackup)
+		if err != nil {
+			_ = recoveryIntervention(ctx, r.Client, gs, err.Error())
+			return err
+		}
+		if !ready {
+			return fmt.Errorf("waiting for stopped source and workers to drain before recovery release")
+		}
+		delete(gs.Annotations, stopRequestedAtAnnotation)
+		reason, message := "UserIntentPreserved", "Cleanup completed; current suspend, idle and restart intent is preserved."
+		if stoppedBackupMayResume(gs, op.StoppedBackup) {
+			reason, message = "RestartPermitted", "Workers and original source drained; the admitted running intent permits normal startup."
+		}
+		b.Status.Conditions = upsertCondition(b.Status.Conditions, metav1.Condition{Type: "Recovery", Status: metav1.ConditionTrue, Reason: reason, Message: message, ObservedGeneration: b.Generation})
+		if err := r.Status().Update(ctx, b); err != nil {
+			return err
+		}
 	}
 	if err := clearLifecycleOperation(ctx, r.Client, r.backupAPIReader(), gs, backupLifecycleIdentity(gs, b, false)); err != nil {
 		return err

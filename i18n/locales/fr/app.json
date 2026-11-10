@@ -175,6 +175,18 @@
     "defaultMessage": "Le backup ou le restore s'est terminé avec succès.",
     "description": "Completed condition on a Backup or Restore that finished."
   },
+  "condition.consistency.livemultivolumecopy": {
+    "defaultMessage": "Les volumes inclus partagent un même instantané, mais leur copie à chaud ne garantit pas une cohérence atomique entre les volumes, même si la mise au repos du jeu principal réussit.",
+    "description": "Backup achieved consistency: LiveMultiVolumeCopy."
+  },
+  "condition.consistency.quiesced": {
+    "defaultMessage": "Les volumes inclus ont été copiés après confirmation de la mise au repos par l’agent. Cela dépend des commandes de mise au repos du module ; consultez le manifeste pour connaître les volumes exclus.",
+    "description": "Backup achieved consistency: Quiesced."
+  },
+  "condition.consistency.stoppedsource": {
+    "defaultMessage": "Les volumes inclus ont été copiés depuis une source arrêtée, sans processus utilisant ces volumes. Consultez le manifeste pour connaître les volumes exclus et les prérequis de récupération.",
+    "description": "Backup achieved consistency: StoppedSource."
+  },
   "condition.datawipe.jobfailed": {
     "defaultMessage": "La tâche d'effacement des données ne s'est pas terminée. Le volume n'est peut-être pas entièrement vidé.",
     "description": "DataWipe condition when the wipe job fails."
@@ -510,6 +522,10 @@
   "condition.ready.waitingforcatalog": {
     "defaultMessage": "En attente de l'indexation de ce module par la source de modules.",
     "description": "Module condition while the source has no catalog entry yet."
+  },
+  "condition.recoveryintervention.provenanceunavailable": {
+    "defaultMessage": "La récupération ne peut pas continuer en toute sécurité, car les métadonnées de l’opération d’origine sont indisponibles. Un administrateur doit examiner le serveur et ses tâches actives.",
+    "description": "Recovery requires intervention when the original operation provenance cannot be established."
   },
   "condition.retentionstopfailed.sidecar_stop_failed": {
     "defaultMessage": "L'arrêt du sidecar de capture à la fin de la rétention a échoué.",
@@ -1126,6 +1142,10 @@
   "web.components.backups.backup_detail_drawer.completed": {
     "defaultMessage": "Terminé",
     "description": "Backup details drawer: field label above the time the backup completed, shown in relative time"
+  },
+  "web.components.backups.backup_detail_drawer.coverage_scope": {
+    "defaultMessage": "Les volumes inclus sont copiés aux racines d’archive enregistrées. Les sauvegardes limitées au volume principal excluent les volumes de données supplémentaires et les volumes de mods distincts. Les volumes reconstructibles sont exclus. Vérifiez les prérequis de récupération avant de redémarrer.",
+    "description": "Backup details: explains recorded volume coverage, primary-only exclusions, and recovery prerequisites for excluded volumes"
   },
   "web.components.backups.backup_detail_drawer.delete": {
     "defaultMessage": "Supprimer",

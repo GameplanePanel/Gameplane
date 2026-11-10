@@ -164,7 +164,11 @@ func createBackup(t *testing.T, ns, name, gsName, repoSecretName, repoKey string
 // createRestore applies a Restore CR and registers cleanup on t.
 func createRestore(t *testing.T, ns, name, gsName, backupName string) *unstructured.Unstructured {
 	t.Helper()
-	ctx := context.Background()
+	return createRestoreContext(context.Background(), t, ns, name, gsName, backupName)
+}
+
+func createRestoreContext(ctx context.Context, t *testing.T, ns, name, gsName, backupName string) *unstructured.Unstructured {
+	t.Helper()
 	rs := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
 		"kind":       "Restore",
@@ -180,8 +184,10 @@ func createRestore(t *testing.T, ns, name, gsName, backupName string) *unstructu
 		t.Fatalf("create restore %s/%s: %v", ns, name, err)
 	}
 	t.Cleanup(func() {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		defer cancel()
 		_ = envInstance.Dyn.Resource(restoreGVR).Namespace(ns).
-			Delete(context.Background(), name, metav1.DeleteOptions{})
+			Delete(cleanupCtx, name, metav1.DeleteOptions{})
 	})
 	return created
 }
@@ -191,7 +197,11 @@ func createRestore(t *testing.T, ns, name, gsName, backupName string) *unstructu
 // terminal Failed phase.
 func waitBackupSucceeded(t *testing.T, ns, name string, timeout time.Duration) string {
 	t.Helper()
-	ctx := context.Background()
+	return waitBackupSucceededContext(context.Background(), t, ns, name, timeout)
+}
+
+func waitBackupSucceededContext(ctx context.Context, t *testing.T, ns, name string, timeout time.Duration) string {
+	t.Helper()
 	var snapshotID string
 	envInstance.Eventually(t, timeout, func() (bool, string) {
 		got, err := envInstance.Dyn.Resource(backupGVR).Namespace(ns).
@@ -222,7 +232,11 @@ func waitBackupSucceeded(t *testing.T, ns, name string, timeout time.Duration) s
 // Fails the test on timeout or on a terminal Failed phase.
 func waitRestoreSucceeded(t *testing.T, ns, name string, timeout time.Duration) {
 	t.Helper()
-	ctx := context.Background()
+	waitRestoreSucceededContext(context.Background(), t, ns, name, timeout)
+}
+
+func waitRestoreSucceededContext(ctx context.Context, t *testing.T, ns, name string, timeout time.Duration) {
+	t.Helper()
 	envInstance.Eventually(t, timeout, func() (bool, string) {
 		got, err := envInstance.Dyn.Resource(restoreGVR).Namespace(ns).
 			Get(ctx, name, metav1.GetOptions{})

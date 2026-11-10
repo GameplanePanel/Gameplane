@@ -662,6 +662,11 @@ export interface ServerEvent {
 }
 
 export interface BackupCaptureManifest {
+  formatVersion?: number;
+  volumePolicy?: "primary-only" | "all-data";
+  templateName?: string;
+  templateRevision?: string;
+  gameVersion?: string;
   state: "Recorded" | "LegacyUnknown";
   recordedAt?: string;
   serverUID?: string;
@@ -669,6 +674,9 @@ export interface BackupCaptureManifest {
   layoutSource?: string;
   quiesceOutcome?: string;
   volumes?: Array<{
+    logicalName?: string;
+    snapshotRoot?: string;
+    recoveryPrerequisite?: string;
     claimName: string;
     claimUID?: string;
     mountPaths?: string[];
@@ -682,7 +690,7 @@ export interface Backup {
   metadata: ObjectMeta;
   // strategy: restic-snapshot writes to a restic repo; volume-snapshot takes a
   // CSI snapshot and is restored by provisioning a NEW server from it.
-  spec: { serverRef: { name: string }; strategy?: "restic-snapshot" | "volume-snapshot" };
+  spec: { serverRef: { name: string }; strategy?: "restic-snapshot" | "volume-snapshot"; powerPolicy?: "preserve" | "stop-copy-restart"; volumePolicy?: "primary-only" | "all-data" };
   status?: {
     phase?: "Pending" | "Running" | "Succeeded" | "Failed";
     startTime?: string;
@@ -699,6 +707,8 @@ export interface BackupSchedule {
   spec: {
     serverRef: { name: string };
     schedule: string;
+    powerPolicy?: "preserve" | "stop-copy-restart";
+    volumePolicy?: "primary-only" | "all-data";
     suspend?: boolean;
     retention?: {
       keepLast?: number;
@@ -725,6 +735,14 @@ export interface Restore {
     serverRef: { name: string };
   };
   status?: {
+    recoveryPlan?: {
+      backupUID: string;
+      manifestDigest: string;
+      targetUID: string;
+      templateRevision: string;
+      gameVersion: string;
+      volumes: NonNullable<BackupCaptureManifest["volumes"]>;
+    };
     phase?: RestorePhase;
     snapshotID?: string;
     startTime?: string;

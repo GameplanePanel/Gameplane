@@ -123,7 +123,11 @@ admitted with the same process. Reverting a runtime does not reverse save-format
 changes. Restoring data may be necessary, and compatibility is game-specific.
 Backups remain data backups, not automatic runtime rollback bundles. Record the
 effective digest, immutable image reference and server configuration with your
-backup procedure. Restic restores use the target's current effective layout; CSI
+backup procedure. Legacy primary-only Restic restores use the target's current effective layout.
+V2 all-data Restic restores pin the capture template digest, selected version and
+logical volume paths; an incompatible target fails preflight before any stop or
+write. They restore included data/mod roots only and report excluded rebuildable
+content as reconstruction prerequisites. CSI
 restores copy the source server's effective template at restore planning time,
 not necessarily its template at backup time. Select a compatible Module version
 and `OnRequest` policy before recovery if automatic adoption would be unsafe.

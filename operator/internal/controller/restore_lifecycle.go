@@ -191,6 +191,12 @@ func (r *RestoreReconciler) restoreTargetStopped(ctx context.Context, gs *gamepl
 // available for their logs. Cancellation uses foreground deletion and UID
 // preconditions, retaining the guard until both Jobs and live pods have drained.
 func (r *RestoreReconciler) restoreWorkersLive(ctx context.Context, namespace string, identity restoreIdentity, cancel bool) (bool, error) {
+	if cancel {
+		if err := r.revokeRecoveryRestore(ctx, &gameplanev1alpha1.Restore{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: identity.Name, UID: identity.UID}}); err != nil {
+			return true, err
+		}
+	}
+
 	var jobs batchv1.JobList
 	if err := r.apiReader().List(ctx, &jobs, client.InNamespace(namespace)); err != nil {
 		return false, err
@@ -338,7 +344,9 @@ func (r *RestoreReconciler) cleanupRestore(ctx context.Context, rs *gameplanev1a
 			}
 			delete(gs.Annotations, restoreGuardAnnotation)
 			// Partial or canceled restores stay suspended for investigation.
-			gs.Spec.Suspend = !success
+			if !success || rs.Status.RecoveryPlan == nil {
+				gs.Spec.Suspend = !success
+			}
 			if err := r.Update(ctx, &gs); err != nil {
 				return ctrl.Result{}, err
 			}
