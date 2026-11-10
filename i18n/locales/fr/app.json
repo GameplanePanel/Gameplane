@@ -1568,7 +1568,7 @@
         "description": "Capture widget: screen-reader label for the unit dropdown (seconds or minutes) next to the run-time number; not visible on screen"
     },
     "web.components.capture_widget.max_duration_value": {
-        "defaultMessage": "Valeur de durée max.",
+        "defaultMessage": "Valeur de la durée maximale",
         "description": "Capture widget: screen-reader label for the number box that sets how long the capture runs; not visible on screen"
     },
     "web.components.capture_widget.max_size": {
@@ -1584,7 +1584,7 @@
         "description": "Capture widget: screen-reader label for the size unit dropdown (MB or GB) next to the maximum size number; not visible on screen"
     },
     "web.components.capture_widget.max_size_value": {
-        "defaultMessage": "Valeur de taille max.",
+        "defaultMessage": "Valeur de la taille maximale",
         "description": "Capture widget: screen-reader label for the number box that sets the maximum capture file size; not visible on screen"
     },
     "web.components.capture_widget.maximum_file_size": {
