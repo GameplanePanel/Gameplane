@@ -1,5 +1,5 @@
-github.com/gopacket/gopacket v1.7.4 h1:3bi6ZOOyxZe5iGhPz2xkQg/qoEBa3ODsrxZ9LbnYuRw=
-github.com/gopacket/gopacket v1.7.4/go.mod h1:QKowPlTLrQU2rqV5C5I14Aoaid3l8da3kbddibc/Wgk=
+github.com/gopacket/gopacket v1.7.7 h1:9MaMKsjcFCnUVPI9CHp/ZDhu1SSV+rs0THQ2ztRAqmE=
+github.com/gopacket/gopacket v1.7.7/go.mod h1:QKowPlTLrQU2rqV5C5I14Aoaid3l8da3kbddibc/Wgk=
 github.com/packetcap/go-pcap v0.0.0-20260731105150-c86974bbfbcd h1:lRlH5Jge3npkPSIPn2KoD+X+amqeiaz15RRLemt3mMA=
 github.com/packetcap/go-pcap v0.0.0-20260731105150-c86974bbfbcd/go.mod h1:wQ9T8epu/dBnGtVB7SwXIGZE3FEy6h2e9zCEZIUnpho=
 github.com/vishvananda/netlink v1.1.0 h1:1iyaYNBLmP6L0220aDnYQpo1QEV4t4hJ+xEEhhJH8j0=
