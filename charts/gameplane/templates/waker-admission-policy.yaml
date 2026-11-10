@@ -43,6 +43,14 @@ spec:
         oldObject.metadata.annotations.all(k, k == 'gameplane.local/idle-wake-requested' ||
         (has(object.metadata.annotations) && k in object.metadata.annotations))
       message: "the wake proxy may not remove GameServer annotations"
+    - expression: >-
+        has(object.metadata.finalizers) == has(oldObject.metadata.finalizers) &&
+        (!has(object.metadata.finalizers) || object.metadata.finalizers == oldObject.metadata.finalizers)
+      message: "the wake proxy may not change GameServer finalizers"
+    - expression: >-
+        has(object.metadata.ownerReferences) == has(oldObject.metadata.ownerReferences) &&
+        (!has(object.metadata.ownerReferences) || object.metadata.ownerReferences == oldObject.metadata.ownerReferences)
+      message: "the wake proxy may not change GameServer owner references"
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding

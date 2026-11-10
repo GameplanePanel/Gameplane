@@ -582,7 +582,8 @@ func (h *handler) swapInArchive(tmpZip, folder string, maxBytes int64) error {
 	if _, err := ConfinePath(h.dir, folder); err != nil {
 		return fmt.Errorf("path escape attempt: %w", err)
 	}
-	zf, err := os.OpenFile(filepath.Clean(tmpZip), os.O_RDONLY|syscall.O_NOFOLLOW, 0)
+	// O_NONBLOCK: a FIFO swapped in for the temp file must not hang the open.
+	zf, err := os.OpenFile(filepath.Clean(tmpZip), os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return fmt.Errorf("open archive: %w", err)
 	}
@@ -590,6 +591,9 @@ func (h *handler) swapInArchive(tmpZip, folder string, maxBytes int64) error {
 	info, err := zf.Stat()
 	if err != nil {
 		return fmt.Errorf("stat archive: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("%w: not a regular file", errBadArchive)
 	}
 	zr, err := zip.NewReader(zf, info.Size())
 	if err != nil {
