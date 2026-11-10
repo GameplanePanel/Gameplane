@@ -2156,7 +2156,7 @@ jobs:
       CTX: kind-gameplane-upgrade
       # The release to upgrade FROM. Bump at release time to the previous
       # published version. deploy/kind/upgrade.sh carries the same default.
-      GAMEPLANE_UPGRADE_FROM: 0.2.0-beta.8
+      GAMEPLANE_UPGRADE_FROM: 0.3.0
     steps: &e2e-upgrade-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/go-cache
@@ -2206,7 +2206,7 @@ jobs:
       CTX: kind-gameplane-upgrade
       # The release to upgrade FROM. Bump at release time to the previous
       # published version. deploy/kind/upgrade.sh carries the same default.
-      GAMEPLANE_UPGRADE_FROM: 0.2.0-beta.8
+      GAMEPLANE_UPGRADE_FROM: 0.3.0
     steps: *e2e-upgrade-steps
 
   e2e-web-live:

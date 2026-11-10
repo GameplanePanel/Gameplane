@@ -522,7 +522,7 @@ const crdBundleStampAnnotation = "gameplane.local/crd-bundle-sha256"
 // under the original GHCR owner.
 const (
 	upgradeFromChartRef       = "oci://ghcr.io/valgulnecron/charts/gameplane"
-	defaultUpgradeFromVersion = "0.2.0-beta.8"
+	defaultUpgradeFromVersion = "0.3.0"
 )
 
 // crdApplyHookEvents returns the helm.sh/hook annotation Helm stored for the

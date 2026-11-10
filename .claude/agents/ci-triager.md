@@ -63,7 +63,7 @@ gh pr view <pr-number>
   - `api-auth` tails `ratelimit` bucket (deliberately last to drain login limiter)
   - All run with `t.Parallel()` and `-parallel N` per bucket config
 - `e2e-multicluster` (matrix: 2 archs) → dual kind clusters (A + B), tests cross-cluster RBAC + dispatch
-- `e2e-upgrade` (matrix: 2 archs) → installs previous release (`GAMEPLANE_UPGRADE_FROM=0.2.0-beta.8`), upgrades to HEAD
+- `e2e-upgrade` (matrix: 2 archs) → installs previous release (`GAMEPLANE_UPGRADE_FROM=0.3.0`), upgrades to HEAD
 - `e2e-web-live` (matrix: 2 archs) → Playwright on live Vite + kind cluster
 - `e2e-game-bot` (amd64 only) → real Minecraft + Terraria servers, bot joins (blocks: no parallel)
 
