@@ -307,6 +307,23 @@ var responseHeaderDenylist = map[string]bool{
 	"Keep-Alive":         true,
 	"Transfer-Encoding":  true,
 	"Upgrade":            true,
+	// The API's own browser security headers (secureHeaders in cmd/main.go)
+	// must survive the proxy: a misbehaving agent may not relax the CSP,
+	// framing or sniffing rules, open CORS, or redirect the browser.
+	"Content-Security-Policy":             true,
+	"Content-Security-Policy-Report-Only": true,
+	"X-Frame-Options":                     true,
+	"X-Content-Type-Options":              true,
+	"Strict-Transport-Security":           true,
+	"Referrer-Policy":                     true,
+	"Permissions-Policy":                  true,
+	"Access-Control-Allow-Origin":         true,
+	"Access-Control-Allow-Credentials":    true,
+	"Access-Control-Allow-Headers":        true,
+	"Access-Control-Allow-Methods":        true,
+	"Access-Control-Expose-Headers":       true,
+	"Location":                            true,
+	"Refresh":                             true,
 }
 
 func copyProxyHeaders(dst, src http.Header) {
