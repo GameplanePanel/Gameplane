@@ -1,0 +1,55 @@
+{{- if and (eq (include "gameplane.operatorEnabled" .) "true") (.Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy") }}
+# The wake-on-connect sentinel is internet facing and its ServiceAccount
+# (<server>-waker-sa) may patch its own GameServer, because RBAC can't scope
+# a grant to one annotation. This policy holds those patches to the one
+# thing the sentinel does: setting gameplane.local/idle-wake-requested. The
+# spec, labels and every other annotation (owner, collaborators) must stay
+# unchanged. Rendered only where the cluster serves the GA admission policy
+# API (Kubernetes 1.30+).
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ .Release.Name }}-waker-wake-only
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["gameplane.local"]
+        apiVersions: ["*"]
+        operations: ["UPDATE"]
+        resources: ["gameservers"]
+  matchConditions:
+    - name: waker-service-account
+      expression: >-
+        request.userInfo.username.startsWith('system:serviceaccount:') &&
+        request.userInfo.username.endsWith('-waker-sa')
+  validations:
+    - expression: "object.spec == oldObject.spec"
+      message: "the wake proxy may not change the GameServer spec"
+    - expression: >-
+        (!has(object.metadata.labels) && !has(oldObject.metadata.labels)) ||
+        (has(object.metadata.labels) && has(oldObject.metadata.labels) &&
+        object.metadata.labels == oldObject.metadata.labels)
+      message: "the wake proxy may not change GameServer labels"
+    - expression: >-
+        !has(object.metadata.annotations) ||
+        object.metadata.annotations.all(k, k == 'gameplane.local/idle-wake-requested' ||
+        (has(oldObject.metadata.annotations) && k in oldObject.metadata.annotations &&
+        oldObject.metadata.annotations[k] == object.metadata.annotations[k]))
+      message: "the wake proxy may only set the idle-wake-requested annotation"
+    - expression: >-
+        !has(oldObject.metadata.annotations) ||
+        oldObject.metadata.annotations.all(k, k == 'gameplane.local/idle-wake-requested' ||
+        (has(object.metadata.annotations) && k in object.metadata.annotations))
+      message: "the wake proxy may not remove GameServer annotations"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ .Release.Name }}-waker-wake-only
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  policyName: {{ .Release.Name }}-waker-wake-only
+  validationActions: [Deny]
+{{- end }}

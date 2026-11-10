@@ -551,7 +551,11 @@ spec:
           {{- end }}
         {{- else }}
         - name: agent-ca
-          secret: { secretName: {{ .Values.api.agentMTLS.caSecretRef.name }} }
+          secret:
+            secretName: {{ .Values.api.agentMTLS.caSecretRef.name }}
+            # The API only verifies agent server certs: never mount ca.key.
+            items:
+              - { key: ca.crt, path: ca.crt }
         - name: agent-client
           secret: { secretName: {{ .Values.api.agentMTLS.clientCertRef.name }} }
         {{- end }}
