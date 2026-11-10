@@ -5,7 +5,6 @@
   "y": 4461,
   "name": "Gameplane/Backups Filter Popover",
   "context": "Backups and Restores filter drafts: Location, Server, Phase. Schedules hides Phase. Apply commits; Clear resets drafts.",
-  "theme": {},
   "reusable": true,
   "width": 280,
   "fill": "$surface/surface",
@@ -29,7 +28,7 @@
           "id": "WqfpR",
           "name": "Location label",
           "fill": "$muted",
-          "content": "Location",
+          "content": "Cluster",
           "fontFamily": "$typography/font-sans",
           "fontSize": 12,
           "fontWeight": "normal"
@@ -42,7 +41,7 @@
           "width": "fill_container",
           "descendants": {
             "cFsFk": {
-              "content": "All locations",
+              "content": "All clusters",
               "fill": "$foreground/foreground"
             }
           }

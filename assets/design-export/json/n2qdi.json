@@ -85,7 +85,7 @@
                   "content": "Clusters"
                 },
                 "VbHwU": {
-                  "content": "Administration of registered locations, connectivity and node inventory."
+                  "content": "Administration of registered clusters, connectivity and node inventory."
                 },
                 "TgdLz": {
                   "type": "frame",
@@ -159,4 +159,3 @@
     }
   ]
 }
-

@@ -113,7 +113,7 @@ export function DashboardPage() {
     <div className="space-y-6 p-6">
       <PageHeader
         title={intl.formatMessage({ id: "web.routes.dashboard.dashboard", defaultMessage: "Dashboard", description: "Dashboard: page title at the top of the dashboard; keep it short" })}
-        subtitle={intl.formatMessage({ id: "web.routes.dashboard.your_game_servers_and_resources_across", defaultMessage: "Your game servers and resources across authorized locations.", description: "Dashboard: subtitle under the page title saying the page shows game servers and resources in the locations the user may access" })}
+        subtitle={intl.formatMessage({ id: "web.routes.dashboard.your_game_servers_and_resources_across", defaultMessage: "Your game servers and resources across authorized clusters.", description: "Dashboard: subtitle under the page title saying the page shows game servers and resources in the clusters the user may access" })}
         actions={canCreate ?
           <Button
             variant="primary"
@@ -203,6 +203,7 @@ export function DashboardPage() {
               nodesReady={nodesReady}
               nodesTotal={nodesTotal}
               canViewCluster={canCluster}
+              clusterId={location || undefined}
             />
           </div>
 
@@ -265,7 +266,7 @@ function FleetStatusCard({
           <div className="flex items-center gap-2 text-sm text-muted">
             <CheckCircle2 className="h-4 w-4 text-success" /> {complete
               ? intl.formatMessage({ id: "web.routes.dashboard.everything_healthy", defaultMessage: "Everything looks healthy.", description: "Dashboard: Needs attention message when the fleet is complete and nothing needs attention" })
-              : intl.formatMessage({ id: "web.routes.dashboard.no_issues_partial", defaultMessage: "No issues among returned servers; some locations are unavailable.", description: "Dashboard: Needs attention message when the fleet is partial and no returned server needs attention" })}
+              : intl.formatMessage({ id: "web.routes.dashboard.no_issues_partial", defaultMessage: "No issues among returned servers; some clusters are unavailable.", description: "Dashboard: Needs attention message when the fleet is partial and no returned server needs attention" })}
           </div>
         ) : (
           attention.map((gs) => (
@@ -336,6 +337,7 @@ function ClusterResourcesCard({
   nodesReady,
   nodesTotal,
   canViewCluster,
+  clusterId,
 }: {
   cpu: Usage;
   mem: Usage;
@@ -346,6 +348,7 @@ function ClusterResourcesCard({
   nodesReady: number;
   nodesTotal: number;
   canViewCluster: boolean;
+  clusterId?: string;
 }) {
   const intl = useOptionalIntl();
   return (
@@ -353,7 +356,7 @@ function ClusterResourcesCard({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">{intl.formatMessage({ id: "web.routes.dashboard.cluster_resources", defaultMessage: "Cluster resources", description: "Dashboard: heading of the card showing CPU, memory and storage use across the clusters the user can see" })}</h3>
         {canViewCluster ? (
-          <Link to="/clusters" className="text-xs text-primary hover:underline">{intl.formatMessage({ id: "web.routes.dashboard.view_clusters", defaultMessage: "View clusters", description: "Dashboard: link at the top right of the cluster resources card that opens the clusters page; keep it short" })}</Link>
+          <Link to="/nodes" search={{ cluster: clusterId }} className="text-xs text-primary hover:underline">{intl.formatMessage({ id: "web.routes.dashboard.view_nodes", defaultMessage: "View nodes", description: "Dashboard: link from cluster resources to node inventory, retaining the current cluster filter" })}</Link>
         ) : (
           <span className="text-xs text-muted">
             {nodesTotal > 0 ? intl.formatMessage({ id: "web.routes.dashboard.nodes_ready_of_total", defaultMessage: "{ready}/{total} nodes ready", description: "Dashboard: node readiness in the Cluster resources card; {ready} and {total} are counts" }, { ready: nodesReady, total: nodesTotal }) : intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}

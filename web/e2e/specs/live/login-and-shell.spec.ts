@@ -64,7 +64,7 @@ test.describe("live: login and shell", () => {
   });
 
   test("sidebar navigation renders all main screens for admin", async ({ page }) => {
-    // Admin sees both the cluster overview and selected-cluster node inventory.
+    // Admin sees both the cluster directory and all-cluster Nodes inventory.
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
     await loginIfNeeded(page);
@@ -77,7 +77,7 @@ test.describe("live: login and shell", () => {
     const sidebar = page.getByRole("navigation", { name: "Primary" });
     await expect(sidebar).toBeVisible();
 
-    const expectedLinks = ["Clusters", "Servers", "Modules", "Backups", "Cluster", "Users & RBAC", "Audit log", "System logs", "Settings"];
+    const expectedLinks = ["Clusters", "Servers", "Modules", "Backups", "Nodes", "Users & RBAC", "Audit log", "System logs", "Settings"];
     for (const link of expectedLinks) {
       const navLink = sidebar.getByRole("link", { name: link, exact: true });
       // Verify the nav link is visible
@@ -96,7 +96,7 @@ test.describe("live: login and shell", () => {
       { name: "Servers", path: "/servers" },
       { name: "Modules", path: "/modules" },
       { name: "Backups", path: "/backups" },
-      { name: "Cluster", path: "/cluster" },
+      { name: "Nodes", path: "/nodes" },
       { name: "Users & RBAC", path: "/users" },
       { name: "Audit log", path: "/admin/audit" },
       // The "System logs" nav item links to /admin/logs (AppLayout.tsx),

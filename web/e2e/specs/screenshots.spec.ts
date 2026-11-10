@@ -206,10 +206,9 @@ test.describe("@screenshots dashboard gallery", () => {
   test("cluster-nodes", async ({ page }) => {
     await loginAsAdmin(page);
 
-    // CLUSTER PAGE (/cluster): Node list and stats
-    await page.goto("/cluster");
-    // Wait for cluster heading or node list
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // Nodes inventory: all authorized clusters, table and filtered summaries.
+    await page.goto("/nodes");
+    await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
     await page.waitForTimeout(250);
     await shoot(page, "cluster-nodes");
   });

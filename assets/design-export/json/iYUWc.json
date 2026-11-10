@@ -3,7 +3,7 @@
   "id": "iYUWc",
   "x": 0,
   "y": 63932,
-  "name": "Screen/Clusters — Registered locations",
+  "name": "Screen/Clusters — Registered clusters",
   "theme": {
     "semantic": "dark"
   },
@@ -81,7 +81,7 @@
                   "content": "Clusters"
                 },
                 "VbHwU": {
-                  "content": "Administration of registered locations, connectivity and node inventory."
+                  "content": "Registered clusters, connectivity and node inventory."
                 },
                 "TgdLz": {
                   "enabled": false
@@ -180,13 +180,13 @@
                           "id": "X8IeOl",
                           "type": "ref",
                           "ref": "cb4rt",
-                          "name": "View servers",
+                          "name": "Open cluster",
                           "descendants": {
                             "Xpn7K": {
                               "enabled": false
                             },
                             "U6q13B": {
-                              "content": "View servers"
+                              "content": "Open cluster"
                             }
                           }
                         },
@@ -272,13 +272,13 @@
                           "id": "YRYRA",
                           "type": "ref",
                           "ref": "cb4rt",
-                          "name": "View servers",
+                          "name": "Open cluster",
                           "descendants": {
                             "Xpn7K": {
                               "enabled": false
                             },
                             "U6q13B": {
-                              "content": "View servers"
+                              "content": "Open cluster"
                             }
                           }
                         },

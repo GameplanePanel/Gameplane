@@ -44,10 +44,9 @@ async function pickFrenchFromCompactPicker(page: Page): Promise<void> {
   await page.getByRole("menuitem", { name: "Français" }).click();
 }
 
-// watchForEnglish records whether the English servers-page subtitle ever shows
-// on the page, from before React renders. Install it before the first goto.
-// The subtitle is the anchor, not the "Create server" button, because that
-// button only renders when the user has a placement to create in.
+// watchForEnglish records whether the English Servers h1 ever shows in main,
+// from before React renders. Install it before the first goto. This title has
+// a French translation; newer subtitles can legitimately fall back to English.
 async function watchForEnglish(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const w = window as I18nWindow;
@@ -55,7 +54,7 @@ async function watchForEnglish(page: Page): Promise<void> {
     // Observe from the init script itself: module scripts can render before
     // DOMContentLoaded, so waiting for it could miss a short English flash.
     const check = () => {
-      if (/Manage your game servers/.test(document.documentElement?.textContent ?? "")) {
+      if (document.querySelector("main h1")?.textContent?.trim() === "Servers") {
         w.__englishSeen = true;
       }
     };
@@ -112,13 +111,13 @@ test.describe("live: i18n", () => {
     // Client-side navigation to Servers keeps the marker and shows French there.
     await page.getByRole("link", { name: "Serveurs" }).first().click();
     await expect(page).toHaveURL(/\/servers$/);
-    await expect(page.getByText("Gérez vos serveurs de jeu").first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("main").getByRole("heading", { level: 1, name: "Serveurs", exact: true })).toBeVisible({ timeout: 15_000 });
     expect(await page.evaluate(() => (window as I18nWindow).__i18nMark)).toBe(1);
   });
 
   test("reload and a new browser context keep French without an English flash", async ({ page, browser }) => {
-    // Watch the DOM from before React renders. A later English subtitle is
-    // English leaking into the French page.
+    // Watch the translated page title from before React renders. An English
+    // Servers h1 indicates a language flash even if the subtitle uses fallback.
     await watchForEnglish(page);
 
     await page.goto("/servers");
@@ -127,7 +126,7 @@ test.describe("live: i18n", () => {
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("lang", "fr");
-    await expect(page.getByText("Gérez vos serveurs de jeu").first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("main").getByRole("heading", { level: 1, name: "Serveurs", exact: true })).toBeVisible({ timeout: 15_000 });
     expect(await page.evaluate(() => (window as I18nWindow).__englishSeen)).toBe(false);
 
     // A new browser context has no local storage, so the account choice decides.
@@ -138,7 +137,7 @@ test.describe("live: i18n", () => {
       await p2.goto("/servers");
       await p2.waitForLoadState("domcontentloaded");
       await expect(p2.locator("html")).toHaveAttribute("lang", "fr", { timeout: 15_000 });
-      await expect(p2.getByText("Gérez vos serveurs de jeu").first()).toBeVisible({ timeout: 15_000 });
+      await expect(p2.getByRole("main").getByRole("heading", { level: 1, name: "Serveurs", exact: true })).toBeVisible({ timeout: 15_000 });
       expect(await p2.evaluate(() => (window as I18nWindow).__englishSeen)).toBe(false);
     } finally {
       await ctx2.close();
@@ -230,7 +229,8 @@ test.describe("live: i18n", () => {
       // Every string falls back to English, and no raw message id is shown.
       await page.goto("/servers");
       await page.waitForLoadState("domcontentloaded");
-      await expect(page.getByText("Manage your game servers").first()).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByRole("main").getByRole("heading", { level: 1, name: "Servers", exact: true })).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByText("Manage your game servers across all authorized clusters.", { exact: true })).toBeVisible();
       const visible = await page.locator("body").innerText();
       expect(visible.split("\n").some((line) => /^web\.[a-z_.]+$/.test(line.trim()))).toBe(false);
     } finally {

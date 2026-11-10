@@ -141,7 +141,7 @@
               "fill": "$muted",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s location.",
+              "content": "Central management. This catalog, account or installation setting belongs to the central Gameplane installation. Server actions use each server’s cluster.",
               "lineHeight": 1.5,
               "fontFamily": "$typography/font-sans",
               "fontSize": 14,
@@ -231,4 +231,3 @@
     }
   ]
 }
-

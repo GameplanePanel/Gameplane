@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { loginIfNeeded } from "../pages/LoginPage";
 
-// Shell E2E: covers the top-level navigation, breadcrumbs, cluster selector,
+// Shell E2E: covers top-level navigation, breadcrumbs, cluster filters,
 // and sidebar (desktop fixed + mobile drawer variants).
 // These tests verify that the application shell components render correctly
 // and that navigation, cluster switching, and UI interactions work as expected.
@@ -187,58 +187,50 @@ test.describe("shell", () => {
     });
   });
 
-  test.describe("infrastructure selector", () => {
-    test("cluster selector is confined to the inventory page", async ({ page }) => {
+  test.describe("cluster inventory navigation", () => {
+    test("Nodes offers its own cluster filter without a global selector", async ({ page }) => {
       await page.goto("/");
       await loginIfNeeded(page);
 
       await page.setViewportSize({ width: 1200, height: 800 });
       await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: /select cluster/i })).toHaveCount(0);
-      await page.goto("/cluster");
-      const clusterSelector = page.getByRole("main").getByRole("button", { name: /select cluster/i });
+      await page.goto("/nodes");
+      await expect(page.getByRole("button", { name: /Filter by cluster/ })).toHaveCount(0);
+      await page.getByRole("button", { name: "Filter", exact: true }).click();
+      const clusterSelector = page.getByRole("button", { name: /Filter by cluster/ });
       await expect(clusterSelector).toBeVisible();
+      await expect(clusterSelector).toContainText("All clusters");
     });
 
-    test("cluster selector opens dropdown menu", async ({ page }) => {
-      await page.goto("/cluster");
+    test("cluster filter opens authorized cluster choices", async ({ page }) => {
+      await page.goto("/nodes");
       await loginIfNeeded(page);
 
-      const clusterSelector = page.getByRole("button", { name: /select cluster/i });
+      await page.getByRole("button", { name: "Filter", exact: true }).click();
+      const clusterSelector = page.getByRole("button", { name: /Filter by cluster/ });
       await clusterSelector.click();
-
-      // After clicking, a menu should appear. react-aria-components' Menu
-      // follows the WAI-ARIA menu-button pattern and derives its accessible
-      // name from the triggering button ("Select cluster") via an automatic
-      // aria-labelledby, which takes precedence over the DropdownMenu's own
-      // aria-label="Cluster options" in the accessible-name computation — so
-      // match the name the menu actually exposes.
-      const clusterMenu = page.getByRole("menu", { name: /select cluster/i });
-      await expect(clusterMenu).toBeVisible();
+      await expect(page.getByRole("listbox", { name: /Filter by cluster/ })).toBeVisible();
+      await expect(page.getByRole("option", { name: "All clusters", exact: true })).toBeVisible();
     });
 
-    test("cluster selector shows health indicator", async ({ page }) => {
-      await page.goto("/cluster");
+    test("cluster directory retains connectivity health indicators", async ({ page }) => {
+      await page.goto("/clusters");
       await loginIfNeeded(page);
-
-      const clusterSelector = page.getByRole("button", { name: /select cluster/i });
-      // The button should contain a status dot (rendered as a span with specific classes)
-      const statusIndicator = clusterSelector.locator("span.h-2.w-2");
-      await expect(statusIndicator).toBeVisible();
+      await expect(page.getByText(/^API:\s*Healthy$/).first()).toBeVisible();
+      await expect(page.getByText(/Status reports Kubernetes API connectivity/)).toBeVisible();
     });
 
-    test("cluster dropdown opens the registered clusters overview", async ({ page }) => {
-      await page.goto("/cluster");
+    test("Clusters and Nodes remain separate sidebar destinations", async ({ page }) => {
+      await page.goto("/nodes?cluster=local");
       await loginIfNeeded(page);
-
-      const clusterSelector = page.getByRole("button", { name: /select cluster/i });
-      await clusterSelector.click();
-
-      const viewClustersItem = page.getByRole("menuitem", { name: /view all clusters/i });
-      await expect(viewClustersItem).toBeVisible();
-      await viewClustersItem.click();
+      const sidebar = page.getByRole("navigation", { name: "Primary" });
+      await sidebar.getByRole("link", { name: "Clusters", exact: true }).click();
       await expect(page).toHaveURL(/\/clusters$/);
       await expect(page.getByRole("heading", { name: "Clusters", exact: true })).toBeVisible();
+      await sidebar.getByRole("link", { name: "Nodes", exact: true }).click();
+      await expect(page).toHaveURL(/\/nodes$/);
+      await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible();
     });
   });
 

@@ -1,0 +1,416 @@
+{
+  "type": "frame",
+  "id": "T70dJ",
+  "x": 21830,
+  "y": 63932,
+  "name": "Screen/Cluster Details — Configuration — Default storage",
+  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 1060,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "K5BoBu",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP": {
+          "fill": "$accent/soft"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "baGuL",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "tKTDq",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Clusters  ›  Local  ›  Configuration"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "ghWVM",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "Qy7tO",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Local"
+                },
+                "VbHwU": {
+                  "content": "local · Built-in cluster"
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "e7QMO9",
+              "name": "Cluster detail tabs",
+              "width": "fill_container",
+              "stroke": "$separator/separator",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 4,
+              "padding": [
+                0,
+                0,
+                12,
+                0
+              ],
+              "children": [
+                {
+                  "id": "kWnAH",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Overview tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Overview"
+                    }
+                  }
+                },
+                {
+                  "id": "RqiZh",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Nodes tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Nodes"
+                    }
+                  }
+                },
+                {
+                  "id": "yzR6r",
+                  "type": "ref",
+                  "ref": "CEWo3",
+                  "name": "Configuration tab",
+                  "descendants": {
+                    "YUR8N": {
+                      "content": "Configuration"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ikyuE",
+              "name": "Access",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tuItf",
+                  "name": "Access heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Access",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "CibbM",
+                  "name": "Access description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Download a kubeconfig for this cluster.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "eSxBK",
+                  "type": "ref",
+                  "ref": "i6gfu",
+                  "name": "Download kubeconfig",
+                  "descendants": {
+                    "FCYQ9": {
+                      "icon": "download"
+                    },
+                    "GqVun": {
+                      "content": "Download kubeconfig"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "qFY0u",
+                  "name": "Enrollment link",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "To join a machine, use Add node on the Nodes tab.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "slD0X",
+              "name": "Storage",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KeNCX",
+                  "name": "Storage heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Storage",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Ia7Xn",
+                  "name": "Storage description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "No storage class is set. New volumes use the cluster default. This setting is read-only.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "voacz",
+                  "name": "Storage class row",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "s5hyZ",
+                      "name": "Storage class label",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Game data storage class",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "xm6O0",
+                      "name": "Storage class value",
+                      "fill": "$foreground/foreground",
+                      "content": "Cluster default",
+                      "fontFamily": "$typography/font-mono",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "f00de",
+              "name": "Backup destinations",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qXkuX",
+                  "name": "Backup destinations heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Backup destinations",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "L6ioUD",
+                  "name": "Backup destinations description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Repositories used by servers running on this cluster.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "A6iyO",
+                  "name": "Backup destination row",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "FD8Z3",
+                      "name": "Repository details",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "xGtq2",
+                          "name": "Repository name",
+                          "fill": "$foreground/foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "nightly-backups",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "mmOOn",
+                          "name": "Repository URL",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "s3:s3.example.com/gameplane",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "NWW4J",
+                      "type": "ref",
+                      "ref": "i6gfu",
+                      "name": "Delete destination",
+                      "descendants": {
+                        "FCYQ9": {
+                          "enabled": false
+                        },
+                        "GqVun": {
+                          "content": "Delete"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "MDGwG",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "Add backup destination",
+                  "descendants": {
+                    "U6q13B": {
+                      "content": "Add destination"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "J0MVH",
+              "name": "Built-in cluster removal",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "The built-in local cluster cannot be removed.",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

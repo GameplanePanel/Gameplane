@@ -87,7 +87,7 @@ test.describe("live: servers core (list + detail)", () => {
     await expect(row).toBeVisible({ timeout: 10_000 });
 
     // Reopen the facet filter, whose label includes the applied count.
-    // The separate "Filter by location" control must not match this locator.
+    // The separate "Filter by cluster" control must not match this locator.
     await page.getByRole("button", { name: /^filter(?:\s+\d+)?$/i }).click();
     await page.getByRole("button", { name: /^clear$/i }).click();
     await page.getByRole("button", { name: /^apply$/i }).click();

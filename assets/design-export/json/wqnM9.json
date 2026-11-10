@@ -1,0 +1,314 @@
+{
+  "type": "frame",
+  "id": "wqnM9",
+  "x": 13120,
+  "y": 63932,
+  "name": "Screen/Cluster Details — Overview",
+  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "HIs18",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP": {
+          "fill": "$accent/soft"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "xGoph",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "n0G3M",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Clusters  ›  Remote lab"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "FDFsb",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "szMIY",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Remote lab"
+                },
+                "VbHwU": {
+                  "content": "remote-lab · Registered workload cluster"
+                },
+                "TgdLz": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "A3iJ6",
+              "name": "Cluster detail tabs",
+              "width": "fill_container",
+              "stroke": "$separator/separator",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 4,
+              "padding": [
+                0,
+                0,
+                12,
+                0
+              ],
+              "children": [
+                {
+                  "id": "slJKl",
+                  "type": "ref",
+                  "ref": "CEWo3",
+                  "name": "Overview tab",
+                  "descendants": {
+                    "YUR8N": {
+                      "content": "Overview"
+                    }
+                  }
+                },
+                {
+                  "id": "Redwr",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Nodes tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Nodes"
+                    }
+                  }
+                },
+                {
+                  "id": "nohtR",
+                  "type": "ref",
+                  "ref": "qAFbJ",
+                  "name": "Configuration tab",
+                  "descendants": {
+                    "VcxMI": {
+                      "content": "Configuration"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i7XRlr",
+              "name": "Cluster summary",
+              "width": "fill_container",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "jNKF5",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "API CONNECTIVITY",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "API CONNECTIVITY"
+                    },
+                    "QdcEm": {
+                      "icon": "network"
+                    },
+                    "vj2Ru": {
+                      "content": "Healthy",
+                      "fontSize": 22
+                    },
+                    "h0n7zo": {
+                      "content": "Last checked just now"
+                    }
+                  }
+                },
+                {
+                  "id": "pAEH8",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "NODES READY",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "NODES READY"
+                    },
+                    "QdcEm": {
+                      "icon": "server"
+                    },
+                    "vj2Ru": {
+                      "content": "2 / 2",
+                      "fontSize": 22
+                    },
+                    "h0n7zo": {
+                      "content": "inventory available"
+                    }
+                  }
+                },
+                {
+                  "id": "MB4N2",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "KUBERNETES",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "KUBERNETES"
+                    },
+                    "QdcEm": {
+                      "icon": "boxes"
+                    },
+                    "vj2Ru": {
+                      "content": "v1.35.5",
+                      "fontSize": 22
+                    },
+                    "h0n7zo": {
+                      "content": "reported server version"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MLeU1",
+              "name": "Connection",
+              "width": "fill_container",
+              "fill": "$surface/surface",
+              "cornerRadius": "$radius/3xl",
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KUqWG",
+                  "name": "Connection heading",
+                  "fill": "$foreground/foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Connection",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "diCa2",
+                  "name": "Connection description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "API status reports Kubernetes connectivity. Game server and gateway health are shown with each server.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "vSQ4P",
+                  "name": "Registration identity",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Cluster ID: remote-lab",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "F82Y7z",
+              "name": "Cluster destinations",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "QQJuU",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "View servers",
+                  "descendants": {
+                    "Xpn7K": {
+                      "icon": "server"
+                    },
+                    "U6q13B": {
+                      "content": "View servers"
+                    }
+                  }
+                },
+                {
+                  "id": "zwS4R",
+                  "type": "ref",
+                  "ref": "i6gfu",
+                  "name": "View nodes",
+                  "descendants": {
+                    "FCYQ9": {
+                      "icon": "layers"
+                    },
+                    "GqVun": {
+                      "content": "View nodes"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

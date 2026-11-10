@@ -5,7 +5,6 @@
   "y": 4461,
   "name": "Gameplane/Filter Popover",
   "context": "Servers Filter: Location and Namespace are draft values. Apply commits; Clear resets drafts; dismissal discards changes.",
-  "theme": {},
   "reusable": true,
   "width": 280,
   "fill": "$surface/surface",
@@ -40,7 +39,7 @@
           "id": "XUciA",
           "name": "Location label",
           "fill": "$muted",
-          "content": "Location",
+          "content": "Cluster",
           "fontFamily": "$typography/font-sans",
           "fontSize": 12,
           "fontWeight": "normal"
@@ -53,7 +52,7 @@
           "width": "fill_container",
           "descendants": {
             "cFsFk": {
-              "content": "All locations",
+              "content": "All clusters",
               "fill": "$foreground/foreground"
             }
           }

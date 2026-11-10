@@ -1,0 +1,149 @@
+{
+  "type": "frame",
+  "id": "xjVA4",
+  "x": -1207,
+  "y": -516,
+  "name": "Gameplane/Nodes Filters Popover",
+  "context": "Backups pattern: opening copies applied Cluster and Status into drafts. Apply commits and closes; Clear resets drafts only. Closing without Apply discards drafts. Search remains outside the popover and badge. Cluster options: All clusters and authorized clusters. Status options: All statuses, Ready, Not ready, Unknown. In fixed-cluster detail hide Cluster and count Status only.",
+  "reusable": true,
+  "width": 280,
+  "fill": "$surface/surface",
+  "cornerRadius": "$radius/3xl",
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "layout": "vertical",
+  "gap": 12,
+  "padding": 12,
+  "children": [
+    {
+      "type": "frame",
+      "id": "d7pVy",
+      "name": "Cluster field",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 4,
+      "children": [
+        {
+          "type": "text",
+          "id": "Q5X01",
+          "name": "Cluster label",
+          "fill": "$muted",
+          "content": "Cluster",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "id": "XQluj",
+          "type": "ref",
+          "ref": "AT7ya",
+          "name": "Cluster select",
+          "width": "fill_container",
+          "descendants": {
+            "cFsFk": {
+              "content": "All clusters",
+              "fill": "$foreground/foreground"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "m2s7S",
+      "name": "Status field",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 4,
+      "children": [
+        {
+          "type": "text",
+          "id": "b2uTl4",
+          "name": "Status label",
+          "fill": "$muted",
+          "content": "Status",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "id": "O1IZPo",
+          "type": "ref",
+          "ref": "AT7ya",
+          "name": "Status select",
+          "width": "fill_container",
+          "descendants": {
+            "cFsFk": {
+              "content": "All statuses",
+              "fill": "$foreground/foreground"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "EHlqt",
+      "name": "Clear and Apply",
+      "width": "fill_container",
+      "gap": 8,
+      "padding": [
+        6,
+        8
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Zq2ru",
+          "name": "btnClear",
+          "height": 28,
+          "cornerRadius": 6,
+          "padding": [
+            0,
+            8
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "DEESq",
+              "fill": "$foreground/foreground",
+              "content": "Clear",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rKBVi",
+          "name": "btnApply",
+          "height": 28,
+          "fill": "$accent/accent",
+          "cornerRadius": 6,
+          "padding": [
+            0,
+            8
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "qH69x",
+              "fill": "$accent/foreground",
+              "content": "Apply",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 12,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

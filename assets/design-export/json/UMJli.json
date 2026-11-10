@@ -134,7 +134,7 @@
                   "id": "PlMgh",
                   "name": "Location label",
                   "fill": "$foreground/foreground",
-                  "content": "Location",
+                  "content": "Cluster",
                   "fontFamily": "$typography/font-sans",
                   "fontSize": 12,
                   "fontWeight": "normal"
@@ -159,7 +159,7 @@
                   "fill": "$muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Changing location starts a fresh draft. The chosen location handles all creation steps.",
+                  "content": "Changing cluster starts a fresh draft. The chosen cluster handles all creation steps.",
                   "fontFamily": "$typography/font-sans",
                   "fontSize": 12,
                   "fontWeight": "normal"

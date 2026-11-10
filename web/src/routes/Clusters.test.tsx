@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { makeClient, renderWithQuery } from "@/test/render";
 import { getCurrentCluster, setCurrentCluster } from "@/lib/cluster";
+import { makeUser } from "@/test/factories";
 
 const navigate = vi.hoisted(() => vi.fn());
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
@@ -47,8 +48,24 @@ describe("ClustersPage", () => {
     server.use(http.get("/clusters", () => HttpResponse.json({ items: [{ ...registrations[1], canViewInventory: true }] })));
     renderWithQuery(<ClustersPage />);
     await userEvent.click(await screen.findByRole("button", { name: "View nodes in East" }));
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/cluster" }));
-    expect(getCurrentCluster()).toBe("east");
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/nodes", search: { cluster: "east" } }));
+    expect(getCurrentCluster()).toBe("local");
+  });
+
+  it("opens details without changing the infrastructure selection or offering directory removal", async () => {
+    server.use(http.get("/clusters", () => HttpResponse.json({ items: registrations })));
+    renderWithQuery(<ClustersPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Open cluster East" }));
+    expect(navigate).toHaveBeenCalledWith({ to: "/clusters/$clusterId", params: { clusterId: "east" }, search: { tab: "overview" } });
+    expect(getCurrentCluster()).toBe("local");
+    expect(screen.queryByRole("button", { name: /Remove cluster/ })).not.toBeInTheDocument();
+  });
+
+  it("admits an authorized destination-only registration without exposing node inventory", async () => {
+    server.use(http.get("/users/me", () => HttpResponse.json(makeUser({ permissions: {}, permissionsByCluster: { east: { "gameplane-games": ["destinations:read"] } } }))), http.get("/clusters", () => HttpResponse.json({ items: [registrations[1]] })));
+    renderWithQuery(<ClustersPage />);
+    expect(await screen.findByRole("button", { name: "Open cluster East" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "View nodes in East" })).not.toBeInTheDocument();
   });
 
   it("does not invent a local registration for empty or failed registry responses", async () => {

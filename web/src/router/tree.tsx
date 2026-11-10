@@ -10,6 +10,8 @@ import { ServersPage } from "@/routes/Servers";
 import { ServerDetailPage } from "@/routes/ServerDetail";
 import { ModulesPage } from "@/routes/Modules";
 import { ClusterPage } from "@/routes/Cluster";
+import { NodesPage } from "@/pages/Nodes";
+import { ClusterDetailPage } from "@/pages/ClusterDetail";
 import { ClustersPage } from "@/routes/Clusters";
 import { UsersPage } from "@/routes/Users";
 import { AdminSettingsPage } from "@/routes/AdminSettings";
@@ -78,7 +80,7 @@ const createServerRoute = new Route({
   // /servers/new?template=<name>.
   validateSearch: (search: Record<string, unknown>): { template?: string; cluster?: string; ns?: string } => {
     for (const key of ["cluster", "ns"] as const) {
-      if (search[key] !== undefined && (typeof search[key] !== "string" || !search[key])) throw new Error(`Invalid location ${key}`);
+      if (search[key] !== undefined && (typeof search[key] !== "string" || !search[key])) throw new Error(`Invalid placement ${key}`);
     }
     return { template: typeof search.template === "string" ? search.template : undefined, cluster: search.cluster as string | undefined, ns: search.ns as string | undefined };
   },
@@ -93,11 +95,25 @@ const modulesRoute = new Route({
 const clusterRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/cluster",
-  component: () => (
-    <RequirePermission perm="cluster:read">
-      <ClusterPage />
-    </RequirePermission>
-  ),
+  component: ClusterPage,
+});
+
+const nodesRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/nodes",
+  component: NodesPage,
+  validateSearch: (search: Record<string, unknown>): { cluster?: string } => ({
+    cluster: typeof search.cluster === "string" && search.cluster !== "" ? search.cluster : undefined,
+  }),
+});
+
+const clusterDetailRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/clusters/$clusterId",
+  component: ClusterDetailPage,
+  validateSearch: (search: Record<string, unknown>): { tab?: "overview" | "nodes" | "configuration" } => ({
+    tab: search.tab === "nodes" || search.tab === "configuration" ? search.tab : "overview",
+  }),
 });
 
 const clustersRoute = new Route({
@@ -192,7 +208,9 @@ export const routeTree = rootRoute.addChildren([
     serverDetailRoute,
     modulesRoute,
     clusterRoute,
+    nodesRoute,
     clustersRoute,
+    clusterDetailRoute,
     usersRoute,
     adminRoute,
     themeSettingsRoute,

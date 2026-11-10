@@ -286,16 +286,16 @@ describe("DashboardPage", () => {
     await screen.findByText("Recent backups");
     expect(screen.queryByText("Recent activity")).not.toBeInTheDocument();
     // The registry explicitly denies node inventory for this server-only viewer.
-    expect(screen.queryByRole("link", { name: /view cluster/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /view nodes/i })).not.toBeInTheDocument();
   });
 
-  it("shows the View cluster link with the registry's inventory capability", async () => {
+  it("shows the View nodes link with the registry's inventory capability", async () => {
     server.use(http.get("/users/me", () => HttpResponse.json(makeUser({ role: "operator" }))));
     const { client } = renderWithQuery(<DashboardPage />);
     await waitFor(() => expect(client.getQueryData(["me"])).toBeTruthy());
     await screen.findByText("Cluster resources");
-    const viewClusterLink = screen.getByRole("link", { name: /view cluster/i });
-    expect(viewClusterLink).toHaveAttribute("href", "/clusters");
+    const viewNodesLink = screen.getByRole("link", { name: /view nodes/i });
+    expect(viewNodesLink).toHaveAttribute("href", "/nodes");
   });
 
   it("renders vcpus as — when no node data is available", async () => {
