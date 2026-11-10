@@ -177,6 +177,10 @@ func (h *handler) read(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "is a directory", http.StatusBadRequest)
 		return
 	}
+	if !fi.Mode().IsRegular() {
+		http.Error(w, "not a regular file", http.StatusBadRequest)
+		return
+	}
 	const maxRead = 2 << 20 // 2 MiB inline read
 	if fi.Size() > maxRead {
 		http.Error(w, "file too large; use /files/download", http.StatusRequestEntityTooLarge)
@@ -204,6 +208,10 @@ func (h *handler) download(w http.ResponseWriter, req *http.Request) {
 	}
 	if fi.IsDir() {
 		http.Error(w, "download of directories not supported", http.StatusBadRequest)
+		return
+	}
+	if !fi.Mode().IsRegular() {
+		http.Error(w, "not a regular file", http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Disposition",

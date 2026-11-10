@@ -26,8 +26,10 @@ const (
 	// dirFlags opens a directory component: no symlink at the last component,
 	// must be a directory.
 	dirFlags = unix.O_RDONLY | unix.O_DIRECTORY | unix.O_NOFOLLOW | unix.O_CLOEXEC
-	// fileFlags opens a final component for reading: no symlink.
-	fileFlags = unix.O_RDONLY | unix.O_NOFOLLOW | unix.O_CLOEXEC
+	// fileFlags opens a final component for reading: no symlink. O_NONBLOCK
+	// keeps a FIFO the game container planted from blocking the open (and the
+	// request) forever; callers then refuse anything but a regular file.
+	fileFlags = unix.O_RDONLY | unix.O_NOFOLLOW | unix.O_NONBLOCK | unix.O_CLOEXEC
 )
 
 // errLinkTraversal is returned when a path component is a symlink. It wraps
