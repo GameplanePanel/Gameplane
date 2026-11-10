@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -345,6 +346,116 @@ func TestWakeMixedLoadOutageRecovery(t *testing.T) {
 	default:
 	}
 	t.Logf("mixed load: TCP attempts=%d handoffs=%d UDP sources=%d received=%d API PATCH attempts=%d max_API_concurrency=%d UDP wake calls=%d max_UDP_wake_concurrency=%d UDP_receive_elapsed=%s handoff_mean=%s handoff_max=%s total_elapsed=%s", tcpPlayers, len(connected), len(udpClients), udpSources+2, patches.Load(), apiMaximum.Load(), udpWake.calls.Load(), udpWake.maximum.Load(), udpElapsed, totalLatency/tcpPlayers, maxLatency, time.Since(started))
+}
+
+func TestWakeListenerShutdownCancelsActivePatch(t *testing.T) {
+	listenerCtx, stopListeners := context.WithCancel(t.Context())
+	requestStarted := make(chan struct{})
+	requestDone := make(chan error, 1)
+	releaseAPI := make(chan struct{})
+	var patches, apiActive atomic.Int32
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if patches.Add(1) != 1 {
+			t.Error("listener shutdown issued another wake PATCH")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		apiActive.Add(1)
+		defer func() {
+			apiActive.Add(-1)
+			requestDone <- req.Context().Err()
+		}()
+		_, _ = io.Copy(io.Discard, req.Body)
+		if req.Method != http.MethodPatch {
+			t.Errorf("API method = %s, want PATCH", req.Method)
+		}
+		close(requestStarted)
+		select {
+		case <-req.Context().Done():
+		case <-releaseAPI:
+			// Failure cleanup must unblock Server.Close even if cancellation regresses.
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}))
+	defer api.Close()
+	defer close(releaseAPI)
+	defer stopListeners()
+	client, err := dynamic.NewForConfig(&rest.Config{Host: api.URL})
+	if err != nil {
+		t.Fatal(err)
+	}
+	shared := newWaker(client.Resource(gameServerGVR).Namespace("games"), "alpha", time.Minute)
+	wake := &loadWakeObserver{wake: shared, finished: make(chan error, 1)}
+	listener, err := (&net.ListenConfig{}).ListenPacket(listenerCtx, "udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	player, err := (&net.Dialer{}).DialContext(listenerCtx, "udp", listener.LocalAddr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer player.Close()
+	listenerDone := make(chan struct{})
+	t.Cleanup(func() {
+		// Deferred cancellation, HTTP release and Server.Close run before this
+		// join, including when an assertion fails while the request is blocked.
+		select {
+		case <-listenerDone:
+		case <-time.After(loadSafetyTimeout):
+			t.Error("UDP listener or wake worker remained after fixture cleanup")
+		}
+	})
+	errCh := make(chan error, 1)
+	go func() {
+		defer close(listenerDone)
+		serveUDPPackets(listenerCtx, listener, PortConfig{Protocol: "UDP"}, wake, Config{UDPThreshold: 1, UDPWindow: time.Minute, UDPMaxSources: 1}, errCh)
+	}()
+	if _, err := player.Write([]byte("wake before shutdown")); err != nil {
+		t.Fatal(err)
+	}
+	waitLoadEvent(t, requestStarted, "active wake PATCH")
+	if apiActive.Load() != 1 || wake.active.Load() != 1 {
+		t.Fatalf("wake not active before shutdown: API requests=%d wakes=%d", apiActive.Load(), wake.active.Load())
+	}
+
+	// One deadline covers every shutdown event and is shorter than the normal
+	// five-second PATCH budget, so timeout expiry cannot masquerade as cancellation.
+	shutdown := time.NewTimer(2 * time.Second)
+	defer shutdown.Stop()
+	stopListeners()
+	select {
+	case err := <-requestDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("HTTP PATCH ended with %v, want listener cancellation", err)
+		}
+	case <-shutdown.C:
+		t.Fatal("HTTP PATCH did not stop promptly after listener cancellation")
+	}
+	select {
+	case err := <-wake.finished:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("wake ended with %v, want listener cancellation", err)
+		}
+	case <-shutdown.C:
+		t.Fatal("wake did not stop promptly after listener cancellation")
+	}
+	select {
+	case <-listenerDone:
+	case <-shutdown.C:
+		t.Fatal("UDP listener and worker did not stop promptly")
+	}
+	shared.mu.Lock()
+	inFlight, lastPatch := shared.inFlight, shared.lastPatch
+	shared.mu.Unlock()
+	if patches.Load() != 1 || apiActive.Load() != 0 || wake.active.Load() != 0 || inFlight != nil || !lastPatch.IsZero() {
+		t.Fatalf("shutdown left patches=%d API requests=%d wakes=%d inFlight=%v lastPatch=%v", patches.Load(), apiActive.Load(), wake.active.Load(), inFlight != nil, lastPatch)
+	}
+	select {
+	case err := <-errCh:
+		t.Fatalf("listener shutdown reported failure: %v", err)
+	default:
+	}
 }
 
 func exchangeLoadPayload(conn net.Conn, payload string) error {
