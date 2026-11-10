@@ -179,14 +179,6 @@
         "defaultMessage": "Les volumes inclus partagent un même instantané, mais leur copie à chaud ne garantit pas une cohérence atomique entre les volumes, même si la mise au repos du jeu principal réussit.",
         "description": "Backup achieved consistency: LiveMultiVolumeCopy."
     },
-    "condition.consistency.quiesced": {
-        "defaultMessage": "",
-        "description": "Backup achieved consistency: Quiesced."
-    },
-    "condition.consistency.stoppedsource": {
-        "defaultMessage": "",
-        "description": "Backup achieved consistency: StoppedSource."
-    },
     "condition.datawipe.jobfailed": {
         "defaultMessage": "La tâche d'effacement des données ne s'est pas terminée. Le volume n'est peut-être pas entièrement vidé.",
         "description": "DataWipe condition when the wipe job fails."
@@ -1142,10 +1134,6 @@
     "web.components.backups.backup_detail_drawer.completed": {
         "defaultMessage": "Terminé",
         "description": "Backup details drawer: field label above the time the backup completed, shown in relative time"
-    },
-    "web.components.backups.backup_detail_drawer.coverage_scope": {
-        "defaultMessage": "",
-        "description": "Backup details: explains recorded volume coverage, primary-only exclusions, and recovery prerequisites for excluded volumes"
     },
     "web.components.backups.backup_detail_drawer.delete": {
         "defaultMessage": "Supprimer",
@@ -10393,62 +10381,20 @@
     "web.routes.dashboard.no_issues_partial": {
         "defaultMessage": "Aucun problème parmi les serveurs renvoyés ; certains emplacements sont indisponibles."
     },
-    "web.components.backups.backup_detail_drawer.retained_unmounted": {
-        "defaultMessage": ""
-    },
-    "condition.templateupdatepending.revisioncurrent": {
-        "defaultMessage": ""
-    },
     "web.routes.clusters.administration_of_registered_locations": {
         "defaultMessage": "Administration des emplacements enregistrés, de leur connectivité et de l'inventaire des nœuds."
     },
     "web.components.fleet_scope.location_options": {
         "defaultMessage": "Options d'emplacement"
     },
-    "condition.ready.sentineldraining": {
-        "defaultMessage": ""
-    },
-    "condition.consistency.legacymetadataunknown": {
-        "defaultMessage": ""
-    },
-    "condition.tunnelready.awaitingaddress": {
-        "defaultMessage": ""
-    },
-    "condition.hostportwakeready.sentineldraining": {
-        "defaultMessage": ""
-    },
-    "condition.hostportwakeready.endpointnodeunavailable": {
-        "defaultMessage": ""
-    },
-    "condition.templateupdatepending.revisionavailable": {
-        "defaultMessage": ""
-    },
-    "condition.ready.endpointunschedulable": {
-        "defaultMessage": ""
-    },
-    "condition.templateupdatepending.adoptingrevision": {
-        "defaultMessage": ""
-    },
     "web.routes.create_server.changing_location_starts_a_fresh_draft": {
         "defaultMessage": "Changer d'emplacement crée un nouveau brouillon. L'emplacement choisi gère toutes les étapes de création."
-    },
-    "condition.snapshotcleaned.snapshotcleanupcomplete": {
-        "defaultMessage": ""
-    },
-    "condition.templateupdatepending.rolloutcanceled": {
-        "defaultMessage": ""
-    },
-    "condition.tunnelready.invalidtailscaletags": {
-        "defaultMessage": ""
     },
     "web.routes.create_server.some_locations_are_unavailable": {
         "defaultMessage": "Certains emplacements sont indisponibles. Seuls les emplacements disponibles sont affichés."
     },
     "web.routes.servers.location": {
         "defaultMessage": "Emplacement"
-    },
-    "condition.ready.gamedraining": {
-        "defaultMessage": ""
     },
     "web.routes.backups.snapshots_schedules_and_restores_across": {
         "defaultMessage": "Instantanés, planifications et restaurations dans vos emplacements autorisés."
@@ -10459,29 +10405,11 @@
     "web.routes.create_server.unable_to_load_authorized_server": {
         "defaultMessage": "Impossible de charger les emplacements de serveur autorisés."
     },
-    "condition.snapshotcleaned.snapshotcleanupunverified": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.not_covered": {
-        "defaultMessage": ""
-    },
     "web.components.capture_widget.gateway_update_needed": {
         "defaultMessage": "Cet emplacement nécessite une mise à jour de la passerelle avant que les captures puissent y être gérées."
     },
-    "condition.snapshotcleaned.snapshotcleanuppending": {
-        "defaultMessage": ""
-    },
-    "condition.templateupdatepending.operationinprogress": {
-        "defaultMessage": ""
-    },
     "web.routes.create_server.finding_available_locations": {
         "defaultMessage": "Recherche des emplacements disponibles…"
-    },
-    "condition.consistency.agentunavailablerawcopy": {
-        "defaultMessage": ""
-    },
-    "condition.hostportwakeready.gamedraining": {
-        "defaultMessage": ""
     },
     "web.routes.create_server.no_available_location": {
         "defaultMessage": "Aucun emplacement disponible"
@@ -10489,62 +10417,11 @@
     "web.lib.use_server_capabilities.capture_unavailable": {
         "defaultMessage": "Les limites de capture ne sont pas disponibles pour cet emplacement."
     },
-    "condition.hostportwakeready.endpointunschedulable": {
-        "defaultMessage": ""
-    },
-    "condition.unquiesced.sourceprocessgone": {
-        "defaultMessage": ""
-    },
-    "condition.consistency.capturepending": {
-        "defaultMessage": ""
-    },
-    "condition.captureready.workerauthorized": {
-        "defaultMessage": ""
-    },
-    "condition.ready.listenerpending": {
-        "defaultMessage": ""
-    },
-    "condition.consistency.capturefailed": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.consistency": {
-        "defaultMessage": ""
-    },
-    "condition.consistency.crashconsistentsnapshot": {
-        "defaultMessage": ""
-    },
-    "condition.captureready.workerpreparing": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.consistency_unknown": {
-        "defaultMessage": ""
-    },
-    "condition.consistency.rawcopy": {
-        "defaultMessage": ""
-    },
-    "condition.templateupdatepending.templateunavailable": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.classification": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.legacy_coverage": {
-        "defaultMessage": ""
-    },
     "web.routes.servers.manage_your_game_servers_across_all": {
         "defaultMessage": "Gérez vos serveurs de jeu dans tous les emplacements autorisés."
     },
-    "condition.consistency.unsupportedrawcopy": {
-        "defaultMessage": ""
-    },
-    "condition.hostportwakeready.listenerpending": {
-        "defaultMessage": ""
-    },
     "web.routes.create_server.location": {
         "defaultMessage": "Emplacement"
-    },
-    "condition.tunnelready.relayconnectionunknown": {
-        "defaultMessage": ""
     },
     "web.components.backups.backup_filters.location": {
         "defaultMessage": "Emplacement"
@@ -10552,38 +10429,11 @@
     "web.routes.dashboard.your_game_servers_and_resources_across": {
         "defaultMessage": "Vos serveurs de jeu et ressources dans les emplacements autorisés."
     },
-    "condition.ready.listenerready": {
-        "defaultMessage": ""
-    },
-    "condition.tunnelready.unsupportedprotocol": {
-        "defaultMessage": ""
-    },
-    "condition.ready.endpointnodeunavailable": {
-        "defaultMessage": ""
-    },
-    "condition.captureready.workerdrainpending": {
-        "defaultMessage": ""
-    },
     "web.components.capture_widget.captures_disabled_at_location": {
         "defaultMessage": "Les nouvelles captures sont désactivées à cet emplacement. Les fichiers de capture existants restent disponibles."
     },
-    "condition.ready.endpointnodeunknown": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.coverage_recorded": {
-        "defaultMessage": ""
-    },
-    "web.components.backups.backup_detail_drawer.included": {
-        "defaultMessage": ""
-    },
-    "condition.captureready.snapshotcapturepending": {
-        "defaultMessage": ""
-    },
     "web.routes.create_server.locations_unavailable": {
         "defaultMessage": "Emplacements indisponibles"
-    },
-    "web.components.backups.backup_detail_drawer.coverage": {
-        "defaultMessage": ""
     },
     "web.components.fleet_scope.all_locations": {
         "defaultMessage": "Tous les emplacements"
@@ -10594,22 +10444,13 @@
     "web.components.fleet_scope.all_locations_text": {
         "defaultMessage": "Tous les emplacements"
     },
-    "condition.hostportwakeready.endpointnodeunknown": {
-        "defaultMessage": ""
-    },
     "web.components.app_layout.this_catalog_account_or_installation": {
         "defaultMessage": "Ce catalogue, ce compte ou ce paramètre d’installation appartient à l’installation Gameplane centrale. Les actions sur les serveurs utilisent l’emplacement de chaque serveur."
-    },
-    "condition.hostportwakeready.listenerready": {
-        "defaultMessage": ""
     },
     "web.routes.create_server.the_selected_location_is_unavailable_or": {
         "defaultMessage": "L'emplacement sélectionné est indisponible, ou aucun emplacement accessible n'autorise la création. Rétablissez son accès ou revenez à la liste des serveurs pour choisir un emplacement disponible."
     },
     "web.routes.create_server.review_location": {
         "defaultMessage": "Emplacement"
-    },
-    "condition.snapshotcleaned.snapshotcleanupretained": {
-        "defaultMessage": ""
     }
 }
