@@ -221,12 +221,17 @@ var rules = []rule{
 	{method: "GET", segment: "admin", suffix: "/admin/installation", perm: ""},
 	{method: "GET", segment: "admin", prefix: "/admin/audit", perm: "audit:read"},
 	{method: "GET", segment: "admin", prefix: "/admin/config", perm: "config:read"},
+	// Sign-in providers and their role mappings decide who becomes an
+	// administrator, so changing them needs the admin wildcard, not
+	// config:manage (reads stay on config:read above).
+	{segment: "admin", prefix: "/admin/config/auth", perm: "*"},
 	{segment: "admin", prefix: "/admin/config", perm: "config:manage"},
 	// Notification sink test-sends pair with editing the notifications
 	// config section, so they share its manage permission.
 	{segment: "admin", prefix: "/admin/notifications", perm: "config:manage"},
-	// Identity-provider secrets pair with editing the auth config section.
-	{segment: "admin", prefix: "/admin/auth", perm: "config:manage"},
+	// Identity-provider secrets pair with editing the auth config section,
+	// which needs the admin wildcard.
+	{segment: "admin", prefix: "/admin/auth", perm: "*"},
 	// Mod-registry provider key secrets pair with editing the
 	// modRegistries config section.
 	{segment: "admin", prefix: "/admin/registries", perm: "config:manage"},

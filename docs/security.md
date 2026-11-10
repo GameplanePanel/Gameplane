@@ -66,8 +66,8 @@ are public OAuth identifiers), and the client secret is stored as an
 API-managed Secret `gameplane-auth-<name>` in the control-plane
 namespace. Two labels bound the API's reach: it only *reads* Secrets
 labelled `gameplane.local/auth-provider=true`, and only *deletes* ones
-additionally labelled `gameplane.local/managed-by=gameplane-api` — so a
-`config:manage` user can neither exfiltrate arbitrary control-plane
+additionally labelled `gameplane.local/managed-by=gameplane-api` — so an
+administrator editing providers can neither exfiltrate arbitrary control-plane
 Secrets through a provider's `configRef` nor delete kubectl-/GitOps-
 created ones over HTTP. Provider changes apply on save, no restart: the
 registry re-reads the config row per auth request and rebuilds OIDC
@@ -195,6 +195,15 @@ named set of permissions, and a user is bound to roles **per namespace**.
   edits follow the same rules: a change that removes `users:manage` from the
   caller's own primary role, or from the role every user manager holds, is
   refused.
+- **Admin-only grants.** `users:manage`, `roles:manage`, `config:manage` and
+  `cluster:manage` lead to full administrator access, so only a holder of
+  the `*` wildcard may add them to a role, assign a role that carries them
+  (or `admin`), or edit, reset, delete or re-bind another account that holds
+  them. Sign-in provider settings (`/admin/config/auth`, `/admin/auth/…`)
+  also need `*`. Other managers can still grant every other permission.
+- **Password reset** bumps the account's `session_epoch`; a session is valid
+  only while its epoch matches the account's, so a reset ends every earlier
+  session, including one a concurrent login was still creating.
 - **Event stream.** `GET /events` carries only the resource kinds the caller
   may read in the resolved cluster and namespace, using the same read
   permission as each kind's list route.

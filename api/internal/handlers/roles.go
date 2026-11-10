@@ -128,6 +128,14 @@ func (h *roleHandler) create(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteCode(w, req, http.StatusBadRequest, errors.New(msg))
 		return
 	}
+	if !isFullAdmin(auth.UserFromContext(req.Context())) {
+		for _, p := range body.Permissions {
+			if isPrivilegedPermission(p) {
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+				return
+			}
+		}
+	}
 
 	tx, err := h.db.DB.BeginTx(req.Context(), nil)
 	if err != nil {
@@ -186,6 +194,17 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 		if msg, ok := validatePermissions(*body.Permissions); !ok {
 			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New(msg))
 			return
+		}
+		if !isFullAdmin(auth.UserFromContext(req.Context())) {
+			adds, err := addsPrivileged(req.Context(), h.db, name, *body.Permissions)
+			if err != nil {
+				httperr.Write(w, req, err)
+				return
+			}
+			if adds {
+				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+				return
+			}
 		}
 		// Lock to serialize with writes so the last-user-manager check can't race.
 		unlock := h.db.LockUserManagement()
