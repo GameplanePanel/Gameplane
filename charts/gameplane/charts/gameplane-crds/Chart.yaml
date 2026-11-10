@@ -2,4 +2,4 @@ apiVersion: v2
 name: gameplane-crds
 description: Native CRDs bundled with the Gameplane operator.
 type: application
-version: 0.3.0
+version: 0.4.0

@@ -20,7 +20,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
-**Status:** pre-v1 (v0.3.0)  
+**Status:** pre-v1 (v0.4.0)  
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/project-zomboid`  
 **Dependencies:** stdlib + shared `protocol/a2s` (Go 1.25+); tested against sknnr/zomboid-dedicated-server:v1.1.1 (UNMEASURED against a real server — see "Measured connectivity")
 

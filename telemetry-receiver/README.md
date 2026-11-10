@@ -6,7 +6,7 @@ JSON report once a day while the admin's telemetry switches are on. There
 are two tiers:
 
 ```json
-{ "version": "0.3.0", "servers": 3, "templates": 7 }
+{ "version": "0.4.0", "servers": 3, "templates": 7 }
 ```
 
 The basic tier is that and nothing else. The extended tier adds an `ext`
@@ -94,7 +94,7 @@ version that doesn't report it count as other.
 On the dashboard listener, Bearer token required:
 
 ```
-gameplane_telemetry_reports_total{version="0.3.0"}  # reports by reported version
+gameplane_telemetry_reports_total{version="0.4.0"}  # reports by reported version
 gameplane_telemetry_servers                         # histogram of GameServer counts
 gameplane_telemetry_templates                       # histogram of GameTemplate counts
 gameplane_telemetry_duplicates_total                # same-day repeat extended reports

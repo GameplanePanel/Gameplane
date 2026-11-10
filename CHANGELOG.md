@@ -7,8 +7,32 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-10
+
+A pre-v1 release with every change made since v0.3.0: an independent central
+panel, languages, the extended telemetry tier, safer backups and restores,
+fleet-wide node inventory, and a pre-release security hardening pass. Read the
+upgrade notes below before upgrading; several of them change behaviour. It
+does not claim v1 or production support; see [`docs/roadmap.md`](docs/roadmap.md).
+
 ### Fixed
 
+- **Backup, restore and wipe exclusion (#718):** backups, restores and wipes
+  of the same server now take one lifecycle ownership, so a backup can no
+  longer read a filesystem a restore or wipe is changing, and wipe workers are
+  drained before workloads come back (PRs #760, #619).
+- **Backup captures:** backup workers are prepared before quiesce, CSI
+  snapshot captures are bounded, and a capture taken across a game container
+  restart is invalidated instead of being kept (PRs #836, #846).
+- **Backups with retention disabled are kept** (PR #618).
+- **Wake on connect:** wake requests are bounded, HostPort hand-offs are
+  preserved, and shared wakes retry within their budget instead of failing on
+  the first cold-start error (PRs #840, #860).
+- **Tunnels:** frp identities are isolated per server and report relay
+  connection health; Tailscale forwards every advertised TCP and UDP port and
+  keeps active UDP sessions (PRs #768, #765).
+- **New files are created atomically** and never overwrite an existing file
+  (PR #621).
 - **Standalone Helm CRD isolation:** the central panel profile excludes bundled
   native CRDs and their apply hook/RBAC without requiring `--skip-crds`.
   Default operator installations keep Helm's native CRD lifecycle; existing
@@ -16,6 +40,35 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 ### Upgrade Notes
 
+- **Breaking: admin-level grants need a full administrator:** holders of
+  `users:manage`, `roles:manage` or `config:manage` without `*` can no longer
+  grant `*` or another admin-level permission, edit or reset an administrator,
+  or edit auth providers (`/admin/config/auth`, `/admin/auth` need `*`)
+  (PR #862).
+- **Breaking: kubelet probes reach only probe ports:** a new per-server
+  `<server>-probes` NetworkPolicy admits kubelet CIDRs to the game container's
+  probe ports only, on by default with `networkPolicies.probeIngress.enabled`.
+  The old all-ports `allow-kubelet-probes` rule renders only when that is
+  `false` or extra `probePorts` are listed. Set
+  `networkPolicies.probeIngress.enabled: false` to restore the old rule
+  (PR #862).
+- **Breaking: custom CSS:** stylesheets with `\` escapes or absolute,
+  `http(s):` or protocol-relative `//` references are now rejected (PR #862).
+- **Share links get their own Ingress:** `/share` and `/shares` go through a
+  second Ingress, `gameplane-share`, with access logging off for ingress-nginx
+  (`ingress.shareLinks.*`). Other controllers need their own switch in
+  `ingress.shareLinks.annotations`; see [`docs/install.md`](docs/install.md)
+  (PR #862).
+- **Password reset ends every session** of that account (migration
+  `019_session_epoch.sql`, applied on API startup) (PR #862).
+- **The API is a singleton in every mode:** every database driver uses the
+  `Recreate` strategy and `api.replicas` other than 1 is rejected, so upgrades
+  no longer overlap two API processes (#726, PR #758).
+- **Auxiliary resource requests and management placement:** agent,
+  config-init, sentinel, tunnel and Restic pods now request resources on every
+  install, and chart-managed pods accept placement settings. Game and
+  auxiliary pods can restart on upgrade; see
+  [`docs/release-notes.md`](docs/release-notes.md) (#724, PR #762).
 - **Standalone panel/API:** run the central panel with Docker Compose or the
   standalone Helm profile, without a local game cluster or operator. Compose
   needs no Kubernetes installation on the panel host.
@@ -183,6 +236,17 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
   bundle's files together up to 4 MiB. `gp-module i18n extract|stamp` and
   `gp-module validate` support authoring. See
   [`docs/module-authoring.md`](docs/module-authoring.md).
+- **Fleet-wide node inventory:** clusters are organized on their own pages and
+  a Nodes page lists the nodes of every cluster you can see, with the same
+  search and filters as Backups (PR #859).
+- **Game performance and relay monitoring:** bounded per-game performance and
+  relay metrics (PR #838).
+- **Stopped multi-volume Restic recovery:** a stopped server with several data
+  volumes can be recovered from its Restic backups (PR #861).
+- **Wake on connect from server settings:** users can turn wake on connect on
+  from the server's Lifecycle settings (PR #818).
+- **Reserve less than the limits:** a server can request less CPU and memory
+  than its limits (Burstable QoS) from Resources and Create Server (PR #815).
 
 ### Changed
 
@@ -202,6 +266,24 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 ### Security
 
+- **Pre-release hardening (PR #862):** OIDC discovery, key fetches and code
+  exchange, and operator OCI registry dials go through the dial guard; agent
+  and capture proxies can no longer override the API's security headers; a
+  login-device cookie stops failed logins elsewhere from locking the owner
+  out; the API pod no longer mounts the agent CA key; a ValidatingAdmissionPolicy
+  (Kubernetes 1.30+) limits waker service accounts to the wake annotation;
+  template env Secret and ConfigMap references follow the server ownership
+  rule; the agent serves regular files only and confines mod installs to the
+  mods root; the dashboard ships Monaco in the image and sends a
+  Content-Security-Policy and security headers; share tokens stay out of
+  access and error logs.
+- **Snapshot restores** authorize their data source against the live Backup
+  owner and reject unfinished or aborted snapshots (PR #756).
+- **Operator Secret access** is scoped to the configured namespaces (PR #757).
+- **Image CVE fixes:** eMudhra CA distrust and Alpine/Debian updates in game
+  images, the Tailscale tunnel built with fixed Go modules, and updated `expat`,
+  `musl`, `zlib`, `brotli` and `curl` in the dashboard image (PRs #775, #845,
+  #816).
 - **Standalone credential protection:** encryption keys are kept outside
   database volumes, with durable publication, fail-closed file-access checks,
   read-only provisioned custody, and authenticated transactional rotation.
@@ -1294,7 +1376,8 @@ testing. Not yet recommended for unattended production workloads — see
   runner (retry + longer readiness window), eliminating a cascade of flaky
   API e2e failures.
 
-[Unreleased]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/GameplanePanel/gameplane/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0-rc.1...v0.3.0
 [0.3.0-rc.2]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0-rc.1...v0.3.0
 [0.3.0-rc.1]: https://github.com/GameplanePanel/gameplane/compare/v0.2.0-beta.8...v0.3.0-rc.1

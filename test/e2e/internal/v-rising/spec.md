@@ -20,7 +20,7 @@ GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CONTEXT=<context-name> GAMEPLANE_E2E
 
 A successful run is the only event that licenses updating `Last Verified` to the current date.
 
-**Status:** pre-v1 (v0.3.0)  
+**Status:** pre-v1 (v0.4.0)  
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/v-rising`  
 **Dependencies:** stdlib + shared protocol family `a2s` (Go 1.25+); tested against trueosiris/vrising:2026-04-23-1036 (UNMEASURED against a real server — see "Measured connectivity")
 

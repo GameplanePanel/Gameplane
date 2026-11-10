@@ -786,7 +786,7 @@ defaultModuleSource:
     # own cluster). Bump this ref only in lockstep with a chart release that
     # was actually tested against the matching module-repo tag. Set to
     # "main" explicitly if you want the bleeding edge instead.
-    ref: v0.3.0
+    ref: v0.4.0
     subPath: ""           # module directories live at the repo root
   oci:
     url: ghcr.io/gameplanepanel/gameplane-modules

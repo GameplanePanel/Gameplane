@@ -26,11 +26,11 @@ to find call sites (or `go mod why -m <path>` from inside the module). For
 Toolchain versions come from `Makefile`, `.github/workflows/*.yaml`, and
 `.devcontainer/versions.toml` (dev container pins; `.devcontainer/setup.sh` installs them).
 
-Accurate as of **2026-09-02**, repo state `v0.3.0`; the `gameproto`,
+Accurate as of **2026-09-02**, repo state `v0.3.0`; the `gameproto`, <!-- doc-versions: historical -->
 `svcutil`, `sentinel`, `capture-sidecar`, `tunnel`, and `gp-module` sections
 were added and verified on **2026-09-26**.
 
-> **Note:** The dependency versions listed in the table below reflect the state at v0.3.0. For the most current versions, refer to [CHANGELOG.md](../CHANGELOG.md).
+> **Note:** The dependency versions listed in the table below reflect the state at v0.3.0. For the most current versions, refer to [CHANGELOG.md](../CHANGELOG.md). <!-- doc-versions: historical -->
 
 ## At a glance
 
@@ -334,7 +334,7 @@ package a game module before publishing it. Direct deps from
 ### web
 
 React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
-`0.3.0`, matching the repo version):
+`0.4.0`, matching the repo version):
 
 **Framework / core**
 - `react` `^19.2.8`, `react-dom` `^19.2.8` — base UI framework, rendered via `createRoot` in `src/main.tsx`, used throughout every component.
