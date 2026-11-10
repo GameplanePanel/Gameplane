@@ -162,9 +162,9 @@ export function CaptureWidget({ name, ns, gs }: Props) {
   const canDownload = canRead && capabilityReady && capabilities.data.files;
   const capabilityMessage = !canManage ? null
     : capabilities.isPending ? intl.formatMessage({ id: "web.components.capture_widget.checking_capture_support", defaultMessage: "Checking capture support…", description: "Capture widget: status line while capture support loads" })
-    : capabilities.isError || capabilities.data?.state === "unavailable" ? intl.formatMessage({ id: "web.components.capture_widget.capture_access_unavailable", defaultMessage: "Capture access is temporarily unavailable at this location.", description: "Capture widget: status line when capture access is unavailable at this location" })
-    : capabilities.data?.state === "unsupported" ? intl.formatMessage({ id: "web.components.capture_widget.gateway_update_needed", defaultMessage: "This location needs a gateway update before captures can be managed here.", description: "Capture widget: status line when the location's gateway is too old for captures" })
-    : !capabilities.data?.enabled ? intl.formatMessage({ id: "web.components.capture_widget.captures_disabled_at_location", defaultMessage: "New captures are disabled at this location. Existing capture files remain available.", description: "Capture widget: status line when new captures are disabled at this location" })
+    : capabilities.isError || capabilities.data?.state === "unavailable" ? intl.formatMessage({ id: "web.components.capture_widget.capture_access_unavailable", defaultMessage: "Capture access is temporarily unavailable at this cluster.", description: "Capture widget: status line when capture access is unavailable at this cluster" })
+    : capabilities.data?.state === "unsupported" ? intl.formatMessage({ id: "web.components.capture_widget.gateway_update_needed", defaultMessage: "This cluster needs a gateway update before captures can be managed here.", description: "Capture widget: status line when the cluster's gateway is too old for captures" })
+    : !capabilities.data?.enabled ? intl.formatMessage({ id: "web.components.capture_widget.captures_disabled_at_location", defaultMessage: "New captures are disabled at this cluster. Existing capture files remain available.", description: "Capture widget: status line when new captures are disabled at this cluster" })
     : null;
   const { Captures } = resourceClient;
   const qc = useQueryClient();

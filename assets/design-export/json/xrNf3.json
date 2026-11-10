@@ -1,0 +1,53 @@
+{
+  "type": "frame",
+  "id": "xrNf3",
+  "x": -1400,
+  "y": -516,
+  "name": "Gameplane/Nodes Filters Button",
+  "context": "Same trigger style as Backups. Badge counts applied Cluster + Status filters, never search. Hide badge at zero. Fixed-cluster detail counts Status only.",
+  "reusable": true,
+  "height": 36,
+  "fill": "$default/default",
+  "cornerRadius": 6,
+  "stroke": "$border/border",
+  "strokeWidth": 1,
+  "gap": 8,
+  "padding": [
+    8,
+    12
+  ],
+  "alignItems": "center",
+  "children": [
+    {
+      "type": "icon",
+      "id": "YMMQj",
+      "name": "Filter icon",
+      "width": 16,
+      "height": 16,
+      "icon": "list-filter",
+      "library": "lucide",
+      "fill": "$foreground/foreground"
+    },
+    {
+      "type": "text",
+      "id": "UTUE9",
+      "name": "Filter label",
+      "fill": "$foreground/foreground",
+      "content": "Filter",
+      "fontFamily": "$typography/font-sans",
+      "fontSize": 14,
+      "fontWeight": "500"
+    },
+    {
+      "id": "Wfxw3",
+      "type": "ref",
+      "ref": "KmZnF",
+      "name": "Active filters count",
+      "descendants": {
+        "xZ9ah": {
+          "content": "2"
+        }
+      }
+    }
+  ]
+}

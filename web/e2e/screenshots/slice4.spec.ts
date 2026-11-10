@@ -2,7 +2,7 @@ import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import { capture, captureLocator } from "./capture";
 
 // T159 (specs/done_014-heroui-web-rebuild/tasks.md): Slice 4 — Admin Settings,
-// Users & RBAC, Audit Log, System Logs, and Cluster Settings. Screenshot
+// Users & RBAC, Audit Log, System Logs, and Cluster Configuration. Screenshot
 // verification tests for the HeroUI rebuild, capturing the design frames
 // listed in specs/done_014-heroui-web-rebuild/contracts/component-map.md's
 // "Slice 4" entry / assets/design-export/MANIFEST.md, at 1440px, for comparison
@@ -33,12 +33,22 @@ import { capture, captureLocator } from "./capture";
 // configured state (uMiwd/R65Xyx/Rwnu3/XL5ZU/vStkb/uw0dB), the "no OIDC
 // mappings yet" empty state (nNGDX/BV5ei), the "save rejected" state
 // (QgW58), the failed audit-chain banner (kIxaJ), and the empty default
-// storage class (dxdEi) are one-off variants selected per-test via a
+// storage class (T70dJ) are one-off variants selected per-test via a
 // context.addCookies() cookie read inside buildScreenshotHandlers()
 // (src/test/handlers.ts) — see setAdminConfigVariant()'s comment below for
 // why a cookie, not a page.route override: those endpoints are answered by
 // MSW's Service Worker (msw/browser), and Playwright cannot intercept a
 // request a Service Worker's own fetch handler has already resolved.
+//
+// Cluster/navigation migration: OecJ5 replaces both the legacy j9W8A
+// Cluster Settings and RC3Kf Admin Backup destinations captures at
+// /clusters/local?tab=configuration; T70dJ replaces dxdEi at the same route
+// with empty-storage-class. BdmAW and N2nTf capture /nodes on desktop/mobile.
+// The existing screenshot fixture supplies one local cluster and three ready
+// nodes, so these captures do not reproduce the references' partial fleet or
+// remote rows. Remote Configuration t56aLu and enrollment-modal IBUqJ remain
+// exported-only: this fixture has no remote registration, and enrollment is
+// currently an inline card rather than the modal shown in that reference.
 
 // Full-page capture for this spec's routed-screen ids. Delegates to the
 // shared web/e2e/screenshots/capture.ts helper (viewport sized to match the
@@ -330,14 +340,6 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await captureLocator(page, "Kp48V", dialog);
   });
 
-  test("RC3Kf: Admin Settings — Backup destinations", async ({ page }) => {
-    await page.goto("/admin");
-    await clickSection(page, "Backup destinations");
-    await expect(page.getByText(/restic repositories/i)).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(200);
-    await capture(page, "RC3Kf");
-  });
-
   test("g5mEpx: Admin Settings — Module sources", async ({ page }) => {
     await page.goto("/admin");
     await clickSection(page, "Module sources");
@@ -556,27 +558,57 @@ test.describe("Slice 4: Admin, Users, Audit, System logs, Cluster (Desktop — 1
     await capture(page, "Bq2Yg");
   });
 
-  test("j9W8A: Cluster Settings", async ({ page }) => {
-    await page.goto("/cluster");
-    await expect(page.getByRole("heading", { name: /cluster/i }).first()).toBeVisible({
+  test("OecJ5: Cluster Details — Configuration — Local", async ({ page }) => {
+    await page.goto("/clusters/local?tab=configuration");
+    await expect(page.getByRole("tab", { name: "Configuration", exact: true })).toHaveAttribute("aria-selected", "true", {
       timeout: 10_000,
     });
-    // Cluster.tsx's <h3>Storage</h3> — a plain getByText("Storage") also
-    // matches non-heading wrapper elements whose only visible child is
-    // that h3, so scope to the heading role for a unique match.
-    await expect(page.getByRole("heading", { name: "Storage" })).toBeVisible();
-    await expect(page.getByText("fast-nvme")).toBeVisible();
+    await expect(page.getByRole("button", { name: /download kubeconfig/i })).toBeEnabled();
+    await expect(page.getByRole("region", { name: "Storage", exact: true }).getByText("fast-nvme")).toBeVisible();
+    const destinations = page.getByRole("region", { name: "Backup destinations", exact: true });
+    await expect(destinations.getByText(/restic repositories/i)).toBeVisible();
+    await expect(destinations.getByText("default", { exact: true })).toBeVisible();
     await page.waitForTimeout(200);
-    await capture(page, "j9W8A");
+    await capture(page, "OecJ5");
   });
 
-  test("dxdEi: Cluster Settings — Default storage class", async ({ page, context }) => {
+  test("T70dJ: Cluster Details — Configuration — Default storage", async ({ page, context }) => {
     await setAdminConfigVariant(context, "empty-storage-class");
-    await page.goto("/cluster");
-    // See j9W8A's note on scoping to the heading role.
-    await expect(page.getByRole("heading", { name: "Storage" })).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText("Cluster default")).toBeVisible();
+    await page.goto("/clusters/local?tab=configuration");
+    await expect(page.getByRole("region", { name: "Storage", exact: true }).getByText("Cluster default")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: /download kubeconfig/i })).toBeEnabled();
+    await expect(page.getByRole("region", { name: "Backup destinations", exact: true }).getByText("default", { exact: true })).toBeVisible();
     await page.waitForTimeout(200);
-    await capture(page, "dxdEi");
+    await capture(page, "T70dJ");
+  });
+
+  test("BdmAW: Nodes — All clusters", async ({ page }) => {
+    await page.goto("/nodes");
+    await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("kubelab-worker-2", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sort by Node", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add node", exact: true })).toBeEnabled();
+    await page.waitForTimeout(200);
+    await capture(page, "BdmAW");
+  });
+});
+
+test.describe("Slice 4: Nodes (Mobile — 390px) @screenshots", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+  });
+
+  test("N2nTf: Nodes — All clusters — Mobile", async ({ page }) => {
+    await useScreenshotDataset(page);
+    await page.goto("/nodes");
+    await expect(page.getByRole("heading", { name: "Nodes", exact: true })).toBeVisible({ timeout: 10_000 });
+    const inventory = page.getByRole("list", { name: "Node inventory", exact: true });
+    await expect(inventory.getByRole("listitem")).toHaveCount(3);
+    await expect(inventory.getByText("kubelab-worker-2", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add node", exact: true })).toBeEnabled();
+    await page.waitForTimeout(200);
+    await capture(page, "N2nTf");
   });
 });

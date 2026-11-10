@@ -3,7 +3,8 @@
   "id": "j9W8A",
   "x": 0,
   "y": 65232,
-  "name": "Screen/Cluster Settings",
+  "name": "Legacy/Cluster Settings — Superseded",
+  "context": "Superseded by Cluster Details Configuration and Nodes screens. Preserved for historical install-time storage states.",
   "theme": {
     "semantic": "dark"
   },

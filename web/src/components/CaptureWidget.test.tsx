@@ -126,7 +126,7 @@ describe("CaptureWidget", () => {
       expect(enable).not.toHaveBeenCalled();
     });
 
-    it("keeps existing files downloadable when the location disables new captures", async () => {
+    it("keeps existing files downloadable when the cluster disables new captures", async () => {
       listCompleted();
       const requests: URL[] = [];
       server.use(
@@ -151,7 +151,7 @@ describe("CaptureWidget", () => {
         else delete (URL as { revokeObjectURL?: unknown }).revokeObjectURL;
       });
       renderWithQuery(<CaptureWidget name="alpha" ns="gameplane-games" gs={makeServer({ spec: { capture: { enabled: true } } })} />, ["captures:manage"], target);
-      expect(await screen.findByText(/New captures are disabled at this location/i)).toBeInTheDocument();
+      expect(await screen.findByText(/New captures are disabled at this cluster/i)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /Start Capture/i })).toBeDisabled();
       const downloadButton = await screen.findByRole("button", { name: "Download capture cap-remote" });
       await waitFor(() => expect(downloadButton).not.toBeDisabled());

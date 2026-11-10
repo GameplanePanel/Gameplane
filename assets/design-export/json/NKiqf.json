@@ -51,7 +51,7 @@
           "fill": "$muted",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "Snapshots, schedules, and restores across your authorized locations.",
+          "content": "Snapshots, schedules, and restores across your authorized clusters.",
           "lineHeight": 1.4,
           "fontFamily": "$typography/font-sans",
           "fontSize": 14,

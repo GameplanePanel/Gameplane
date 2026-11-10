@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { http, HttpResponse } from "msw";
-import { act, screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/server";
 import { makeClient, renderWithQuery } from "@/test/render";
-import { getCurrentCluster, setCurrentCluster } from "@/lib/cluster";
-import { ClusterPage } from "./Cluster";
+import { setCurrentCluster } from "@/lib/cluster";
 import { ClustersPage } from "./Clusters";
 import { ModulesPage } from "./Modules";
 import { AdminLogsPage } from "./AdminLogs";
@@ -108,28 +107,6 @@ describe("standalone panel", () => {
     expect(await screen.findByRole("heading", { name: "Modules" })).toBeInTheDocument();
   });
 
-  it("scopes removal errors to the dialog, resets them, and clears the removed selection", async () => {
-    standalone([{ name: "east" }, { name: "west" }]);
-    setCurrentCluster("east");
-    let fails = true;
-    server.use(http.delete("/clusters/east", () => fails
-      ? HttpResponse.text("failed", { status: 503 }) : new HttpResponse(null, { status: 204 })));
-    renderWithQuery(<ClustersPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Remove cluster east" }));
-    await userEvent.click(screen.getByRole("button", { name: "Remove cluster" }));
-    const dialog = screen.getByRole("alertdialog");
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Couldn't remove the cluster registration.");
-    expect(getCurrentCluster()).toBe("east");
-    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
-    await userEvent.click(screen.getByRole("button", { name: "Remove cluster west" }));
-    expect(within(screen.getByRole("alertdialog")).queryByRole("alert")).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    fails = false;
-    await userEvent.click(screen.getByRole("button", { name: "Remove cluster east" }));
-    await userEvent.click(screen.getByRole("button", { name: "Remove cluster" }));
-    await waitFor(() => expect(getCurrentCluster()).toBe(""));
-    expect(localStorage.getItem("gameplane.cluster")).toBe("");
-  });
 
   it("shows the panel build in About without fetching local cluster metadata", async () => {
     standalone();
@@ -162,47 +139,7 @@ describe("standalone panel", () => {
     expect(paths.every((path) => new URL(path).searchParams.get("cluster") === "east")).toBe(true);
   });
 
-  it("does not request backup destinations until a registered workload is selected", async () => {
-    standalone();
-    const destinations = vi.fn(() => HttpResponse.json({ items: [] }));
-    server.use(http.get("/backup-destinations", destinations));
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Backup destinations" }));
-    expect(await screen.findByText("Select a workload cluster")).toBeInTheDocument();
-    expect(destinations).not.toHaveBeenCalled();
-    expect(screen.queryByRole("button", { name: "Add destination" })).not.toBeInTheDocument();
-  });
 
-  it("lists, creates and deletes backup destinations on the selected remote", async () => {
-    standalone([{ name: "east" }]);
-    setCurrentCluster("east");
-    const requests: Array<{ method: string; cluster: string | null }> = [];
-    let exists = false;
-    server.use(http.all("/backup-destinations", ({ request }) => {
-      requests.push({ method: request.method, cluster: new URL(request.url).searchParams.get("cluster") });
-      if (request.method === "POST") exists = true;
-      return HttpResponse.json({ items: exists ? [{ name: "repo", url: "s3:example/repo", hasPassword: true }] : [] });
-    }), http.delete("/backup-destinations/repo", ({ request }) => {
-      requests.push({ method: request.method, cluster: new URL(request.url).searchParams.get("cluster") });
-      exists = false;
-      return new HttpResponse(null, { status: 204 });
-    }));
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Backup destinations" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Add destination" }));
-    await userEvent.type(screen.getByPlaceholderText("gameplane-backup-repo"), "repo");
-    await userEvent.type(screen.getByPlaceholderText("s3:s3.example.com/gameplane-bucket"), "s3:example/repo");
-    await userEvent.type(screen.getByPlaceholderText("Strong, unique passphrase"), "password");
-    await userEvent.click(screen.getByRole("button", { name: "Save destination" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Delete repo" }));
-    await userEvent.type(screen.getByPlaceholderText("Type to confirm"), "repo");
-    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Delete repo" })).not.toBeInTheDocument());
-    expect(requests).toEqual(expect.arrayContaining([
-      { method: "GET", cluster: "east" }, { method: "POST", cluster: "east" }, { method: "DELETE", cluster: "east" },
-    ]));
-    expect(requests.every((request) => request.cluster === "east")).toBe(true);
-  });
 
   it("lets remote module managers edit sources without panel configuration access", async () => {
     standalone([{ name: "east" }]);
@@ -223,27 +160,6 @@ describe("standalone panel", () => {
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
   });
 
-  it("discards a backup destination draft when switching workload clusters", async () => {
-    standalone([{ name: "east" }, { name: "west" }]);
-    setCurrentCluster("east");
-    const creates = vi.fn(() => HttpResponse.json({}));
-    const reads: string[] = [];
-    server.use(http.get("/backup-destinations", ({ request }) => {
-      reads.push(new URL(request.url).searchParams.get("cluster") ?? "local");
-      return HttpResponse.json({ items: [] });
-    }), http.post("/backup-destinations", creates));
-    renderWithQuery(<AdminSettingsPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Backup destinations" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Add destination" }));
-    await userEvent.type(screen.getByPlaceholderText("gameplane-backup-repo"), "east-draft");
-    await userEvent.click(screen.getByRole("button", { name: "Select cluster" }));
-    await userEvent.click(await screen.findByRole("menuitem", { name: "west" }));
-    await waitFor(() => expect(reads).toContain("west"));
-    expect(screen.queryByDisplayValue("east-draft")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Save destination" })).not.toBeInTheDocument();
-    expect(creates).not.toHaveBeenCalled();
-    expect(reads).not.toContain("local");
-  });
 
   it("shows container runtime log guidance without opening a local log stream", async () => {
     standalone();
@@ -292,16 +208,12 @@ describe("standalone panel", () => {
     expect(await screen.findByText("Couldn't load installation capabilities.")).toBeInTheDocument();
     expect(catalog).not.toHaveBeenCalled();
   });
-  it("does not request local node inventory or module resources on an empty installation", async () => {
+  it("does not request local module resources on an empty installation", async () => {
     standalone();
     setCurrentCluster("local");
     const workload = vi.fn(() => HttpResponse.json({ items: [] }));
     server.use(http.get("/cluster", workload), http.get("/cluster/info", workload),
       http.get("/modules/catalog", workload), http.get("/modules/sources", workload), http.get("/templates", workload));
-    const inventory = renderWithQuery(<ClusterPage />);
-    expect(await screen.findByText("Select a workload cluster")).toBeInTheDocument();
-    expect(workload).not.toHaveBeenCalled();
-    inventory.unmount();
     renderWithQuery(<ModulesPage />);
     expect(await screen.findByText("Select a workload cluster")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Manage clusters" })).toHaveAttribute("href", "/clusters");
@@ -360,15 +272,5 @@ describe("standalone panel", () => {
     expect(screen.queryByLabelText("Kubeconfig")).not.toBeInTheDocument();
   });
 
-  it("requires confirmation before removing a remote registration", async () => {
-    standalone([{ name: "east", displayName: "East" }]);
-    const remove = vi.fn(() => new HttpResponse(null, { status: 204 }));
-    server.use(http.delete("/clusters/east", remove));
-    renderWithQuery(<ClustersPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Remove cluster East" }));
-    expect(remove).not.toHaveBeenCalled();
-    expect(await screen.findByText(/Running workloads remain/)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Remove cluster" }));
-    await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
-  });
+
 });

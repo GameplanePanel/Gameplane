@@ -158,7 +158,7 @@ func (u *User) Can(perm string, namespaced bool, cluster, ns string) bool {
 }
 
 // CanDiscoverCluster permits selecting a cluster without granting node inventory
-// access. A server reader in one namespace still needs to find that cluster.
+// access. Server and backup-destination readers still need to find their cluster.
 func (u *User) CanDiscoverCluster(cluster string) bool {
 	if u == nil {
 		return false
@@ -171,9 +171,14 @@ func (u *User) CanDiscoverCluster(cluster string) bool {
 	if u.Can("cluster:read", true, cluster, "") || u.Can("modules:read", true, cluster, "") || u.Can("modules:manage", true, cluster, "") {
 		return true
 	}
+	// Install-time storage is now displayed in the local cluster's configuration.
+	// A central configuration grant must not reveal remote registrations.
+	if cluster == scope.DefaultCluster && (u.Can("config:read", false, "", "") || u.Can("config:manage", false, "", "")) {
+		return true
+	}
 	for _, ck := range []string{cluster, "*"} {
 		for _, perms := range u.Perms[ck] {
-			if permSetHas(perms, "*") || permSetHas(perms, "servers:read") {
+			if permSetHas(perms, "*") || permSetHas(perms, "servers:read") || permSetHas(perms, "destinations:read") || permSetHas(perms, "destinations:manage") {
 				return true
 			}
 		}

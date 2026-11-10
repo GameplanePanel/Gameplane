@@ -19,7 +19,7 @@ import { server } from "@/test/server";
 function LocationControls() {
   const [location, choose] = useFleetLocation();
   return <>
-    <output data-testid="location">{location || "All locations"}</output>
+    <output data-testid="location">{location || "All clusters"}</output>
     <button onClick={() => choose("remote")}>Choose remote</button>
     <button onClick={() => choose("")}>Clear location</button>
     <Link to="/servers">Servers</Link>
@@ -46,7 +46,7 @@ describe("fleet location follows router navigation", () => {
     expect(await screen.findByTestId("location")).toHaveTextContent("remote");
     await userEvent.click(screen.getByRole("link", { name: "Servers" }));
     await waitFor(() => expect(history.location.href).toBe("/servers"));
-    expect(screen.getByTestId("location")).toHaveTextContent("All locations");
+    expect(screen.getByTestId("location")).toHaveTextContent("All clusters");
   });
 
   it("tracks back and forward and replaces a filter without dropping other search fields", async () => {
@@ -62,20 +62,20 @@ describe("fleet location follows router navigation", () => {
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("remote"));
     await userEvent.click(screen.getByRole("button", { name: "Clear location" }));
     await waitFor(() => expect(router.state.location.search).toEqual({ tab: "restores", note: "keep" }));
-    expect(screen.getByTestId("location")).toHaveTextContent("All locations");
+    expect(screen.getByTestId("location")).toHaveTextContent("All clusters");
     expect(history.length).toBe(2);
     await userEvent.click(screen.getByRole("button", { name: "Choose remote" }));
     await waitFor(() => expect(router.state.location.search).toEqual({ tab: "restores", cluster: "remote", note: "keep" }));
     expect(history.length).toBe(2);
   });
 
-  it("treats an empty or non-string location as all locations", async () => {
+  it("treats an empty or non-string location as all clusters", async () => {
     const history = createMemoryHistory({ initialEntries: ["/servers?cluster="] });
     const { router } = mountRouter(history);
-    expect(await screen.findByTestId("location")).toHaveTextContent("All locations");
+    expect(await screen.findByTestId("location")).toHaveTextContent("All clusters");
     act(() => history.push("/servers?cluster=%5B%22remote%22%5D"));
     await waitFor(() => expect(router.state.location.search.cluster).toEqual(["remote"]));
-    expect(screen.getByTestId("location")).toHaveTextContent("All locations");
+    expect(screen.getByTestId("location")).toHaveTextContent("All clusters");
   });
 
   it("preserves Backups tab and scope when filtering, then resets and restores both on navigation", async () => {
@@ -98,7 +98,7 @@ describe("fleet location follows router navigation", () => {
       await waitFor(() => expect(router.state.location.search.tab).toBe("schedules"));
       await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
       expect(screen.queryByRole("button", { name: /Filter by phase/ })).not.toBeInTheDocument();
-      await userEvent.click(screen.getByRole("button", { name: /Filter by location/ }));
+      await userEvent.click(screen.getByRole("button", { name: /Filter by cluster/ }));
       await userEvent.click(await screen.findByRole("option", { name: "remote" }));
       await userEvent.click(screen.getByRole("button", { name: "Apply" }));
       await waitFor(() => expect(scheduleScopes).toContain("remote"));
@@ -110,26 +110,26 @@ describe("fleet location follows router navigation", () => {
       await waitFor(() => expect(router.state.location.search).toEqual({}));
       expect(screen.getByRole("tab", { name: "Backups" })).toHaveAttribute("aria-selected", "true");
       await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
-      expect(screen.getByRole("button", { name: /Filter by location/ })).toHaveTextContent("All locations");
+      expect(screen.getByRole("button", { name: /Filter by cluster/ })).toHaveTextContent("All clusters");
       screen.getByRole("button", { name: "Clear" }).focus();
       await userEvent.keyboard("{Escape}");
-      expect(screen.queryByRole("button", { name: /Filter by location/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
 
       act(() => history.back());
       await waitFor(() => expect(screen.getByRole("tab", { name: "Schedules" })).toHaveAttribute("aria-selected", "true"));
       await userEvent.click(screen.getByRole("button", { name: /^Filter\s*1$/ }));
-      expect(screen.getByRole("button", { name: /Filter by location/ })).toHaveTextContent("remote");
+      expect(screen.getByRole("button", { name: /Filter by cluster/ })).toHaveTextContent("remote");
       screen.getByRole("button", { name: "Clear" }).focus();
       await userEvent.keyboard("{Escape}");
-      expect(screen.queryByRole("button", { name: /Filter by location/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
       expect(router.state.location.search).toMatchObject({ tab: "schedules", cluster: "remote" });
       act(() => history.forward());
       await waitFor(() => expect(screen.getByRole("tab", { name: "Backups" })).toHaveAttribute("aria-selected", "true"));
       await userEvent.click(screen.getByRole("button", { name: /^Filter$/ }));
-      expect(screen.getByRole("button", { name: /Filter by location/ })).toHaveTextContent("All locations");
+      expect(screen.getByRole("button", { name: /Filter by cluster/ })).toHaveTextContent("All clusters");
       screen.getByRole("button", { name: "Clear" }).focus();
       await userEvent.keyboard("{Escape}");
-      expect(screen.queryByRole("button", { name: /Filter by location/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Filter by cluster/ })).not.toBeInTheDocument();
     } finally {
       unmount();
       history.destroy();

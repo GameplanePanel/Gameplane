@@ -1,0 +1,1276 @@
+{
+  "type": "frame",
+  "id": "N2nTf",
+  "x": 21280,
+  "y": 63932,
+  "name": "Screen/Mobile — Nodes — All clusters",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 390,
+  "height": 1620,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "children": [
+    {
+      "id": "cSkTa",
+      "type": "ref",
+      "ref": "fGbVF",
+      "name": "Mobile navigation",
+      "width": "fill_container",
+      "descendants": {
+        "WOloN": {
+          "content": "Nodes"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "v7IOcE",
+      "name": "Mobile node inventory",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 16,
+      "children": [
+        {
+          "type": "text",
+          "id": "xspYX",
+          "name": "Page description",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Health and capacity across clusters.",
+          "lineHeight": 1.45,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "anmfc",
+          "name": "Summary and add action",
+          "width": "fill_container",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "AyJLH",
+              "name": "Ready nodes summary",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "4 / 5 ready",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 22,
+              "fontWeight": "600"
+            },
+            {
+              "id": "UfqPv",
+              "type": "ref",
+              "ref": "cb4rt",
+              "name": "Add node",
+              "descendants": {
+                "U6q13B": {
+                  "content": "Add node"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "n6oP59",
+          "type": "ref",
+          "ref": "b2JF52",
+          "name": "Search and Filters — mobile",
+          "width": "fill_container",
+          "descendants": {
+            "lFVUp": {
+              "width": "fill_container"
+            },
+            "SJPou": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "id": "lPwhX",
+          "type": "ref",
+          "ref": "AT7ya",
+          "name": "Sort nodes",
+          "width": "fill_container",
+          "descendants": {
+            "cFsFk": {
+              "content": "Sort: Node name ↑"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "lwDAR",
+          "name": "Partial inventory",
+          "width": "fill_container",
+          "fill": "$warning/soft",
+          "cornerRadius": 12,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "QHyKa",
+              "name": "Partial data message",
+              "fill": "$warning/soft-foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "West is unavailable. Showing returned nodes from 2 clusters.",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "N9jF2",
+          "name": "Stacked node kubelab-control",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": 16,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "oVcLv",
+              "name": "Node name",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "kubelab-control",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "b0hCk",
+              "name": "Cluster and readiness",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "e9smH",
+                  "name": "Cluster link",
+                  "fill": "$accent/accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Local",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "skDFf",
+                  "name": "Node readiness",
+                  "fill": "$success/success",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ready",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "e7BBT",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "IYQrV",
+                  "name": "CPU",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SOSUF",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "CPU",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "MiM3F",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "24%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EH7Um",
+                  "name": "Memory",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BYYKp",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Memory",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "lSyUT",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "42%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "irSmz",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "injmY",
+                  "name": "Pods",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ISCDR",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pods",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "q8IgD",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "18 / 110",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BYITX",
+                  "name": "Uptime",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "gxE2r",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Uptime",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "zYFNR",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "12d 4h",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ykmyY",
+          "name": "Stacked node kubelab-worker-1",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": 16,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "numlc",
+              "name": "Node name",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "kubelab-worker-1",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "VSged",
+              "name": "Cluster and readiness",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "w8Uf9",
+                  "name": "Cluster link",
+                  "fill": "$accent/accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Local",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "GlodJ",
+                  "name": "Node readiness",
+                  "fill": "$success/success",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ready",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "O5J8X",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "P8HVB",
+                  "name": "CPU",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RVbji",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "CPU",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wBN3n",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "56%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EBF5E",
+                  "name": "Memory",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P0Nqw",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Memory",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "acJIC",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "65%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "V67Jca",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "nQBSO",
+                  "name": "Pods",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "snNcS",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pods",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "H5I2T",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "24 / 110",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "J73VxW",
+                  "name": "Uptime",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vdw5N",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Uptime",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mxgSz",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "12d 4h",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "z6YxP",
+          "name": "Stacked node kubelab-worker-2",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": 16,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "FvI2s",
+              "name": "Node name",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "kubelab-worker-2",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "koDwG",
+              "name": "Cluster and readiness",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "F2mEZ",
+                  "name": "Cluster link",
+                  "fill": "$accent/accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Local",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "S6orlq",
+                  "name": "Node readiness",
+                  "fill": "$danger/danger",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "NotReady",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qBVBr",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "U0sXp",
+                  "name": "CPU",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mAnns",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "CPU",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NiLG7",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Unknown",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DW6j5",
+                  "name": "Memory",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Y4TryU",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Memory",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ui13m",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Unknown",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "s66D9",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hn73J",
+                  "name": "Pods",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "MLpBD",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pods",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "fZvBi",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Unknown",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DDdw0",
+                  "name": "Uptime",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vRNYR",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Uptime",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "l1vfix",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Unknown",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KWWKP",
+          "name": "Stacked node remote-worker-1",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": 16,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "NYAez",
+              "name": "Node name",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "remote-worker-1",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "Aa2C9",
+              "name": "Cluster and readiness",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "cFh1D",
+                  "name": "Cluster link",
+                  "fill": "$accent/accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Remote lab",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "FBFcr",
+                  "name": "Node readiness",
+                  "fill": "$success/success",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ready",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i6nxm",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h1yKR",
+                  "name": "CPU",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "iqdyr",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "CPU",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "EesMg",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "31%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eu2UG",
+                  "name": "Memory",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Sbijb",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Memory",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "IYKGU",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "28%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Xx7rS",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mA2kI",
+                  "name": "Pods",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Q4gCk",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pods",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "QMjup",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "14 / 110",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "RkV4t",
+                  "name": "Uptime",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "IKtq2",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Uptime",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "qftfY",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "5d 2h",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Y0SX7d",
+          "name": "Stacked node remote-worker-2",
+          "width": "fill_container",
+          "fill": "$surface/surface",
+          "cornerRadius": 16,
+          "stroke": "$border/border",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "aIPdo",
+              "name": "Node name",
+              "fill": "$foreground/foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "remote-worker-2",
+              "lineHeight": 1.45,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "obZZp",
+              "name": "Cluster and readiness",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hkNnH",
+                  "name": "Cluster link",
+                  "fill": "$accent/accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Remote lab",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "WRovs",
+                  "name": "Node readiness",
+                  "fill": "$success/success",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ready",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "G5RNfq",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "foWuz",
+                  "name": "CPU",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h8MKI",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "CPU",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uUX8i",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "18%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "IPycz",
+                  "name": "Memory",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mC9rY",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Memory",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Devwj",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "36%",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qMNI5",
+              "name": "Node metrics",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cgcAq",
+                  "name": "Pods",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "WUg41",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pods",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "KIytM",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "12 / 110",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TcSis",
+                  "name": "Uptime",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GP8oU",
+                      "name": "Metric label",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Uptime",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "t0rMRW",
+                      "name": "Metric value",
+                      "fill": "$foreground/foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "5d 2h",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "uQw9j",
+          "name": "Results summary",
+          "fill": "$muted",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "5 nodes shown",
+          "lineHeight": 1.45,
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    }
+  ]
+}
