@@ -76,6 +76,12 @@ function cspHeader(): Plugin {
       const html = readFileSync(path.join(outDir, "index.html"), "utf8");
       const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
       const hashes = inline.map((m) => `'sha256-${createHash("sha256").update(m[1] ?? "").digest("base64")}'`);
+      // The shell always carries the theme and language boot scripts; none
+      // found means this match no longer fits index.html, and the policy
+      // would block them.
+      if (hashes.length === 0) {
+        throw new Error("cspHeader: no inline scripts found in index.html");
+      }
       const policy = [
         "default-src 'self'",
         ["script-src 'self'", ...hashes].join(" "),
