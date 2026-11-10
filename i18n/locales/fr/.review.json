@@ -287,7 +287,7 @@
   "web.components.app_layout.users_rbac": "0c6ed78342e6",
   "web.components.backups.backup_detail_drawer.backup_details": "85ece27eaabf",
   "web.components.backups.backup_detail_drawer.completed": "22a970d2e5b1",
-  "web.components.backups.backup_detail_drawer.coverage_scope": "204e943d70df",
+  "web.components.backups.backup_detail_drawer.coverage_scope": "47601d765ca2",
   "web.components.backups.backup_detail_drawer.delete": "e2d0a54968ea",
   "web.components.backups.backup_detail_drawer.deleting": "43b5894c3e4e",
   "web.components.backups.backup_detail_drawer.phase": "46342ec1eec9",

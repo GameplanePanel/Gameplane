@@ -8,14 +8,18 @@ import { makeBackup } from "@/test/factories";
 import { BackupDetailDrawer } from "./BackupDetailDrawer";
 
 describe("BackupDetailDrawer", () => {
-  it("shows captured and excluded claims independently of copy success", async () => {
+  it.each([
+    { policy: "legacy/default primary", volumePolicy: undefined },
+    { policy: "explicit primary-only", volumePolicy: "primary-only" as const },
+  ])("shows captured and excluded claims for $policy independently of copy success", async ({ volumePolicy }) => {
     server.use(http.get("/backups/coverage", () => HttpResponse.json(makeBackup({
       metadata: { name: "coverage" },
       status: {
         phase: "Succeeded", snapshotID: "copy",
         conditions: [{ type: "Consistency", status: "False", reason: "UnsupportedRawCopy", message: "The game does not support quiesce." }],
-        captureManifest: { state: "Recorded", recordedAt: "2026-10-21T12:00:00Z", volumes: [
+        captureManifest: { state: "Recorded", volumePolicy, recordedAt: "2026-10-21T12:00:00Z", volumes: [
           { claimName: "game-data", claimUID: "world-uid", mountPaths: ["/world"], included: true, classification: "data", reason: "PrimaryDataClaim" },
+          { claimName: "game-extra-data", mountPaths: ["/extra-data"], included: false, classification: "data", reason: "NotCovered" },
           { claimName: "game-extra-install", mountPaths: ["/serverfiles"], included: false, classification: "rebuildable", reason: "NotCovered" },
           { claimName: "game-mods", mountPaths: ["/world/mods"], included: false, classification: "unclassified", reason: "NotCovered" },
         ] },
@@ -23,9 +27,11 @@ describe("BackupDetailDrawer", () => {
     }))));
     renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="coverage" onClose={() => {}} onRestore={() => {}} />);
     expect(await screen.findByText("The game does not support quiesce.")).toBeInTheDocument();
+    expect(screen.getByText("Included claims are copied at the recorded archive roots. Primary-only backups exclude extra data volumes and separate mod claims. Rebuildable volumes are excluded. Check recovery prerequisites before restarting.")).toBeInTheDocument();
     expect(screen.getByText("game-data")).toBeInTheDocument();
+    expect(screen.getByText("game-extra-data")).toBeInTheDocument();
     expect(screen.getByText("/world/mods")).toBeInTheDocument();
-    expect(screen.getAllByText("Not covered")).toHaveLength(2);
+    expect(screen.getAllByText("Not covered")).toHaveLength(3);
     expect(screen.getByText("Rebuildable")).toBeInTheDocument();
   });
 

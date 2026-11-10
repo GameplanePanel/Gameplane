@@ -40,6 +40,7 @@ orphan workers and continues the original stop before releasing ownership.
 `RecoveryIntervention=True` retains the fence when provenance is missing or a
 workload was replaced. Inspect those identities and resolve the conflicting
 workload/worker before recovery; deleting an owner marker does not prove safety.
+The condition clears after cleanup releases lifecycle ownership and its guards.
 
 `all-data` includes primary data, explicitly classified `data` extra volumes and
 active separate loader/mod volumes. Every observed or declared required claim

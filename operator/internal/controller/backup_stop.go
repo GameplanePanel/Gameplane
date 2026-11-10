@@ -9,6 +9,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -141,7 +142,15 @@ func (r *GameServerReconciler) recoverStoppedBackupOwner(ctx context.Context, gs
 	if err != nil {
 		return true, recoveryIntervention(ctx, r.Client, gs, err.Error())
 	}
-	if !held || op.Kind != "Backup" || op.StoppedBackup == nil {
+	if !held {
+		// Wait until cleanup has durably released every owner and compatibility
+		// guard. A failed status write is retried on the next reconciliation.
+		if meta.RemoveStatusCondition(&gs.Status.Conditions, "RecoveryIntervention") {
+			return true, r.Status().Update(ctx, gs)
+		}
+		return false, nil
+	}
+	if op.Kind != "Backup" || op.StoppedBackup == nil {
 		return false, nil
 	}
 	exists, err := lifecycleOwnerExists(ctx, r.wipeReader(), gs.Namespace, op.lifecycleIdentity)

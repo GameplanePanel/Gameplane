@@ -96,7 +96,7 @@ func TestBackup_MultiVolumeRecoveryRoundTrip(t *testing.T) {
 			}
 		} else {
 			excluded++
-			if v["recoveryPrerequisite"] == "" {
+			if prerequisite, ok := v["recoveryPrerequisite"].(string); !ok || prerequisite == "" {
 				t.Fatal("missing recovery prerequisite")
 			}
 		}

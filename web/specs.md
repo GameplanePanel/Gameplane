@@ -620,6 +620,7 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 **BackupDetailDrawer.tsx:**
 - Slide-out right panel (modal positioned right-side or Drawer component)
 - Shows backup metadata: ID, server, size (human-readable), created/expires timestamps
+- Shows recorded capture coverage with archive roots and saved recovery prerequisites. Coverage guidance states that primary-only backups exclude extra data volumes and separate mod claims, and that rebuildable volumes are excluded.
 - Retention expiry badge (green/yellow/red based on days remaining)
 - Associated backup file listing (if applicable)
 - Close button or swipe-to-close

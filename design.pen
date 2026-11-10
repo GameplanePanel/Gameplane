@@ -127593,7 +127593,7 @@
                   "fill": "$muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Included claims are copied at the recorded archive roots. Rebuildable volumes are excluded. Check their recovery prerequisites before restarting.",
+                  "content": "Included claims are copied at the recorded archive roots. Primary-only backups exclude extra data volumes and separate mod claims. Rebuildable volumes are excluded. Check recovery prerequisites before restarting.",
                   "lineHeight": 1.333333,
                   "fontFamily": "$typography/font-sans",
                   "fontSize": 12,

@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -264,6 +265,106 @@ func TestStoppedOwnerRejectsAmbiguousWorkload(t *testing.T) {
 	debt.Claims = b.Status.CaptureManifest.Volumes
 	if ready, err := stoppedBackupCleanup(t.Context(), c, c, gs, debt); ready || err == nil || !strings.Contains(err.Error(), "intervention") {
 		t.Fatalf("ambiguous provenance: %v %v", ready, err)
+	}
+}
+
+func TestRecoveryInterventionClearsAfterStoppedBackupCleanup(t *testing.T) {
+	for _, orphan := range []bool{false, true} {
+		t.Run(map[bool]string{false: "normal", true: "orphan"}[orphan], func(t *testing.T) {
+			c, gs, b, _ := recoveryFixture(t)
+			b.Annotations[backupTargetAnnotation] = backupIdentityJSON(gs.Name, gs.UID)
+			if err := c.Update(t.Context(), b); err != nil {
+				t.Fatal(err)
+			}
+			op := lifecycleOperation{lifecycleIdentity: backupLifecycleIdentity(gs, b, false)}
+			op.StoppedBackup.Stage = "Drained"
+			op.StoppedBackup.WorkloadUID = "unverified-workload"
+			op.StoppedBackup.Deadline = time.Now().Format(time.RFC3339Nano)
+			op.StoppedBackup.Claims = b.Status.CaptureManifest.Volumes
+			gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+			gs.Annotations[backupGuardAnnotation] = backupIdentityJSON(b.Name, b.UID)
+			if err := c.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			gs.Status.Conditions = []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue, Reason: "Ready"}}
+			if err := c.Status().Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			gr := &GameServerReconciler{Client: c, APIReader: c, Scheme: c.Scheme()}
+			br := &BackupReconciler{Client: c, APIReader: c, Scheme: c.Scheme()}
+			cleanup := func(wantError string) {
+				t.Helper()
+				var err error
+				if orphan {
+					_, err = gr.recoverStoppedBackupOwner(t.Context(), gs)
+					wantError = "" // Orphan intervention is reported through status.
+				} else {
+					err = br.releaseBackupTarget(t.Context(), b)
+				}
+				if wantError == "" && err != nil {
+					t.Fatal(err)
+				}
+				if wantError != "" && (err == nil || !strings.Contains(err.Error(), wantError)) {
+					t.Fatalf("cleanup error = %v, want %q", err, wantError)
+				}
+				if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), gs); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if orphan {
+				if err := c.Delete(t.Context(), b); err != nil {
+					t.Fatal(err)
+				}
+			}
+			cleanup("intervention")
+			if !meta.IsStatusConditionTrue(gs.Status.Conditions, "RecoveryIntervention") || gs.Annotations[lifecycleOperationAnnotation] == "" {
+				t.Fatal("unverified workload did not retain intervention and ownership")
+			}
+			op.StoppedBackup.WorkloadUID = "workload"
+			gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+			if err := c.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			var ss appsv1.StatefulSet
+			if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), &ss); err != nil {
+				t.Fatal(err)
+			}
+			zero := int32(0)
+			ss.Spec.Replicas = &zero
+			if err := c.Update(t.Context(), &ss); err != nil {
+				t.Fatal(err)
+			}
+			writer := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "remaining-writer", Namespace: gs.Namespace}, Spec: corev1.PodSpec{Volumes: []corev1.Volume{{Name: "world", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: gs.Name + "-extra-world"}}}}}}
+			if err := c.Create(t.Context(), writer); err != nil {
+				t.Fatal(err)
+			}
+			cleanup("waiting for stopped source and workers to drain")
+			if changed, err := gr.recoverStoppedBackupOwner(t.Context(), gs); err != nil || changed {
+				t.Fatalf("intervention changed before writer drainage: %v %v", changed, err)
+			}
+			if !meta.IsStatusConditionTrue(gs.Status.Conditions, "RecoveryIntervention") || gs.Annotations[lifecycleOperationAnnotation] == "" {
+				t.Fatal("live writer did not retain intervention and ownership")
+			}
+			if err := c.Delete(t.Context(), writer); err != nil {
+				t.Fatal(err)
+			}
+			cleanup("")
+			if gs.Annotations[lifecycleOperationAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
+				t.Fatal("completed cleanup retained ownership")
+			}
+			if changed, err := gr.recoverStoppedBackupOwner(t.Context(), gs); err != nil || !changed {
+				t.Fatalf("clear completed intervention: %v %v", changed, err)
+			}
+			if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), gs); err != nil {
+				t.Fatal(err)
+			}
+			if meta.FindStatusCondition(gs.Status.Conditions, "RecoveryIntervention") != nil || !meta.IsStatusConditionTrue(gs.Status.Conditions, "Ready") {
+				t.Fatal("completed cleanup retained intervention or removed unrelated status")
+			}
+			if changed, err := gr.recoverStoppedBackupOwner(t.Context(), gs); err != nil || changed {
+				t.Fatalf("clean recovery did not settle: %v %v", changed, err)
+			}
+		})
 	}
 }
 

@@ -1152,8 +1152,8 @@
     "description": "Backup details drawer: field label above the time the backup completed, shown in relative time"
   },
   "web.components.backups.backup_detail_drawer.coverage_scope": {
-    "defaultMessage": "Les volumes inclus sont copiés aux racines d’archive enregistrées. Les volumes reconstructibles sont exclus. Vérifiez leurs prérequis de récupération avant de redémarrer.",
-    "description": "Backup details: explains recorded volume coverage and excluded rebuildable recovery prerequisites"
+    "defaultMessage": "Les volumes inclus sont copiés aux racines d’archive enregistrées. Les sauvegardes limitées au volume principal excluent les volumes de données supplémentaires et les volumes de mods distincts. Les volumes reconstructibles sont exclus. Vérifiez les prérequis de récupération avant de redémarrer.",
+    "description": "Backup details: explains recorded volume coverage, primary-only exclusions, and recovery prerequisites for excluded volumes"
   },
   "web.components.backups.backup_detail_drawer.delete": {
     "defaultMessage": "Supprimer",

@@ -89,7 +89,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
                     {manifest?.state === "Recorded" ? (
                       <div className="space-y-3">
                         {manifest.recordedAt && <div className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_recorded", defaultMessage: "Recorded: {time}", description: "Backup details: timestamp of the immutable capture manifest" }, { time: manifest.recordedAt })}</div>}
-                        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_scope", defaultMessage: "Included claims are copied at the recorded archive roots. Rebuildable volumes are excluded. Check their recovery prerequisites before restarting.", description: "Backup details: explains recorded volume coverage and excluded rebuildable recovery prerequisites" })}</p>
+                        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.coverage_scope", defaultMessage: "Included claims are copied at the recorded archive roots. Primary-only backups exclude extra data volumes and separate mod claims. Rebuildable volumes are excluded. Check recovery prerequisites before restarting.", description: "Backup details: explains recorded volume coverage, primary-only exclusions, and recovery prerequisites for excluded volumes" })}</p>
                         <ul className="space-y-3">
                           {manifest.volumes?.map((volume) => (
                             <li key={volume.claimName} className="rounded border border-border p-2 space-y-1">
