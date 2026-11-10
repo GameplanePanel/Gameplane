@@ -261,6 +261,9 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		}
 		defer func() { _ = resp.Body.Close() }()
 		copyResponseHeaders(w.Header(), resp.Header)
+		if strings.HasSuffix(agentPath, "/download") {
+			forceAttachment(w.Header())
+		}
 		w.WriteHeader(resp.StatusCode)
 		_, _ = io.Copy(w, resp.Body)
 	}
@@ -307,6 +310,23 @@ var responseHeaderDenylist = map[string]bool{
 	"Keep-Alive":         true,
 	"Transfer-Encoding":  true,
 	"Upgrade":            true,
+	// The API's own browser security headers (secureHeaders in cmd/main.go)
+	// must survive the proxy: a misbehaving agent may not relax the CSP,
+	// framing or sniffing rules, open CORS, or redirect the browser.
+	"Content-Security-Policy":             true,
+	"Content-Security-Policy-Report-Only": true,
+	"X-Frame-Options":                     true,
+	"X-Content-Type-Options":              true,
+	"Strict-Transport-Security":           true,
+	"Referrer-Policy":                     true,
+	"Permissions-Policy":                  true,
+	"Access-Control-Allow-Origin":         true,
+	"Access-Control-Allow-Credentials":    true,
+	"Access-Control-Allow-Headers":        true,
+	"Access-Control-Allow-Methods":        true,
+	"Access-Control-Expose-Headers":       true,
+	"Location":                            true,
+	"Refresh":                             true,
 }
 
 func copyProxyHeaders(dst, src http.Header) {
@@ -316,6 +336,17 @@ func copyProxyHeaders(dst, src http.Header) {
 		}
 		dst[http.CanonicalHeaderKey(k)] = v
 	}
+}
+
+// forceAttachment keeps a proxied download a download: a misbehaving agent
+// can't answer with an inline page (HTML with a meta refresh, say) that the
+// browser would render under the API's origin.
+func forceAttachment(h http.Header) {
+	d := strings.ToLower(strings.TrimSpace(h.Get("Content-Disposition")))
+	if strings.HasPrefix(d, "attachment") {
+		return
+	}
+	h.Set("Content-Disposition", "attachment")
 }
 
 func copyResponseHeaders(dst, src http.Header) {

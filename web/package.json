@@ -29,6 +29,7 @@
   "dependencies": {
     "@heroui/react": "3.2.7",
     "@heroui/styles": "3.2.7",
+    "@monaco-editor/loader": "^1.7.0",
     "@monaco-editor/react": "^4.7.0",
     "@react-aria/i18n": "^3.13.1",
     "@react-aria/ssr": "^3.10.1",
@@ -40,6 +41,7 @@
     "@xterm/xterm": "^6.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.69.0",
+    "monaco-editor": "^0.56.0",
     "react": "^19.3.1",
     "react-aria": "^3.53.1",
     "react-aria-components": "^1.22.1",

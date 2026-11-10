@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,6 +40,70 @@ function i18nPseudo(): Plugin {
   };
 }
 
+// monacoAssets copies Monaco's AMD build into dist/monaco/vs, where
+// src/lib/monaco-loader.ts points the editor loader, so the editor loads
+// from the dashboard's own origin instead of cdn.jsdelivr.net.
+function monacoAssets(): Plugin {
+  let outDir = "";
+  return {
+    name: "gameplane-monaco-assets",
+    apply: "build",
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      cpSync(path.resolve(here, "node_modules/monaco-editor/min/vs"), path.join(outDir, "monaco/vs"), {
+        recursive: true,
+      });
+    },
+  };
+}
+
+// cspHeader writes web/build/csp.conf, the Content-Security-Policy header
+// nginx sends with the SPA shell (web/nginx.conf.template includes it). The
+// shell's inline boot scripts (theme and language, run before first paint)
+// are allowed by their sha256 hash, so the policy is derived from the built
+// index.html instead of being kept in step by hand.
+function cspHeader(): Plugin {
+  let outDir = "";
+  return {
+    name: "gameplane-csp-header",
+    apply: "build",
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      const html = readFileSync(path.join(outDir, "index.html"), "utf8");
+      const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
+      const hashes = inline.map((m) => `'sha256-${createHash("sha256").update(m[1] ?? "").digest("base64")}'`);
+      // The shell always carries the theme and language boot scripts; none
+      // found means this match no longer fits index.html, and the policy
+      // would block them.
+      if (hashes.length === 0) {
+        throw new Error("cspHeader: no inline scripts found in index.html");
+      }
+      const policy = [
+        "default-src 'self'",
+        ["script-src 'self'", ...hashes].join(" "),
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' data: https://fonts.gstatic.com",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self'",
+        "worker-src 'self' blob:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+      ].join("; ");
+      mkdirSync(path.resolve(here, "build"), { recursive: true });
+      writeFileSync(
+        path.resolve(here, "build/csp.conf"),
+        `add_header Content-Security-Policy "${policy}" always;\n`,
+      );
+    },
+  };
+}
+
 // API target for the dev server's proxy. Defaults to the standard local
 // process; Playwright live-mode points it at a kubectl port-forward by
 // setting GAMEPLANE_API_URL=http://localhost:18080 before spawning vite.
@@ -55,7 +121,7 @@ function htmlBypass(req: { headers: Record<string, string | string[] | undefined
 }
 
 export default defineConfig({
-  plugins: [react(), i18nFixtures(), i18nPseudo()],
+  plugins: [react(), i18nFixtures(), i18nPseudo(), monacoAssets(), cspHeader()],
   resolve: {
     alias: {
       "@": path.resolve(here, "./src"),

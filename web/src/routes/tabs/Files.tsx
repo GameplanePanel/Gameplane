@@ -18,6 +18,7 @@ import {
   Button,
   Input,
 } from "@heroui/react";
+import "@/lib/monaco-loader";
 import Editor from "@monaco-editor/react";
 import {
   ChevronLeft,

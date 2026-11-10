@@ -66,8 +66,8 @@ are public OAuth identifiers), and the client secret is stored as an
 API-managed Secret `gameplane-auth-<name>` in the control-plane
 namespace. Two labels bound the API's reach: it only *reads* Secrets
 labelled `gameplane.local/auth-provider=true`, and only *deletes* ones
-additionally labelled `gameplane.local/managed-by=gameplane-api` — so a
-`config:manage` user can neither exfiltrate arbitrary control-plane
+additionally labelled `gameplane.local/managed-by=gameplane-api` — so an
+administrator editing providers can neither exfiltrate arbitrary control-plane
 Secrets through a provider's `configRef` nor delete kubectl-/GitOps-
 created ones over HTTP. Provider changes apply on save, no restart: the
 registry re-reads the config row per auth request and rebuilds OIDC
@@ -195,6 +195,15 @@ named set of permissions, and a user is bound to roles **per namespace**.
   edits follow the same rules: a change that removes `users:manage` from the
   caller's own primary role, or from the role every user manager holds, is
   refused.
+- **Admin-only grants.** `users:manage`, `roles:manage`, `config:manage` and
+  `cluster:manage` lead to full administrator access, so only a holder of
+  the `*` wildcard may add them to a role, assign a role that carries them
+  (or `admin`), or edit, reset, delete or re-bind another account that holds
+  them. Sign-in provider settings (`/admin/config/auth`, `/admin/auth/…`)
+  also need `*`. Other managers can still grant every other permission.
+- **Password reset** bumps the account's `session_epoch`; a session is valid
+  only while its epoch matches the account's, so a reset ends every earlier
+  session, including one a concurrent login was still creating.
 - **Event stream.** `GET /events` carries only the resource kinds the caller
   may read in the resolved cluster and namespace, using the same read
   permission as each kind's list route.
@@ -275,7 +284,7 @@ Share links (`api/internal/db/shares.go`, schema in `api/internal/db/migrations/
 
 **Indistinguishability.** An unknown token, an expired token, and a revoked token all produce the identical response (`ErrShareLinkInvalid` internally; a uniform 404 at the HTTP layer). This prevents an attacker from learning, by probing, whether a guessed token ever existed, expired, or was deliberately revoked.
 
-**Token placement.** The token travels as a path segment (`/shares/{token}`), not a query parameter, keeping it out of query-string capture by proxies, access logs and analytics, and letting audit logging redact it from recorded request paths with a simple prefix rewrite (`redactShareToken` in `api/internal/audit/audit.go`). A path segment is still part of the URL, so it does not by itself keep the token out of `Referer` headers; API responses set `Referrer-Policy: no-referrer` (`secureHeaders` in `api/cmd/main.go`) for that.
+**Token placement.** The token travels as a path segment (`/shares/{token}`), not a query parameter, keeping it out of query-string capture by proxies, access logs and analytics, and letting audit logging redact it from recorded request paths with a simple prefix rewrite (`redactShareToken` in `api/internal/audit/audit.go`). A path segment is still part of the URL, so it does not by itself keep the token out of `Referer` headers; API responses set `Referrer-Policy: no-referrer` (`secureHeaders` in `api/cmd/main.go`) and the dashboard's nginx sets it on the SPA shell, for that. Access logs: the dashboard's nginx leaves share paths, and requests referred by a share page, out of its log (`web/nginx.conf.template`), and the chart serves `/share` and `/shares` through a separate Ingress with ingress-nginx access logging turned off (`ingress.shareLinks.disableAccessLog`). Operators on another ingress controller must filter those paths from its log themselves (`docs/install.md`).
 
 **Expiry.** Every share link either has an expiry timestamp or is explicitly created with no expiry (owner's choice; see `specs/done_017-share-link-expiry/`). There is no platform-enforced maximum lifetime: a non-expiring or long-lived link is exactly as hard to guess on any given day as a short-lived one, because guessing difficulty comes from the token's entropy, not from its age. The tradeoff of a long-lived or non-expiring link is operational — a forgotten link stays live until the owner revokes it — not cryptographic, which is why the create-link UI warns the owner explicitly ("This link works until you revoke it." for no expiry; a long-lived-token warning for a custom date a year or more out) rather than the system silently capping the choice.
 
@@ -329,11 +338,15 @@ When `networkPolicies.enabled=true` (default) the chart applies:
   declared in the GameTemplate. Selects traffic from `networkPolicies.gameIngress.fromCIDRs`
   (default `0.0.0.0/0`, the internet) to only the container ports marked
   `Advertise: true` at their declared protocol (UDP preserved). This policy
-  does not itself open RCON or the agent's port 8090; however, those ports
-  remain reachable from `kubeletCIDRs` via the `allow-kubelet-probes` policy
-  (see below), which has no port restrictions by default. To close that hole,
-  narrow `networkPolicies.probePorts` — previously unsafe to do, but now
-  safe since this policy protects advertised player traffic separately.
+  does not itself open RCON or the agent's port 8090.
+- `<gameserver-name>-probes` — created by the **operator** for each
+  GameServer when `networkPolicies.probeIngress.enabled` (default), admits
+  `kubeletCIDRs` to exactly the ports the game container's tcpSocket, httpGet
+  and grpc probes use. The chart's catch-all `allow-kubelet-probes` rule is
+  then rendered only for ports listed in `networkPolicies.probePorts`. With
+  `probeIngress.enabled: false` that chart rule returns, and an empty
+  `probePorts` lets every address in `kubeletCIDRs` (pod CIDRs included)
+  reach any port on a game pod, RCON included.
   Operators may also narrow `fromCIDRs` to a private range (e.g. a LAN, a VPN
   CIDR) to gate player access. If a template declares no advertised ports or
   `networkPolicies.gameIngress.enabled: false`, the operator ensures this

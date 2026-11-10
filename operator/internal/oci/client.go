@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"time"
 
+	"github.com/GameplanePanel/gameplane/netguard"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"golang.org/x/mod/semver"
 	"oras.land/oras-go/v2/content"
@@ -34,7 +36,13 @@ func New(credentials CredentialFunc, insecure bool) *Client {
 		credentials: credentials,
 		insecure:    insecure,
 	}
-	c.httpClient = &http.Client{Transport: retry.NewTransport(&http.Transport{})}
+	// Registry dials go through the same guard as the git and http module
+	// sources: cloud-metadata, link-local and other reserved addresses are
+	// refused at dial time, so a ModuleSource URL can't be aimed at them.
+	// Local and in-cluster registries stay reachable.
+	c.httpClient = &http.Client{Transport: retry.NewTransport(&http.Transport{
+		DialContext: netguard.Dialer(30*time.Second, netguard.IsAllowed).DialContext,
+	})}
 	return c
 }
 

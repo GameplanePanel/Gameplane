@@ -423,6 +423,14 @@ spec:
             {{- else }}
             - --game-ingress-policy=false
             {{- end }}
+            {{- if and .Values.networkPolicies.enabled (.Values.networkPolicies.probeIngress | default dict).enabled }}
+            - --probe-ingress-policy=true
+            {{- range (.Values.networkPolicies.kubeletCIDRs | default (list "10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16" "169.254.0.0/16")) }}
+            - --probe-ingress-from-cidr={{ . }}
+            {{- end }}
+            {{- else }}
+            - --probe-ingress-policy=false
+            {{- end }}
           env:
             - name: POD_NAMESPACE
               valueFrom:

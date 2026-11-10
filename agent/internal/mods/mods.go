@@ -14,6 +14,8 @@ package mods
 import (
 	"archive/zip"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,6 +30,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -390,15 +393,6 @@ func (h *handler) upload(w http.ResponseWriter, req *http.Request) {
 		httpjson.Error(w, http.StatusInternalServerError, "could not store the upload")
 		return
 	}
-	// Chmod before rename: the temp file is 0o600, but mods must be 0o644 so
-	// the game container (different uid, shared fsGroup) can read them.
-	if err := os.Chmod(tmpName, moduleFileMode); err != nil {
-		_ = os.Remove(tmpName)
-		slog.Warn("mod upload chmod", "err", err)
-		httpjson.Error(w, http.StatusInternalServerError, "could not store the upload")
-		return
-	}
-
 	installName := name
 	if h.extract {
 		installName = archiveFolderName(name)
@@ -417,28 +411,17 @@ func (h *handler) upload(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	} else {
-		// Use ConfinePath to validate and resolve the destination within h.dir.
-		// ConfinePath consolidates validation and symlink resolution in one function,
-		// making the guard legible to CodeQL taint analysis.
-		finalPath, err := ConfinePath(h.dir, name)
-		if err != nil {
+		// ConfinePath validates name as one plain component of h.dir;
+		// publishTemp then does the chmod and rename through the mods root.
+		if _, err := ConfinePath(h.dir, name); err != nil {
 			_ = os.Remove(tmpName)
 			slog.Warn("mod upload confinement", "err", err)
 			httpjson.Error(w, http.StatusBadRequest, "file name is not valid for this mod path")
 			return
 		}
-		// Re-check inline so the guard is visible at the point of use.
-		rootClean := filepath.Clean(h.dir)
-		finalPath = filepath.Clean(finalPath)
-		if finalPath != rootClean && !strings.HasPrefix(finalPath, rootClean+string(os.PathSeparator)) {
+		if err := h.publishTemp(tmpName, name); err != nil {
 			_ = os.Remove(tmpName)
-			slog.Warn("mod upload escape attempt", "path", finalPath)
-			httpjson.Error(w, http.StatusBadRequest, "path escape attempt")
-			return
-		}
-		if err := os.Rename(tmpName, finalPath); err != nil {
-			_ = os.Remove(tmpName)
-			slog.Warn("mod upload rename", "err", err)
+			slog.Warn("mod upload publish", "err", err)
 			httpjson.Error(w, http.StatusInternalServerError, "could not store the upload")
 			return
 		}
@@ -537,25 +520,40 @@ func (h *handler) download(ctx context.Context, url, name string) (int64, error)
 	if err != nil {
 		return 0, err
 	}
-	// Use ConfinePath to validate and resolve the destination within h.dir.
-	// ConfinePath consolidates validation and symlink resolution in one function,
-	// making the guard legible to CodeQL taint analysis.
-	finalPath, err := ConfinePath(h.dir, name)
-	if err != nil {
+	// ConfinePath validates name as one plain component of h.dir;
+	// publishTemp then does the chmod and rename through the mods root.
+	if _, err := ConfinePath(h.dir, name); err != nil {
 		_ = os.Remove(tmpName)
 		return 0, err
 	}
-	// Chmod before rename: the temp file is 0o600, but mods must be 0o644 so
-	// the game container (different uid, shared fsGroup) can read them.
-	if err := os.Chmod(tmpName, moduleFileMode); err != nil {
-		_ = os.Remove(tmpName)
-		return 0, fmt.Errorf("chmod temp: %w", err)
-	}
-	if err := os.Rename(tmpName, finalPath); err != nil {
+	if err := h.publishTemp(tmpName, name); err != nil {
 		_ = os.Remove(tmpName)
 		return 0, err
 	}
 	return n, nil
+}
+
+// publishTemp moves a finished temp file of the mods dir to its final name.
+// Both steps go through the mods root (openat beneath it), so a symlink the
+// game container plants under either name can't send the chmod or the
+// rename outside the mods dir. tmpPath was made by os.CreateTemp(h.dir, …),
+// so its base name is its name inside the root.
+func (h *handler) publishTemp(tmpPath, name string) error {
+	root, err := h.openModsRoot()
+	if err != nil {
+		return err
+	}
+	defer func() { _ = root.Close() }()
+	tmp := filepath.Base(tmpPath)
+	// The temp file is 0o600, but mods must be 0o644 so the game container
+	// (different uid, shared fsGroup) can read them.
+	if err := root.Chmod(tmp, moduleFileMode); err != nil {
+		return fmt.Errorf("chmod temp: %w", err)
+	}
+	if err := root.Rename(tmp, name); err != nil {
+		return fmt.Errorf("publish mod: %w", err)
+	}
+	return nil
 }
 
 // installArchive downloads a zip and unpacks it into <dir>/<folder>/,
@@ -574,45 +572,74 @@ func (h *handler) installArchive(ctx context.Context, url, folder string) (int64
 
 // swapInArchive unpacks tmpZip into <dir>/<folder>/, replacing any existing
 // folder of that name — the shared tail of URL installs and uploads.
+//
+// The mods dir is shared with the game container, which can create, swap
+// and symlink entries while an install runs. Every step after the name check
+// therefore goes through an os.Root opened on the mods dir (openat beneath
+// it, symlinks that leave it refused), never through a path string.
 func (h *handler) swapInArchive(tmpZip, folder string, maxBytes int64) error {
-	staging, err := os.MkdirTemp(h.dir, ".ex-*")
-	if err != nil {
-		return err
-	}
-	if err := unzipInto(tmpZip, staging, maxBytes); err != nil {
-		_ = os.RemoveAll(staging)
-		return err
-	}
-	// MkdirTemp creates 0700 directories. The game container uses another
-	// uid and needs to traverse the installed archive root.
-	if err := os.Chmod(staging, moduleDirMode); err != nil {
-		_ = os.RemoveAll(staging)
-		return fmt.Errorf("chmod archive root: %w", err)
-	}
-	// Use ConfinePath to validate and resolve the final path within h.dir.
-	// ConfinePath consolidates validation and symlink resolution in one function,
-	// making the guard legible to CodeQL taint analysis.
-	final, err := ConfinePath(h.dir, folder)
-	if err != nil {
-		_ = os.RemoveAll(staging)
+	// ConfinePath validates folder as one plain component of h.dir.
+	if _, err := ConfinePath(h.dir, folder); err != nil {
 		return fmt.Errorf("path escape attempt: %w", err)
 	}
-	// Re-check inline so the guard is visible at the point of use.
-	rootClean := filepath.Clean(h.dir)
-	final = filepath.Clean(final)
-	if final != rootClean && !strings.HasPrefix(final, rootClean+string(os.PathSeparator)) {
-		_ = os.RemoveAll(staging)
-		return errors.New("path escape attempt")
+	// O_NONBLOCK: a FIFO swapped in for the temp file must not hang the open.
+	zf, err := os.OpenFile(filepath.Clean(tmpZip), os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
+	if err != nil {
+		return fmt.Errorf("open archive: %w", err)
 	}
-	if err := os.RemoveAll(final); err != nil {
-		_ = os.RemoveAll(staging)
+	defer func() { _ = zf.Close() }()
+	info, err := zf.Stat()
+	if err != nil {
+		return fmt.Errorf("stat archive: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("%w: not a regular file", errBadArchive)
+	}
+	zr, err := zip.NewReader(zf, info.Size())
+	if err != nil {
+		return fmt.Errorf("%w: %w", errBadArchive, err)
+	}
+
+	root, err := h.openModsRoot()
+	if err != nil {
 		return err
 	}
-	if err := os.Rename(staging, final); err != nil {
-		_ = os.RemoveAll(staging)
+	defer func() { _ = root.Close() }()
+	var suffix [8]byte
+	_, _ = rand.Read(suffix[:]) // crypto/rand.Read never returns an error
+	staging := ".ex-" + hex.EncodeToString(suffix[:])
+	if err := root.Mkdir(staging, 0o700); err != nil {
+		return fmt.Errorf("create staging dir: %w", err)
+	}
+	if err := fillStaging(root, staging, zr, maxBytes); err != nil {
+		_ = root.RemoveAll(staging)
 		return err
+	}
+	// The staging dir is 0700. The game container uses another uid and
+	// needs to traverse the installed archive root.
+	if err := root.Chmod(staging, moduleDirMode); err != nil {
+		_ = root.RemoveAll(staging)
+		return fmt.Errorf("chmod archive root: %w", err)
+	}
+	if err := root.RemoveAll(folder); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		_ = root.RemoveAll(staging)
+		return fmt.Errorf("remove old mod folder: %w", err)
+	}
+	if err := root.Rename(staging, folder); err != nil {
+		_ = root.RemoveAll(staging)
+		return fmt.Errorf("install mod folder: %w", err)
 	}
 	return nil
+}
+
+// fillStaging extracts zr into the staging dir of root.
+func fillStaging(root *os.Root, staging string, zr *zip.Reader, maxBytes int64) error {
+	dst, err := root.OpenRoot(staging)
+	if err != nil {
+		return fmt.Errorf("open staging dir: %w", err)
+	}
+	defer func() { _ = dst.Close() }()
+	return extractZip(zr, dst, maxBytes)
 }
 
 // Unix mode type bits as stored in a zip entry's external attributes
@@ -622,29 +649,42 @@ const (
 	unixTypeSymlink = 0o120000
 )
 
+// maxArchiveEntries caps the entries one archive may hold, so an archive of
+// millions of empty files can't exhaust the shared volume's inodes.
+const maxArchiveEntries = 10000
+
 // unzipInto extracts zipPath into dst, guarding against zip-slip and
-// capping the total uncompressed size.
+// capping the total uncompressed size and entry count.
 func unzipInto(zipPath, dst string, maxBytes int64) error {
 	zr, err := zip.OpenReader(zipPath)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errBadArchive, err)
 	}
 	defer func() { _ = zr.Close() }()
+	if err := os.MkdirAll(dst, moduleDirMode); err != nil {
+		return fmt.Errorf("create extraction dir: %w", err)
+	}
+	root, err := os.OpenRoot(dst)
+	if err != nil {
+		return fmt.Errorf("open extraction dir: %w", err)
+	}
+	defer func() { _ = root.Close() }()
+	return extractZip(&zr.Reader, root, maxBytes)
+}
 
-	dstClean := filepath.Clean(dst)
+// extractZip writes every entry of zr beneath root. All file system access
+// goes through root, so a symlink planted in the tree mid-extraction can't
+// redirect a write outside it.
+func extractZip(zr *zip.Reader, root *os.Root, maxBytes int64) error {
+	if len(zr.File) > maxArchiveEntries {
+		return fmt.Errorf("%w: more than %d entries", errTooLarge, maxArchiveEntries)
+	}
 	var total int64
 	for _, f := range zr.File {
-		// Validate the archive entry in a single gate: use ConfineRelPath to validate and
-		// resolve the entry name within the destination directory. Any entry that escapes
-		// the destination returns an error immediately rather than being silently skipped.
-		// ConfineRelPath handles multi-segment paths and dotfiles that legitimate archives contain.
-		target, confineErr := ConfineRelPath(dstClean, f.Name)
-		if confineErr != nil {
-			return fmt.Errorf("zip-slip: %w", confineErr)
-		}
-		// Re-check inline so the guard is visible at the point of use.
-		target = filepath.Clean(target)
-		if target != dstClean && !strings.HasPrefix(target, dstClean+string(os.PathSeparator)) {
+		// Every entry must name a path inside the destination. An entry that
+		// would escape fails the whole archive instead of being skipped.
+		name := filepath.Clean(filepath.FromSlash(f.Name))
+		if !filepath.IsLocal(name) {
 			return fmt.Errorf("zip-slip: %w", ErrEscapesRoot)
 		}
 		// Reject symlink entries outright: a symlink's target is resolved at use
@@ -659,31 +699,19 @@ func unzipInto(zipPath, dst string, maxBytes int64) error {
 			return fmt.Errorf("zip-slip: %w", errSymlinkEntry)
 		}
 		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(target, moduleDirMode); err != nil {
-				return err
+			if err := root.MkdirAll(name, moduleDirMode); err != nil {
+				return fmt.Errorf("create %s: %w", name, err)
 			}
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(target), moduleDirMode); err != nil {
-			return err
+		if dir := filepath.Dir(name); dir != "." {
+			if err := root.MkdirAll(dir, moduleDirMode); err != nil {
+				return fmt.Errorf("create %s: %w", dir, err)
+			}
 		}
-		rc, err := f.Open()
+		n, err := extractEntry(f, root, name, maxBytes-total+1)
 		if err != nil {
 			return err
-		}
-		out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, moduleFileMode)
-		if err != nil {
-			_ = rc.Close()
-			return err
-		}
-		n, err := io.Copy(out, io.LimitReader(rc, maxBytes-total+1))
-		_ = rc.Close()
-		closeErr := out.Close()
-		if err != nil {
-			return err
-		}
-		if closeErr != nil {
-			return closeErr
 		}
 		total += n
 		if total > maxBytes {
@@ -691,6 +719,28 @@ func unzipInto(zipPath, dst string, maxBytes int64) error {
 		}
 	}
 	return nil
+}
+
+// extractEntry copies at most limit bytes of f to name beneath root.
+func extractEntry(f *zip.File, root *os.Root, name string, limit int64) (int64, error) {
+	rc, err := f.Open()
+	if err != nil {
+		return 0, fmt.Errorf("open entry %s: %w", name, err)
+	}
+	defer func() { _ = rc.Close() }()
+	out, err := root.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, moduleFileMode)
+	if err != nil {
+		return 0, fmt.Errorf("create %s: %w", name, err)
+	}
+	n, err := io.Copy(out, io.LimitReader(rc, limit))
+	closeErr := out.Close()
+	if err != nil {
+		return n, fmt.Errorf("write %s: %w", name, err)
+	}
+	if closeErr != nil {
+		return n, fmt.Errorf("close %s: %w", name, closeErr)
+	}
+	return n, nil
 }
 
 // archiveFolderName strips a known archive extension to name the per-mod
@@ -911,6 +961,9 @@ func newSafeClient(allowed []string) *http.Client {
 		if !hostAllowed(req.URL.Hostname(), allowed) {
 			return errHostNotAllowed
 		}
+		// Go copies Referer onto redirects, and a Factorio download URL
+		// carries the account's username and token in its query string.
+		req.Header.Del("Referer")
 		return nil
 	}
 	return client

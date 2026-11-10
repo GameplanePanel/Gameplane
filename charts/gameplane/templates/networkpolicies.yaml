@@ -183,12 +183,18 @@ spec:
         - { protocol: TCP, port: 8091 }
 {{- end }}
 {{- end }}
+{{- $probeIngress := and (eq (include "gameplane.operatorEnabled" .) "true") (.Values.networkPolicies.probeIngress | default dict).enabled }}
+{{- if or (not $probeIngress) .Values.networkPolicies.probePorts }}
 ---
 # Allow probe traffic from kubelet. Source IP depends on the CNI; by
 # default we scope to RFC1918 + link-local, which covers most single-
 # cluster installs without opening the public internet. Operators on
 # clusters where nodes sit outside those ranges should set
 # networkPolicies.kubeletCIDRs explicitly.
+#
+# With networkPolicies.probeIngress.enabled (the default) the operator
+# admits each server's probes to that server's probe ports only, and this
+# rule is rendered only for the extra probePorts listed explicitly.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -219,6 +225,7 @@ spec:
         - { protocol: {{ .protocol }}, port: {{ .port }} }
         {{- end }}
       {{- end }}
+{{- end }}
 {{- if .Values.networkPolicies.gameEgress.enabled }}
 ---
 # Allow game pods to reach the public internet for binary/asset/mod

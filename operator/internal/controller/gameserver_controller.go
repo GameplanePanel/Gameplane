@@ -158,6 +158,18 @@ type GameServerReconciler struct {
 	// supplied. Each entry is validated as a CIDR at operator startup.
 	GameIngressFromCIDRs []string
 
+	// ProbeIngressPolicyEnabled controls whether the operator reconciles the
+	// per-GameServer `<gs>-probes` NetworkPolicy admitting kubelet probes to
+	// the game container's probe ports (see reconcileProbePolicy). Set from
+	// --probe-ingress-policy. When false the policy is removed, and the
+	// chart's allow-kubelet-probes rule is expected to admit probes instead.
+	ProbeIngressPolicyEnabled bool
+
+	// ProbeIngressFromCIDRs are the kubelet source CIDRs the probe policy
+	// admits. Set from the repeatable --probe-ingress-from-cidr flag, which
+	// defaults to RFC1918 + link-local (the chart's kubeletCIDRs fallback).
+	ProbeIngressFromCIDRs []string
+
 	// CaptureEnabled is the cluster-wide on/off switch for the network
 	// capture feature. Set from the operator's --capture-enabled flag,
 	// default false. When false, the capture capability cannot be enabled
@@ -341,6 +353,10 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileNetworkPolicy(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile ingress NetworkPolicy")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileProbePolicy(ctx, &gs, &tmpl); err != nil {
+		logger.Error(err, "reconcile probe NetworkPolicy")
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileSentinelIsolation(ctx, &gs, &tmpl); err != nil {
@@ -1549,6 +1565,11 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 	if err := r.validateServerEnvSources(ctx, gs); err != nil {
 		return err
 	}
+	// Template and version env come from module content, which may be third
+	// party; hold their Secret and ConfigMap references to the same rule.
+	if err := r.validateTemplateEnvSources(ctx, gs, tmpl, ver); err != nil {
+		return err
+	}
 
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace},
@@ -2439,6 +2460,25 @@ func (r *GameServerReconciler) validateServerEnvSources(ctx context.Context, gs 
 					cmName, gs.Namespace, gs.Name)
 			}
 		}
+	}
+	return nil
+}
+
+// validateTemplateEnvSources applies validateServerEnvSources' ownership rule
+// to the env entries the GameTemplate and the selected GameVersion add, so a
+// module can't read another server's or a backup destination's Secret.
+func (r *GameServerReconciler) validateTemplateEnvSources(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer,
+	tmpl *gameplanev1alpha1.GameTemplate, ver *gameplanev1alpha1.GameVersion,
+) error {
+	env := append([]corev1.EnvVar{}, tmpl.Spec.Env...)
+	if ver != nil {
+		env = append(env, ver.Env...)
+	}
+	probe := gs.DeepCopy()
+	probe.Spec.Env = env
+	if err := r.validateServerEnvSources(ctx, probe); err != nil {
+		return fmt.Errorf("template %s env: %w", tmpl.Name, err)
 	}
 	return nil
 }

@@ -559,6 +559,15 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     nginx.ingress.kubernetes.io/limit-rps: "20"
     nginx.ingress.kubernetes.io/limit-connections: "50"
+  # Share links carry their token in the URL path. When disableAccessLog is
+  # true, /share and /shares go through a second Ingress (gameplane-share)
+  # with the ingress-nginx annotation enable-access-log: "false", so the
+  # controller never writes a working share token to its log. It copies
+  # ingress.annotations; shareLinks.annotations adds to them (for another
+  # controller's own per-route log switch). See docs/install.md.
+  shareLinks:
+    disableAccessLog: true
+    annotations: {}
 
 gamesNamespace: gameplane-games
 
@@ -573,14 +582,18 @@ networkPolicies:
   # Set this explicitly when your node pool sits outside those ranges
   # (some managed providers do).
   kubeletCIDRs: []
-  # Ports the kubelet may reach on game pods for liveness/readiness probes.
-  # Probe ports vary per game module (e.g. the Minecraft game port, Valheim's
-  # status port, Terraria's game port), so the default is empty, which allows
-  # the kubelet (already scoped to kubeletCIDRs) to reach ANY port on a game
-  # pod. Player traffic no longer rides along on this: it's admitted by the
-  # operator-managed per-server ingress policy below (gameIngress), so it's
-  # safe to restrict this to a known fixed set once your modules settle on
-  # one, e.g. [{ protocol: TCP, port: 8090 }].
+  # Per-server kubelet probe policy. When enabled (and the operator runs),
+  # the operator creates <server>-probes for each GameServer, admitting
+  # kubeletCIDRs to exactly the ports that server's tcpSocket/httpGet/grpc
+  # probes use, and the chart's catch-all allow-kubelet-probes rule is not
+  # rendered. Set enabled: false to go back to the chart rule below.
+  probeIngress:
+    enabled: true
+  # Extra ports the kubelet may reach on every game pod. With probeIngress
+  # enabled this is empty by default and only adds the ports you list. With
+  # probeIngress disabled an empty list lets kubeletCIDRs (and every pod in
+  # them) reach ANY port on a game pod, RCON included; list your modules'
+  # probe ports, e.g. [{ protocol: TCP, port: 25565 }].
   probePorts: []
   # CIDRs that hold the kube-apiserver endpoint(s) the agent sidecar
   # patches its status heartbeat through. Same fallback semantics as
@@ -626,10 +639,12 @@ networkPolicies:
   # Ingress allowance for the game port(s) themselves. The operator
   # reconciles one NetworkPolicy per GameServer, opening only that game's
   # `Advertise: true` container ports (read from its GameTemplate) — this
-  # policy itself does not open RCON or the agent's own port. However,
-  # those ports remain reachable from kubeletCIDRs via the separate
-  # allow-kubelet-probes policy until probePorts (above) is narrowed from
-  # its default of []; this policy now makes that safe to do.
+  # policy itself does not open RCON or the agent's own port. With
+  # probeIngress.enabled (the default), kubeletCIDRs reach only each
+  # server's probe ports, through its <server>-probes policy. With
+  # probeIngress.enabled: false and probePorts left at [], the chart's
+  # allow-kubelet-probes rule opens every game-pod port to kubeletCIDRs;
+  # list probePorts in that case.
   # 0.0.0.0/0 is the default because game servers exist to be reached by
   # players, wherever they connect from. Narrow fromCIDRs to restrict who
   # can reach the game port, e.g. to a LAN range for a homelab install.

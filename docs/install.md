@@ -221,10 +221,22 @@ Top-level knobs (see `values.yaml` for the full list):
   reused values or custom annotations, replace an existing `64m` limit
   with `512m` to permit those uploads. Other ingress controllers need
   their equivalent body-size setting.
+- `ingress.shareLinks.disableAccessLog` — default `true`. Share links carry
+  their token in the URL path (`/share/<token>`, `/shares/<token>`), so an
+  ingress access log would hold working tokens. The chart routes those two
+  paths through a second Ingress, `gameplane-share`, annotated
+  `nginx.ingress.kubernetes.io/enable-access-log: "false"`. The dashboard's
+  own nginx leaves the same requests out of its log, and share pages send no
+  `Referer`. Other ingress controllers ignore that annotation: put their
+  per-route log switch in `ingress.shareLinks.annotations`, or filter
+  `/share` and `/shares` paths out of the controller's access log. If your
+  log pipeline collects ingress-nginx's error log at `info` or more, filter
+  those paths there too.
 - `gamesNamespace` — namespace where GameServers are created (default `gameplane-games`)
 - `networkPolicies.enabled` — default-deny in games namespace (recommended on)
   - `networkPolicies.kubeletCIDRs` — CIDRs for kubelet liveness/readiness probes (defaults to RFC1918 + link-local)
-  - `networkPolicies.probePorts` — specific ports to allow on game pods for kubelet probes (empty = any port)
+  - `networkPolicies.probeIngress.enabled` — operator-managed per-server probe policy admitting kubelet probes to each server's probe ports only (default `true`)
+  - `networkPolicies.probePorts` — extra ports to allow on every game pod for kubelet probes; with `probeIngress.enabled: false`, an empty list means any port
   - `networkPolicies.gameIngress` — control ingress to game pods from external sources (players)
     - `gameIngress.enabled` — toggle player-ingress allowance (default `true`)
     - `gameIngress.fromCIDRs` — CIDRs from which player traffic is allowed (default `[0.0.0.0/0]`)

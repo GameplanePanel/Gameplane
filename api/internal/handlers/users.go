@@ -143,6 +143,9 @@ func (h *userHandler) create(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.invalid_role", nil))
 		return
 	}
+	if !allowRoleGrant(w, req, h.db, body.Role) {
+		return
+	}
 	var hash string
 	if body.Password != "" {
 		if len(body.Password) < auth.MinPasswordLen {
@@ -258,14 +261,20 @@ var (
 	// cssURLRE captures the reference inside each url(...) so it can be
 	// inspected; surrounding quotes are optional and excluded.
 	cssURLRE = regexp.MustCompile(`(?i)url\(\s*["']?([^"')]*)["']?\s*\)`)
+	// cssExternalRefRE finds an absolute or protocol-relative reference
+	// anywhere in the stylesheet, inside or outside url().
+	cssExternalRefRE = regexp.MustCompile(`(?i)(https?:|["'(\s,]//)`)
+	// urlControlStripper removes the characters URL parsing ignores.
+	urlControlStripper = strings.NewReplacer("\t", "", "\n", "", "\r", "")
 )
 
 // sanitizeCustomCSS applies the FR-013 rules to a submitted stylesheet,
 // returning "" when the CSS is acceptable or a caller-safe message naming
 // the offending rule. It rejects oversized payloads, @import rules,
 // external url() references (absolute http(s) or protocol-relative, remote
-// fonts included) while allowing inline data: URIs, unbalanced braces, and
-// anything smuggling HTML <style>/<script> delimiters.
+// fonts included) while allowing inline data: URIs, unbalanced braces,
+// anything smuggling HTML <style>/<script> delimiters, CSS escapes, and any
+// other absolute or protocol-relative reference (image-set, src()).
 func sanitizeCustomCSS(css string) string {
 	if len(css) > maxCustomCSSLen {
 		return fmt.Sprintf("customCss rejected: exceeds the maximum length of %d characters", maxCustomCSSLen)
@@ -288,6 +297,17 @@ func sanitizeCustomCSS(css string) string {
 		if strings.Contains(lower, d) {
 			return fmt.Sprintf("customCss rejected: HTML delimiter %q is not allowed", d)
 		}
+	}
+	// CSS escapes (\69mport, u\72l(...)) would hide the rules above from a
+	// plain text match, and image-set("https://...") or src("...") load a
+	// resource without the url( token, so refuse both forms outright.
+	if strings.Contains(css, `\`) {
+		return "customCss rejected: CSS escapes (\\) are not allowed"
+	}
+	// URL parsing drops ASCII tab and newline, so "ht\ttps://" still
+	// fetches: check the text with them removed as well.
+	if cssExternalRefRE.MatchString(css) || cssExternalRefRE.MatchString(urlControlStripper.Replace(css)) {
+		return "customCss rejected: external references are not allowed"
 	}
 	return ""
 }
@@ -516,6 +536,9 @@ func (h *userHandler) del(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.cannot_delete_self", nil))
 		return
 	}
+	if !allowTargetChange(w, req, h.db, id) {
+		return
+	}
 	// Lock to serialize with writes so the last-user-manager check can't race.
 	unlock := h.db.LockUserManagement()
 	defer unlock()
@@ -578,6 +601,12 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 			httperr.WriteMessage(w, req, messages.New("server.users.invalid_role", nil))
 			return
 		}
+	}
+	if !allowTargetChange(w, req, h.db, id) {
+		return
+	}
+	if body.Role != nil && !allowRoleGrant(w, req, h.db, *body.Role) {
+		return
 	}
 	caller := auth.UserFromContext(req.Context())
 	if body.Role != nil {
@@ -706,13 +735,26 @@ func (h *userHandler) resetPassword(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.password_too_short", nil))
 		return
 	}
+	if !allowTargetChange(w, req, h.db, id) {
+		return
+	}
 	hash, err := auth.HashPassword(req.Context(), body.Password)
 	if err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
-	res, err := h.db.DB.ExecContext(req.Context(),
-		`UPDATE users SET pw_hash = ?, updated_at = ? WHERE id = ?`,
+	// Force the target user to re-authenticate under the new credential.
+	// Bumping session_epoch invalidates every session issued before this
+	// reset, including one a concurrent login that verified the old password
+	// is still creating; deleting the rows in the same transaction is cleanup.
+	tx, err := h.db.DB.BeginTx(req.Context(), nil)
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+	res, err := tx.ExecContext(req.Context(),
+		`UPDATE users SET pw_hash = ?, session_epoch = session_epoch + 1, updated_at = ? WHERE id = ?`,
 		hash, db.NowTimestamp(), id)
 	if err != nil {
 		httperr.Write(w, req, err)
@@ -723,13 +765,13 @@ func (h *userHandler) resetPassword(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.common.user_not_found", nil))
 		return
 	}
-	// Force the target user to re-authenticate under the new credential.
-	// A leaked old password and an active session are otherwise equivalent
-	// from the attacker's perspective; we want reset to actually evict.
-	if h.sessions != nil {
-		if err := h.sessions.DeleteForUser(req.Context(), id); err != nil {
-			slog.Warn("invalidate sessions on password reset", "err", err, "user", id)
-		}
+	if _, err := tx.ExecContext(req.Context(), `DELETE FROM sessions WHERE user_id = ?`, id); err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		httperr.Write(w, req, err)
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -826,6 +868,9 @@ func (h *userHandler) addBinding(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.invalid_role", nil))
 		return
 	}
+	if !allowRoleGrant(w, req, h.db, body.RoleName) || !allowTargetChange(w, req, h.db, id) {
+		return
+	}
 	if remoteWide {
 		if allowed, err := remoteWideRoleAllowed(req.Context(), h.db, body.RoleName); err != nil {
 			httperr.Write(w, req, err)
@@ -881,6 +926,9 @@ func (h *userHandler) deleteBinding(w http.ResponseWriter, req *http.Request) {
 	}
 	if cluster == "*" {
 		httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+		return
+	}
+	if !allowTargetChange(w, req, h.db, id) {
 		return
 	}
 	if namespace == "*" {

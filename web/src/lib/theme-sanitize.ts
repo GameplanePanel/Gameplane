@@ -9,6 +9,9 @@
 //      url() are allowed
 //   4. unbalanced braces rejected
 //   5. HTML <style>/<script> delimiters rejected (DOM-escape defense)
+//   6. CSS escapes (any backslash) rejected: they could hide rules 2 and 3
+//   7. any other absolute or protocol-relative reference rejected (image-set
+//      strings, @font-face src, …), not only url(...)
 
 export const MAX_CUSTOM_CSS_LEN = 32768;
 
@@ -17,6 +20,8 @@ export type SanitizeResult = { ok: true } | { ok: false; error: string };
 const CSS_IMPORT_RE = /@import\b/i;
 const CSS_URL_RE = /url\(\s*["']?([^"')]*)["']?\s*\)/gi;
 const HTML_DELIMITERS = ["<style", "</style", "<script", "</script"];
+// Mirrors cssExternalRefRE in api/internal/handlers/users.go.
+const CSS_EXTERNAL_REF_RE = /(https?:|["'(\s,]\/\/)/i;
 
 // utf8Len mirrors Go's len(string) for the size cap.
 function utf8Len(s: string): number {
@@ -55,6 +60,14 @@ export function sanitizeCustomCss(css: string): SanitizeResult {
     if (lower.includes(d)) {
       return { ok: false, error: `customCss rejected: HTML delimiter "${d}" is not allowed` };
     }
+  }
+  if (css.includes("\\")) {
+    return { ok: false, error: "customCss rejected: CSS escapes (\\) are not allowed" };
+  }
+  // URL parsing drops ASCII tab and newline, so "ht\ttps://" still
+  // fetches: check the text with them removed as well.
+  if (CSS_EXTERNAL_REF_RE.test(css) || CSS_EXTERNAL_REF_RE.test(css.replace(/[\t\n\r]/g, ""))) {
+    return { ok: false, error: "customCss rejected: external references are not allowed" };
   }
   return { ok: true };
 }
