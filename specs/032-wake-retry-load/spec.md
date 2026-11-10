@@ -18,7 +18,7 @@ Generate one annotation token and immutable merge patch per shared operation.
 Implementation choices: at most four application-level PATCH calls in the
 existing five-second PATCH context (also bounded by the owner's join context).
 Use exponential backoff starting at 100 ms, capped at 800 ms, with +/-25% jitter
-and a final 800 ms cap. A Kubernetes suggested retry delay is a minimum, subject
+and a final 800 ms cap. A retry delay suggested by Kubernetes is a minimum, subject
 to context cancellation. Recognizable transient API/transport errors are eligible;
 permanent API errors and unknown errors return immediately. Preserve the last API
 error for `errors.Is/As`, including cancellation during backoff. Never renew the
