@@ -143,6 +143,8 @@ func main() {
 		metalLBNamespace                 string
 		gameIngressPolicy                bool
 		gameIngressFromCIDR              cidrListFlag
+		probeIngressPolicy               bool
+		probeIngressFromCIDR             cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
 		restrictedWorkloads              bool
@@ -279,6 +281,12 @@ func main() {
 	flag.Var(&gameIngressFromCIDR, "game-ingress-from-cidr",
 		"Source CIDR admitted to advertised game ports by the ingress NetworkPolicy. Repeatable. "+
 			"Defaults to 0.0.0.0/0 (games are meant to be publicly reachable) when not supplied.")
+	flag.BoolVar(&probeIngressPolicy, "probe-ingress-policy", false,
+		"Reconcile a per-GameServer NetworkPolicy admitting kubelet probes to the game container's "+
+			"probe ports only. When false, the operator ensures the policy is absent.")
+	flag.Var(&probeIngressFromCIDR, "probe-ingress-from-cidr",
+		"Kubelet source CIDR admitted by the probe NetworkPolicy. Repeatable. Defaults to "+
+			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 and 169.254.0.0/16 when not supplied.")
 	flag.StringVar(&gameDataStorageClass, "game-data-storage-class", os.Getenv("GAMEPLANE_GAME_DATA_STORAGE_CLASS"),
 		"StorageClass for game server data volumes (GameServer spec.storage.storageClassName). "+
 			"Empty (default) uses the cluster's default StorageClass. "+
@@ -410,6 +418,17 @@ func main() {
 		// might reject or interpret surprisingly.
 		gameIngressFromCIDR[i] = ipnet.String()
 	}
+	if len(probeIngressFromCIDR) == 0 {
+		probeIngressFromCIDR = cidrListFlag{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16"}
+	}
+	for i, cidr := range probeIngressFromCIDR {
+		_, ipnet, err := net.ParseCIDR(cidr)
+		if err != nil {
+			setupLog.Error(err, "invalid --probe-ingress-from-cidr value", "cidr", cidr)
+			os.Exit(1)
+		}
+		probeIngressFromCIDR[i] = ipnet.String()
+	}
 
 	secretCache, err := secretscope.CacheOptions(gameNamespaces, controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
 	if err != nil {
@@ -475,6 +494,8 @@ func main() {
 		MetalLBNamespace:            metalLBNamespace,
 		GameIngressPolicyEnabled:    gameIngressPolicy,
 		GameIngressFromCIDRs:        gameIngressFromCIDR,
+		ProbeIngressPolicyEnabled:   probeIngressPolicy,
+		ProbeIngressFromCIDRs:       probeIngressFromCIDR,
 		CaptureEnabled:              captureEnabled,
 		RestrictedWorkloads:         restrictedWorkloads,
 		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,

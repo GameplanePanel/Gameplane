@@ -3,7 +3,11 @@
 {{- if not $network.enabled }}
 {{- fail "networkPolicies.strict requires networkPolicies.enabled=true" }}
 {{- end }}
-{{- range $key := list "kubeletCIDRs" "apiServerCIDRs" "probePorts" }}
+{{- $required := list "kubeletCIDRs" "apiServerCIDRs" }}
+{{- if not (and (eq (include "gameplane.operatorEnabled" .) "true") ($network.probeIngress | default dict).enabled) }}
+{{- $required = append $required "probePorts" }}
+{{- end }}
+{{- range $key := $required }}
 {{- $entries := index $network $key }}
 {{- if or (not (kindIs "slice" $entries)) (eq (len $entries) 0) }}
 {{- fail (printf "networkPolicies.strict requires a non-empty networkPolicies.%s list" $key) }}

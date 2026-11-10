@@ -338,11 +338,15 @@ When `networkPolicies.enabled=true` (default) the chart applies:
   declared in the GameTemplate. Selects traffic from `networkPolicies.gameIngress.fromCIDRs`
   (default `0.0.0.0/0`, the internet) to only the container ports marked
   `Advertise: true` at their declared protocol (UDP preserved). This policy
-  does not itself open RCON or the agent's port 8090; however, those ports
-  remain reachable from `kubeletCIDRs` via the `allow-kubelet-probes` policy
-  (see below), which has no port restrictions by default. To close that hole,
-  narrow `networkPolicies.probePorts` — previously unsafe to do, but now
-  safe since this policy protects advertised player traffic separately.
+  does not itself open RCON or the agent's port 8090.
+- `<gameserver-name>-probes` — created by the **operator** for each
+  GameServer when `networkPolicies.probeIngress.enabled` (default), admits
+  `kubeletCIDRs` to exactly the ports the game container's tcpSocket, httpGet
+  and grpc probes use. The chart's catch-all `allow-kubelet-probes` rule is
+  then rendered only for ports listed in `networkPolicies.probePorts`. With
+  `probeIngress.enabled: false` that chart rule returns, and an empty
+  `probePorts` lets every address in `kubeletCIDRs` (pod CIDRs included)
+  reach any port on a game pod, RCON included.
   Operators may also narrow `fromCIDRs` to a private range (e.g. a LAN, a VPN
   CIDR) to gate player access. If a template declares no advertised ports or
   `networkPolicies.gameIngress.enabled: false`, the operator ensures this

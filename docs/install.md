@@ -224,7 +224,8 @@ Top-level knobs (see `values.yaml` for the full list):
 - `gamesNamespace` — namespace where GameServers are created (default `gameplane-games`)
 - `networkPolicies.enabled` — default-deny in games namespace (recommended on)
   - `networkPolicies.kubeletCIDRs` — CIDRs for kubelet liveness/readiness probes (defaults to RFC1918 + link-local)
-  - `networkPolicies.probePorts` — specific ports to allow on game pods for kubelet probes (empty = any port)
+  - `networkPolicies.probeIngress.enabled` — operator-managed per-server probe policy admitting kubelet probes to each server's probe ports only (default `true`)
+  - `networkPolicies.probePorts` — extra ports to allow on every game pod for kubelet probes; with `probeIngress.enabled: false`, an empty list means any port
   - `networkPolicies.gameIngress` — control ingress to game pods from external sources (players)
     - `gameIngress.enabled` — toggle player-ingress allowance (default `true`)
     - `gameIngress.fromCIDRs` — CIDRs from which player traffic is allowed (default `[0.0.0.0/0]`)

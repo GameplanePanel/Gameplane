@@ -573,14 +573,18 @@ networkPolicies:
   # Set this explicitly when your node pool sits outside those ranges
   # (some managed providers do).
   kubeletCIDRs: []
-  # Ports the kubelet may reach on game pods for liveness/readiness probes.
-  # Probe ports vary per game module (e.g. the Minecraft game port, Valheim's
-  # status port, Terraria's game port), so the default is empty, which allows
-  # the kubelet (already scoped to kubeletCIDRs) to reach ANY port on a game
-  # pod. Player traffic no longer rides along on this: it's admitted by the
-  # operator-managed per-server ingress policy below (gameIngress), so it's
-  # safe to restrict this to a known fixed set once your modules settle on
-  # one, e.g. [{ protocol: TCP, port: 8090 }].
+  # Per-server kubelet probe policy. When enabled (and the operator runs),
+  # the operator creates <server>-probes for each GameServer, admitting
+  # kubeletCIDRs to exactly the ports that server's tcpSocket/httpGet/grpc
+  # probes use, and the chart's catch-all allow-kubelet-probes rule is not
+  # rendered. Set enabled: false to go back to the chart rule below.
+  probeIngress:
+    enabled: true
+  # Extra ports the kubelet may reach on every game pod. With probeIngress
+  # enabled this is empty by default and only adds the ports you list. With
+  # probeIngress disabled an empty list lets kubeletCIDRs (and every pod in
+  # them) reach ANY port on a game pod, RCON included; list your modules'
+  # probe ports, e.g. [{ protocol: TCP, port: 25565 }].
   probePorts: []
   # CIDRs that hold the kube-apiserver endpoint(s) the agent sidecar
   # patches its status heartbeat through. Same fallback semantics as

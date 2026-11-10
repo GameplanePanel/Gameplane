@@ -158,6 +158,18 @@ type GameServerReconciler struct {
 	// supplied. Each entry is validated as a CIDR at operator startup.
 	GameIngressFromCIDRs []string
 
+	// ProbeIngressPolicyEnabled controls whether the operator reconciles the
+	// per-GameServer `<gs>-probes` NetworkPolicy admitting kubelet probes to
+	// the game container's probe ports (see reconcileProbePolicy). Set from
+	// --probe-ingress-policy. When false the policy is removed, and the
+	// chart's allow-kubelet-probes rule is expected to admit probes instead.
+	ProbeIngressPolicyEnabled bool
+
+	// ProbeIngressFromCIDRs are the kubelet source CIDRs the probe policy
+	// admits. Set from the repeatable --probe-ingress-from-cidr flag, which
+	// defaults to RFC1918 + link-local (the chart's kubeletCIDRs fallback).
+	ProbeIngressFromCIDRs []string
+
 	// CaptureEnabled is the cluster-wide on/off switch for the network
 	// capture feature. Set from the operator's --capture-enabled flag,
 	// default false. When false, the capture capability cannot be enabled
@@ -341,6 +353,10 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileNetworkPolicy(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile ingress NetworkPolicy")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileProbePolicy(ctx, &gs, &tmpl); err != nil {
+		logger.Error(err, "reconcile probe NetworkPolicy")
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileSentinelIsolation(ctx, &gs, &tmpl); err != nil {
