@@ -28,4 +28,40 @@ spec:
     - hosts: [{{ .Values.ingress.host }}]
       secretName: gameplane-tls
   {{- end }}
+{{- if .Values.ingress.shareLinks.disableAccessLog }}
+---
+# Share links carry their token in the path (/share/<token> for the page,
+# /shares/<token> for its API calls). This second Ingress holds only those
+# paths so the ingress controller can leave them out of its access log;
+# ingress-nginx merges it into the same server as the Ingress above. Pages a
+# share link opens send no Referer (Referrer-Policy: no-referrer on the SPA
+# shell and on API responses), so other requests never carry the token.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gameplane-share
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml (merge (dict "nginx.ingress.kubernetes.io/enable-access-log" "false") .Values.ingress.shareLinks.annotations (omit .Values.ingress.annotations "nginx.ingress.kubernetes.io/enable-access-log")) | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          {{- range list "/share" "/shares" }}
+          - path: {{ . }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ if $.Values.web.enabled }}gameplane-web{{ else }}gameplane-api{{ end }}
+                port: { name: http }
+          {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts: [{{ .Values.ingress.host }}]
+      secretName: gameplane-tls
+  {{- end }}
+{{- end }}
 {{- end }}
