@@ -16,7 +16,7 @@ installation, with an operator and a local game cluster.
 
 The chart and its images are published to the GitHub Container Registry (GHCR)
 as OCI artifacts — no `helm repo add` needed. Install a tagged release straight
-from the registry (replace `<version>` with a release, e.g. `0.3.0`):
+from the registry (replace `<version>` with a release, e.g. `0.4.0`):
 
 ```sh
 helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
@@ -166,7 +166,7 @@ Top-level knobs (see `values.yaml` for the full list):
   `--config-init-image` / `--restic-image` flags, mirroring `operator.agentImage`
 - `operator.backupJobBackoffLimit` / `operator.backupJobActiveDeadlineSeconds` — retry limit (default `2`, must be >= 0) and wall-clock deadline in seconds (default `86400`, must be > 0) for the restic backup/restore Jobs. They map to the operator's `--backup-job-backoff-limit` / `--backup-job-active-deadline-seconds` flags. Negative or non-integer values fail the render; an unset key (e.g. `helm upgrade --reuse-values` from an older release) or a `0` deadline uses the default, while an explicit `0` backoff is honoured.
 - `operator.gameDataStorage.storageClassName` — install-time default storage class
-  for game server data volumes (since v0.3.0) (default `""`). Empty string uses the cluster's
+  for game server data volumes (since v0.3.0) (default `""`). Empty string uses the cluster's <!-- doc-versions: historical -->
   default StorageClass. Applies to all GameServers where neither the GameTemplate
   nor GameServer-level override specifies a class. **Precedence**: GameServer
   override > GameTemplate default > install-time default > cluster default.
@@ -188,7 +188,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - Core connection: `issuer` / `clientID` / `clientSecretRef` / `redirectURL` /
     `displayName` — OIDC provider credentials and endpoints. Per-IdP walkthroughs
     (Keycloak, Authentik, Google) live in [oidc.md](oidc.md)
-  - Role mapping (new, seeded at install time) (since v0.3.0):
+  - Role mapping (new, seeded at install time) (since v0.3.0): <!-- doc-versions: historical -->
     - `groupsClaim` — OIDC claim name containing group memberships (default `""`).
       Typically `"groups"` or `"roles"` depending on your IdP. Empty/omitted =
       read the `"groups"` claim. This only chooses which claim is read; it does

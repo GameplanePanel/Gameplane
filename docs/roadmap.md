@@ -2,11 +2,11 @@
 
 ## Current release
 
-- **Version:** `v0.3.0` (pre-v1), released 2026-10-05. See the [changelog](../CHANGELOG.md).
-- **Status as of 2026-10-14:** The CRDs, operator, API, agent, and dashboard are
+- **Version:** `v0.4.0` (pre-v1), released 2026-11-10. See the [changelog](../CHANGELOG.md).
+- **Status as of 2026-11-10:** The CRDs, operator, API, agent, and dashboard are
   feature-complete for the v1 scope and stabilized for external testing, but the
   project is not yet recommended for unattended production. This page tracks what
-  stands between v0.3 and a v1 GA release.
+  stands between v0.4 and a v1 GA release.
 - **What works today:** see [`README.md`](../README.md) and [`architecture.md`](architecture.md).
 
 It is a living document: items move out of it as they ship, and anything
@@ -14,9 +14,9 @@ discovered along the way gets added.
 
 ---
 
-## Shipped in v0.3.0 and since
+## Shipped releases
 
-### Since v0.3.0 (Unreleased)
+### Shipped in v0.4.0
 
 - Independent central panel: Docker Compose runs the API and dashboard without a host Kubernetes cluster; a standalone Helm profile runs without the central operator or workloads ([changelog](../CHANGELOG.md)).
 - Credential maintenance: standalone key custody, offline `rotate-panel-key`, `PUT /clusters/{name}/kubeconfig`, and `PUT`/`DELETE /clusters/{name}/gateway` ([changelog](../CHANGELOG.md)).
@@ -34,7 +34,7 @@ discovered along the way gets added.
 - Breaking: selected-cluster module and template grants need a cluster-wide grant for remote catalogs ([changelog](../CHANGELOG.md)).
 - Feature catalog: [FEATURES.md](../FEATURES.md) lists every capability with its maturity and default, mirrored on the website and kept in step by `make check-features-sync` (spec 024, PR #703).
 
-### Shipped in v0.3.0
+### Shipped in v0.3.0 <!-- doc-versions: historical -->
 
 - Configurable backup/restore Job retry limit and deadline Helm values ([changelog](../CHANGELOG.md)).
 - Multicluster gateways and unified server management across clusters ([changelog](../CHANGELOG.md)).
@@ -57,7 +57,7 @@ discovered along the way gets added.
 - Multi-cluster request scoping, OIDC role re-evaluation, bootstrap-admin reset, cluster registration removal, mod bundle integrity, and tunnel credential handling hardened ([changelog](../CHANGELOG.md)).
 - Upgrade note: every game pod gains an empty capture `emptyDir`, so existing GameServers roll once on upgrade ([changelog](../CHANGELOG.md)).
 
-### Earlier releases (before v0.3.0)
+### Earlier releases (before v0.3.0) <!-- doc-versions: historical -->
 
 #### Multi-cluster: dashboard cluster selector (PR #107) (shipped v0.2.0-beta.6) <!-- doc-versions: historical -->
 

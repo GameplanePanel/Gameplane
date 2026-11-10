@@ -10,7 +10,7 @@
 - **Blocker**: —
 - **Blocker Class**: —
 
-**Status:** pre-v1 (v0.3.0)  
+**Status:** pre-v1 (v0.4.0)  
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e/internal/terraria`  
 **Dependencies:** stdlib only (Go 1.25+)
 

@@ -18,7 +18,7 @@ Fill in:
 
 The callback URL is automatically set to `{External URL}/auth/oidc/{provider-name}/callback`.
 
-**Note**: The Helm-flag single OIDC provider supports group→role mapping via Helm values `api.oidc.groupsClaim` and `api.oidc.roleMappings.{admin,operator,viewer}` (or CLI flags `--oidc-groups-claim` and `--oidc-role-mapping-{admin,operator,viewer}`) (since v0.3.0). See "Role Mapping at Install Time (No Bootstrap-Admin Required)" below for setup details and worked examples.
+**Note**: The Helm-flag single OIDC provider supports group→role mapping via Helm values `api.oidc.groupsClaim` and `api.oidc.roleMappings.{admin,operator,viewer}` (or CLI flags `--oidc-groups-claim` and `--oidc-role-mapping-{admin,operator,viewer}`) (since v0.3.0). See "Role Mapping at Install Time (No Bootstrap-Admin Required)" below for setup details and worked examples. <!-- doc-versions: historical -->
 
 ## Provider guides
 

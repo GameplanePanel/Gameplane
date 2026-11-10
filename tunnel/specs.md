@@ -1,6 +1,6 @@
 # tunnel — Specification
 
-**Status:** pre-v1 (v0.3.0)  
+**Status:** pre-v1 (v0.4.0)  
 **Module / command:** `github.com/GameplanePanel/gameplane/tunnel`  
 **Dependencies:** Go stdlib and `tailscale.com/tsnet` (F-173, #722)
 

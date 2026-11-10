@@ -1154,7 +1154,7 @@ Access to cluster credentials is protected by several layers:
 ## Install-Time OIDC Role Mappings
 
 When OIDC authentication is configured at install time via Helm values
-(`api.oidc.groupsClaim`, `api.oidc.roleMappings`, `api.oidc.defaultRole`) (since v0.3.0),
+(`api.oidc.groupsClaim`, `api.oidc.roleMappings`, `api.oidc.defaultRole`) (since v0.3.0), <!-- doc-versions: historical -->
 Gameplane automatically assigns roles to users based on their OIDC provider's
 group/role claims on every login. This eliminates the need for a bootstrap-admin
 account in OIDC-only deployments — an operator can configure group mappings at

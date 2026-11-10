@@ -315,7 +315,7 @@ spec:
 Key points:
 
 - Values to change are marked `# CHANGE ME`: the image tag, the storage class, the hostname (in the Ingress `tls` and `rules`), the ClusterIssuer email and zone, the Cloudflare API token, the monitoring namespace, and `POD_CIDR` if your cluster is not on the k3s default. Also replace `telemetry.gameplane.net` in the Cloudflare rule and in the Verify commands.
-- The provider features (dashboard, signed extended reports, proof-of-work) ship in the first release after v0.3.0. Pin that release or a later one. A v0.3.0 or older receiver has no dashboard and no `/v1/challenge`, and answers 400 to extended reports, so installs fall back to basic-only reports for 7 days.
+- The provider features (dashboard, signed extended reports, proof-of-work) ship in v0.4.0. Pin v0.4.0 or a later release. A v0.3.0 or older receiver has no dashboard and no `/v1/challenge`, and answers 400 to extended reports, so installs fall back to basic-only reports for 7 days.
 - `edge` follows master. If you run it, keep `imagePullPolicy: Always` so that a restart pulls the latest build; with `IfNotPresent` a node keeps the image it already has.
 - One replica with `Recreate`, because SQLite has a single writer. `fsGroup: 65532` makes `/data` writable for the distroless nonroot user.
 - `AUTH_TOKEN` is deliberately unset: a public provider accepts reports from any install.

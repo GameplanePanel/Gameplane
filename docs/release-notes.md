@@ -1,4 +1,4 @@
-# Unreleased operational changes
+# v0.4.0 operational changes
 
 ## Auxiliary resource requests and management placement (#724)
 

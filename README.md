@@ -13,7 +13,7 @@ The dashboard and API can also run on a host without Kubernetes using
 [standalone Docker Compose](docs/standalone-panel.md). Game servers still run
 on registered Kubernetes clusters, each with its own operator and agents.
 
-> Status: **pre-v1 release** (`v0.3.0`). The operator, API, agent, and dashboard
+> Status: **pre-v1 release** (`v0.4.0`). The operator, API, agent, and dashboard
 > are feature-complete for the v1 scope and stabilized for external testing.
 > See [Pre-v1 status & known limitations](#pre-v1-status--limitations) before
 > running it for anything you can't afford to lose.
@@ -44,7 +44,7 @@ Screenshots are captured against mocked data for consistency and reproducibility
 
 ## Pre-v1 Status & Limitations
 
-Gameplane is a **pre-v1 release** (`v0.3.0`). Core workflows — server deployment, live consoles, file management, backups/restores, game modules, multi-cluster management, and RBAC — work end-to-end and are verified by automated unit, integration, upgrade, and end-to-end test suites on every commit.
+Gameplane is a **pre-v1 release** (`v0.4.0`). Core workflows — server deployment, live consoles, file management, backups/restores, game modules, multi-cluster management, and RBAC — work end-to-end and are verified by automated unit, integration, upgrade, and end-to-end test suites on every commit.
 
 Here are a few items to keep in mind:
 
@@ -66,7 +66,7 @@ and Agones (a Kubernetes operator library). While not direct competitors,
 Agones is included as a reference point for teams building on Kubernetes
 primitives.
 
-Status: **pre-v1 release** (`v0.3.0`). The operator, API, agent, and dashboard
+Status: **pre-v1 release** (`v0.4.0`). The operator, API, agent, and dashboard
 are feature-complete for the v1 scope and stabilized for external testing.
 
 | Dimension | Gameplane | Pterodactyl | CubeCoders AMP | Agones |
