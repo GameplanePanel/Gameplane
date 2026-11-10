@@ -10452,5 +10452,65 @@
     },
     "web.routes.create_server.review_location": {
         "defaultMessage": "Emplacement"
+    },
+    "condition.captureready.snapshotcapturepending": {
+        "defaultMessage": "En attente de la capture CSI dans le délai imparti persistant."
+    },
+    "condition.captureready.workerauthorized": {
+        "defaultMessage": "Le worker préparé est autorisé à capturer les données dans son délai imparti."
+    },
+    "condition.captureready.workerdrainpending": {
+        "defaultMessage": "La copie est non valide. En attente de l'arrêt des workers avant de restaurer l'enregistrement."
+    },
+    "condition.captureready.workerpreparing": {
+        "defaultMessage": "En attente de la planification du worker, du montage de la source et de la préparation du dépôt."
+    },
+    "condition.consistency.agentunavailablerawcopy": {
+        "defaultMessage": "Aucune capacité de mise au repos de l'agent n'a été configurée. Le volume principal a été copié sans suspendre les écritures du jeu."
+    },
+    "condition.consistency.capturefailed": {
+        "defaultMessage": "La capture a échoué ; aucune garantie de cohérence exploitable n'a été obtenue."
+    },
+    "condition.consistency.capturepending": {
+        "defaultMessage": "La capture a échoué; aucune garantie de cohérence exploitable n'a été obtenue."
+    },
+    "condition.consistency.crashconsistentsnapshot": {
+        "defaultMessage": "Le snapshot CSI principal offre une cohérence après panne ; la mise au repos de l'application n'a pas été confirmée."
+    },
+    "condition.consistency.legacymetadataunknown": {
+        "defaultMessage": "Les métadonnées au moment de la capture sont indisponibles. Ne déduisez pas la cohérence ou la couverture des volumes à partir du modèle actuel."
+    },
+    "condition.consistency.quiesced": {
+        "defaultMessage": "Les volumes inclus ont été copiés après confirmation de la mise au repos par l'agent. Cela dépend des commandes de mise au repos du module ; consultez le manifeste pour connaître les volumes exclus."
+    },
+    "condition.consistency.rawcopy": {
+        "defaultMessage": "Le volume principal a été copié sans confirmation de la mise au repos de l'application."
+    },
+    "condition.consistency.stoppedsource": {
+        "defaultMessage": "Les volumes inclus ont été copiés depuis une source arrêtée et drainée. Consultez le manifeste pour connaître les volumes exclus et les prérequis de restauration."
+    },
+    "condition.consistency.unsupportedrawcopy": {
+        "defaultMessage": "Le jeu ne prend pas en charge la mise au repos. Le volume principal a été copié alors qu'il pouvait encore être modifié."
+    },
+    "condition.hostportwakeready.endpointnodeunavailable": {
+        "defaultMessage": "Le nœud de terminaison HostPort est manquant, remplacé ou n'est pas prêt ; restaurez ce nœud ou migrez explicitement le point de terminaison."
+    },
+    "condition.hostportwakeready.endpointnodeunknown": {
+        "defaultMessage": "Aucun nœud de terminaison de jeu n'a été enregistré ; lancez le jeu avant d'activer la mise en veille."
+    },
+    "condition.hostportwakeready.endpointunschedulable": {
+        "defaultMessage": "Le listener HostPort ne peut pas être planifié sur son nœud de terminaison. Inspectez les événements de planification du pod pour obtenir des détails."
+    },
+    "condition.hostportwakeready.gamedraining": {
+        "defaultMessage": "En attente de la disparition du pod de jeu avant d'acquérir son HostPort."
+    },
+    "condition.hostportwakeready.listenerpending": {
+        "defaultMessage": "En attente d'un listener prêt sur le nœud de terminaison HostPort."
+    },
+    "condition.hostportwakeready.listenerready": {
+        "defaultMessage": "Le listener est prêt sur le nœud de terminaison HostPort."
+    },
+    "condition.hostportwakeready.sentineldraining": {
+        "defaultMessage": "En attente de la disparition du déploiement sentinelle et des pods avant de planifier le jeu sur son nœud de terminaison."
     }
 }
