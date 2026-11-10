@@ -65,6 +65,28 @@ map "$is_html:$force_proxy" $serve_shell {
     "1:0"     1;
 }
 
+# Share links carry their token in the path (/share/<token>), and the pages a
+# share link opens send that URL as Referer. Keep both out of the access log
+# so the log never holds a working share token. $gameplane_share_uri is 1 for
+# a request to a share path; $gameplane_loggable is 0 for that request and
+# for any request whose Referer is a share page.
+map $request_uri $gameplane_share_uri {
+    default         0;
+    "~^/shares?/"   1;
+}
+
+map "$gameplane_share_uri:$http_referer" $gameplane_loggable {
+    default                        1;
+    "~^1:"                         0;
+    "~^0:https?://[^/]+/shares?/"  0;
+}
+
+# The base image's "main" format, under our own name (log_format names are
+# global and "main" is already defined by the image's nginx.conf).
+log_format gameplane_main '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+
 server {
     listen       8080;
     listen       [::]:8080;
@@ -80,6 +102,8 @@ server {
     # The built SPA lives here (copied from web/dist in the Dockerfile).
     root   /usr/share/nginx/html;
 
+    access_log /var/log/nginx/access.log gameplane_main if=$gameplane_loggable;
+
     # The same URL can return the SPA document or an API response. Caches
     # must distinguish those representations, including proxy/error replies.
     # add_header preserves any Vary fields supplied by the API upstream.
@@ -91,6 +115,14 @@ server {
         add_header Cache-Control "no-store" always;
         # A location's add_header directives replace inherited ones.
         add_header Vary Accept always;
+        # Browser security headers for the SPA document; the API sets the
+        # same ones on its own responses (secureHeaders in api/cmd/main.go).
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+        include /etc/nginx/gameplane/csp.conf;
         try_files $uri =404;
     }
 
@@ -99,6 +131,7 @@ server {
         try_files $uri =404;
         expires 1y;
         add_header Cache-Control "public, immutable";
+        add_header X-Content-Type-Options "nosniff" always;
     }
 
     # Liveness/readiness for THIS pod. The probe hits nginx directly and just
@@ -118,6 +151,10 @@ server {
     }
 
     location / {
+        # A location's add_header directives replace inherited ones, so the
+        # server-level Vary is repeated here.
+        add_header Vary Accept always;
+        add_header X-Content-Type-Options "nosniff" always;
         # 1) Real file on disk (index.html, favicon, manifest, …) → serve it.
         # 2) Otherwise fall through to the @backend named location, which
         #    decides SPA-shell vs API by Accept header.
