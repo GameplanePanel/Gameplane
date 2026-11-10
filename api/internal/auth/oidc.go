@@ -15,12 +15,19 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/db"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
+	"github.com/GameplanePanel/gameplane/netguard"
 )
 
 const (
 	oidcStateCookie = "gameplane_oidc_state"
 	oidcNonceCookie = "gameplane_oidc_nonce"
 )
+
+// oidcHTTPClient carries every request to an identity provider: discovery,
+// key fetches and the code exchange. Like notification sinks, it refuses
+// cloud-metadata, link-local and other reserved addresses at dial time, so
+// an issuer URL can't be aimed at them; LAN and in-cluster IdPs still work.
+var oidcHTTPClient = netguard.HTTPClient(30*time.Second, netguard.IsAllowed)
 
 // RoleAssignmentOutcome describes the result of assigning or re-evaluating an OIDC user's role.
 // T009 consumes this to emit audit events.
@@ -70,7 +77,7 @@ func NewOIDCWithPolicy(
 	if issuer == "" {
 		return nil, nil
 	}
-	provider, err := oidc.NewProvider(ctx, issuer)
+	provider, err := oidc.NewProvider(oidc.ClientContext(ctx, oidcHTTPClient), issuer)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +398,7 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		}
 		clearCookieAt(w, oidcStateCookie, cookiePath)
 
-		tok, err := o.oauth.Exchange(req.Context(), req.URL.Query().Get("code"))
+		tok, err := o.oauth.Exchange(context.WithValue(req.Context(), oauth2.HTTPClient, oidcHTTPClient), req.URL.Query().Get("code"))
 		if err != nil {
 			slog.Warn("oidc exchange", "err", err)
 			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("oauth exchange failed"))

@@ -124,7 +124,7 @@ func bootstrapAdmin(ctx context.Context, args []string, stdin io.Reader, stderr 
 
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE users
-		   SET pw_hash = ?, role = 'admin', display_name = ?, email = ?, updated_at = ?
+		   SET pw_hash = ?, session_epoch = session_epoch + 1, role = 'admin', display_name = ?, email = ?, updated_at = ?
 		 WHERE id = ?`,
 		hash, display, bf.email, db.NowTimestamp(), existingID,
 	); err != nil {

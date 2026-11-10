@@ -49,6 +49,10 @@ type User struct {
 	// It is loaded from the user's role bindings at authentication time.
 	// Nil for Users built outside the session path (treated as holding nothing).
 	Perms map[string]map[string]map[string]struct{}
+
+	// sessionEpoch is users.session_epoch as read together with the
+	// password hash at login, so the session is bound to that credential.
+	sessionEpoch int64
 }
 
 // SessionStore manages session lifecycle for authenticated users.
@@ -76,8 +80,22 @@ func (s *SessionStore) Create(ctx context.Context, userID int64) (session, csrf 
 	session = randomToken()
 	csrf = randomToken()
 	_, err = s.db.DB.ExecContext(ctx,
-		`INSERT INTO sessions(token, user_id, csrf_token, expires_at) VALUES (?,?,?,?)`,
-		sessionDigest(session), userID, csrf, time.Now().Add(sessionTTL).UTC().Format(time.RFC3339),
+		`INSERT INTO sessions(token, user_id, csrf_token, expires_at, session_epoch)
+		 VALUES (?, ?, ?, ?, (SELECT session_epoch FROM users WHERE id = ?))`,
+		sessionDigest(session), userID, csrf, time.Now().Add(sessionTTL).UTC().Format(time.RFC3339), userID,
+	)
+	return
+}
+
+// createAtEpoch is Create for a password login: the session carries the
+// session_epoch read together with the verified password hash, so a reset
+// that lands while the login is running invalidates it.
+func (s *SessionStore) createAtEpoch(ctx context.Context, userID, epoch int64) (session, csrf string, err error) {
+	session = randomToken()
+	csrf = randomToken()
+	_, err = s.db.DB.ExecContext(ctx,
+		`INSERT INTO sessions(token, user_id, csrf_token, expires_at, session_epoch) VALUES (?, ?, ?, ?, ?)`,
+		sessionDigest(session), userID, csrf, time.Now().Add(sessionTTL).UTC().Format(time.RFC3339), epoch,
 	)
 	return
 }
@@ -176,7 +194,7 @@ func (s *SessionStore) lookup(ctx context.Context, token string) (*User, string,
 	err := s.db.DB.QueryRowContext(ctx, `
 		SELECT u.id, u.username, u.display_name, u.email, u.role, s.csrf_token, s.expires_at
 		FROM sessions s JOIN users u ON u.id = s.user_id
-		WHERE s.token = ?`, digest,
+		WHERE s.token = ? AND s.session_epoch = u.session_epoch`, digest,
 	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &csrf, &expires)
 	if err != nil {
 		return nil, "", err

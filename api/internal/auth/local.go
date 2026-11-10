@@ -2,7 +2,11 @@ package auth
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -129,7 +133,11 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		// usernames at full speed when limiting is IP-only. Checked for
 		// every submitted username (valid or not) so the decision doesn't
 		// leak existence.
-		if body.Username != "" && !LoginUserLimiter.AllowUser(body.Username) {
+		// A browser that already signed in to this account carries the
+		// login-device cookie and skips the per-username bucket (the per-IP
+		// LoginLimiter still applies), so failed logins from elsewhere can't
+		// lock the account's owner out.
+		if body.Username != "" && !knownLoginDevice(req, body.Username) && !LoginUserLimiter.AllowUser(body.Username) {
 			w.Header().Set("Retry-After", "30")
 			httperr.WriteCode(w, req, http.StatusTooManyRequests, errors.New("too many requests"))
 			return
@@ -162,13 +170,14 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 			http.Error(w, "session error", http.StatusInternalServerError)
 			return
 		}
-		token, csrf, err := sessions.Create(req.Context(), u.ID)
+		token, csrf, err := sessions.createAtEpoch(req.Context(), u.ID, u.sessionEpoch)
 		if err != nil {
 			http.Error(w, "session error", http.StatusInternalServerError)
 			return
 		}
 		setSessionCookie(w, token, sessionTTL)
 		setCSRFCookie(w, csrf, sessionTTL)
+		setLoginDeviceCookie(w, body.Username)
 		// Attribute the audit row to the user who just signed in; the
 		// request itself is unauthenticated, so it would read "anonymous".
 		SetActor(req.Context(), u.Username)
@@ -183,10 +192,10 @@ func (l *Local) fetchUser(ctx context.Context, username string) (*User, string, 
 		hash sql.NullString
 	)
 	err := l.db.DB.QueryRowContext(ctx,
-		`SELECT id, username, display_name, email, role, COALESCE(pw_hash, '')
+		`SELECT id, username, display_name, email, role, COALESCE(pw_hash, ''), session_epoch
 		 FROM users WHERE username = ?`,
 		username,
-	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &hash)
+	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &hash, &u.sessionEpoch)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, "", errors.New("no such user")
 	}
@@ -194,4 +203,47 @@ func (l *Local) fetchUser(ctx context.Context, username string) (*User, string, 
 		return nil, "", err
 	}
 	return &u, hash.String, nil
+}
+
+// loginDeviceCookie marks a browser that has signed in to an account
+// before. Its value is an HMAC of the username under a per-process key, so
+// it can't be forged and reveals nothing; a restart only means the next
+// login from each browser counts against the per-username bucket once.
+const loginDeviceCookie = "gameplane_login_device"
+
+// loginDeviceTTL is how long a browser stays known after a sign-in.
+const loginDeviceTTL = 30 * 24 * 60 * 60 // seconds
+
+var loginDeviceKey = func() []byte {
+	b := make([]byte, 32)
+	_, _ = rand.Read(b) // crypto/rand.Read never returns an error
+	return b
+}()
+
+func loginDeviceToken(username string) string {
+	mac := hmac.New(sha256.New, loginDeviceKey)
+	_, _ = mac.Write([]byte(username))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+// knownLoginDevice reports whether the request carries a valid login-device
+// cookie for username.
+func knownLoginDevice(req *http.Request, username string) bool {
+	c, err := req.Cookie(loginDeviceCookie)
+	if err != nil {
+		return false
+	}
+	return hmac.Equal([]byte(c.Value), []byte(loginDeviceToken(username)))
+}
+
+func setLoginDeviceCookie(w http.ResponseWriter, username string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     loginDeviceCookie,
+		Value:    loginDeviceToken(username),
+		Path:     "/auth/login",
+		MaxAge:   loginDeviceTTL,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
 }
