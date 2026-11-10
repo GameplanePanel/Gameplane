@@ -1549,6 +1549,11 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 	if err := r.validateServerEnvSources(ctx, gs); err != nil {
 		return err
 	}
+	// Template and version env come from module content, which may be third
+	// party; hold their Secret and ConfigMap references to the same rule.
+	if err := r.validateTemplateEnvSources(ctx, gs, tmpl, ver); err != nil {
+		return err
+	}
 
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace},
@@ -2439,6 +2444,25 @@ func (r *GameServerReconciler) validateServerEnvSources(ctx context.Context, gs 
 					cmName, gs.Namespace, gs.Name)
 			}
 		}
+	}
+	return nil
+}
+
+// validateTemplateEnvSources applies validateServerEnvSources' ownership rule
+// to the env entries the GameTemplate and the selected GameVersion add, so a
+// module can't read another server's or a backup destination's Secret.
+func (r *GameServerReconciler) validateTemplateEnvSources(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer,
+	tmpl *gameplanev1alpha1.GameTemplate, ver *gameplanev1alpha1.GameVersion,
+) error {
+	env := append([]corev1.EnvVar{}, tmpl.Spec.Env...)
+	if ver != nil {
+		env = append(env, ver.Env...)
+	}
+	probe := gs.DeepCopy()
+	probe.Spec.Env = env
+	if err := r.validateServerEnvSources(ctx, probe); err != nil {
+		return fmt.Errorf("template %s env: %w", tmpl.Name, err)
 	}
 	return nil
 }
