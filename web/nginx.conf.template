@@ -122,7 +122,9 @@ server {
         add_header Referrer-Policy "no-referrer" always;
         add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
         add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
-        include /etc/nginx/gameplane/csp.conf;
+        # A glob, so nginx still starts where the build output is absent (the
+        # upload proxy test mounts only this file); the image always has it.
+        include /etc/nginx/gameplane/csp*.conf;
         try_files $uri =404;
     }
 
