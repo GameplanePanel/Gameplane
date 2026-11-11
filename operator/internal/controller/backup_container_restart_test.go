@@ -44,6 +44,24 @@ func backupGameChanges() map[string]func(*corev1.Pod) {
 		"waiting": func(p *corev1.Pod) {
 			p.Status.ContainerStatuses[0].State = corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff"}}
 		},
+		"waiting-unrelated-exit": func(p *corev1.Pod) {
+			game := &p.Status.ContainerStatuses[0]
+			game.ContainerID = ""
+			game.LastTerminationState.Terminated = &corev1.ContainerStateTerminated{ContainerID: "containerd://earlier-game", ExitCode: 1}
+			game.State = corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff"}}
+		},
+		"waiting-after-exit": func(p *corev1.Pod) {
+			game := &p.Status.ContainerStatuses[0]
+			game.LastTerminationState.Terminated = &corev1.ContainerStateTerminated{ContainerID: game.ContainerID, ExitCode: 1}
+			game.ContainerID = ""
+			game.State = corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff"}}
+		},
+		"waiting-after-restart": func(p *corev1.Pod) {
+			game := &p.Status.ContainerStatuses[0]
+			game.RestartCount++
+			game.ContainerID = ""
+			game.State = corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "ContainerCreating"}}
+		},
 		"terminated": func(p *corev1.Pod) {
 			p.Status.ContainerStatuses[0].State = corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 1}}
 		},
@@ -109,7 +127,7 @@ func TestBackupGameContainerChangesAbortAndDrain(t *testing.T) {
 				if err := r.Get(t.Context(), client.ObjectKeyFromObject(&gs), &gs); err != nil {
 					t.Fatal(err)
 				}
-				unidentified := stage != "before-quiesce" && (name == "waiting" || name == "missing-id" || name == "missing-status")
+				unidentified := stage != "before-quiesce" && (name == "waiting" || name == "waiting-unrelated-exit" || name == "missing-id" || name == "missing-status")
 				if (gs.Annotations[lifecycleOperationAnnotation] != "") != unidentified || q.unquiesced != 0 {
 					t.Fatalf("wrong cleanup after worker drain: owner=%q, agent=%+v", gs.Annotations[lifecycleOperationAnnotation], q)
 				}
