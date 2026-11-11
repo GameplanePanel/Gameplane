@@ -2161,6 +2161,10 @@ jobs:
       GAMEPLANE_UPGRADE_FROM: 0.3.0
     steps: &e2e-upgrade-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Argo fetches the exact tested commit from a read-only Git server.
+          # A shallow server can advertise a ref that a fresh fetch rejects.
+          fetch-depth: ${{ matrix.arch == 'amd64' && '0' || '1' }}
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
