@@ -22,7 +22,7 @@ kubectl create namespace gameplane-monitoring-b --dry-run=client -o yaml | kubec
 helm --kube-context "$context" upgrade gameplane charts/gameplane --namespace gameplane-system --reuse-values \
   -f docs/examples/monitoring/gameplane-values.yaml \
   --set 'operator.gameNamespaces[0]=gameplane-monitoring-b' \
-  --set networkPolicies.tenantIsolation=true --set networkPolicies.probePorts=null \
+  --set networkPolicies.tenantIsolation=true --set-json 'networkPolicies.probePorts=[]' \
   --set networkPolicies.gameEgress.enabled=false --set networkPolicies.backupEgress.enabled=false \
   --wait --timeout 5m
 kubectl apply -f docs/examples/monitoring/prometheus.yaml
