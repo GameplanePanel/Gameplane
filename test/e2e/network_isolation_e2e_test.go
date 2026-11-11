@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 )
 
@@ -142,15 +143,47 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 	isolationHTTP(t, tenant, otherProbe, away, 25566, true)
 	isolationHTTP(t, ns, probeA, away, 25566, false)
 	isolationHTTP(t, tenant, otherProbe, home, 25566, false)
-	for namespace, want := range map[string]int{ns: 25566, tenant: 25575} {
+	for namespace, want := range map[string]int32{ns: 25566, tenant: 25575} {
 		policies := envInstance.K8s.NetworkingV1().NetworkPolicies(namespace)
 		if _, err := policies.Get(ctx, "allow-kubelet-probes", metav1.GetOptions{}); !apierrors.IsNotFound(err) {
 			t.Fatalf("shared kubelet grant survived tenant migration in %s: %v", namespace, err)
 		}
 		policy, err := policies.Get(ctx, a+"-probes", metav1.GetOptions{})
-		if err != nil || len(policy.Spec.Ingress) != 1 || len(policy.Spec.Ingress[0].Ports) != 1 ||
-			policy.Spec.Ingress[0].Ports[0].Port == nil || policy.Spec.Ingress[0].Ports[0].Port.IntValue() != want {
-			t.Fatalf("expected only kubelet probe port %d in %s: %v", want, namespace, err)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(policy.Spec.Ingress) != 1 || len(policy.Spec.Ingress[0].Ports) == 0 {
+			t.Fatalf("missing restricted kubelet rule for %s/%s: %+v", namespace, a, policy.Spec)
+		}
+		rule := policy.Spec.Ingress[0]
+		if len(rule.From) != 1 || rule.From[0].IPBlock == nil || rule.From[0].IPBlock.CIDR != kindFixtureIP(t, "GAMEPLANE_NET_NODE_IP")+"/32" {
+			t.Fatalf("unexpected kubelet sources for %s/%s: %+v", namespace, a, rule.From)
+		}
+		pod, err := envInstance.K8s.CoreV1().Pods(namespace).Get(ctx, a+"-0", metav1.GetOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Startup names the socket while readiness uses its number. Kubernetes
+		// resolves a named NetworkPolicy port against the destination Pod.
+		namedTCP := map[string]int32{}
+		for _, c := range pod.Spec.Containers {
+			for _, port := range c.Ports {
+				if port.Protocol == corev1.ProtocolTCP && port.Name != "" {
+					namedTCP[port.Name] = port.ContainerPort
+				}
+			}
+		}
+		for _, port := range rule.Ports {
+			if port.Port == nil || port.EndPort != nil || port.Protocol == nil || *port.Protocol != corev1.ProtocolTCP {
+				t.Fatalf("unexpected kubelet grant for %s/%s: %+v", namespace, a, port)
+			}
+			effective := port.Port.IntVal
+			if port.Port.Type == intstr.String {
+				effective = namedTCP[port.Port.StrVal]
+			}
+			if effective != want {
+				t.Fatalf("kubelet port %v resolves to %d in %s/%s, want only TCP %d", port.Port, effective, namespace, a, want)
+			}
 		}
 	}
 
