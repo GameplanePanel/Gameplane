@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+// TestManagementNamespaces pins the standalone lookup namespace used in existing
+// credential records when an installation has no explicit credentials namespace.
 func TestManagementNamespaces(t *testing.T) {
 	t.Setenv("GAMEPLANE_NAMESPACE", "panel")
 	for _, tc := range []struct {

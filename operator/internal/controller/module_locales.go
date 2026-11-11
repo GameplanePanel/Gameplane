@@ -341,6 +341,8 @@ func localesReference(b *modsrc.Bundle) (map[string]pack.Entry, error) {
 	return modlocale.References(modlocale.Derive(module, tmpl)), nil
 }
 
+// localesNamespace keeps published translations with uploaded bundles. Older
+// installations without a separate ConfigMap namespace use the module namespace.
 func (r *ModuleReconciler) localesNamespace() string {
 	return cmp.Or(r.FetchOptions.ConfigMapNamespace, r.Namespace, defaultLocalesNamespace)
 }

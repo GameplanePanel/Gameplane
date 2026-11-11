@@ -18,8 +18,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// Seed an administrator-owned namespace before it joins operator.gameNamespaces.
-// Its unprivileged test account lets the upgrade exercise PATCH of a legacy Secret.
+// prepareAdmissionFixture creates a legacy token before its namespace joins
+// operator.gameNamespaces so the upgrade can exercise admission on PATCH.
 func prepareAdmissionFixture(t *testing.T, ns string) {
 	t.Helper()
 	ctx := t.Context()
@@ -46,6 +46,8 @@ func prepareAdmissionFixture(t *testing.T, ns string) {
 	}
 }
 
+// checkGameAdmission submits Secret and Pod probes with identities that RBAC
+// permits. A real Job makes the Kubernetes Job controller submit the hostPath Pod.
 func checkGameAdmission(t *testing.T, extraNS string, game *corev1.Pod) {
 	t.Helper()
 	ctx := t.Context()
@@ -125,6 +127,8 @@ func checkGameAdmission(t *testing.T, extraNS string, game *corev1.Pod) {
 	})
 }
 
+// checkModuleConfigMapIsolation checks that an upload label grants the API no
+// access to release ConfigMaps and that uploads still work in the credentials namespace.
 func checkModuleConfigMapIsolation(t *testing.T, api kubernetes.Interface) {
 	t.Helper()
 	ctx := t.Context()
@@ -148,6 +152,8 @@ func checkModuleConfigMapIsolation(t *testing.T, api kubernetes.Interface) {
 	}
 }
 
+// gameplaneServiceAccountClient includes the groups Kubernetes assigns on token
+// authentication so group-based RBAC applies to the impersonated request.
 func gameplaneServiceAccountClient(t *testing.T, name string) kubernetes.Interface {
 	t.Helper()
 	cfg := rest.CopyConfig(envInstance.Cfg)

@@ -190,9 +190,9 @@ func (r *ModuleSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// enqueueUploadSourcesForConfigMap re-indexes every upload-type source
-// when a labeled bundle ConfigMap changes, so uploads land in the
-// catalog immediately instead of on the next refresh tick.
+// enqueueUploadSourcesForConfigMap re-indexes every upload source when a
+// labeled bundle changes in the configured upload namespace. A label in
+// another namespace cannot trigger a catalog refresh.
 func enqueueUploadSourcesForConfigMap(c client.Client, namespace string) handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
 		if obj.GetNamespace() != namespace || obj.GetLabels()[gameplanev1alpha1.LabelModuleUpload] != "true" {
