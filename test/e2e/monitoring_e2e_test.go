@@ -28,6 +28,18 @@ func TestMonitoring_DiscoveryPerformanceAndPolicy(t *testing.T) {
 	if _, err := envInstance.K8s.AppsV1().DaemonSets("kube-system").Get(ctx, "cilium", metav1.GetOptions{}); err != nil {
 		t.Fatalf("monitoring requires enforcing Cilium: %v", err)
 	}
+	stamp := time.Now().UnixNano()
+	otherTenant := fmt.Sprintf("gameplane-monitoring-%d", stamp)
+	namespaces := envInstance.K8s.CoreV1().Namespaces()
+	if _, err := namespaces.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: otherTenant}}, metav1.CreateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = namespaces.Delete(context.Background(), otherTenant, metav1.DeleteOptions{}) })
+	// The network-isolation suite shares the Prometheus bootstrap but first
+	// exercises legacy policies. Install strict per-tenant policy only here.
+	helmUpgradeReuseJSON(ctx, t, []string{"networkPolicies.probePorts=[]"},
+		"operator.gameNamespaces[0]="+otherTenant, "networkPolicies.tenantIsolation=true",
+		"networkPolicies.gameEgress.enabled=false", "networkPolicies.backupEgress.enabled=false")
 	port, stop := envInstance.PortForward(t, "monitoring", "svc/prometheus-operated", 9090)
 	defer stop()
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -66,7 +78,6 @@ func TestMonitoring_DiscoveryPerformanceAndPolicy(t *testing.T) {
 		})
 	}
 	envInstance.ApplyYAML(t, "frps.yaml")
-	stamp := time.Now().UnixNano()
 	name := fmt.Sprintf("monitoring-%d", stamp)
 	const gameCode = `from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import json,pathlib,threading
@@ -106,7 +117,6 @@ ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
 		_ = envInstance.Dyn.Resource(gameTemplateGVR).Delete(context.Background(), name, metav1.DeleteOptions{})
 	})
 	gs := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "gameplane.local/v1alpha1", "kind": "GameServer", "metadata": map[string]any{"name": name, "namespace": ocGamesNS}, "spec": map[string]any{"templateRef": map[string]any{"name": name}, "networking": map[string]any{"expose": "ClusterIP", "tunnel": map[string]any{"enabled": false, "provider": "frp", "frp": map[string]any{"serverAddr": ocFrpsAddr, "remotePorts": []any{map[string]any{"name": "game", "remotePort": int64(30020)}}}}}}}}
-	const otherTenant = "gameplane-monitoring-b"
 	other := gs.DeepCopy()
 	other.SetNamespace(otherTenant)
 	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(otherTenant).Create(ctx, other, metav1.CreateOptions{}); err != nil {
