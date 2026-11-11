@@ -57,7 +57,10 @@ func TestRestrictedWorkloads_NodeCaptureAndTokenRotation(t *testing.T) {
 	if out, err := envInstance.KubectlExec(t, ns, "pod/"+name+"-0", "sh", "-c", "echo upgrade-marker > /data/marker && sync"); err != nil {
 		t.Fatalf("write data: %v %s", err, out)
 	}
-	helmUpgradeReuse(ctx, t, "podSecurity.enforceRestricted=true", "operator.agentTokenExpirationSeconds=600", "capture.enabled=true", "capture.nodeDiagnostics.enabled=true")
+	extraNS := "e2e-games-" + suffix
+	prepareAdmissionFixture(t, extraNS)
+	helmUpgradeReuse(ctx, t, "podSecurity.enforceRestricted=true", "operator.gameNamespaces[0]="+extraNS,
+		"operator.agentTokenExpirationSeconds=600", "capture.enabled=true", "capture.nodeDiagnostics.enabled=true")
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
 		p, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, name+"-0", metav1.GetOptions{})
 		if err != nil {
@@ -101,6 +104,7 @@ func TestRestrictedWorkloads_NodeCaptureAndTokenRotation(t *testing.T) {
 	if !apierrors.IsForbidden(err) || !strings.Contains(err.Error(), "PodSecurity") {
 		t.Fatalf("PSA did not reject root: %v", err)
 	}
+	checkGameAdmission(t, extraNS, pod)
 	// Hash only: never return the bearer token in CI output. This is the kind
 	// host fixture inspecting kubelet's projection, not an extra game mount.
 	tokenPath := "/var/lib/kubelet/pods/" + string(pod.UID) + "/volumes/kubernetes.io~projected/agent-api-token/token"
