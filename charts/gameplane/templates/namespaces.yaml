@@ -15,5 +15,8 @@ metadata:
     # StatefulSet, PVC and per-server Secret Kubernetes garbage-collects
     # underneath it). Same pattern as the API PVC in api.yaml.
     helm.sh/resource-policy: keep
+    {{- if (.Values.argoCD | default dict).enabled }}
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    {{- end }}
 
 {{- end }}

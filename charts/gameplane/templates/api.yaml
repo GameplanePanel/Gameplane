@@ -212,6 +212,9 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
   annotations:
     helm.sh/resource-policy: keep
+    {{- if (.Values.argoCD | default dict).enabled }}
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    {{- end }}
 spec:
   accessModes: [ReadWriteOnce]
   resources:

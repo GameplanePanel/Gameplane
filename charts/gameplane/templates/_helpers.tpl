@@ -107,6 +107,10 @@ CA or client Secret it references. mtls.yaml does not render those Secrets, so
 without them rotating a custom Secret would not roll the API and operator.
 */}}
 {{- define "gameplane.mtlsChecksum" -}}
+{{- if (.Values.argoCD | default dict).enabled -}}
+{{- /* Immutable external Secret names are the rotation inputs available to an offline renderer. */ -}}
+{{- list .Values.api.agentMTLS.caSecretRef.name .Values.api.agentMTLS.clientCertRef.name | toJson | sha256sum -}}
+{{- else -}}
 {{- $parts := list (include (print .Template.BasePath "/mtls.yaml") .) -}}
 {{- $m := .Values.api.agentMTLS -}}
 {{- range $name := list ($m.caSecretRef.name | default "") ($m.clientCertRef.name | default "") -}}
@@ -116,6 +120,7 @@ without them rotating a custom Secret would not roll the API and operator.
 {{- end -}}
 {{- end -}}
 {{- join "\n---\n" $parts | sha256sum -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Absent on releases predating optional gateway installs (--reuse-values). */}}

@@ -1261,6 +1261,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
+      - name: deterministic offline native chart and upgrade renders
+        run: python3 charts/tests/check_argocd.py
       - name: gateway isolation and API-disabled chart renders
         run: python3 charts/tests/check_gateway.py
       - name: standalone panel isolation and persistence chart renders

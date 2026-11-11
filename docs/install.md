@@ -5,6 +5,8 @@ For a central dashboard/API on a host without Kubernetes, use the
 panel-only Helm profile. The instructions below describe the default combined
 installation, with an operator and a local game cluster.
 
+For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
+
 ## Prerequisites
 
 - Kubernetes 1.28+
