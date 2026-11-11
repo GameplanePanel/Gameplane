@@ -15,18 +15,19 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"slices"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 	"github.com/GameplanePanel/gameplane/agent/internal/httpjson"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 // Rcon is the slice of *rcon.Client we actually use. Defined here as
 // an interface so tests can swap in a recording fake.
-type Rcon interface {
-	Exec(cmd string) (string, error)
-}
+type Rcon = rcon.Executor
 
 // Quiescer encapsulates the game-specific RCON sequence for pausing
 // writes (Quiesce) and resuming them (Unquiesce). Implementations
@@ -53,54 +54,98 @@ func Pick(spec *caps.Quiesce) Quiescer {
 
 type response struct {
 	Quiesced bool   `json:"quiesced"`
+	Outcome  string `json:"outcome,omitempty"`
 	Reason   string `json:"reason,omitempty"`
 }
 
-// Mount registers POST /quiesce and POST /unquiesce on r.
-func Mount(r chi.Router, rc Rcon, game string, spec *caps.Quiesce) {
-	q := Pick(spec)
-	r.Post("/quiesce", func(w http.ResponseWriter, _ *http.Request) {
-		if !q.Supported() {
-			httpjson.Write(w, http.StatusOK, response{Quiesced: false, Reason: "game does not support quiesce"})
-			return
-		}
-		if err := q.Quiesce(rc); err != nil {
-			slog.Warn("quiesce failed", "game", game, "err", err)
-			httpjson.Write(w, http.StatusBadGateway, response{Quiesced: false, Reason: "rcon error"})
-			return
-		}
-		httpjson.Write(w, http.StatusOK, response{Quiesced: true})
-	})
-	r.Post("/unquiesce", func(w http.ResponseWriter, _ *http.Request) {
-		if !q.Supported() {
-			httpjson.Write(w, http.StatusOK, response{Quiesced: false, Reason: "game does not support quiesce"})
-			return
-		}
-		if err := q.Unquiesce(rc); err != nil {
-			// Unquiesce failure is more dangerous than quiesce failure
-			// (the game is now stuck with auto-save off), but we still
-			// must not block the controller — surface 502 so the
-			// operator can record an event.
-			slog.Warn("unquiesce failed", "game", game, "err", err)
-			httpjson.Write(w, http.StatusBadGateway, response{Quiesced: true, Reason: "unquiesce rcon error"})
-			return
-		}
-		httpjson.Write(w, http.StatusOK, response{Quiesced: false})
-	})
+// Mount preserves the legacy declaration-driven endpoints for older clients.
+func Mount(r chi.Router, rc *rcon.Commands, game string, spec *caps.Quiesce) {
+	mount(r, rc, game, Pick(spec), false)
+}
+
+// MountVerified accepts only a sequence for which every game reply can be verified.
+// Unsupported pause is safe to degrade because no command has been issued.
+func MountVerified(r chi.Router, rc *rcon.Commands, game string, spec *caps.Quiesce) {
+	var q Quiescer = unsupportedQuiescer{}
+	if game == "minecraft-java" && spec != nil &&
+		slices.Equal(spec.Quiesce, []string{"save-off", "save-all flush"}) &&
+		slices.Equal(spec.Unquiesce, []string{"save-on"}) {
+		declared := newDeclaredQuiescer(spec)
+		declared.rollbackFirst = true
+		q = declared
+	}
+	mount(r, rc, game, q, true)
+}
+
+func mount(r chi.Router, rc *rcon.Commands, game string, q Quiescer, verified bool) {
+	handle := func(path, outcome string, paused bool, run func(Rcon) error) {
+		r.Post(path, func(w http.ResponseWriter, req *http.Request) {
+			if !q.Supported() {
+				httpjson.Write(w, http.StatusOK, response{Outcome: "unsupported", Reason: "game does not support quiesce"})
+				return
+			}
+			err := rc.Sequence(req.Context(), func(transport rcon.Executor) error {
+				if verified {
+					transport = minecraftReplies{transport}
+				}
+				return run(transport)
+			})
+			if err != nil {
+				slog.Warn("backup command failed", "path", path, "game", game, "err", err)
+				httpjson.Write(w, http.StatusBadGateway, response{Quiesced: !paused, Reason: "backup command failed"})
+				return
+			}
+			ack := response{Quiesced: paused}
+			if verified {
+				ack.Outcome = outcome
+			}
+			httpjson.Write(w, http.StatusOK, ack)
+		})
+	}
+	handle("/quiesce", "paused", true, q.Quiesce)
+	handle("/unquiesce", "resumed", false, q.Unquiesce)
+}
+
+type minecraftReplies struct{ Rcon }
+
+// Vanilla Java 1.21.4 en_us commands.save.* messages. RCON can concatenate
+// the two flush messages with no separator. Never accept a success substring
+// embedded in an error, or a reply to the opposite command.
+func (m minecraftReplies) Exec(cmd string) (string, error) {
+	reply, err := m.Rcon.Exec(cmd)
+	if err != nil {
+		return "", err
+	}
+	out := strings.TrimSpace(reply)
+	var ok bool
+	switch cmd {
+	case "save-off":
+		ok = out == "Automatic saving is now disabled" || out == "Saving is already turned off"
+	case "save-on":
+		ok = out == "Automatic saving is now enabled" || out == "Saving is already turned on"
+	case "save-all flush":
+		out = strings.TrimSpace(strings.TrimPrefix(out, "Saving the game (this may take a moment!)"))
+		ok = out == "Saved the game"
+	}
+	if !ok {
+		return "", fmt.Errorf("game did not acknowledge %q", cmd)
+	}
+	return reply, nil
 }
 
 // --- Declared (module-driven) ------------------------------------------
 
 type declaredQuiescer struct {
-	quiesce   []string
-	unquiesce []string
-	failRE    *regexp.Regexp
+	quiesce       []string
+	unquiesce     []string
+	failRE        *regexp.Regexp
+	rollbackFirst bool
 }
 
 // newDeclaredQuiescer compiles the declared sequences. An invalid
 // FailurePattern is logged and ignored — the commands still run, the
 // output check just can't.
-func newDeclaredQuiescer(spec *caps.Quiesce) Quiescer {
+func newDeclaredQuiescer(spec *caps.Quiesce) declaredQuiescer {
 	q := declaredQuiescer{quiesce: spec.Quiesce, unquiesce: spec.Unquiesce}
 	if spec.FailurePattern != "" {
 		re, err := regexp.Compile("(?i)" + spec.FailurePattern)
@@ -122,10 +167,9 @@ func (q declaredQuiescer) Quiesce(rc Rcon) error {
 			err = fmt.Errorf("quiesce command %q reported failure", cmd)
 		}
 		if err != nil {
-			// Roll auto-save (or whatever the game paused) back on so we
-			// don't leave the world frozen — but only if any pausing
-			// command already ran.
-			if i > 0 {
+			// A timed-out save-off may already have reached the game.
+			// The verified save-on contract accepts "already on" on retry.
+			if i > 0 || q.rollbackFirst {
 				_ = q.Unquiesce(rc)
 			}
 			return err
@@ -137,7 +181,11 @@ func (q declaredQuiescer) Quiesce(rc Rcon) error {
 func (q declaredQuiescer) Unquiesce(rc Rcon) error {
 	var firstErr error
 	for _, cmd := range q.unquiesce {
-		if _, err := rc.Exec(cmd); err != nil && firstErr == nil {
+		out, err := rc.Exec(cmd)
+		if err == nil && q.failRE != nil && q.failRE.MatchString(out) {
+			err = fmt.Errorf("unquiesce command %q reported failure", cmd)
+		}
+		if err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}

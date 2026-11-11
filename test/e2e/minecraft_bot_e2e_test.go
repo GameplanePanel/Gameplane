@@ -3,6 +3,10 @@
 package e2e
 
 import (
+	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"strings"
 	"testing"
 	"time"
 
@@ -45,7 +49,11 @@ import (
 func TestGameServer_MinecraftJavaBot_Joined(t *testing.T) {
 	skipUnlessGameInScope(t, "minecraft-java")
 
-	runGameBotTest(t, minecraftBotSpec())
+	spec := minecraftBotSpec()
+	spec.Env["PAUSE_WHEN_EMPTY_SECONDS"] = "-1"
+	spec.Quiesce = map[string]any{"quiesce": []any{"save-off", "save-all flush"}, "unquiesce": []any{"save-on"}}
+	gs, ns := runGameBotTest(t, spec)
+	verifyMinecraftBackupResumesAutosave(t, ns, gs)
 }
 
 // minecraftBotSpec is the trimmed vanilla Minecraft Java 1.21.4 GameServer used by
@@ -138,4 +146,47 @@ func minecraftBotSpec() gameBotSpec {
 			ExpectRaw: "Saved the game",
 		},
 	}
+}
+
+// Write a new command-storage marker after recovery. Only an automated save
+// can put it on disk: this probe issues neither save-all nor a server stop.
+func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
+	t.Helper()
+	ensureResticRepo(t)
+	name := gs + "-autosave"
+	b := &unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "gameplane.local/v1alpha1", "kind": "Backup",
+		"metadata": map[string]any{"namespace": ns, "name": name},
+		"spec":     map[string]any{"serverRef": map[string]any{"name": gs}, "repoRef": map[string]any{"name": "e2e-restic-creds", "key": "repo"}, "quiesce": true},
+	}}
+	backups := envInstance.Dyn.Resource(backupGVR).Namespace(ns)
+	if _, err := backups.Create(t.Context(), b, metav1.CreateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { deleteBackupCR(t, ns, name) })
+	waitBackupSucceeded(t, ns, name, 8*time.Minute)
+	envInstance.Eventually(t, time.Minute, func() (bool, string) {
+		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})
+		if err != nil {
+			return false, err.Error()
+		}
+		a := got.GetAnnotations()
+		return a["backup.gameplane.local/quiesce-attempted"] == "true" &&
+			a["backup.gameplane.local/unquiesced-at"] != "" && a["backup.gameplane.local/cleanup-outcome"] != "source-gone", "waiting for pause and resume of the live game"
+	})
+	exec := func(args ...string) (string, error) {
+		return envInstance.Kubectl(t.Context(), append([]string{"exec", "-n", ns, "pod/" + gs + "-0", "-c", "game", "--"}, args...)...)
+	}
+	// An old command storage file cannot satisfy a new marker.
+	marker := fmt.Sprintf("gameplane_autosave_%d", time.Now().UnixNano())
+	if out, err := exec("rcon-cli", "data modify storage gpaudit:backup marker set value "+marker); err != nil || !strings.Contains(out, "Modified storage") {
+		t.Fatalf("set post-backup marker: %s (%v)", out, err)
+	}
+	if out, err := exec("rcon-cli", "tick sprint 7000t"); err != nil {
+		t.Fatalf("advance vanilla autosave ticks: %s (%v)", out, err)
+	}
+	envInstance.Eventually(t, 7*time.Minute, func() (bool, string) {
+		out, err := exec("gzip", "-dc", "/data/world/data/command_storage_gpaudit.dat")
+		return err == nil && strings.Contains(out, marker), "waiting for automatic persistence of the post-backup marker"
+	})
 }

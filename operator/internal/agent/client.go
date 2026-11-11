@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -103,7 +104,8 @@ func agentURL(namespace, server, path string) string {
 }
 
 type quiesceResponse struct {
-	Quiesced bool   `json:"quiesced"`
+	Quiesced *bool  `json:"quiesced"`
+	Outcome  string `json:"outcome"`
 	Reason   string `json:"reason,omitempty"`
 }
 
@@ -129,7 +131,7 @@ func (c *Client) CheckPod(ctx context.Context, namespace, server, podUID string)
 	if c.Disabled || podUID == "" {
 		return fmt.Errorf("agent: pod identity check requires an enabled client and pod UID")
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agentURL(namespace, server, "/v1/pods/"+url.PathEscape(podUID)+"/identity"), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agentURL(namespace, server, "/v2/pods/"+url.PathEscape(podUID)+"/identity"), nil)
 	if err != nil {
 		return err
 	}
@@ -158,7 +160,7 @@ func (c *Client) callPodQuiesce(ctx context.Context, namespace, server, podUID, 
 	if c.Disabled || podUID == "" {
 		return fmt.Errorf("agent: pod-bound quiesce requires an enabled client and pod UID")
 	}
-	return c.callQuiesce(ctx, namespace, server, "/v1/pods/"+url.PathEscape(podUID)+path, expectQuiesced)
+	return c.callQuiesce(ctx, namespace, server, "/v2/pods/"+url.PathEscape(podUID)+path, expectQuiesced)
 }
 
 // expectQuiesced is what the response should report on a successful
@@ -177,25 +179,40 @@ func (c *Client) callQuiesce(ctx context.Context, namespace, server, path string
 		return fmt.Errorf("agent: %s: %w", path, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 16<<10))
+	const maxReply = 16 << 10
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxReply+1))
+	if err != nil {
+		return fmt.Errorf("agent: %s: read response: %w", path, err)
+	}
+	if len(body) > maxReply {
+		return fmt.Errorf("agent: %s: oversized response", path)
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("agent: %s: status %d", path, resp.StatusCode)
 	}
 
 	var parsed quiesceResponse
-	if len(body) > 0 {
-		if err := json.Unmarshal(body, &parsed); err != nil {
-			return fmt.Errorf("agent: %s: decode response: %w", path, err)
-		}
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return fmt.Errorf("agent: %s: decode response: %w", path, err)
 	}
-	// Detect the unsupported-game case via the canonical reason string
-	// so we can report it distinctly without leaking it as a hard error.
-	if !parsed.Quiesced && expectQuiesced {
-		if parsed.Reason == "game does not support quiesce" {
-			return ErrUnsupported
-		}
-		return fmt.Errorf("agent: %s: refused (%s)", path, parsed.Reason)
+	if parsed.Quiesced == nil {
+		return fmt.Errorf("agent: %s: missing quiesced field", path)
+	}
+	verified := strings.HasPrefix(path, "/v2/pods/")
+	if expectQuiesced && !*parsed.Quiesced && parsed.Reason == "game does not support quiesce" &&
+		(!verified || parsed.Outcome == "unsupported") {
+		return ErrUnsupported
+	}
+	if *parsed.Quiesced != expectQuiesced || parsed.Reason != "" {
+		return fmt.Errorf("agent: %s: refused or contradictory acknowledgment", path)
+	}
+	want := "resumed"
+	if expectQuiesced {
+		want = "paused"
+	}
+	if verified && parsed.Outcome != want {
+		return fmt.Errorf("agent: %s: missing or contradictory outcome", path)
 	}
 	return nil
 }

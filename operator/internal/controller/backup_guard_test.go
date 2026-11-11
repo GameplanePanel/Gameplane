@@ -485,6 +485,17 @@ func TestBackupQuiesceIntentSurvivesPostAgentWriteFailure(t *testing.T) {
 	if b.Annotations[annoQuiesceAttempted] != "pending" {
 		t.Fatal("cleanup intent was not durable before save-off")
 	}
+	// A fresh reconciler reads the pending intent. An unsupported retry
+	// describes that retry only; the previous save-off may have succeeded.
+	r = &BackupReconciler{Client: base, Scheme: r.Scheme, AgentClient: q, LogReader: r.LogReader}
+	q.quiesceErr = agent.ErrUnsupported
+	if err := r.maybeQuiesce(t.Context(), b); err == nil {
+		t.Fatal("unsupported retry erased an ambiguous pause")
+	}
+	b = guardGetBackup(t, r, "first")
+	if b.Annotations[annoQuiesceAttempted] != "pending" || b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed {
+		t.Fatalf("lost pending cleanup across restart: %+v", b)
+	}
 	if err := r.Delete(context.Background(), b); err != nil {
 		t.Fatal(err)
 	}
