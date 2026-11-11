@@ -191,6 +191,11 @@ payload byte counters. Columns give the worst measurement across four trials
 per route and rate. CPU is the largest combined frpc + frps CPU-seconds delta
 per ten-second trial, including the driver's final one-second receive window.
 
+The [first series](../tunnel/bench/results/frp-loopback-series-1.jsonl) and
+[counter-instrumented series](../tunnel/bench/results/frp-loopback-series-2.jsonl)
+contain all 32 direct and relayed trial records, the runner kernel and the
+SHA-256 digest of each executable.
+
 | Offered packets/s | Route | Minimum sent/s | Loss % | RTT p95/p99 ms | Jitter p95/p99 ms | Relay CPU s |
 |---:|---|---:|---:|---:|---:|---:|
 | 1,024 | Direct | 1,024 | 0 | 0.14 / 0.19 | 0.07 / 0.13 | 0.00 |
