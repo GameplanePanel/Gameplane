@@ -189,6 +189,7 @@ func TestBackupConsistencyDescribesAchievedResult(t *testing.T) {
 	}{
 		{"restic-snapshot", "confirmed", "LegacyHookUnverified", metav1.ConditionUnknown},
 		{"restic-snapshot", "legacy-unverified", "LegacyHookUnverified", metav1.ConditionUnknown},
+		{"restic-snapshot", "flush-only", "FlushedLiveCopy", metav1.ConditionFalse},
 		{"restic-snapshot", "verified-freeze", "Quiesced", metav1.ConditionTrue},
 		{"restic-snapshot", "already-stopped", "StoppedSource", metav1.ConditionTrue},
 		{"restic-snapshot", "unsupported", "UnsupportedRawCopy", metav1.ConditionFalse},

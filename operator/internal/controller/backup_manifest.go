@@ -178,6 +178,10 @@ func backupQuiesceOutcome(b *gameplanev1alpha1.Backup) string {
 		}
 		return "legacy-unverified"
 	case "unsupported":
+		p, err := parseBackupPreparation(b)
+		if err == nil && p != nil && p.PodUID != "" && string(p.PodUID) == b.Annotations[annoFlushedPod] {
+			return "flush-only"
+		}
 		return "unsupported"
 	case "pending":
 		return "unknown"
@@ -205,6 +209,8 @@ func backupConsistencyCondition(b *gameplanev1alpha1.Backup) metav1.Condition {
 		condition.Status, condition.Reason, condition.Message = metav1.ConditionFalse, "LiveMultiVolumeCopy", "Included volumes share one snapshot, but live copies have no atomic cross-volume consistency guarantee, even when the primary game's quiesce succeeds."
 	case b.Status.CaptureManifest.QuiesceOutcome == "confirmed" || b.Status.CaptureManifest.QuiesceOutcome == "legacy-unverified":
 		condition.Reason, condition.Message = "LegacyHookUnverified", "The historical hook reported success without proving that writes stayed paused. The snapshot remains available for restore."
+	case b.Status.CaptureManifest.QuiesceOutcome == "flush-only":
+		condition.Status, condition.Reason, condition.Message = metav1.ConditionFalse, "FlushedLiveCopy", "The game acknowledged a checkpoint. Subsequent writes could change files during this copy."
 	case b.Status.CaptureManifest.QuiesceOutcome == "verified-freeze":
 		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "Quiesced", "The pod-bound agent verified the game write-freeze command sequence before capture. See the manifest for included volumes."
 	case b.Status.CaptureManifest.QuiesceOutcome == "already-stopped":

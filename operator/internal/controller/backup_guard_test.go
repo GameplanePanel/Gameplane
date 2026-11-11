@@ -53,6 +53,55 @@ func (q *guardQuiescer) UnquiescePod(ctx context.Context, namespace, server, _ s
 	return q.Unquiesce(ctx, namespace, server)
 }
 
+type checkpointAgent struct {
+	*guardQuiescer
+	flushes  int
+	flushErr error
+}
+
+func (q *checkpointAgent) PodBackupMode(context.Context, string, string, string) (string, error) {
+	return "flush-only", nil
+}
+
+func (q *checkpointAgent) FlushPod(context.Context, string, string, string) error {
+	q.flushes++
+	return q.flushErr
+}
+
+func TestCheckpointDoesNotCreateWriteFreezeDebt(t *testing.T) {
+	for _, failed := range []bool{false, true} {
+		t.Run(fmt.Sprintf("failed=%t", failed), func(t *testing.T) {
+			r, base := guardFixtureWorkers(t, false, guardBackup("prepared"))
+			q := &checkpointAgent{guardQuiescer: base}
+			if failed {
+				q.flushErr = errors.New("checkpoint rejected")
+			}
+			r.AgentClient = q
+			budgetPass(t, r, "prepared")
+			budgetReadyWorker(t, r, "prepared", "prepared-worker-uid")
+			req := ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "ns", Name: "prepared"}}
+			for range 4 {
+				if _, err := r.Reconcile(t.Context(), req); err != nil && !errors.Is(err, q.flushErr) {
+					t.Fatal(err)
+				}
+			}
+			b := guardGetBackup(t, r, "prepared")
+			if q.flushes != 1 || q.quiesced != 0 || q.unquiesced != 0 || b.Annotations[annoQuiescedAt] != "" {
+				t.Fatalf("unexpected write-freeze sequence: %+v, %+v", q, b.Annotations)
+			}
+			if failed {
+				if b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed || b.Annotations[backupAuthorizedWorkerAnnotation] != "" {
+					t.Fatalf("failed checkpoint authorized capture: %+v", b)
+				}
+				return
+			}
+			if b.Status.CaptureManifest == nil || b.Status.CaptureManifest.QuiesceOutcome != "flush-only" || b.Annotations[annoFlushedPod] != "game-pod-uid" {
+				t.Fatalf("missing pod-bound checkpoint: %+v", b)
+			}
+		})
+	}
+}
+
 func guardBackup(name string) *gameplanev1alpha1.Backup {
 	return &gameplanev1alpha1.Backup{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "ns", UID: types.UID(name + "-uid"), Finalizers: []string{gameplanev1alpha1.BackupFinalizer, gameplanev1alpha1.BackupSnapshotFinalizer}}, Spec: gameplanev1alpha1.BackupSpec{ServerRef: gameplanev1alpha1.LocalObjectRef{Name: "server"}, RepoRef: &gameplanev1alpha1.SecretKeySelector{Name: "repo"}, Quiesce: true}}
 }

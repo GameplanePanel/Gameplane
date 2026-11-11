@@ -33,6 +33,7 @@ import (
 // quiesce state across reconcile passes.
 const (
 	annoQuiesceAttempted = "backup.gameplane.local/quiesce-attempted"
+	annoFlushedPod       = "backup.gameplane.local/flushed-pod"
 	annoVerifiedFreeze   = "backup.gameplane.local/verified-freeze-pod"
 	annoQuiescedAt       = "backup.gameplane.local/quiesced-at"
 	annoUnquiescedAt     = "backup.gameplane.local/unquiesced-at"
@@ -413,8 +414,27 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 	// Old agents cannot mutate through it and must not pin an owner that
 	// would prevent their own upgrade. The POST still checks the UID again.
 	if preparation != nil && b.Annotations[annoQuiesceAttempted] == "" {
+		podUID := string(preparation.PodUID)
 		bound, ok := r.AgentClient.(podAgentQuiescer)
-		if !ok {
+		if checkpoint, supportsModes := r.AgentClient.(interface {
+			PodBackupMode(context.Context, string, string, string) (string, error)
+			FlushPod(context.Context, string, string, string) error
+		}); supportsModes {
+			var mode string
+			mode, err = checkpoint.PodBackupMode(ctx, b.Namespace, b.Spec.ServerRef.Name, podUID)
+			if err == nil && mode == "flush-only" {
+				if err := checkpoint.FlushPod(ctx, b.Namespace, b.Spec.ServerRef.Name, podUID); err != nil {
+					_, ferr := r.fail(ctx, b, fmt.Sprintf("checkpoint failed: %v", err))
+					return errors.Join(err, ferr)
+				}
+				// Keep older controllers from trying save-on for this checkpoint.
+				patchBackupAnnotations(b, map[string]string{annoQuiesceAttempted: "unsupported", annoFlushedPod: podUID})
+				return r.Update(ctx, b)
+			}
+			if err == nil && mode != "" {
+				err = fmt.Errorf("unsupported agent backup mode %q", mode)
+			}
+		} else if !ok {
 			err = fmt.Errorf("agent client does not support pod-bound quiesce")
 		} else {
 			err = bound.CheckPod(ctx, b.Namespace, b.Spec.ServerRef.Name, string(preparation.PodUID))
