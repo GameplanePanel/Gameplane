@@ -17,10 +17,8 @@
 # the GAMEPLANE_E2E_TAG env var.
 #
 # Profile defaults to "default". The "postgres" profile (spec 013 US5) runs
-# the API on PostgreSQL: it applies deploy/kind/postgres.yaml, retags the
-# postgres-tagged api image as gameplane-test/api:<tag> before loading, and
-# installs with api.db.driver=postgres and the DSN from the
-# gameplane-postgres Secret. The retag replaces the local SQLite api image.
+# the standard API image against deploy/kind/postgres.yaml using the DSN
+# referenced by the gameplane-postgres Secret.
 
 set -euo pipefail
 
@@ -231,17 +229,6 @@ EOF
 
     install_metallb
     apply_metallb_pools
-
-    # The chart has one image.tag for every component, so the postgres
-    # profile loads the postgres-tagged api build under the shared tag.
-    if [ "${PROFILE}" = postgres ]; then
-        if ! docker image inspect gameplane-test/api:e2e-postgres >/dev/null 2>&1; then
-            echo "missing local image gameplane-test/api:e2e-postgres (bake target e2e-api-postgres)" >&2
-            exit 1
-        fi
-        echo "retagging gameplane-test/api:e2e-postgres as gameplane-test/api:${TAG}"
-        docker tag gameplane-test/api:e2e-postgres "gameplane-test/api:${TAG}"
-    fi
 
     echo "loading gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,mcp-server,audit-syslog-bridge,tunnel-frp}:${TAG} images into kind"
     for img in operator api agent sentinel capture-sidecar telemetry-receiver mcp-server audit-syslog-bridge tunnel-frp; do

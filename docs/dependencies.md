@@ -428,19 +428,10 @@ The Helm chart itself (`charts/gameplane/Chart.yaml`) declares **no chart
   new module for a single read-only GET was judged not worth the extra
   dependency surface — the same reasoning that keeps `netguard`,
   `gameaction`, `audit-syslog-bridge`, and `telemetry-receiver` this lean.
-- **Persistence is driver-selectable, but Postgres needs a rebuild.**
-  `api/internal/db` registers `modernc.org/sqlite` (pure-Go, default)
-  unconditionally, and compiles in `github.com/jackc/pgx/v5`'s `stdlib`
-  driver only under the `postgres` build tag (`db_postgres.go`); without
-  that tag, `db_nopostgres.go` stands in and `Open(ctx, "postgres", dsn)`
-  returns `"postgres support not compiled in — rebuild with -tags
-  postgres"`. Confirmed: `api/Dockerfile` (and thus the published
-  `ghcr.io/.../api` image) does **not** pass `-tags postgres` — this is
-  intentional and documented, not an oversight: `charts/gameplane/values.yaml`'s
-  `api.db.driver` comment explicitly tells an operator who wants Postgres [experimental]
-  to set `dsn` *and* rebuild the image with `-tags postgres` themselves.
-  So `pgx/v5` is a real, live dependency, but it ships dormant in the
-  default binary.
+- **Persistence drivers.** The release API image includes pgx and modernc SQLite.
+  SQLite is the default at runtime. The PostgreSQL kind lane exercises the same
+  API build used by the SQLite lane. Custom Go builds may omit the `postgres`
+  tag to produce a SQLite-only binary.
 - **netguard's two policies, three importers.** Both `IsAllowed` (permissive,
   for admin-configured infrastructure) and `IsPublic` (strict, for user-supplied
   targets) are used by operator (module sources), API gateway

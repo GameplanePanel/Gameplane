@@ -213,8 +213,7 @@ api:
     driver: sqlite       # sqlite | postgres
     dsn: "file:/data/gameplane.db?_pragma=journal_mode(WAL)"
     # An existing Secret in the release namespace takes precedence over dsn.
-    # For postgres, store the connection string there and use an API image
-    # built with -tags postgres. Helm only needs the Secret name and key.
+    # For postgres, provision the full connection string there. The release API includes both drivers.
     existingSecret: ""
     secretKey: dsn
 
