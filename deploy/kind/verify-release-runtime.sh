@@ -8,15 +8,33 @@ for component in "$@"; do
   row="$(awk -F '\t' -v name="$component" '$1 == name' "$GAMEPLANE_RELEASE_DIGESTS")"
   test -n "$row"
   IFS=$'\t' read -r _ image index manifest config <<< "$row"
+  namespace=gameplane-system
+  label="gameplane-$component"
+  container="$component"
+  case "$component" in
+    operator) container=manager ;;
+    agent) namespace=gameplane-games; label=gameplane-game ;;
+    api|web) ;;
+    *) echo "Unsupported runtime component: $component" >&2; exit 1 ;;
+  esac
+  ids=""
   for ((attempt=0; attempt<60; attempt++)); do
-    pods="$(kubectl --context "$context" get pods -A -o json)"
-    ids="$(jq -r --arg image "$image" '.items[] | select(.metadata.deletionTimestamp == null)
-      | .status.containerStatuses[]? | select(.ready and .image == $image) | .imageID' <<< "$pods")"
-    [[ -n "$ids" ]] && break
+    pods="$(kubectl --context "$context" -n "$namespace" get pods -l "app.kubernetes.io/name=$label" -o json)"
+    # A matching new replica must not mask another replica still running an old image.
+    if ids="$(jq -er --arg image "$image" --arg name "$container" '
+      [.items[] | select(.metadata.deletionTimestamp == null) | {
+        spec: [.spec.containers[] | select(.name == $name) | .image],
+        status: [.status.containerStatuses[]? | select(.name == $name)]
+      }] | select(length > 0 and all(.[];
+        .spec == [$image] and (.status | length) == 1 and
+        .status[0].ready and (.status[0].imageID | type == "string" and length > 0)))
+      | .[].status[0].imageID' <<< "$pods")"; then
+      break
+    fi
     sleep 2
   done
   if [[ -z "$ids" ]]; then
-    echo "No Ready container running $image in $context" >&2
+    echo "Expected every $label pod to run a Ready $container from $image in $context" >&2
     exit 1
   fi
   while read -r id; do
