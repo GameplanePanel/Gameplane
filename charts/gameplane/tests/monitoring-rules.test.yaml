@@ -3,6 +3,27 @@ evaluation_interval: 1m
 tests:
   - interval: 1m
     input_series:
+      - series: 'gameplane_tunnel_flow_rejections_total{namespace="gameplane-games",pod="busy",protocol="tcp"}'
+        values: '0x2 1x10'
+      - series: 'gameplane_tunnel_udp_queue_drops_total{namespace="tenant-b",pod="backlogged"}'
+        values: '0x2 1x10'
+      - series: 'gameplane_tunnel_udp_queue_drops_total{namespace="unmanaged",pod="outside"}'
+        values: '0+10x12'
+      - series: 'gameplane_tunnel_forward_metrics_supported{namespace="tenant-b",pod="opaque"}'
+        values: '0x12'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: GameplaneRelaySaturated
+        exp_alerts:
+          - exp_labels: {namespace: gameplane-games, pod: busy, severity: warning}
+            exp_annotations: {summary: "Relay rejected traffic at its flow limit or dropped queued UDP packets"}
+          - exp_labels: {namespace: tenant-b, pod: backlogged, severity: warning}
+            exp_annotations: {summary: "Relay rejected traffic at its flow limit or dropped queued UDP packets"}
+      - eval_time: 10m
+        alertname: GameplaneRelaySaturated
+        exp_alerts: []
+  - interval: 1m
+    input_series:
       - series: 'kube_pod_container_status_running{namespace="tenant-b",pod="sleepy-0",container="agent"}'
         values: '1x12'
       - series: 'kube_pod_labels{namespace="tenant-b",pod="sleepy-0",label_app_kubernetes_io_name="gameplane-game"}'

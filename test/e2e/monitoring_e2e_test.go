@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -72,17 +73,19 @@ import json,pathlib,threading
 value=pathlib.Path('/tmp/performance')
 count=pathlib.Path('/tmp/performance-queries')
 value.write_text('20')
+heap=[]
 count.write_text('0')
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
     def do_GET(self):
+        if self.path=='/allocate': heap.append(bytearray(16*1024*1024))
         self.send_response(200); self.end_headers(); self.wfile.write(b'ok')
     def do_POST(self):
         command=json.loads(self.rfile.read(int(self.headers.get('Content-Length','0')))).get('command','')
         if command=='stats':
             count.write_text(str(int(count.read_text())+1))
             output='TPS: '+value.read_text()+' Tick: 50'
-        else: output='0 players online'
+        else: output='unavailable' if pathlib.Path('/tmp/players-unknown').exists() else '0 players online'
         self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'output':output}).encode())
 threading.Thread(target=ThreadingHTTPServer(('127.0.0.1',25575),Handler).serve_forever,daemon=True).start()
 ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
@@ -103,6 +106,15 @@ ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
 		_ = envInstance.Dyn.Resource(gameTemplateGVR).Delete(context.Background(), name, metav1.DeleteOptions{})
 	})
 	gs := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "gameplane.local/v1alpha1", "kind": "GameServer", "metadata": map[string]any{"name": name, "namespace": ocGamesNS}, "spec": map[string]any{"templateRef": map[string]any{"name": name}, "networking": map[string]any{"expose": "ClusterIP", "tunnel": map[string]any{"enabled": false, "provider": "frp", "frp": map[string]any{"serverAddr": ocFrpsAddr, "remotePorts": []any{map[string]any{"name": "game", "remotePort": int64(30020)}}}}}}}}
+	const otherTenant = "gameplane-monitoring-b"
+	other := gs.DeepCopy()
+	other.SetNamespace(otherTenant)
+	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(otherTenant).Create(ctx, other, metav1.CreateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(otherTenant).Delete(context.Background(), name, metav1.DeleteOptions{})
+	})
 	gs, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ocGamesNS).Create(ctx, gs, metav1.CreateOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -120,10 +132,35 @@ ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
 	}
 	selector := fmt.Sprintf(`namespace="gameplane-games",server="%s"`, name)
 	waitQuery(`max(up{gameplane_component="agent",`+selector+`})`, "1")
+	otherSelector := fmt.Sprintf(`namespace="%s",server="%s"`, otherTenant, name)
+	waitQuery(`max(up{gameplane_component="agent",`+otherSelector+`})`, "1")
+	// Invalidate the player response on one of two identically named games.
+	waitQuery(`max(gameplane_agent_players_online{`+otherSelector+`})`, "0")
+	if out, err := envInstance.Kubectl(ctx, "exec", "-n", otherTenant, name+"-0", "-c", "game", "--", "touch", "/tmp/players-unknown"); err != nil {
+		t.Fatalf("invalidate player count: %v %s", err, out)
+	}
+	waitQuery(`absent(gameplane_agent_players_online{`+otherSelector+`})`, "1")
+	waitQuery(`max(up{gameplane_component="agent",`+otherSelector+`})`, "1")
+	waitQuery(`max(gameplane_agent_players_online{`+selector+`})`, "0")
+	waitQuery(`max(gameplane_agent_performance_value{metric="tps",`+otherSelector+`})`, "20")
 	waitQuery(`max(up{gameplane_component="tunnel",`+selector+`})`, "1")
 	waitQuery(`max(gameplane_tunnel_ready{`+selector+`})`, "1")
 	waitQuery(`max(gameplane_agent_performance_value{metric="tps",`+selector+`})`, "20")
 	waitQuery(`max(gameplane_agent_performance_value{metric="tick",`+selector+`})`, "0.05")
+	rssQuery := `max(gameplane_agent_memory_bytes{` + selector + `})`
+	waitQuery(rssQuery+` > bool 0`, "1")
+	baseline, err := query(rssQuery)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rss, err := strconv.ParseFloat(baseline, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out, err := envInstance.Kubectl(ctx, "exec", "-n", ocGamesNS, name+"-0", "-c", "game", "--", "python", "-c", `import urllib.request; urllib.request.urlopen('http://127.0.0.1:25566/allocate').read()`); err != nil {
+		t.Fatalf("allocate memory in game process: %v %s", err, out)
+	}
+	waitQuery(fmt.Sprintf(`%s > bool %.0f`, rssQuery, rss+8*1024*1024), "1")
 	waitQuery(`count(gameplane_agent_performance_value{metric="display",`+selector+`}) or vector(0)`, "0")
 	readCount := func() int {
 		out, err := envInstance.Kubectl(ctx, "exec", "-n", ocGamesNS, name+"-0", "-c", "game", "--", "python", "-c", `from pathlib import Path; print(Path('/tmp/performance-queries').read_text())`)
@@ -140,6 +177,39 @@ ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
 	if err != nil {
 		t.Fatal(err)
 	}
+	otherProbe := name + "-other"
+	monitoringProbe(t, otherTenant, otherProbe)
+	// Remove one tenant from PodMonitor discovery while its pod remains ready.
+	monitors := envInstance.Dyn.Resource(schema.GroupVersionResource{Group: "monitoring.coreos.com", Version: "v1", Resource: "podmonitors"}).Namespace(ocGamesNS)
+	monitor, err := monitors.Get(ctx, "gameplane-agent", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	names, _, err := unstructured.NestedStringSlice(monitor.Object, "spec", "namespaceSelector", "matchNames")
+	if err != nil {
+		t.Fatal(err)
+	}
+	patchNamespaces := func(ctx context.Context, namespaces []string) error {
+		body, err := json.Marshal(map[string]any{"spec": map[string]any{"namespaceSelector": map[string]any{"matchNames": namespaces}}})
+		if err != nil {
+			return err
+		}
+		_, err = monitors.Patch(ctx, "gameplane-agent", types.MergePatchType, body, metav1.PatchOptions{})
+		return err
+	}
+	t.Cleanup(func() { _ = patchNamespaces(context.Background(), names) })
+	if err := patchNamespaces(ctx, []string{ocGamesNS}); err != nil {
+		t.Fatal(err)
+	}
+	waitQuery(`absent(up{gameplane_component="agent",`+otherSelector+`})`, "1")
+	if ready, err := envInstance.PodIsReady(ctx, otherTenant, name+"-0"); err != nil || !ready {
+		t.Fatalf("missing target pod ready=%t err=%v", ready, err)
+	}
+	waitQuery(`max(up{gameplane_component="agent",`+selector+`})`, "1")
+	if err := patchNamespaces(ctx, names); err != nil {
+		t.Fatal(err)
+	}
+	waitQuery(`max(up{gameplane_component="agent",`+otherSelector+`})`, "1")
 	approvedProbe := name + "-approved"
 	monitoringProbe(t, "monitoring", approvedProbe)
 	before := readCount()
@@ -195,9 +265,11 @@ try:
 except (OSError,TimeoutError):
     print('DENIED')
 `
-	out, err := envInstance.Kubectl(ctx, "exec", "-n", ocNS, probeName, "--", "python", "-c", denied, "http://"+pod.Status.PodIP+":9090/metrics")
-	if err != nil || strings.TrimSpace(out) != "DENIED" {
-		t.Fatalf("unapproved namespace reached metrics, or probe failed: %v %s", err, out)
+	for namespace, probe := range map[string]string{ocNS: probeName, otherTenant: otherProbe} {
+		out, err := envInstance.Kubectl(ctx, "exec", "-n", namespace, probe, "--", "python", "-c", denied, "http://"+pod.Status.PodIP+":9090/metrics")
+		if err != nil || strings.TrimSpace(out) != "DENIED" {
+			t.Fatalf("unapproved namespace %s reached metrics, or probe failed: %v %s", namespace, err, out)
+		}
 	}
 }
 

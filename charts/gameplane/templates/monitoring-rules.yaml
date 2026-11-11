@@ -42,6 +42,13 @@ spec:
           for: 5m
           labels: { severity: info }
           annotations: { summary: "Gameplane provider cannot confirm live relay health" }
+        - alert: GameplaneRelaySaturated
+          expr: |
+            max by (namespace, pod) (increase(gameplane_tunnel_flow_rejections_total{namespace=~"{{ $namespaces }}"}[5m])) > 0
+            or
+            max by (namespace, pod) (increase(gameplane_tunnel_udp_queue_drops_total{namespace=~"{{ $namespaces }}"}[5m])) > 0
+          labels: { severity: warning }
+          annotations: { summary: "Relay rejected traffic at its flow limit or dropped queued UDP packets" }
         - alert: GameplanePerformanceUnknown
           expr: max by (namespace, pod, metric, signal, unit) (gameplane_agent_performance_available{namespace=~"{{ $namespaces }}"}) == 0
           for: 5m

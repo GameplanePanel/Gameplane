@@ -18,8 +18,13 @@ sed 's/namespace: default/namespace: monitoring/g' "$scratch/bundle.yaml" > "$sc
 kubectl apply --server-side -f "$scratch/monitoring.yaml"
 kubectl wait --for=condition=Established --timeout=120s crd/prometheuses.monitoring.coreos.com crd/podmonitors.monitoring.coreos.com crd/servicemonitors.monitoring.coreos.com crd/prometheusrules.monitoring.coreos.com
 kubectl rollout status -n monitoring deployment/prometheus-operator --timeout=180s
+kubectl create namespace gameplane-monitoring-b --dry-run=client -o yaml | kubectl apply -f -
 helm --kube-context "$context" upgrade gameplane charts/gameplane --namespace gameplane-system --reuse-values \
-  -f docs/examples/monitoring/gameplane-values.yaml --wait --timeout 5m
+  -f docs/examples/monitoring/gameplane-values.yaml \
+  --set 'operator.gameNamespaces[0]=gameplane-monitoring-b' \
+  --set networkPolicies.tenantIsolation=true --set networkPolicies.probePorts=null \
+  --set networkPolicies.gameEgress.enabled=false --set networkPolicies.backupEgress.enabled=false \
+  --wait --timeout 5m
 kubectl apply -f docs/examples/monitoring/prometheus.yaml
 kubectl wait -n monitoring --for=create statefulset/prometheus-gameplane --timeout=120s
 kubectl rollout status -n monitoring statefulset/prometheus-gameplane --timeout=180s
