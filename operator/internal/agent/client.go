@@ -20,20 +20,17 @@ import (
 	"time"
 )
 
-// ErrUnsupported is returned when the agent acknowledges the request
-// but reports the underlying game has no quiesce equivalent. Callers
-// should treat this as success-with-degradation, not as a hard error
-// — backups must still proceed when the game can't be paused.
+// ErrUnsupported means the agent declined the pause because it cannot quiesce
+// this game. A first verified refusal allows the backup to proceed without a
+// pause. It cannot clear the resume obligation from an earlier ambiguous call.
 var ErrUnsupported = errors.New("agent: game does not support quiesce")
 
 // Client speaks to the agent's HTTPS endpoints. Zero value is unusable;
 // build via New.
 type Client struct {
 	http *http.Client
-	// Disabled is true when no mTLS material was configured. All
-	// methods on a disabled client return nil without dialing — this
-	// lets the operator boot in dev clusters without a chart-managed
-	// Secret. Production deployments are expected to set the flags.
+	// Disabled is true when no mTLS material was configured. Legacy requests
+	// may return success without dialing. Pod-bound operations return an error.
 	Disabled bool
 }
 
@@ -47,18 +44,13 @@ type Config struct {
 	Timeout    time.Duration
 }
 
-// Enabled reports whether c can actually reach an agent. A disabled
-// client (no mTLS material configured) silently no-ops every method, so
-// callers that need to pick a transport based on availability — rather
-// than just calling a method and accepting a no-op — must check this
-// instead of a nil-client check alone: agent.New never returns a nil
-// *Client, only a non-nil one with Disabled set.
+// Enabled reports whether the client has mTLS configured. It does not probe an agent.
 func (c *Client) Enabled() bool {
 	return !c.Disabled
 }
 
 // New builds an mTLS-configured Client. Empty cert paths produce a
-// disabled client (no-op methods).
+// disabled client. Partial configuration returns an error.
 func New(cfg Config) (*Client, error) {
 	if cfg.CABundle == "" && cfg.ClientCert == "" && cfg.ClientKey == "" {
 		return &Client{Disabled: true}, nil
@@ -147,11 +139,15 @@ func (c *Client) CheckPod(ctx context.Context, namespace, server, podUID string)
 }
 
 // QuiescePod disables saving only on the selected Pod's agent.
+// A lost acknowledgment can leave saving disabled. Record the resume obligation
+// before sending the request.
 func (c *Client) QuiescePod(ctx context.Context, namespace, server, podUID string) error {
 	return c.callPodQuiesce(ctx, namespace, server, podUID, "/quiesce", true)
 }
 
 // UnquiescePod restores saving only on the selected Pod's agent.
+// A Pod UID survives a container restart. The caller must check game container
+// identity before sending save-on to the process that owes a resume.
 func (c *Client) UnquiescePod(ctx context.Context, namespace, server, podUID string) error {
 	return c.callPodQuiesce(ctx, namespace, server, podUID, "/unquiesce", false)
 }
