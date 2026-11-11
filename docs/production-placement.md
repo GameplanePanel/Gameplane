@@ -192,6 +192,15 @@ sidecars, and reserve capacity for the backup burst after one worker is lost.
 Record each tier's accepted tenant quotas, node count and latency target from
 that run before offering it to tenants.
 
+The disposable `management-placement` CI bucket runs a Minecraft Java
+1.21.4 flat world alongside the replacement tenant Pod and a Restic worker
+on the sole remaining eligible node. It records Minecraft's own `tick query`
+p95/p99, the worker's allocatable and requested resources, the tenant OOM
+exit and the time to complete and verify the backup. It checks the neighbor's
+Pod UID and container restart counts across the event. The small fixture's
+100 ms p95 and 250 ms p99 budgets apply to this CI run. Qualify production
+tiers with representative player counts, worlds and storage.
+
 In a disposable multi-worker environment, apply the example and verify every
 management pod's node labels. Temporarily set a nonexistent selector and verify
 Pending/FailedScheduling, then restore it. Cordon one management worker, evict

@@ -40,21 +40,45 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 	if len(workers) < 2 {
 		t.Fatal("need two schedulable workers")
 	}
+	neighbor := minecraftBotSpec()
+	neighbor.Template = "e2e-placement-neighbor"
+	neighbor.Env["PAUSE_WHEN_EMPTY_SECONDS"] = "0"
+	gameName, gameNS := createGameBotServer(t, e, neighbor)
+	gamePod, err := k.Pods(gameNS).Get(ctx, gameName+"-0", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Lose the other worker. The leak, real Restic workload and neighboring
+	// Minecraft world must share the surviving worker throughout the burst.
+	if gamePod.Spec.NodeName == workers[0] {
+		workers[0], workers[1] = workers[1], workers[0]
+	}
+	if gamePod.Spec.NodeName != workers[1] {
+		t.Fatalf("neighbor scheduled outside the two workers: %s", gamePod.Spec.NodeName)
+	}
+	sampleNeighborTicks(ctx, t, gameNS, gamePod.Name, "baseline")
 	kubectl := func(args ...string) {
 		t.Helper()
 		if out, err := e.Kubectl(ctx, args...); err != nil {
 			t.Fatalf("kubectl %v: %v: %s", args, err, out)
 		}
 	}
+	cleanup := func(f func(context.Context)) {
+		t.Cleanup(func() {
+			ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 15*time.Second)
+			defer cancel()
+			f(ctx)
+		})
+	}
 	labelWorker := func(name string) {
 		kubectl("label", "node", name, key+"=games")
-		t.Cleanup(func() { _, _ = e.Kubectl(context.Background(), "label", "node", name, key+"-") })
+		cleanup(func(ctx context.Context) { _, _ = e.Kubectl(ctx, "label", "node", name, key+"-") })
 		kubectl("taint", "node", name, key+"=games:NoSchedule")
-		t.Cleanup(func() { _, _ = e.Kubectl(context.Background(), "taint", "node", name, key+":NoSchedule-") })
+		cleanup(func(ctx context.Context) { _, _ = e.Kubectl(ctx, "taint", "node", name, key+":NoSchedule-") })
 	}
 	labelWorker(workers[0])
 	kubectl("create", "namespace", ns)
-	t.Cleanup(func() { _ = k.Namespaces().Delete(context.Background(), ns, metav1.DeleteOptions{}) })
+	cleanup(func(ctx context.Context) { _ = k.Namespaces().Delete(ctx, ns, metav1.DeleteOptions{}) })
 	chart, err := findRepoRel("charts/gameplane")
 	if err != nil {
 		t.Fatal(err)
@@ -80,8 +104,8 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 	if err != nil {
 		t.Fatalf("helm: %v: %s", err, rendered)
 	}
-	t.Cleanup(func() {
-		_, _ = e.KubectlWithStdin(context.Background(), string(rendered), "delete", "--ignore-not-found", "-f", "-")
+	cleanup(func(ctx context.Context) {
+		_, _ = e.KubectlWithStdin(ctx, string(rendered), "delete", "--ignore-not-found", "-f", "-")
 	})
 	if out, err := e.KubectlWithStdin(ctx, string(rendered), "apply", "-f", "-"); err != nil {
 		t.Fatalf("apply worker policy: %v: %s", err, out)
@@ -120,13 +144,14 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 		t.Fatalf("second game should exceed the tenant quota: %v", err)
 	}
 	kubectl("cordon", workers[0])
-	t.Cleanup(func() { _, _ = e.Kubectl(context.Background(), "uncordon", workers[0]) })
+	cleanup(func(ctx context.Context) { _, _ = e.Kubectl(ctx, "uncordon", workers[0]) })
 	zero := int64(0)
 	if err := pods.EvictV1(ctx, &policyv1.Eviction{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: ns},
 		DeleteOptions: &metav1.DeleteOptions{GracePeriodSeconds: &zero}}); err != nil {
 		t.Fatal(err)
 	}
-	second.Spec.Containers[0].Command = []string{"awk", `BEGIN { s="x"; while(length(s)<1048576) s=s s; for(i=0;;i++) a[i]=s i }`}
+	second.Spec.Containers[0].Command = []string{"sh", "-ec", `until test -e /tmp/leak; do sleep 1; done
+exec awk 'BEGIN { s="x"; while(length(s)<1048576) s=s s; for(i=0;;i++) { a[i]=s i; system("sleep 0.25") } }'`}
 	e.Eventually(t, time.Minute, func() (bool, string) {
 		_, err := pods.Create(ctx, second, metav1.CreateOptions{})
 		if err != nil && !apierrors.IsForbidden(err) {
@@ -147,6 +172,14 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 		return false, fmt.Sprint(live.Status.Conditions)
 	})
 	labelWorker(workers[1])
+	stopBackup := startPlacementBackup(ctx, t, gameNS, key, workers[1])
+	e.Eventually(t, time.Minute, func() (bool, string) {
+		live, err := pods.Get(ctx, second.Name, metav1.GetOptions{})
+		return err == nil && live.Spec.NodeName == workers[1] && live.Status.Phase == corev1.PodRunning, fmt.Sprint(err)
+	})
+	recordWorkerCapacity(ctx, t, workers[1])
+	kubectl("exec", "-n", ns, second.Name, "--", "touch", "/tmp/leak")
+	sampleNeighborTicks(ctx, t, gameNS, gamePod.Name, "start, leak and backup after worker loss")
 	e.Eventually(t, 3*time.Minute, func() (bool, string) {
 		live, err := pods.Get(ctx, second.Name, metav1.GetOptions{})
 		if err != nil {
@@ -159,4 +192,15 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 		}
 		return false, fmt.Sprint(live.Status.Phase)
 	})
+	sampleNeighborTicks(ctx, t, gameNS, gamePod.Name, "after tenant OOM")
+	stopBackup()
+	after, err := k.Pods(gameNS).Get(ctx, gamePod.Name, metav1.GetOptions{})
+	if err != nil || after.UID != gamePod.UID || after.Spec.NodeName != workers[1] {
+		t.Fatalf("neighbor replaced during isolation drill: %v", err)
+	}
+	for _, status := range after.Status.ContainerStatuses {
+		if status.RestartCount != 0 {
+			t.Fatalf("neighbor %s restarted during isolation drill", status.Name)
+		}
+	}
 }
