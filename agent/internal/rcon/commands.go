@@ -13,10 +13,12 @@ type Commands struct {
 	busy      chan struct{}
 }
 
+// NewCommands shares one admission queue across clients of a transport.
 func NewCommands(transport Executor) *Commands {
 	return &Commands{transport: transport, busy: make(chan struct{}, 1)}
 }
 
+// Exec admits one command when no sequence is in progress.
 func (c *Commands) Exec(command string) (string, error) {
 	c.busy <- struct{}{}
 	defer func() { <-c.busy }()

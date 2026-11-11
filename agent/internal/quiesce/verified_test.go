@@ -107,3 +107,31 @@ func TestVerifiedRejectsUnqualifiedDeclarations(t *testing.T) {
 		}
 	}
 }
+
+func TestVerifiedRejectedResumeCannotAcknowledgeAutosave(t *testing.T) {
+	rc := &fakeRcon{respond: func(cmd string) (string, error) {
+		switch cmd {
+		case "save-off":
+			return "Saving is already turned off", nil
+		case "save-all flush":
+			return "Saved the game", nil
+		}
+		return "Unknown or incomplete command", nil
+	}}
+	router := chi.NewRouter()
+	MountVerified(router, rcon.NewCommands(rc), "minecraft-java", minecraftQuiesceSpec())
+	for _, tc := range []struct {
+		path    string
+		status  int
+		outcome string
+	}{
+		{"/quiesce", http.StatusOK, "paused"}, {"/quiesce", http.StatusOK, "paused"},
+		{"/unquiesce", http.StatusBadGateway, ""},
+	} {
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, httptest.NewRequestWithContext(t.Context(), http.MethodPost, tc.path, nil))
+		if got := decodeResponse(t, w.Body.Bytes()); w.Code != tc.status || got.Outcome != tc.outcome || !got.Quiesced {
+			t.Fatalf("%s: %d %+v", tc.path, w.Code, got)
+		}
+	}
+}
