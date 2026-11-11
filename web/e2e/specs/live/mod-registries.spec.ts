@@ -7,7 +7,7 @@ import { loginIfNeeded, apiSend } from "./_seed";
 // The section lists three fixed keyed providers (AdminSettings.tsx
 // keyedRegistryProviders): CurseForge, Steam Workshop and Nexus Mods. There is
 // no free-form add, so every test drives the "Nexus Mods" row. Its API key is
-// written to the labelled Secret gameplane-modreg-nexus in the control
+// written to the labelled Secret gameplane-modreg-nexus in the API credentials
 // namespace (registry_secret.go, registry.DefaultKeySecretName).
 //
 // The tests share one registry row, so they run serially.
@@ -15,7 +15,7 @@ import { loginIfNeeded, apiSend } from "./_seed";
 test.describe.configure({ mode: "serial" });
 
 const NEXUS_SECRET = "gameplane-modreg-nexus";
-const CONTROL_NS = "gameplane-system";
+const CREDENTIALS_NS = "gameplane-system-credentials";
 const CTX = `kind-${process.env.GAMEPLANE_E2E_CLUSTER ?? "gameplane-e2e"}`;
 
 test.describe("live: mod registries", () => {
@@ -45,7 +45,7 @@ test.describe("live: mod registries", () => {
       execFileSync("kubectl", [
         "--context", CTX,
         "delete", "secret", NEXUS_SECRET,
-        "-n", CONTROL_NS,
+        "-n", CREDENTIALS_NS,
         "--ignore-not-found",
       ]);
     } catch {
@@ -88,13 +88,13 @@ test.describe("live: mod registries", () => {
     execFileSync("kubectl", [
       "--context", CTX,
       "delete", "secret", NEXUS_SECRET,
-      "-n", CONTROL_NS,
+      "-n", CREDENTIALS_NS,
       "--ignore-not-found",
     ]);
     execFileSync("kubectl", [
       "--context", CTX,
       "create", "secret", "generic", NEXUS_SECRET,
-      "-n", CONTROL_NS,
+      "-n", CREDENTIALS_NS,
       "--from-literal=apiKey=preexisting",
     ]);
 

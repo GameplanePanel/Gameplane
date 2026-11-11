@@ -7,10 +7,13 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/fs"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
+	gitclient "github.com/go-git/go-git/v5/plumbing/transport/client"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	gossh "golang.org/x/crypto/ssh"
@@ -50,10 +53,13 @@ func stubClone(t *testing.T, fn func(ctx context.Context, url, ref string, auth 
 	t.Cleanup(func() { gitClone = orig })
 }
 
-func gitSecret(name string, data map[string][]byte) *corev1.Secret {
+func gitSecret(name, sourceURL string, data map[string][]byte) *corev1.Secret {
 	return &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "gameplane-system"},
-		Data:       data,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name, Namespace: "gameplane-system",
+			Annotations: map[string]string{"gameplane.local/git-source-url": sourceURL},
+		},
+		Data: data,
 	}
 }
 
@@ -181,7 +187,7 @@ func TestGitAuth(t *testing.T) {
 
 	t.Run("token becomes basic auth", func(t *testing.T) {
 		c := fake.NewClientBuilder().
-			WithObjects(gitSecret("creds", map[string][]byte{"token": []byte("ghp_x")})).Build()
+			WithObjects(gitSecret("creds", "https://x", map[string][]byte{"token": []byte("ghp_x")})).Build()
 		a, err := gitAuth(ctx, c, ns, &corev1.LocalObjectReference{Name: "creds"}, "https://x")
 		if err != nil {
 			t.Fatalf("err: %v", err)
@@ -194,7 +200,7 @@ func TestGitAuth(t *testing.T) {
 
 	t.Run("username+password becomes basic auth", func(t *testing.T) {
 		c := fake.NewClientBuilder().
-			WithObjects(gitSecret("creds", map[string][]byte{
+			WithObjects(gitSecret("creds", "https://x", map[string][]byte{
 				"username": []byte("alice"), "password": []byte("s3cret"),
 			})).Build()
 		a, err := gitAuth(ctx, c, ns, &corev1.LocalObjectReference{Name: "creds"}, "https://x")
@@ -209,7 +215,7 @@ func TestGitAuth(t *testing.T) {
 
 	t.Run("https secret without usable keys errors", func(t *testing.T) {
 		c := fake.NewClientBuilder().
-			WithObjects(gitSecret("creds", map[string][]byte{"bogus": []byte("x")})).Build()
+			WithObjects(gitSecret("creds", "https://x", map[string][]byte{"bogus": []byte("x")})).Build()
 		if _, err := gitAuth(ctx, c, ns, &corev1.LocalObjectReference{Name: "creds"}, "https://x"); err == nil {
 			t.Fatal("expected error")
 		}
@@ -224,7 +230,7 @@ func TestGitAuth(t *testing.T) {
 
 	t.Run("ssh requires private key and known_hosts", func(t *testing.T) {
 		c := fake.NewClientBuilder().
-			WithObjects(gitSecret("creds", map[string][]byte{"token": []byte("x")})).Build()
+			WithObjects(gitSecret("creds", "git@github.com:x/y.git", map[string][]byte{"token": []byte("x")})).Build()
 		_, err := gitAuth(ctx, c, ns, &corev1.LocalObjectReference{Name: "creds"}, "git@github.com:x/y.git")
 		if err == nil || !strings.Contains(err.Error(), "ssh-privatekey") {
 			t.Fatalf("err = %v", err)
@@ -232,14 +238,14 @@ func TestGitAuth(t *testing.T) {
 
 		key, knownHosts := testSSHKey(t)
 		c = fake.NewClientBuilder().
-			WithObjects(gitSecret("creds", map[string][]byte{"ssh-privatekey": key})).Build()
+			WithObjects(gitSecret("creds", "git@github.com:x/y.git", map[string][]byte{"ssh-privatekey": key})).Build()
 		_, err = gitAuth(ctx, c, ns, &corev1.LocalObjectReference{Name: "creds"}, "git@github.com:x/y.git")
 		if err == nil || !strings.Contains(err.Error(), "known_hosts") {
 			t.Fatalf("err = %v", err)
 		}
 
 		c = fake.NewClientBuilder().
-			WithObjects(gitSecret("creds", map[string][]byte{
+			WithObjects(gitSecret("creds", "git@github.com:x/y.git", map[string][]byte{
 				"ssh-privatekey": key,
 				"known_hosts":    knownHosts,
 			})).Build()
@@ -251,4 +257,37 @@ func TestGitAuth(t *testing.T) {
 			t.Fatalf("a = %#v", a)
 		}
 	})
+}
+
+func TestGitRejectsAuthenticatedRepositoryRedirect(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/approved/info/refs" {
+			if r.Header.Get("Authorization") == "" {
+				t.Error("approved repository did not receive credentials")
+			}
+			http.Redirect(w, r, "/other/info/refs", http.StatusFound)
+			return
+		}
+		t.Error("followed an authenticated Git redirect to another repository")
+		http.NotFound(w, r)
+	}))
+	t.Cleanup(server.Close)
+	registerGuardedGitHTTP()
+	endpoint, err := transport.NewEndpoint(server.URL + "/approved")
+	if err != nil {
+		t.Fatal(err)
+	}
+	endpoint.InsecureSkipTLS = true // httptest's self-signed certificate
+	c, err := gitclient.NewClient(endpoint)
+	if err != nil {
+		t.Fatal(err)
+	}
+	session, err := c.NewUploadPackSession(endpoint, &githttp.BasicAuth{Username: "test", Password: "credential"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = session.Close() }()
+	if _, err := session.AdvertisedReferencesContext(t.Context()); err == nil || !strings.Contains(err.Error(), "authenticated Git redirect") {
+		t.Fatalf("expected a credential-bound redirect rejection, got %v", err)
+	}
 }

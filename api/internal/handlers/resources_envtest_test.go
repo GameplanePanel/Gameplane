@@ -85,6 +85,52 @@ func TestResources_GameServerCRUDRoundTrip(t *testing.T) {
 	}
 }
 
+// Both REST write endpoints must return the CRD's field-specific error.
+func TestResources_ProbeHosts(t *testing.T) {
+	for _, tc := range []struct {
+		kind, path string
+		spec       map[string]any
+	}{
+		{"GameTemplate", "/templates", map[string]any{"displayName": "Probe", "game": "test", "version": "1", "image": "busybox"}},
+		{"GameServer", "/servers", map[string]any{"templateRef": map[string]any{"name": "minecraft"}}},
+	} {
+		t.Run(tc.kind, func(t *testing.T) {
+			name := uniqueResourceName("probe")
+			httpGet := map[string]any{"port": "health", "host": "169.254.169.254"}
+			tc.spec["probes"] = map[string]any{"readiness": map[string]any{"httpGet": httpGet}}
+			obj := map[string]any{"apiVersion": "gameplane.local/v1alpha1", "kind": tc.kind,
+				"metadata": map[string]any{"name": name}, "spec": tc.spec}
+			assertInvalid := func(method, path string, payload map[string]any, field string) {
+				t.Helper()
+				resp := doJSON(t, method, path, payload)
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil || resp.StatusCode != http.StatusUnprocessableEntity || !bytes.Contains(body, []byte("spec.probes."+field)) {
+					t.Fatalf("expected 422 identifying %s, got %d: %s (%v)", field, resp.StatusCode, body, err)
+				}
+			}
+			assertInvalid(http.MethodPost, tc.path, obj, "readiness.httpGet.host")
+			httpGet["host"] = ""
+			resp := doJSON(t, http.MethodPost, tc.path, obj)
+			if resp.StatusCode != http.StatusCreated {
+				t.Fatalf("creating pod-local probe: %d: %s", resp.StatusCode, readBody(t, resp))
+			}
+			defer resp.Body.Close()
+			var created unstructured.Unstructured
+			if err := json.NewDecoder(resp.Body).Decode(&created); err != nil {
+				t.Fatal(err)
+			}
+			path := tc.path + "/" + name
+			defer func() { doJSON(t, http.MethodDelete, path, nil).Body.Close() }()
+			probe := map[string]any{"tcpSocket": map[string]any{"port": "health", "host": "localhost"}}
+			if err := unstructured.SetNestedMap(created.Object, probe, "spec", "probes", "startup"); err != nil {
+				t.Fatal(err)
+			}
+			assertInvalid(http.MethodPut, path, created.Object, "startup.tcpSocket.host")
+		})
+	}
+}
+
 // TestResources_GameServerUpdate_TemplateRefImmutable — PUT /servers/{name}
 // with a changed spec.templateRef.name is rejected by the handler itself
 // (409, before the request ever reaches the apiserver's CEL rule) with a
