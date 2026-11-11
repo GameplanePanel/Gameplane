@@ -28,9 +28,6 @@ containers/
     ├── the-isle/
     │   ├── Dockerfile
     │   └── entrypoint.sh
-    ├── ark-survival-evolved/
-    │   ├── Dockerfile
-    │   └── entrypoint.sh
     ├── mount-and-blade-2-bannerlord/
     │   ├── Dockerfile
     │   └── entrypoint.sh

@@ -58,7 +58,7 @@ does not claim v1 or production support; see [`docs/roadmap.md`](docs/roadmap.md
 ### Upgrade Notes
 
 - **Breaking: admin-level grants need a full administrator:** holders of
-  `users:manage`, `roles:manage` or `config:manage` without `*` can no longer
+  `users:manage`, `roles:manage`, `config:manage` or `cluster:manage` without `*` can no longer
   grant `*` or another admin-level permission, edit or reset an administrator,
   or edit auth providers (`/admin/config/auth`, `/admin/auth` need `*`)
   (PR #862).
