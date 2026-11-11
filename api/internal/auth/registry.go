@@ -95,7 +95,7 @@ func (p Provider) Label() string {
 }
 
 // SecretReader fetches a named credential Secret's data. The production
-// implementation reads labelled Secrets from the control-plane namespace;
+// implementation reads labelled Secrets from the credentials namespace;
 // tests substitute a map.
 type SecretReader func(ctx context.Context, name string) (map[string][]byte, error)
 

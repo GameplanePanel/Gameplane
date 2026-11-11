@@ -33,7 +33,6 @@ func TestModule_ScaffoldAndPackage(t *testing.T) {
 	sourceName := fmt.Sprintf("e2e-src-%s", suffix)
 	moduleName := fmt.Sprintf("e2e-game-%s", suffix)
 	cmName := fmt.Sprintf("module-upload-%s", moduleName)
-	const ns = "gameplane-system"
 
 	// Step 1: Scaffold using gp-module
 	opts := scaffold.Options{
@@ -107,7 +106,7 @@ func TestModule_ScaffoldAndPackage(t *testing.T) {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
-			Namespace: ns,
+			Namespace: credentialsNS,
 			Labels: map[string]string{
 				"gameplane.local/module-upload": "true",
 				"gameplane.local/module-name":   moduleName,
@@ -115,12 +114,12 @@ func TestModule_ScaffoldAndPackage(t *testing.T) {
 		},
 		BinaryData: files,
 	}
-	if _, err := envInstance.K8s.CoreV1().ConfigMaps(ns).
+	if _, err := envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).
 		Create(ctx, cm, metav1.CreateOptions{}); err != nil {
 		t.Fatalf("create bundle configmap: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = envInstance.K8s.CoreV1().ConfigMaps(ns).
+		_ = envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).
 			Delete(context.Background(), cmName, metav1.DeleteOptions{})
 	})
 
@@ -210,7 +209,6 @@ func TestModule_SteamcmdScaffoldKeepsNonRootSecurity(t *testing.T) {
 	sourceName := fmt.Sprintf("e2e-steam-src-%s", suffix)
 	moduleName := fmt.Sprintf("e2e-steam-%s", suffix)
 	cmName := fmt.Sprintf("module-upload-%s", moduleName)
-	const ns = "gameplane-system"
 
 	generated, err := scaffold.GenerateFiles(scaffold.Options{
 		Name:        moduleName,
@@ -256,7 +254,7 @@ func TestModule_SteamcmdScaffoldKeepsNonRootSecurity(t *testing.T) {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
-			Namespace: ns,
+			Namespace: credentialsNS,
 			Labels: map[string]string{
 				"gameplane.local/module-upload": "true",
 				"gameplane.local/module-name":   moduleName,
@@ -264,12 +262,12 @@ func TestModule_SteamcmdScaffoldKeepsNonRootSecurity(t *testing.T) {
 		},
 		BinaryData: files,
 	}
-	if _, err := envInstance.K8s.CoreV1().ConfigMaps(ns).
+	if _, err := envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).
 		Create(ctx, cm, metav1.CreateOptions{}); err != nil {
 		t.Fatalf("create bundle configmap: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = envInstance.K8s.CoreV1().ConfigMaps(ns).
+		_ = envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).
 			Delete(context.Background(), cmName, metav1.DeleteOptions{})
 	})
 

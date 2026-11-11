@@ -25,14 +25,14 @@ and trust the central API's dedicated client certificate identity. Use separate
 trust material from the local agent CA. Restrict network access to the central API
 through private networking or an explicit firewall rule.
 
-Create a Secret in the central API namespace (normally `gameplane-system`):
+Create a Secret in the API credentials namespace (normally `gameplane-system-credentials`):
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: remote-1-gateway-client
-  namespace: gameplane-system
+  namespace: gameplane-system-credentials
   labels:
     gameplane.local/agent-gateway-credentials: "true"
 type: Opaque
@@ -63,7 +63,7 @@ spec:
 
 The registration name must match the gateway's configured cluster ID. The URL is
 an HTTPS origin with no userinfo, path, query or fragment. Credentials are read
-only from the central API namespace and must carry the label above. Register the
+only from the API credentials namespace and must carry the label above. Register the
 cluster through the dashboard, central registration API, or its `Cluster`
 resource in combined mode. Configure gateway credentials through the API above
 or these manifests. The dashboard's registration form accepts the kubeconfig;
