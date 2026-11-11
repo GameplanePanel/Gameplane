@@ -482,7 +482,8 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		// mappings.
 		syncRole := resolvePolicy != nil && resolvePolicy.RoleMappings != nil
 
-		user, roleOutcome, err := o.resolveOrLinkUserProfile(req.Context(), idt.Issuer, claims, role, matchedGroup, syncRole)
+		user, roleOutcome, err := o.resolveOrLinkUser(req.Context(), idt.Issuer, claims.Sub, claims.Email, claims.Name,
+			role, matchedGroup, syncRole, claims.PreferredUsername)
 		if err != nil {
 			slog.Error("oidc resolveOrLinkUser", "err", err)
 			http.Error(w, "login failed", http.StatusInternalServerError)
@@ -524,10 +525,18 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 // matchedGroup should be the specific group from the user's token that matched a role mapping,
 // or "none" if no group matched and the default role was applied. For first login, it is included
 // in the outcome so T009 can emit an audit event.
+//
+// preferredUsername is optional: at most one value, the IdP's
+// preferred_username claim, which wins over email as a new user's username.
 func (o *OIDC) resolveOrLinkUser(
 	ctx context.Context, issuer, sub, email, name, role, matchedGroup string, syncRole bool,
+	preferredUsername ...string,
 ) (*User, *RoleAssignmentOutcome, error) {
-	return o.resolveOrLinkUserProfile(ctx, issuer, oidcProfile{Sub: sub, Email: email, Name: name}, role, matchedGroup, syncRole)
+	p := oidcProfile{Sub: sub, Email: email, Name: name}
+	if len(preferredUsername) > 0 {
+		p.PreferredUsername = preferredUsername[0]
+	}
+	return o.resolveOrLinkUserProfile(ctx, issuer, p, role, matchedGroup, syncRole)
 }
 
 // resolveOrLinkUserProfile is resolveOrLinkUser taking the full set of
