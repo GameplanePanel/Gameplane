@@ -119,8 +119,8 @@ For an existing native installation:
 
 1. Schedule a panel maintenance window and keep cluster-admin access and a tested
    local panel login available. Freeze credential edits. Before running Helm's
-   privileged pre-upgrade hooks, delete the old release RoleBinding
-   `<release>-api-uploads` and its Role in the release namespace. This revokes
+   privileged pre-upgrade hooks, delete the old `<release>-api-uploads`
+   RoleBinding and Role from the release namespace if present. This revokes
    the old API's access to release Secrets and upload ConfigMaps during cutover.
    Helm recreates the narrower grants. Check for additional grants with
    `kubectl auth can-i get secret/gameplane-agent-ca -n gameplane-system --as=system:serviceaccount:gameplane-system:gameplane-api`;
@@ -143,20 +143,32 @@ For an existing native installation:
 
    Also inventory uploaded bundles with
    `kubectl -n gameplane-system get configmap -l gameplane.local/module-upload=true -o name`.
-   Check the old `operator.moduleNamespace` as well if you overrode it.
+   If the release already runs an operator, check its current
+   `--control-plane-namespace` for cluster kubeconfigs and
+   `--module-configmap-namespace` for uploaded bundles and locale maps.
+   The latter defaults to `--module-namespace`. On a v0.3 install both
+   locations are the release namespace. Check these sources even when enabling
+   the API for the first time on an operator-only release.
    If you have objects to move, pre-create a dedicated namespace, set
    `api.credentialsNamespace` to its name, and keep that value on future
    upgrades. Provision each reviewed Secret there with the same name, type,
-   data, feature labels and `gameplane.local/managed-by` label. Review individually
-   any Secret also used by a pod. Keep signing keys, unrelated credentials,
-   Helm release history, workloads and privileged ServiceAccounts outside
-   this namespace. Copy uploaded ConfigMaps with their original names, labels,
-   `data` and `binaryData`. Module locale ConfigMaps (`<template>-locales`,
-   owned by a GameTemplate) also belong in the new namespace. Preserve their
-   owner reference when copying to keep translations available during cutover.
+   data, `immutable` setting, feature labels and `gameplane.local/managed-by`
+   label. Review individually any Secret also used by a pod. Keep signing keys,
+   unrelated credentials, Helm release history, workloads and privileged
+   ServiceAccounts outside this namespace. Copy uploaded ConfigMaps with their original names, labels,
+   `data`, `binaryData` and `immutable` setting. Module locale ConfigMaps
+   (`<template>-locales`, owned by a GameTemplate) also belong in the new
+   namespace. Preserve their owner reference when copying to keep translations
+   available during cutover.
    Live Helm upgrades compare credentials, uploaded bundles and locale maps before
    applying the chart. With GitOps or `helm template`, verify copies before sync.
-4. Prepare compatible game images with a positive UID and fsGroup, verify PVC
+4. For each private HTTP or Git ModuleSource, annotate its credential Secret
+   in `operator.moduleNamespace` with the exact configured source URL. Use
+   `gameplane.local/http-source-url` for HTTP archives and
+   `gameplane.local/git-source-url` for Git repositories. For an authenticated
+   Git source, use the final repository URL in both the Secret and ModuleSource.
+   See [module source credentials](module-authoring.md#module-source-credentials).
+5. Prepare compatible game images with a positive UID and fsGroup, verify PVC
    ownership and use Service-backed exposure. Add both
    `pod-security.kubernetes.io/enforce=restricted` and
    `pod-security.kubernetes.io/enforce-version=v1.34` (or your tested
@@ -165,7 +177,7 @@ For an existing native installation:
    these workloads. Set `podSecurity.enforceRestricted=true` explicitly on
    upgrades that reuse older values. Keep `clusterOps.enabled` and
    `capture.nodeDiagnostics.enabled` false for untrusted workloads.
-5. Upgrade the chart and its matching API/operator images together. Confirm the
+6. Upgrade the chart and its matching API/operator images together. Confirm the
    API cannot read the signer or create token Secrets, a privileged or hostPath
    Pod fails admission in each managed game namespace, and an ordinary game
    reports fresh heartbeats. Test dashboard OIDC login, remote-cluster health,
@@ -224,7 +236,7 @@ Top-level knobs (see `values.yaml` for the full list):
 - `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false` and one API replica. The standalone profile omits native CRDs and the CRD apply hook/RBAC without an additional CLI flag. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
 - `operator.gameNamespaces` — additional managed game namespaces beyond `gamesNamespace`; each must already exist. The chart grants namespace-local workload permissions there and adds their Secrets to the operator cache.
-- `api.credentialsNamespace` — an existing, dedicated namespace for native API management Secrets. By default Helm creates `<release namespace>-credentials` and retains it on uninstall. An existing `operator.controlPlaneNamespace` override selects an external credentials namespace for both components. If both values are set they must match.
+- `api.credentialsNamespace` — an existing, dedicated namespace for native API management Secrets. By default Helm creates `<release namespace>-credentials` and retains it on uninstall. Names longer than 63 characters are shortened and include a hash of the release namespace. An existing `operator.controlPlaneNamespace` override selects an external credentials namespace for both components. If both values are set they must match.
 - `operator.agentCASecretNamespace` and `operator.moduleNamespace` — namespaces for signing CA and module credential reads. Both default to the release namespace. Provision referenced Secrets before using a custom namespace. On operator-only installs, `operator.controlPlaneNamespace` also defaults to the release namespace.
 - `operator.configInitImage` / `operator.resticImage` — the two images the operator
   injects into workloads it creates: the config-init container on game pods
