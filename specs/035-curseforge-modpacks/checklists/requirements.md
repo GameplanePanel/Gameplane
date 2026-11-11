@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- No inline [NEEDS CLARIFICATION] markers; the six open questions live in OPEN-DECISIONS.md (OD-1..OD-6) and block planning until answered.
+- OD-1..OD-6 in OPEN-DECISIONS.md were answered by valgul on 2026-11-11 and folded into the spec. Nothing open.
 - The Context section names current files and itzg env vars on purpose: it records today's behaviour as evidence, not the design.
