@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -69,6 +70,10 @@ func TestColdWakeFleet_ConcurrentJoins(t *testing.T) {
 		Probes:    map[string]any{"readiness": map[string]any{"exec": map[string]any{"command": []any{"sh", "-ec", "grep -qs ':206F ' /proc/net/udp /proc/net/udp6"}}, "periodSeconds": int64(2)}}}
 	mcName, ns := createGameBotServer(t, envInstance, mc)
 	parkFleetGame(ctx, t, ns, mcName)
+	secondMC := mc
+	secondMC.Template = "fleet-minecraft-second"
+	secondName, _ := createGameBotServer(t, envInstance, secondMC)
+	parkFleetGame(ctx, t, ns, secondName)
 	twName, _ := createGameBotServer(t, envInstance, tw)
 	parkFleetGame(ctx, t, ns, twName)
 	nodes, err := envInstance.K8s.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
@@ -108,7 +113,9 @@ func TestColdWakeFleet_ConcurrentJoins(t *testing.T) {
 			name, game, exposure, protocol string
 			port                           int
 		}{
-			{mcName, mc.Game, mc.Expose, "tcp", mc.ProbePort}, {twName, tw.Game, tw.Expose, "udp", tw.ProbePort},
+			{mcName, mc.Game, mc.Expose, "tcp", mc.ProbePort},
+			{secondName, secondMC.Game, secondMC.Expose, "tcp", secondMC.ProbePort},
+			{twName, tw.Game, tw.Expose, "udp", tw.ProbePort},
 		} {
 			path, port := "Hostport", entry.port
 			if entry.exposure == "NodePort" {
@@ -144,7 +151,15 @@ func TestColdWakeFleet_ConcurrentJoins(t *testing.T) {
 		}
 		cmd := exec.CommandContext(ctx, "python3", "wake_burst.py", "--plan", plan, "--client", client, "--context", "kind-"+cluster,
 			"--restart-operator", "gameplane-system/gameplane-operator", "--kind-node", node.Name)
+		finishStarts := observeFleetStarts(ctx, ns, []string{mcName, secondName, twName}, 1)
 		out, runErr := cmd.CombinedOutput()
+		starts, err := finishStarts()
+		if writeErr := os.WriteFile(filepath.Join(reportDir, fmt.Sprintf("round-%d-admission.json", round)), starts, 0o600); writeErr != nil {
+			t.Fatal(writeErr)
+		}
+		if err != nil {
+			t.Errorf("fleet admission: %v", err)
+		}
 		if err := os.WriteFile(filepath.Join(reportDir, fmt.Sprintf("round-%d.json", round)), out, 0o600); err != nil {
 			t.Fatal(err)
 		}
@@ -152,6 +167,7 @@ func TestColdWakeFleet_ConcurrentJoins(t *testing.T) {
 			t.Fatalf("cold join burst: %v\n%s", runErr, out)
 		}
 		if round == 1 {
+			parkFleetGame(ctx, t, ns, secondName)
 			mc.Expose, tw.Expose = "Hostport", "NodePort"
 			for name, expose := range map[string]string{mcName: mc.Expose, twName: tw.Expose} {
 				k("-n", ns, "patch", "gameserver", name, "--type=merge", "-p", fmt.Sprintf(`{"spec":{"networking":{"expose":%q}}}`, expose))
@@ -176,6 +192,69 @@ func TestColdWakeFleet_ConcurrentJoins(t *testing.T) {
 				parkFleetGame(ctx, t, ns, name)
 			}
 		}
+	}
+}
+
+// Each list is a single Kubernetes snapshot across all target StatefulSets.
+// Record active startups from desired replicas and readiness independently of
+// the operator's reservation ledger, including during the operator restart.
+func observeFleetStarts(ctx context.Context, ns string, targets []string, limit int) func() ([]byte, error) {
+	stop := make(chan struct{})
+	done := make(chan struct{})
+	type sample struct {
+		ElapsedMS int64    `json:"elapsedMs"`
+		Starting  []string `json:"starting"`
+	}
+	var samples []sample
+	seen := make(map[string]bool)
+	var sampleErr error
+	go func() {
+		defer close(done)
+		began := time.Now()
+		tick := time.NewTicker(500 * time.Millisecond)
+		defer tick.Stop()
+		for {
+			sets, err := envInstance.K8s.AppsV1().StatefulSets(ns).List(ctx, metav1.ListOptions{})
+			if err != nil {
+				sampleErr = fmt.Errorf("sample fleet StatefulSets: %w", err)
+				return
+			}
+			starting := []string{}
+			for _, set := range sets.Items {
+				if slices.Contains(targets, set.Name) && set.Spec.Replicas != nil && *set.Spec.Replicas > 0 && set.Status.ReadyReplicas == 0 {
+					starting = append(starting, set.Name)
+					seen[set.Name] = true
+				}
+			}
+			slices.Sort(starting)
+			if len(samples) == 0 || !slices.Equal(samples[len(samples)-1].Starting, starting) {
+				samples = append(samples, sample{time.Since(began).Milliseconds(), starting})
+			}
+			if len(starting) > limit {
+				sampleErr = fmt.Errorf("observed %d simultaneous starts above limit %d: %v", len(starting), limit, starting)
+				return
+			}
+			select {
+			case <-stop:
+				return
+			case <-ctx.Done():
+				sampleErr = ctx.Err()
+				return
+			case <-tick.C:
+			}
+		}
+	}()
+	return func() ([]byte, error) {
+		close(stop)
+		<-done
+		if sampleErr == nil && len(seen) != len(targets) {
+			sampleErr = fmt.Errorf("observed %d of %d distinct startups", len(seen), len(targets))
+		}
+		data, err := json.MarshalIndent(samples, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+		return data, sampleErr
 	}
 }
 
