@@ -9,6 +9,17 @@ explicitly selected by `--restart-operator`.
 
 ## Join objectives and evidence
 
+The isolated `TestColdWakeFleet_ConcurrentJoins` CI leg boots Minecraft Java
+1.21.4 and Teeworlds 0.7.5 and admits one simultaneous cold start. Each test
+round releases two TCP and two UDP clients, restarts the operator and checks
+every join. The second round exchanges their Service/Hostport exposures.
+The Minecraft client must receive Login Success. The unmodified Teeworlds
+client must enter its online state after receiving two world snapshots.
+The job uploads per-attempt measurements and the kind node's CPU, memory,
+disk I/O and pressure counters. These worlds and the five-minute CI
+objective describe the regression fixture. Entitled games and production
+tier objectives need separate measurements.
+
 These are example qualification objectives for a retry-tolerant tier. Record
 the intended per-game objective in the plan before each run. The numbers are
 trial inputs. No fleet capacity or game startup percentile has been established.

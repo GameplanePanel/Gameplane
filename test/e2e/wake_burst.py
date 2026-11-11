@@ -107,8 +107,14 @@ def summary(results, objective):
 
 
 class Cluster:
-    def __init__(self, context):
+    def __init__(self, context, kind_node=None):
         self.prefix = ["kubectl", "--context", context, "--request-timeout=15s"]
+        self.kind_node = kind_node
+        if kind_node:
+            label = subprocess.check_output(["docker", "inspect", "--format",
+                '{{index .Config.Labels "io.x-k8s.kind.cluster"}}', kind_node], text=True).strip()
+            if not label or context != "kind-" + label:
+                raise ValueError("pressure sampler requires a node container from the selected kind cluster")
 
     def text(self, *args, timeout=20):
         return subprocess.run([*self.prefix, *args], check=True, capture_output=True,
@@ -193,6 +199,10 @@ class Cluster:
     def sample(self):
         at = datetime.datetime.now(datetime.timezone.utc).isoformat()
         sample = {"at": at}
+        if self.kind_node:
+            probe = "for f in cpu.stat memory.current io.stat cpu.pressure memory.pressure io.pressure; do echo \"[$f]\"; cat /sys/fs/cgroup/$f || exit 1; done"
+            sample["kindNodeCgroup"] = subprocess.check_output(
+                ["docker", "exec", self.kind_node, "sh", "-ec", probe], text=True, timeout=5)
         try:
             nodes = json.loads(self.text("get", "--raw", "/apis/metrics.k8s.io/v1beta1/nodes"))
             sample["usage"] = [{"name": n["metadata"]["name"], "at": n["timestamp"],
@@ -214,7 +224,7 @@ def run(args, targets):
     for exe in {t.get("adapter") or args.client for t in targets}:
         if not shutil.which(exe):
             raise ValueError(f"missing executable: {exe}")
-    cluster = Cluster(args.context)
+    cluster = Cluster(args.context, args.kind_node)
     bases = [cluster.baseline(t) for t in targets]
     restart = args.restart_operator.split("/") if args.restart_operator else None
     if restart and (len(restart) != 2 or not all(DNS_LABEL.fullmatch(s) for s in restart)):
@@ -283,6 +293,7 @@ def main():
     parser.add_argument("--context", required=True)
     parser.add_argument("--plan", required=True)
     parser.add_argument("--client", default="join-once")
+    parser.add_argument("--kind-node", help="collect CPU, memory and I/O counters and PSI from this disposable kind node")
     parser.add_argument("--restart-operator", metavar="NAMESPACE/DEPLOYMENT",
                         help="restart this operator after a wake arrives while clients are still joining")
     args = parser.parse_args()
