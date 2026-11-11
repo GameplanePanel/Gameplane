@@ -3,17 +3,100 @@ package audit
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/db"
+	dto "github.com/prometheus/client_model/go"
 )
+
+func chainCount(t *testing.T, operation, result string) float64 {
+	t.Helper()
+	var m dto.Metric
+	if err := chainWrites.WithLabelValues(operation, result).Write(&m); err != nil {
+		t.Fatal(err)
+	}
+	return m.GetCounter().GetValue()
+}
+
+func TestAuditChainAdmission(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		a := New(nil)
+		// Hold the writer slot while the maximum number of callers queues.
+		a.admitted <- struct{}{}
+		a.chain <- struct{}{}
+		const waiters = 16
+		initialTimeouts := chainCount(t, "insert", "timeout")
+		initialRejections := chainCount(t, "prune", "rejected")
+		done := make(chan error, waiters)
+		for range waiters {
+			go func() { done <- a.WriteSync(t.Context(), "POST", "/", "", "", 200) }()
+		}
+		synctest.Wait()
+		if n := len(a.admitted); n != 1+waiters {
+			t.Fatalf("admitted = %d, want one writer and %d waiters", n, waiters)
+		}
+		if _, err := a.Prune(t.Context(), time.Now()); !errors.Is(err, errChainFull) {
+			t.Fatalf("saturated prune = %v", err)
+		}
+		for range waiters {
+			if err := <-done; !errors.Is(err, context.DeadlineExceeded) {
+				t.Fatalf("queued insert = %v", err)
+			}
+		}
+		if n := len(a.admitted); n != 1 {
+			t.Fatalf("%d callers still admitted after deadlines", n)
+		}
+		if delta := chainCount(t, "insert", "timeout") - initialTimeouts; delta != waiters {
+			t.Fatalf("timeout counter delta = %g", delta)
+		}
+		if delta := chainCount(t, "prune", "rejected") - initialRejections; delta != 1 {
+			t.Fatalf("rejection counter delta = %g", delta)
+		}
+		ctx, cancel := context.WithCancel(t.Context())
+		go func() {
+			_, err := a.Prune(ctx, time.Now())
+			done <- err
+		}()
+		synctest.Wait()
+		cancel()
+		if err := <-done; !errors.Is(err, context.Canceled) {
+			t.Fatalf("canceled prune = %v", err)
+		}
+	})
+}
+
+func TestMiddlewareCompletedMutationDeadline(t *testing.T) {
+	s := newStore(t)
+	h := Middleware(New(s))(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	disconnected, disconnect := context.WithCancel(t.Context())
+	disconnect()
+	expired, cancel := context.WithDeadline(t.Context(), time.Now().Add(-time.Second))
+	defer cancel()
+	for _, tc := range []struct {
+		ctx      context.Context
+		wantRows int
+	}{
+		{disconnected, 1},
+		{expired, 1},
+	} {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequestWithContext(tc.ctx, http.MethodPost, "/servers", nil))
+		if got := countEvents(t, s); got != tc.wantRows || w.Code != http.StatusNoContent {
+			t.Fatalf("audit rows = %d, status = %d", got, w.Code)
+		}
+	}
+}
 
 func newStore(t *testing.T) *db.Store {
 	t.Helper()
@@ -971,12 +1054,16 @@ func TestWriteSync_BrokenDBReturnsErrorButDoesNotCrash(t *testing.T) {
 	ctx := context.Background()
 	ctx = auth.WithUser(ctx, &auth.User{Username: "testuser"})
 
+	initialFailures := chainCount(t, "insert", "failed")
 	// WriteSync should return an error, but not panic.
 	err := a.WriteSync(ctx, "POST", "/servers/test:capture-start", "test", "invalid_filter", 400)
 	if err == nil {
 		t.Fatal("WriteSync returned no error on a broken DB, want an error")
 	}
 
+	if delta := chainCount(t, "insert", "failed") - initialFailures; delta != 1 {
+		t.Fatalf("persistence failure counter delta = %g", delta)
+	}
 	// The error should be wrapped with %w format.
 	if !strings.Contains(err.Error(), "audit write") {
 		t.Errorf("error message = %q, want it to be wrapped with context", err.Error())
