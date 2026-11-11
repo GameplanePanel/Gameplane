@@ -377,6 +377,9 @@ spec:
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             - --agent-ca-secret-name={{ .Values.api.agentMTLS.caSecretRef.name }}
             - --game-namespaces={{ join "," $gameNamespaces }}
+            {{- with .Values.operator.wakeStartLimit }}
+            - {{ printf "--wake-start-limit=%v" . | quote }}
+            {{- end }}
             - --control-plane-namespace={{ include "gameplane.operatorClusterCredentialsNamespace" . }}
             {{- if not $rbac.remoteClusters }}
             - --remote-clusters=false

@@ -151,6 +151,8 @@ type gameBotSpec struct {
 	Resources     gameResources
 	ReadyTimeout  time.Duration
 	ProbePort     int
+	WakeProtocol  string // optional wake protocol for the advertised probe port
+	Expose        string // optional exposure for a real-game wake fixture
 	ProbeDeadline time.Duration
 	ExpectDepth   joindepth.JoinDepth
 	ProbeArgs     []string
@@ -281,12 +283,16 @@ func createGameBotServer(t *testing.T, env *Env, s gameBotSpec) (gsName, namespa
 	// Build the ports array.
 	var portsArray []any
 	for _, p := range s.Ports {
-		portsArray = append(portsArray, map[string]any{
+		port := map[string]any{
 			"name":          p.Name,
 			"containerPort": int64(p.Port),
 			"advertise":     true,
 			"protocol":      p.Protocol,
-		})
+		}
+		if s.WakeProtocol != "" && p.Port == s.ProbePort {
+			port["wakeProtocol"] = s.WakeProtocol
+		}
+		portsArray = append(portsArray, port)
 	}
 
 	// Create the GameTemplate.
@@ -346,13 +352,18 @@ func createGameBotServer(t *testing.T, env *Env, s gameBotSpec) (gsName, namespa
 
 	// Create the GameServer, deriving its name from the template name.
 	gsName = s.Template + "-bot"
+	serverSpec := map[string]any{"templateRef": map[string]any{"name": s.Template}}
+	if s.Expose != "" {
+		serverSpec["networking"] = map[string]any{"expose": s.Expose}
+	}
+	if s.WakeProtocol != "" {
+		serverSpec["idle"] = map[string]any{"enabled": true, "afterMinutes": int64(60), "wakeOnConnect": true}
+	}
 	gs := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
 		"kind":       "GameServer",
 		"metadata":   map[string]any{"name": gsName, "namespace": ns},
-		"spec": map[string]any{
-			"templateRef": map[string]any{"name": s.Template},
-		},
+		"spec":       serverSpec,
 	}}
 	if _, err := env.Dyn.Resource(gameServerGVR).Namespace(ns).
 		Create(ctx, gs, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {

@@ -257,6 +257,7 @@ TestGameServer_TerrariaBot_Joined
 TestGameServer_GarrysModBot_Query
 TestGameServer_WakeOnConnect_PingDoesNotWake
 TestGameServer_WakeOnConnect_LoginWakes
+TestColdWakeFleet_ConcurrentJoins
 TestGameServer_WakeOnConnect_UnarmedNoSentinel
 EOF
 }
