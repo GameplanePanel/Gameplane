@@ -9,14 +9,6 @@ See the [unreleased change entries](changelog/unreleased/) for individual fixes 
 
 ## [Unreleased]
 
-### Fixed
-
-- **Servers stuck in "Starting" when the API server has a public address:**
-  the chart's `allow-agent-to-apiserver` and `allow-sentinel-to-apiserver`
-  policies only allowed private ranges by default, so on a k3s node with a
-  public IP every agent heartbeat timed out. When
-  `networkPolicies.apiServerCIDRs` is unset, the chart now also allows the
-  `kubernetes` Service endpoints it detects at install or upgrade time.
 ### Added
 
 - The Files editor checks the open JavaScript or TypeScript file against the
