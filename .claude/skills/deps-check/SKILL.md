@@ -3,20 +3,12 @@ name: deps-check
 description: "Use at session start, or when a dependency upgrade is proposed, to check the blocked dependency upgrades listed in CLAUDE.md (TypeScript 7 and ESLint 10) against the npm registry."
 ---
 
-This is the session-start check from `CLAUDE.md`. Run it every session. It only reads the registry. It changes nothing.
+Run the session-start check in [AGENTS.md](../../../AGENTS.md) every session. This check only reads the registry.
 
 ## Steps
 
-1. Run the registry checks:
-   ```sh
-   npm view @typescript-eslint/parser@latest version peerDependencies.typescript
-   npm view @typescript-eslint/parser@canary version peerDependencies.typescript
-   npm view eslint-plugin-react@latest version peerDependencies.eslint
-   ```
-2. TypeScript 7 entry. It is blocked while the peer range ends `<7` (for example `<6.1.0`). Report blocked or unblocked, with the version and the peer range seen for both `@latest` and `@canary`. Unblocked means a release accepts TypeScript 7.
-3. ESLint 10 entry. It is blocked while the `eslint-plugin-react` peer range lacks `^10`. Report blocked or unblocked, with the version and the peer range seen. Other plugins already accept `^10`: `eslint-plugin-react-hooks@7.1.1` and `@typescript-eslint/*@8.69.0`.
-4. Report one line per entry: name, blocked or unblocked, version, peer range. Then say what blocks it, in one line.
-5. If an entry is unblocked, list its unblock steps from `CLAUDE.md`. Do not perform them unless the maintainer asks.
-   - TypeScript 7: do T055 and T056 in `specs/009-remediate-security-dependabot/tasks.md`. Bump `typescript` and `@typescript-eslint/*` in `web/package.json`. Fix real type errors, with no `@ts-ignore`. Merge Dependabot #272. Mark the tasks `[X]`. Delete the TypeScript entry from `CLAUDE.md`.
-   - ESLint 10: bump `eslint` and `@eslint/js` together in `web/package.json`. Fix real lint errors, with no `eslint-disable`. Merge #386, and #387 if it is open. Delete the ESLint entry from `CLAUDE.md`.
-6. Never close #272, #386 or #387. Never use `--legacy-peer-deps` or overrides to get around a peer range.
+1. Run the registry queries in the blocked dependency upgrades section of `AGENTS.md`.
+2. For TypeScript (#272) and the paired ESLint engine and preset (#857 and #628), check whether each published peer range accepts the proposed version. Report TypeScript results for both the latest and canary tags.
+3. Report each upgrade on one line with its status, package versions and peer ranges. Identify the package that blocks the upgrade, if any.
+4. If an upgrade is unblocked, list its migration steps from `AGENTS.md`. Perform them only when the maintainer asks.
+5. Keep the tracked PRs open. Never use `--legacy-peer-deps` or overrides to bypass a peer range.

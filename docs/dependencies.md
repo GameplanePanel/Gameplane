@@ -359,10 +359,11 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 **Styling / build**
 - `tailwindcss` `^4.3.3`, `autoprefixer` `^10.5.4`, `postcss` `^8.5.26` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; `tailwind.config.ts` defines the design tokens used throughout `src/styles` and Tailwind classes app-wide.
 - `vite` `^8.2.2`, `@vitejs/plugin-react` `^6.1.1` (dev) — `vite.config.ts` drives the dev server (with the API/WS proxy to the in-cluster API used by `make web-dev`), production build, and is the engine behind `vitest.config.ts`.
-- `typescript` `^6.0.3` (dev) — strict-mode compile per `tsconfig.json`; `npm run build` is `tsc -b && vite build`.
+- `typescript` `^6.0.3` (dev) type-checks the dashboard during `npm run build` and supplies the compiler API used by `npm run i18n:migrate`.
 
 **Lint** (dev, all wired directly in `eslint.config.js`)
-- `eslint` `^9.39.5`, `@eslint/js` `^10.0.1`, `@typescript-eslint/eslint-plugin` `^8.68.0`, `@typescript-eslint/parser` `^8.68.0`, `eslint-plugin-react` `^7.37.5`, `eslint-plugin-react-hooks` `^7.1.1`, `globals` `^17.11.0` — flat-config ESLint enforcing `strict`, `@typescript-eslint/no-explicit-any: error`, `@typescript-eslint/no-floating-promises: error`, run via `npm run lint`.
+- `eslint` and `@eslint/js` both use `^9.39.5`. The flat config uses `@typescript-eslint/eslint-plugin` `^8.72.1` with `@typescript-eslint/parser` `^8.68.0` for rules including `no-explicit-any` and `no-floating-promises`.
+- `eslint-plugin-react` `^7.37.5`, `eslint-plugin-react-hooks` `^7.1.1`, `eslint-plugin-formatjs` `^8.1.3` and `globals` `^17.14.0` provide the remaining rules and environment definitions for `npm run lint`.
 
 **Testing — unit tier (Vitest)**
 - `vitest` `^4.1.11`, `@vitest/coverage-v8` `^4.1.10` (dev) — `vitest.config.ts` (jsdom environment, coverage thresholds), run via `npm test`/`test:cover`.
@@ -376,6 +377,16 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 
 **Types**
 - `@types/react` `^19.2.18`, `@types/react-dom` `^19.2.5`, `@types/node` `^26.4.0` (dev) — type definitions consumed implicitly by TypeScript, no direct import.
+
+#### Dashboard upgrade blockers
+
+**ESLint 10.** #857 requests ESLint 10.14.0. Gameplane uses React version detection in `eslint-plugin-react@7.37.5`. Loading the recommended `react/display-name` rule calls `context.getFilename()`, which ESLint 10 removed. The plugin therefore limits its ESLint peer range to 9.x and earlier. [Failed install on #857](https://github.com/GameplanePanel/Gameplane/actions/runs/42612725409/job/129148915676) · [Plugin call site](https://github.com/jsx-eslint/eslint-plugin-react/blob/v7.37.5/lib/util/version.js#L31) · [Upstream compatibility patch](https://github.com/jsx-eslint/eslint-plugin-react/pull/4022)
+
+#628 updates the JS preset to 10.0.1. Its optional peer requires ESLint 10 whenever ESLint is installed. Although CI passes, `npm ls --package-lock-only eslint @eslint/js` reports the installed 9.39.5 as invalid. Upgrade the React plugin, engine and preset together once a compatible plugin ships. [Preset update](https://github.com/GameplanePanel/Gameplane/pull/628) · [Prior install fix](https://github.com/GameplanePanel/Gameplane/pull/574)
+
+**TypeScript 7.** #272 requests 7.0.2. On November 10, 2026, both `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin` required TypeScript `>=4.8.4 <6.1.0` on `latest` (8.72.2) and `canary` (8.72.3-alpha.7). npm stops at installation, before the compiler runs. Both packages also reject TypeScript 7 at startup. Gameplane’s i18n migration script uses `ts.SyntaxKind` and `ts.createSourceFile`. The 7.0.2 root module exports only version information. [Failed install on #272](https://github.com/GameplanePanel/Gameplane/actions/runs/35788085422/job/106949735140) · [Parser startup check](https://github.com/typescript-eslint/typescript-eslint/blob/v8.72.2/packages/parser/src/index.ts#L5-L18) · [Gameplane migration script](../web/scripts/i18n-migrate.ts)
+
+Upstream’s experimental TypeScript 7.1 backend uses a second compiler alongside TypeScript 6 and requires a different parser configuration. A direct upgrade needs published parser and plugin support for the target compiler and a working migration script. From `web/`, exercise the script with `npm run i18n:migrate -- --dry-run src` as well as running the dashboard build. [Upstream backend configuration](https://github.com/typescript-eslint/typescript-eslint/blob/5ccbc78a631ae8a450179b8975be6d02e11d3a9b/docs/packages/Parser.mdx#L353-L387)
 
 ## Test-only
 

@@ -1192,7 +1192,7 @@ openEventStream(opts: EventStreamOptions)
 - `@xterm/addon-fit@0.10.0` — xterm fit-to-container addon
 
 **Dev:**
-- `typescript@5.6.2` — strict type checking
+- `typescript@6.0.3` — strict type checking and the compiler API used by the i18n migration script
 - `vite@5.4.8` — build + dev server
 - `@vitejs/plugin-react@4.3.1` — React JSX transform + fast refresh
 - `vitest@2.1.1` — unit test runner (Jest-like API, Vite-integrated)
@@ -1204,11 +1204,9 @@ openEventStream(opts: EventStreamOptions)
 - `vitest-websocket-mock@0.4.0` — WebSocket mock for unit tests
 - `@playwright/test@1.59.1` — browser e2e testing (mock + live modes)
 - `jsdom@25.0.1` — DOM implementation for unit tests
-- `eslint@9.11.1` — JavaScript linter
-- `@typescript-eslint/eslint-plugin@8.7.0` — TypeScript linting rules
-- `@typescript-eslint/parser@8.7.0` — TypeScript AST parser for ESLint
-- `eslint-plugin-react@7.37.0` — React-specific rules
-- `eslint-plugin-react-hooks@5.0.0` — React Hooks rules
+- `eslint@9.39.5` and `@eslint/js@9.39.5` — JavaScript linter and recommended preset
+- `@typescript-eslint/eslint-plugin@8.72.1` and `@typescript-eslint/parser@8.72.1` — TypeScript rules and parser
+- `eslint-plugin-react@7.37.5` and `eslint-plugin-react-hooks@7.1.1` — React and React Hooks rules
 - `tailwindcss@3.4.13` + `postcss@8.4.47` + `autoprefixer@10.4.20` — CSS processing
 - `@tanstack/router-devtools@1.75.0` — TanStack Router dev tools (optional, for debugging)
 

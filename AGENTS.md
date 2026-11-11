@@ -8,13 +8,13 @@ Architecture, commands, and binding rules for AI agents. Humans: [`README.md`](R
 
 Run every session.
 
-**TypeScript 7** — `npm view @typescript-eslint/parser@latest version peerDependencies.typescript` and same for `@canary`.
-- Blocked while the peer range ends `<7` (e.g. `<6.1.0`): Dependabot #272 fails `npm ci` (`ERESOLVE`). No workarounds/overrides/code fixes; don't close #272.
-- Unblocked (a release accepts TS 7): do T055/T056 in `specs/009-remediate-security-dependabot/tasks.md` — bump `typescript` + `@typescript-eslint/*` in `web/package.json`, fix real type errors (no `@ts-ignore`), merge #272, mark tasks `[X]`, delete this entry.
+**TypeScript 7 (#272).** Check the published TypeScript peer ranges for both `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin` with `npm view <package>@latest version peerDependencies.typescript`. Repeat for `@canary`. Keep #272 open and use a supported TypeScript 6.x release while the proposed compiler is outside those ranges.
+- Once a release supports the target version, refresh #272 against `master`, upgrade the compiler, parser and plugin together, and regenerate `web/package-lock.json`. Migrate the compiler API calls in `web/scripts/i18n-migrate.ts` and verify its dry run alongside the build. Fix type errors at source, merge after CI passes, complete T055/T056 in `specs/009-remediate-security-dependabot/tasks.md`, and remove this entry.
 
-**ESLint 10** — `npm view eslint-plugin-react@latest version peerDependencies.eslint`.
-- Blocked while the range lacks `^10`: upgrading `eslint` 9.39.5 to 10.x fails `npm ci` because `eslint-plugin-react@7.37.5` peers `^3 || … || ^9.7`. Keep `eslint` and `@eslint/js` on major 9 together: `@eslint/js@10.0.1` declares an optional peer on `eslint@^10.0.0`, which conflicts when ESLint 9 is installed. Other plugins already accept `^10` (`eslint-plugin-react-hooks@7.1.1`, `@typescript-eslint/*@8.69.0`). Do not bypass peer checks with `--legacy-peer-deps` or overrides.
-- Unblocked: bump `eslint` + `@eslint/js` together in `web/package.json`, fix real lint errors (no `eslint-disable`), merge #386 (and #387 if open), delete this entry.
+**ESLint 10 (#857 and #628).** Run `npm view eslint-plugin-react@latest version peerDependencies.eslint`. Keep `eslint` and `@eslint/js` on compatible 9.x releases until a published React plugin supports ESLint 10.
+- Upgrade the React plugin, ESLint and its JS preset in one PR. Regenerate the lockfile, verify `npm ci` and `npm ls eslint @eslint/js` in `web/`, and fix lint errors at source. Remove this entry once the combined upgrade merges.
+
+Both upgrades require a supported peer dependency tree. Preserve peer checks and the existing lint and type checks. [Dashboard upgrade blockers](docs/dependencies.md#dashboard-upgrade-blockers)
 
 ## System prompt overrides
 
