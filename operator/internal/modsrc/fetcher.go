@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"path"
 
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // Fetcher is one ModuleSource's view of its backing store. Index builds
@@ -81,6 +83,19 @@ func ForSource(ctx context.Context, c client.Client, namespace string, src *game
 	default:
 		return nil, fmt.Errorf("unknown source type %q", src.Spec.Type)
 	}
+}
+
+// A ModuleSource writer controls both the Secret reference and the URL. Only
+// the Secret's owner can authorize sending its contents to that destination.
+func readSourceCredential(ctx context.Context, c client.Reader, namespace, name, annotation, sourceURL string) (*corev1.Secret, error) {
+	secret, err := secretscope.ReadModuleSecret(ctx, c, namespace, name)
+	if err != nil {
+		return nil, err
+	}
+	if sourceURL == "" || secret.Annotations[annotation] != sourceURL {
+		return nil, fmt.Errorf("credential Secret requires annotation %s matching the source URL", annotation)
+	}
+	return secret, nil
 }
 
 // allowed reports whether name passes the source's allow-list. Entries

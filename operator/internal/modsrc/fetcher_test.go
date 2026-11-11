@@ -2,6 +2,7 @@ package modsrc
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
@@ -10,9 +11,36 @@ import (
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
+func TestForSourceRequiresCredentialURLBinding(t *testing.T) {
+	key, knownHosts := testSSHKey(t)
+	ref := &corev1.LocalObjectReference{Name: "creds"}
+	for _, tc := range []struct {
+		name, annotation string
+		spec             gameplanev1alpha1.ModuleSourceSpec
+	}{
+		{"http", "gameplane.local/http-source-url", gameplanev1alpha1.ModuleSourceSpec{Type: "http", HTTP: &gameplanev1alpha1.HTTPSourceSpec{URL: "https://example.org/other", SecretRef: ref}}},
+		{"git https", "gameplane.local/git-source-url", gameplanev1alpha1.ModuleSourceSpec{Type: "git", Git: &gameplanev1alpha1.GitSourceSpec{URL: "https://example.org/other", SecretRef: ref}}},
+		{"git ssh", "gameplane.local/git-source-url", gameplanev1alpha1.ModuleSourceSpec{Type: "git", Git: &gameplanev1alpha1.GitSourceSpec{URL: "git@github.com:other/repo", SecretRef: ref}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			secret := gitSecret(ref.Name, "", map[string][]byte{
+				"token": []byte("credential"), "ssh-privatekey": key, "known_hosts": knownHosts,
+			})
+			for _, binding := range []string{"", "https://example.org/approved", "git@github.com:approved/repo"} {
+				secret.Annotations = map[string]string{tc.annotation: binding}
+				c := fake.NewClientBuilder().WithObjects(secret).Build()
+				_, err := ForSource(t.Context(), c, secret.Namespace, &gameplanev1alpha1.ModuleSource{Spec: tc.spec}, Options{})
+				if err == nil || !strings.Contains(err.Error(), tc.annotation) {
+					t.Errorf("binding %q: expected rejection naming %s, got %v", binding, tc.annotation, err)
+				}
+			}
+		})
+	}
+}
+
 func TestForSourceRejectsServiceAccountTokenSecret(t *testing.T) {
 	key, knownHosts := testSSHKey(t)
-	secret := gitSecret("operator-token", map[string][]byte{
+	secret := gitSecret("operator-token", "", map[string][]byte{
 		corev1.ServiceAccountTokenKey: []byte("service-account-token"),
 		corev1.DockerConfigJsonKey:    []byte(`{"auths":{"example.org":{"username":"user","password":"secret"}}}`),
 		"ssh-privatekey":              key,
@@ -32,8 +60,8 @@ func TestForSourceRejectsServiceAccountTokenSecret(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			source := &gameplanev1alpha1.ModuleSource{Spec: spec}
-			if _, err := ForSource(t.Context(), c, secret.Namespace, source, Options{ConfigMapNamespace: "module-data"}); err == nil {
-				t.Fatal("accepted a ServiceAccount token Secret for a module source")
+			if _, err := ForSource(t.Context(), c, secret.Namespace, source, Options{ConfigMapNamespace: "module-data"}); err == nil || !strings.Contains(err.Error(), "ServiceAccount token") {
+				t.Fatalf("expected rejection of ServiceAccount token Secret, got %v", err)
 			}
 		})
 	}
