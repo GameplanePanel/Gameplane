@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { EditorProps, OnMount } from "@monaco-editor/react";
+import { getTypeScriptStdinMode } from "./monaco-ts-stdio";
 
 const MonacoEditor = lazy(() => import("./monaco-loader"));
 
@@ -9,7 +10,7 @@ export default function Editor(props: EditorProps) {
 
 export const startFileLanguageService: OnMount = editor => {
   const model = editor.getModel();
-  if (!model || !["javascript", "typescript"].includes(model.getLanguageId()) || !self.crossOriginIsolated) return;
+  if (!model || !["javascript", "typescript"].includes(model.getLanguageId()) || !getTypeScriptStdinMode()) return;
   const lifetime = new AbortController();
   editor.onDidDispose(() => lifetime.abort());
   void import("./monaco-ts-client")

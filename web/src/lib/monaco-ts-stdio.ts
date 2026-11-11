@@ -49,7 +49,25 @@ export class SharedStdin {
   }
 }
 
-export type TypeScriptWorkerRequest = { stdin: SharedArrayBuffer; fileName: string; text: string };
+// DOM declarations in TS 7.0 predate WebAssembly JavaScript Promise Integration.
+// Only the WASI poll import suspends. All other syscalls run synchronously.
+type WasmPromiseIntegration = {
+  Suspending: new (poll: (...args: number[]) => Promise<number>) => WebAssembly.ImportValue;
+  promising: (start: () => unknown) => () => Promise<unknown>;
+};
+
+export function getTypeScriptJspi(): WasmPromiseIntegration | undefined {
+  const api = globalThis.WebAssembly as (Partial<WasmPromiseIntegration> & typeof WebAssembly) | undefined;
+  if (typeof api?.Suspending === "function" && typeof api.promising === "function") return api as WasmPromiseIntegration;
+}
+
+export function getTypeScriptStdinMode(): "shared" | "message" | undefined {
+  if (globalThis.crossOriginIsolated && typeof SharedArrayBuffer !== "undefined") return "shared";
+  if (getTypeScriptJspi()) return "message";
+}
+
+export type TypeScriptWorkerInit = { stdin?: SharedArrayBuffer; fileName: string; text: string };
+export type TypeScriptWorkerRequest = TypeScriptWorkerInit | { type: "stdin"; bytes: Uint8Array<ArrayBuffer> };
 export type TypeScriptWorkerEvent =
   | { type: "ready" | "drain" }
   | { type: "error"; error: string }

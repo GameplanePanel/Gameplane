@@ -1179,6 +1179,10 @@ jobs:
       - name: install chromium
         # Skips the browser download on a cache hit; still apt-installs deps.
         run: npx playwright install --with-deps chromium
+      - name: build production dashboard for plain HTTP browser check
+        run: npm run build
+      - name: TypeScript editor on plain HTTP
+        run: npx playwright test --config=e2e/http/playwright.config.ts
       - name: playwright (mock)
         run: npm run test:e2e:mock
       - name: upload playwright report

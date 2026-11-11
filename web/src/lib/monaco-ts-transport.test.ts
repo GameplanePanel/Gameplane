@@ -9,7 +9,7 @@ class TestWorker extends EventTarget {
     super();
     TestWorker.current = this;
   }
-  postMessage = vi.fn<(request: TypeScriptWorkerRequest) => void>();
+  postMessage = vi.fn<(request: TypeScriptWorkerRequest, transfer?: Transferable[]) => void>();
   terminate = vi.fn();
   send(event: TypeScriptWorkerEvent) {
     this.dispatchEvent(new MessageEvent("message", { data: event }));
@@ -41,6 +41,7 @@ it("delivers an oversized unicode request as a single byte-counted frame and rou
   const worker = TestWorker.current;
   const [request] = worker.postMessage.mock.calls[0];
   expect(request).toMatchObject({ fileName: "hello.ts", text: "const name = '世界';" });
+  if (!("stdin" in request) || !request.stdin) throw new Error("Missing shared stdin");
   const reader = new SharedStdin(request.stdin);
   worker.send({ type: "ready" });
   const transport = await opening;
@@ -94,8 +95,32 @@ it("rejects startup failures and reports later failures to the active editor", a
   expect(worker.terminate).toHaveBeenCalledOnce();
 });
 
-it("rejects inaccessible shared memory and paths outside the virtual workspace", async () => {
+it("transfers a byte-counted LSP frame without shared memory on a JSPI-capable HTTP origin", async () => {
+  vi.stubGlobal("crossOriginIsolated", false);
+  vi.stubGlobal("SharedArrayBuffer", undefined);
+  vi.stubGlobal("WebAssembly", { Suspending: vi.fn(), promising: vi.fn() });
+  const opening = createTypeScriptTransport("edit.js", "let n = 1;");
+  const worker = TestWorker.current;
+  expect(worker.postMessage.mock.calls[0]).toEqual([{ fileName: "edit.js", text: "let n = 1;" }]);
+  worker.send({ type: "ready" });
+  const transport = await opening;
+  try {
+    const message = { jsonrpc: "2.0", id: 1, result: "你好" };
+    transport.port.postMessage(message);
+    await vi.waitFor(() => expect(worker.postMessage).toHaveBeenCalledTimes(2));
+    const [data, transfer] = worker.postMessage.mock.calls[1];
+    if (!("type" in data) || data.type !== "stdin") throw new Error("Missing stdio frame");
+    expect(transfer).toEqual([data.bytes.buffer]);
+    const body = JSON.stringify(message);
+    expect(new TextDecoder().decode(data.bytes)).toBe(`Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`);
+  } finally {
+    transport.dispose();
+  }
+});
+
+it("rejects unavailable transports and paths outside the virtual workspace", async () => {
   await expect(createTypeScriptTransport("../secret.ts", "")).rejects.toThrow("filename");
   vi.stubGlobal("crossOriginIsolated", false);
-  await expect(createTypeScriptTransport("valid.ts", "")).rejects.toThrow("isolated");
+  vi.stubGlobal("WebAssembly", {});
+  await expect(createTypeScriptTransport("valid.ts", "")).rejects.toThrow("cross-origin isolation");
 });

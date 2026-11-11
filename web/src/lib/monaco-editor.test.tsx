@@ -47,12 +47,22 @@ it("can switch away from a JavaScript file while its language service is loading
   expect(startTypeScriptClient).not.toHaveBeenCalled();
 });
 
-it("leaves non-script documents and pages without cross-origin isolation editable", async () => {
+it("starts the language service on a JSPI-capable HTTP origin", async () => {
+  vi.stubGlobal("crossOriginIsolated", false);
+  vi.stubGlobal("SharedArrayBuffer", undefined);
+  vi.stubGlobal("WebAssembly", { Suspending: vi.fn(), promising: vi.fn() });
+  const { model, onDidDispose } = mountFile("javascript");
+  await vi.waitFor(() => expect(startTypeScriptClient).toHaveBeenCalledWith(model, expect.any(AbortSignal)));
+  onDidDispose.mock.calls[0][0]();
+});
+
+it("leaves non-script documents and browsers without either transport editable", async () => {
   vi.stubGlobal("crossOriginIsolated", true);
   for (const language of [null, "json", "markdown"]) {
     expect(mountFile(language).onDidDispose).not.toHaveBeenCalled();
   }
   vi.stubGlobal("crossOriginIsolated", false);
+  vi.stubGlobal("WebAssembly", {});
   expect(mountFile("typescript").onDidDispose).not.toHaveBeenCalled();
   await vi.dynamicImportSettled();
   expect(startTypeScriptClient).not.toHaveBeenCalled();

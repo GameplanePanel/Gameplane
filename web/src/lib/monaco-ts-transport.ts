@@ -1,4 +1,4 @@
-import { SharedStdin, type TypeScriptWorkerEvent, type TypeScriptWorkerRequest } from "./monaco-ts-stdio";
+import { getTypeScriptStdinMode, SharedStdin, type TypeScriptWorkerEvent, type TypeScriptWorkerRequest } from "./monaco-ts-stdio";
 
 // Each editor owns one server and one virtual file. Disposing the transport
 // also cancels any download or compilation in progress inside its worker.
@@ -9,13 +9,14 @@ export async function createTypeScriptTransport(
   onError?: (error: Error) => void,
 ): Promise<{ port: MessagePort; dispose(): void }> {
   signal?.throwIfAborted();
-  if (!globalThis.crossOriginIsolated || typeof SharedArrayBuffer === "undefined") {
-    throw new Error("TypeScript language services require a cross-origin isolated page");
+  const mode = getTypeScriptStdinMode();
+  if (!mode) {
+    throw new Error("TypeScript language services require cross-origin isolation or WebAssembly Promise Integration");
   }
   if (!fileName || /[/\\\0]/.test(fileName) || !/\.(?:[cm]?[jt]s|[jt]sx)$/i.test(fileName)) {
     throw new Error("Invalid TypeScript or JavaScript filename");
   }
-  const pipe = new SharedStdin();
+  const pipe = mode === "shared" ? new SharedStdin() : undefined;
   const worker = new Worker(new URL("./monaco-ts-worker.ts", import.meta.url), { type: "module", name: "typescript-lsp" });
   const channel = new MessageChannel();
   const pending: Uint8Array[] = [];
@@ -25,7 +26,7 @@ export async function createTypeScriptTransport(
   const encoder = new TextEncoder();
 
   function flush() {
-    while (pending.length) {
+    while (pipe && pending.length) {
       const bytes = pending[0];
       const count = pipe.write(bytes.subarray(offset));
       if (!count) return;
@@ -84,11 +85,20 @@ export async function createTypeScriptTransport(
     });
     channel.port1.onmessage = (event: MessageEvent<unknown>) => {
       const body = encoder.encode(JSON.stringify(event.data));
-      pending.push(encoder.encode(`Content-Length: ${body.length}\r\n\r\n`), body);
-      flush();
+      const header = encoder.encode(`Content-Length: ${body.length}\r\n\r\n`);
+      if (pipe) {
+        pending.push(header, body);
+        flush();
+      } else {
+        const bytes = new Uint8Array(header.length + body.length);
+        bytes.set(header);
+        bytes.set(body, header.length);
+        worker.postMessage({ type: "stdin", bytes } satisfies TypeScriptWorkerRequest, [bytes.buffer]);
+      }
     };
     try {
-      worker.postMessage({ stdin: pipe.buffer, fileName, text } satisfies TypeScriptWorkerRequest);
+      const init = pipe ? { fileName, text, stdin: pipe.buffer } : { fileName, text };
+      worker.postMessage(init satisfies TypeScriptWorkerRequest);
     } catch (error) {
       dispose();
       reject(error);
