@@ -21,6 +21,7 @@ import (
 
 const gamePolicyJSON = `{"poolLabel":"gameplane.local/pool","poolValue":"games","minCPURequest":"100m","maxCPURequest":"4","minMemoryRequest":"128Mi","maxMemoryLimit":"8Gi"}`
 
+// TestGameWorkloadPolicyConfiguration rejects malformed, ambiguous and incomplete administrator policies.
 func TestGameWorkloadPolicyConfiguration(t *testing.T) {
 	if p, err := ParseGameWorkloadPolicy(""); err != nil || p != nil {
 		t.Fatalf("absent policy: %v %v", p, err)
@@ -38,6 +39,7 @@ func TestGameWorkloadPolicyConfiguration(t *testing.T) {
 	}
 }
 
+// gamePolicyFixture provides a valid resource tier with no CPU limit for burst capacity.
 func gamePolicyFixture(t *testing.T) (*GameWorkloadPolicy, *gameplanev1alpha1.GameServer, *gameplanev1alpha1.GameTemplate) {
 	t.Helper()
 	p, err := ParseGameWorkloadPolicy(gamePolicyJSON)
@@ -52,6 +54,7 @@ func gamePolicyFixture(t *testing.T) (*GameWorkloadPolicy, *gameplanev1alpha1.Ga
 	return p, &gameplanev1alpha1.GameServer{}, tmpl
 }
 
+// TestGamePartialResourceOverrideAndPlacement checks that an override leaves independent resource and placement settings intact.
 func TestGamePartialResourceOverrideAndPlacement(t *testing.T) {
 	p, gs, tmpl := gamePolicyFixture(t)
 	gs.Spec.Resources = &corev1.ResourceRequirements{Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("500m")}}
@@ -79,6 +82,7 @@ func TestGamePartialResourceOverrideAndPlacement(t *testing.T) {
 	}
 }
 
+// TestGameWorkloadPolicyRejectsOutOfBoundsInputs exercises each rejected quantity and scheduling constraint.
 func TestGameWorkloadPolicyRejectsOutOfBoundsInputs(t *testing.T) {
 	for _, field := range []string{"pool", "tolerations", "missing memory limit", "memory ceiling", "memory reservation", "CPU floor", "CPU cap", "CPU limit"} {
 		t.Run(field, func(t *testing.T) {
@@ -108,6 +112,7 @@ func TestGameWorkloadPolicyRejectsOutOfBoundsInputs(t *testing.T) {
 	}
 }
 
+// TestGameWorkloadPolicyRendersMergedResourcesAndWorkerPlacement inspects the actual game container and Pod specification.
 func TestGameWorkloadPolicyRendersMergedResourcesAndWorkerPlacement(t *testing.T) {
 	r, gs, effective := revisionFixture(t)
 	p, _, tmpl := gamePolicyFixture(t)
@@ -133,6 +138,7 @@ func TestGameWorkloadPolicyRendersMergedResourcesAndWorkerPlacement(t *testing.T
 	}
 }
 
+// TestStoredGameCannotCreateWorkloadOutsideWorkerPolicy checks direct-CR rejection without creating a StatefulSet.
 func TestStoredGameCannotCreateWorkloadOutsideWorkerPolicy(t *testing.T) {
 	r, gs, _ := revisionFixture(t)
 	p, _, _ := gamePolicyFixture(t)
@@ -157,6 +163,7 @@ func TestStoredGameCannotCreateWorkloadOutsideWorkerPolicy(t *testing.T) {
 	}
 }
 
+// TestRejectedWorkloadOnlyStopsItsOwnedStatefulSet verifies that a stop preserves the old template and respects ownership.
 func TestRejectedWorkloadOnlyStopsItsOwnedStatefulSet(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
@@ -210,6 +217,7 @@ func TestRejectedWorkloadOnlyStopsItsOwnedStatefulSet(t *testing.T) {
 	}
 }
 
+// TestRejectedRolloutDrainsWithThePinnedStopContract keeps the game running during its verified stop grace.
 func TestRejectedRolloutDrainsWithThePinnedStopContract(t *testing.T) {
 	r, gs, old := revisionFixture(t)
 	old.Spec.RCON = &gameplanev1alpha1.RCONSpec{Protocol: "source"}
@@ -244,5 +252,125 @@ func TestRejectedRolloutDrainsWithThePinnedStopContract(t *testing.T) {
 	}
 	if err := r.Get(t.Context(), key, ss); err != nil || *ss.Spec.Replicas != 1 {
 		t.Fatalf("failed to preserve the running world during grace: %v", err)
+	}
+}
+
+// A catalog snapshot saved during migration is not proof of the legacy Pod's stop contract.
+func TestWorkerPolicyDrainsLegacyPodBeforeFirstPin(t *testing.T) {
+	for _, contract := range []string{"unversioned", "verified", "previously pinned baseline"} {
+		t.Run(contract, func(t *testing.T) {
+			ctx := t.Context()
+			r, gs, catalog := revisionFixture(t)
+			policy, _, valid := gamePolicyFixture(t)
+			r.GameWorkloadPolicy = policy
+			catalog.Spec.Resources = valid.Spec.Resources
+			catalog.Spec.RCON = &gameplanev1alpha1.RCONSpec{Protocol: "source"}
+			catalog.Spec.Capabilities = &gameplanev1alpha1.CapabilitiesSpec{Lifecycle: &gameplanev1alpha1.LifecycleSpec{Stop: []string{"save", "stop"}}}
+			oldRevision, err := r.saveTemplateSnapshot(ctx, gs, catalog)
+			if err != nil {
+				t.Fatal(err)
+			}
+			catalog.Spec.Image = "example.invalid/game:current"
+			if contract == "verified" {
+				// Only the old, verified contract has a stop sequence in this case.
+				catalog.Spec.Capabilities = nil
+			}
+			if err := r.Update(ctx, catalog); err != nil {
+				t.Fatal(err)
+			}
+			delete(gs.Annotations, effectiveTemplateAnnotation)
+			if contract == "previously pinned baseline" {
+				pin, err := r.saveTemplateSnapshot(ctx, gs, catalog)
+				if err != nil {
+					t.Fatal(err)
+				}
+				gs.Annotations[effectiveTemplateAnnotation] = pin
+				gs.Annotations[baselineTemplateAnnotation] = pin
+				gs.Annotations[baselineWorkloadAnnotation] = "legacy"
+			}
+			if err := r.Update(ctx, gs); err != nil {
+				t.Fatal(err)
+			}
+			one := int32(1)
+			ss := &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace, UID: "legacy", OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(gs, gameplanev1alpha1.GroupVersion.WithKind("GameServer"))}},
+				Spec:       appsv1.StatefulSetSpec{Replicas: &one, Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "game", Image: "example.invalid/game:legacy"}}}}},
+				Status:     appsv1.StatefulSetStatus{Replicas: 1, ReadyReplicas: 1},
+			}
+			pod := &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-0", Namespace: gs.Namespace, OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(ss, appsv1.SchemeGroupVersion.WithKind("StatefulSet"))}},
+				Status:     corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{{Name: "game", State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{}}}}},
+			}
+			if contract == "verified" {
+				pod.Annotations = map[string]string{templateRevisionAnnotation: oldRevision}
+			}
+			for _, obj := range []client.Object{ss, pod} {
+				if err := r.Create(ctx, obj); err != nil {
+					t.Fatal(err)
+				}
+			}
+			stopper := &revisionStopper{}
+			r.AgentClient = stopper
+			original := ss.Spec.Template.DeepCopy()
+			key := client.ObjectKeyFromObject(gs)
+			step := func() {
+				t.Helper()
+				if err := r.Get(ctx, key, gs); err != nil {
+					t.Fatal(err)
+				}
+				tmpl, changed, err := r.reconcileTemplateRevision(ctx, gs)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !changed {
+					replicas, _, err := r.desiredReplicas(ctx, gs, tmpl, idleAwake)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if err := r.reconcileStatefulSet(ctx, gs, tmpl, nil, &materializedConfig{}, replicas); err != nil {
+						t.Fatal(err)
+					}
+				}
+				if err := r.Get(ctx, key, ss); err != nil {
+					t.Fatal(err)
+				}
+			}
+			for range 4 {
+				step()
+				if !reflect.DeepEqual(*original, ss.Spec.Template) {
+					t.Fatal("worker policy replaced the live legacy Pod template before drain")
+				}
+			}
+			if contract == "verified" {
+				if stopper.calls != 1 || *ss.Spec.Replicas != 1 {
+					t.Fatalf("expected one verified stop and a running game during save: calls=%d replicas=%d", stopper.calls, *ss.Spec.Replicas)
+				}
+			} else if stopper.calls != 0 || *ss.Spec.Replicas != 0 {
+				t.Fatalf("expected Kubernetes termination without catalog commands: calls=%d replicas=%d", stopper.calls, *ss.Spec.Replicas)
+			}
+			ss.Status.ReadyReplicas = 0
+			if err := r.Status().Update(ctx, ss); err != nil {
+				t.Fatal(err)
+			}
+			step()
+			ss.Status.Replicas, ss.Status.ObservedGeneration = 0, ss.Generation
+			if err := r.Status().Update(ctx, ss); err != nil {
+				t.Fatal(err)
+			}
+			step()
+			if *ss.Spec.Replicas != 0 || !reflect.DeepEqual(*original, ss.Spec.Template) {
+				t.Fatal("zero replicas did not fence the still-present legacy Pod")
+			}
+			if err := r.Delete(ctx, pod); err != nil {
+				t.Fatal(err)
+			}
+			for range 5 {
+				step()
+			}
+			if *ss.Spec.Replicas != 1 || ss.Spec.Template.Spec.NodeSelector[r.GameWorkloadPolicy.PoolLabel] != r.GameWorkloadPolicy.PoolValue ||
+				!validTemplateRevision(ss.Spec.Template.Annotations[templateRevisionAnnotation]) || ss.Spec.Template.Spec.Containers[0].Image != catalog.Spec.Image {
+				t.Fatal("drained workload did not resume on its policy-compliant revision")
+			}
+		})
 	}
 }

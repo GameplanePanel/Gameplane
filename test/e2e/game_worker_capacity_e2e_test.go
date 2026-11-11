@@ -28,6 +28,7 @@ type tenantMemoryEvents struct {
 	max, oom, kills uint64
 }
 
+// readTenantMemoryEvents identifies the exact container leaf and reads its Pod's hierarchical memory counters on a disposable Kind worker.
 func readTenantMemoryEvents(ctx context.Context, t *testing.T, pod *corev1.Pod) tenantMemoryEvents {
 	t.Helper()
 	if envInstance.Context != "kind-"+envInstance.ClusterName || !strings.HasPrefix(pod.Spec.NodeName, envInstance.ClusterName+"-") {
@@ -70,6 +71,7 @@ awk -v group="$group" -v limit="$(cat "$leaf/memory.max")" '
 	return snapshot
 }
 
+// sampleNeighborTicks records live Minecraft tick durations against the disposable worker's latency budget.
 func sampleNeighborTicks(ctx context.Context, t *testing.T, ns, pod, phase string) {
 	t.Helper()
 	out, err := envInstance.Kubectl(ctx, "exec", "-n", ns, pod, "-c", "game", "--", "rcon-cli", "tick", "query")
@@ -88,6 +90,7 @@ func sampleNeighborTicks(ctx context.Context, t *testing.T, ns, pod, phase strin
 	}
 }
 
+// recordWorkerCapacity checks worker pressure and records the requests Kubernetes has scheduled.
 func recordWorkerCapacity(ctx context.Context, t *testing.T, worker string) {
 	t.Helper()
 	node, err := envInstance.K8s.CoreV1().Nodes().Get(ctx, worker, metav1.GetOptions{})
@@ -109,6 +112,7 @@ func recordWorkerCapacity(ctx context.Context, t *testing.T, worker string) {
 		node.Status.Allocatable.Cpu(), node.Status.Allocatable.Memory(), allocated)
 }
 
+// startPlacementBackup keeps Restic copying on the game worker until the caller releases it for repository verification.
 func startPlacementBackup(ctx context.Context, t *testing.T, ns, poolKey, worker string) func() {
 	t.Helper()
 	pods := envInstance.K8s.CoreV1().Pods(ns)
