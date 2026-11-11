@@ -175,3 +175,26 @@ rows. Use repeated passing runs and your own production-shaped drills to select
 and demonstrate targets. This fixture covers SQLite panel recovery, not storage
 cluster loss, PostgreSQL failover, a particular game's save format, or a complete
 Kubernetes disaster recovery exercise.
+
+## PostgreSQL physical recovery
+
+The PostgreSQL CI lane runs the release API image with one writer. After the
+availability and Secret checks, the dedicated PITR step takes a physical base
+backup, writes authorization state, creates a named WAL restore point, and
+records a subsequent revocation and a user created after that point. It fences
+the old API and database before promoting a copy from WAL. In the isolated
+cluster it keeps the old database claim for inspection. In production, retain
+the physical backup and archived WAL on storage independent of the database.
+
+Before reconnecting the API, the drill reapplies the recorded IdP revocation
+and invalidates restored sessions, tokens and shares. It then checks positive
+and denied requests, the old session, the audit chain, the owner on the live
+GameServer, the agent credential and a retained world marker. The CI log
+records the PostgreSQL target LSN, elapsed recovery-point age, time from loss
+to restored authorization and game verification, and the retained resource
+UIDs. Use actual successful job output when reporting recovery measurements.
+
+Both backends require one API writer. Fence the original process and storage
+before promotion. Active-active deployment would additionally require
+database-level audit and last-manager serialization, coordinated migrations
+and background jobs, and cross-replica sessions and rate limits.

@@ -2525,6 +2525,12 @@ jobs:
             go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: verify Secret-backed PostgreSQL configuration after upgrade
         run: bash deploy/kind/check-postgres-secret.sh "$CTX"
+      - name: run go e2e (postgres-pitr)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-pitr)"
+          cd test/e2e
+          GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-postgres)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
@@ -2945,6 +2951,8 @@ jobs:
               if (/^e2e postgres \//.test(n) && Array.isArray(j.steps)) {
                 const availability = j.steps.find((s) => s.name === 'run go e2e (PostgreSQL singleton upgrade and outage recovery)');
                 if (availability && availability.conclusion === 'success') bucketSet.add('postgres-availability');
+                const pitr = j.steps.find((s) => s.name === 'run go e2e (postgres-pitr)');
+                if (pitr && pitr.conclusion === 'success') bucketSet.add('postgres-pitr');
               }
               // The ratelimit bucket runs as a trailing step inside the
               // api-auth job leg (deliberately, so it drains the shared

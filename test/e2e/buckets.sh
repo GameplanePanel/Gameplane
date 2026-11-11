@@ -388,6 +388,8 @@ TestUpgrade_PostgresAvailability
 EOF
 }
 
+bucket_postgres_pitr() { printf '%s\n' TestPanel_PostgresPointInTimeRecovery; }
+
 # One sequential lifecycle test that runs `helm upgrade --reuse-values` (1m
 # report interval, dashboard token, public summary, no per-source ingest
 # limit) on its own bucket cluster, so it must not share a cluster with other
@@ -461,7 +463,7 @@ bucket_network_isolation() {
 }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
 }
 
 list_bucket() {
@@ -478,6 +480,7 @@ list_bucket() {
 	multicluster) bucket_multicluster ;;
 	upgrade) bucket_upgrade ;;
 	postgres-availability) bucket_postgres_availability ;;
+	postgres-pitr) bucket_postgres_pitr ;;
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;
