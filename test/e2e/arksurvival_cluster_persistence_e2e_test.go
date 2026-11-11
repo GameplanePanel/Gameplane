@@ -44,6 +44,9 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 			"game":        "ark-survival-evolved",
 			"version":     "1.0.0",
 			"image":       "hermsi/ark-server:latest@sha256:ce291990613e76f7019be31b96fe247188ce4957724c913c0e30097042c44bf5",
+			"configSchema": []any{
+				map[string]any{"name": "CLUSTER_ID", "type": "string"},
+			},
 			"ports": []any{
 				map[string]any{"name": "game", "containerPort": int64(7777), "protocol": "UDP", "advertise": true},
 				map[string]any{"name": "query", "containerPort": int64(27015), "protocol": "UDP", "advertise": true},
@@ -107,6 +110,21 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 
 	waitPVCBound(t, ns, gsName+"-data", 2*time.Minute)
 	waitGameContainerReady(t, ns, gsName+"-0", 5*time.Minute)
+
+	// The marker below only proves the /cluster volume persists. Check that
+	// the ARK server itself was started against it: hermsi/ark-server passes
+	// -ClusterDirOverride=/cluster and -clusterid once CLUSTER_ID is set. The
+	// server starts only after SteamCMD has installed ~25GB, hence the wait.
+	envInstance.Eventually(t, 45*time.Minute, func() (bool, string) {
+		out, err := envInstance.KubectlExec(t, ns, "pod/"+gsName+"-0", "pgrep", "-af", "ShooterGameServer")
+		if err != nil {
+			return false, "ShooterGameServer not running yet: " + err.Error() + " out=" + out
+		}
+		if !strings.Contains(out, "ClusterDirOverride=/cluster") || !strings.Contains(out, "clusterid="+clusterID) {
+			return false, fmt.Sprintf("ShooterGameServer command line lacks the /cluster override or cluster id %q: %s", clusterID, out)
+		}
+		return true, ""
+	})
 
 	clusterDir := fmt.Sprintf("/cluster/%s", clusterID)
 	markerFile := fmt.Sprintf("%s/survivor.dat", clusterDir)

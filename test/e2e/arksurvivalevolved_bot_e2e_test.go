@@ -28,7 +28,6 @@ func TestGameServer_ArkSurvivalEvolvedBot_Query(t *testing.T) {
 		Image:       "hermsi/ark-server:latest@sha256:ce291990613e76f7019be31b96fe247188ce4957724c913c0e30097042c44bf5",
 		Env: map[string]string{
 			"SESSION_NAME":    "Gameplane E2E ASE",
-			"ADMIN_PASSWORD":  "secret-rcon-password",
 			"SERVER_PASSWORD": "",
 		},
 		Ports: []gamePort{
@@ -47,9 +46,28 @@ func TestGameServer_ArkSurvivalEvolvedBot_Query(t *testing.T) {
 		ProbePort:     27015,
 		ProbeDeadline: 4 * time.Minute,
 		ExpectDepth:   joindepth.QUERY,
+		// The operator injects its managed RCON password as ADMIN_PASSWORD,
+		// which hermsi/ark-server writes as ServerAdminPassword. Path A below
+		// proves the agent authenticates with it.
 		RCON: map[string]any{
-			"protocol": "source",
-			"port":     int64(27020),
+			"protocol":    "source",
+			"port":        int64(27020),
+			"passwordEnv": "ADMIN_PASSWORD",
+		},
+		ConsoleMode: "rcon",
+		Actions: []any{
+			map[string]any{
+				"id":          "list-players",
+				"displayName": "List players",
+				"command":     "ListPlayers",
+			},
+		},
+		// ARK answers ListPlayers on an empty server with "No Players
+		// Connected"; a broadcast (ServerChat) reply would be empty.
+		Control: pathAControl{
+			Mode:      "rcon",
+			Action:    "list-players",
+			ExpectRaw: "No Players Connected",
 		},
 	})
 }
