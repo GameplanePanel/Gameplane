@@ -48,6 +48,7 @@ def check_namespace_separation():
 
 
 def check_admission_policies():
+    """Check that token protection covers credential stores even when game Pod restrictions are disabled."""
     def bound_namespaces(objects, name, resource_rules):
         policy = one(objects, "ValidatingAdmissionPolicy", name)
         assert policy["apiVersion"] == "admissionregistration.k8s.io/v1"

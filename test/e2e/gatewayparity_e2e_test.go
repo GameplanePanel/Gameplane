@@ -180,6 +180,9 @@ func gatewayBridgeIP(t *testing.T, name string) string {
 	return address
 }
 
+// gatewaySecret installs or rotates TLS material where its consumer reads it.
+// The central client uses the credentials namespace. The remote gateway mounts
+// its server key and client CA from its own deployment namespace.
 func gatewaySecret(t *testing.T, env *Env, namespace, name string, data map[string][]byte, create bool) {
 	t.Helper()
 	secrets := env.K8s.CoreV1().Secrets(namespace)

@@ -583,8 +583,9 @@ type config struct {
 	trustedProxies []string
 }
 
-// Standalone keeps encrypted credentials on the panel and reads module
-// ConfigMaps from the selected remote cluster's operator namespace.
+// managementNamespaces keeps native module ConfigMaps with API-managed Secrets.
+// In standalone mode the first name scopes encrypted records on the panel, while
+// --namespace locates module ConfigMaps on the selected remote cluster.
 func (c config) managementNamespaces() (credentials, moduleConfigMaps string) {
 	credentials = cmp.Or(os.Getenv("GAMEPLANE_CREDENTIALS_NAMESPACE"), c.namespace)
 	if c.standalone {
