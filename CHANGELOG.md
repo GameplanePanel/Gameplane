@@ -5,6 +5,8 @@ All notable changes to Gameplane are documented here. The format is based on
 to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it
 reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
+See the [unreleased change entries](changelog/unreleased/) for individual fixes and upgrade notes.
+
 ## [Unreleased]
 
 ### Added
