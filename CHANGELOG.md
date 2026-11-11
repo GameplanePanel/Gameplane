@@ -7,6 +7,15 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Servers stuck in "Starting" when the API server has a public address:**
+  the chart's `allow-agent-to-apiserver` and `allow-sentinel-to-apiserver`
+  policies only allowed private ranges by default, so on a k3s node with a
+  public IP every agent heartbeat timed out. When
+  `networkPolicies.apiServerCIDRs` is unset, the chart now also allows the
+  `kubernetes` Service endpoints it detects at install or upgrade time.
+
 ## [0.4.0] — 2026-11-10
 
 A pre-v1 release with every change made since v0.3.0: an independent central
