@@ -324,14 +324,23 @@ func backupGameState(ctx context.Context, reader client.Reader, namespace, serve
 		return gameOriginal, nil
 	}
 	for _, game := range pod.Status.ContainerStatuses {
-		if game.Name != "game" || game.ContainerID == "" {
+		if game.Name != "game" {
+			continue
+		}
+		if restarts != nil && game.RestartCount > *restarts {
+			return gameGone, nil
+		}
+		if last := game.LastTerminationState.Terminated; last != nil && containerID != "" && last.ContainerID == containerID {
+			return gameGone, nil
+		}
+		if game.ContainerID == "" {
 			continue
 		}
 		if game.State.Terminated != nil {
 			return gameGone, nil
 		}
 		if game.State.Running != nil {
-			if (containerID != "" && game.ContainerID != containerID) || (restarts != nil && game.RestartCount > *restarts) {
+			if containerID != "" && game.ContainerID != containerID {
 				return gameGone, nil
 			}
 			if restarts == nil || game.RestartCount == *restarts {
