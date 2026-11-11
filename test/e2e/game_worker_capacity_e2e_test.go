@@ -60,7 +60,6 @@ func recordWorkerCapacity(ctx context.Context, t *testing.T, worker string) {
 func startPlacementBackup(ctx context.Context, t *testing.T, ns, poolKey, worker string) func() {
 	t.Helper()
 	pods := envInstance.K8s.CoreV1().Pods(ns)
-	const name = "placement-restic"
 	work := `export RESTIC_REPOSITORY=/tmp/repo RESTIC_PASSWORD=disposable
 mkdir /tmp/world
 restic init
@@ -71,16 +70,18 @@ while test ! -e /tmp/finish; do
   sleep 1
 done
 restic check --read-data`
-	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: name}, Spec: corev1.PodSpec{
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{GenerateName: "placement-restic-"}, Spec: corev1.PodSpec{
 		RestartPolicy: corev1.RestartPolicyNever, NodeSelector: map[string]string{poolKey: "games"},
 		Tolerations: []corev1.Toleration{{Key: poolKey, Operator: corev1.TolerationOpEqual, Value: "games", Effect: corev1.TaintEffectNoSchedule}},
 		Containers: []corev1.Container{{Name: "backup", Image: "restic/restic:0.19.1", Command: []string{"sh", "-ec", work},
 			Resources: corev1.ResourceRequirements{Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("100m"), corev1.ResourceMemory: resource.MustParse("128Mi")},
 				Limits: corev1.ResourceList{corev1.ResourceMemory: resource.MustParse("512Mi")}}}},
 	}}
-	if _, err := pods.Create(ctx, pod, metav1.CreateOptions{}); err != nil {
+	created, err := pods.Create(ctx, pod, metav1.CreateOptions{})
+	if err != nil {
 		t.Fatal(err)
 	}
+	name := created.Name
 	t.Cleanup(func() {
 		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 15*time.Second)
 		defer cancel()

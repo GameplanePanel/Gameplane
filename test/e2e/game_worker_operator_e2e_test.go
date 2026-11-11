@@ -18,11 +18,11 @@ import (
 
 // Exercise the controller across a policy rollout on the isolated placement
 // cluster. Direct CR writes also cover installations without the panel API.
-func checkGameServerWorkerPolicy(t *testing.T, worker string) {
+func checkGameServerWorkerPolicy(t *testing.T, worker, prefix string) {
 	e, ctx := envInstance, t.Context()
 	const ns, system = "gameplane-games", "gameplane-system"
-	const template, legacy, valid, refused = "e2e-pool-template", "e2e-pool-legacy", "e2e-pool-valid", "e2e-pool-refused"
-	const key = "gameplane.local/e2e-operator-worker"
+	template, legacy, valid, refused := prefix+"-template", prefix+"-legacy", prefix+"-valid", prefix+"-refused"
+	key := "gameplane.local/" + prefix
 	kubectl := func(ctx context.Context, args ...string) string {
 		t.Helper()
 		out, err := e.Kubectl(ctx, args...)
@@ -61,19 +61,36 @@ func checkGameServerWorkerPolicy(t *testing.T, worker string) {
 	if manager.Name != "manager" {
 		t.Fatalf("unexpected operator container %q", manager.Name)
 	}
-	setArgs := func(ctx context.Context, args []string) {
+	for _, arg := range manager.Args {
+		if strings.HasPrefix(arg, "--game-workload-policy") {
+			t.Fatalf("operator already has a worker policy; run in the isolated placement cluster")
+		}
+	}
+	setArgs := func(ctx context.Context, current, next []string) {
 		t.Helper()
-		data, err := json.Marshal(args)
+		const path = "/spec/template/spec/containers/0/args"
+		data, err := json.Marshal([]map[string]any{
+			{"op": "test", "path": path, "value": current},
+			{"op": "replace", "path": path, "value": next},
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		patch := fmt.Sprintf(`{"spec":{"template":{"spec":{"containers":[{"name":"manager","args":%s}]}}}}`, data)
-		kubectl(ctx, "-n", system, "patch", "deployment/gameplane-operator", "--type=strategic", "-p", patch)
+		kubectl(ctx, "-n", system, "patch", "deployment/gameplane-operator", "--type=json", "-p", string(data))
+	}
+	policy := `--game-workload-policy={"poolLabel":"` + key + `","poolValue":"games","minCPURequest":"10m","maxCPURequest":"1","minMemoryRequest":"8Mi","maxMemoryLimit":"32Mi"}`
+	installed := append(slices.Clone(manager.Args), policy)
+	setArgs(ctx, manager.Args, installed)
+	awaitRollout := func(ctx context.Context) {
 		kubectl(ctx, "-n", system, "rollout", "status", "deployment/gameplane-operator", "--timeout=3m")
 	}
-	t.Cleanup(func() { setArgs(context.Background(), manager.Args) })
-	policy := `--game-workload-policy={"poolLabel":"` + key + `","poolValue":"games","minCPURequest":"10m","maxCPURequest":"1","minMemoryRequest":"8Mi","maxMemoryLimit":"32Mi"}`
-	setArgs(ctx, append(slices.Clone(manager.Args), policy))
+	t.Cleanup(func() {
+		cleanup, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
+		defer cancel()
+		setArgs(cleanup, installed, manager.Args)
+		awaitRollout(cleanup)
+	})
+	awaitRollout(ctx)
 	waitRejection := func(name, reason string) {
 		t.Helper()
 		e.Eventually(t, time.Minute, func() (bool, string) {

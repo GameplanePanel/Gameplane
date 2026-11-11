@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/json"
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -29,6 +31,10 @@ func TestGameWorkloadPolicyConfiguration(t *testing.T) {
 		if _, err := ParseGameWorkloadPolicy(raw); err == nil {
 			t.Errorf("accepted invalid policy %s", raw)
 		}
+	}
+	var syntax *json.SyntaxError
+	if _, err := ParseGameWorkloadPolicy(gamePolicyJSON + "!"); !errors.As(err, &syntax) {
+		t.Fatalf("trailing JSON syntax error lost: %v", err)
 	}
 }
 

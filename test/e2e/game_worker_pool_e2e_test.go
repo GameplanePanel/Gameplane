@@ -41,12 +41,12 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 		t.Fatal("need two schedulable workers")
 	}
 	if !t.Run("GameServer policy reconciliation", func(t *testing.T) {
-		checkGameServerWorkerPolicy(t, workers[0])
+		checkGameServerWorkerPolicy(t, workers[0], ns)
 	}) {
 		return
 	}
 	neighbor := minecraftBotSpec()
-	neighbor.Template = "e2e-placement-neighbor"
+	neighbor.Template = ns + "-neighbor"
 	neighbor.Env["PAUSE_WHEN_EMPTY_SECONDS"] = "0"
 	gameName, gameNS := createGameBotServer(t, e, neighbor)
 	gamePod, err := k.Pods(gameNS).Get(ctx, gameName+"-0", metav1.GetOptions{})

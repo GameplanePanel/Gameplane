@@ -101,8 +101,10 @@ func ParseGameWorkloadPolicy(raw string) (*GameWorkloadPolicy, error) {
 	if err := decoder.Decode(&policy); err != nil {
 		return nil, fmt.Errorf("decode game workload policy: %w", err)
 	}
-	if decoder.Decode(new(any)) != io.EOF {
+	if err := decoder.Decode(new(any)); err == nil {
 		return nil, fmt.Errorf("expected a single game workload policy object")
+	} else if err != io.EOF {
+		return nil, fmt.Errorf("decode trailing game workload policy data: %w", err)
 	}
 	if len(validation.IsQualifiedName(policy.PoolLabel)) != 0 || policy.PoolValue == "" || len(validation.IsValidLabelValue(policy.PoolValue)) != 0 {
 		return nil, fmt.Errorf("poolLabel and poolValue must identify a valid, nonempty worker label")
