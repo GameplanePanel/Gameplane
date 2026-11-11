@@ -187,13 +187,15 @@ func TestBackupConsistencyDescribesAchievedResult(t *testing.T) {
 		strategy, outcome, reason string
 		status                    metav1.ConditionStatus
 	}{
-		{"restic-snapshot", "confirmed", "Quiesced", metav1.ConditionTrue},
+		{"restic-snapshot", "confirmed", "LegacyHookUnverified", metav1.ConditionUnknown},
+		{"restic-snapshot", "legacy-unverified", "LegacyHookUnverified", metav1.ConditionUnknown},
+		{"restic-snapshot", "verified-freeze", "Quiesced", metav1.ConditionTrue},
 		{"restic-snapshot", "already-stopped", "StoppedSource", metav1.ConditionTrue},
 		{"restic-snapshot", "unsupported", "UnsupportedRawCopy", metav1.ConditionFalse},
 		{"restic-snapshot", "not-requested", "RawCopy", metav1.ConditionFalse},
 		{"restic-snapshot", "agent-unavailable", "AgentUnavailableRawCopy", metav1.ConditionFalse},
 		{"volume-snapshot", "unsupported", "CrashConsistentSnapshot", metav1.ConditionFalse},
-		{"volume-snapshot", "confirmed", "Quiesced", metav1.ConditionTrue},
+		{"volume-snapshot", "verified-freeze", "Quiesced", metav1.ConditionTrue},
 		{"volume-snapshot", "already-stopped", "StoppedSource", metav1.ConditionTrue},
 	} {
 		t.Run(tc.strategy+"/"+tc.outcome, func(t *testing.T) {

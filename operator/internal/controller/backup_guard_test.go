@@ -149,7 +149,7 @@ func TestBackupGuardSerializesAcrossBackupsAndRestart(t *testing.T) {
 		t.Fatalf("overlapping protected copies: jobs=%d, agent=%+v", len(jobs.Items), q)
 	}
 	first := guardGetBackup(t, r, "first")
-	if first.Status.CaptureManifest == nil || first.Status.CaptureManifest.QuiesceOutcome != "confirmed" {
+	if first.Status.CaptureManifest == nil || first.Status.CaptureManifest.QuiesceOutcome != "verified-freeze" {
 		t.Fatalf("worker started without confirmed capture-time metadata: %+v", first.Status)
 	}
 	if second := guardGetBackup(t, r, "second"); second.Status.CaptureManifest != nil {

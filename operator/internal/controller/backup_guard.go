@@ -130,6 +130,7 @@ func (r *BackupReconciler) recoverBackupTarget(ctx context.Context, b *gameplane
 	}
 	delete(b.Annotations, backupRecoveryAnnotation)
 	delete(b.Annotations, annoQuiesceAttempted)
+	delete(b.Annotations, annoVerifiedFreeze)
 	delete(b.Annotations, annoUnquiescedAt)
 	if err := r.Update(ctx, b); err != nil {
 		return false, err

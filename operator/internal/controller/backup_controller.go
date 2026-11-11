@@ -33,6 +33,7 @@ import (
 // quiesce state across reconcile passes.
 const (
 	annoQuiesceAttempted = "backup.gameplane.local/quiesce-attempted"
+	annoVerifiedFreeze   = "backup.gameplane.local/verified-freeze-pod"
 	annoQuiescedAt       = "backup.gameplane.local/quiesced-at"
 	annoUnquiescedAt     = "backup.gameplane.local/unquiesced-at"
 	// annoUnquiesceRetryFirstFailedAt records when finalizeDelete's
@@ -447,6 +448,7 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 		patchBackupAnnotations(b, map[string]string{
 			annoQuiesceAttempted: "true",
 			annoQuiescedAt:       now,
+			annoVerifiedFreeze:   string(podUID),
 		})
 	case errors.Is(err, agent.ErrUnsupported) && state != "pending":
 		// Only a first, explicitly unsupported operation proves that no
