@@ -97,16 +97,23 @@ func TestClusterDiscovery_LocalOnlyRoutes(t *testing.T) {
 	if kubeClientCalls(t, home) != 0 {
 		t.Fatal("local-only discovery contacted Kubernetes for remote registrations")
 	}
-	for _, route := range []struct{ method, path string }{
-		{http.MethodPost, "/clusters/"},
-		{http.MethodDelete, "/clusters/remote"},
-		{http.MethodPut, "/clusters/remote/kubeconfig"},
-		{http.MethodPut, "/clusters/remote/gateway"},
-		{http.MethodDelete, "/clusters/remote/gateway"},
+	for _, route := range []struct {
+		method, path string
+		status       int
+	}{
+		{http.MethodPost, "/clusters/", http.StatusMethodNotAllowed},
+		{http.MethodDelete, "/clusters/remote", http.StatusNotFound},
+		{http.MethodPut, "/clusters/remote/kubeconfig", http.StatusNotFound},
+		{http.MethodPut, "/clusters/remote/gateway", http.StatusNotFound},
+		{http.MethodDelete, "/clusters/remote/gateway", http.StatusNotFound},
 	} {
-		if router.Match(chi.NewRouteContext(), route.method, route.path) {
-			t.Errorf("remote administration route mounted: %s %s", route.method, route.path)
+		response := inventoryRequest(t, router, user, route.method, route.path)
+		if response.Code != route.status {
+			t.Errorf("%s %s = %d, want %d", route.method, route.path, response.Code, route.status)
 		}
+	}
+	if kubeClientCalls(t, home) != 0 {
+		t.Fatal("local-only administration request contacted Kubernetes")
 	}
 }
 
