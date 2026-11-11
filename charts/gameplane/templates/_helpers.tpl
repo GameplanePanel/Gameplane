@@ -185,7 +185,11 @@ mergeOverwrite preserves explicit zero/empty values so validation can reject the
 {{- /* Both native components resolve remote-cluster credentials here. Keep
 the existing operator override for installations with a dedicated namespace. */ -}}
 {{- define "gameplane.credentialsNamespace" -}}
-{{- include "gameplane.namespace" (.Values.api.credentialsNamespace | default .Values.operator.controlPlaneNamespace | default (printf "%s-credentials" .Release.Namespace)) -}}
+{{- $generated := printf "%s-credentials" .Release.Namespace -}}
+{{- if gt (len $generated) 63 -}}
+{{- $generated = printf "%s-credentials-%s" (trunc 38 .Release.Namespace | trimSuffix "-") (sha256sum .Release.Namespace | trunc 12) -}}
+{{- end -}}
+{{- include "gameplane.namespace" (.Values.api.credentialsNamespace | default .Values.operator.controlPlaneNamespace | default $generated) -}}
 {{- end -}}
 
 {{- define "gameplane.operatorClusterCredentialsNamespace" -}}

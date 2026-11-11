@@ -73,6 +73,26 @@ def main():
                    {"api": {"credentialsNamespace": "gameplane-games"}},
                    {"api": {"credentialsNamespace": "kube-system"}}):
         render(values, failure="dedicated namespace")
+    # Operator-only releases apply admission and workload RBAC to every game namespace.
+    for values in ({"operator": {"gameNamespaces": ["kube-system"]}},
+                   {"gamesNamespace": "gameplane-system"},
+                   {"operator": {"gameNamespaces": ["cluster-creds"], "controlPlaneNamespace": "cluster-creds"}},
+                   {"operator": {"moduleNamespace": "gameplane-games"}},
+                   {"operator": {"agentCASecretNamespace": "gameplane-games"}}):
+        render({"api": {"enabled": False}, **values}, failure="dedicated namespace")
+    check({"api": {"enabled": False}, "operator": {"gameNamespaces": ["remote-games"]}},
+          {"gameplane-games", "remote-games"}, {"gameplane-games", "remote-games", "gameplane-system"})
+    # Valid release namespaces may already occupy the entire DNS label.
+    # Two sharing a long prefix must still get distinct credential stores.
+    long_targets = set()
+    for suffix in ("a", "b"):
+        release_namespace = "m" * 62 + suffix
+        objects = render(namespace=release_namespace)
+        target = one(objects, "Role", "gameplane-api-credentials")["metadata"]["namespace"]
+        assert len(target) <= 63 and target != release_namespace
+        one(objects, "Namespace", target)
+        long_targets.add(target)
+    assert len(long_targets) == 2
     # The development install must not regain global Secret access after codegen.
     root = Path(__file__).resolve().parents[2]
     dev = list(yaml.safe_load_all((root / "operator/config/rbac/role.yaml").read_text()))

@@ -31,20 +31,23 @@
 {{- end }}
 {{- end }}
 {{- $diagnostics := include "gameplane.nodeDiagnostics" . | fromJson }}
-{{- if and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) }}
-{{- $credentials := include "gameplane.credentialsNamespace" . }}
+{{- $nativeAPI := and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) }}
+{{- if or $nativeAPI (eq (include "gameplane.operatorEnabled" .) "true") }}
+{{- $protected := list .Release.Namespace (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) "default" "kube-system" "kube-public" "kube-node-lease" }}
+{{- $credentials := include "gameplane.operatorClusterCredentialsNamespace" . }}
+{{- if $nativeAPI }}
 {{- if and .Values.api.credentialsNamespace .Values.operator.controlPlaneNamespace (ne .Values.api.credentialsNamespace .Values.operator.controlPlaneNamespace) }}
 {{- fail "api.credentialsNamespace and operator.controlPlaneNamespace must reference the same dedicated namespace for cluster credentials" }}
 {{- end }}
-{{- $games := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
-{{- $protected := list .Release.Namespace (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) "default" "kube-system" "kube-public" "kube-node-lease" }}
-{{- range $ns := append $games $credentials }}
+{{- if has $credentials $protected }}
+{{- fail (printf "API-writable Secrets require a dedicated namespace. %s overlaps a protected namespace" $credentials) }}
+{{- end }}
+{{- end }}
+{{- $protected = append $protected $credentials }}
+{{- range $ns := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
 {{- if has $ns $protected }}
-{{- fail (printf "API-writable Secrets require a dedicated namespace; %s overlaps a protected namespace" $ns) }}
+{{- fail (printf "Game workloads require a dedicated namespace. %s overlaps a protected namespace" $ns) }}
 {{- end }}
-{{- end }}
-{{- if has $credentials $games }}
-{{- fail "api.credentialsNamespace must be a dedicated namespace separate from gamesNamespace and operator.gameNamespaces" }}
 {{- end }}
 {{- end }}
 {{- if $diagnostics.enabled }}

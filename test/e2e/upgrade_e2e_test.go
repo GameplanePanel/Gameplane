@@ -18,6 +18,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -396,6 +397,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		"--set", "operator.agentImage=gameplane-test/agent:"+tag,
 		"--set", "operator.leaderElect=false",
 		"--set", "operator.replicas=0",
+		"--set", "operator.controlPlaneNamespace="+credentialsNS,
 		"--set", "api.enabled=false",
 		"--set", "gamesNamespace=e2e-crd-reinstall-games",
 		"--set", "defaultModuleSource.enabled=false",
@@ -437,6 +439,27 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Errorf("live gameservers CRD %s = %q after installing over leftover CRDs, want the chart's %q",
 			crdBundleStampAnnotation, got, chartStamp)
 	}
+
+	// This release now has only an operator. Enabling the native panel moves
+	// kubeconfigs from the operator's override and uploads from the release NS.
+	const nextNS = "e2e-next-credentials"
+	core := envInstance.K8s.CoreV1()
+	create := metav1.CreateOptions{}
+	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: nextNS}}, create); err != nil {
+		t.Fatal(err)
+	}
+	kubeconfig := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+		Name: "e2e-operator-kubeconfig", Labels: map[string]string{"gameplane.local/cluster-kubeconfig": "true"},
+	}}
+	if _, err := core.Secrets(credentialsNS).Create(ctx, kubeconfig, create); err != nil {
+		t.Fatal(err)
+	}
+	enableAPI := append(upgradeArgs, "--set", "api.credentialsNamespace="+nextNS)
+	migrationDryRun(ctx, t, enableAPI, "operator kubeconfig", "Migrate Secret "+credentialsNS+"/"+kubeconfig.Name)
+	if _, err := core.Secrets(nextNS).Create(ctx, kubeconfig, create); err != nil {
+		t.Fatal(err)
+	}
+	migrationDryRun(ctx, t, enableAPI, "operator upload", "Migrate module ConfigMap gameplane-system/module-upload-e2e-migration")
 }
 
 // verifyUpgradeMigration exercises live Helm lookups against the published
@@ -449,6 +472,7 @@ func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []str
 	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: credentialsNS}}, create); err != nil {
 		t.Fatal(err)
 	}
+	immutable := true
 	oidc := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "e2e-upgrade-oidc", Labels: map[string]string{
 			"gameplane.local/auth-provider": "true", "gameplane.local/managed-by": "gameplane-api",
@@ -471,19 +495,7 @@ func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []str
 	}
 	dryRun := func(stage, blockedObject string) {
 		t.Helper()
-		cmd := exec.CommandContext(ctx, "helm", append(upgradeArgs, "--dry-run=server")...)
-		// A successful dry run can render private keys. Discard stdout; use
-		// stderr only to identify the rejected object, never as test output.
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		err := cmd.Run()
-		if blockedObject == "" {
-			if err != nil {
-				t.Fatalf("%s: expected server dry run to succeed: %v", stage, err)
-			}
-		} else if err == nil || !strings.Contains(stderr.String(), blockedObject) {
-			t.Fatalf("%s: expected preflight rejection naming %s, command error: %v", stage, blockedObject, err)
-		}
+		migrationDryRun(ctx, t, upgradeArgs, stage, blockedObject)
 	}
 	secretMarker := "Migrate Secret " + sourceNS + "/" + oidc.Name
 	dryRun("missing OIDC copy", secretMarker)
@@ -502,6 +514,15 @@ func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []str
 	}
 	dryRun("missing OIDC management label", secretMarker)
 	secretCopy.Labels = oidc.Labels
+	secretCopy, err = core.Secrets(credentialsNS).Update(ctx, secretCopy, metav1.UpdateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.Secrets(sourceNS).Patch(ctx, oidc.Name, types.MergePatchType, []byte(`{"immutable":true}`), metav1.PatchOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	dryRun("mutable copy of immutable OIDC Secret", secretMarker)
+	secretCopy.Immutable = &immutable
 	if _, err := core.Secrets(credentialsNS).Update(ctx, secretCopy, metav1.UpdateOptions{}); err != nil {
 		t.Fatal(err)
 	}
@@ -522,10 +543,38 @@ func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []str
 	}
 	dryRun("wrong upload module name", uploadMarker)
 	uploadCopy.Labels = upload.Labels
+	uploadCopy, err = core.ConfigMaps(credentialsNS).Update(ctx, uploadCopy, metav1.UpdateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.ConfigMaps(sourceNS).Patch(ctx, upload.Name, types.MergePatchType, []byte(`{"immutable":true}`), metav1.PatchOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	dryRun("mutable copy of immutable upload", uploadMarker)
+	uploadCopy.Immutable = &immutable
 	if _, err := core.ConfigMaps(credentialsNS).Update(ctx, uploadCopy, metav1.UpdateOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	dryRun("matching OIDC Secret and module upload", "")
+}
+
+// migrationDryRun requires the preflight to name the expected unmigrated
+// object so a failure elsewhere in the chart cannot satisfy a rejection test.
+func migrationDryRun(ctx context.Context, t *testing.T, upgradeArgs []string, stage, blockedObject string) {
+	t.Helper()
+	cmd := exec.CommandContext(ctx, "helm", append(upgradeArgs, "--dry-run=server")...)
+	// A successful dry run can render private keys. Discard stdout and use
+	// stderr only to identify the rejected object, never as test output.
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if blockedObject == "" {
+		if err != nil {
+			t.Fatalf("%s: expected server dry run to succeed: %v", stage, err)
+		}
+	} else if err == nil || !strings.Contains(stderr.String(), blockedObject) {
+		t.Fatalf("%s: expected preflight rejection naming %s, command error: %v", stage, blockedObject, err)
+	}
 }
 
 // waitGameContainerReady polls until the named pod's "game" container reports
