@@ -75,6 +75,8 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
 	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
 	beforeIdentity := readUpgradeIdentity(t, "gameplane-agent-ca")
+	legacyReadBinding := nativeReadBinding(t)
+	checkNativeCatalogAccess(t, tmpl, true)
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
 	// restarted by the upgrade, not sitting in the page cache.
@@ -278,9 +280,16 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
 	}
 
+	checkNativeRBACUpgrade(t, ns, gs, tmpl, legacyReadBinding)
+	localClient := envInstance.APIClient(t, adminUser, adminPass)
+	defer localClient.Close()
+	waitAgentReachable(t, localClient, gs)
+	verifyLocalClusterDiscovery(t, localClient)
+
 	if os.Getenv("GAMEPLANE_E2E_ARGOCD") == "1" {
 		t.Run("ArgoCD", func(t *testing.T) {
 			checkArgoUpgrade(t, ns, gs, marker, adminUser, adminPass, credentialsNS)
+			checkNativeCatalogAccess(t, tmpl, false)
 		})
 	}
 

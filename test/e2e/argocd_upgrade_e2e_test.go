@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -46,6 +47,32 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 		return map[string]any{"server": "https://kubernetes.default.svc", "namespace": namespace}
 	}
 	projectGVR := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "appprojects"}
+	// The preceding RBAC phase left a reduced privilege profile and a second
+	// managed namespace. Carry those settings through adoption without copying
+	// arbitrary release values, such as credentials, into an Application.
+	var permissions struct {
+		NativeRBAC map[string]any `json:"nativeRBAC"`
+		Operator   struct {
+			GameNamespaces []string `json:"gameNamespaces"`
+		} `json:"operator"`
+	}
+	rawValues, err := exec.CommandContext(ctx, "helm", "get", "values", workload, "--namespace", system,
+		"--kube-context", envInstance.Context, "-o", "json").Output()
+	if err != nil {
+		t.Fatalf("read installed privilege profile: %v", err)
+	}
+	if err := json.Unmarshal(rawValues, &permissions); err != nil {
+		t.Fatal(err)
+	}
+	if permissions.NativeRBAC["catalogAdmin"] != false {
+		t.Fatal("expected the reduced native RBAC profile before GitOps adoption")
+	}
+	destinations := []any{destination(system), destination(ns), destination(credentialsNS)}
+	var gameNamespaces []any
+	for _, n := range permissions.Operator.GameNamespaces {
+		destinations = append(destinations, destination(n))
+		gameNamespaces = append(gameNamespaces, n)
+	}
 	var clusterResources []any
 	for _, resource := range [][2]string{
 		{"", "Namespace"},
@@ -71,7 +98,7 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 	}
 	create(projectGVR, "AppProject", projectName, map[string]any{
 		"sourceRepos":              []any{repo},
-		"destinations":             []any{destination(system), destination(ns), destination(credentialsNS)},
+		"destinations":             destinations,
 		"clusterResourceWhitelist": clusterResources,
 	})
 	app := func(name, path string, helm map[string]any) {
@@ -176,11 +203,13 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 	}
 	values := map[string]any{
 		"image":               map[string]any{"registry": "gameplane-test", "tag": envInstance.Tag},
-		"operator":            map[string]any{"leaderElect": false, "agentImage": "gameplane-test/agent:" + envInstance.Tag},
+		"operator":            map[string]any{"leaderElect": false, "agentImage": "gameplane-test/agent:" + envInstance.Tag, "gameNamespaces": gameNamespaces},
+		"nativeRBAC":          permissions.NativeRBAC,
 		"podSecurity":         map[string]any{"enforceRestricted": false},
 		"web":                 map[string]any{"enabled": false},
 		"ingress":             map[string]any{"enabled": false},
 		"defaultModuleSource": map[string]any{"enabled": false},
+		"uploadModuleSource":  map[string]any{"enabled": false},
 		"grafanaDashboards":   map[string]any{"enabled": true},
 		"api":                 apiValues,
 	}

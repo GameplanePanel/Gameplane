@@ -13,6 +13,8 @@ Pin both Applications to the same Gameplane Git commit. Sync the CRD Application
 
 Provision the release namespace, CA and client Secret before syncing. Keep ownership of the release namespace and external Secrets outside the workload Application. The example expects `gameplane-external-ca-v1` with `ca.crt` and `ca.key`, and a different Secret named `gameplane-external-client-v1` with `tls.crt` and `tls.key`. Use immutable, versioned Secret names. The operator signs per-game serving certificates with this CA, and the API and operator present the client certificate to the agents.
 
+Carry the installation's `nativeRBAC` settings, additional game namespaces, and credentials namespace into the workload Application. For a single-cluster panel where GitOps owns catalogs, configure the reduced Kubernetes permissions described in the [native RBAC guide](native-rbac.md).
+
 Argo CD ordinarily passes the destination cluster’s API capabilities to Helm. Verify that both `admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy` and `admissionregistration.k8s.io/v1/ValidatingAdmissionPolicyBinding` are served and that admission is enabled. For an offline comparison, pass the discovered capabilities and the destination Kubernetes version. This example assumes both kinds on Kubernetes 1.34.
 
 ```sh
