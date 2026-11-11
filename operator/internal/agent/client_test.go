@@ -143,6 +143,31 @@ func TestPodBoundQuiesceNeverFallsBackToLegacyRoute(t *testing.T) {
 	}
 }
 
+func TestCheckpointAcceptsOnlyFlushedPodReply(t *testing.T) {
+	for _, outcome := range []string{"flushed", "resumed", "paused", "unsupported", ""} {
+		t.Run(outcome, func(t *testing.T) {
+			c, stop := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case "/v2/pods/uid/identity":
+					w.Header().Set("Gameplane-Backup-Mode", "flush-only")
+					w.WriteHeader(http.StatusNoContent)
+				case "/v2/pods/uid/flush":
+					_, _ = w.Write([]byte(`{"quiesced":false,"outcome":"` + outcome + `"}`))
+				default:
+					t.Errorf("wrong checkpoint destination: %s", r.URL.Path)
+				}
+			})
+			defer stop()
+			if mode, err := c.PodBackupMode(t.Context(), "ns", "srv", "uid"); err != nil || mode != "flush-only" {
+				t.Fatalf("advertised mode %q, err=%v", mode, err)
+			}
+			if err := c.FlushPod(t.Context(), "ns", "srv", "uid"); (err == nil) != (outcome == "flushed") {
+				t.Fatalf("outcome %q: %v", outcome, err)
+			}
+		})
+	}
+}
+
 func TestPodBoundUnquiesceAndDisabledClient(t *testing.T) {
 	c, closeServer := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v2/pods/original-pod/unquiesce" {
