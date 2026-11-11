@@ -189,6 +189,26 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 			t.Logf("backup worker logs before cleanup: %s (%v)", logs, err)
 		}
 	}()
+	// Change the live game while its acknowledged save-off protects the
+	// already-flushed files. Both marker values must still come from the
+	// earlier generation when the worker's snapshot is restored.
+	envInstance.Eventually(t, 5*time.Minute, func() (bool, string) {
+		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})
+		if err != nil {
+			return false, err.Error()
+		}
+		a := got.GetAnnotations()
+		if a["backup.gameplane.local/unquiesced-at"] != "" {
+			t.Fatal("copy resumed before the live-writer exercise")
+		}
+		return a["backup.gameplane.local/quiesced-at"] != "", "waiting for the live freeze"
+	})
+	run("data modify storage gpaudit:backup checkpoint set value during_copy", "Modified storage")
+	run("scoreboard players set gameplane-bot gp_restore 23", "23")
+	observed, err := backups.Get(t.Context(), name, metav1.GetOptions{})
+	if err != nil || observed.GetAnnotations()["backup.gameplane.local/unquiesced-at"] != "" {
+		t.Fatalf("live writes did not complete during the freeze: %v", err)
+	}
 	waitBackupSucceeded(t, ns, name, 8*time.Minute)
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})
