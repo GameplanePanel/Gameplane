@@ -353,16 +353,19 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 - `react-aria` — peer dependency of HeroUI, providing accessibility primitives (via `react-aria-components`) used by HeroUI atoms.
 
 **Editors / terminals**
-- `@monaco-editor/react` `^4.7.0` — the `Editor` component in `src/routes/tabs/Files.tsx` (in-browser file editor) and `Placement.tsx`; given its own `manualChunks` bundle in `vite.config.ts`.
+- `@monaco-editor/react` wraps Monaco for the Files and Placement editors. Vite bundles their language support and workers as same-origin assets.
 - `@xterm/xterm` `^6.0.0` + `@xterm/addon-fit` `^0.11.0` — `Terminal`/`FitAddon` in `src/routes/tabs/useConsoleTerminal.ts`, driving the live server console (`Console.tsx`); also chunked separately in `vite.config.ts`. <!-- doc-versions: dependency -->
 
 **Styling / build**
 - `tailwindcss` `^4.3.3`, `autoprefixer` `^10.5.4`, `postcss` `^8.5.26` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; `tailwind.config.ts` defines the design tokens used throughout `src/styles` and Tailwind classes app-wide.
 - `vite` `^8.2.2`, `@vitejs/plugin-react` `^6.1.1` (dev) — `vite.config.ts` drives the dev server (with the API/WS proxy to the in-cluster API used by `make web-dev`), production build, and is the engine behind `vitest.config.ts`.
-- `typescript` `^6.0.3` (dev) — strict-mode compile per `tsconfig.json`; `npm run build` is `tsc -b && vite build`.
+- `typescript` `^7.0.2` (dev) provides the native `tsc` used for the dashboard build and Playwright type checks. The i18n migration script reads TSX syntax with Babel.
+- Opening a JavaScript or TypeScript file starts Microsoft's TypeScript language server in a WebAssembly worker. The browser package is pinned to `7.1.0-dev.20261030.1`, the version Microsoft tested in Playground v2. The worker checks the open file against TypeScript's standard library in browser memory. [Microsoft's Playground implementation](https://github.com/microsoft/TypeScript-Website/pull/3653)
+- On plain HTTP, the editor sends changes to the worker with ordinary browser messages. Autocomplete and type checking require WebAssembly JavaScript Promise Integration (Chrome and Edge 137+, Firefox 153+, or Safari 27+). A secure, cross-origin-isolated page can also use shared memory, including on older browsers. With neither capability, users can still edit, highlight, and save files. [Browser support](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Suspending#browser_compatibility)
 
 **Lint** (dev, all wired directly in `eslint.config.js`)
-- `eslint` `^9.39.5`, `@eslint/js` `^10.0.1`, `@typescript-eslint/eslint-plugin` `^8.68.0`, `@typescript-eslint/parser` `^8.68.0`, `eslint-plugin-react` `^7.37.5`, `eslint-plugin-react-hooks` `^7.1.1`, `globals` `^17.11.0` — flat-config ESLint enforcing `strict`, `@typescript-eslint/no-explicit-any: error`, `@typescript-eslint/no-floating-promises: error`, run via `npm run lint`.
+- `eslint` `^10.14.0` and `@eslint/js` `^10.0.1` check JavaScript. Babel parses TypeScript and JSX for `eslint-plugin-react-hooks` and `eslint-plugin-formatjs`.
+- `oxlint` and `oxlint-tsgolint` check React and TypeScript code, including unhandled promises. Run both linters with `npm run lint` in `web/`. [Oxlint configuration](../web/.oxlintrc.json)
 
 **Testing — unit tier (Vitest)**
 - `vitest` `^4.1.11`, `@vitest/coverage-v8` `^4.1.10` (dev) — `vitest.config.ts` (jsdom environment, coverage thresholds), run via `npm test`/`test:cover`.
