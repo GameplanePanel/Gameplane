@@ -126,6 +126,9 @@ func (s *SessionStore) RunGC(ctx context.Context, interval time.Duration) {
 				if _, err := s.db.DB.ExecContext(ctx, `DELETE FROM api_rate_buckets WHERE next_us < floor(extract(epoch FROM statement_timestamp())*1000000)::bigint`); err != nil && ctx.Err() == nil {
 					slog.Warn("rate limit gc", "err", err)
 				}
+				if _, err := s.db.DB.ExecContext(ctx, `DELETE FROM notification_claims WHERE claimed_at < CURRENT_TIMESTAMP - INTERVAL '7 days'`); err != nil && ctx.Err() == nil {
+					slog.Warn("notification claim gc", "err", err)
+				}
 			}
 		}
 	}

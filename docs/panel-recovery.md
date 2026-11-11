@@ -205,8 +205,15 @@ database connection per active leader. The leader holds a read-committed
 transaction advisory lock for its tenure and heartbeats every two seconds.
 The database or pooler's maximum transaction age must accommodate this
 connection. After a backend loss, the replica cancels these workers and the
-standby retries election every two seconds. Notification sinks receive
-best-effort delivery across a failover. Fence the old writable primary before
+standby retries election every two seconds. A prior worker can still have a
+request in flight. PostgreSQL reserves each notification's cluster, object UID,
+resource version, event type and sink before delivery, so overlapping workers
+cannot start two deliveries of the same observation. Claims expire after seven
+days. An API crash between reservation and delivery can lose that notification.
+HTTP or SMTP retries after an ambiguous transport response can still duplicate
+a message at the receiver. Telemetry claims each report slot in SQL, retention
+uses the audit-chain lock, and expired session/budget deletion is idempotent.
+Fence the old writable primary before
 enabling the new primary.
 
 ### Physical recovery drill

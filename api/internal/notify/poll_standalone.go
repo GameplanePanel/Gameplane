@@ -90,8 +90,7 @@ func (n *Notifier) pollClusterSnapshot(ctx context.Context, k *kube.Client, clus
 				events = phaseEvents(resourceKind, old, obj)
 			}
 			for _, e := range events {
-				e.Cluster = cluster
-				n.Enqueue(stampTS(e))
+				n.enqueueObserved(e, cluster, obj)
 			}
 		}
 		if kind == "servers" {

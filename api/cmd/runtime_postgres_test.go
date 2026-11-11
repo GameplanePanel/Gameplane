@@ -222,6 +222,31 @@ func TestPostgresWorkersRecoverWhenLeaderBackendDies(t *testing.T) {
 	}
 	waitSignal(t, stopped)
 	waitSignal(t, standby)
+	// Killing only the lock's backend leaves the former replica's other
+	// database connections and already-queued observations alive. Both
+	// replicas may attempt the same sink after ownership changes.
+	var sent atomic.Int32
+	var attempts sync.WaitGroup
+	for _, replica := range stores {
+		attempts.Go(func() {
+			won, err := replica.ClaimNotification(t.Context(), "", "server-uid", "271", "server.unhealthy", "ops")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if won {
+				sent.Add(1)
+			}
+		})
+	}
+	attempts.Wait()
+	if sent.Load() != 1 {
+		t.Fatalf("dispatched one transition %d times after backend loss", sent.Load())
+	}
+	won, err := stores[1].ClaimNotification(t.Context(), "", "server-uid", "272", "server.unhealthy", "ops")
+	if err != nil || !won {
+		t.Fatalf("distinct object update lost after failover: %v", err)
+	}
 	cancelSecond()
 	waitSignal(t, finished)
 }
