@@ -190,7 +190,7 @@ func loadConfig(getenv func(string) string) (Config, error) {
 			}
 		}
 		if cfg.ForwardLimits.sessions*(1+cfg.ForwardLimits.udpQueue) > 640 {
-			return Config{}, errors.New("Tailscale sessions times (UDP queue + 1) must not exceed 640")
+			return Config{}, errors.New("configured Tailscale sessions times (UDP queue + 1) must not exceed 640")
 		}
 
 		cfg.BackingServicePorts = getenv("BACKING_SERVICE_PORTS")
