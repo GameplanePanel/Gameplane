@@ -14,6 +14,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // Exercise the controller across a policy rollout on the isolated placement
@@ -53,7 +55,8 @@ func checkGameServerWorkerPolicy(t *testing.T, worker, prefix string) {
 	}
 	kubectl(ctx, "label", "node", worker, key+"=games")
 	t.Cleanup(func() { kubectl(context.Background(), "label", "node", worker, key+"-") })
-	dep, err := e.K8s.AppsV1().Deployments(system).Get(ctx, "gameplane-operator", metav1.GetOptions{})
+	deployments := e.K8s.AppsV1().Deployments(system)
+	dep, err := deployments.Get(ctx, "gameplane-operator", metav1.GetOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +79,9 @@ func checkGameServerWorkerPolicy(t *testing.T, worker, prefix string) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		kubectl(ctx, "-n", system, "patch", "deployment/gameplane-operator", "--type=json", "-p", string(data))
+		if _, err := deployments.Patch(ctx, dep.Name, types.JSONPatchType, data, metav1.PatchOptions{}); err != nil {
+			t.Fatalf("patch operator arguments: %v", err)
+		}
 	}
 	policy := `--game-workload-policy={"poolLabel":"` + key + `","poolValue":"games","minCPURequest":"10m","maxCPURequest":"1","minMemoryRequest":"8Mi","maxMemoryLimit":"32Mi"}`
 	installed := append(slices.Clone(manager.Args), policy)
@@ -94,9 +99,22 @@ func checkGameServerWorkerPolicy(t *testing.T, worker, prefix string) {
 	waitRejection := func(name, reason string) {
 		t.Helper()
 		e.Eventually(t, time.Minute, func() (bool, string) {
-			m := kubectl(ctx, "-n", ns, "get", "gameserver", name, "-o",
-				`jsonpath={.status.conditions[?(@.type=="Ready")].message}`)
-			return strings.Contains(m, reason), m
+			gs, err := e.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
+			if err != nil {
+				return false, err.Error()
+			}
+			conditions, _, err := unstructured.NestedSlice(gs.Object, "status", "conditions")
+			if err != nil {
+				return false, err.Error()
+			}
+			for _, raw := range conditions {
+				c, _ := raw.(map[string]any)
+				if c["type"] == "Ready" && c["status"] == "False" {
+					message, _ := c["message"].(string)
+					return strings.Contains(message, reason), message
+				}
+			}
+			return false, "waiting for Ready=False"
 		})
 	}
 	waitRejection(legacy, "resources.limits.memory")
