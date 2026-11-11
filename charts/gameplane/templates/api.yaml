@@ -397,7 +397,10 @@ spec:
             - name: GAMEPLANE_NAMESPACE
               valueFrom:
                 fieldRef: { fieldPath: metadata.namespace }
-            # Exec subcommands such as bootstrap-admin inherit this environment.
+            # Mirror --db-driver/--db-dsn for subcommands run with
+            # `kubectl exec deploy/gameplane-api -- /api bootstrap-admin`:
+            # they don't see the container args, so without these they fall
+            # back to the SQLite default even on a PostgreSQL install.
             - name: GAMEPLANE_DB_DRIVER
               value: {{ .Values.api.db.driver | quote }}
             - name: GAMEPLANE_DB_DSN
