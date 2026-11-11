@@ -985,6 +985,8 @@ install is locked out. See
 
 ## API cluster-wide pod list
 
+The [native Kubernetes permission matrix](native-rbac.md) describes catalog administration, remote kubeconfig custody, game Secret and PTY access, and CSI content reclamation. The chart binds these capabilities according to the selected installation profile.
+
 The API's `<release>-api-read` ClusterRole grants `list` on Pods in **every**
 namespace, so the Cluster page can show per-node pod usage
 (`countNodePods` in `api/internal/handlers/cluster.go`). A pod list returns

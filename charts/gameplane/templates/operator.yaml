@@ -1,3 +1,4 @@
+{{- $rbac := include "gameplane.nativeRBAC" . | fromJson -}}
 {{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- $gameNamespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
 {{- $secretNamespaces := include "gameplane.operatorSecretNamespaces" . | fromJsonArray }}
@@ -47,12 +48,14 @@ rules:
     verbs: [get, update, patch]
   # Cluster is cluster-scoped; the cluster-status controller watches
   # registered clusters and writes their health into status.
+  {{- if $rbac.remoteClusters }}
   - apiGroups: ["gameplane.local"]
     resources: [clusters]
     verbs: [get, list, watch]
   - apiGroups: ["gameplane.local"]
     resources: [clusters/status]
     verbs: [get, update, patch]
+  {{- end }}
   - apiGroups: ["apps"]
     resources: [statefulsets, deployments]
     verbs: [get, list, watch]
@@ -87,11 +90,6 @@ rules:
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: [volumesnapshots, volumesnapshotcontents]
     verbs: [get, list, watch]
-  # Abort reclamation is restricted in the controller to recorded snapshot
-  # references and exact content UIDs; VolumeSnapshotContent is cluster-scoped.
-  - apiGroups: [snapshot.storage.k8s.io]
-    resources: [volumesnapshotcontents]
-    verbs: [delete]
   # The GameServer controller registers Owns(&networkingv1.NetworkPolicy{})
   # unconditionally (regardless of networkPolicies.enabled), and the
   # manager's cache is cluster-scoped (no Cache/DefaultNamespaces option
@@ -165,9 +163,11 @@ rules:
   # gets its own Role, and pods/attach create is exec-equivalent — granting
   # it cluster-wide would let the operator attach to stdin of any pod in
   # any namespace, including kube-system and the API pod.
+  {{- if $rbac.operatorStopAttach }}
   - apiGroups: [""]
     resources: [pods/attach]
     verbs: [create]
+  {{- end }}
   # Network capture sidecar injection via ephemeral containers (reconcileCapture
   # in gameserver_controller.go). Namespace-scoped to this managed namespace.
   - apiGroups: [""]
@@ -381,6 +381,9 @@ spec:
             - {{ printf "--wake-start-limit=%v" . | quote }}
             {{- end }}
             - --control-plane-namespace={{ include "gameplane.operatorClusterCredentialsNamespace" . }}
+            {{- if not $rbac.remoteClusters }}
+            - --remote-clusters=false
+            {{- end }}
             - --agent-ca-secret-namespace={{ .Values.operator.agentCASecretNamespace | default .Release.Namespace }}
             {{- if and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) }}
             - --module-configmap-namespace={{ include "gameplane.credentialsNamespace" . }}

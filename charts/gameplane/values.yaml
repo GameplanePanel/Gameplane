@@ -11,6 +11,23 @@
 ##   serviceMonitors — Prometheus Operator integration
 ##   podSecurity     — cluster-wide hardening knobs
 
+# Native Kubernetes grants. The defaults retain the full native dashboard.
+# See docs/native-rbac.md for single-cluster and GitOps profiles.
+nativeRBAC:
+  catalogAdmin: true
+  remoteClusters: true
+  # With remoteClusters disabled, the API can read just these named Secrets
+  # for existing OIDC, notification or registry settings.
+  runtimeSecretNames: []
+  gameSecretManagement: true
+  podAttach: true
+  # Independent of interactive dashboard access. PTY-only games need attach
+  # for their configured graceful-stop sequence.
+  operatorStopAttach: true
+  snapshotContentReclamation: true
+  # Explicit opt-in for API access to additional operator.gameNamespaces.
+  additionalAPIGameNamespaces: []
+
 image:
   # Component images are published to {registry}/{operator,api,agent} by the
   # release workflow. The release matches this default; override only to pin a

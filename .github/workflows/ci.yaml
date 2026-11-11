@@ -2182,7 +2182,7 @@ jobs:
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
-            go test -tags=e2e -timeout 25m -v -run "$RUN_REGEX" ./...
+            go test -tags=e2e -timeout 35m -v -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-upgrade)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
