@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { MessageChannel as NodeMessageChannel } from "node:worker_threads";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { SharedStdin, type TypeScriptWorkerEvent, type TypeScriptWorkerRequest } from "./monaco-ts-stdio";
