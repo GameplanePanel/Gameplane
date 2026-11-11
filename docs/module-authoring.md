@@ -309,7 +309,7 @@ spec:
     url: https://github.com/example/gameplane-modules
     ref: main                # branch or tag; the resolved commit is the digest
     subPath: modules         # optional scan root inside the repo
-    secretRef: { name: gh-creds }   # optional, in the operator namespace
+    secretRef: { name: gh-creds }   # optional, in operator.moduleNamespace
   allow: ["minecraft-*"]     # optional name filter (all types)
   refreshInterval: 30m
 ```
@@ -331,11 +331,33 @@ instance-metadata endpoint to steal the operator's credentials. Private and
 loopback addresses are allowed, because self-hosted GitLab/Harbor and a
 local kind registry legitimately live there.
 
+### Module source credentials
+
+For a private Git or HTTP source, an administrator authorizes the destination
+on the referenced Secret in `operator.moduleNamespace` (the release namespace
+by default). For the Git source above, annotate its existing credential with
+the exact repository URL, including the path and any `.git` suffix.
+
+```sh
+kubectl -n gameplane-system annotate secret gh-creds \
+  gameplane.local/git-source-url=https://github.com/example/gameplane-modules
+```
+
+For an HTTP archive, set `gameplane.local/http-source-url` to the exact
+`spec.http.url`. For Git over HTTPS or SSH, set `gameplane.local/git-source-url`
+to the exact `spec.git.url`, preserving the SSH URL spelling. The operator
+rejects a missing or mismatched annotation before fetching. When moving a
+source, update its URL and the corresponding Secret annotation together.
+An HTTP archive may redirect to a pre-signed download. Only the initial
+request carries the Secret's Authorization header. For authenticated Git,
+configure the final repository URL directly.
+
 ### Uploaded bundles
 
-`type: upload` sources index ConfigMaps in the operator namespace
-labeled `gameplane.local/module-upload: "true"`, each holding one bundle's
-files under their canonical names. The dashboard's **Upload module**
+`type: upload` sources index ConfigMaps labeled `gameplane.local/module-upload: "true"`.
+Each ConfigMap holds one bundle's files under their canonical names. On combined
+installations the chart points the operator's `--module-configmap-namespace` at
+the API credentials namespace. The dashboard's **Upload module**
 flow creates these via `POST /modules/sources/{name}/upload`
 (tar.gz/zip, ≤ 900 KiB), but a hand-applied ConfigMap indexes exactly
 the same way:
@@ -345,7 +367,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: module-upload-mygame
-  namespace: gameplane-system
+  namespace: gameplane-system-credentials
   labels: { gameplane.local/module-upload: "true" }
 binaryData:        # or stringData for plain YAML
   module.yaml: <base64>
