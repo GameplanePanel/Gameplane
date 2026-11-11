@@ -436,12 +436,12 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// it will advertise. Like planSentinel, this is computed once per pass so
 	// there is a single source of truth (see planTunnel's doc comment).
 	tunnelPlan := r.planTunnel(ctx, &gs, &tmpl)
-	if err := r.reconcileTunnel(ctx, &gs, &tmpl, tunnelPlan.wantTunnel); err != nil {
-		logger.Error(err, "reconcile tunnel")
-		return ctrl.Result{}, err
-	}
 	if err := r.reconcileTunnelNetworkPolicy(ctx, &gs, &tmpl, tunnelPlan); err != nil {
 		logger.Error(err, "reconcile tunnel NetworkPolicy")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileTunnel(ctx, &gs, &tmpl, tunnelPlan.wantTunnel); err != nil {
+		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); err != nil {

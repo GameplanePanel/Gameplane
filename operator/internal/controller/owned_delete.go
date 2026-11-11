@@ -38,6 +38,7 @@ func (r *GameServerReconciler) deleteIfControlledBy(
 	// the ownership check above and this Delete reaching the API server
 	// would still match on name and be deleted, even though this GameServer
 	// never controlled the replacement.
-	uid := obj.GetUID()
-	return client.IgnoreNotFound(r.Delete(ctx, obj, client.Preconditions{UID: &uid}))
+	// Also fence ownership changes to the same object between the read and delete.
+	uid, version := obj.GetUID(), obj.GetResourceVersion()
+	return client.IgnoreNotFound(r.Delete(ctx, obj, client.Preconditions{UID: &uid, ResourceVersion: &version}))
 }

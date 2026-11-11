@@ -11,6 +11,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
@@ -88,10 +89,10 @@ func TestNetworkIsolation_EnforcedAndUpgrade(t *testing.T) {
 		return err == nil && time.Since(stamp) < 45*time.Second, "waiting for fresh agent heartbeat"
 	})
 
-	checkTenantNetworkProfile(t, ns, a, probeA)
+	checkTenantNetworkProfile(t, ns, a, b, probeA)
 }
 
-func checkTenantNetworkProfile(t *testing.T, ns, a, probeA string) {
+func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 	t.Helper()
 	ctx := t.Context()
 	stamp := time.Now().UnixNano()
@@ -109,7 +110,8 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, probeA string) {
 		_ = envInstance.K8s.CoreV1().Namespaces().Delete(context.Background(), tenant, metav1.DeleteOptions{})
 	})
 	helmUpgradeReuse(ctx, t, "operator.gameNamespaces[0]="+tenant, "networkPolicies.tenantIsolation=true",
-		"networkPolicies.probePorts=null", "networkPolicies.backupEgress.enabled=false", "networkPolicies.gameEgress.enabled=false")
+		"networkPolicies.probePorts=null", "networkPolicies.backupEgress.enabled=false", "networkPolicies.gameEgress.enabled=false",
+		"networkPolicies.gameIngress.fromCIDRs[0]=192.0.2.1/32")
 	secondTemplate := fmt.Sprintf("second-probe-%d", stamp)
 	isolationTemplate(t, secondTemplate, true)
 	_, err = envInstance.Dyn.Resource(gameTemplateGVR).Patch(ctx, secondTemplate, types.MergePatchType,
@@ -138,6 +140,79 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, probeA string) {
 			policy.Spec.Ingress[0].Ports[0].Port == nil || policy.Spec.Ingress[0].Ports[0].Port.IntValue() != want {
 			t.Fatalf("expected only kubelet probe port %d in %s: %v", want, namespace, err)
 		}
+	}
+
+	checkTunnelPolicy(t, ns, a, b, probeA, aIP, home, away)
+	checkSharedProbeFallback(t, ns, a, secondTemplate)
+}
+
+func checkTunnelPolicy(t *testing.T, ns, a, b, probeA, aIP, home, away string) {
+	t.Helper()
+	ctx := t.Context()
+	// Enable a real GameServer tunnel with a fixture endpoint. A synthetic tunnel
+	// pod exercises its policy without needing upstream provider credentials.
+	enable := []byte(`{"spec":{"networking":{"tunnel":{"enabled":true,"provider":"frp","credentialsSecretRef":{"name":"fixture-token"},"frp":{"serverAddr":"192.0.2.1","remotePorts":[{"name":"game","remotePort":30000}]}}}}}`)
+	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Patch(ctx, a, types.MergePatchType, enable, metav1.PatchOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	tunnel := isolationClient(t, ns, a+"-relay-probe", map[string]string{
+		"app.kubernetes.io/name": "gameplane-tunnel", "app.kubernetes.io/instance": a,
+	})
+	isolationHTTP(t, ns, tunnel, aIP, 25566, true)
+	isolationHTTP(t, ns, tunnel, home, 25566, true)
+	isolationHTTP(t, ns, tunnel, aIP, 25575, false)
+	isolationHTTP(t, ns, tunnel, b+"."+ns+".svc", 25566, false)
+	isolationHTTP(t, ns, tunnel, away, 25566, false)
+	// Stand up a listener on the existing synthetic waker. The game is running,
+	// so its main service continues to route exclusively to its game pod.
+	if out, err := envInstance.Kubectl(ctx, "exec", "-n", ns, probeA, "--", "sh", "-c",
+		"mkdir -p /tmp/wake && echo awake >/tmp/wake/index.html && httpd -p 25566 -h /tmp/wake"); err != nil {
+		t.Fatalf("start wake listener: %v: %s", err, out)
+	}
+	waker, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, probeA, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	isolationHTTP(t, ns, tunnel, waker.Status.PodIP, 25566, true)
+	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Patch(ctx, a, types.MergePatchType,
+		[]byte(`{"spec":{"networking":{"tunnel":{"enabled":false}}}}`), metav1.PatchOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	isolationHTTP(t, ns, tunnel, aIP, 25566, false)
+}
+
+func checkSharedProbeFallback(t *testing.T, ns, a, secondTemplate string) {
+	t.Helper()
+	ctx := t.Context()
+	// Exercise the explicit shared-probe fallback in the primary namespace.
+	// Both servers have active readiness probes but need different ports.
+	fallbackGame := fmt.Sprintf("net-fallback-%d", time.Now().UnixNano())
+	applyBusyboxGameServer(t, ns, fallbackGame, secondTemplate)
+	isolationGameIP(t, ns, fallbackGame, true)
+	helmUpgradeReuse(ctx, t, "networkPolicies.tenantIsolation=false", "networkPolicies.probeIngress.enabled=false",
+		"networkPolicies.probePorts[0].port=25566", "networkPolicies.probePorts[0].protocol=TCP",
+		"networkPolicies.probePorts[1].port=25575", "networkPolicies.probePorts[1].protocol=TCP")
+	policies := envInstance.K8s.NetworkingV1().NetworkPolicies(ns)
+	shared, err := policies.Get(ctx, "allow-kubelet-probes", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(shared.Spec.PodSelector.MatchLabels, map[string]string{"app.kubernetes.io/name": "gameplane-game"}) ||
+		len(shared.Spec.Ingress) != 1 || len(shared.Spec.Ingress[0].Ports) != 2 {
+		t.Fatalf("unexpected shared kubelet rule: %+v", shared.Spec)
+	}
+	for i, want := range []int{25566, 25575} {
+		port := shared.Spec.Ingress[0].Ports[i]
+		if port.Protocol == nil || *port.Protocol != corev1.ProtocolTCP || port.Port == nil || port.Port.IntValue() != want {
+			t.Fatalf("unexpected shared probe port: %+v", port)
+		}
+	}
+	for _, server := range []string{a, fallbackGame} {
+		envInstance.Eventually(t, time.Minute, func() (bool, string) {
+			_, err := policies.Get(ctx, server+"-probes", metav1.GetOptions{})
+			return apierrors.IsNotFound(err), fmt.Sprintf("per-game probe rule for %s still present: %v", server, err)
+		})
+		isolationGameIP(t, ns, server, true)
 	}
 }
 
@@ -191,15 +266,18 @@ func isolationGameIP(t *testing.T, ns, name string, isolated bool) string {
 	return ip
 }
 
-// A synthetic client carries the exact real sentinel selectors. It exposes no
-// listener and owns no Service/Deployment, so the running game is unaffected.
+// A synthetic client carries the real sentinel selectors in its game namespace.
 func isolationProbe(t *testing.T, ns, server string, isolated bool) string {
 	t.Helper()
-	name := server + "-probe"
 	labels := map[string]string{"app.kubernetes.io/name": "gameplane-waker", "app.kubernetes.io/instance": server}
 	if isolated {
 		labels["gameplane.local/sentinel-isolation"] = "true"
 	}
+	return isolationClient(t, ns, server+"-probe", labels)
+}
+
+func isolationClient(t *testing.T, ns, name string, labels map[string]string) string {
+	t.Helper()
 	noToken := false
 	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns, Labels: labels},
 		Spec: corev1.PodSpec{AutomountServiceAccountToken: &noToken,

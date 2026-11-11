@@ -6,6 +6,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -61,9 +62,57 @@ func TestRestrictTunnelEgressReplacesLegacyPlayitRules(t *testing.T) {
 			t.Fatalf("unexpected peer match for %+v", target)
 		}
 	}
+	var ingress networkingv1.NetworkPolicy
+	inKey := client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-ingress"}
+	if err := r.Get(t.Context(), inKey, &ingress); err != nil {
+		t.Fatal(err)
+	}
+	wantTunnel := metav1.LabelSelector{MatchLabels: map[string]string{
+		tunnelLabel: tunnelValue, "app.kubernetes.io/instance": gs.Name,
+	}}
+	wantRules := []networkingv1.NetworkPolicyIngressRule{{
+		From: []networkingv1.NetworkPolicyPeer{{PodSelector: &wantTunnel}}, Ports: rules[0].Ports,
+	}}
+	if !reflect.DeepEqual(ingress.Spec.PodSelector, *peer.PodSelector) ||
+		!reflect.DeepEqual(ingress.Spec.Ingress, wantRules) || !metav1.IsControlledBy(&ingress, gs) {
+		t.Fatalf("unexpected ingress policy: %+v", ingress)
+	}
+	absent := func(key client.ObjectKey) {
+		t.Helper()
+		if err := r.Get(t.Context(), key, &networkingv1.NetworkPolicy{}); !apierrors.IsNotFound(err) {
+			t.Fatalf("expected %s to be absent, got %v", key, err)
+		}
+	}
+	r.RestrictTunnelEgress = false
+	reconcile()
+	absent(inKey)
+	r.RestrictTunnelEgress = true
+	reconcile()
 	tmpl.Spec.Ports = nil
 	if rules := reconcile(); len(rules) != 0 {
 		t.Fatalf("empty advertised port set grants egress: %+v", rules)
+	}
+	absent(inKey)
+	tmpl = singlePortTemplate(true, "minecraft")
+	reconcile()
+	if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{}); err != nil {
+		t.Fatal(err)
+	}
+	absent(inKey)
+	absent(client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-egress"})
+
+	foreign := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: inKey.Name, Namespace: inKey.Namespace, UID: "foreign"}}
+	if err := r.Create(t.Context(), foreign); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{wantTunnel: true}); err == nil {
+		t.Fatal("accepted foreign ingress policy")
+	}
+	if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.Get(t.Context(), inKey, &ingress); err != nil || ingress.UID != foreign.UID || len(ingress.OwnerReferences) != 0 {
+		t.Fatalf("changed foreign ingress policy: %+v, %v", ingress, err)
 	}
 }
 

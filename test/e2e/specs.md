@@ -10,7 +10,9 @@ The amd64 `network-isolation` bucket requires the Cilium fixture
 (`GAMEPLANE_E2E_CNI=cilium`) and strict chart CIDRs derived from the single-node
 cluster. It tests actual legacy versus isolated sentinel connections, an
 existing template's opt-in rollout without selector changes, HTTP kubelet
-readiness, fresh agent heartbeats, and API-to-agent mTLS access. It uses one
+readiness, fresh agent heartbeats, and API-to-agent mTLS access. The tenant
+profile drill exercises same-named games in separate namespaces, relay-to-game
+and relay-to-waker access, revocation, and per-game versus shared probe ports. It uses one
 admin login and runs separately from the kindnet shape-only checks.
 
 ### Restricted workload drill (#714)

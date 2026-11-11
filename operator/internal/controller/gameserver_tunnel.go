@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -543,164 +544,128 @@ func (r *GameServerReconciler) clearTunnelCredentialRefused(ctx context.Context,
 	return nil
 }
 
-// reconcileTunnelNetworkPolicy maintains a per-server NetworkPolicy admitting
-// the tunnel pod's outbound traffic. The games namespace runs a default-deny-
-// egress policy (allow-game-public-egress selects app.kubernetes.io/name=gameplane-game),
-// which would silently drop the tunnel pod's connection to the relay without
-// an explicit admit rule. Without this, the tunnel feature silently does nothing.
-//
-// The policy admits egress to any destination on the advertised ports and DNS.
+// The restricted profile admits both halves of the same-namespace relay path.
+// Legacy provider/DNS egress remains available when the profile is disabled.
 func (r *GameServerReconciler) reconcileTunnelNetworkPolicy(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	plan tunnelPlan,
 ) error {
-	np := &networkingv1.NetworkPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      gs.Name + "-tunnel-egress",
-			Namespace: gs.Namespace,
-		},
+	tunnel := metav1.LabelSelector{MatchLabels: map[string]string{
+		tunnelLabel: tunnelValue, "app.kubernetes.io/instance": gs.Name,
+	}}
+	backend := metav1.LabelSelector{
+		MatchLabels: map[string]string{"app.kubernetes.io/instance": gs.Name},
+		MatchExpressions: []metav1.LabelSelectorRequirement{{
+			Key: tunnelLabel, Operator: metav1.LabelSelectorOpIn, Values: []string{"gameplane-game", "gameplane-waker"},
+		}},
 	}
-
-	if !plan.wantTunnel {
-		// Converge-to-absent: only delete if we own it.
-		var existing networkingv1.NetworkPolicy
-		if err := r.Get(ctx, client.ObjectKeyFromObject(np), &existing); err != nil {
-			return client.IgnoreNotFound(err)
+	var egress, ingress *networkingv1.NetworkPolicySpec
+	if plan.wantTunnel {
+		egress = &networkingv1.NetworkPolicySpec{PodSelector: tunnel, PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeEgress}}
+		ports := networkPolicyPortsFromTemplate(tmpl)
+		if !r.RestrictTunnelEgress {
+			egress.Egress = legacyTunnelEgress(gs.Spec.Networking.Tunnel, ports)
+		} else if len(ports) > 0 {
+			egress.Egress = []networkingv1.NetworkPolicyEgressRule{{
+				To: []networkingv1.NetworkPolicyPeer{{PodSelector: &backend}}, Ports: ports,
+			}}
+			ingress = &networkingv1.NetworkPolicySpec{
+				PodSelector: backend, PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
+				Ingress: []networkingv1.NetworkPolicyIngressRule{{
+					From: []networkingv1.NetworkPolicyPeer{{PodSelector: &tunnel}}, Ports: ports,
+				}},
+			}
 		}
-		if !metav1.IsControlledBy(&existing, gs) {
-			return nil
-		}
-		return client.IgnoreNotFound(r.Delete(ctx, &existing))
 	}
+	return errors.Join(
+		r.applyTunnelPolicy(ctx, gs, "-tunnel-egress", egress),
+		r.applyTunnelPolicy(ctx, gs, "-tunnel-ingress", ingress),
+	)
+}
 
+func (r *GameServerReconciler) applyTunnelPolicy(ctx context.Context, gs *gameplanev1alpha1.GameServer, suffix string, spec *networkingv1.NetworkPolicySpec) error {
+	np := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: gs.Name + suffix, Namespace: gs.Namespace}}
+	if spec == nil {
+		return r.deleteIfControlledBy(ctx, gs, np)
+	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, np, func() error {
-		// Select the tunnel pod's labels.
-		np.Spec.PodSelector = metav1.LabelSelector{
-			MatchLabels: map[string]string{
-				tunnelLabel:                  tunnelValue,
-				"app.kubernetes.io/instance": gs.Name,
-			},
+		if np.ResourceVersion != "" && !metav1.IsControlledBy(np, gs) {
+			return fmt.Errorf("tunnel policy %s/%s is not owned by this GameServer", np.Namespace, np.Name)
 		}
-
-		np.Spec.PolicyTypes = []networkingv1.PolicyType{networkingv1.PolicyTypeEgress}
-		if r.RestrictTunnelEgress {
-			// DNS and provider endpoints get separate administrator-owned rules.
-			// An empty Ports list would grant every backend port.
-			np.Spec.Egress = nil
-			if ports := networkPolicyPortsFromTemplate(tmpl); len(ports) > 0 {
-				np.Spec.Egress = []networkingv1.NetworkPolicyEgressRule{{
-					To: []networkingv1.NetworkPolicyPeer{{PodSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{"app.kubernetes.io/instance": gs.Name},
-						MatchExpressions: []metav1.LabelSelectorRequirement{{
-							Key: "app.kubernetes.io/name", Operator: metav1.LabelSelectorOpIn,
-							Values: []string{"gameplane-game", "gameplane-waker"},
-						}},
-					}}},
-					Ports: ports,
-				}}
-			}
-			return controllerutil.SetControllerReference(gs, np, r.Scheme)
-		}
-
-		// Egress rules: allow DNS, advertised ports for inbound relay traffic,
-		// and the provider's relay endpoint ports for outbound control traffic.
-		egressPorts := make([]networkingv1.NetworkPolicyPort, 0)
-
-		// DNS: UDP and TCP port 53 to any destination (required by all providers).
-		tcpProto := corev1.ProtocolTCP
-		udpProto := corev1.ProtocolUDP
-		dnsPort := intstr.FromInt(53)
-		egressPorts = append(egressPorts,
-			networkingv1.NetworkPolicyPort{
-				Protocol: &udpProto,
-				Port:     &dnsPort,
-			},
-			networkingv1.NetworkPolicyPort{
-				Protocol: &tcpProto,
-				Port:     &dnsPort,
-			},
-		)
-
-		// Provider relay egress: the ports the tunnel process dials outbound.
-		tunnel := gs.Spec.Networking.Tunnel
-		if tunnel != nil {
-			switch tunnel.Provider {
-			case "frp":
-				// frp: outbound to the frp server on ServerAddr:ServerPort (default 7000).
-				if tunnel.Frp != nil {
-					serverPort := tunnel.Frp.ServerPort
-					if serverPort == 0 {
-						serverPort = 7000
-					}
-					port := intstr.FromInt32(serverPort)
-					egressPorts = append(egressPorts, networkingv1.NetworkPolicyPort{
-						Protocol: &tcpProto,
-						Port:     &port,
-					})
-				}
-
-			case "tailscale":
-				// tailscale: outbound to control plane on TCP 443 and DERP relays on UDP 41641.
-				httpsPort := intstr.FromInt(443)
-				derpPort := intstr.FromInt(41641)
-				egressPorts = append(egressPorts,
-					networkingv1.NetworkPolicyPort{
-						Protocol: &tcpProto,
-						Port:     &httpsPort,
-					},
-					networkingv1.NetworkPolicyPort{
-						Protocol: &udpProto,
-						Port:     &derpPort,
-					},
-				)
-
-			case "playit":
-				// playit does not publish a fixed set of relay endpoints or ports:
-				// the playit agent dials its control plane and relay nodes on
-				// varying TCP and UDP ports that are not known ahead of time.
-				// A per-port allow list (like frp's ServerPort or tailscale's
-				// 443/41641) can't express that, so playit gets its own egress
-				// rule below with no Ports field at all -- which, per the K8s
-				// NetworkPolicy semantics, means all ports/protocols -- to any
-				// destination, matching how the frp/tailscale rule above omits
-				// "To" to allow any destination. The DNS and advertised-port
-				// rule built here is left untouched for playit.
-			}
-		}
-
-		// Advertised ports: the game's container ports (tunnel receives here, forwards inbound).
-		for _, p := range tmpl.Spec.Ports {
-			if !p.Advertise {
-				continue
-			}
-			proto := p.Protocol
-			if proto == "" {
-				proto = corev1.ProtocolTCP
-			}
-			port := intstr.FromInt32(p.ContainerPort)
-			egressPorts = append(egressPorts, networkingv1.NetworkPolicyPort{
-				Protocol: &proto,
-				Port:     &port,
-			})
-		}
-
-		// Egress with no "To" means "to any destination".
-		egressRules := []networkingv1.NetworkPolicyEgressRule{{
-			Ports: egressPorts,
-			// Empty To = allow to any destination
-		}}
-		if tunnel != nil && tunnel.Provider == "playit" {
-			// playit's relay/control-plane ports aren't statically known, so
-			// grant it a separate rule with no Ports (= all ports/protocols)
-			// and no To (= any destination), on top of the DNS/advertised-port
-			// rule above.
-			egressRules = append(egressRules, networkingv1.NetworkPolicyEgressRule{})
-		}
-		np.Spec.Egress = egressRules
-
+		np.Spec = *spec
 		return controllerutil.SetControllerReference(gs, np, r.Scheme)
 	})
 	return err
+}
+
+func legacyTunnelEgress(tunnel *gameplanev1alpha1.GameServerTunnel, advertised []networkingv1.NetworkPolicyPort) []networkingv1.NetworkPolicyEgressRule {
+	// Egress rules: allow DNS, advertised ports for inbound relay traffic,
+	// and the provider's relay endpoint ports for outbound control traffic.
+	egressPorts := make([]networkingv1.NetworkPolicyPort, 0)
+
+	// DNS: UDP and TCP port 53 to any destination (required by all providers).
+	tcpProto := corev1.ProtocolTCP
+	udpProto := corev1.ProtocolUDP
+	dnsPort := intstr.FromInt(53)
+	egressPorts = append(egressPorts,
+		networkingv1.NetworkPolicyPort{
+			Protocol: &udpProto,
+			Port:     &dnsPort,
+		},
+		networkingv1.NetworkPolicyPort{
+			Protocol: &tcpProto,
+			Port:     &dnsPort,
+		},
+	)
+
+	// Provider relay egress: the ports the tunnel process dials outbound.
+	if tunnel != nil {
+		switch tunnel.Provider {
+		case "frp":
+			// frp: outbound to the frp server on ServerAddr:ServerPort (default 7000).
+			if tunnel.Frp != nil {
+				serverPort := tunnel.Frp.ServerPort
+				if serverPort == 0 {
+					serverPort = 7000
+				}
+				port := intstr.FromInt32(serverPort)
+				egressPorts = append(egressPorts, networkingv1.NetworkPolicyPort{
+					Protocol: &tcpProto,
+					Port:     &port,
+				})
+			}
+
+		case "tailscale":
+			// tailscale: outbound to control plane on TCP 443 and DERP relays on UDP 41641.
+			httpsPort := intstr.FromInt(443)
+			derpPort := intstr.FromInt(41641)
+			egressPorts = append(egressPorts,
+				networkingv1.NetworkPolicyPort{
+					Protocol: &tcpProto,
+					Port:     &httpsPort,
+				},
+				networkingv1.NetworkPolicyPort{
+					Protocol: &udpProto,
+					Port:     &derpPort,
+				},
+			)
+
+		}
+	}
+
+	// Egress with no "To" means "to any destination".
+	egressRules := []networkingv1.NetworkPolicyEgressRule{{
+		Ports: append(egressPorts, advertised...),
+		// Empty To = allow to any destination
+	}}
+	if tunnel != nil && tunnel.Provider == "playit" {
+		// playit's relay/control-plane ports aren't statically known, so
+		// grant it a separate rule with no Ports (= all ports/protocols)
+		// and no To (= any destination), on top of the DNS/advertised-port
+		// rule above.
+		egressRules = append(egressRules, networkingv1.NetworkPolicyEgressRule{})
+	}
+	return egressRules
 }
 
 // getTunnel fetches the tunnel Deployment, reporting exists=false when absent.

@@ -69,6 +69,32 @@ def main():
                 "NetworkPolicy", "allow-kubelet-probes")["spec"]["ingress"][0]
     assert extra["ports"] == [{"protocol": "TCP", "port": 9000}]
 
+    tenant = copy.deepcopy(strict)
+    tenant["operator"] = {"gameNamespaces": ["tenant-a", "tenant-a"]}
+    tenant["networkPolicies"].update({
+        "tenantIsolation": True,
+        "gameEgress": {"enabled": False},
+        "backupEgress": {"enabled": True, "toCIDRs": ["192.0.2.3/32"],
+                         "ports": [{"protocol": "TCP", "port": 443}]},
+    })
+    policies = [o for o in render(tenant) if o.get("kind") == "NetworkPolicy"]
+    for ns in ("gameplane-games", "tenant-a"):
+        local = [p for p in policies if p["metadata"]["namespace"] == ns]
+        names = [p["metadata"]["name"] for p in local]
+        assert len(names) == len(set(names))
+        assert {"default-deny-ingress", "default-deny-egress", "allow-agent-to-apiserver"} <= set(names)
+        assert not {"allow-sentinel-to-game", "allow-sentinel-to-game-egress", "allow-kubelet-probes"} & set(names)
+        backup = one(local, "NetworkPolicy", "allow-backup-restore-egress")
+        assert backup["spec"]["egress"] == [{"to": [{"ipBlock": {"cidr": "192.0.2.3/32"}}],
+                                             "ports": [{"protocol": "TCP", "port": 443}]}]
+    for field, invalid_value, failure in (("ports", [{}], "integer port"),
+                                          ("ports", [{"protocol": "TCP", "port": 0}], "integer port"),
+                                          ("toCIDRs", ["192.0.2.999/32"], "must be explicit"),
+                                          ("toCIDRs", ["::/0"], "unrestricted backup")):
+        invalid = copy.deepcopy(tenant)
+        invalid["networkPolicies"]["backupEgress"][field] = invalid_value
+        render(invalid, failure=failure)
+
 
 if __name__ == "__main__":
     main()

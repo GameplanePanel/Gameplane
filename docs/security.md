@@ -318,6 +318,8 @@ Removing a namespace from the list can remove its Helm-owned policies. Drain
 its games or hand policy ownership to the cluster administrator first.
 
 ```yaml
+podSecurity:
+  enforceRestricted: true
 operator:
   gameNamespaces: [tenant-b]
 networkPolicies:
@@ -336,8 +338,8 @@ networkPolicies:
 
 Replace the example addresses with endpoints observed by the enforcing CNI
 after Service translation. The profile omits legacy cross-game sentinel rules,
-limits DNS to kube-dns-labeled pods in kube-system, and gives each tunnel egress
-to its own game/waker on advertised ports. Provide scoped DNS allowances if
+limits DNS to kube-dns-labeled pods in kube-system, and admits both tunnel egress
+and backend ingress between a relay and its own game/waker on advertised ports. Provide scoped DNS allowances if
 the cluster uses NodeLocal DNS. Open approved asset downloads explicitly.
 Use a namespace-local policy for each relay's provider control/data endpoints.
 Select its `app.kubernetes.io/name: gameplane-tunnel` and
