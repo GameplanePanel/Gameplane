@@ -157,14 +157,6 @@ rules:
   - snapshot.storage.k8s.io
   resources:
   - volumesnapshotcontents
-  verbs:
-  - delete
-  - get
-  - list
-  - watch
-- apiGroups:
-  - snapshot.storage.k8s.io
-  resources:
   - volumesnapshots
   verbs:
   - get
