@@ -39,7 +39,7 @@ func ParseGameWorkloadPolicy(raw string) (*GameWorkloadPolicy, error) {
 	if decoder.Decode(new(any)) != io.EOF {
 		return nil, fmt.Errorf("expected a single game workload policy object")
 	}
-	if len(validation.IsQualifiedName(policy.PoolLabel)) != 0 || policy.PoolValue == "" || len(validation.IsValidLabelValue(policy.PoolValue)) != 0 {
+	if !validWorkerPool(policy.PoolLabel, policy.PoolValue) {
 		return nil, fmt.Errorf("poolLabel and poolValue must identify a valid, nonempty worker label")
 	}
 	if policy.MinCPURequest.Sign() <= 0 || policy.MaxCPURequest.Cmp(policy.MinCPURequest) < 0 ||
@@ -83,10 +83,43 @@ func (p *GameWorkloadPolicy) placement(gs *gameplanev1alpha1.GameServer) (map[st
 	if p == nil {
 		return gs.Spec.NodeSelector, gs.Spec.Tolerations
 	}
-	selector := map[string]string{}
-	maps.Copy(selector, gs.Spec.NodeSelector)
-	selector[p.PoolLabel] = p.PoolValue
+	return workerPlacement(p.PoolLabel, p.PoolValue, gs.Spec.NodeSelector)
+}
+
+func validWorkerPool(key, value string) bool {
+	return len(validation.IsQualifiedName(key)) == 0 && value != "" && len(validation.IsValidLabelValue(value)) == 0
+}
+
+func workerPlacement(key, value string, extra map[string]string) (map[string]string, []corev1.Toleration) {
+	selector := make(map[string]string, len(extra)+1)
+	maps.Copy(selector, extra)
+	selector[key] = value
 	return selector, []corev1.Toleration{{
-		Key: p.PoolLabel, Operator: corev1.TolerationOpEqual, Value: p.PoolValue, Effect: corev1.TaintEffectNoSchedule,
+		Key: key, Operator: corev1.TolerationOpEqual, Value: value, Effect: corev1.TaintEffectNoSchedule,
 	}}
+}
+
+// AuxiliaryWorkerPool selects the worker pool for Service wakers and relays.
+type AuxiliaryWorkerPool struct{ key, value string }
+
+// ParseAuxiliaryWorkerPool accepts one exact label and matching NoSchedule taint.
+func ParseAuxiliaryWorkerPool(raw string) (*AuxiliaryWorkerPool, error) {
+	if raw == "" {
+		return nil, nil
+	}
+	key, value, ok := strings.Cut(raw, "=")
+	if !ok || !validWorkerPool(key, value) {
+		return nil, fmt.Errorf("expected one worker label key=value, got %q", raw)
+	}
+	return &AuxiliaryWorkerPool{key: key, value: value}, nil
+}
+
+func (r *GameServerReconciler) auxiliaryPlacement() (map[string]string, []corev1.Toleration) {
+	if p := r.AuxiliaryWorkerPool; p != nil {
+		return workerPlacement(p.key, p.value, nil)
+	}
+	if p := r.GameWorkloadPolicy; p != nil {
+		return workerPlacement(p.PoolLabel, p.PoolValue, nil)
+	}
+	return nil, nil
 }

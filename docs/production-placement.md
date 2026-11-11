@@ -143,8 +143,23 @@ spec:
 
 Preserve control-plane taints. Avoid broad `operator: Exists` tolerations.
 Optional management components need their corresponding placement values too.
-Per-game sentinel and tunnel Deployments are operator-generated and are not
-covered by these chart management placement keys. A priorityClassName must name
+The operator places Service-backed wakers and FRP, playit and Tailscale relays
+on the game worker pool by default when `operator.gameWorkloadPolicy` is set.
+To run those components on a separate pool, set
+`operator.auxiliaryWorkerPool: gameplane.local/pool=relays`. Label the relay
+workers with that pair and taint them `gameplane.local/pool=relays:NoSchedule`.
+The operator adds the exact selector and toleration to each generated Deployment.
+A Hostport waker always uses the game placement and the recorded endpoint node;
+moving it to a relay worker would change the address players reconnect to.
+Relays and Service wakers do not mount the game PVC. A node-bound game PVC
+still determines where the game can resume after that relay receives a wake.
+
+If the pool is full, drained or absent, the scheduler leaves the listener
+Pending. Run `kubectl -n TENANT describe pod POD` and inspect its
+`PodScheduled=False` condition and `FailedScheduling` events for conflicting
+selectors, taints, affinity, or exhausted resources. Restore an eligible
+worker for the same pool (and the original endpoint for Hostport).
+A priorityClassName must name
 an existing PriorityClass. Unsatisfied hard selectors, taints or topology
 constraints correctly leave pods Pending; do not silently relax them.
 

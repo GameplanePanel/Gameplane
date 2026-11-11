@@ -180,6 +180,7 @@ type GameServerReconciler struct {
 	// RestrictedWorkloads applies the opt-in PSA-compatible game profile.
 	RestrictedWorkloads         bool
 	GameWorkloadPolicy          *GameWorkloadPolicy
+	AuxiliaryWorkerPool         *AuxiliaryWorkerPool
 	AgentTokenExpirationSeconds int64
 	DiagnosticsNamespace        string
 

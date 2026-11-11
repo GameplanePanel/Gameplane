@@ -229,6 +229,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 		refusedSecret = ""
 		replicas := int32(1)
 		dep.Spec.Replicas = &replicas
+		dep.Spec.Template.Spec.NodeSelector, dep.Spec.Template.Spec.Tolerations = r.auxiliaryPlacement()
 		// A provider identity owns one relay session. Recreate unregisters the
 		// old child before its replacement can claim the same names/ports.
 		if tunnel.Provider == "frp" || tunnel.Provider == "playit" || tunnel.Provider == "tailscale" {

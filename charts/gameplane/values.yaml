@@ -88,6 +88,9 @@ operator:
   # Optional game worker label/NoSchedule taint and per-game tenant bounds.
   # See values-production.example.yaml and docs/production-placement.md.
   gameWorkloadPolicy: null
+  # Optional exact key=value label and matching NoSchedule taint for Service
+  # wakers and every tunnel provider. Defaults to the configured game pool.
+  auxiliaryWorkerPool: ""
   # ResourceQuota by managed game namespace. Each entry accepts hard and
   # an optional defaultContainerMemoryLimit for containers without a limit.
   tenantQuotas: {}

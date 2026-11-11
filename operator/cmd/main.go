@@ -164,6 +164,7 @@ func main() {
 		backupHardSameNode               bool
 		agentResourcesJSON               string
 		gameWorkloadPolicyJSON           string
+		auxiliaryWorkerPool              string
 		sentinelResourcesJSON            string
 		tunnelResourcesJSON              string
 		backupResourcesJSON              string
@@ -173,6 +174,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
 	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
 	flag.StringVar(&gameWorkloadPolicyJSON, "game-workload-policy", "", "JSON game worker pool and per-game resource bounds. Unset disables policy enforcement.")
+	flag.StringVar(&auxiliaryWorkerPool, "auxiliary-worker-pool", "", "Exact key=value node label and matching NoSchedule taint for service wakers and relays. Defaults to the configured game worker pool.")
 	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
 	flag.StringVar(&tunnelResourcesJSON, "tunnel-resources", "", "JSON ResourceRequirements for tunnel relays; default requests 25m/64Mi, {} clears defaults.")
 	flag.StringVar(&backupResourcesJSON, "backup-resources", "", "JSON ResourceRequirements for restic backup/init, restore and cleanup workers; default backup/restore requests 100m/128Mi, {} clears defaults.")
@@ -318,6 +320,11 @@ func main() {
 	gameWorkloadPolicy, err := controller.ParseGameWorkloadPolicy(gameWorkloadPolicyJSON)
 	if err != nil {
 		setupLog.Error(err, "invalid --game-workload-policy")
+		os.Exit(1)
+	}
+	auxiliaryPool, err := controller.ParseAuxiliaryWorkerPool(auxiliaryWorkerPool)
+	if err != nil {
+		setupLog.Error(err, "invalid --auxiliary-worker-pool")
 		os.Exit(1)
 	}
 	agentResources, err := controller.ParseAuxiliaryResources(agentResourcesJSON)
@@ -506,6 +513,7 @@ func main() {
 		CaptureEnabled:              captureEnabled,
 		RestrictedWorkloads:         restrictedWorkloads,
 		GameWorkloadPolicy:          gameWorkloadPolicy,
+		AuxiliaryWorkerPool:         auxiliaryPool,
 		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
 		DiagnosticsNamespace:        diagnosticsNamespace,
 		CaptureSidecarImage:         captureSidecarImage,
