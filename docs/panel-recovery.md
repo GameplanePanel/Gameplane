@@ -178,6 +178,36 @@ Kubernetes disaster recovery exercise.
 
 ## PostgreSQL physical recovery
 
+### Active-active API state
+
+All API replicas must use the same writable PostgreSQL database and schema,
+the same configuration and credentials, and the same trusted ingress proxy
+ranges. Protected traffic and authentication budgets go to the primary. A
+session created on either API works on both, and logout and credential changes
+affect the next request on either replica. Long-lived consoles, event streams
+and transfers recheck their session and permissions every five seconds. An
+unavailable database cancels the stream after a further five-second query
+deadline. Provider edits, Secret rotation and redirect changes are read on the
+next dashboard-managed OIDC handshake.
+
+The API persists login-device signatures and rate budgets with the rest of the
+database. Preserve these tables in backups. To invalidate known-device cookies
+after disaster recovery, stop all API replicas, delete the `login_device` row
+from `api_runtime_keys`, then restart. A recognized device bypasses only the
+per-account password budget and still needs the password and per-IP budget.
+
+Each install elects one replica for notification watches, session and budget
+cleanup, usage reports, and audit retention. Reserve capacity for one additional
+database connection per active leader. The leader holds a read-committed
+transaction advisory lock for its tenure and heartbeats every two seconds.
+The database or pooler's maximum transaction age must accommodate this
+connection. After a backend loss, the replica cancels these workers and the
+standby retries election every two seconds. Notification sinks receive
+best-effort delivery across a failover. Fence the old writable primary before
+enabling the new primary.
+
+### Physical recovery drill
+
 The PostgreSQL CI lane runs the release API image with one writer. After the
 availability and Secret checks, the dedicated PITR step takes a physical base
 backup, writes authorization state, creates a named WAL restore point, and

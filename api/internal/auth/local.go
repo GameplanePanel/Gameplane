@@ -110,9 +110,16 @@ type loginResp struct {
 // provider-level, not per-user, so it can't become an enumeration oracle.
 func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		if reg != nil && !reg.LocalEnabled(req.Context()) {
-			httperr.WriteCode(w, req, http.StatusForbidden, errors.New("login method disabled"))
-			return
+		if reg != nil {
+			enabled, err := reg.localEnabled(req.Context())
+			if err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+				return
+			}
+			if !enabled {
+				httperr.WriteCode(w, req, http.StatusForbidden, errors.New("login method disabled"))
+				return
+			}
 		}
 		// Enforce JSON content-type — a cross-site form POST can carry
 		// Cookie but not application/json (without CORS preflight), so
@@ -137,9 +144,7 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		// login-device cookie and skips the per-username bucket (the per-IP
 		// LoginLimiter still applies), so failed logins from elsewhere can't
 		// lock the account's owner out.
-		if body.Username != "" && !knownLoginDevice(req, body.Username) && !LoginUserLimiter.AllowUser(body.Username) {
-			w.Header().Set("Retry-After", "30")
-			httperr.WriteCode(w, req, http.StatusTooManyRequests, errors.New("too many requests"))
+		if body.Username != "" && !knownLoginDevice(req, body.Username) && !LoginUserLimiter.requestBudget(w, req, body.Username) {
 			return
 		}
 		// Every branch below that returns 401 must first spend the argon2
@@ -177,7 +182,7 @@ func (l *Local) HandleLogin(sessions *SessionStore, reg *Registry) http.HandlerF
 		}
 		setSessionCookie(w, token, sessionTTL)
 		setCSRFCookie(w, csrf, sessionTTL)
-		setLoginDeviceCookie(w, body.Username)
+		setLoginDeviceCookie(w, req, body.Username)
 		// Attribute the audit row to the user who just signed in; the
 		// request itself is unauthenticated, so it would read "anonymous".
 		SetActor(req.Context(), u.Username)
@@ -206,9 +211,8 @@ func (l *Local) fetchUser(ctx context.Context, username string) (*User, string, 
 }
 
 // loginDeviceCookie marks a browser that has signed in to an account
-// before. Its value is an HMAC of the username under a per-process key, so
-// it can't be forged and reveals nothing; a restart only means the next
-// login from each browser counts against the per-username bucket once.
+// before. SQLite signs it with a process-local key. PostgreSQL replicas
+// share a stored signing key and authenticate the cookie's expiry.
 const loginDeviceCookie = "gameplane_login_device"
 
 // loginDeviceTTL is how long a browser stays known after a sign-in.
@@ -220,8 +224,8 @@ var loginDeviceKey = func() []byte {
 	return b
 }()
 
-func loginDeviceToken(username string) string {
-	mac := hmac.New(sha256.New, loginDeviceKey)
+func loginDeviceToken(username string, key []byte) string {
+	mac := hmac.New(sha256.New, key)
 	_, _ = mac.Write([]byte(username))
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
@@ -233,13 +237,13 @@ func knownLoginDevice(req *http.Request, username string) bool {
 	if err != nil {
 		return false
 	}
-	return hmac.Equal([]byte(c.Value), []byte(loginDeviceToken(username)))
+	return validDeviceCookie(req.Context(), username, c.Value)
 }
 
-func setLoginDeviceCookie(w http.ResponseWriter, username string) {
+func setLoginDeviceCookie(w http.ResponseWriter, req *http.Request, username string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     loginDeviceCookie,
-		Value:    loginDeviceToken(username),
+		Value:    issueDeviceCookie(req.Context(), username),
 		Path:     "/auth/login",
 		MaxAge:   loginDeviceTTL,
 		HttpOnly: true,

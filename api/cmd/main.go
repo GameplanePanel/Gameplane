@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -196,7 +197,6 @@ func main() {
 	}
 
 	sessions := auth.NewSessionStore(store)
-	sessions.StartGC(ctx, time.Hour)
 	localAuth := auth.NewLocal(store)
 	// The Helm-flag OIDC provider (if any) is built once at startup; the
 	// registry lists it as the read-only "helm" provider next to the
@@ -279,7 +279,6 @@ func main() {
 	// configured in Admin Settings. Best-effort mirror — never gates
 	// reconciliation or requests.
 	notifier := notify.New(store, k8s, credentialsNS)
-	go notifier.RunWithRegistry(ctx, reg)
 
 	// Cluster registry: watch Cluster CRDs and populate the client registry
 	// with remote cluster connections. Single-cluster installs only have the
@@ -305,6 +304,14 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer)
+	if store.Driver == "postgres" {
+		shared, err := auth.PostgresRuntime(ctx, store)
+		if err != nil {
+			logger.Error("initialize shared authentication state", "err", err)
+			os.Exit(1)
+		}
+		r.Use(shared)
+	}
 	// Client IP middleware runs before rate limiting and audit so the determined
 	// IP is used for rate-limit buckets and audit records. X-Forwarded-For is
 	// read only when the TCP peer is inside the trusted proxy networks, which
@@ -371,6 +378,9 @@ func main() {
 	// Protected API
 	r.Group(func(p chi.Router) {
 		p.Use(sessions.Authenticate)
+		if store.Driver == "postgres" {
+			p.Use(sessions.RevalidateStreams(isStreamingRequest, 5*time.Second))
+		}
 		// A broad per-IP cap on writes keeps one authenticated client from
 		// pegging the DB or k8s API. Reads go through unlimited (the main
 		// bottleneck there is the dashboard's own polling).
@@ -439,18 +449,30 @@ func main() {
 	// disabled or none. Otherwise it sends nothing while the admin's basic
 	// toggle is off or, on a fresh install, until an admin was shown the
 	// notice (spec 022 FR-004); each report slot is claimed in the database.
-	go telemetry.New(telemetry.Config{
+	reporter := telemetry.New(telemetry.Config{
 		Dest:     telemetryDest,
 		Interval: cfg.telemetryInterval,
 		Auth:     cfg.telemetryAuth,
 		Deps:     telemetryDeps,
-	}).Run(ctx)
+	})
 
 	// Opt-in audit-event retention. Off by default (0 days = keep forever);
 	// when set, a daily sweep prunes events past the window so the table
 	// doesn't grow unbounded on long-lived installs.
-	go auditor.RunRetention(ctx,
-		time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
+	workersDone := make(chan struct{})
+	go func() {
+		defer close(workersDone)
+		runPanelWorkers(ctx, store, 2*time.Second, logger, func(leaderCtx context.Context) {
+			var jobs sync.WaitGroup
+			jobs.Go(func() { sessions.RunGC(leaderCtx, time.Hour) })
+			jobs.Go(func() { notify.New(store, k8s, credentialsNS).RunWithRegistry(leaderCtx, reg) })
+			jobs.Go(func() { reporter.Run(leaderCtx) })
+			jobs.Go(func() {
+				auditor.RunRetention(leaderCtx, time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
+			})
+			jobs.Wait()
+		})
+	}()
 
 	srv := &http.Server{
 		Addr:              cfg.addr,
@@ -492,6 +514,11 @@ func main() {
 	shutCtx, shutCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutCancel()
 	_ = srv.Shutdown(shutCtx)
+	select {
+	case <-workersDone:
+	case <-shutCtx.Done():
+		logger.Warn("panel workers did not stop before shutdown deadline")
+	}
 	if metricsSrv != nil {
 		_ = metricsSrv.Shutdown(shutCtx)
 	}

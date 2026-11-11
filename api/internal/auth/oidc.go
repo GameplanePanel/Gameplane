@@ -14,6 +14,7 @@ import (
 
 	"github.com/GameplanePanel/gameplane/api/internal/db"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/netguard"
 )
@@ -65,7 +66,7 @@ type OIDC struct {
 	db                   *db.Store
 	auditWriteSync       func(ctx context.Context, method, path, target, reason string, status int) error
 	providerName         string
-	getHelmRoleOverrides func(context.Context) *RoleMappings
+	getHelmRoleOverrides func(context.Context) (*RoleMappings, error)
 }
 
 // NewOIDCWithPolicy is NewOIDC carrying a group→role mapping policy. The
@@ -347,7 +348,7 @@ func (o *OIDC) SetProviderName(name string) { o.providerName = name }
 // AttachHelmRoleOverridesFunc attaches a function that reads the current Helm-seeded
 // role-mapping overrides from the auth config row. Called on every login for the Helm
 // provider to deliver SC-007 (no restart needed after admin edit).
-func (o *OIDC) AttachHelmRoleOverridesFunc(fn func(context.Context) *RoleMappings) {
+func (o *OIDC) AttachHelmRoleOverridesFunc(fn func(context.Context) (*RoleMappings, error)) {
 	o.getHelmRoleOverrides = fn
 }
 
@@ -454,7 +455,12 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		// on every login attempt (SC-007: no cache, read at login time).
 		resolvePolicy := o.policy
 		if o.providerName == HelmProviderName && o.getHelmRoleOverrides != nil {
-			if helmOverride := o.getHelmRoleOverrides(req.Context()); helmOverride != nil {
+			helmOverride, err := o.getHelmRoleOverrides(req.Context())
+			if err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+				return
+			}
+			if helmOverride != nil {
 				resolvePolicy = effectiveHelmPolicy(o.policy, helmOverride)
 			}
 		}

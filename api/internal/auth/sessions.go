@@ -10,6 +10,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/GameplanePanel/gameplane/api/internal/db"
@@ -105,21 +106,29 @@ func (s *SessionStore) createAtEpoch(ctx context.Context, userID, epoch int64) (
 // expired sessions only get cleaned on the unlikely event that their
 // exact token is re-looked-up — the table grows forever in practice.
 func (s *SessionStore) StartGC(ctx context.Context, interval time.Duration) {
+	go s.RunGC(ctx, interval)
+}
+
+// RunGC sweeps expired sessions and fully refilled PostgreSQL rate buckets until cancelled.
+func (s *SessionStore) RunGC(ctx context.Context, interval time.Duration) {
 	if interval <= 0 {
 		interval = time.Hour
 	}
-	go func() {
-		t := time.NewTicker(interval)
-		defer t.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-t.C:
-				s.gcOnce(ctx)
+	t := time.NewTicker(interval)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			s.gcOnce(ctx)
+			if s.db.Driver == "postgres" {
+				if _, err := s.db.DB.ExecContext(ctx, `DELETE FROM api_rate_buckets WHERE next_us < floor(extract(epoch FROM statement_timestamp())*1000000)::bigint`); err != nil && ctx.Err() == nil {
+					slog.Warn("rate limit gc", "err", err)
+				}
 			}
 		}
-	}()
+	}
 }
 
 // DeleteForUser drops every session row owned by the given user. Call
@@ -184,6 +193,46 @@ func (s *SessionStore) Authenticate(next http.Handler) http.Handler {
 	})
 }
 
+// RevalidateStreams bounds how long an established console or stream can
+// outlive its session or permissions. Run it immediately after Authenticate.
+func (s *SessionStore) RevalidateStreams(isStream func(*http.Request) bool, interval time.Duration) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			if !isStream(req) {
+				next.ServeHTTP(w, req)
+				return
+			}
+			initial := UserFromContext(req.Context())
+			cookie, err := req.Cookie(sessionCookie)
+			if err != nil || initial == nil {
+				httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
+				return
+			}
+			ctx, cancel := context.WithCancel(req.Context())
+			defer cancel()
+			go func() {
+				ticker := time.NewTicker(interval)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case <-ticker.C:
+						check, stop := context.WithTimeout(ctx, interval)
+						active, _, err := s.lookup(check, cookie.Value)
+						stop()
+						if err != nil || active.ID != initial.ID || active.Role != initial.Role || !reflect.DeepEqual(active.Perms, initial.Perms) {
+							cancel()
+							return
+						}
+					}
+				}
+			}()
+			next.ServeHTTP(w, req.WithContext(ctx))
+		})
+	}
+}
+
 func (s *SessionStore) lookup(ctx context.Context, token string) (*User, string, error) {
 	digest := sessionDigest(token)
 	var (
@@ -224,7 +273,10 @@ func (s *SessionStore) lookup(ctx context.Context, token string) (*User, string,
 func (s *SessionStore) HandleLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if c, err := req.Cookie(sessionCookie); err == nil {
-			_, _ = s.db.DB.ExecContext(req.Context(), `DELETE FROM sessions WHERE token = ?`, sessionDigest(c.Value))
+			if _, err := s.db.DB.ExecContext(req.Context(), `DELETE FROM sessions WHERE token = ?`, sessionDigest(c.Value)); err != nil {
+				httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+				return
+			}
 		}
 		clearCookie(w, sessionCookie)
 		// The CSRF cookie is JS-readable while set (see setCSRFCookie), but

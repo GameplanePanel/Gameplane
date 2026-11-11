@@ -1775,7 +1775,7 @@ jobs:
         working-directory: api
         env:
           GAMEPLANE_TEST_POSTGRES_DSN: postgres://postgres@localhost:5432/gameplane_test?sslmode=disable
-        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/...
+        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/... ./cmd
 
   # ---------------------------------------------------------------------
   # kind e2e — one job per suite, each with its own throwaway cluster on
