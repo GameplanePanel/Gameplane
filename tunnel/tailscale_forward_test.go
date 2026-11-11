@@ -2,13 +2,90 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net"
+	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/GameplanePanel/gameplane/tunnel/internal/relayload"
 )
+
+func TestTailscaleForwardSaturationMetrics(t *testing.T) {
+	m := &forwardTelemetry{limits: forwardLimits{sessions: 1, udpQueue: 1}}
+	f := newForwarder(t.Context(), m)
+	defer f.Close()
+	if !f.acquire(&m.udp) || f.acquire(&m.tcp) {
+		t.Fatal("TCP accepted after UDP used the shared slot")
+	}
+	defer f.release(&m.udp)
+	session := &udpForwardSession{packets: make(chan udpPacket, 1)}
+	f.enqueue(session, []byte("first"), time.Now())
+	f.enqueue(session, []byte("second"), time.Now())
+	if p := <-session.packets; string(p.data) != "first" {
+		t.Fatal("dropped the queued datagram")
+	}
+	m.toBackend.observe(2 * time.Millisecond)
+	m.toClient.observe(200 * time.Microsecond)
+	w := httptest.NewRecorder()
+	relayMetrics(&relayHealth{forwarding: m}).ServeHTTP(w, httptest.NewRequestWithContext(t.Context(), "GET", "/metrics", nil))
+	for _, expect := range []string{
+		"gameplane_tunnel_forward_metrics_supported 1",
+		"gameplane_tunnel_active_flows{protocol=\"udp\"} 1",
+		"gameplane_tunnel_flow_rejections_total{protocol=\"tcp\"} 1",
+		"gameplane_tunnel_udp_queue_drops_total 1",
+		"gameplane_tunnel_udp_forward_duration_seconds_bucket{direction=\"to_backend\",le=\"0.001\"} 0",
+		"gameplane_tunnel_udp_forward_duration_seconds_bucket{direction=\"to_backend\",le=\"0.005\"} 1",
+		"gameplane_tunnel_udp_forwarded_packets_total{direction=\"to_client\"} 1",
+	} {
+		if !strings.Contains(w.Body.String(), expect+"\n") {
+			t.Errorf("scrape missing %s", expect)
+		}
+	}
+}
+
+// Shared workload for CI CPU/allocation profiles and external provider trials.
+// Loopback isolates the supervisor's forwarding path from tsnet and WAN cost.
+func TestRelayLoadForwardingProfile(t *testing.T) {
+	ctx := t.Context()
+	backend, err := (&net.ListenConfig{}).ListenPacket(ctx, "udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer backend.Close()
+	go func() {
+		buf := make([]byte, 1500)
+		for {
+			n, peer, err := backend.ReadFrom(buf)
+			if err != nil {
+				return
+			}
+			_, _ = backend.WriteTo(buf[:n], peer)
+		}
+	}()
+	listener, err := (&net.ListenConfig{}).ListenPacket(ctx, "udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := newForwarder(ctx, &forwardTelemetry{limits: defaultForwardLimits})
+	defer f.Close()
+	f.serveUDP(listener, backend.LocalAddr().String())
+	profile := relayload.Profile{Clients: 32, Hz: 128, Bytes: 256, Seconds: 2}
+	for _, endpoint := range []string{backend.LocalAddr().String(), listener.LocalAddr().String()} {
+		result, err := relayload.Measure(ctx, endpoint, profile)
+		if err != nil || result.Received == 0 {
+			t.Fatalf("no measured replies: %+v %v", result, err)
+		}
+		raw, err := json.Marshal(result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Log(string(raw))
+	}
+}
 
 func TestTailscaleForwardPlanRestrictsDestinations(t *testing.T) {
 	cfg := Config{GameServerName: "game", GameServerNamespace: "games", BackingServiceDNS: "game.games.svc", BackingServicePorts: "java:25565:tcp,bedrock:19132:udp"}
@@ -50,7 +127,7 @@ func TestTailscaleTCPForwardAndShutdown(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := newForwarder(ctx, forwardLimits{sessions: 2, udpQueue: 2, idle: time.Second, dial: time.Second})
+	f := newForwarder(ctx, &forwardTelemetry{limits: forwardLimits{sessions: 2, udpQueue: 2, idle: time.Second, dial: time.Second}})
 	f.serveTCP(listener, backend.Addr().String())
 	defer f.Close()
 	conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", listener.Addr().String())
@@ -92,7 +169,7 @@ func TestTailscaleUDPForwardIsolationLimitAndExpiry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := newForwarder(ctx, forwardLimits{sessions: 2, udpQueue: 2, idle: time.Second, dial: time.Second})
+	f := newForwarder(ctx, &forwardTelemetry{limits: forwardLimits{sessions: 2, udpQueue: 2, idle: time.Second, dial: time.Second}})
 	f.serveUDP(listener, backend.LocalAddr().String())
 	defer f.Close()
 	var clients []net.Conn
@@ -119,6 +196,12 @@ func TestTailscaleUDPForwardIsolationLimitAndExpiry(t *testing.T) {
 	if _, err := clients[2].Read(make([]byte, 32)); err == nil {
 		t.Fatal("UDP session limit not enforced")
 	}
+	if got := f.telemetry.udp.rejected.Load(); got != 1 {
+		t.Fatalf("one client-side loss, got %d rejected UDP datagrams", got)
+	}
+	if got := f.telemetry.udp.active.Load(); got != 2 {
+		t.Fatalf("active UDP sessions = %d", got)
+	}
 	deadline := time.Now().Add(3 * time.Second)
 	for len(f.slots) != 0 && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)
@@ -134,7 +217,7 @@ func TestTailscaleUDPForwardIsolationLimitAndExpiry(t *testing.T) {
 		t.Fatalf("session after expiry: %q %v", buf[:n], err)
 	}
 	f.Close()
-	if len(f.slots) != 0 {
+	if len(f.slots) != 0 || f.telemetry.udp.active.Load() != 0 {
 		t.Fatal("shutdown leaked sessions")
 	}
 }
@@ -152,7 +235,7 @@ func TestTailscaleUDPServerTrafficKeepsSessionAlive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := newForwarder(ctx, forwardLimits{sessions: 1, udpQueue: 1, idle: 400 * time.Millisecond, dial: time.Second})
+	f := newForwarder(ctx, &forwardTelemetry{limits: forwardLimits{sessions: 1, udpQueue: 1, idle: 400 * time.Millisecond, dial: time.Second}})
 	f.serveUDP(listener, backend.LocalAddr().String())
 	defer f.Close()
 	client, err := (&net.Dialer{}).DialContext(ctx, "udp", listener.LocalAddr().String())

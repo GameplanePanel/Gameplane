@@ -88,7 +88,7 @@ func TestTailnetRetryObserverConfirmedSessionClosesListeners(t *testing.T) {
 	observe := tailnetRetryObserver(history, backoff, func() time.Time {
 		return start.Add(time.Duration(confirmed) * 2 * time.Second)
 	})
-	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
+	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, nil, func(healthy bool) {
 		observe(healthy)
 		if healthy {
 			confirmed++
@@ -134,7 +134,7 @@ func TestTailnetFailedAttemptsCannotResetRetryEscalation(t *testing.T) {
 			var ready atomic.Bool
 			confirmed := false
 			observe := tailnetRetryObserver(history, backoff, func() time.Time { return time.Unix(100, 0) })
-			err := serveTailnetObserved(t.Context(), node, tags, []forwardPort{{network: "udp", port: "19132", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
+			err := serveTailnetObserved(t.Context(), node, tags, []forwardPort{{network: "udp", port: "19132", target: "127.0.0.1:1"}}, &ready, time.Millisecond, nil, func(healthy bool) {
 				confirmed = confirmed || healthy
 				observe(healthy)
 			})
