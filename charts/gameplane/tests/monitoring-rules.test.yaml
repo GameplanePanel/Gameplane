@@ -3,6 +3,33 @@ evaluation_interval: 1m
 tests:
   - interval: 1m
     input_series:
+      - series: 'kube_pod_container_status_running{namespace="tenant-b",pod="sleepy-0",container="agent"}'
+        values: '1x12'
+      - series: 'kube_pod_labels{namespace="tenant-b",pod="sleepy-0",label_app_kubernetes_io_name="gameplane-game"}'
+        values: '1x12'
+      - series: 'kube_pod_container_status_running{namespace="tenant-b",pod="relay",container="tunnel"}'
+        values: '1x12'
+      - series: 'kube_pod_labels{namespace="tenant-b",pod="relay",label_app_kubernetes_io_name="gameplane-tunnel"}'
+        values: '1x12'
+      - series: 'up{namespace="tenant-b",pod="relay",gameplane_component="tunnel"}'
+        values: '0x12'
+      - series: 'kube_pod_container_status_running{namespace="unmanaged",pod="hidden",container="agent"}'
+        values: '1x12'
+      - series: 'kube_pod_labels{namespace="unmanaged",pod="hidden",label_app_kubernetes_io_name="gameplane-game"}'
+        values: '1x12'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: GameplaneScrapeTargetMissing
+        exp_alerts:
+          - exp_labels: {namespace: tenant-b, pod: sleepy-0, gameplane_component: agent, severity: warning}
+            exp_annotations: {summary: "Running Gameplane workload is missing from scrape discovery"}
+      - eval_time: 8m
+        alertname: GameplaneScrapeUnavailable
+        exp_alerts:
+          - exp_labels: {namespace: tenant-b, pod: relay, gameplane_component: tunnel, severity: warning}
+            exp_annotations: {summary: "Gameplane metrics target cannot be scraped"}
+  - interval: 1m
+    input_series:
       - series: 'gameplane_agent_performance_value{namespace="gameplane-games",pod="duration-0",metric="tick",signal="tick_duration",unit="seconds"}'
         values: '0.06x10 0.04x10'
       - series: 'gameplane_agent_performance_degraded_threshold{namespace="gameplane-games",pod="duration-0",metric="tick",signal="tick_duration",unit="seconds",direction="above"}'

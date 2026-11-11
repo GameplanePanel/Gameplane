@@ -28,6 +28,20 @@ Check Prometheus **Status → Targets** for agent and tunnel targets with `up=1`
 then query `gameplane_agent_players_online` and `gameplane_tunnel_ready`.
 Unknown player counts are absent even when scraping works.
 
+The agent and tunnel PodMonitors live in the primary games namespace. Their
+target lists include that namespace and every entry in `operator.gameNamespaces`.
+Ensure Prometheus honors PodMonitor namespace selectors and can list and watch
+pods in each target namespace. Provision the same approved scraper ingress in
+additional namespaces that enforce default deny, and allow Prometheus egress.
+Workload alerts select the same explicit list of namespaces.
+
+`GameplaneScrapeUnavailable` fires when a discovered endpoint stays down.
+`GameplaneScrapeTargetMissing` compares discovered targets with running
+agent/tunnel containers on Gameplane-labeled pods. Enable kube-state-metrics
+pod label collection for `app.kubernetes.io/name` (for example
+`--metric-labels-allowlist=pods=[app.kubernetes.io/name]`) and scrape its
+container-running and pod-label metrics to enable that comparison.
+
 With the operator and its NetworkPolicies enabled, the chart requires a nonempty
 `serviceMonitors.scrapeNamespaceSelector`. Missing configuration fails with a
 message naming the setting. If another system owns the policies, set
