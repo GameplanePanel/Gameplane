@@ -349,6 +349,10 @@ destinations require a provider-aware egress policy or a separately isolated
 deployment. Check existing provider policies after the operator reconciles.
 
 Run positive joins, heartbeat, scrape and backup checks on the deployed CNI.
+When upgrading with Helm's `--reuse-values` from a shared kubelet probe list,
+pass `--set-json 'networkPolicies.probePorts=[]'` to replace the previous
+list explicitly. Check that each managed game namespace has its per-server
+probe policies and that the legacy `allow-kubelet-probes` grant is absent.
 From an independent tenant, check the target Pod IP and Service for RCON and
 agent access. Verify private HTTPS and metadata endpoints are unreachable.
 Review additional policies in each namespace because their grants are additive.
