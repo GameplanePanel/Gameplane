@@ -69,7 +69,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
 	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
-	beforeIdentity := readUpgradeIdentity(t, ns, gs)
+	beforeIdentity := readUpgradeIdentity(t)
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
 	// restarted by the upgrade, not sitting in the page cache.
@@ -148,7 +148,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("operator strategy migration retained RollingUpdate fields: %+v", operator.Spec.Strategy)
 	}
 
-	afterIdentity := readUpgradeIdentity(t, ns, gs)
+	afterIdentity := readUpgradeIdentity(t)
 	for name, before := range beforeIdentity {
 		if afterIdentity[name] != before {
 			t.Errorf("upgrade changed %s identity: before %s, after %s", name, before, afterIdentity[name])
