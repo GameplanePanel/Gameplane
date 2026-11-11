@@ -29,8 +29,11 @@ func (r *GameServerReconciler) reserveWakeStart(ctx context.Context, gs *gamepla
 		if err := r.APIReader.Get(ctx, client.ObjectKey{Namespace: key.Namespace, Name: "gameplane-operator"}, &operator); err != nil {
 			return false, fmt.Errorf("get owner for wake reservations: %w", err)
 		}
-		starts.ObjectMeta = metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace,
-			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(&operator, appsv1.SchemeGroupVersion.WithKind("Deployment"))}}
+		owner := metav1.NewControllerRef(&operator, appsv1.SchemeGroupVersion.WithKind("Deployment"))
+		// The ledger can be garbage-collected after the Deployment is gone.
+		// Blocking deletion would require permission to edit its finalizers.
+		owner.BlockOwnerDeletion = nil
+		starts.ObjectMeta = metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace, OwnerReferences: []metav1.OwnerReference{*owner}}
 		if err := r.Create(ctx, &starts); err != nil {
 			if apierrors.IsAlreadyExists(err) {
 				return false, nil

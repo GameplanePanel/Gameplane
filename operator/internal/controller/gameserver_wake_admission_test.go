@@ -71,4 +71,8 @@ func TestColdWakeCapacitySurvivesOperatorRestart(t *testing.T) {
 	if err := r.Get(ctx, client.ObjectKey{Namespace: "panel", Name: wakeStartsName}, &ledger); err != nil || len(ledger.Data) != 1 || ledger.Data["second"] == "" {
 		t.Fatalf("unexpected persisted reservations: %v %v", ledger.Data, err)
 	}
+	owner := metav1.GetControllerOf(&ledger)
+	if owner == nil || owner.UID != "operator" || (owner.BlockOwnerDeletion != nil && *owner.BlockOwnerDeletion) {
+		t.Fatalf("wake reservations must be collected without blocking Deployment deletion: %+v", owner)
+	}
 }
