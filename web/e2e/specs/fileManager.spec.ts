@@ -61,7 +61,7 @@ test.describe("file manager tab", () => {
     await readReq;
   });
 
-  test("loads the TypeScript worker on opening a script and provides diagnostics and completions", async ({ page, context }) => {
+  test("loads TypeScript on opening a script and provides diagnostics, completions, and definitions", async ({ page, context }) => {
     test.setTimeout(90_000);
     await page.addInitScript(() => localStorage.setItem("gameplane-e2e-dataset", "typescript-file"));
     const wasmUrls: URL[] = [];
@@ -98,8 +98,24 @@ test.describe("file manager tab", () => {
     await page.keyboard.insertText("port.toF");
     const completionRequestedAt = performance.now();
     await page.keyboard.press("Control+Space");
-    await expect(editor.getByRole("listbox", { name: "Suggest" }).getByText("toFixed", { exact: true })).toBeVisible();
+    const suggestion = editor.getByRole("listbox", { name: "Suggest" }).getByText("toFixed", { exact: true });
+    await expect(suggestion).toBeVisible();
     const completionMs = Math.round(performance.now() - completionRequestedAt);
     console.log(`Monaco TS7: file click to first error ${firstDiagnosticMs} ms, completion shortcut to suggestion ${completionMs} ms`);
+
+    await suggestion.click();
+    await expect(editor.locator(".view-line").last()).toContainText("port.toFixed");
+    await page.keyboard.press("Home");
+    for (let i = 0; i < "port.to".length; i++) await page.keyboard.press("ArrowRight");
+    // Peek Definition has different shortcuts on Linux and Windows. Select it by name.
+    await page.keyboard.press("F1");
+    const palette = page.locator(".quick-input-widget");
+    await expect(palette).toBeVisible();
+    await page.keyboard.insertText("Peek Definition");
+    await expect(palette.getByText("Peek Definition", { exact: true })).toBeVisible();
+    await page.keyboard.press("Enter");
+    const peek = page.locator(".reference-zone-widget");
+    await expect(peek).toContainText("lib.es5.d.ts");
+    await expect(peek.locator(".preview .view-lines")).toContainText(/toFixed\s*\(fractionDigits\?:\s*number\):\s*string/);
   });
 });
