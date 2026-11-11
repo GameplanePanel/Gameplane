@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -255,6 +256,35 @@ func TestRejectedRolloutDrainsWithThePinnedStopContract(t *testing.T) {
 	}
 }
 
+// Historical baseline migration must validate the pinned probe before claiming a drain.
+func TestWorkerPolicyRefusesUnsafeProbeInHistoricalBaseline(t *testing.T) {
+	ctx := t.Context()
+	r, gs, catalog := revisionFixture(t)
+	policy, _, valid := gamePolicyFixture(t)
+	r.GameWorkloadPolicy = policy
+	old := catalog.DeepCopy()
+	old.Spec.Resources = valid.Spec.Resources
+	old.Spec.Probes = &gameplanev1alpha1.GameProbesSpec{Liveness: probeSecHTTP("169.254.169.254", intstr.FromInt32(80))}
+	pin, err := r.saveTemplateSnapshot(ctx, gs, old)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gs.Annotations[effectiveTemplateAnnotation] = pin
+	gs.Annotations[baselineTemplateAnnotation] = pin
+	if err := r.Update(ctx, gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := r.reconcileTemplateRevision(ctx, gs); err == nil || !strings.Contains(err.Error(), "spec.probes.liveness.httpGet.host") {
+		t.Fatalf("expected the pinned probe host to block migration: %v", err)
+	}
+	if err := r.Get(ctx, client.ObjectKeyFromObject(gs), gs); err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations[lifecycleOperationAnnotation] != "" {
+		t.Fatal("unsafe pinned probe claimed a migration drain")
+	}
+}
+
 // A catalog snapshot saved during migration is not proof of the legacy Pod's stop contract.
 func TestWorkerPolicyDrainsLegacyPodBeforeFirstPin(t *testing.T) {
 	for _, contract := range []string{"unversioned", "verified", "previously pinned baseline"} {
@@ -360,6 +390,27 @@ func TestWorkerPolicyDrainsLegacyPodBeforeFirstPin(t *testing.T) {
 			step()
 			if *ss.Spec.Replicas != 0 || !reflect.DeepEqual(*original, ss.Spec.Template) {
 				t.Fatal("zero replicas did not fence the still-present legacy Pod")
+			}
+			if contract == "previously pinned baseline" {
+				// The StatefulSet can disappear while its old Pod still owns the
+				// world. Race the owner with a stale scale-up decision on recreate.
+				if err := r.Delete(ctx, ss); err != nil {
+					t.Fatal(err)
+				}
+				stale := gs.DeepCopy()
+				delete(stale.Annotations, lifecycleOperationAnnotation)
+				if err := r.reconcileStatefulSet(ctx, stale, catalog, nil, &materializedConfig{}, 1); err != nil {
+					t.Fatal(err)
+				}
+				for range 3 {
+					if err := r.Get(ctx, key, ss); err != nil {
+						t.Fatal(err)
+					}
+					if *ss.Spec.Replicas != 0 {
+						t.Fatalf("replacement escaped the baseline fence while the old writer survived: replicas=%d", *ss.Spec.Replicas)
+					}
+					step()
+				}
 			}
 			if err := r.Delete(ctx, pod); err != nil {
 				t.Fatal(err)

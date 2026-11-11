@@ -185,8 +185,8 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		}
 		if op.Baseline {
 			if r.GameWorkloadPolicy != nil {
-				waiting, err := r.workerPolicyBaselineNeedsDrain(ctx, gs)
-				if waiting || err != nil {
+				drained, err := r.templateWorkloadDrained(ctx, gs)
+				if !drained || err != nil {
 					// Continue to desiredReplicas with the durable owner held. The
 					// StatefulSet may scale down but must keep its Pod template.
 					return effective, false, err
@@ -200,7 +200,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if err != nil {
 				return nil, false, err
 			}
-			if err := validateTemplatePasswordTransition(gs, effective, target); err != nil {
+			if err := validateTemplateTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}
 			if _, err := materializeConfig(gs, target); err != nil {
@@ -262,7 +262,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			admit = false
 		}
 		if admit {
-			if err := validateTemplatePasswordTransition(gs, effective, target); err != nil {
+			if err := validateTemplateTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}
 			if _, err := materializeConfig(gs, target); err != nil {
@@ -294,28 +294,6 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		}
 	}
 	return effective, false, r.pruneTemplateSnapshots(ctx, gs)
-}
-
-// workerPolicyBaselineNeedsDrain waits for the fenced StatefulSet and all world writers.
-// A new server or an already-replaced historical baseline can render immediately.
-func (r *GameServerReconciler) workerPolicyBaselineNeedsDrain(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
-	var ss appsv1.StatefulSet
-	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return false, err
-		}
-		// A deleted StatefulSet can leave a terminating Pod that still holds the world.
-		gone, err := r.templateWritersGone(ctx, gs, nil)
-		return !gone, err
-	}
-	if !metav1.IsControlledBy(&ss, gs) {
-		return false, fmt.Errorf("baseline workload belongs to another server")
-	}
-	if gs.Annotations[effectiveTemplateAnnotation] != "" && (string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "") {
-		return false, nil
-	}
-	drained, err := r.templateWorkloadDrained(ctx, gs)
-	return !drained, err
 }
 
 // baselineStopTemplate uses only an owned running Pod and its verified snapshot.
@@ -367,7 +345,7 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 	if err != nil {
 		return err
 	}
-	if err := validateTemplatePasswordTransition(gs, nil, target); err != nil {
+	if err := validateTemplateTransition(gs, nil, target); err != nil {
 		return err
 	}
 	if err := r.GameWorkloadPolicy.validate(gs, target); err != nil {
@@ -410,6 +388,13 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 	return r.Update(ctx, gs)
 }
 
+func validateTemplateTransition(gs *gameplanev1alpha1.GameServer, previous, target *gameplanev1alpha1.GameTemplate) error {
+	if err := validateProbeHosts(effectiveGameProbes(gs, target)); err != nil {
+		return err
+	}
+	return validateTemplatePasswordTransition(gs, previous, target)
+}
+
 func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, gs *gameplanev1alpha1.GameServer, ss *appsv1.StatefulSet) (bool, error) {
 	pin := gs.Annotations[effectiveTemplateAnnotation]
 	if pin == "" || gs.Annotations[baselineTemplateAnnotation] != pin || string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "" {
@@ -427,6 +412,15 @@ func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, 
 	// This also covers installing credential isolation and revisions together.
 	if ss.Spec.Template.Spec.AutomountServiceAccountToken == nil || *ss.Spec.Template.Spec.AutomountServiceAccountToken || r.RestrictedWorkloads != (ss.Spec.Template.Annotations[workloadSecurityLabel] == "restricted") {
 		return false, nil
+	}
+	for _, c := range ss.Spec.Template.Spec.Containers {
+		if c.Name == gameContainerName && probeHostField(gameplanev1alpha1.GameProbesSpec{
+			Readiness: c.ReadinessProbe, Liveness: c.LivenessProbe, Startup: c.StartupProbe,
+		}) != "" {
+			// The desired probes passed validation. Render them in place of
+			// the unsafe pre-upgrade pod template.
+			return false, nil
+		}
 	}
 	projected := false
 	for _, volume := range ss.Spec.Template.Spec.Volumes {
@@ -521,6 +515,17 @@ func observedTemplateRevision(ctx context.Context, reader client.Reader, gs *gam
 func (r *GameServerReconciler) templateWorkloadDrained(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
 	var ss appsv1.StatefulSet
 	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
+		if apierrors.IsNotFound(err) && r.GameWorkloadPolicy != nil {
+			op, held, err := lifecycleOwner(gs)
+			if err != nil {
+				return false, err
+			}
+			if held && op.Kind == "Rollout" && op.Baseline {
+				// A new server has no workload to fence. A deleted StatefulSet
+				// can leave a terminating Pod that still holds the world.
+				return r.templateWritersGone(ctx, gs, nil)
+			}
+		}
 		return false, client.IgnoreNotFound(err)
 	}
 	if !metav1.IsControlledBy(&ss, gs) {
