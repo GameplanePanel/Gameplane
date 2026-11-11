@@ -207,8 +207,6 @@ jobs:
             context: containers/games/squad
           - game: the-isle
             context: containers/games/the-isle
-          - game: ark-survival-evolved
-            context: containers/games/ark-survival-evolved
           - game: mount-and-blade-2-bannerlord
             context: containers/games/mount-and-blade-2-bannerlord
           - game: fivem
