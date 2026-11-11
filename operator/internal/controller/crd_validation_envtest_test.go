@@ -9,6 +9,8 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -35,6 +37,48 @@ func TestCRDValidation_GameServerEmptyTemplateRef(t *testing.T) {
 	err := k8sClient.Create(context.Background(), gs)
 	if !apierrors.IsInvalid(err) {
 		t.Fatalf("expected Invalid, got %v", err)
+	}
+}
+
+func TestCRDValidation_ProbeHosts(t *testing.T) {
+	ns := newNamespace(t)
+	port := intstr.FromString("game")
+	for _, tc := range []struct {
+		field  string
+		probes gameplanev1alpha1.GameProbesSpec
+	}{
+		{"readiness.httpGet", gameplanev1alpha1.GameProbesSpec{Readiness: probeSecHTTP("169.254.169.254", port)}},
+		{"readiness.tcpSocket", gameplanev1alpha1.GameProbesSpec{Readiness: probeSecTCPHost("::1", port)}},
+		{"startup.httpGet", gameplanev1alpha1.GameProbesSpec{Startup: probeSecHTTP("kubernetes.default.svc", port)}},
+		{"startup.tcpSocket", gameplanev1alpha1.GameProbesSpec{Startup: probeSecTCPHost("127.0.0.1", port)}},
+		{"liveness.httpGet", gameplanev1alpha1.GameProbesSpec{Liveness: probeSecHTTP("fd00::1", port)}},
+		{"liveness.tcpSocket", gameplanev1alpha1.GameProbesSpec{Liveness: probeSecTCPHost("localhost", port)}},
+	} {
+		check := func(t *testing.T, obj client.Object, probes **gameplanev1alpha1.GameProbesSpec) {
+			t.Helper()
+			field := "spec.probes." + tc.field + ".host"
+			*probes = &tc.probes
+			if err := k8sClient.Create(t.Context(), obj); !apierrors.IsInvalid(err) || !strings.Contains(err.Error(), field) {
+				t.Fatalf("create: expected Invalid at %s, got %v", field, err)
+			}
+			*probes = &gameplanev1alpha1.GameProbesSpec{Readiness: probeSecHTTP("", port), Startup: probeSecTCP(port)}
+			if err := k8sClient.Create(t.Context(), obj); err != nil {
+				t.Fatalf("create with pod-local named ports: %v", err)
+			}
+			deleteCleanup(t, obj)
+			*probes = &tc.probes
+			if err := k8sClient.Update(t.Context(), obj); !apierrors.IsInvalid(err) || !strings.Contains(err.Error(), field) {
+				t.Fatalf("update: expected Invalid at %s, got %v", field, err)
+			}
+		}
+		t.Run("GameTemplate/"+tc.field, func(t *testing.T) {
+			tmpl := buildGameTemplate(uniqueName("probe-template"))
+			check(t, tmpl, &tmpl.Spec.Probes)
+		})
+		t.Run("GameServer/"+tc.field, func(t *testing.T) {
+			gs := validGameServer(ns, uniqueName("probe-server"))
+			check(t, gs, &gs.Spec.Probes)
+		})
 	}
 }
 

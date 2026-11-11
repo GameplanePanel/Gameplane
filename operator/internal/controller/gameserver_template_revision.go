@@ -192,7 +192,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if err != nil {
 				return nil, false, err
 			}
-			if err := validateTemplatePasswordTransition(gs, effective, target); err != nil {
+			if err := validateTemplateTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}
 			if _, err := materializeConfig(gs, target); err != nil {
@@ -243,7 +243,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			admit = false
 		}
 		if admit {
-			if err := validateTemplatePasswordTransition(gs, effective, &installed); err != nil {
+			if err := validateTemplateTransition(gs, effective, &installed); err != nil {
 				return nil, false, err
 			}
 			if _, err := materializeConfig(gs, &installed); err != nil {
@@ -307,7 +307,7 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 	if err != nil {
 		return err
 	}
-	if err := validateTemplatePasswordTransition(gs, nil, target); err != nil {
+	if err := validateTemplateTransition(gs, nil, target); err != nil {
 		return err
 	}
 	var ss appsv1.StatefulSet
@@ -341,6 +341,13 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 	return r.Update(ctx, gs)
 }
 
+func validateTemplateTransition(gs *gameplanev1alpha1.GameServer, previous, target *gameplanev1alpha1.GameTemplate) error {
+	if err := validateProbeHosts(effectiveGameProbes(gs, target)); err != nil {
+		return err
+	}
+	return validateTemplatePasswordTransition(gs, previous, target)
+}
+
 func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, gs *gameplanev1alpha1.GameServer, ss *appsv1.StatefulSet) (bool, error) {
 	pin := gs.Annotations[effectiveTemplateAnnotation]
 	if pin == "" || gs.Annotations[baselineTemplateAnnotation] != pin || string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "" {
@@ -354,6 +361,15 @@ func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, 
 	// This also covers installing credential isolation and revisions together.
 	if ss.Spec.Template.Spec.AutomountServiceAccountToken == nil || *ss.Spec.Template.Spec.AutomountServiceAccountToken || r.RestrictedWorkloads != (ss.Spec.Template.Annotations[workloadSecurityLabel] == "restricted") {
 		return false, nil
+	}
+	for _, c := range ss.Spec.Template.Spec.Containers {
+		if c.Name == gameContainerName && validateProbeHosts(gameplanev1alpha1.GameProbesSpec{
+			Readiness: c.ReadinessProbe, Liveness: c.LivenessProbe, Startup: c.StartupProbe,
+		}) != nil {
+			// The desired probes passed validation. Render them in place of
+			// the unsafe pre-upgrade pod template.
+			return false, nil
+		}
 	}
 	projected := false
 	for _, volume := range ss.Spec.Template.Spec.Volumes {
