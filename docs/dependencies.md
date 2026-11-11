@@ -359,10 +359,12 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 **Styling / build**
 - `tailwindcss` `^4.3.3`, `autoprefixer` `^10.5.4`, `postcss` `^8.5.26` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; `tailwind.config.ts` defines the design tokens used throughout `src/styles` and Tailwind classes app-wide.
 - `vite` `^8.2.2`, `@vitejs/plugin-react` `^6.1.1` (dev) — `vite.config.ts` drives the dev server (with the API/WS proxy to the in-cluster API used by `make web-dev`), production build, and is the engine behind `vitest.config.ts`.
-- `typescript` `^6.0.3` (dev) — strict-mode compile per `tsconfig.json`; `npm run build` is `tsc -b && vite build`.
+- `typescript` `^7.0.2` (dev) provides the native `tsc` used for the dashboard build and Playwright type checks. The i18n migration script reads TSX syntax with Babel.
+- Monaco ships a separate TypeScript 5.9.3 language service for the in-browser file editor. That version comes from the Monaco distribution. [Monaco worker metadata](https://github.com/microsoft/monaco-editor/blob/v0.56.0/src/languages/features/typescript/lib/typescriptServicesMetadata.ts)
 
 **Lint** (dev, all wired directly in `eslint.config.js`)
-- `eslint` `^9.39.5`, `@eslint/js` `^10.0.1`, `@typescript-eslint/eslint-plugin` `^8.68.0`, `@typescript-eslint/parser` `^8.68.0`, `eslint-plugin-react` `^7.37.5`, `eslint-plugin-react-hooks` `^7.1.1`, `globals` `^17.11.0` — flat-config ESLint enforcing `strict`, `@typescript-eslint/no-explicit-any: error`, `@typescript-eslint/no-floating-promises: error`, run via `npm run lint`.
+- `eslint` `^10.14.0` and `@eslint/js` `^10.0.1` check JavaScript. Babel parses TypeScript and JSX for `eslint-plugin-react-hooks` and `eslint-plugin-formatjs`.
+- `oxlint` and `oxlint-tsgolint` check React and TypeScript code, including unhandled promises. Run both linters with `npm run lint` in `web/`. [Oxlint configuration](../web/.oxlintrc.json)
 
 **Testing — unit tier (Vitest)**
 - `vitest` `^4.1.11`, `@vitest/coverage-v8` `^4.1.10` (dev) — `vitest.config.ts` (jsdom environment, coverage thresholds), run via `npm test`/`test:cover`.
