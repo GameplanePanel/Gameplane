@@ -107,13 +107,9 @@ test.describe("file manager tab", () => {
     await expect(editor.locator(".view-line").last()).toContainText("port.toFixed");
     await page.keyboard.press("Home");
     for (let i = 0; i < "port.to".length; i++) await page.keyboard.press("ArrowRight");
-    // Peek Definition has different shortcuts on Linux and Windows. Select it by name.
-    await page.keyboard.press("F1");
-    const palette = page.locator(".quick-input-widget");
-    await expect(palette).toBeVisible();
-    await page.keyboard.insertText("Peek Definition");
-    await expect(palette.getByText("Peek Definition", { exact: true })).toBeVisible();
-    await page.keyboard.press("Enter");
+    // Monaco binds Peek Definition to a different shortcut on Linux.
+    const linux = await page.evaluate(() => navigator.userAgent.includes("Linux"));
+    await page.keyboard.press(linux ? "Control+Shift+F10" : "Alt+F12");
     const peek = page.locator(".reference-zone-widget");
     await expect(peek).toContainText("lib.es5.d.ts");
     await expect(peek.locator(".preview .view-lines")).toContainText(/toFixed\s*\(fractionDigits\?:\s*number\):\s*string/);

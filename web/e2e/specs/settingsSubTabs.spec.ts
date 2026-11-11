@@ -54,12 +54,12 @@ test.describe("server settings sub-tabs", () => {
     await page.getByRole("tab", { name: "Placement", exact: true }).click();
     const tolerations = page.locator(".monaco-editor").first();
     await tolerations.locator(".view-line").first().click();
-    await page.keyboard.press("ControlOrMeta+a");
-    await page.keyboard.insertText("[}");
+    // Prefix the existing array so its brackets and Monaco's auto-pairs stay intact.
+    await page.keyboard.press("ControlOrMeta+Home");
+    await page.keyboard.insertText("x");
     await expect(page.getByText("Invalid JSON", { exact: true })).toBeVisible();
     await expect(tolerations.locator(".squiggly-error").first()).toBeVisible();
-    await page.keyboard.press("ControlOrMeta+a");
-    await page.keyboard.insertText("[]");
+    await page.keyboard.press("Backspace");
     await expect(page.getByText("Invalid JSON", { exact: true })).toHaveCount(0);
     await expect(tolerations.locator(".squiggly-error")).toHaveCount(0);
   });

@@ -109,6 +109,9 @@ function htmlBypass(req: { headers: Record<string, string | string[] | undefined
 }
 
 export default defineConfig({
+  // The TS client and its worker load on the first script edit. Prebundle their
+  // dependencies so Vite does not reload the dashboard and close that file.
+  optimizeDeps: { include: ["vscode-languageserver-protocol/browser", "@bjorn3/browser_wasi_shim"] },
   plugins: [react(), i18nFixtures(), i18nPseudo(), cspHeader()],
   preview: { headers: isolationHeaders },
   worker: { format: "es" },
