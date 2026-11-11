@@ -451,7 +451,7 @@ func TestRedact_EventsStreamHonoursTemplateChangeBetweenEvents(t *testing.T) {
 		map[string]any{"name": "TOKEN", "type": "string"},
 	}}
 	k := fleetTestClient(tmpl)
-	fw := watch.NewFake()
+	fw := watch.NewFakeWithOptions(watch.FakeOptions{ChannelSize: 1})
 	k.Dynamic.(*dynamicfake.FakeDynamicClient).PrependWatchReactor("gameservers",
 		func(_ clienttesting.Action) (bool, watch.Interface, error) { return true, fw, nil })
 	reg := kube.NewRegistry(scope.DefaultCluster)
@@ -467,20 +467,36 @@ func TestRedact_EventsStreamHonoursTemplateChangeBetweenEvents(t *testing.T) {
 		eventsHandler(reg)(w, req)
 	}()
 
-	waitFrames := func(n int) {
+	waitServerEvent := func(eventType watch.EventType) string {
 		t.Helper()
 		deadline := time.Now().Add(5 * time.Second)
-		for strings.Count(w.String(), "data:") < n {
-			if time.Now().After(deadline) {
-				cancel()
-				t.Fatalf("want %d SSE frames, got: %s", n, w.String())
+		for time.Now().Before(deadline) {
+			for line := range strings.SplitSeq(w.String(), "\n") {
+				data, ok := strings.CutPrefix(line, "data: ")
+				if !ok {
+					continue
+				}
+				var event struct {
+					Kind      string          `json:"kind"`
+					EventType watch.EventType `json:"eventType"`
+				}
+				if err := json.Unmarshal([]byte(data), &event); err != nil {
+					t.Fatalf("decode SSE frame: %v", err)
+				}
+				if event.Kind == "servers" && event.EventType == eventType {
+					return data
+				}
 			}
 			time.Sleep(10 * time.Millisecond)
 		}
+		t.Fatalf("no %s server event in stream: %s", eventType, w.String())
+		return ""
 	}
 
-	go fw.Add(serverWithConfig("alpha", map[string]any{"TOKEN": "tok-first"}))
-	waitFrames(1)
+	fw.Add(serverWithConfig("alpha", map[string]any{"TOKEN": "tok-first"}))
+	if first := waitServerEvent(watch.Added); !strings.Contains(first, "tok-first") {
+		t.Fatalf("first server event lost the plain value: %s", first)
+	}
 
 	updated := tmpl.DeepCopy()
 	updated.Object["spec"] = map[string]any{"configSchema": []any{
@@ -491,14 +507,17 @@ func TestRedact_EventsStreamHonoursTemplateChangeBetweenEvents(t *testing.T) {
 		t.Fatalf("update template: %v", err)
 	}
 
-	go fw.Modify(serverWithConfig("alpha", map[string]any{"TOKEN": "tok-second"}))
-	waitFrames(2)
+	fw.Modify(serverWithConfig("alpha", map[string]any{"TOKEN": "tok-second"}))
+	out := waitServerEvent(watch.Modified)
 	cancel()
-	<-done
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("events handler did not stop after cancellation")
+	}
 
-	out := w.String()
-	if strings.Contains(out, "tok-second") {
-		t.Fatalf("second event leaked a value that became a password: %s", out)
+	if strings.Contains(w.String(), "tok-second") {
+		t.Fatalf("stream leaked a value that became a password: %s", w.String())
 	}
 	if !strings.Contains(out, configRedactedMarker) {
 		t.Fatalf("second event has no redaction marker: %s", out)

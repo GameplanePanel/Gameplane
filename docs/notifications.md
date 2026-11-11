@@ -36,7 +36,7 @@ cross-restart watermark.
 
 The **Add sink** form takes the credential material directly — the webhook
 URL, ntfy topic + token, or SMTP settings — and the API stores it as a
-Secret named `gameplane-notify-<sink>` in the **control-plane namespace**
+Secret named `gameplane-notify-<sink>` in the **API credentials namespace**
 (`PUT /admin/notifications/sinks/{name}/secret`, permission
 `config:manage`). The sink's `configRef` is set to that Secret
 automatically, and deleting the sink in the dashboard also deletes the
@@ -47,7 +47,7 @@ what the API may touch:
 
 - `gameplane.local/notification-sink: "true"` — the API refuses to *read
   or overwrite* Secrets without it, so granting someone `config:manage`
-  does not let them exfiltrate arbitrary control-plane Secrets by pointing
+  does not let them exfiltrate other feature credentials by pointing
   a sink at one.
 - `gameplane.local/managed-by: gameplane-api` — set on Secrets the API
   created from the form. Deletes over HTTP require it, so Secrets created
@@ -70,9 +70,9 @@ matching `configRef` via `PUT /admin/config/notifications`:
 
 ```sh
 # A Discord sink Secret named "team-alerts", managed outside the dashboard:
-kubectl -n gameplane-system create secret generic team-alerts \
+kubectl -n gameplane-system-credentials create secret generic team-alerts \
   --from-literal=url='https://discord.com/api/webhooks/…'
-kubectl -n gameplane-system label secret team-alerts \
+kubectl -n gameplane-system-credentials label secret team-alerts \
   gameplane.local/notification-sink=true
 ```
 

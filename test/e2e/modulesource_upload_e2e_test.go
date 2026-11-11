@@ -28,7 +28,6 @@ func TestModuleSourceUpload(t *testing.T) {
 		sourceName = "e2e-upload-source"
 		moduleName = "e2e-upload-game"
 		cmName     = "e2e-upload-bundle"
-		ns         = "gameplane-system"
 	)
 
 	// 1. The upload-type source (the chart also ships one named
@@ -56,7 +55,7 @@ func TestModuleSourceUpload(t *testing.T) {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
-			Namespace: ns,
+			Namespace: credentialsNS,
 			Labels:    map[string]string{"gameplane.local/module-upload": "true"},
 		},
 		BinaryData: map[string][]byte{
@@ -78,12 +77,12 @@ func TestModuleSourceUpload(t *testing.T) {
 				"    - { name: game, containerPort: 7777 }\n"),
 		},
 	}
-	if _, err := envInstance.K8s.CoreV1().ConfigMaps(ns).
+	if _, err := envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).
 		Create(ctx, cm, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
 		t.Fatalf("create bundle configmap: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = envInstance.K8s.CoreV1().ConfigMaps(ns).
+		_ = envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).
 			Delete(context.Background(), cmName, metav1.DeleteOptions{})
 	})
 

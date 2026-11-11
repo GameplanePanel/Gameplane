@@ -23,12 +23,12 @@ import (
 type ClusterStatusReconciler struct {
 	client.Client
 	Scheme    *runtime.Scheme
-	Namespace string // namespace where kubeconfig Secrets live (control-plane namespace)
+	Namespace string // namespace containing remote cluster kubeconfig Secrets
 }
 
 // +kubebuilder:rbac:groups=gameplane.local,resources=clusters,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=clusters/status,verbs=get;update;patch
-// Kubeconfig Secret reads use the configured control-plane namespace Role.
+// Kubeconfig Secret reads use the configured cluster credentials namespace Role.
 
 func (r *ClusterStatusReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var cluster gameplanev1alpha1.Cluster
