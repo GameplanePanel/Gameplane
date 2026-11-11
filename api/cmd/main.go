@@ -285,7 +285,9 @@ func main() {
 	// with remote cluster connections. Single-cluster installs only have the
 	// "local" cluster (the control plane); this watcher loads remote clusters
 	// from kubeconfigs stored as Secrets.
-	go kube.WatchClusters(ctx, k8s, reg, credentialsNS)
+	if cfg.remoteClusters {
+		go kube.WatchClusters(ctx, k8s, reg, credentialsNS)
+	}
 
 	// Optional Steam display-name lookup for player lists. Off unless the
 	// key is set; the resolver is then the only holder of the key and of
@@ -394,7 +396,11 @@ func main() {
 		handlers.MountAuthProviderSecrets(p, k8s, credentialsNS)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)
 		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
-		handlers.MountClusters(p, reg, k8s, credentialsNS)
+		clusterManagement := k8s
+		if !cfg.remoteClusters {
+			clusterManagement = nil
+		}
+		handlers.MountClusters(p, reg, clusterManagement, credentialsNS)
 		handlers.MountInstallation(p, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
 		handlers.MountDestinations(p, reg)
@@ -516,6 +522,7 @@ func main() {
 }
 
 type config struct {
+	remoteClusters      bool
 	standalone          bool
 	panelKeyFile        string
 	panelKeyProvisioned bool
@@ -673,6 +680,7 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	fs.IntVar(&c.captureDefaultMaxDurationS, "capture-default-max-duration", envOrInt("GAMEPLANE_CAPTURE_DEFAULT_MAX_DURATION", 300), "default max capture duration in seconds")
 	c.captureDefaultMaxSizeBytes = envOrInt64("GAMEPLANE_CAPTURE_DEFAULT_MAX_SIZE", 5368709120)
 	fs.BoolVar(&c.standalone, "standalone", envOr("GAMEPLANE_STANDALONE", "") == "true", "run without a local Kubernetes cluster")
+	fs.BoolVar(&c.remoteClusters, "remote-clusters", true, "load remote cluster credentials and connect to registered clusters")
 	fs.StringVar(&c.panelKeyFile, "panel-key-file", envOr("GAMEPLANE_PANEL_KEY_FILE", "/data/panel.key"), "persistent standalone credential encryption key file")
 	fs.BoolVar(&c.panelKeyProvisioned, "panel-key-provisioned", envOr("GAMEPLANE_PANEL_KEY_PROVISIONED", "") == "true", "require an existing read-only standalone credential key; never generate it")
 	fs.StringVar(&c.remoteAllowedCIDRs, "remote-allowed-cidrs", envOr("GAMEPLANE_REMOTE_ALLOWED_CIDRS", ""), "optional comma-separated CIDRs allowed for standalone Kubernetes and gateway connections")
