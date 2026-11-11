@@ -1,0 +1,133 @@
+# Feature Specification: CurseForge modpacks for Minecraft
+
+**Feature Branch**: `spec-035/curseforge-modpacks`
+
+**Created**: 2026-11-11
+
+**Status**: Draft (open decisions OD-1 to OD-6 in `OPEN-DECISIONS.md` must be answered before planning)
+
+**Input**: User description: "CurseForge modpacks don't work today. Only Modrinth modpacks install from the Modpacks tab. CurseForge only works for single mods. Add support for CurseForge modpacks."
+
+## Context (today's behaviour, checked on master `7413822b` and module `33e1095`)
+
+- The Minecraft module declares modpacks only for Modrinth: `modules/minecraft-java/template.yaml` (provider `modrinth`, `modpacks.refEnv: MODRINTH_MODPACK`, `env: TYPE=MODRINTH`). The `curseforge` provider entry has no `modpacks:` block, so the Modpacks tab never offers CurseForge (`web/src/components/registry-browser.tsx:112` lists only providers with `modpacks`).
+- The API can already search CurseForge modpacks: `api/internal/registry/curseforge.go` uses class 4471 for modpack searches on game 432. Its `ModpackDeps` is a no-op, which is fine for env-mode installs.
+- Env-mode install (`api/internal/handlers/registry.go` `installModpack`) writes one env var (the pack reference) plus the fixed env from the template. There is no way to pin a pack version and no way to see or remove the active pack.
+- The CurseForge API key lives in the API only: a labelled Secret in the control namespace (`gameplane-modreg-curseforge`) or the `--curseforge-api-key` flag. The operator refuses any game-server env that reads a Secret the GameServer does not own (`operator/internal/controller/gameserver_controller.go` `validateServerEnvSources`).
+- The itzg image installs CurseForge packs with `TYPE=AUTO_CURSEFORGE` plus `CF_SLUG` (or `CF_PAGE_URL`), pins with `CF_FILE_ID`, and needs a CurseForge API key. Per itzg's docs, Java 17 and newer image tags now ship a built-in key; the `java8` tags do not. A key can also be given as a file via `CF_API_KEY_FILE`. Mods whose authors block third-party downloads must be placed by hand in a downloads folder (`CF_DOWNLOADS_REPO`).
+- The module uses `java8-multiarch` for Minecraft ≤1.16.5, `java17`, `java21` and `java25` for newer versions.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Install a CurseForge modpack (Priority: P1)
+
+A server operator opens the Modpacks tab of a modded Minecraft server (Forge, NeoForge, Fabric or Quilt), switches the registry to CurseForge, searches for a pack such as "All the Mods", and installs it. The server restarts and comes up running that pack.
+
+**Why this priority**: This is the feature. CurseForge hosts most of the large Minecraft modpacks, and today none of them can be installed from the panel.
+
+**Independent Test**: With a CurseForge key configured, install a small CurseForge pack on a fresh Fabric server and check that the server reaches Running with the pack's mods loaded.
+
+**Acceptance Scenarios**:
+
+1. **Given** a CurseForge key is configured and a Forge server is selected, **When** the operator opens the Modpacks tab, **Then** CurseForge appears in the registry switch next to Modrinth, and search results are CurseForge modpacks for the server's game version and loader.
+2. **Given** search results are shown, **When** the operator installs a pack, **Then** the server is set to that pack, restarts, and the banner says the server is restarting to install it.
+3. **Given** no CurseForge key is configured, **When** the operator opens the Modpacks tab, **Then** CurseForge is not offered (same as the Mods tab today).
+4. **Given** a server running a Modrinth pack, **When** the operator installs a CurseForge pack, **Then** the Modrinth pack setting is cleared, so only one pack is active.
+
+---
+
+### User Story 2 - Choose and keep a pack version (Priority: P2)
+
+The operator picks which version (file) of the pack to install, and the server stays on that version across restarts until the operator chooses another one. Behaviour depends on OD-2 and OD-3.
+
+**Why this priority**: Large packs change mod lists between versions. An unplanned upgrade on restart can break a world, so operators need control.
+
+**Independent Test**: Install an older file of a pack, restart the server twice, and check that the installed version did not change.
+
+**Acceptance Scenarios**:
+
+1. **Given** the operator installs a pack, **When** they choose a specific version, **Then** the server installs that version and keeps it on every restart.
+2. **Given** a pinned pack, **When** the operator chooses a newer version, **Then** the server restarts and upgrades to it, keeping world data.
+
+---
+
+### User Story 3 - See and remove the active pack (Priority: P2)
+
+The Modpacks tab shows which pack (name, registry, version) is active on the server, and lets the operator remove it so the server goes back to the plain loader of its selected version. Depends on OD-4.
+
+**Why this priority**: Today nothing in the panel shows that a pack is active, and the only way out is editing env by hand.
+
+**Independent Test**: Install a pack, check the tab shows it, remove it, and check the server restarts as a plain loader server.
+
+**Acceptance Scenarios**:
+
+1. **Given** a server with a pack installed from either registry, **When** the operator opens the Modpacks tab, **Then** the active pack's name, registry and version are shown.
+2. **Given** an active pack, **When** the operator removes it, **Then** every pack setting is cleared, the server restarts on its selected version's loader, and world data stays.
+
+---
+
+### User Story 4 - Packs with mods that block automatic download (Priority: P3)
+
+Some packs include mods whose authors forbid third-party downloads. The operator is told which files are missing and where to put them, uploads them, and restarts. Behaviour depends on OD-5.
+
+**Why this priority**: It affects a minority of packs, but without it those packs fail with no explanation in the panel.
+
+**Independent Test**: Install a pack known to contain a blocked mod, check that the panel names the missing files, upload them to the stated folder, restart, and check the server starts.
+
+**Acceptance Scenarios**:
+
+1. **Given** a pack install stops because files need a manual download, **When** the operator looks at the server, **Then** the panel shows the list of missing files with a link to each download page and the folder to upload them to.
+2. **Given** the files were uploaded to that folder, **When** the server restarts, **Then** the install completes.
+
+---
+
+### Edge Cases
+
+- A pack for an old Minecraft version (≤1.16.5) runs on the `java8` image, which has no built-in CurseForge key. What happens depends on OD-1.
+- The selected server version's Java image does not match the pack's Minecraft version. Search is already filtered to the server's game version and loader, so a pack is only offered for the version the server runs. A pack whose own manifest disagrees fails at boot with the image's error in the server log.
+- The CurseForge key is removed or rotated after a pack is installed. Browsing stops (or uses the new key) at once; any key copy given to game servers follows the admin key (OD-1).
+- CurseForge is unreachable or rate-limits during boot. The server fails to start with the image's error in the log; the panel does not retry in a loop beyond the normal restart policy.
+- A pack is removed from CurseForge after install. A pinned file keeps working while CurseForge still serves it; otherwise the server log shows the error and the operator can pick another pack or remove it.
+- The server is a Paper/Spigot/Bukkit/Purpur or vanilla server. The Modpacks tab stays hidden, as today (`serverHasModpacks`).
+- A pack needs more memory than the server has. Out of scope here; the operator raises memory in the server settings (itzg recommends at least 4 GB).
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The Minecraft module MUST offer CurseForge as a modpack registry on Forge, NeoForge, Fabric and Quilt servers, alongside Modrinth.
+- **FR-002**: CurseForge MUST appear in the Modpacks registry switch only when a CurseForge key is configured, as in the Mods tab today.
+- **FR-003**: Installing a CurseForge pack MUST set the server to install that pack on boot through the game image's own CurseForge modpack mode, and MUST restart the server through the operator like the Modrinth install does today.
+- **FR-004**: Installing a pack from one registry MUST clear every setting of a pack from the other registry, so at most one pack is active per server.
+- **FR-005**: Game servers that install CurseForge packs MUST get a working CurseForge key without exposing the admin's key beyond what OD-1 allows. The key MUST NOT be written into GameServer env as plain text, into server logs, or into API responses.
+- **FR-006**: The operator MUST be able to choose a pack version at install time and the server MUST keep the chosen version across restarts, as settled in OD-2. The same rule applies to Modrinth packs if OD-3 says so.
+- **FR-007**: The Modpacks tab MUST show the active pack (name, registry, version) and offer a Remove action that clears all pack settings and restarts, as settled in OD-4.
+- **FR-008**: When a pack install stops because files need a manual download, the panel MUST name the missing files and the folder they go in, as settled in OD-5.
+- **FR-009**: Install, version change and remove MUST be limited to users who can manage the server (same permission as the Mods and Modpacks tabs today), and each MUST be written to the audit log.
+- **FR-010**: Every new user-facing string MUST go through the shared i18n packs.
+- **FR-011**: The module change MUST follow the module images rule: keep the official itzg image; no custom image.
+- **FR-012**: FTB packs (FTB App, `TYPE=FTBA`) are out of scope for this spec unless OD-6 says otherwise.
+
+### Key Entities
+
+- **Modpack registry entry**: a registry declared by a game module that can install whole packs (today Modrinth; this spec adds CurseForge). Says which settings select a pack, which settings pin its version, and which fixed settings switch the image into pack mode.
+- **Active modpack**: the pack set on one server: registry, pack reference, optional pinned version. Derived from the server's own settings, so it survives API restarts and needs no new database table.
+- **CurseForge key for game servers**: whatever OD-1 settles on (none, or a per-server copy of the admin key the operator keeps in sync).
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: An operator can find and install a CurseForge modpack from the Modpacks tab in under 2 minutes, without editing env or files by hand.
+- **SC-002**: A pinned pack's installed version is unchanged after 3 consecutive restarts.
+- **SC-003**: The admin's CurseForge key never appears in GameServer objects, API responses, audit entries or server logs.
+- **SC-004**: Switching between a Modrinth and a CurseForge pack leaves exactly one pack active, verified by reading the server's settings.
+- **SC-005**: For a pack with blocked mods, the operator can see every missing file name in the panel, with no need to read raw logs.
+
+## Assumptions
+
+- The itzg image keeps supporting `AUTO_CURSEFORGE`, `CF_SLUG`, `CF_FILE_ID`, `CF_API_KEY_FILE` and `CF_DOWNLOADS_REPO` as documented today; the plan re-checks this against the pinned image digests.
+- The existing CurseForge search (class 4471, game 432) and version listing are reused; no new registry engine is needed for CurseForge.
+- Pack world data and the server's data volume are never deleted by install, version change or remove.
+- The design for the Modpacks tab changes (registry switch with CurseForge, version picker, active pack card, missing files notice) is done in `design.pen` through Pencil on valgul's machine before any React code. The copy-paste prompt is written once plan and tasks exist (repo `local-prompt` skill requires a finished spec).
+- Module changes go to `GameplanePanel/module` first; the main repo bumps the submodule pointer only after that PR merges, and installs get the module only after the republish-modules workflow runs.
