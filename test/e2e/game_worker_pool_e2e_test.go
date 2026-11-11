@@ -157,6 +157,9 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 	}
 	// Touch anonymous pages in one process. Forking a sleep helper at the
 	// tenant's ceiling can fail before the kernel OOM-kills the allocator.
+	// OnFailure keeps the Pod cgroup alive for postmortem counters. The new
+	// container's writable layer has no /tmp/leak, so it stays idle.
+	second.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
 	second.Spec.Containers[0].Image = "python:3.14-alpine"
 	second.Spec.Containers[0].Command = []string{"python", "-c", `
 import mmap, os, time
@@ -191,11 +194,19 @@ while True:
 	})
 	labelWorker(workers[1])
 	stopBackup := startPlacementBackup(ctx, t, gameNS, key, workers[1])
+	var leaking *corev1.Pod
 	e.Eventually(t, time.Minute, func() (bool, string) {
 		live, err := pods.Get(ctx, second.Name, metav1.GetOptions{})
-		return err == nil && live.Spec.NodeName == workers[1] && live.Status.Phase == corev1.PodRunning, fmt.Sprint(err)
+		if err != nil {
+			return false, err.Error()
+		}
+		leaking = live
+		return live.Spec.NodeName == workers[1] && len(live.Status.ContainerStatuses) == 1 &&
+			live.Status.ContainerStatuses[0].State.Running != nil && live.Status.ContainerStatuses[0].RestartCount == 0, fmt.Sprint(live.Status.Phase)
 	})
 	recordWorkerCapacity(ctx, t, workers[1])
+	before := readTenantMemoryEvents(ctx, t, leaking)
+	originalID := leaking.Status.ContainerStatuses[0].ContainerID
 	kubectl("exec", "-n", ns, second.Name, "--", "touch", "/tmp/leak")
 	sampleNeighborTicks(ctx, t, gameNS, gamePod.Name, "start, leak and backup after worker loss")
 	e.Eventually(t, 3*time.Minute, func() (bool, string) {
@@ -203,16 +214,28 @@ while True:
 		if err != nil {
 			return false, err.Error()
 		}
-		for _, status := range live.Status.ContainerStatuses {
-			if ended := status.State.Terminated; ended != nil {
-				if live.Spec.NodeName != workers[1] || ended.Reason != "OOMKilled" {
-					logs, _ := e.Kubectl(ctx, "logs", "-n", ns, second.Name, "-c", "game", "--tail=10")
-					t.Fatalf("tenant stopped on %s: reason=%s exit=%d message=%s logs=%s", live.Spec.NodeName, ended.Reason, ended.ExitCode, ended.Message, logs)
-				}
-				return true, ""
-			}
+		if live.UID != leaking.UID || live.Spec.NodeName != leaking.Spec.NodeName {
+			t.Fatalf("leaking Pod changed identity or node: %s on %s", live.UID, live.Spec.NodeName)
 		}
-		return false, fmt.Sprint(live.Status.Phase)
+		if len(live.Status.ContainerStatuses) != 1 {
+			return false, "waiting for game container status"
+		}
+		status := live.Status.ContainerStatuses[0]
+		ended := status.LastTerminationState.Terminated
+		if status.State.Running == nil || ended == nil {
+			return false, fmt.Sprint(status.State)
+		}
+		if status.RestartCount != 1 || ended.ContainerID != originalID || status.ContainerID == originalID ||
+			ended.ExitCode != 137 || (ended.Reason != "OOMKilled" && ended.Reason != "Error") {
+			t.Fatalf("unexpected game restart: %+v, previous termination: %+v", status, ended)
+		}
+		after := readTenantMemoryEvents(ctx, t, live)
+		if after.group != before.group || after.max <= before.max || after.oom <= before.oom || after.kills <= before.kills {
+			t.Fatalf("missing local limit/OOM/kill increments on %s: before=%+v after=%+v", live.Spec.NodeName, before, after)
+		}
+		t.Logf("tenant %s container %s exited %d (%s) at 32 MiB; Pod cgroup counters before=%+v after=%+v",
+			live.UID, originalID, ended.ExitCode, ended.Reason, before, after)
+		return true, ""
 	})
 	sampleNeighborTicks(ctx, t, gameNS, gamePod.Name, "after tenant OOM")
 	stopBackup()

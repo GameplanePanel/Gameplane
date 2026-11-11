@@ -142,7 +142,12 @@ It then applies the production chart's game Pod
 admission and tenant quota to an isolated namespace. A second Pod exceeds its
 quota. When the test cordons the only game worker and evicts its game Pod, the
 replacement stays Pending until a second worker joins the pool. Its allocating
-process must terminate with `OOMKilled` at the configured memory limit.
+process runs in a verified 32 MiB container cgroup. On the disposable Kind
+worker, the test measures the Pod's hierarchical cgroup-v2 `memory.events`
+before pressure and after a single container restart. The same Pod must record
+increases in `max`, `oom` and `oom_kill`. The preceding container ID must match
+the terminated game with exit 137. These counters distinguish a local limit
+kill even when the runtime records the generic termination reason `Error`.
 
 ### Backup preparation acceptance
 
