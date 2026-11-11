@@ -139,35 +139,14 @@ subjects:
     name: gameplane-api
     namespace: {{ .Release.Namespace }}
 ---
-# Module upload bundles are ConfigMaps in the control-plane namespace
-# (api/internal/handlers/module_upload.go); the operator indexes them
-# via upload-type ModuleSources.
+# System logs are the only namespaced release resources the native API needs.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ .Release.Name }}-api-uploads
+  name: {{ .Release.Name }}-api-logs
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 rules:
-  - apiGroups: [""]
-    resources: [configmaps]
-    verbs: [get, list, create, update, delete]
-  # Notification sink credentials, auth-provider clientSecrets, and
-  # mod-registry API keys (CurseForge/Steam/Nexus) all live as Secrets
-  # here in the control-plane namespace, under their own feature label
-  # (gameplane.local/notification-sink, gameplane.local/auth-provider,
-  # gameplane.local/mod-registry respectively). The API reads them at
-  # use time and — since each feature's Add/Set form accepts the secret
-  # value directly — also creates/updates/deletes them. RBAC can't
-  # filter by label, so the real boundary is in code: reads and updates
-  # refuse Secrets not labelled for the calling feature, and deletes
-  # additionally require gameplane.local/managed-by=gameplane-api so
-  # kubectl-/GitOps-created Secrets are never deleted over HTTP
-  # (api/internal/notify/sinks.go, api/internal/auth/registry.go,
-  # api/internal/registry/keys.go, api/internal/handlers/secrets_managed.go).
-  - apiGroups: [""]
-    resources: [secrets]
-    verbs: [get, list, create, update, patch, delete]
   # System logs admin endpoint (api/internal/handlers/systemlogs.go)
   # streams operator and API pod logs from the control-plane namespace.
   - apiGroups: [""]
@@ -180,10 +159,10 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Release.Name }}-api-uploads
+  name: {{ .Release.Name }}-api-logs
   namespace: {{ .Release.Namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
-roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-uploads }
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-logs }
 subjects:
   - kind: ServiceAccount
     name: gameplane-api
@@ -395,6 +374,10 @@ spec:
             - name: GAMEPLANE_NAMESPACE
               valueFrom:
                 fieldRef: { fieldPath: metadata.namespace }
+            {{- if not .Values.api.standalone }}
+            - name: GAMEPLANE_CREDENTIALS_NAMESPACE
+              value: {{ include "gameplane.credentialsNamespace" . | quote }}
+            {{- end }}
             # Mirror --db-driver/--db-dsn for subcommands run with
             # `kubectl exec deploy/gameplane-api -- /api bootstrap-admin`:
             # they don't see the container args, so without these they fall

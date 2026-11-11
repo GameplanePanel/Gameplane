@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -69,24 +70,53 @@ func (r *GameServerReconciler) reconcileProbePolicy(
 
 // effectiveGameProbes returns the game container's readiness, liveness and
 // startup probes: the template's, with the server's per-probe overrides
-// winning, exactly as the StatefulSet builder applies them.
-func effectiveGameProbes(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) []*corev1.Probe {
-	var readiness, liveness, startup *corev1.Probe
+// winning. Admission, pod rendering and ingress use the same result.
+func effectiveGameProbes(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) gameplanev1alpha1.GameProbesSpec {
+	var probes gameplanev1alpha1.GameProbesSpec
 	if p := tmpl.Spec.Probes; p != nil {
-		readiness, liveness, startup = p.Readiness, p.Liveness, p.Startup
+		probes = *p
 	}
 	if p := gs.Spec.Probes; p != nil {
 		if p.Readiness != nil {
-			readiness = p.Readiness
+			probes.Readiness = p.Readiness
 		}
 		if p.Liveness != nil {
-			liveness = p.Liveness
+			probes.Liveness = p.Liveness
 		}
 		if p.Startup != nil {
-			startup = p.Startup
+			probes.Startup = p.Startup
 		}
 	}
-	return []*corev1.Probe{readiness, liveness, startup}
+	return probes
+}
+
+// Stored CRs and immutable template snapshots may predate CRD validation.
+// The kubelet dials an explicit host from the node, outside pod egress policy.
+func validateProbeHosts(probes gameplanev1alpha1.GameProbesSpec) error {
+	if field := probeHostField(probes); field != "" {
+		return fmt.Errorf("omit spec.probes.%s to probe the game pod", field)
+	}
+	return nil
+}
+
+func probeHostField(probes gameplanev1alpha1.GameProbesSpec) string {
+	for _, p := range []struct {
+		field string
+		probe *corev1.Probe
+	}{
+		{"readiness", probes.Readiness}, {"liveness", probes.Liveness}, {"startup", probes.Startup},
+	} {
+		if p.probe == nil {
+			continue
+		}
+		if p.probe.HTTPGet != nil && p.probe.HTTPGet.Host != "" {
+			return p.field + ".httpGet.host"
+		}
+		if p.probe.TCPSocket != nil && p.probe.TCPSocket.Host != "" {
+			return p.field + ".tcpSocket.host"
+		}
+	}
+	return ""
 }
 
 // probeNetworkPolicyPorts lists the distinct TCP ports the game container's
@@ -96,7 +126,8 @@ func effectiveGameProbes(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alph
 func probeNetworkPolicyPorts(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) []networkingv1.NetworkPolicyPort {
 	seen := map[string]bool{}
 	var out []networkingv1.NetworkPolicyPort
-	for _, probe := range effectiveGameProbes(gs, tmpl) {
+	probes := effectiveGameProbes(gs, tmpl)
+	for _, probe := range []*corev1.Probe{probes.Readiness, probes.Liveness, probes.Startup} {
 		if probe == nil {
 			continue
 		}

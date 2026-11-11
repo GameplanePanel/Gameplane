@@ -1095,10 +1095,16 @@ func (r *RCONSpec) AuthenticationEnabled() bool {
 
 // GameProbesSpec are the default probes for the game container.
 type GameProbesSpec struct {
+	// +kubebuilder:validation:XValidation:rule="!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host == ''",message="omit httpGet.host to probe the game pod",fieldPath=".httpGet.host"
+	// +kubebuilder:validation:XValidation:rule="!has(self.tcpSocket) || !has(self.tcpSocket.host) || self.tcpSocket.host == ''",message="omit tcpSocket.host to probe the game pod",fieldPath=".tcpSocket.host"
 	// +optional
 	Readiness *corev1.Probe `json:"readiness,omitempty"`
+	// +kubebuilder:validation:XValidation:rule="!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host == ''",message="omit httpGet.host to probe the game pod",fieldPath=".httpGet.host"
+	// +kubebuilder:validation:XValidation:rule="!has(self.tcpSocket) || !has(self.tcpSocket.host) || self.tcpSocket.host == ''",message="omit tcpSocket.host to probe the game pod",fieldPath=".tcpSocket.host"
 	// +optional
 	Liveness *corev1.Probe `json:"liveness,omitempty"`
+	// +kubebuilder:validation:XValidation:rule="!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host == ''",message="omit httpGet.host to probe the game pod",fieldPath=".httpGet.host"
+	// +kubebuilder:validation:XValidation:rule="!has(self.tcpSocket) || !has(self.tcpSocket.host) || self.tcpSocket.host == ''",message="omit tcpSocket.host to probe the game pod",fieldPath=".tcpSocket.host"
 	// +optional
 	Startup *corev1.Probe `json:"startup,omitempty"`
 }

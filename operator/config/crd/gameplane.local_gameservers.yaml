@@ -1765,6 +1765,15 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                    x-kubernetes-validations:
+                    - fieldPath: .httpGet.host
+                      message: omit httpGet.host to probe the game pod
+                      rule: '!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host
+                        == '''''
+                    - fieldPath: .tcpSocket.host
+                      message: omit tcpSocket.host to probe the game pod
+                      rule: '!has(self.tcpSocket) || !has(self.tcpSocket.host) ||
+                        self.tcpSocket.host == '''''
                   readiness:
                     description: |-
                       Probe describes a health check to be performed against a container to determine whether it is
@@ -1930,6 +1939,15 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                    x-kubernetes-validations:
+                    - fieldPath: .httpGet.host
+                      message: omit httpGet.host to probe the game pod
+                      rule: '!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host
+                        == '''''
+                    - fieldPath: .tcpSocket.host
+                      message: omit tcpSocket.host to probe the game pod
+                      rule: '!has(self.tcpSocket) || !has(self.tcpSocket.host) ||
+                        self.tcpSocket.host == '''''
                   startup:
                     description: |-
                       Probe describes a health check to be performed against a container to determine whether it is
@@ -2095,6 +2113,15 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                    x-kubernetes-validations:
+                    - fieldPath: .httpGet.host
+                      message: omit httpGet.host to probe the game pod
+                      rule: '!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host
+                        == '''''
+                    - fieldPath: .tcpSocket.host
+                      message: omit tcpSocket.host to probe the game pod
+                      rule: '!has(self.tcpSocket) || !has(self.tcpSocket.host) ||
+                        self.tcpSocket.host == '''''
                 type: object
               resources:
                 description: Resources overrides compute resources from the template.

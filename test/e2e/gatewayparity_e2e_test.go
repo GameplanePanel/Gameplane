@@ -180,12 +180,15 @@ func gatewayBridgeIP(t *testing.T, name string) string {
 	return address
 }
 
-func gatewaySecret(t *testing.T, env *Env, name string, data map[string][]byte, create bool) {
+// gatewaySecret installs or rotates TLS material where its consumer reads it.
+// The central client uses the credentials namespace. The remote gateway mounts
+// its server key and client CA from its own deployment namespace.
+func gatewaySecret(t *testing.T, env *Env, namespace, name string, data map[string][]byte, create bool) {
 	t.Helper()
-	secrets := env.K8s.CoreV1().Secrets("gameplane-system")
+	secrets := env.K8s.CoreV1().Secrets(namespace)
 	if create {
 		_, err := secrets.Create(t.Context(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: name,
-			Namespace: "gameplane-system", Labels: map[string]string{"gameplane.local/agent-gateway-credentials": "true"}}, Data: data}, metav1.CreateOptions{})
+			Namespace: namespace, Labels: map[string]string{"gameplane.local/agent-gateway-credentials": "true"}}, Data: data}, metav1.CreateOptions{})
 		if err != nil {
 			t.Fatalf("create ephemeral credential Secret: %v", err)
 		}
@@ -208,8 +211,8 @@ func (p *gatewayParity) install(t *testing.T) {
 	p.serverCA, p.clientCA = newGatewayTestCA(t), newGatewayTestCA(t)
 	server := p.serverCA.issue(t, "", p.nodeIP)
 	p.clientLeaf = p.clientCA.issue(t, gatewayTestPeer, "")
-	gatewaySecret(t, p.remote, p.serverSecret, map[string][]byte{"tls.crt": server.cert, "tls.key": server.key}, true)
-	gatewaySecret(t, p.remote, p.trustSecret, map[string][]byte{"ca.crt": p.clientCA.pem}, true)
+	gatewaySecret(t, p.remote, "gameplane-system", p.serverSecret, map[string][]byte{"tls.crt": server.cert, "tls.key": server.key}, true)
+	gatewaySecret(t, p.remote, "gameplane-system", p.trustSecret, map[string][]byte{"ca.crt": p.clientCA.pem}, true)
 	apiService, err := p.remote.K8s.CoreV1().Services("default").Get(t.Context(), "kubernetes", metav1.GetOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -336,7 +339,7 @@ func (p *gatewayParity) register(t *testing.T) {
 			response.Body.Close()
 		}
 	})
-	gatewaySecret(t, envInstance, p.clientSecret, p.credentials(p.clientLeaf), true)
+	gatewaySecret(t, envInstance, credentialsNS, p.clientSecret, p.credentials(p.clientLeaf), true)
 	patch, _ := json.Marshal(map[string]any{"spec": map[string]any{"agentGateway": map[string]any{
 		"url": p.endpoint, "tlsSecretRef": map[string]string{"name": p.clientSecret}}}})
 	if _, err := envInstance.Dyn.Resource(clusterGVR).Patch(t.Context(), p.cluster, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
@@ -1083,7 +1086,7 @@ func (p *gatewayParity) rotation(t *testing.T) {
 	// Successful leaf rotation is followed by a CA transition that makes using
 	// the new Secret necessary; a cached old transport cannot pass that check.
 	leaf := p.clientCA.issue(t, gatewayTestPeer, "")
-	gatewaySecret(t, envInstance, p.clientSecret, p.credentials(leaf), false)
+	gatewaySecret(t, envInstance, credentialsNS, p.clientSecret, p.credentials(leaf), false)
 	checkOperation()
 	oldClient := p.directClient(t, p.clientLeaf, p.nodeIP)
 	defer oldClient.CloseIdleConnections()
@@ -1092,7 +1095,7 @@ func (p *gatewayParity) rotation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	gatewaySecret(t, p.remote, p.serverSecret, map[string][]byte{"tls.crt": server.cert, "tls.key": server.key}, false)
+	gatewaySecret(t, p.remote, "gameplane-system", p.serverSecret, map[string][]byte{"tls.crt": server.cert, "tls.key": server.key}, false)
 	p.remote.Eventually(t, 3*time.Minute, func() (bool, string) {
 		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, p.endpoint+"/v1/capabilities", nil)
 		if err != nil {
@@ -1111,7 +1114,7 @@ func (p *gatewayParity) rotation(t *testing.T) {
 	newClient := p.directClient(t, newLeaf, p.nodeIP)
 	defer newClient.CloseIdleConnections()
 	overlap := append(append([]byte{}, p.clientCA.pem...), newCA.pem...)
-	gatewaySecret(t, p.remote, p.trustSecret, map[string][]byte{"ca.crt": overlap}, false)
+	gatewaySecret(t, p.remote, "gameplane-system", p.trustSecret, map[string][]byte{"ca.crt": overlap}, false)
 	p.remote.Eventually(t, 3*time.Minute, func() (bool, string) {
 		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, p.endpoint+"/v1/capabilities", nil)
 		if err != nil {
@@ -1125,9 +1128,9 @@ func (p *gatewayParity) rotation(t *testing.T) {
 		return response.StatusCode == http.StatusOK, "overlapping client roots have not projected"
 	})
 	gatewayDirect(t, oldClient, http.MethodGet, p.endpoint+"/v1/capabilities", http.StatusOK)
-	gatewaySecret(t, envInstance, p.clientSecret, p.credentials(newLeaf), false)
+	gatewaySecret(t, envInstance, credentialsNS, p.clientSecret, p.credentials(newLeaf), false)
 	checkOperation()
-	gatewaySecret(t, p.remote, p.trustSecret, map[string][]byte{"ca.crt": newCA.pem}, false)
+	gatewaySecret(t, p.remote, "gameplane-system", p.trustSecret, map[string][]byte{"ca.crt": newCA.pem}, false)
 	p.remote.Eventually(t, 3*time.Minute, func() (bool, string) {
 		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, p.endpoint+"/v1/capabilities", nil)
 		if err != nil {
@@ -1175,7 +1178,7 @@ func (p *gatewayParity) rotation(t *testing.T) {
 	})
 	// Credential enrollment revocation must be observed on the very next
 	// operation. Every denial is followed by restoration and a positive read.
-	secrets := envInstance.K8s.CoreV1().Secrets("gameplane-system")
+	secrets := envInstance.K8s.CoreV1().Secrets(credentialsNS)
 	secret, err := secrets.Get(t.Context(), p.clientSecret, metav1.GetOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -1197,15 +1200,15 @@ func (p *gatewayParity) rotation(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkOperation()
-	gatewaySecret(t, envInstance, p.clientSecret, map[string][]byte{"tls.crt": []byte("not-a-certificate")}, false)
+	gatewaySecret(t, envInstance, credentialsNS, p.clientSecret, map[string][]byte{"tls.crt": []byte("not-a-certificate")}, false)
 	p.expect(t, p.client, http.MethodGet, p.route("/files/read?path=/site.txt"), nil, http.StatusInternalServerError)
-	gatewaySecret(t, envInstance, p.clientSecret, p.credentials(p.clientLeaf), false)
+	gatewaySecret(t, envInstance, credentialsNS, p.clientSecret, p.credentials(p.clientLeaf), false)
 	checkOperation()
 	if err := secrets.Delete(t.Context(), p.clientSecret, metav1.DeleteOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	p.expect(t, p.client, http.MethodGet, p.route("/files/read?path=/site.txt"), nil, http.StatusNotFound)
-	gatewaySecret(t, envInstance, p.clientSecret, p.credentials(p.clientLeaf), true)
+	gatewaySecret(t, envInstance, credentialsNS, p.clientSecret, p.credentials(p.clientLeaf), true)
 	checkOperation()
 	if _, err := envInstance.Dyn.Resource(clusterGVR).Patch(t.Context(), p.cluster, types.MergePatchType,
 		[]byte(`{"spec":{"agentGateway":null}}`), metav1.PatchOptions{}); err != nil {

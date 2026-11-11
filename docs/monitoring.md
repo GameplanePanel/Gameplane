@@ -53,11 +53,13 @@ on TCP 9090 and `app.kubernetes.io/name: gameplane-tunnel` on TCP 8091, with a
 namespace selector for the scraper. Restricted Prometheus egress policies must
 also allow those destinations, DNS and API discovery.
 
-For enforced isolation, configure `networkPolicies.strict: true`, actual
-`kubeletCIDRs` and `apiServerCIDRs`, and the game modules' exact `probePorts`.
-The legacy broad kubelet allowance can otherwise admit other private-address
-sources on metrics ports. Keep metrics ports out of the game probe allowance;
-the dedicated scrape policies grant their access. The CI monitoring bucket
+For enforced isolation, configure `networkPolicies.strict: true` with the
+actual kubelet and API endpoints. With per-server probe ingress enabled,
+leave `networkPolicies.probePorts: []`. Each game receives its own probe ports.
+Every explicit shared port grants kubelets access to that port on **all** game
+pods. If you disable per-server probe ingress, list the shared ports explicitly:
+an empty list in that legacy mode opens every game-pod port to the kubelet CIDRs.
+Use the dedicated scrape policies for metrics. The CI monitoring bucket
 uses Cilium and actual node/API addresses, tests a scraper in a separate
 namespace, revokes/restores the scrape policy, and checks an unapproved namespace
 cannot reach agent metrics.
