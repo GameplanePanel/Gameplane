@@ -2191,6 +2191,9 @@ jobs:
         uses: ./.github/actions/e2e-images
         with:
           arch: ${{ matrix.arch }}
+      - name: verify release consumer provenance and cluster ownership guards
+        if: matrix.arch == 'amd64'
+        run: bash test/e2e/release-consumer-checks.sh
       - name: bring up cluster on the PREVIOUS release
         run: ./deploy/kind/upgrade.sh up "$CLUSTER" e2e
       - name: install Argo CD for the populated GitOps upgrade

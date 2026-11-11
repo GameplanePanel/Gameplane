@@ -12,6 +12,7 @@
 #
 # Usage:
 #   deploy/kind/upgrade.sh up   [cluster-name] [tag]
+#   deploy/kind/upgrade.sh install <existing-kind-cluster> [tag]
 #   deploy/kind/upgrade.sh down [cluster-name]
 
 set -euo pipefail
@@ -40,23 +41,20 @@ CHART_REF="oci://ghcr.io/valgulnecron/charts/gameplane"
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }
 
 case "${ACTION}" in
-up)
+up|install)
     need kind
     need kubectl
     need helm
     need docker
 
-    if kind get clusters | grep -qx "${CLUSTER}"; then
-        echo "removing pre-existing cluster ${CLUSTER} for a clean slate"
-        kind delete cluster --name "${CLUSTER}" || true
+    if [[ "$ACTION" == up ]]; then
+        # Kind's default is a single control-plane node. Creation rejects
+        # collisions and leaves the existing cluster and its volumes alone.
+        kind create cluster --name "${CLUSTER}" --wait 90s
+    elif [[ -z ${2:-} ]]; then
+        echo "install requires the name of the existing Kind cluster" >&2
+        exit 2
     fi
-    echo "creating kind cluster ${CLUSTER} (single-node)"
-    kind create cluster --name "${CLUSTER}" --wait 90s --config - <<EOF
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  - role: control-plane
-EOF
 
     kubectl cluster-info --context "kind-${CLUSTER}" >/dev/null
 
@@ -87,6 +85,7 @@ EOF
     # Note what is NOT overridden: image.registry/image.tag. The old release
     # must pull its own published GHCR images, or this tests nothing.
     helm install gameplane "${CHART_REF}" \
+        --kube-context "kind-${CLUSTER}" \
         --version "${FROM_VERSION}" \
         --namespace gameplane-system --create-namespace \
         --set "ingress.enabled=false" \
@@ -110,7 +109,7 @@ down)
     ;;
 
 *)
-    echo "usage: $0 {up|down} [cluster-name] [tag]" >&2
+    echo "usage: $0 {up|install|down} [cluster-name] [tag]" >&2
     exit 2
     ;;
 esac
