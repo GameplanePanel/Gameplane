@@ -4,7 +4,9 @@ package e2e
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,6 +19,56 @@ import (
 )
 
 var tickPercentiles = regexp.MustCompile(`P95:\s*([0-9.]+)\s*ms\s+P99:\s*([0-9.]+)\s*ms`)
+
+// The Pod parent survives a container restart. Its hierarchical memory.events
+// retains the original leaf's limit hits and OOM kills after containerd
+// removes that leaf. This test Pod has just one application container.
+type tenantMemoryEvents struct {
+	group           string
+	max, oom, kills uint64
+}
+
+func readTenantMemoryEvents(ctx context.Context, t *testing.T, pod *corev1.Pod) tenantMemoryEvents {
+	t.Helper()
+	if envInstance.Context != "kind-"+envInstance.ClusterName || !strings.HasPrefix(pod.Spec.NodeName, envInstance.ClusterName+"-") {
+		t.Fatal("memory qualification requires the disposable Kind worker")
+	}
+	if len(pod.Status.ContainerStatuses) != 1 || pod.Status.ContainerStatuses[0].Name != "game" {
+		t.Fatalf("unexpected tenant containers: %+v", pod.Status.ContainerStatuses)
+	}
+	id, ok := strings.CutPrefix(pod.Status.ContainerStatuses[0].ContainerID, "containerd://")
+	rawID, err := hex.DecodeString(id)
+	if !ok || err != nil || len(rawID) != 32 {
+		t.Fatalf("invalid containerd game container ID: %q", id)
+	}
+	const read = `
+set -eu
+leaf=$(find /sys/fs/cgroup -xdev -ignore_readdir_race -type d \( -name "$1" -o -name "cri-containerd-$1.scope" \) -print)
+test -d "$leaf" || { echo "missing unique cgroup for $1" >&2; exit 1; }
+group=${leaf%/*}
+systemd_uid=$(printf '%s' "$2" | tr '-' '_')
+case ${group##*/} in
+  "pod$2"|*"-pod$systemd_uid.slice") ;;
+  *) echo "container $1 has unexpected Pod parent $group for $2" >&2; exit 1 ;;
+esac
+awk -v group="$group" -v limit="$(cat "$leaf/memory.max")" '
+  { value[$1]=$2 }
+  END {
+    if (!("max" in value && "oom" in value && "oom_kill" in value)) exit 1
+    print group, limit, value["max"], value["oom"], value["oom_kill"]
+  }' "$group/memory.events"
+`
+	out, err := exec.CommandContext(ctx, "docker", "exec", pod.Spec.NodeName, "sh", "-ec", read, "sh", id, string(pod.UID)).CombinedOutput()
+	if err != nil {
+		t.Fatalf("read tenant cgroup on %s: %v: %s", pod.Spec.NodeName, err, out)
+	}
+	var snapshot tenantMemoryEvents
+	var limit int64
+	if _, err := fmt.Sscan(string(out), &snapshot.group, &limit, &snapshot.max, &snapshot.oom, &snapshot.kills); err != nil || limit != 32<<20 {
+		t.Fatalf("expected counters and a 32 MiB game leaf on %s: %q (%v)", pod.Spec.NodeName, out, err)
+	}
+	return snapshot
+}
 
 func sampleNeighborTicks(ctx context.Context, t *testing.T, ns, pod, phase string) {
 	t.Helper()
