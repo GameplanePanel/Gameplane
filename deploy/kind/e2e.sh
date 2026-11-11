@@ -32,9 +32,9 @@ kindnet | cilium) ;;
 *) echo "unsupported E2E CNI: ${CNI}" >&2; exit 2 ;;
 esac
 case "${PROFILE}" in
-default | postgres | two-node | management) ;;
+default | postgres | postgres-ha | two-node | management) ;;
 *)
-    echo "unknown profile '${PROFILE}' (want default, postgres, two-node or management)" >&2
+    echo "unknown profile '${PROFILE}' (want default, postgres, postgres-ha, two-node or management)" >&2
     exit 2
     ;;
 esac
@@ -202,7 +202,7 @@ up)
     extra_nodes=""
     if [[ "${PROFILE}" == "two-node" ]]; then
         extra_nodes="  - role: worker"
-    elif [[ "${PROFILE}" == "management" ]]; then
+    elif [[ "${PROFILE}" == "management" || "${PROFILE}" == "postgres-ha" ]]; then
         extra_nodes=$'  - role: worker\n  - role: worker'
     fi
     kind create cluster --name "${CLUSTER}" --wait "${kind_wait}" --config - <<EOF
@@ -291,7 +291,7 @@ EOF
     echo "creating gameplane-system namespace (pre-Helm, for the fake-OIDC fixture)"
     kubectl create namespace gameplane-system --dry-run=client -o yaml | kubectl apply -f -
 
-    if [ "${PROFILE}" = postgres ]; then
+    if [[ "${PROFILE}" == postgres || "${PROFILE}" == postgres-ha ]]; then
         echo "deploying PostgreSQL (postgres profile)"
         kubectl apply -f "${HERE}/postgres.yaml"
         kubectl rollout status --namespace gameplane-system \
@@ -387,8 +387,12 @@ EOF
             --set networkPolicies.probePorts[0].protocol=TCP
             --set networkPolicies.probePorts[0].port=25566)
     fi
-    if [ "${PROFILE}" = postgres ]; then
+    if [[ "${PROFILE}" == postgres || "${PROFILE}" == postgres-ha ]]; then
         DB_SETS=(--set api.db.driver=postgres --set api.db.existingSecret=gameplane-postgres)
+    fi
+    if [[ "${PROFILE}" == postgres-ha ]]; then
+        kubectl label nodes "${CLUSTER}-worker" "${CLUSTER}-worker2" gameplane-ha=worker
+        DB_SETS+=(--set-string api.nodeSelector.gameplane-ha=worker)
     fi
 
     echo "helm upgrade --install gameplane"

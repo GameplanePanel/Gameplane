@@ -2459,7 +2459,7 @@ jobs:
     needs: [changes, build-images]
     if: (needs.changes.outputs.e2e == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'e2e-postgres')
     runs-on: ubuntu-latest
-    timeout-minutes: 75 # Boots PostgreSQL and runs auth, roles, RBAC, then availability.
+    timeout-minutes: 105 # Sequential singleton/PITR and isolated multi-worker failover drills.
     permissions:
       contents: read
     env:
@@ -2536,6 +2536,23 @@ jobs:
         uses: ./.github/actions/dump-cluster-state
         with:
           context: ${{ env.CTX }}
+          namespaces: "gameplane-system,gameplane-games"
+          include-previous-logs: "true"
+      - name: replace the PITR cluster with an isolated HA cluster
+        run: |
+          ./deploy/kind/e2e.sh down "$CLUSTER"
+          ./deploy/kind/e2e.sh up gameplane-postgres-ha e2e postgres-ha
+      - name: run go e2e (postgres-ha)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-ha)"
+          cd test/e2e
+          GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER=gameplane-postgres-ha \
+            go test -tags=e2e -timeout 20m -v -parallel 1 -run "$RUN_REGEX" ./...
+      - name: dump the HA cluster on failure
+        if: failure()
+        uses: ./.github/actions/dump-cluster-state
+        with:
+          context: kind-gameplane-postgres-ha
           namespaces: "gameplane-system,gameplane-games"
           include-previous-logs: "true"
 
@@ -2953,6 +2970,8 @@ jobs:
                 if (availability && availability.conclusion === 'success') bucketSet.add('postgres-availability');
                 const pitr = j.steps.find((s) => s.name === 'run go e2e (postgres-pitr)');
                 if (pitr && pitr.conclusion === 'success') bucketSet.add('postgres-pitr');
+                const ha = j.steps.find((s) => s.name === 'run go e2e (postgres-ha)');
+                if (ha && ha.conclusion === 'success') bucketSet.add('postgres-ha');
               }
               // The ratelimit bucket runs as a trailing step inside the
               // api-auth job leg (deliberately, so it drains the shared

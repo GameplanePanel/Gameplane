@@ -78,7 +78,9 @@ def check_api_availability():
         objects = render({"api": ha}, upgrade=upgrade)
         dep = one(objects, "Deployment", "gameplane-api")["spec"]
         assert dep["strategy"] == {"type": "RollingUpdate", "rollingUpdate": {"maxSurge": 0, "maxUnavailable": 1}}
+        assert dep["minReadySeconds"] == 5
         pod = dep["template"]["spec"]
+        assert next(c for c in pod["containers"] if c["name"] == "api")["lifecycle"]["preStop"]["sleep"]["seconds"] == 5
         term = pod["affinity"]["podAntiAffinity"]["requiredDuringSchedulingIgnoredDuringExecution"][0]
         assert term["topologyKey"] == "kubernetes.io/hostname"
         assert term["labelSelector"]["matchLabels"]["app.kubernetes.io/name"] == "gameplane-api"
