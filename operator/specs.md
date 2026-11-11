@@ -511,7 +511,7 @@ different copy under the old owner. See [operator operation recovery](../docs/op
   - Refresh on interval (spec.refreshInterval, default 1 hour, minimum 1 minute).
   - Fetch module metadata (module.yaml) from source (OCI, git, HTTP, local dir).
   - Report status.modules[] with name, version, digest, description.
-  - Handle credentials: read the per-source-type optional Secret ref — `spec.oci.pullSecretRef` (dockerconfigjson), `spec.git.secretRef`, or `spec.http.secretRef` — and pass it to the matching fetcher. There is no top-level `spec.auth` field.
+  - Resolve `spec.oci.pullSecretRef` (dockerconfigjson), `spec.git.secretRef` or `spec.http.secretRef` in the module credential namespace. A Git or HTTP Secret must carry `gameplane.local/git-source-url` or `gameplane.local/http-source-url` respectively, matching the exact source URL. HTTP archive redirects proceed without credentials. Authenticated Git requires the final repository URL.
   - Fetchers and signature verification reject `kubernetes.io/service-account-token` Secrets before using any of their data.
   - Report IndexFailed condition if fetch fails.
 

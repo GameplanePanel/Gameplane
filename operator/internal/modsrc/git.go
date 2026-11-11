@@ -2,9 +2,11 @@ package modsrc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -28,7 +30,6 @@ import (
 
 	"github.com/GameplanePanel/gameplane/netguard"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
-	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // registerGuardedGitHTTP installs an SSRF-guarded http client as go-git's
@@ -36,7 +37,16 @@ import (
 // endpoint (see internal/netguard). It is process-global go-git state, set
 // once on the first real clone; tests stub gitClone and never reach it.
 var registerGuardedGitHTTP = sync.OnceFunc(func() {
-	gitclient.InstallProtocol("https", githttp.NewClient(netguard.HTTPClient(2*time.Minute, netguard.IsAllowed)))
+	c := netguard.HTTPClient(2*time.Minute, netguard.IsAllowed)
+	c.CheckRedirect = func(_ *http.Request, via []*http.Request) error {
+		// go-git adopts a redirected repository URL and can reapply BasicAuth
+		// on later requests to another repository on the same host.
+		if via[0].Header.Get("Authorization") != "" {
+			return errors.New("authenticated Git redirect refused; configure the final repository URL")
+		}
+		return nil
+	}
+	gitclient.InstallProtocol("https", githttp.NewClient(c))
 })
 
 // scpLikeURL matches git's scp-style syntax ("git@github.com:org/repo").
@@ -172,7 +182,7 @@ func gitAuth(ctx context.Context, c client.Client, namespace string, secretRef *
 	if secretRef == nil || secretRef.Name == "" {
 		return nil, nil
 	}
-	sec, err := secretscope.ReadModuleSecret(ctx, c, namespace, secretRef.Name)
+	sec, err := readSourceCredential(ctx, c, namespace, secretRef.Name, "gameplane.local/git-source-url", url)
 	if err != nil {
 		return nil, fmt.Errorf("get git credentials %s/%s: %w", namespace, secretRef.Name, err)
 	}

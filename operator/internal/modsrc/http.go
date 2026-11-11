@@ -23,7 +23,6 @@ import (
 
 	"github.com/GameplanePanel/gameplane/netguard"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
-	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // Hard caps on archives an http source will accept. A module bundle is
@@ -39,7 +38,21 @@ const (
 // cloud metadata endpoint (see internal/netguard). Loopback and private
 // registries are still reachable — only link-local/metadata/multicast are
 // refused, at dial time so a DNS name rebinding to one is caught too.
-var httpFetchClient = netguard.HTTPClient(2*time.Minute, netguard.IsAllowed)
+var httpFetchClient = newArchiveHTTPClient()
+
+func newArchiveHTTPClient() *http.Client {
+	c := netguard.HTTPClient(2*time.Minute, netguard.IsAllowed)
+	c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		// A private archive may redirect to a pre-signed download. Only the
+		// exact URL selected by the Secret's owner receives its credential.
+		req.Header.Del("Authorization")
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+		return nil
+	}
+	return c
+}
 
 // newHTTP builds a Fetcher over an archive (.tar.gz/.tgz/.zip) served
 // at an http(s) URL. The archive is downloaded fresh on each index and
@@ -48,7 +61,7 @@ func newHTTP(ctx context.Context, c client.Client, namespace string, spec *gamep
 	if err := checkHTTPURL(spec.URL, spec.Insecure); err != nil {
 		return nil, err
 	}
-	authHeader, err := httpAuth(ctx, c, namespace, spec.SecretRef)
+	authHeader, err := httpAuth(ctx, c, namespace, spec.SecretRef, spec.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +129,11 @@ func checkHTTPURL(raw string, insecure bool) error {
 // httpAuth resolves the source's credential Secret into an
 // Authorization header value: "token" → Bearer, else basic auth from
 // "username"+"password".
-func httpAuth(ctx context.Context, c client.Client, namespace string, secretRef *corev1.LocalObjectReference) (string, error) {
+func httpAuth(ctx context.Context, c client.Client, namespace string, secretRef *corev1.LocalObjectReference, sourceURL string) (string, error) {
 	if secretRef == nil || secretRef.Name == "" {
 		return "", nil
 	}
-	sec, err := secretscope.ReadModuleSecret(ctx, c, namespace, secretRef.Name)
+	sec, err := readSourceCredential(ctx, c, namespace, secretRef.Name, "gameplane.local/http-source-url", sourceURL)
 	if err != nil {
 		return "", fmt.Errorf("get http credentials %s/%s: %w", namespace, secretRef.Name, err)
 	}
