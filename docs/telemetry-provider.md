@@ -549,10 +549,12 @@ automatic retry.
 ### Tune it from `/metrics`
 
 Difficulty depends on `r`, the challenges issued in the last 60 seconds, and
-`INGEST_POW_TARGET_PER_MIN` (`T`). At or below `T` the difficulty is
-`INGEST_POW_MIN_BITS` (default `0`: no work). Above it, it is
-`ceil(2 * log2(r / T))`, capped at `INGEST_POW_MAX_BITS`; it rises at once and
-falls one bit every five minutes. An install's expected work is about
+`INGEST_POW_TARGET_PER_MIN` (`T`). At or below `T` the rate adds no
+difficulty; above it, it asks for `ceil(2 * log2(r / T))` bits, capped at
+`INGEST_POW_MAX_BITS`. The difficulty rises at once and keeps that peak,
+falling one bit every five minutes, so it can stay above
+`INGEST_POW_MIN_BITS` (default `0`: no work) for a while after `r` drops back
+to `T` or below; it is never below the minimum. An install's expected work is about
 `2^bits` hashes, and installs refuse anything above 26 bits.
 
 Each daily report asks for one challenge, so challenges per minute are
