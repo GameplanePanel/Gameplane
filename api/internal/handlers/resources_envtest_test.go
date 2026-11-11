@@ -100,14 +100,16 @@ func TestResources_ProbeHosts(t *testing.T) {
 			tc.spec["probes"] = map[string]any{"readiness": map[string]any{"httpGet": httpGet}}
 			obj := map[string]any{"apiVersion": "gameplane.local/v1alpha1", "kind": tc.kind,
 				"metadata": map[string]any{"name": name}, "spec": tc.spec}
-			assertInvalid := func(resp *http.Response, field string) {
+			assertInvalid := func(method, path string, payload map[string]any, field string) {
 				t.Helper()
-				body := readBody(t, resp)
-				if resp.StatusCode != http.StatusUnprocessableEntity || !strings.Contains(body, "spec.probes."+field) {
-					t.Fatalf("expected 422 identifying %s, got %d: %s", field, resp.StatusCode, body)
+				resp := doJSON(t, method, path, payload)
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil || resp.StatusCode != http.StatusUnprocessableEntity || !bytes.Contains(body, []byte("spec.probes."+field)) {
+					t.Fatalf("expected 422 identifying %s, got %d: %s (%v)", field, resp.StatusCode, body, err)
 				}
 			}
-			assertInvalid(doJSON(t, http.MethodPost, tc.path, obj), "readiness.httpGet.host")
+			assertInvalid(http.MethodPost, tc.path, obj, "readiness.httpGet.host")
 			httpGet["host"] = ""
 			resp := doJSON(t, http.MethodPost, tc.path, obj)
 			if resp.StatusCode != http.StatusCreated {
@@ -119,12 +121,12 @@ func TestResources_ProbeHosts(t *testing.T) {
 				t.Fatal(err)
 			}
 			path := tc.path + "/" + name
-			t.Cleanup(func() { doJSON(t, http.MethodDelete, path, nil).Body.Close() })
+			defer func() { doJSON(t, http.MethodDelete, path, nil).Body.Close() }()
 			probe := map[string]any{"tcpSocket": map[string]any{"port": "health", "host": "localhost"}}
 			if err := unstructured.SetNestedMap(created.Object, probe, "spec", "probes", "startup"); err != nil {
 				t.Fatal(err)
 			}
-			assertInvalid(doJSON(t, http.MethodPut, path, created.Object), "startup.tcpSocket.host")
+			assertInvalid(http.MethodPut, path, created.Object, "startup.tcpSocket.host")
 		})
 	}
 }

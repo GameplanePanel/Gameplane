@@ -93,6 +93,13 @@ func effectiveGameProbes(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alph
 // Stored CRs and immutable template snapshots may predate CRD validation.
 // The kubelet dials an explicit host from the node, outside pod egress policy.
 func validateProbeHosts(probes gameplanev1alpha1.GameProbesSpec) error {
+	if field := probeHostField(probes); field != "" {
+		return fmt.Errorf("omit spec.probes.%s to probe the game pod", field)
+	}
+	return nil
+}
+
+func probeHostField(probes gameplanev1alpha1.GameProbesSpec) string {
 	for _, p := range []struct {
 		field string
 		probe *corev1.Probe
@@ -103,13 +110,13 @@ func validateProbeHosts(probes gameplanev1alpha1.GameProbesSpec) error {
 			continue
 		}
 		if p.probe.HTTPGet != nil && p.probe.HTTPGet.Host != "" {
-			return fmt.Errorf("omit spec.probes.%s.httpGet.host to probe the game pod", p.field)
+			return p.field + ".httpGet.host"
 		}
 		if p.probe.TCPSocket != nil && p.probe.TCPSocket.Host != "" {
-			return fmt.Errorf("omit spec.probes.%s.tcpSocket.host to probe the game pod", p.field)
+			return p.field + ".tcpSocket.host"
 		}
 	}
-	return nil
+	return ""
 }
 
 // probeNetworkPolicyPorts lists the distinct TCP ports the game container's

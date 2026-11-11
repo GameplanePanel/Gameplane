@@ -363,9 +363,9 @@ func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, 
 		return false, nil
 	}
 	for _, c := range ss.Spec.Template.Spec.Containers {
-		if c.Name == gameContainerName && validateProbeHosts(gameplanev1alpha1.GameProbesSpec{
+		if c.Name == gameContainerName && probeHostField(gameplanev1alpha1.GameProbesSpec{
 			Readiness: c.ReadinessProbe, Liveness: c.LivenessProbe, Startup: c.StartupProbe,
-		}) != nil {
+		}) != "" {
 			// The desired probes passed validation. Render them in place of
 			// the unsafe pre-upgrade pod template.
 			return false, nil
