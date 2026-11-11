@@ -182,9 +182,23 @@ mergeOverwrite preserves explicit zero/empty values so validation can reject the
 {{- uniq $namespaces | toJson -}}
 {{- end -}}
 
+{{- /* Both native components resolve remote-cluster credentials here. Keep
+the existing operator override for installations with a dedicated namespace. */ -}}
+{{- define "gameplane.credentialsNamespace" -}}
+{{- include "gameplane.namespace" (.Values.api.credentialsNamespace | default .Values.operator.controlPlaneNamespace | default (printf "%s-credentials" .Release.Namespace)) -}}
+{{- end -}}
+
+{{- define "gameplane.operatorClusterCredentialsNamespace" -}}
+{{- if and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) -}}
+{{- include "gameplane.credentialsNamespace" . -}}
+{{- else -}}
+{{- .Values.operator.controlPlaneNamespace | default .Release.Namespace -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "gameplane.operatorSecretNamespaces" -}}
 {{- $namespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray -}}
-{{- range list (.Values.operator.controlPlaneNamespace | default .Release.Namespace) (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) -}}
+{{- range list (include "gameplane.operatorClusterCredentialsNamespace" .) (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) -}}
 {{- $namespaces = append $namespaces (include "gameplane.namespace" .) -}}
 {{- end -}}
 {{- uniq $namespaces | toJson -}}

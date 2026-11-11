@@ -1,0 +1,99 @@
+{{- $operator := eq (include "gameplane.operatorEnabled" .) "true" -}}
+{{- $nativeAPI := and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) -}}
+{{- if or $operator $nativeAPI -}}
+{{- /* Helm 3 client renders (even template --dry-run=server) can have only
+group/versions in Capabilities. Always emit the policies for GitOps too. */ -}}
+{{- if and (.Capabilities.APIVersions.Has "v1/Namespace") (not (.Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy")) -}}
+{{- fail "native Gameplane requires Kubernetes 1.30+ with ValidatingAdmissionPolicy enabled" -}}
+{{- end -}}
+{{- $games := include "gameplane.operatorGameNamespaces" . | fromJsonArray -}}
+{{- $protected := $games -}}
+{{- if $operator -}}
+{{- $protected = include "gameplane.operatorSecretNamespaces" . | fromJsonArray -}}
+{{- else if $nativeAPI -}}
+{{- $protected = append $protected (include "gameplane.credentialsNamespace" .) -}}
+{{- end -}}
+{{- $protected = append $protected .Release.Namespace -}}
+{{- $tokens := printf "bound-tokens.%s.%s" .Release.Name .Release.Namespace -}}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ $tokens }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["secrets"]
+        scope: Namespaced
+  validations:
+    - expression: "!has(object.type) || object.type != 'kubernetes.io/service-account-token'"
+      message: "Use projected, expiring ServiceAccount tokens in Gameplane namespaces."
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ $tokens }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  policyName: {{ $tokens }}
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values: {{ uniq $protected | toJson }}
+{{- if and $operator .Values.podSecurity.enforceRestricted }}
+{{- $restricted := printf "restricted-games.%s.%s" .Release.Name .Release.Namespace }}
+---
+# Additional managed namespaces belong to their administrator. Refuse game
+# Pods if their PSA labels are missing or drift after the operator gains RBAC.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ $restricted }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+        scope: Namespaced
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["UPDATE"]
+        resources: ["pods/ephemeralcontainers"]
+        scope: Namespaced
+  validations:
+    - expression: >-
+        'pod-security.kubernetes.io/enforce' in namespaceObject.metadata.labels &&
+        namespaceObject.metadata.labels['pod-security.kubernetes.io/enforce'] == 'restricted' &&
+        'pod-security.kubernetes.io/enforce-version' in namespaceObject.metadata.labels &&
+        namespaceObject.metadata.labels['pod-security.kubernetes.io/enforce-version'] == {{ .Values.podSecurity.version | default "v1.34" | quote }}
+      message: "Label the game namespace with Restricted Pod Security and the chart's configured enforce-version."
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ $restricted }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+spec:
+  policyName: {{ $restricted }}
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values: {{ $games | toJson }}
+{{- end }}
+{{- end }}

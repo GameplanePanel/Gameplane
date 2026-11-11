@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"flag"
@@ -223,8 +224,9 @@ func main() {
 	if err != nil && cfg.oidcIssuer != "" {
 		logger.Warn("oidc disabled", "err", err)
 	}
+	credentialsNS, moduleConfigMapNS := cfg.managementNamespaces()
 	authRegistry := auth.NewRegistry(store,
-		auth.NewK8sSecretReader(k8s, cfg.namespace), oidcAuth, cfg.oidcDisplayName, helmPolicy)
+		auth.NewK8sSecretReader(k8s, credentialsNS), oidcAuth, cfg.oidcDisplayName, helmPolicy)
 
 	var auditOpts []audit.Option
 	var webhookDone <-chan struct{}
@@ -276,14 +278,14 @@ func main() {
 	// backup/restore outcomes) and push matching events to the sinks
 	// configured in Admin Settings. Best-effort mirror — never gates
 	// reconciliation or requests.
-	notifier := notify.New(store, k8s, cfg.namespace)
+	notifier := notify.New(store, k8s, credentialsNS)
 	go notifier.RunWithRegistry(ctx, reg)
 
 	// Cluster registry: watch Cluster CRDs and populate the client registry
 	// with remote cluster connections. Single-cluster installs only have the
 	// "local" cluster (the control plane); this watcher loads remote clusters
 	// from kubeconfigs stored as Secrets.
-	go kube.WatchClusters(ctx, k8s, reg, cfg.namespace)
+	go kube.WatchClusters(ctx, k8s, reg, credentialsNS)
 
 	// Optional Steam display-name lookup for player lists. Off unless the
 	// key is set; the resolver is then the only holder of the key and of
@@ -388,18 +390,18 @@ func main() {
 		telemetrySettings := handlers.TelemetrySettings{Dest: telemetryDest, Interval: cfg.telemetryInterval, Deps: telemetryDeps}
 		handlers.MountConfigWithTelemetry(p, store, auditor, oidcAuth != nil, cfg.gameDataStorageClass, helmPolicy, telemetrySettings)
 		handlers.MountTelemetry(p, store, telemetrySettings)
-		handlers.MountNotifications(p, notifier, k8s, cfg.namespace)
-		handlers.MountAuthProviderSecrets(p, k8s, cfg.namespace)
+		handlers.MountNotifications(p, notifier, k8s, credentialsNS)
+		handlers.MountAuthProviderSecrets(p, k8s, credentialsNS)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)
 		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
-		handlers.MountClusters(p, reg, k8s, cfg.namespace)
+		handlers.MountClusters(p, reg, k8s, credentialsNS)
 		handlers.MountInstallation(p, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
 		handlers.MountDestinations(p, reg)
 		handlers.MountTunnelCredentials(p, reg)
 		handlers.MountSystemLogs(p, k8s, cfg.namespace)
-		handlers.MountModulesWithRegistry(p, reg, cfg.namespace)
-		handlers.MountRegistrySecrets(p, k8s, cfg.namespace)
+		handlers.MountModulesWithRegistry(p, reg, moduleConfigMapNS)
+		handlers.MountRegistrySecrets(p, k8s, credentialsNS)
 		// Precedence: a runtime, admin-configured key (DB row + labelled
 		// Secret, resolved lazily per registry.DBKeyFunc) always wins over
 		// the startup --curseforge-api-key flag, so adding/rotating a key
@@ -408,13 +410,13 @@ func main() {
 		// air-gapped/GitOps installs that never touch admin config keep
 		// working exactly as before.
 		regSet := registry.NewSet(Version, registry.FallbackKeys(
-			registry.DBKeyFunc(store, registry.NewK8sSecretReader(k8s, cfg.namespace)),
+			registry.DBKeyFunc(store, registry.NewK8sSecretReader(k8s, credentialsNS)),
 			registry.StaticKeys(map[string]string{"curseforge": cfg.curseforgeAPIKey}),
 		))
 		handlers.MountRegistryWithRegistry(p, reg, regSet)
 		// Internal reads use the same selected cluster and credentials as
 		// browser-facing agent routes, including remote-only management installs.
-		agentLister := ws.NewClusterAgentClient(reg, cfg.namespace, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
+		agentLister := ws.NewClusterAgentClient(reg, credentialsNS, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
 		handlers.MountModUpdatesWithRegistry(p, reg, regSet, agentLister)
 		// ID-managed mods (ARK CurseForge ids, Project Zomboid MOD_IDS,
 		// Steam Workshop lists): the API only writes GameServer.spec.mods.ids;
@@ -422,15 +424,15 @@ func main() {
 		handlers.MountModIDsWithRegistry(p, reg)
 		captureConfig := handlers.CaptureConfig{
 			FeatureEnabled:          cfg.captureFeatureEnabled,
-			GatewayNamespace:        cfg.namespace,
+			GatewayNamespace:        credentialsNS,
 			DefaultRetentionSeconds: cfg.captureDefaultRetentionSecs,
 			MaxRetentionSeconds:     cfg.captureMaxRetentionSecs,
 			DefaultMaxDurationSecs:  cfg.captureDefaultMaxDurationS,
 			DefaultMaxSizeBytes:     cfg.captureDefaultMaxSizeBytes,
 		}
-		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, cfg.namespace), captureConfig)
+		handlers.MountServerCapabilities(p, reg, ws.NewCaptureGatewayClient(reg, credentialsNS), captureConfig)
 		handlers.MountCapture(p, reg, auditor, captureConfig, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey)
-		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{Namespace: cfg.namespace})
+		ws.MountWithPlayerNames(p, reg, cfg.agentCABundle, cfg.agentClientCert, cfg.agentClientKey, playerNames, ws.AgentGatewayOptions{Namespace: credentialsNS})
 	})
 
 	// Usage telemetry. Run returns at once when the resolved destination is
@@ -581,6 +583,16 @@ type config struct {
 	trustedProxies []string
 }
 
+// Standalone keeps encrypted credentials on the panel and reads module
+// ConfigMaps from the selected remote cluster's operator namespace.
+func (c config) managementNamespaces() (credentials, moduleConfigMaps string) {
+	credentials = cmp.Or(os.Getenv("GAMEPLANE_CREDENTIALS_NAMESPACE"), c.namespace)
+	if c.standalone {
+		return credentials, c.namespace
+	}
+	return credentials, credentials
+}
+
 func (c *config) bindFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.addr, "addr", ":8000", "HTTP listen address")
 	fs.StringVar(&c.metricsAddr, "metrics-addr", envOr("GAMEPLANE_METRICS_ADDR", ":9090"),
@@ -664,7 +676,7 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.panelKeyProvisioned, "panel-key-provisioned", envOr("GAMEPLANE_PANEL_KEY_PROVISIONED", "") == "true", "require an existing read-only standalone credential key; never generate it")
 	fs.StringVar(&c.remoteAllowedCIDRs, "remote-allowed-cidrs", envOr("GAMEPLANE_REMOTE_ALLOWED_CIDRS", ""), "optional comma-separated CIDRs allowed for standalone Kubernetes and gateway connections")
 	fs.StringVar(&c.namespace, "namespace", envOr("GAMEPLANE_NAMESPACE", "gameplane-system"),
-		"namespace the control plane runs in (module upload ConfigMaps are stored here)")
+		"control-plane namespace (in standalone mode, the remote operator's module ConfigMap namespace)")
 	fs.StringVar(&c.gameDataStorageClass, "game-data-storage-class", envOr("GAMEPLANE_GAME_DATA_STORAGE_CLASS", ""),
 		"StorageClass name for game data PVCs (empty = cluster default)")
 

@@ -193,7 +193,7 @@ func (h clustersHandler) create(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Create the kubeconfig Secret in the control-plane namespace. The
+	// Create the kubeconfig Secret in the credentials namespace. The
 	// managed-by label marks it as created by the API, which is what lets
 	// DELETE /clusters/{name} remove it again.
 	secretName := clusterKubeconfigSecretName(in.Name)

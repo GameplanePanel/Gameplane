@@ -30,7 +30,7 @@ const gatewayCredentialsLabel = "gameplane.local/agent-gateway-credentials"
 var errGatewayUnavailable = errors.New("agent gateway not configured")
 
 // AgentGatewayOptions enables registered-cluster agent routes. Secrets are read
-// only from the namespace where the central API runs.
+// only from the central API's configured credentials namespace.
 type AgentGatewayOptions struct{ Namespace string }
 
 type agentGatewayResolver struct {

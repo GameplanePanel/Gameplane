@@ -4,10 +4,40 @@ import (
 	"context"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
+
+func TestForSourceRejectsServiceAccountTokenSecret(t *testing.T) {
+	key, knownHosts := testSSHKey(t)
+	secret := gitSecret("operator-token", map[string][]byte{
+		corev1.ServiceAccountTokenKey: []byte("service-account-token"),
+		corev1.DockerConfigJsonKey:    []byte(`{"auths":{"example.org":{"username":"user","password":"secret"}}}`),
+		"ssh-privatekey":              key,
+		"known_hosts":                 knownHosts,
+	})
+	secret.Type = corev1.SecretTypeServiceAccountToken
+	decoy := secret.DeepCopy()
+	decoy.Namespace = "module-data"
+	decoy.Type = corev1.SecretTypeOpaque
+	c := fake.NewClientBuilder().WithObjects(secret, decoy).Build()
+	ref := &corev1.LocalObjectReference{Name: secret.Name}
+	for name, spec := range map[string]gameplanev1alpha1.ModuleSourceSpec{
+		"http":      {Type: "http", HTTP: &gameplanev1alpha1.HTTPSourceSpec{URL: "https://example.org/modules.zip", SecretRef: ref}},
+		"git https": {Type: "git", Git: &gameplanev1alpha1.GitSourceSpec{URL: "https://example.org/modules.git", SecretRef: ref}},
+		"git ssh":   {Type: "git", Git: &gameplanev1alpha1.GitSourceSpec{URL: "git@github.com:org/modules.git", SecretRef: ref}},
+		"oci":       {Type: "oci", OCI: &gameplanev1alpha1.OCISourceSpec{URL: "example.org/modules", PullSecretRef: ref}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			source := &gameplanev1alpha1.ModuleSource{Spec: spec}
+			if _, err := ForSource(t.Context(), c, secret.Namespace, source, Options{ConfigMapNamespace: "module-data"}); err == nil {
+				t.Fatal("accepted a ServiceAccount token Secret for a module source")
+			}
+		})
+	}
+}
 
 func TestForSource_RequiresTypedSpec(t *testing.T) {
 	c := fake.NewClientBuilder().Build()

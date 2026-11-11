@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"time"
@@ -185,16 +186,16 @@ func (r *ModuleSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&gameplanev1alpha1.ModuleSource{}, builder.WithPredicates(predicate.Or(
 			predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{},
 		))).
-		Watches(&corev1.ConfigMap{}, enqueueUploadSourcesForConfigMap(r.Client)).
+		Watches(&corev1.ConfigMap{}, enqueueUploadSourcesForConfigMap(r.Client, cmp.Or(r.FetchOptions.ConfigMapNamespace, r.Namespace))).
 		Complete(r)
 }
 
 // enqueueUploadSourcesForConfigMap re-indexes every upload-type source
 // when a labeled bundle ConfigMap changes, so uploads land in the
 // catalog immediately instead of on the next refresh tick.
-func enqueueUploadSourcesForConfigMap(c client.Client) handler.EventHandler {
+func enqueueUploadSourcesForConfigMap(c client.Client, namespace string) handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
-		if obj.GetLabels()[gameplanev1alpha1.LabelModuleUpload] != "true" {
+		if obj.GetNamespace() != namespace || obj.GetLabels()[gameplanev1alpha1.LabelModuleUpload] != "true" {
 			return nil
 		}
 		var sources gameplanev1alpha1.ModuleSourceList
