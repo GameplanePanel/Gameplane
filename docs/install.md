@@ -256,8 +256,8 @@ Top-level knobs (see `values.yaml` for the full list):
   GameServer enters Pending with a `PVCProvisioningFailed` condition (visible in
   the dashboard); no pod starts until resolved. Example:
   `--set operator.gameDataStorage.storageClassName=fast-nvme`
-- `api.db.driver` — `sqlite` (default) or `postgres` (experimental). PostgreSQL requires an API image built with `-tags postgres`.
-- `api.db.dsn` — literal connection string. The SQLite default persists to a PVC.
+- `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; the published image is built without it). The CI `api (postgres)` job and the PostgreSQL E2E buckets, including `postgres-availability` (`TestUpgrade_PostgresAvailability`), exercise it.
+- `api.db.dsn` — connection string; SQLite default persists to a PVC
 - `api.db.existingSecret` and `api.db.secretKey` — name of a pre-provisioned Secret in the release namespace and the key holding the complete DSN (default key `dsn`). A Secret reference takes precedence over the literal DSN for both the API and `bootstrap-admin`. A missing Secret or key prevents the API container from starting.
 - `api.storage.existingClaim` — pre-existing PVC for the API's SQLite database (default `""`). PostgreSQL standalone deployments create no local database PVC or mount. The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
 - `api.panelKey.storage.existingClaim` — pre-existing key-only PVC for generated standalone encryption keys; independent of database storage. `api.panelKey.storage.size` and `storageClassName` configure a new key PVC when no existing claim is selected.
