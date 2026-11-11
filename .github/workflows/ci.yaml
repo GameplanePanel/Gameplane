@@ -1716,6 +1716,9 @@ jobs:
       - name: unit test (probe protocols)
         working-directory: test/e2e
         run: go test ./...
+      - name: verify cold-start join evidence and lifecycle accounting
+        working-directory: test/e2e
+        run: python3 -m unittest test_wake_burst
 
   # The api's PostgreSQL backend (--db-driver=postgres) is compiled only
   # with -tags postgres, so the `go` matrix and `lint` never build it. This
