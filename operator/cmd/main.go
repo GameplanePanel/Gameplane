@@ -142,6 +142,7 @@ func main() {
 		moduleLocalRoot                  string
 		controlPlaneNamespace            string
 		wakeStartLimit                   int
+		remoteClusters                   bool
 		gameNamespaces                   string
 		addressManager                   string
 		metalLBNamespace                 string
@@ -265,6 +266,7 @@ func main() {
 	flag.StringVar(&controlPlaneNamespace, "control-plane-namespace", controlPlaneNamespaceDefault,
 		"Namespace where registered cluster kubeconfig Secrets are stored.")
 	flag.IntVar(&wakeStartLimit, "wake-start-limit", 0, "Maximum concurrent idle cold starts across the fleet; zero disables admission.")
+	flag.BoolVar(&remoteClusters, "remote-clusters", true, "watch registered clusters and their kubeconfig credentials")
 	addressManagerDefault := os.Getenv("GAMEPLANE_ADDRESS_MANAGER")
 	if addressManagerDefault == "" {
 		addressManagerDefault = "none"
@@ -446,7 +448,11 @@ func main() {
 		probeIngressFromCIDR[i] = ipnet.String()
 	}
 
-	secretCache, err := secretscope.CacheOptions(gameNamespaces, controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
+	secretNamespaces := []string{agentCASecretNamespace, moduleNamespace}
+	if remoteClusters {
+		secretNamespaces = append(secretNamespaces, controlPlaneNamespace)
+	}
+	secretCache, err := secretscope.CacheOptions(gameNamespaces, secretNamespaces...)
 	if err != nil {
 		setupLog.Error(err, "invalid Secret namespace configuration")
 		os.Exit(1)
@@ -616,13 +622,15 @@ func main() {
 		setupLog.Error(err, "unable to set up controller", "controller", "Module")
 		os.Exit(1)
 	}
-	if err := (&controller.ClusterStatusReconciler{
-		Client:    mgr.GetClient(),
-		Scheme:    mgr.GetScheme(),
-		Namespace: controlPlaneNamespace,
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to set up controller", "controller", "Cluster")
-		os.Exit(1)
+	if remoteClusters {
+		if err := (&controller.ClusterStatusReconciler{
+			Client:    mgr.GetClient(),
+			Scheme:    mgr.GetScheme(),
+			Namespace: controlPlaneNamespace,
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to set up controller", "controller", "Cluster")
+			os.Exit(1)
+		}
 	}
 
 	// Fleet metrics: report how many GameServers and Backups sit in each phase,

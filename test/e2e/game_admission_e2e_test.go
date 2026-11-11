@@ -54,9 +54,7 @@ func checkGameAdmission(t *testing.T, extraNS string, game *corev1.Pod) {
 	core := envInstance.K8s.CoreV1()
 	dryRun := metav1.CreateOptions{DryRun: []string{metav1.DryRunAll}}
 	api := gameplaneServiceAccountClient(t, "gameplane-api")
-	if _, err := api.CoreV1().Secrets("gameplane-system").Get(ctx, "gameplane-agent-ca", metav1.GetOptions{}); !apierrors.IsForbidden(err) {
-		t.Fatalf("API reading agent signer: %v", err)
-	}
+	verifyAPIIssuerDenied(t, api)
 	checkModuleConfigMapIsolation(t, api)
 	for _, ns := range []string{extraNS, game.Namespace, "gameplane-system", credentialsNS} {
 		secrets := core.Secrets(ns)
@@ -149,6 +147,13 @@ func checkModuleConfigMapIsolation(t *testing.T, api kubernetes.Interface) {
 	}
 	if _, err := api.CoreV1().ConfigMaps(credentialsNS).Create(ctx, upload, dryRun); err != nil {
 		t.Fatalf("API creating a module upload in %s: %v", credentialsNS, err)
+	}
+}
+
+func verifyAPIIssuerDenied(t *testing.T, api kubernetes.Interface) {
+	t.Helper()
+	if _, err := api.CoreV1().Secrets("gameplane-system").Get(t.Context(), "gameplane-agent-ca", metav1.GetOptions{}); !apierrors.IsForbidden(err) {
+		t.Fatalf("API reading agent signer: %v", err)
 	}
 }
 

@@ -74,6 +74,8 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
 	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
+	legacyReadBinding := nativeReadBinding(t)
+	checkNativeCatalogAccess(t, tmpl, true)
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
 	// restarted by the upgrade, not sitting in the page cache.
@@ -269,6 +271,12 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
 		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
 	}
+
+	checkNativeRBACUpgrade(t, ns, gs, tmpl, legacyReadBinding)
+	localClient := envInstance.APIClient(t, adminUser, adminPass)
+	defer localClient.Close()
+	waitAgentReachable(t, localClient, gs)
+	verifyLocalClusterDiscovery(t, localClient)
 
 	// ---- 7. F-218: a fresh `helm install` over leftover, STALE CRDs ------
 	//
