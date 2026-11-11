@@ -1,7 +1,7 @@
 // API-managed credential Secrets. Admin Settings lets an admin type a
 // sink's (and later a provider's) secret material directly into the
 // dashboard; the API persists it as a labelled Secret in the
-// control-plane namespace so the consuming subsystem (notify, auth) can
+// credentials namespace so the consuming subsystem (notify, auth) can
 // keep its existing "read only labelled Secrets" contract.
 //
 // Two labels bound what this surface may touch:

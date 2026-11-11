@@ -32,8 +32,8 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 )
 
-// MountModules wires the /modules surface onto r. namespace is the
-// operator namespace, where uploaded bundle ConfigMaps live.
+// MountModules wires the /modules surface onto r. namespace holds the
+// uploaded bundle and translation ConfigMaps.
 func MountModules(r chi.Router, k *kube.Client, namespace string) {
 	h := modulesHandler{k: k, namespace: namespace}
 	r.Route("/modules", func(r chi.Router) {

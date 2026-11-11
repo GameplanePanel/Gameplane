@@ -6,10 +6,11 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"oras.land/oras-go/v2/registry/remote/auth"
+
+	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // dockerConfigJSON is the subset of dockerconfigjson Secret payload we
@@ -40,8 +41,8 @@ func CredentialFromSecret(ctx context.Context, cli client.Client, ns string, sec
 			return auth.EmptyCredential, nil
 		}, nil
 	}
-	var sec corev1.Secret
-	if err := cli.Get(ctx, types.NamespacedName{Namespace: ns, Name: secretRef.Name}, &sec); err != nil {
+	sec, err := secretscope.ReadModuleSecret(ctx, cli, ns, secretRef.Name)
+	if err != nil {
 		return nil, fmt.Errorf("get pull secret %s/%s: %w", ns, secretRef.Name, err)
 	}
 	raw, ok := sec.Data[corev1.DockerConfigJsonKey]
