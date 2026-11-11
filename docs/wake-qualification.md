@@ -9,10 +9,14 @@ explicitly selected by `--restart-operator`.
 
 ## Join objectives and evidence
 
-The isolated `TestColdWakeFleet_ConcurrentJoins` CI leg boots Minecraft Java
-1.21.4 and Teeworlds 0.7.5 and admits one simultaneous cold start. Each test
-round releases two TCP and two UDP clients, restarts the operator and checks
-every join. The second round exchanges their Service/Hostport exposures.
+The isolated `TestColdWakeFleet_ConcurrentJoins` CI leg boots two independent
+Minecraft Java 1.21.4 worlds and a Teeworlds 0.7.5 server. Each round releases
+four TCP and two UDP clients, restarts the operator and checks every join.
+One Minecraft world and the UDP server exchange Service/Hostport exposure
+between rounds. The other Minecraft world keeps its NodePort. With the fleet
+limit set to one, the drill records Kubernetes StatefulSet snapshots every
+500 ms, checks that each of the three games started, and fails if any snapshot
+contains two starting games. The artifact includes the observed transitions.
 The Minecraft client must receive Login Success. The unmodified Teeworlds
 client must enter its online state after receiving two world snapshots.
 The job uploads per-attempt measurements and the kind node's CPU, memory,
