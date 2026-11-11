@@ -2,14 +2,18 @@ package controller
 
 import (
 	"context"
+	"strings"
 	"testing"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -57,6 +61,55 @@ func probeSecExec() *corev1.Probe {
 	return &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
 		Exec: &corev1.ExecAction{Command: []string{"true"}},
 	}}
+}
+
+// The fake client can seed pre-upgrade state that a current API server
+// would reject. In particular, a pinned snapshot can outlive its template.
+func TestReconcileRefusesStoredProbeHosts(t *testing.T) {
+	for _, source := range []string{"server override", "pinned snapshot", "catalog rollout"} {
+		t.Run(source, func(t *testing.T) {
+			r, gs, tmpl := revisionFixture(t)
+			unsafe := &gameplanev1alpha1.GameProbesSpec{Liveness: probeSecHTTP("169.254.169.254", intstr.FromInt32(80))}
+			switch source {
+			case "server override":
+				gs.Spec.Probes = unsafe
+			case "pinned snapshot":
+				tmpl.Spec.Probes = unsafe
+				revision, err := r.saveTemplateSnapshot(t.Context(), gs, tmpl)
+				if err != nil {
+					t.Fatal(err)
+				}
+				gs.Annotations[effectiveTemplateAnnotation] = revision
+			case "catalog rollout":
+				tmpl.Spec.Probes = unsafe
+				if err := r.Update(t.Context(), tmpl); err != nil {
+					t.Fatal(err)
+				}
+				gs.Spec.TemplateRollout.Policy = "Automatic"
+			}
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			key := client.ObjectKeyFromObject(gs)
+			if _, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: key}); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Get(t.Context(), key, gs); err != nil {
+				t.Fatal(err)
+			}
+			ready := meta.FindStatusCondition(gs.Status.Conditions, "Ready")
+			if gs.Status.Phase != gameplanev1alpha1.GameServerPhaseFailed || ready == nil || ready.Status != metav1.ConditionFalse ||
+				!strings.Contains(ready.Message, "spec.probes.liveness.httpGet.host") {
+				t.Fatalf("missing probe validation failure: %+v", gs.Status)
+			}
+			if err := r.Get(t.Context(), key, &appsv1.StatefulSet{}); !apierrors.IsNotFound(err) {
+				t.Fatalf("unsafe workload: expected NotFound, got %v", err)
+			}
+			if gs.Annotations[lifecycleOperationAnnotation] != "" {
+				t.Fatal("unsafe rollout claimed the server")
+			}
+		})
+	}
 }
 
 // TestProbeNetworkPolicyPortsSecurity covers which probe targets get a
@@ -214,14 +267,14 @@ func TestEffectiveGameProbesSecurity(t *testing.T) {
 
 	t.Run("no probes anywhere", func(t *testing.T) {
 		got := effectiveGameProbes(probeSecGameServer(), probeSecTemplate(nil))
-		if len(got) != 3 || got[0] != nil || got[1] != nil || got[2] != nil {
+		if got.Readiness != nil || got.Liveness != nil || got.Startup != nil {
 			t.Fatalf("want three nil probes, got %v", got)
 		}
 	})
 
 	t.Run("template only", func(t *testing.T) {
 		got := effectiveGameProbes(probeSecGameServer(), tmpl)
-		if got[0] != tmplReady || got[1] != tmplLive || got[2] != tmplStart {
+		if got.Readiness != tmplReady || got.Liveness != tmplLive || got.Startup != tmplStart {
 			t.Fatalf("want template probes, got %v", got)
 		}
 	})
@@ -232,7 +285,7 @@ func TestEffectiveGameProbesSecurity(t *testing.T) {
 			Readiness: srvReady, Liveness: srvLive, Startup: srvStart,
 		}
 		got := effectiveGameProbes(gs, tmpl)
-		if got[0] != srvReady || got[1] != srvLive || got[2] != srvStart {
+		if got.Readiness != srvReady || got.Liveness != srvLive || got.Startup != srvStart {
 			t.Fatalf("want server probes, got %v", got)
 		}
 	})
@@ -241,7 +294,7 @@ func TestEffectiveGameProbesSecurity(t *testing.T) {
 		gs := probeSecGameServer()
 		gs.Spec.Probes = &gameplanev1alpha1.GameProbesSpec{Startup: srvStart}
 		got := effectiveGameProbes(gs, tmpl)
-		if got[0] != tmplReady || got[1] != tmplLive || got[2] != srvStart {
+		if got.Readiness != tmplReady || got.Liveness != tmplLive || got.Startup != srvStart {
 			t.Fatalf("want template readiness/liveness and server startup, got %v", got)
 		}
 	})
