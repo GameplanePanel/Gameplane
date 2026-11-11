@@ -27,6 +27,12 @@ jobs:
   visual-diff:
     name: design vs browser visual diff
     runs-on: ubuntu-latest
+    # Include the same system fonts used by the hosted runner alongside the
+    # complete Playwright font set used for design and clipping comparisons.
+    container: &screenshot_runtime
+      image: mcr.microsoft.com/playwright:v1.65.0-noble@sha256:6e3fb709361521eb27161606e6da6d2674e5e89fa16516cb37d6fdd91372273d
+      volumes:
+        - /usr/share/fonts:/usr/local/share/fonts/runner:ro
     permissions:
       contents: read
     timeout-minutes: 20
@@ -47,16 +53,20 @@ jobs:
       - name: install dependencies
         run: npm ci
 
-      - name: playwright browser cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-${{ runner.arch }}-
-
-      - name: install chromium
-        run: npx playwright install --with-deps chromium
+      - &verify_screenshot_browser
+        name: verify the locked screenshot browser
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const json = path => JSON.parse(readFileSync(path, 'utf8'));
+          assert.equal(
+            json('/ms-playwright/.docker-info').driverVersion,
+            json('node_modules/playwright/package.json').version,
+            'Update the screenshot image digest when upgrading Playwright',
+          );
+          JS
+          bash e2e/install-chromium.sh
 
       - name: capture browser screenshots
         run: npm run screenshots:design
@@ -86,6 +96,7 @@ jobs:
   pseudo-locale:
     name: en-XA screenshots (spec 019)
     runs-on: ubuntu-latest
+    container: *screenshot_runtime
     permissions:
       contents: read
     timeout-minutes: 30
@@ -106,16 +117,7 @@ jobs:
       - name: install dependencies
         run: npm ci
 
-      - name: playwright browser cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-${{ runner.arch }}-
-
-      - name: install chromium
-        run: npx playwright install --with-deps chromium
+      - *verify_screenshot_browser
 
       - name: capture en-XA screenshots and check clipping
         run: npm run screenshots:pseudo
