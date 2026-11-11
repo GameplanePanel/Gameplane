@@ -1113,9 +1113,8 @@ func (h *captureHandler) captureDownload(w http.ResponseWriter, req *http.Reques
 		// A disconnect must not also erase the corrective audit outcome.
 		auditCtx, cancel := context.WithTimeout(context.WithoutCancel(req.Context()), 5*time.Second)
 		defer cancel()
-		if err := h.auditor.WriteSync(auditCtx, http.MethodGet, auditPath, target, "download_failed", status); err != nil {
-			slog.Error("capture download: corrective audit write failed", "capture", target, "status", status, "err", err)
-		}
+		// The response has been sent. WriteSync reports any missing correction.
+		_ = h.auditor.WriteSync(auditCtx, http.MethodGet, auditPath, target, "download_failed", status)
 	}
 }
 
