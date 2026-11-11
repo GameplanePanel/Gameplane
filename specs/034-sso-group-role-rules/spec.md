@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-11
 
-**Status**: Draft (open decisions OD-1..OD-7 in `OPEN-DECISIONS.md`)
+**Status**: Ready for planning (OD-1..OD-7 settled 2026-11-11, see `OPEN-DECISIONS.md`)
 
 **Input**: valgul, 2026-11-11, after a homelab Authentik setup hit two limits: "Gameplane
 can only map Authentik groups to its three built-in roles (admin, operator, viewer). It
@@ -99,7 +99,7 @@ not applied because the role was set by hand.
    and sign in, **Then** their role changes to the fallback role (demotion still works
    for SSO-managed users).
 4. **Given** a hand-set user in no mapped group and a fallback of "refuse sign-in",
-   **When** they sign in, **Then** the outcome follows OD-5.
+   **When** they sign in, **Then** they get in with their hand-set role (OD-5).
 
 ---
 
@@ -118,7 +118,9 @@ them, and confirm the role is now the one the rules give.
 1. **Given** the Users page, **When** an admin looks at SSO users, **Then** each one shows
    whether its role is "From SSO" or "Set by hand".
 2. **Given** a hand-set SSO user, **When** an admin chooses "Return to SSO control",
-   **Then** the user is marked SSO-managed and the role is recomputed as OD-6 decides.
+   **Then** the user is marked SSO-managed, keeps their current role for now, shows
+   "From SSO (applies at next sign-in)", and gets the rule result at their next sign-in
+   (OD-6).
 3. **Given** a local (password) user, **When** an admin views them, **Then** no SSO
    control indicator or action is shown.
 
@@ -144,15 +146,20 @@ before the upgrade.
 2. **Given** a dashboard provider saved with the old keys, **When** the API upgrades,
    **Then** it still loads and behaves the same, and the dashboard shows it as the
    equivalent ordered rule list.
-3. **Given** existing OIDC users, **When** the database migrates, **Then** their role
-   source follows OD-4 and no role changes during the upgrade.
+3. **Given** existing users, **When** the database migrates, **Then** users linked to an
+   SSO account are "From SSO", local users are "Set by hand" (OD-4), and no role changes
+   during the upgrade.
 
 ---
 
 ### Edge Cases
 
-- A rule names a role that does not exist (deleted, or a typo in Helm values): see OD-2.
-- An admin tries to delete a custom role a rule or fallback uses: see OD-2.
+- A rule names a role that does not exist (deleted, or a typo in Helm values): the
+  dashboard refuses to save it; for a Helm typo, an SSO-managed or new user whose first
+  matching rule (or the fallback) names the missing role is refused sign-in and the audit
+  log names the rule (OD-2). A hand-set user still gets in (OD-5).
+- An admin tries to delete a custom role a rule, fallback or Helm override uses: refused
+  with a message naming the provider (OD-2).
 - A rule would demote the last user who can manage users: the existing guard still
   blocks it and records it in the audit log (unchanged).
 - The same group appears in two rules: the first one wins; the dashboard warns that the
@@ -163,7 +170,10 @@ before the upgrade.
   when no mapping is set (new users get viewer, roles never touched).
 - An admin sets a hand-set user's role to the same value it already has: it is still
   recorded as set by hand (the admin's choice is what is protected, not the value).
-- The Helm-configured provider overridden from the dashboard: see OD-3.
+- The Helm-configured provider overridden from the dashboard: the override replaces the
+  whole Helm rule list and fallback role; "Reset to Helm default" removes it (OD-3).
+- A provider sets both old keys and rules: the dashboard refuses to save it and the API
+  refuses to start with such Helm values (OD-1).
 - A user linked to an SSO account is later given a password (if possible) or the
   provider is disabled: the role source is kept; it only matters at SSO sign-in.
 
@@ -180,16 +190,24 @@ before the upgrade.
 - **FR-003**: At sign-in, Gameplane MUST walk the rules in order and give the role of the
   first rule whose group the user belongs to.
 - **FR-004**: When no rule matches, the provider's fallback role MUST apply. The fallback
-  MUST accept any existing role or "refuse sign-in" (OD-7).
+  MUST accept any existing role or "refuse sign-in" (OD-7). "Refuse sign-in" applies
+  only to new and SSO-managed users (FR-015).
 - **FR-005**: The old `roleMappings` keys (admin, operator, viewer) MUST keep working in
   the dashboard config and in Helm values. Old keys alone MUST behave exactly as today,
-  as if they were rules in the order admin, operator, viewer. Mixing old keys and rules
-  on one provider follows OD-1.
+  as if they were rules in the order admin, operator, viewer. A provider that sets both
+  old keys and rules MUST be refused: the dashboard refuses to save it and the API
+  refuses to start with such Helm values (OD-1). The dashboard MUST save edited
+  providers in the rule form.
 - **FR-006**: The dashboard MUST show and edit rules as an ordered list (add, remove,
   reorder, pick the role from the existing roles), for dashboard providers and for the
   Helm provider's override.
-- **FR-007**: Rules that name a missing role MUST be handled as OD-2 decides, and the
-  dashboard MUST refuse to save a rule or fallback that names a role that does not exist.
+- **FR-007**: The dashboard MUST refuse to save a rule, fallback or Helm override that
+  names a role that does not exist, and deleting a role MUST be refused while any of
+  them uses it. At sign-in, if the first matching rule (or the fallback, when nothing
+  matches) names a missing role, a new or SSO-managed user MUST be refused and the audit
+  log MUST name the rule; Gameplane MUST NOT fall through to later rules (OD-2).
+- **FR-007a**: The Helm provider's dashboard override MUST replace the whole Helm rule
+  list and fallback role, and "Reset to Helm default" MUST remove the override (OD-3).
 
 **Role source**
 
@@ -204,10 +222,17 @@ before the upgrade.
 - **FR-012**: At sign-in, a user whose role is from SSO MUST get the rule result, with
   the existing last-user-manager guard unchanged.
 - **FR-013**: An admin with permission to change user roles MUST be able to return a
-  hand-set SSO user to SSO control. The role then follows OD-6.
+  hand-set SSO user to SSO control. The user keeps their current role until their next
+  sign-in, which then applies the rule result; until then the Users page shows "From
+  SSO (applies at next sign-in)" (OD-6).
 - **FR-014**: The Users page MUST show "From SSO" or "Set by hand" for SSO-linked users,
   and offer "Return to SSO control" on hand-set ones. Local users show neither.
-- **FR-015**: Fallback "refuse sign-in" for a hand-set user follows OD-5.
+- **FR-015**: A hand-set user MUST always be let in with their hand-set role, even when
+  no rule matches and the fallback is "refuse sign-in", and even when the matching rule
+  names a missing role (OD-5). The audit event records that the refusal was not applied
+  because the role was set by hand.
+- **FR-015a**: When the database upgrades, users linked to an SSO account MUST start as
+  "From SSO" and all other users as "Set by hand" (OD-4).
 
 **Audit and docs**
 
@@ -262,5 +287,5 @@ before the upgrade.
 
 ## Decisions
 
-See `OPEN-DECISIONS.md`. The two clarifications above were answered by valgul on
-2026-11-11 on decision cards in the project thread.
+The two clarifications above and OD-1..OD-7 in `OPEN-DECISIONS.md` were answered by
+valgul on 2026-11-11 on decision cards in the project thread.

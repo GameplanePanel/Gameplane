@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (OD-1..OD-7 open in `OPEN-DECISIONS.md`)
+- [X] No [NEEDS CLARIFICATION] markers remain
 - [X] Requirements are testable and unambiguous
 - [X] Success criteria are measurable
 - [X] Success criteria are technology-agnostic (no implementation details)
@@ -34,4 +34,5 @@
 - The Context section cites current code (`file:line` on master `7413822b`) only to
   prove the two limits exist; the requirements themselves name no implementation.
 - Open questions are tracked as OD-1..OD-7 in `OPEN-DECISIONS.md` instead of inline
-  markers (project rule: unsettled values go in OPEN-DECISIONS.md).
+  markers (project rule: unsettled values go in OPEN-DECISIONS.md). All seven were
+  settled by valgul on 2026-11-11.
