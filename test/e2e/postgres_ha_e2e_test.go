@@ -52,6 +52,7 @@ func TestPanel_PostgresActiveActiveFailover(t *testing.T) {
 	if err := upgrade(); err != nil {
 		t.Fatal(err)
 	}
+	haLegacyBinaryFence(t)
 	pair := haPodPair(t)
 	clients := haDirectClients(t, pair, admin)
 	_, _, id := envInstance.CreateUser(t, clients[0], "viewer", "ha-writer")
@@ -153,6 +154,52 @@ func TestPanel_PostgresActiveActiveFailover(t *testing.T) {
 	}
 	haAudit(t, clients[0])
 	haAudit(t, clients[1])
+	if err := upgrade("--set", "api.postgresHA.enabled=false", "--set", "api.replicas=1"); err != nil {
+		t.Fatal(err)
+	}
+	// Scale-down status alone may omit terminating Pods. Wait for complete
+	// termination before an operator could switch to an old release.
+	envInstance.Eventually(t, 2*time.Minute, func() (bool, string) {
+		live, err := envInstance.K8s.CoreV1().Pods(haNamespace).List(ctx, metav1.ListOptions{LabelSelector: "app.kubernetes.io/name=gameplane-api"})
+		if err != nil || len(live.Items) != 1 {
+			return false, fmt.Sprintf("waiting for singleton termination: %v", err)
+		}
+		args := strings.Join(live.Items[0].Spec.Containers[0].Args, " ")
+		if strings.Contains(args, "--postgres-ha-protocol") {
+			return false, "waiting for singleton process argument set"
+		}
+		return haStatus(ctx, stable, "/users/me", http.StatusOK)
+	})
+}
+
+func haLegacyBinaryFence(t *testing.T) {
+	t.Helper()
+	const name = "ha-legacy-binary"
+	// Official 0.4.0 OCI index. The invalid DSN keeps the probe isolated from
+	// production data and distinguishes flag parsing from any DB-open attempt.
+	const legacy = "ghcr.io/gameplanepanel/gameplane/api@sha256:774229ab7f2d9ecdd0d43a742cd833124c299780b4623308208d87d4b3586f59"
+	no := false
+	pods := envInstance.K8s.CoreV1().Pods(haNamespace)
+	_, err := pods.Create(t.Context(), &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{Name: name},
+		Spec: corev1.PodSpec{RestartPolicy: corev1.RestartPolicyNever, AutomountServiceAccountToken: &no,
+			Containers: []corev1.Container{{Name: "api", Image: legacy, Args: []string{"--postgres-ha-protocol=1", "--db-driver=postgres", "--db-dsn=invalid"}}}},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	envInstance.Eventually(t, 2*time.Minute, func() (bool, string) {
+		pod, err := pods.Get(t.Context(), name, metav1.GetOptions{})
+		if err != nil || len(pod.Status.ContainerStatuses) != 1 {
+			return false, fmt.Sprintf("waiting for legacy API: %v", err)
+		}
+		ended := pod.Status.ContainerStatuses[0].State.Terminated
+		return ended != nil && ended.ExitCode != 0, fmt.Sprintf("waiting for historical binary to reject HA argument: %v", pod.Status.Phase)
+	})
+	logs, err := pods.GetLogs(name, &corev1.PodLogOptions{}).DoRaw(t.Context())
+	if err != nil || !strings.Contains(string(logs), "flag provided but not defined: -postgres-ha-protocol") {
+		t.Fatalf("legacy binary did not reject the protocol at flag parsing: %v %s", err, logs)
+	}
 }
 
 func haEvictWorkerLeader(t *testing.T, pods []corev1.Pod, clients []*APIClient, id string) {

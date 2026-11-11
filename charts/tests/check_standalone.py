@@ -54,6 +54,7 @@ def check_api_availability():
                 assert deployment["spec"]["replicas"] == 1
                 assert deployment["spec"]["strategy"] == {"type": "Recreate", "rollingUpdate": None}
                 container = next(c for c in deployment["spec"]["template"]["spec"]["containers"] if c["name"] == "api")
+                assert not any(a.startswith("--postgres-ha-protocol") for a in container["args"])
                 assert container["livenessProbe"]["httpGet"]["path"] == "/healthz"
                 expected_probe = "/readyz/postgres-ha" if driver == "postgres" and not standalone else "/readyz"
                 assert container["readinessProbe"]["httpGet"]["path"] == expected_probe
@@ -80,7 +81,9 @@ def check_api_availability():
         assert dep["strategy"] == {"type": "RollingUpdate", "rollingUpdate": {"maxSurge": 0, "maxUnavailable": 1}}
         assert dep["minReadySeconds"] == 5
         pod = dep["template"]["spec"]
-        assert next(c for c in pod["containers"] if c["name"] == "api")["lifecycle"]["preStop"]["sleep"]["seconds"] == 5
+        container = next(c for c in pod["containers"] if c["name"] == "api")
+        assert container["lifecycle"]["preStop"]["sleep"]["seconds"] == 5
+        assert "--postgres-ha-protocol=1" in container["args"]
         term = pod["affinity"]["podAntiAffinity"]["requiredDuringSchedulingIgnoredDuringExecution"][0]
         assert term["topologyKey"] == "kubernetes.io/hostname"
         assert term["labelSelector"]["matchLabels"]["app.kubernetes.io/name"] == "gameplane-api"

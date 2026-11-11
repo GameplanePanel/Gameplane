@@ -1100,7 +1100,11 @@ when PostgreSQL returns. Replicating the API still requires a separate
 PostgreSQL failover and point-in-time recovery plan. To return to a single
 writer, first deploy the same HA-capable binary with `api.replicas=1` and
 `api.postgresHA.enabled=false`, then wait for the singleton rollout before
-changing the application version.
+changing the application version. HA Pods pass `--postgres-ha-protocol=1`;
+older images exit at flag parsing before connecting to the database. A Helm
+rollback reapplies the target revision's recorded manifests, including its own
+strategy and arguments. Complete the singleton transition and confirm all old
+HA Pods have terminated before rolling back to a chart that predates the flag.
 
 ### Moving a PostgreSQL DSN into a Secret
 

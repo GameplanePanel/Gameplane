@@ -276,6 +276,11 @@ spec:
           image: {{ include "gameplane.apiImage" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            {{- if $ha }}
+            # An old image must exit during flag parsing, before opening the
+            # shared database or starting workers, even when its Pod is unready.
+            - --postgres-ha-protocol=1
+            {{- end }}
             {{- if .Values.api.standalone }}
             - --standalone
             - {{ printf "--panel-key-file=/keys/%s" ((.Values.api.panelKey | default dict).fileName | default "panel.key") | quote }}
