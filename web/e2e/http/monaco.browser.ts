@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { makeFileEntry, makeServer, makeTemplate, makeUser } from "../../src/test/factories";
+import { makeFileEntry, makePlayers, makeServer, makeTemplate, makeUser } from "../../src/test/factories";
 
 function browserCapabilities() {
   return {
@@ -15,9 +15,11 @@ test("checks and completes a TypeScript file over plain LAN HTTP", async ({ page
   const content = 'const port: number = "25565";';
   const file = makeFileEntry({ name: "server.ts", path: "/data/server.ts", size: content.length });
   const fixtures: Record<string, unknown> = {
+    "/auth/locale": { defaultLanguage: "en" },
     "/users/me": makeUser(),
     "/users/me/servers": { items: [] },
     "/clusters": { items: [] },
+    "/fleet/servers": { items: [], partial: false, issues: [], totalReturned: 0 },
     "/admin/installation": { standalone: false, localCluster: false },
     "/admin/telemetry/notice": { pending: false },
     "/servers/alpha": makeServer({ metadata: { uid: target.uid } }),
@@ -26,7 +28,9 @@ test("checks and completes a TypeScript file over plain LAN HTTP", async ({ page
       canDelete: true, isOwner: true, isCollaborator: false,
     },
     "/servers/alpha/events": [],
+    "/servers/alpha/players": makePlayers(),
     "/servers/alpha/files/list": [file],
+    "/templates": { items: [makeTemplate()] },
     "/templates/minecraft-vanilla": makeTemplate(),
     "/modules": { items: [] },
   };
