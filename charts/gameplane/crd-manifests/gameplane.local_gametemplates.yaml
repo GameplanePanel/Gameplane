@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: e900c220cd57442f03e3264da6ad0a2e746450523b88edf38affff441b150072
+    gameplane.local/crd-bundle-sha256: cd1d212902c11b75266ed926aa2646b9ad16756530aca94123d66559bf09c711
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -291,6 +291,12 @@ spec:
                           > 0)
                     maxItems: 32
                     type: array
+                  backupFlush:
+                    description: BackupFlush requests an acknowledged checkpoint without
+                      disabling writes.
+                    enum:
+                    - minecraft-save-all
+                    type: string
                   lifecycle:
                     description: |-
                       Lifecycle configures graceful lifecycle transitions the agent drives
@@ -1016,6 +1022,9 @@ spec:
                         type: array
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: choose a flush-only checkpoint or a write-freeze declaration
+                  rule: '!(has(self.backupFlush) && has(self.quiesce))'
               categories:
                 description: |-
                   Categories group this game in the dashboard's catalog and Create
@@ -2522,6 +2531,9 @@ spec:
               rule: '!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders)
                 || size(self.capabilities.mods.loaders) == 0 || (has(self.versions)
                 && size(self.versions) > 0)'
+            - message: backupFlush requires the Minecraft Java adapter
+              rule: '!has(self.capabilities) || !has(self.capabilities.backupFlush)
+                || self.game == ''minecraft-java'''
           status:
             description: |-
               GameTemplateStatus is intentionally minimal — templates are mostly

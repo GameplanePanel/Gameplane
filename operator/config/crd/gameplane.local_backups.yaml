@@ -165,8 +165,9 @@ spec:
                     type: string
                   quiesceOutcome:
                     description: |-
-                      QuiesceOutcome is confirmed, already-stopped, unsupported, not-requested,
-                      agent-unavailable, or unknown, independent of subsequent copy success.
+                      QuiesceOutcome records verified-freeze, already-stopped, flush-only or
+                      a weaker observation independently of copy success. Historical confirmed
+                      records lack pod-bound proof of a write freeze.
                     type: string
                   recordedAt:
                     format: date-time

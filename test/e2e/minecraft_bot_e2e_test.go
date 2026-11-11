@@ -159,6 +159,20 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 	t.Helper()
 	ensureResticRepo(t)
 	name := gs + "-autosave"
+	exec := func(args ...string) (string, error) {
+		return envInstance.Kubectl(t.Context(), append([]string{"exec", "-n", ns, "pod/" + gs + "-0", "-c", "game", "--"}, args...)...)
+	}
+	run := func(command, expected string) {
+		t.Helper()
+		out, err := exec("rcon-cli", command)
+		if err != nil || !strings.Contains(out, expected) {
+			t.Fatalf("game command %q: %s (%v), want %q", command, out, err, expected)
+		}
+	}
+	worldMarker := fmt.Sprintf("world_%d", time.Now().UnixNano())
+	run("data modify storage gpaudit:backup checkpoint set value "+worldMarker, "Modified storage")
+	run("scoreboard objectives add gp_restore dummy", "gp_restore")
+	run("scoreboard players set gameplane-bot gp_restore 17", "17")
 	b := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1", "kind": "Backup",
 		"metadata": map[string]any{"namespace": ns, "name": name},
@@ -182,12 +196,10 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 			return false, err.Error()
 		}
 		a := got.GetAnnotations()
-		return a["backup.gameplane.local/quiesce-attempted"] == "true" &&
+		outcome, _, _ := unstructured.NestedString(got.Object, "status", "captureManifest", "quiesceOutcome")
+		return outcome == "verified-freeze" && a["backup.gameplane.local/quiesce-attempted"] == "true" &&
 			a["backup.gameplane.local/unquiesced-at"] != "" && a["backup.gameplane.local/cleanup-outcome"] != "source-gone", "waiting for pause and resume of the live game"
 	})
-	exec := func(args ...string) (string, error) {
-		return envInstance.Kubectl(t.Context(), append([]string{"exec", "-n", ns, "pod/" + gs + "-0", "-c", "game", "--"}, args...)...)
-	}
 	// An old command storage file cannot satisfy a new marker.
 	marker := fmt.Sprintf("gameplane_autosave_%d", time.Now().UnixNano())
 	if out, err := exec("rcon-cli", "data modify storage gpaudit:backup marker set value "+marker); err != nil || !strings.Contains(out, "Modified storage") {
@@ -200,4 +212,24 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 		out, err := exec("gzip", "-dc", "/data/world/data/command_storage_gpaudit.dat")
 		return err == nil && strings.Contains(out, marker), "waiting for automatic persistence of the post-backup marker"
 	})
+	// Overwrite both independent markers. Seeing the original values after a
+	// real restore proves this join landed on the captured generation.
+	run("data modify storage gpaudit:backup checkpoint set value after_backup", "Modified storage")
+	run("scoreboard players set gameplane-bot gp_restore 42", "42")
+	run("save-all flush", "Saved the game")
+	restore := gs + "-restore-proof"
+	createRestore(t, ns, restore, gs, name)
+	waitRestoreSucceeded(t, ns, restore, 8*time.Minute)
+	s := minecraftBotSpec()
+	res := envInstance.RunGameProbe(t, GameProbe{
+		GameNS: ns, GSName: gs, JobSuffix: "restored", Game: s.Game, Port: s.ProbePort,
+		Deadline: s.ProbeDeadline, ExpectDepth: joindepth.JOINED, Args: s.ProbeArgs,
+	})
+	if res.ExitCode != 0 || res.Verdict == nil || res.Verdict.ReachedDepth != joindepth.JOINED {
+		t.Fatalf("join after restored-world boot: %+v", res)
+	}
+	run("data get storage gpaudit:backup checkpoint", worldMarker)
+	run("scoreboard players get gameplane-bot gp_restore", "17")
+	run("scoreboard players set gameplane-bot gp_restore 18", "18")
+	run("save-all flush", "Saved the game")
 }

@@ -387,8 +387,30 @@ paths:
     get:
       summary: Verify the pod UID and availability of the verified backup protocol
       responses:
-        "204": { description: Matching pod UID }
+        "204":
+          description: Matching pod UID
+          headers:
+            Gameplane-Backup-Mode:
+              description: Present for a checkpoint that leaves writes enabled
+              schema: { type: string, enum: [flush-only] }
         "404": { description: Missing or mismatched pod UID }
+  /v2/pods/{uid}/flush:
+    parameters: [*podUID]
+    post:
+      summary: Checkpoint the running game while writes stay enabled
+      responses:
+        "200":
+          description: The game acknowledged its checkpoint
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [outcome, quiesced]
+                properties:
+                  outcome: { type: string, enum: [flushed] }
+                  quiesced: { type: boolean, enum: [false] }
+        "404": { description: Missing adapter or mismatched pod UID }
+        "502": { description: The game did not acknowledge the checkpoint }
   /v2/pods/{uid}/quiesce:
     parameters: [*podUID]
     post:

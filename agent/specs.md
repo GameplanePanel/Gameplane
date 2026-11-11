@@ -19,6 +19,11 @@ The agent is a per-pod HTTP/HTTPS sidecar that runs inside every game pod to exp
 
 ## Responsibilities
 
+The v2 identity response advertises `Gameplane-Backup-Mode: flush-only`
+for a configured Minecraft Java checkpoint adapter. Its pod-bound
+`POST /v2/pods/{uid}/flush` checks the game's acknowledgment of
+`save-all flush` and keeps automatic saving enabled.
+
 - **Request authentication**: Verify incoming requests via mTLS (preferred) or shared-secret bearer token.
 - **Console & RCON**: Duplex WebSocket forwarding user commands to the game via RCON and echoing responses; supports Valve/Source, Telnet, WebSocket, BattlEye, Satisfactory, and Palworld protocols.
 - **File I/O**: List, read, download, upload, write, mkdir, delete within the `/data` volume; reject path traversal and any symlink traversal; every operation runs through directory descriptors rooted at the data directory, so it cannot be redirected by a concurrent filesystem change.
