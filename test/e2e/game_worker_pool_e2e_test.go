@@ -40,6 +40,11 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 	if len(workers) < 2 {
 		t.Fatal("need two schedulable workers")
 	}
+	if !t.Run("GameServer policy reconciliation", func(t *testing.T) {
+		checkGameServerWorkerPolicy(t, workers[0])
+	}) {
+		return
+	}
 	neighbor := minecraftBotSpec()
 	neighbor.Template = "e2e-placement-neighbor"
 	neighbor.Env["PAUSE_WHEN_EMPTY_SECONDS"] = "0"

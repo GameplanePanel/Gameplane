@@ -298,6 +298,10 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// services and every other template-derived resource.
 	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
 	if err != nil {
+		var rejected workloadPolicyRejection
+		if errors.As(err, &rejected) {
+			return r.reconcileRejectedGameWorkload(ctx, &gs, effective, rejected)
+		}
 		if apierrors.IsConflict(err) {
 			return requeueOnConflict(ctrl.Result{}, err)
 		}
@@ -325,7 +329,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 	if err := r.GameWorkloadPolicy.validate(&gs, &tmpl); err != nil {
-		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
 	}
 	mc, err := materializeConfig(&gs, &tmpl)
 	if err != nil {

@@ -1,15 +1,21 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"maps"
 	"strings"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -23,6 +29,65 @@ type GameWorkloadPolicy struct {
 	MaxCPURequest    resource.Quantity `json:"maxCPURequest"`
 	MinMemoryRequest resource.Quantity `json:"minMemoryRequest"`
 	MaxMemoryLimit   resource.Quantity `json:"maxMemoryLimit"`
+}
+
+// A rejected rollout must retain the effective template for the running
+// game's stop sequence. The rejected target is never rendered or executed.
+type workloadPolicyRejection struct{ error }
+
+func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context, gs *gameplanev1alpha1.GameServer,
+	effective *gameplanev1alpha1.GameTemplate, rejection error,
+) (ctrl.Result, error) {
+	var result ctrl.Result
+	if gs.Spec.Suspend {
+		key := client.ObjectKeyFromObject(gs)
+		var live gameplanev1alpha1.GameServer
+		if err := r.wipeReader().Get(ctx, key, &live); err != nil {
+			return result, client.IgnoreNotFound(err)
+		}
+		if !live.Spec.Suspend || live.UID != gs.UID || live.Generation != gs.Generation ||
+			live.Annotations[effectiveTemplateAnnotation] != gs.Annotations[effectiveTemplateAnnotation] {
+			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
+		}
+		var ss appsv1.StatefulSet
+		err := r.wipeReader().Get(ctx, key, &ss)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return result, err
+		}
+		if err == nil && metav1.IsControlledBy(&ss, &live) && (ss.Spec.Replicas == nil || *ss.Spec.Replicas != 0) {
+			if live.Annotations[effectiveTemplateAnnotation] == "" {
+				// A legacy workload has no verified template pin. Use its own
+				// Kubernetes termination grace instead of sending commands from
+				// catalog content that may never have run on this server.
+				effective = &gameplanev1alpha1.GameTemplate{}
+			}
+			op, held, err := lifecycleOwner(&live)
+			if err != nil {
+				return result, err
+			}
+			var replicas int32
+			if held && op.Kind == "Rollout" && op.Baseline && len(op.Recovery) == 0 {
+				// Baseline normally preserves the existing workload. An explicit
+				// stop can still drain it while the new baseline is inadmissible.
+				replicas, result.RequeueAfter, err = r.softStop(ctx, &live, effective)
+			} else {
+				replicas, result.RequeueAfter, err = r.desiredReplicas(ctx, &live, effective, idleAwake)
+			}
+			if err != nil {
+				return requeueOnConflict(result, err)
+			}
+			if replicas == 0 {
+				base := ss.DeepCopy()
+				ss.Spec.Replicas = &replicas
+				// Pin the original StatefulSet resourceVersion and preserve every
+				// field of the existing Pod template, including its revision.
+				if err := r.Patch(ctx, &ss, client.MergeFromWithOptions(base, client.MergeFromWithOptimisticLock{})); err != nil {
+					return requeueOnConflict(result, err)
+				}
+			}
+		}
+	}
+	return result, r.setPhase(ctx, gs, rejection.Error())
 }
 
 // ParseGameWorkloadPolicy rejects incomplete or unrecognized configuration at startup.

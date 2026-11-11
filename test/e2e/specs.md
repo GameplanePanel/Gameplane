@@ -134,7 +134,11 @@ a cordon, readiness of the surviving replica, and singleton API eviction. Node
 labels and cordons are restored in cleanup. This validates scheduler/PDB behavior,
 not application HA or storage migration.
 
-`TestGameWorkerPoolAndQuota` applies the production chart's game Pod
+`TestGameWorkerPoolAndQuota` first enables the operator worker policy with a
+legacy server running. It checks that the rejected server can stop, that a
+directly submitted out-of-bounds server gets no StatefulSet, and that a
+valid partial override preserves template memory bounds on the worker Pod.
+It then applies the production chart's game Pod
 admission and tenant quota to an isolated namespace. A second Pod exceeds its
 quota. When the test cordons the only game worker and evicts its game Pod, the
 replacement stays Pending until a second worker joins the pool. Its allocating

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -147,5 +148,95 @@ func TestStoredGameCannotCreateWorkloadOutsideWorkerPolicy(t *testing.T) {
 	}
 	if err := r.Get(t.Context(), key, &appsv1.StatefulSet{}); !apierrors.IsNotFound(err) {
 		t.Fatalf("unsafe workload: %v", err)
+	}
+}
+
+func TestRejectedWorkloadOnlyStopsItsOwnedStatefulSet(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		legacy    bool
+		suspended bool
+		foreign   bool
+		want      int32
+	}{
+		{name: "pinned and running", want: 1},
+		{name: "pinned and suspended", suspended: true},
+		{name: "unadmitted baseline and suspended", legacy: true, suspended: true},
+		{name: "foreign StatefulSet", suspended: true, foreign: true, want: 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r, gs, effective := revisionFixture(t)
+			if err := r.reconcileStatefulSet(t.Context(), gs, effective, nil, &materializedConfig{}, 1); err != nil {
+				t.Fatal(err)
+			}
+			key := client.ObjectKeyFromObject(gs)
+			var ss appsv1.StatefulSet
+			if err := r.Get(t.Context(), key, &ss); err != nil {
+				t.Fatal(err)
+			}
+			if tc.foreign {
+				ss.OwnerReferences[0].UID = "another-server"
+				if err := r.Update(t.Context(), &ss); err != nil {
+					t.Fatal(err)
+				}
+			}
+			original := ss.Spec.DeepCopy()
+			if tc.legacy {
+				delete(gs.Annotations, effectiveTemplateAnnotation)
+			}
+			r.GameWorkloadPolicy, _, _ = gamePolicyFixture(t)
+			gs.Spec.NodeSelector = map[string]string{r.GameWorkloadPolicy.PoolLabel: "invalid"}
+			gs.Spec.Suspend = tc.suspended
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: key}); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Get(t.Context(), key, &ss); err != nil {
+				t.Fatal(err)
+			}
+			original.Replicas = &tc.want
+			if !reflect.DeepEqual(ss.Spec, *original) {
+				t.Fatalf("expected existing workload preserved with %d replicas, got %+v", tc.want, ss.Spec)
+			}
+		})
+	}
+}
+
+func TestRejectedRolloutDrainsWithThePinnedStopContract(t *testing.T) {
+	r, gs, old := revisionFixture(t)
+	old.Spec.RCON = &gameplanev1alpha1.RCONSpec{Protocol: "source"}
+	old.Spec.Capabilities = &gameplanev1alpha1.CapabilitiesSpec{Lifecycle: &gameplanev1alpha1.LifecycleSpec{Stop: []string{"save", "stop"}}}
+	pin, err := r.saveTemplateSnapshot(t.Context(), gs, old)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gs.Annotations[effectiveTemplateAnnotation] = pin
+	gs.Spec.TemplateRollout.Policy = "Automatic"
+	gs.Spec.Suspend = true
+	if err := r.Update(t.Context(), gs); err != nil {
+		t.Fatal(err)
+	}
+	one := int32(1)
+	ss := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace, OwnerReferences: []metav1.OwnerReference{
+			*metav1.NewControllerRef(gs, gameplanev1alpha1.GroupVersion.WithKind("GameServer")),
+		}},
+		Spec: appsv1.StatefulSetSpec{Replicas: &one}, Status: appsv1.StatefulSetStatus{ReadyReplicas: 1, Replicas: 1},
+	}
+	if err := r.Create(t.Context(), ss); err != nil {
+		t.Fatal(err)
+	}
+	stopper := &revisionStopper{}
+	r.AgentClient = stopper
+	r.GameWorkloadPolicy, _, _ = gamePolicyFixture(t)
+	key := client.ObjectKeyFromObject(gs)
+	result, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: key})
+	if err != nil || result.RequeueAfter <= 0 || stopper.calls != 1 {
+		t.Fatalf("pinned graceful stop: calls=%d requeue=%v err=%v", stopper.calls, result.RequeueAfter, err)
+	}
+	if err := r.Get(t.Context(), key, ss); err != nil || *ss.Spec.Replicas != 1 {
+		t.Fatalf("failed to preserve the running world during grace: %v", err)
 	}
 }
