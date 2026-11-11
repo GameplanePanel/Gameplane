@@ -171,7 +171,12 @@ func backupQuiesceOutcome(b *gameplanev1alpha1.Backup) string {
 	}
 	switch b.Annotations[annoQuiesceAttempted] {
 	case "true":
-		return "confirmed"
+		// Pre-upgrade hooks recorded success without verifying disabled writes.
+		preparation, err := parseBackupPreparation(b)
+		if err == nil && preparation != nil && preparation.Outcome == "live" && preparation.PodUID != "" && string(preparation.PodUID) == b.Annotations[annoVerifiedFreeze] {
+			return "verified-freeze"
+		}
+		return "legacy-unverified"
 	case "unsupported":
 		return "unsupported"
 	case "pending":
@@ -198,8 +203,10 @@ func backupConsistencyCondition(b *gameplanev1alpha1.Backup) metav1.Condition {
 		condition.Reason, condition.Message = "CapturePending", "The capture has not completed; its achieved consistency is not yet known."
 	case b.Status.CaptureManifest.VolumePolicy == "all-data" && b.Status.CaptureManifest.QuiesceOutcome != "already-stopped":
 		condition.Status, condition.Reason, condition.Message = metav1.ConditionFalse, "LiveMultiVolumeCopy", "Included volumes share one snapshot, but live copies have no atomic cross-volume consistency guarantee, even when the primary game's quiesce succeeds."
-	case b.Status.CaptureManifest.QuiesceOutcome == "confirmed":
-		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "Quiesced", "The included volumes were copied after the agent confirmed quiesce. This depends on the module's quiesce commands; consult the manifest for excluded volumes."
+	case b.Status.CaptureManifest.QuiesceOutcome == "confirmed" || b.Status.CaptureManifest.QuiesceOutcome == "legacy-unverified":
+		condition.Reason, condition.Message = "LegacyHookUnverified", "The historical hook reported success without proving that writes stayed paused. The snapshot remains available for restore."
+	case b.Status.CaptureManifest.QuiesceOutcome == "verified-freeze":
+		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "Quiesced", "The pod-bound agent verified the game write-freeze command sequence before capture. See the manifest for included volumes."
 	case b.Status.CaptureManifest.QuiesceOutcome == "already-stopped":
 		condition.Status, condition.Reason, condition.Message = metav1.ConditionTrue, "StoppedSource", "The included volumes were copied from a stopped and drained source. Consult the manifest for excluded volumes and recovery prerequisites."
 	case b.Status.CaptureManifest.Strategy == "volume-snapshot":
