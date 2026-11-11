@@ -94,7 +94,13 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 		}
 		// Applications have no cascading-deletion finalizer; the later Helm
 		// reinstall phase owns teardown of the populated world.
-		t.Cleanup(func() { _ = resource.Delete(context.Background(), name, metav1.DeleteOptions{}) })
+		t.Cleanup(func() {
+			cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 15*time.Second)
+			defer cancel()
+			if err := resource.Delete(cleanup, name, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
+				t.Errorf("delete Argo CD %s %s: %v", kind, name, err)
+			}
+		})
 	}
 	create(projectGVR, "AppProject", projectName, map[string]any{
 		"sourceRepos":              []any{repo},
@@ -112,7 +118,7 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 			"syncPolicy": map[string]any{"syncOptions": argoSyncOptions},
 		})
 	}
-	identity := readUpgradeIdentity(t, "gameplane-agent-ca")
+	identity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
 	claim, err := envInstance.K8s.CoreV1().PersistentVolumeClaims(ns).Get(ctx, game+"-data", metav1.GetOptions{})
 	if err != nil || claim.UID == "" {
 		t.Fatalf("read populated game PVC: %v", err)
@@ -141,7 +147,7 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 	// port-forward or cached /players response cannot verify an agent's mTLS.
 	checkWorld := func(issuerSecret, clientSecret string, expectedCA []byte) {
 		t.Helper()
-		now := readUpgradeIdentity(t, issuerSecret)
+		now := readUpgradeIdentity(ctx, t, issuerSecret)
 		expected := fmt.Sprintf("%x", sha256.Sum256(expectedCA))
 		if now["agent CA fingerprint"] != expected {
 			t.Fatal("active issuer fingerprint differs from staged certificate")
@@ -178,10 +184,10 @@ func checkArgoUpgrade(t *testing.T, ns, game, marker, username, password, creden
 				t.Fatalf("%s rolled out without the intended issuer/client Secret references", deployment)
 			}
 		}
-		cli := envInstance.APIClient(t, username, password)
+		cli := envInstance.apiClientContext(ctx, t, username, password)
 		defer cli.Close()
 		envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
-			resp, body, err := cli.Get("/servers/" + game + "/files/read?path=%2Fmarker.txt")
+			resp, body, err := cli.DoContext(ctx, http.MethodGet, "/servers/"+game+"/files/read?path=%2Fmarker.txt", nil)
 			if err != nil {
 				return false, err.Error()
 			}

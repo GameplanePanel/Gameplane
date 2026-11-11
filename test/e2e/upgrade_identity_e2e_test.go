@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"slices"
@@ -16,20 +17,20 @@ import (
 
 // Snapshot the populated installation's storage and trust identities. Remaining
 // Gameplane CRDs must include every version still recorded as stored by Kubernetes.
-func readUpgradeIdentity(t *testing.T, issuerSecret string) map[string]string {
+func readUpgradeIdentity(ctx context.Context, t *testing.T, issuerSecret string) map[string]string {
 	t.Helper()
 	identity := map[string]string{}
-	pvc, err := envInstance.K8s.CoreV1().PersistentVolumeClaims("gameplane-system").Get(t.Context(), "gameplane-api-data", metav1.GetOptions{})
+	pvc, err := envInstance.K8s.CoreV1().PersistentVolumeClaims("gameplane-system").Get(ctx, "gameplane-api-data", metav1.GetOptions{})
 	if err != nil || pvc.UID == "" {
 		t.Fatalf("read gameplane-system/gameplane-api-data PVC identity: %v", err)
 	}
 	identity["gameplane-system/gameplane-api-data"] = string(pvc.UID)
-	ca, err := envInstance.K8s.CoreV1().Secrets("gameplane-system").Get(t.Context(), issuerSecret, metav1.GetOptions{})
+	ca, err := envInstance.K8s.CoreV1().Secrets("gameplane-system").Get(ctx, issuerSecret, metav1.GetOptions{})
 	if err != nil || len(ca.Data["ca.crt"]) == 0 {
 		t.Fatalf("read public agent CA certificate: %v", err)
 	}
 	identity["agent CA fingerprint"] = fmt.Sprintf("%x", sha256.Sum256(ca.Data["ca.crt"]))
-	crds, err := envInstance.Dyn.Resource(crdGVR).List(t.Context(), metav1.ListOptions{})
+	crds, err := envInstance.Dyn.Resource(crdGVR).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}

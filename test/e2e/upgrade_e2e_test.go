@@ -52,7 +52,7 @@ import (
 // also bring them up to date. It runs last so steps 1-6 start from the old
 // release's genuinely stale schema.
 func TestUpgrade_FromPreviousRelease(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	ns := "gameplane-games"
 	tmpl := "e2e-upgrade-busybox"
 	gs := "e2e-upgrade-target"
@@ -74,7 +74,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
 	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
-	beforeIdentity := readUpgradeIdentity(t, "gameplane-agent-ca")
+	beforeIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
 	legacyReadBinding := nativeReadBinding(t)
 	checkNativeCatalogAccess(t, tmpl, true)
 
@@ -161,7 +161,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("operator strategy migration retained RollingUpdate fields: %+v", operator.Spec.Strategy)
 	}
 
-	afterIdentity := readUpgradeIdentity(t, "gameplane-agent-ca")
+	afterIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
 	for name, before := range beforeIdentity {
 		if afterIdentity[name] != before {
 			t.Errorf("upgrade changed %s identity: before %s, after %s", name, before, afterIdentity[name])

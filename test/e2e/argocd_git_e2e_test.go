@@ -36,7 +36,8 @@ func argoGitSource(t *testing.T) (address, revision string) {
 	if ip := net.ParseIP(gateway); ip == nil || !ip.IsPrivate() {
 		t.Fatalf("expected a private kind bridge gateway, got %q", gateway)
 	}
-	listener, err := net.Listen("tcp", net.JoinHostPort(gateway, "0"))
+	var listen net.ListenConfig
+	listener, err := listen.Listen(t.Context(), "tcp", net.JoinHostPort(gateway, "0"))
 	if err != nil {
 		t.Fatal(err)
 	}
