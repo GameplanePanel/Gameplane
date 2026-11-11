@@ -7,6 +7,14 @@ reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 ## [Unreleased]
 
+### Fixed
+
+- **SSO user profiles:** OIDC sign-in now reads `preferred_username`, falls
+  back to the IdP's userinfo endpoint when the ID token leaves out email,
+  name or username, and refreshes an existing user's email and display name
+  at every login. SSO users whose username is still the raw subject ID are
+  renamed to their `preferred_username` (or email) on their next login.
+
 ## [0.4.0] — 2026-11-10
 
 A pre-v1 release with every change made since v0.3.0: an independent central
