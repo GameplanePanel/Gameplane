@@ -8,7 +8,7 @@ context="kind-${cluster}"
 k() { kubectl --context="$context" "$@"; }
 ns=gameplane-games
 panel=gameplane-system
-game=aux-worker-drill
+game="aux-worker-drill"
 local_game=$game
 csi_game=${game}-csi
 key=gameplane.local/aux-drill
@@ -24,6 +24,7 @@ k get nodes -l node-role.kubernetes.io/control-plane -o json | jq -e 'any(.items
 k get "$op" -n "$panel" -o json | jq '[{op:"replace",path:"/spec/template",value:.spec.template}]' > "$work/restore.json"
 cleanup() {
   k uncordon "$aux" >/dev/null || true
+  k uncordon "$games" >/dev/null || true
   for node in "$games" "$aux"; do
     k taint node "$node" "$key:NoSchedule-" >/dev/null || true
     k label node "$node" "$key-" >/dev/null || true
@@ -201,3 +202,41 @@ hostport_released() {
 wait_for hostport_released
 game=$csi_game
 exercise_modes
+
+# Drain only the two populated games in this shared test cluster. Both PVs
+# are node-bound. Keep the separate relay pool available during the drain.
+declare -A before_pod before_world before_volume
+volume_identity() {
+  local binding pv uid
+  binding=$(k -n "$ns" get pvc "$game-data" -o jsonpath='{.metadata.uid}/{.spec.volumeName}') || return 1
+  pv=${binding#*/}
+  [[ -n "$pv" ]] || return 1
+  uid=$(k get pv "$pv" -o jsonpath='{.metadata.uid}') || return 1
+  [[ -n "$uid" ]] || return 1
+  printf '%s/%s' "$binding" "$uid"
+}
+for game in "$local_game" "$csi_game"; do
+  before_pod[$game]=$(k -n "$ns" get pod "$game-0" -o jsonpath='{.metadata.uid}')
+  before_world[$game]=$(world)
+  before_volume[$game]=$(volume_identity)
+done
+drain_started=$SECONDS
+k drain "$games" --pod-selector="app.kubernetes.io/name=gameplane-game,app.kubernetes.io/instance in ($local_game,$csi_game)" \
+  --ignore-daemonsets --delete-emptydir-data --timeout=3m
+game_pending() {
+  k -n "$ns" get pod "$game-0" -o json | jq -er --arg old "${before_pod[$game]}" '
+    select(.metadata.uid!=$old and .metadata.deletionTimestamp==null and (.spec.nodeName // "")=="") |
+    .status.conditions[]? | select(.type=="PodScheduled" and .status=="False" and .reason=="Unschedulable") | .message'
+}
+for game in "$local_game" "$csi_game"; do
+  wait_for game_pending
+  [[ "$(volume_identity)" == "${before_volume[$game]}" ]]
+done
+game=$local_game
+pod_on tunnel "$aux" >/dev/null
+k uncordon "$games"
+for game in "$local_game" "$csi_game"; do
+  wait_for pod_on game "$games"
+  [[ "$(volume_identity)" == "${before_volume[$game]}" && "$(world)" == "${before_world[$game]}" ]]
+  echo "$game recovered on $games $((SECONDS-drain_started))s after drain began, PVC/PV=${before_volume[$game]} world=${before_world[$game]}"
+done

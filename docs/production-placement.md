@@ -161,13 +161,15 @@ selectors, taints, affinity, or exhausted resources. Restore an eligible
 worker for the same pool (and the original endpoint for Hostport).
 
 The disposable kind management drill runs the operator on a tainted management
-worker, binds a populated local-path PVC on a separate game worker, parks
-the game and wakes it over all four exposure modes. It reads the original
-world marker after each handoff. It also verifies the scheduler's diagnostic
-after evicting a relay from its only eligible worker. Each provider uses a
-local health responder so this placement drill needs no external accounts.
-The LoadBalancer case exercises its allocated NodePort. Test a real external
-address and the site's CSI driver on the deployment topology before rollout.
+worker and provisions local-path and topology-bound CSI game volumes on a
+separate game worker. It reads each world's saved marker after a wake through
+ClusterIP, NodePort, the MetalLB address and Hostport. It drains each pool
+in turn. The relay and games must report an unschedulable replacement while
+their own worker is cordoned. After the game worker returns, the drill records
+recovery time and verifies both PVC and PV identities and saved markers.
+Each tunnel provider uses a local health responder. The CSI lane uses the
+upstream distributed host-path reference driver. Qualify the site's external
+network path and production CSI driver on its deployment topology.
 
 A priorityClassName must name
 an existing PriorityClass. Unsatisfied hard selectors, taints or topology
