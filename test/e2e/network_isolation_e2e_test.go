@@ -113,8 +113,9 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 		_ = envInstance.K8s.CoreV1().Namespaces().Delete(context.Background(), tenant, metav1.DeleteOptions{})
 	})
 	peerIP := kindFixtureIP(t, "GAMEPLANE_NET_PEER_IP")
-	helmUpgradeReuse(ctx, t, "operator.gameNamespaces[0]="+tenant, "networkPolicies.tenantIsolation=true",
-		"podSecurity.enforceRestricted=true", "networkPolicies.probePorts=null", "networkPolicies.gameEgress.enabled=false",
+	helmUpgradeReuseJSON(ctx, t, []string{"networkPolicies.probePorts=[]"},
+		"operator.gameNamespaces[0]="+tenant, "networkPolicies.tenantIsolation=true",
+		"podSecurity.enforceRestricted=true", "networkPolicies.gameEgress.enabled=false",
 		"networkPolicies.backupEgress.enabled=true", "networkPolicies.backupEgress.toCIDRs[0]="+peerIP+"/32",
 		"networkPolicies.backupEgress.ports[0].port=8000", "networkPolicies.backupEgress.ports[0].protocol=TCP",
 		"networkPolicies.gameIngress.fromCIDRs[0]="+peerIP+"/32")
@@ -142,7 +143,11 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 	isolationHTTP(t, ns, probeA, away, 25566, false)
 	isolationHTTP(t, tenant, otherProbe, home, 25566, false)
 	for namespace, want := range map[string]int{ns: 25566, tenant: 25575} {
-		policy, err := envInstance.K8s.NetworkingV1().NetworkPolicies(namespace).Get(ctx, a+"-probes", metav1.GetOptions{})
+		policies := envInstance.K8s.NetworkingV1().NetworkPolicies(namespace)
+		if _, err := policies.Get(ctx, "allow-kubelet-probes", metav1.GetOptions{}); !apierrors.IsNotFound(err) {
+			t.Fatalf("shared kubelet grant survived tenant migration in %s: %v", namespace, err)
+		}
+		policy, err := policies.Get(ctx, a+"-probes", metav1.GetOptions{})
 		if err != nil || len(policy.Spec.Ingress) != 1 || len(policy.Spec.Ingress[0].Ports) != 1 ||
 			policy.Spec.Ingress[0].Ports[0].Port == nil || policy.Spec.Ingress[0].Ports[0].Port.IntValue() != want {
 			t.Fatalf("expected only kubelet probe port %d in %s: %v", want, namespace, err)
