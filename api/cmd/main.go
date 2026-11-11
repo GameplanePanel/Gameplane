@@ -396,11 +396,11 @@ func main() {
 		handlers.MountAuthProviderSecrets(p, k8s, credentialsNS)
 		handlers.MountCluster(p, reg, store, Version, cfg.clusterOps, cfg.updateChannel)
 		handlers.MountClusterActions(p, k8s, cfg.clusterOps, cfg.clusterExternalAddress)
-		clusterManagement := k8s
-		if !cfg.remoteClusters {
-			clusterManagement = nil
+		if cfg.remoteClusters {
+			handlers.MountClusters(p, reg, k8s, credentialsNS)
+		} else {
+			handlers.MountClusters(p, reg, nil, credentialsNS)
 		}
-		handlers.MountClusters(p, reg, clusterManagement, credentialsNS)
 		handlers.MountInstallation(p, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
 		handlers.MountDestinations(p, reg)
