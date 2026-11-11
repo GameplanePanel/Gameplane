@@ -159,6 +159,16 @@ Pending. Run `kubectl -n TENANT describe pod POD` and inspect its
 `PodScheduled=False` condition and `FailedScheduling` events for conflicting
 selectors, taints, affinity, or exhausted resources. Restore an eligible
 worker for the same pool (and the original endpoint for Hostport).
+
+The disposable kind management drill runs the operator on a tainted management
+worker, binds a populated local-path PVC on a separate game worker, parks
+the game and wakes it over all four exposure modes. It reads the original
+world marker after each handoff. It also verifies the scheduler's diagnostic
+after evicting a relay from its only eligible worker. Each provider uses a
+local health responder so this placement drill needs no external accounts.
+The LoadBalancer case exercises its allocated NodePort. Test a real external
+address and the site's CSI driver on the deployment topology before rollout.
+
 A priorityClassName must name
 an existing PriorityClass. Unsatisfied hard selectors, taints or topology
 constraints correctly leave pods Pending; do not silently relax them.
