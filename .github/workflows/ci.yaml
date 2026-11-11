@@ -2361,6 +2361,8 @@ jobs:
       - name: bring up cluster + helm install
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
       - name: run go e2e (game bot)
+        env:
+          GAMEPLANE_E2E_WAKE_REPORTS: ${{ runner.temp }}/wake-burst-reports
         # Blocking. The bot runs as a Job inside the cluster and dials the game
         # Service directly, removing the `kubectl port-forward` hop this job's
         # flakiness was once blamed on. (That blame turned out to be wrong: the
@@ -2369,11 +2371,23 @@ jobs:
         # network path a real client uses.)
         run: |
           RUN_REGEX="^${BOT_TEST}$"
+          if [[ "$BOT_TEST" == TestColdWakeFleet_ConcurrentJoins ]]; then
+            docker build -t gameplane-test/wake-teeworlds:ci test/e2e/testdata/wake-burst
+            kind load docker-image --name "$CLUSTER" gameplane-test/wake-teeworlds:ci
+          fi
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             GAMEPLANE_E2E_GAME_BOT=1 \
             go test -tags=e2e -timeout 30m -v -run "$RUN_REGEX" ./...
+      - name: upload cold-join and node-pressure measurements
+        if: always() && matrix.test == 'TestColdWakeFleet_ConcurrentJoins'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wake-joins-and-pressure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/wake-burst-reports/*.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: dump cluster state on failure (e2e-game-bot)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
