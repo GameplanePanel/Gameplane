@@ -377,9 +377,6 @@ spec:
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             - --agent-ca-secret-name={{ .Values.api.agentMTLS.caSecretRef.name }}
             - --game-namespaces={{ join "," $gameNamespaces }}
-            {{- if ne .Values.operator.gameWorkloadPolicy nil }}
-            - {{ printf "--game-workload-policy=%s" (mustToJson .Values.operator.gameWorkloadPolicy) | quote }}
-            {{- end }}
             - --control-plane-namespace={{ .Values.operator.controlPlaneNamespace | default .Release.Namespace }}
             - --agent-ca-secret-namespace={{ .Values.operator.agentCASecretNamespace | default .Release.Namespace }}
             - --module-namespace={{ .Values.operator.moduleNamespace | default .Release.Namespace }}
@@ -411,6 +408,9 @@ spec:
             {{- end }}
             {{- if .Values.operator.agentLogLevel }}
             - --agent-log-level={{ .Values.operator.agentLogLevel }}
+            {{- end }}
+            {{- if ne .Values.operator.gameWorkloadPolicy nil }}
+            - {{ printf "--game-workload-policy=%s" (mustToJson .Values.operator.gameWorkloadPolicy) | quote }}
             {{- end }}
             {{- if and .Values.operator.gameDataStorage .Values.operator.gameDataStorage.storageClassName }}
             - --game-data-storage-class={{ .Values.operator.gameDataStorage.storageClassName }}
