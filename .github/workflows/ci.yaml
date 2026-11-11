@@ -926,6 +926,13 @@ jobs:
           read -r -a packages <<<"$GO_PACKAGES"
           go test -covermode=atomic -coverpkg=./... \
             -coverprofile=coverage/unit.out "${packages[@]}"
+      - name: profile local UDP forwarding against direct echo
+        if: matrix.module == 'tunnel' && matrix.arch == 'amd64' && env.GO_PACKAGES != ''
+        working-directory: tunnel
+        run: |
+          go test -count=1 -v -run '^TestRelayLoadForwardingProfile$' -cpuprofile="$RUNNER_TEMP/relay.cpu" -memprofile="$RUNNER_TEMP/relay.mem" -o "$RUNNER_TEMP/relay.test" .
+          go tool pprof -top -cum -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.cpu"
+          go tool pprof -top -alloc_space -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.mem"
       - name: sentinel mixed-load regression measurements
         if: matrix.module == 'sentinel' && env.GO_PACKAGES != ''
         working-directory: sentinel

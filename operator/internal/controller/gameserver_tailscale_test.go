@@ -73,12 +73,20 @@ func TestInvalidTailscaleTagsExposeConditionAndRemoveOldDeployment(t *testing.T)
 	if condition == nil || condition.Status != metav1.ConditionFalse || condition.Reason != "InvalidTailscaleTags" {
 		t.Fatalf("invalid tags hidden: %+v", condition)
 	}
+	r.TailscaleMaxSessions, r.TailscaleUDPQueue = 32, 8
 	gs.Spec.Networking.Tunnel.Tailscale.Tags = []string{" game ", "tag:friends"}
 	if err := r.reconcileTunnel(t.Context(), gs, tmpl, true); err != nil {
 		t.Fatal(err)
 	}
 	if err := c.Get(t.Context(), client.ObjectKeyFromObject(old), old); err != nil {
 		t.Fatalf("corrected tags did not recreate deployment: %v", err)
+	}
+	env := map[string]string{}
+	for _, v := range old.Spec.Template.Spec.Containers[0].Env {
+		env[v.Name] = v.Value
+	}
+	if env["TAILSCALE_MAX_SESSIONS"] != "32" || env["TAILSCALE_UDP_QUEUE"] != "8" {
+		t.Fatal("install forwarding limits missing on relay")
 	}
 	condition = meta.FindStatusCondition(computeTunnelConditions(gs, plan, old), "TunnelReady")
 	if condition == nil || condition.Reason == "InvalidTailscaleTags" {
