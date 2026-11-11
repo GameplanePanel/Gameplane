@@ -1175,8 +1175,7 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install chromium
-        # Skips the browser download on a cache hit; still apt-installs deps.
-        run: npx playwright install --with-deps chromium
+        run: bash e2e/install-chromium.sh
       - name: playwright (mock)
         run: npm run test:e2e:mock
       - name: upload playwright report
@@ -2277,8 +2276,10 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install playwright browser
+        working-directory: web
         run: |
-          cd web && npm ci && npx playwright install --with-deps chromium
+          npm ci
+          bash e2e/install-chromium.sh
       - name: i18n catalogs for the live dashboard
         # The live job serves the dashboard with plain vite, which never builds
         # the gitignored language list and catalogs (spec 019 T037).
