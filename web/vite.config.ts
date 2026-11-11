@@ -3,7 +3,7 @@ import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -40,24 +40,12 @@ function i18nPseudo(): Plugin {
   };
 }
 
-// monacoAssets copies Monaco's AMD build into dist/monaco/vs, where
-// src/lib/monaco-loader.ts points the editor loader, so the editor loads
-// from the dashboard's own origin instead of cdn.jsdelivr.net.
-function monacoAssets(): Plugin {
-  let outDir = "";
-  return {
-    name: "gameplane-monaco-assets",
-    apply: "build",
-    configResolved(config) {
-      outDir = path.resolve(config.root, config.build.outDir);
-    },
-    closeBundle() {
-      cpSync(path.resolve(here, "node_modules/monaco-editor/min/vs"), path.join(outDir, "monaco/vs"), {
-        recursive: true,
-      });
-    },
-  };
-}
+// The Files editor shares the TypeScript language server's stdin with its worker.
+// Match the isolation headers in nginx for development and local previews.
+const isolationHeaders = {
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Embedder-Policy": "credentialless",
+};
 
 // cspHeader writes web/build/csp.conf, the Content-Security-Policy header
 // nginx sends with the SPA shell (web/nginx.conf.template includes it). The
@@ -121,7 +109,9 @@ function htmlBypass(req: { headers: Record<string, string | string[] | undefined
 }
 
 export default defineConfig({
-  plugins: [react(), i18nFixtures(), i18nPseudo(), monacoAssets(), cspHeader()],
+  plugins: [react(), i18nFixtures(), i18nPseudo(), cspHeader()],
+  preview: { headers: isolationHeaders },
+  worker: { format: "es" },
   resolve: {
     alias: {
       "@": path.resolve(here, "./src"),
@@ -129,6 +119,7 @@ export default defineConfig({
     },
   },
   server: {
+    headers: isolationHeaders,
     port: 5173,
     proxy: {
       // Proxy API + WS traffic to the in-cluster API during `npm run dev`.
@@ -168,9 +159,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id: string) => {
-          if (id.includes("@monaco-editor") || id.includes("monaco-editor")) {
-            return "monaco";
-          }
           if (id.includes("@xterm")) {
             return "xterm";
           }

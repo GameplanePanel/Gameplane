@@ -353,14 +353,14 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 - `react-aria` — peer dependency of HeroUI, providing accessibility primitives (via `react-aria-components`) used by HeroUI atoms.
 
 **Editors / terminals**
-- `@monaco-editor/react` `^4.7.0` — the `Editor` component in `src/routes/tabs/Files.tsx` (in-browser file editor) and `Placement.tsx`; given its own `manualChunks` bundle in `vite.config.ts`.
+- `@monaco-editor/react` wraps Monaco for the Files and Placement editors. Vite bundles their language support and workers as same-origin assets.
 - `@xterm/xterm` `^6.0.0` + `@xterm/addon-fit` `^0.11.0` — `Terminal`/`FitAddon` in `src/routes/tabs/useConsoleTerminal.ts`, driving the live server console (`Console.tsx`); also chunked separately in `vite.config.ts`. <!-- doc-versions: dependency -->
 
 **Styling / build**
 - `tailwindcss` `^4.3.3`, `autoprefixer` `^10.5.4`, `postcss` `^8.5.26` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; `tailwind.config.ts` defines the design tokens used throughout `src/styles` and Tailwind classes app-wide.
 - `vite` `^8.2.2`, `@vitejs/plugin-react` `^6.1.1` (dev) — `vite.config.ts` drives the dev server (with the API/WS proxy to the in-cluster API used by `make web-dev`), production build, and is the engine behind `vitest.config.ts`.
 - `typescript` `^7.0.2` (dev) provides the native `tsc` used for the dashboard build and Playwright type checks. The i18n migration script reads TSX syntax with Babel.
-- Monaco ships a separate TypeScript 5.9.3 language service for the in-browser file editor. That version comes from the Monaco distribution. [Monaco worker metadata](https://github.com/microsoft/monaco-editor/blob/v0.56.0/src/languages/features/typescript/lib/typescriptServicesMetadata.ts)
+- Opening a JavaScript or TypeScript file starts Microsoft's TypeScript language server in a WebAssembly worker. The browser package is pinned to `7.1.0-dev.20261030.1`, the version Microsoft tested in Playground v2. Its shared input buffer requires a secure, cross-origin-isolated page (HTTPS or localhost with the isolation headers). On other origins the editor provides syntax highlighting and saving. The worker checks the open file against TypeScript's standard library in browser memory. [Microsoft's Playground implementation](https://github.com/microsoft/TypeScript-Website/pull/3653)
 
 **Lint** (dev, all wired directly in `eslint.config.js`)
 - `eslint` `^10.14.0` and `@eslint/js` `^10.0.1` check JavaScript. Babel parses TypeScript and JSX for `eslint-plugin-react-hooks` and `eslint-plugin-formatjs`.

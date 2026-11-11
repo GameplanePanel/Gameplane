@@ -37,7 +37,7 @@ COPY web/ ./
 # Generated language manifest (computed by the i18n stage above).
 COPY --from=i18n /out/languages.json ./src/generated/i18n/languages.json
 # Vite emits to web/dist. tsc + vite build run via `npm run build`.
-RUN npm run build
+RUN npm run build && gzip -9 -n -k dist/assets/tsc-*.wasm dist/assets/monaco-ts-worker-*.js
 
 # ---- serve with a non-root nginx ----
 # nginx-unprivileged listens on 8080 and runs as uid 101 (nginx), so it needs

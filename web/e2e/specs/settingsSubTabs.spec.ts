@@ -47,6 +47,23 @@ test.describe("server settings sub-tabs", () => {
     await loginIfNeeded(page);
   });
 
+  test("validates edits in the Placement JSON editor", async ({ page }) => {
+    const server = new ServerDetailPage(page);
+    await server.goto("alpha");
+    await server.clickTab("Settings");
+    await page.getByRole("tab", { name: "Placement", exact: true }).click();
+    const tolerations = page.locator(".monaco-editor").first();
+    await tolerations.locator(".view-line").first().click();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.insertText("[}");
+    await expect(page.getByText("Invalid JSON", { exact: true })).toBeVisible();
+    await expect(tolerations.locator(".squiggly-error").first()).toBeVisible();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.insertText("[]");
+    await expect(page.getByText("Invalid JSON", { exact: true })).toHaveCount(0);
+    await expect(tolerations.locator(".squiggly-error")).toHaveCount(0);
+  });
+
   test("walks every sub-tab without console errors", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
