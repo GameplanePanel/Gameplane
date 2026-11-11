@@ -183,6 +183,9 @@ Kubernetes disaster recovery exercise.
 All API replicas must use the same writable PostgreSQL database and schema,
 the same configuration and credentials, and the same trusted ingress proxy
 ranges. Protected traffic and authentication budgets go to the primary. A
+chart-managed HA Pod starts with `--postgres-ha-protocol=1`. A legacy
+binary rejects this flag before opening the database. To downgrade to a
+version without this protocol, return to one writer before changing images. A
 session created on either API works on both, and logout and credential changes
 affect the next request on either replica. Long-lived consoles, event streams
 and transfers recheck their session and permissions every five seconds. An

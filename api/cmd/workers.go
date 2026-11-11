@@ -10,6 +10,15 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/db"
 )
 
+// The HA chart passes a capability flag that old binaries reject before
+// they open storage. The standalone control plane has its own key lifecycle.
+func (c config) validatePostgresHA() error {
+	if c.postgresHA && (c.dbDriver != "postgres" || c.standalone) {
+		return errors.New("--postgres-ha-protocol requires a native PostgreSQL API")
+	}
+	return nil
+}
+
 // runPanelWorkers keeps the install's periodic jobs on one replica. A read-
 // committed transaction pins its PostgreSQL backend even with transaction
 // pooling. The transaction-scoped lock is released on rollback or backend

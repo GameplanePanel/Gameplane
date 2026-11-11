@@ -110,6 +110,10 @@ func main() {
 	}
 	logger = newLogger(cfg.logLevel)
 	slog.SetDefault(logger)
+	if err := cfg.validatePostgresHA(); err != nil {
+		logger.Error("invalid active-active deployment", "err", err)
+		os.Exit(2)
+	}
 
 	// Validate OIDC configuration flags.
 	if cfg.oidcDefaultRole != "" {
@@ -550,6 +554,7 @@ type config struct {
 	addr                string
 	metricsAddr         string
 	dbDriver            string
+	postgresHA          bool
 	dbDSN               string
 	logLevel            string
 
@@ -628,6 +633,13 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.logLevel, "log-level", envOr("GAMEPLANE_LOG_LEVEL", "info"),
 		"log verbosity: debug, info, warn, or error")
 	fs.StringVar(&c.dbDriver, "db-driver", envOr("GAMEPLANE_DB_DRIVER", "sqlite"), "sqlite or postgres")
+	fs.Func("postgres-ha-protocol", "require the named native PostgreSQL active-active protocol", func(v string) error {
+		if v != "1" {
+			return fmt.Errorf("unsupported PostgreSQL HA protocol %q (supported: 1)", v)
+		}
+		c.postgresHA = true
+		return nil
+	})
 	fs.StringVar(&c.dbDSN, "db-dsn", envOr("GAMEPLANE_DB_DSN", "file:/data/gameplane.db?_pragma=journal_mode(WAL)"), "DSN")
 	fs.StringVar(&c.oidcIssuer, "oidc-issuer", envOr("GAMEPLANE_OIDC_ISSUER", ""), "OIDC issuer URL")
 	fs.StringVar(&c.oidcClientID, "oidc-client-id", envOr("GAMEPLANE_OIDC_CLIENT_ID", ""), "OIDC client id")
