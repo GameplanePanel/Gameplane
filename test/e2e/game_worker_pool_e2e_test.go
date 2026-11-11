@@ -150,8 +150,21 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 		DeleteOptions: &metav1.DeleteOptions{GracePeriodSeconds: &zero}}); err != nil {
 		t.Fatal(err)
 	}
-	second.Spec.Containers[0].Command = []string{"sh", "-ec", `until test -e /tmp/leak; do sleep 1; done
-exec awk 'BEGIN { s="x"; while(length(s)<1048576) s=s s; for(i=0;;i++) { a[i]=s i; system("sleep 0.25") } }'`}
+	// Touch anonymous pages in one process. Forking a sleep helper at the
+	// tenant's ceiling can fail before the kernel OOM-kills the allocator.
+	second.Spec.Containers[0].Image = "python:3.14-alpine"
+	second.Spec.Containers[0].Command = []string{"python", "-c", `
+import mmap, os, time
+while not os.path.exists("/tmp/leak"):
+    time.sleep(0.25)
+held = []
+while True:
+    block = bytearray(1024 * 1024)
+    for page in range(0, len(block), mmap.PAGESIZE):
+        block[page] = 1
+    held.append(block)
+    time.sleep(0.25)
+`}
 	e.Eventually(t, time.Minute, func() (bool, string) {
 		_, err := pods.Create(ctx, second, metav1.CreateOptions{})
 		if err != nil && !apierrors.IsForbidden(err) {
@@ -187,7 +200,11 @@ exec awk 'BEGIN { s="x"; while(length(s)<1048576) s=s s; for(i=0;;i++) { a[i]=s 
 		}
 		for _, status := range live.Status.ContainerStatuses {
 			if ended := status.State.Terminated; ended != nil {
-				return live.Spec.NodeName == workers[1] && ended.Reason == "OOMKilled", fmt.Sprintf("node=%s reason=%s", live.Spec.NodeName, ended.Reason)
+				if live.Spec.NodeName != workers[1] || ended.Reason != "OOMKilled" {
+					logs, _ := e.Kubectl(ctx, "logs", "-n", ns, second.Name, "-c", "game", "--tail=10")
+					t.Fatalf("tenant stopped on %s: reason=%s exit=%d message=%s logs=%s", live.Spec.NodeName, ended.Reason, ended.ExitCode, ended.Message, logs)
+				}
+				return true, ""
 			}
 		}
 		return false, fmt.Sprint(live.Status.Phase)
