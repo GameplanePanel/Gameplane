@@ -104,6 +104,68 @@ limits. A non-null empty object explicitly clears defaults; supplied requests
 and limits replace them. These are scheduling reservations, not a fleet
 capacity guarantee. Readiness and replacement changes preserve this contract.
 
+## Forwarding capacity
+
+The embedded Tailscale relay exports the following series on port 8091 at
+`/metrics`. A Ready relay can have full queues. Readiness measures the
+connection and listeners, while these series measure the local forwarding path.
+
+| Series | Meaning |
+| --- | --- |
+| `gameplane_tunnel_forward_metrics_supported` | 1 for Tailscale, 0 for frp and Playit. Those child processes own their data paths, so their forwarding series are absent. |
+| `gameplane_tunnel_active_flows{protocol}` | Admitted TCP connections or UDP peer sessions, including upstream dial time. Protocol is `tcp` or `udp`. |
+| `gameplane_tunnel_flow_rejections_total{protocol}` | TCP accepts closed at the shared limit, or incoming UDP datagrams from a peer for which no slot was available. A retry from the same UDP peer counts again. |
+| `gameplane_tunnel_udp_queue_drops_total` | Datagrams discarded on arrival at an existing full peer queue. |
+| `gameplane_tunnel_udp_forwarded_packets_total{direction}` | Successful datagram writes. Use `rate(...[1m])` for packets per second. Directions are `to_backend` and `to_client`. |
+| `gameplane_tunnel_udp_forward_duration_seconds{direction}` | Histogram from local receipt through successful write, including the queue wait toward the backend. The echo client measures round-trip time. |
+
+Counters span listener retries and reset on process restart. A successful UDP
+write records handoff to the local socket. A datagram can still be lost
+downstream, during dialing, or when a session ends.
+
+The Helm values `operator.tailscaleMaxSessions` (default 128, range 1–256)
+and `operator.tailscaleUDPQueue` (default 4, range 1–16) apply to every
+Tailscale relay. Sessions × (queue + 1) must be at most 640. This keeps
+queued datagrams and per-session receive buffers within the default worst-case
+payload budget of about 40 MiB. The relay also needs memory for listeners,
+socket buffers, workers, tsnet and the Go runtime. Changing the values replaces
+the affected relay Pods. frp and Playit retain their provider-managed limits.
+
+## Comparing direct and relayed UDP
+
+Build `./cmd/relay-load` in the `tunnel` module and run its echo endpoint on
+an isolated test backend. Expose the same UDP port through both the direct and
+provider routes. Run the driver on one client host with access to both paths.
+
+```sh
+relay-load -echo 0.0.0.0:9000
+# On the client, substituting the addresses reachable from that host:
+relay-load -clients 32 -hz 128 -bytes 256 -seconds 30 direct.example:9000 relay.example:9000
+```
+
+Each target gets the same number of sockets, send schedule and payload size.
+The driver emits a JSON object per target with scheduled sends, actual sends,
+unique echoes within a one-second drain, late generator ticks, observed send
+rate, loss percentage, and p95/p99 RTT and jitter in milliseconds. Jitter is
+the absolute RTT difference for consecutive received sequence numbers on one
+socket. Absent percentiles are null. Compare actual sends with the offered
+rate before attributing a shortfall to the relay.
+
+For a saturation trial, set the session limit below the number of clients.
+Capture counter deltas between scrapes and compare UDP rejections and queue
+drops with the client's missing echoes. Repeat both target orders at increasing
+load on the same hardware. Record image digest, provider/route (including
+direct tailnet or DERP), CPU and memory limits, relay CPU seconds during each
+trial, offered and achieved packet rates, loss, jitter and RTT percentiles.
+The sustainable rate is the highest repeated load meeting the game's declared
+loss and latency limits with the generator keeping pace.
+
+The amd64 tunnel CI job runs the driver against direct loopback echo and the
+local Tailscale forwarding code. Its profile step prints CPU and allocation
+hot spots under 32 clients at 128 Hz. It bypasses tsnet transport. Hosted
+Tailscale direct/DERP, frp and Playit rates remain unqualified until measured
+on the target topology.
+
 ## Regression coverage
 
 The CI optional-components lifecycle test runs two GameServers from the same
