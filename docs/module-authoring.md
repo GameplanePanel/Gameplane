@@ -333,9 +333,10 @@ local kind registry legitimately live there.
 
 ### Uploaded bundles
 
-`type: upload` sources index ConfigMaps in the operator namespace
-labeled `gameplane.local/module-upload: "true"`, each holding one bundle's
-files under their canonical names. The dashboard's **Upload module**
+`type: upload` sources index ConfigMaps labeled `gameplane.local/module-upload: "true"`.
+Each ConfigMap holds one bundle's files under their canonical names. On combined
+installations the chart points the operator's `--module-configmap-namespace` at
+the API credentials namespace. The dashboard's **Upload module**
 flow creates these via `POST /modules/sources/{name}/upload`
 (tar.gz/zip, ≤ 900 KiB), but a hand-applied ConfigMap indexes exactly
 the same way:
@@ -345,7 +346,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: module-upload-mygame
-  namespace: gameplane-system
+  namespace: gameplane-system-credentials
   labels: { gameplane.local/module-upload: "true" }
 binaryData:        # or stringData for plain YAML
   module.yaml: <base64>

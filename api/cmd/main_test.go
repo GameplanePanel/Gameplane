@@ -1,10 +1,38 @@
 package main
 
 import (
+	"flag"
 	"log/slog"
 	"net/netip"
 	"testing"
 )
+
+func TestManagementNamespaces(t *testing.T) {
+	t.Setenv("GAMEPLANE_NAMESPACE", "panel")
+	for _, tc := range []struct {
+		name, credentials, wantCredentials, wantConfigMaps string
+		args                                               []string
+	}{
+		{name: "existing environment", wantCredentials: "panel", wantConfigMaps: "panel"},
+		{name: "existing standalone store", args: []string{"--standalone", "--namespace=legacy-panel"}, wantCredentials: "legacy-panel", wantConfigMaps: "legacy-panel"},
+		{name: "standalone remote operator", args: []string{"--standalone", "--namespace=remote-modules"}, credentials: "panel-records", wantCredentials: "panel-records", wantConfigMaps: "remote-modules"},
+		{name: "isolated native credentials and uploads", args: []string{"--namespace=release"}, credentials: "isolated", wantCredentials: "isolated", wantConfigMaps: "isolated"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("GAMEPLANE_CREDENTIALS_NAMESPACE", tc.credentials)
+			var cfg config
+			fs := flag.NewFlagSet("serve", flag.ContinueOnError)
+			cfg.bindFlags(fs)
+			if err := fs.Parse(tc.args); err != nil {
+				t.Fatal(err)
+			}
+			credentials, configMaps := cfg.managementNamespaces()
+			if credentials != tc.wantCredentials || configMaps != tc.wantConfigMaps {
+				t.Errorf("namespaces = %q, %q; want %q, %q", credentials, configMaps, tc.wantCredentials, tc.wantConfigMaps)
+			}
+		})
+	}
+}
 
 func TestParseLogLevel(t *testing.T) {
 	cases := map[string]slog.Level{

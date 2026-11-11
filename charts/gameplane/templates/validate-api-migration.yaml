@@ -1,0 +1,60 @@
+{{- /* Only inspect source objects while a live native API changes namespace.
+Never put credential material in rendered manifests or error messages. */ -}}
+{{- if and .Release.IsUpgrade (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) }}
+{{- $target := include "gameplane.credentialsNamespace" . }}
+{{- $previous := $target }}
+{{- $api := lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-api" }}
+{{- range $container := dig "spec" "template" "spec" "containers" list $api }}
+  {{- if and (eq $container.name "api") (not (has "--standalone" ($container.args | default list))) }}
+    {{- $previous = $.Release.Namespace }}
+    {{- range $env := $container.env }}
+      {{- if eq $env.name "GAMEPLANE_CREDENTIALS_NAMESPACE" }}{{ $previous = $env.value }}{{ end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if ne $previous $target }}
+  {{- range $secret := (lookup "v1" "Secret" $previous "").items }}
+    {{- range $feature := list "auth-provider" "notification-sink" "mod-registry" "cluster-kubeconfig" "agent-gateway-credentials" }}
+      {{- $label := printf "gameplane.local/%s" $feature }}
+      {{- if eq (index ($secret.metadata.labels | default dict) $label) "true" }}
+        {{- $copy := lookup "v1" "Secret" $target $secret.metadata.name }}
+        {{- $labels := dig "metadata" "labels" dict $copy }}
+        {{- if or (not $copy) (ne (index $labels $label) "true") (ne (index $secret.metadata.labels "gameplane.local/managed-by") (index $labels "gameplane.local/managed-by")) (ne $secret.type $copy.type) (not (deepEqual $secret.data $copy.data)) }}
+          {{- fail (printf "Migrate Secret %s/%s (%s) with its type, data and management labels to %s before upgrading; see docs/install.md#upgrading-native-api-credentials" $previous $secret.metadata.name $feature $target) }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- $sources := list $previous }}
+  {{- $operator := lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-operator" }}
+  {{- range $container := dig "spec" "template" "spec" "containers" list $operator }}
+    {{- $moduleNS := "" }}
+    {{- $configNS := "" }}
+    {{- range $arg := $container.args }}
+      {{- if hasPrefix "--module-namespace=" $arg }}{{ $moduleNS = trimPrefix "--module-namespace=" $arg }}{{ end }}
+      {{- if hasPrefix "--module-configmap-namespace=" $arg }}{{ $configNS = trimPrefix "--module-configmap-namespace=" $arg }}{{ end }}
+    {{- end }}
+    {{- with ($configNS | default $moduleNS) }}{{ $sources = append $sources . }}{{ end }}
+  {{- end }}
+  {{- range $source := uniq $sources }}
+    {{- range $cm := (lookup "v1" "ConfigMap" $source "").items }}
+      {{- $upload := eq (index ($cm.metadata.labels | default dict) "gameplane.local/module-upload") "true" }}
+      {{- $locale := false }}
+      {{- range $owner := $cm.metadata.ownerReferences }}
+        {{- if and $owner.controller (hasPrefix "gameplane.local/" $owner.apiVersion) (eq $owner.kind "GameTemplate") (eq $cm.metadata.name (printf "%s-locales" $owner.name)) }}
+          {{- $locale = true }}
+        {{- end }}
+      {{- end }}
+      {{- if or $upload $locale }}
+        {{- $copy := lookup "v1" "ConfigMap" $target $cm.metadata.name }}
+        {{- $labels := dig "metadata" "labels" dict $copy }}
+        {{- $uploadLabelsMatch := or (not $upload) (and (eq (index $labels "gameplane.local/module-upload") "true") (eq (index $labels "gameplane.local/module-name") (index $cm.metadata.labels "gameplane.local/module-name"))) }}
+        {{- $localeOwnerMatches := or (not $locale) (deepEqual $cm.metadata.ownerReferences (dig "metadata" "ownerReferences" list $copy)) }}
+        {{- if or (not $copy) (not $uploadLabelsMatch) (not $localeOwnerMatches) (not (deepEqual $cm.data $copy.data)) (not (deepEqual $cm.binaryData $copy.binaryData)) }}
+          {{- fail (printf "Migrate module ConfigMap %s/%s with its data, upload labels or template ownership to %s before upgrading; see docs/install.md#upgrading-native-api-credentials" $source $cm.metadata.name $target) }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

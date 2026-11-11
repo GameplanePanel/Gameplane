@@ -19,11 +19,11 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/GameplanePanel/gameplane/netguard"
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // Hard caps on archives an http source will accept. A module bundle is
@@ -120,8 +120,8 @@ func httpAuth(ctx context.Context, c client.Client, namespace string, secretRef 
 	if secretRef == nil || secretRef.Name == "" {
 		return "", nil
 	}
-	var sec corev1.Secret
-	if err := c.Get(ctx, types.NamespacedName{Namespace: namespace, Name: secretRef.Name}, &sec); err != nil {
+	sec, err := secretscope.ReadModuleSecret(ctx, c, namespace, secretRef.Name)
+	if err != nil {
 		return "", fmt.Errorf("get http credentials %s/%s: %w", namespace, secretRef.Name, err)
 	}
 	if token, ok := sec.Data["token"]; ok && len(token) > 0 {

@@ -37,7 +37,7 @@ def check(values, expected_games, expected_secrets, namespace="gameplane-system"
 
 
 def main():
-    check({}, {"gameplane-games"}, {"gameplane-games", "gameplane-system"})
+    check({}, {"gameplane-games"}, {"gameplane-games", "gameplane-system", "gameplane-system-credentials"})
     check({"gamesNamespace": "games-one", "operator": {"gameNamespaces": ["games-two", "games-one", "games-two"],
           "controlPlaneNamespace": "credentials", "agentCASecretNamespace": "certificates", "moduleNamespace": "catalog"}},
           {"games-one", "games-two"}, {"games-one", "games-two", "credentials", "certificates", "catalog"}, namespace="management")
@@ -45,6 +45,34 @@ def main():
         render({"operator": {"gameNamespaces": [invalid]}}, failure="explicit DNS-label namespace")
     render({"gamesNamespace": ""}, failure="explicit DNS-label namespace")
     render({"operator": {"moduleNamespace": "bad/name"}}, failure="explicit DNS-label namespace")
+    for values, expected_namespace in [({}, "management-credentials"),
+                                       ({"api": {"credentialsNamespace": "panel-creds"}}, "panel-creds")]:
+        objects = render(values, namespace="management")
+        api = one(objects, "Deployment", "gameplane-api")["spec"]["template"]["spec"]["containers"][0]
+        assert {"name": "GAMEPLANE_CREDENTIALS_NAMESPACE", "value": expected_namespace} in api["env"]
+        operator = one(objects, "Deployment", "gameplane-operator")["spec"]["template"]["spec"]["containers"][0]
+        assert "--control-plane-namespace=" + expected_namespace in operator["args"]
+        assert "--module-configmap-namespace=" + expected_namespace in operator["args"]
+        assert all(set(rule["resources"]) <= {"pods", "pods/log"} for rule in one(objects, "Role", "gameplane-api-logs")["rules"])
+        role = one(objects, "Role", "gameplane-api-credentials")
+        assert role["metadata"]["namespace"] == expected_namespace
+        assert role["rules"] == [
+            {"apiGroups": [""], "resources": ["secrets"], "verbs": ["get", "create", "update", "delete"]},
+            {"apiGroups": [""], "resources": ["configmaps"], "verbs": ["get", "list", "create", "update", "delete"]},
+        ]
+        binding = one(objects, "RoleBinding", "gameplane-api-credentials")
+        assert binding["metadata"]["namespace"] == expected_namespace
+        assert binding["roleRef"]["name"] == role["metadata"]["name"]
+        assert binding["subjects"] == [{"kind": "ServiceAccount", "name": "gameplane-api", "namespace": "management"}]
+        namespaces = {obj["metadata"]["name"] for obj in objects if obj["kind"] == "Namespace"}
+        assert (expected_namespace in namespaces) == (not values)
+    for values in ({"api": {"credentialsNamespace": "gameplane-system"}},
+                   {"operator": {"gameNamespaces": ["gameplane-system"]}},
+                   {"operator": {"agentCASecretNamespace": "gameplane-games"}},
+                   {"operator": {"agentCASecretNamespace": "gameplane-system-credentials"}},
+                   {"api": {"credentialsNamespace": "gameplane-games"}},
+                   {"api": {"credentialsNamespace": "kube-system"}}):
+        render(values, failure="dedicated namespace")
     # The development install must not regain global Secret access after codegen.
     root = Path(__file__).resolve().parents[2]
     dev = list(yaml.safe_load_all((root / "operator/config/rbac/role.yaml").read_text()))
