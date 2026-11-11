@@ -163,8 +163,52 @@ loss and latency limits with the generator keeping pace.
 The amd64 tunnel CI job runs the driver against direct loopback echo and the
 local Tailscale forwarding code. Its profile step prints CPU and allocation
 hot spots under 32 clients at 128 Hz. It bypasses tsnet transport. Hosted
-Tailscale direct/DERP, frp and Playit rates remain unqualified until measured
-on the target topology.
+Tailscale direct/DERP and Playit rates require separate provider runs.
+
+### Isolated FRP capacity qualification
+
+On November 11, 2026, the actual frpc and frps processes forwarded UDP over a
+loopback TCP connection on a Core i9-13900K Linux/WSL2 runner (kernel
+6.18.54.1). The generator and echo process each had one logical CPU. Both FRP
+processes shared a third. This topology measures software forwarding with a
+finite relay CPU budget. WAN latency, cross-node CNI and hosted FRP capacity
+remain unqualified.
+
+Build the driver in `tunnel` with `go build -o /tmp/relay-load ./cmd/relay-load`.
+Build frpc using the pinned Go module in `tunnel/frpc` and take frps from the
+upstream FRP 0.71.0 Linux/amd64 archive (SHA-256
+`84f27e39f11169f7adcef8e8b70c9329de17747b1f14dad9fb95eef5682ea716`).
+On a Linux host with Python 3.11+, `taskset` and three available CPUs:
+
+```sh
+(cd tunnel/frpc && CGO_ENABLED=0 GOWORK=off go build -trimpath -mod=readonly -tags frpc,noweb -o /tmp/frpc github.com/fatedier/frp/cmd/frpc)
+python3 tunnel/bench/frp_udp.py --relay-load /tmp/relay-load --frpc /tmp/frpc --frps /tmp/frps --clients 8 32 64 128 --seconds 10
+```
+
+Each client sent a 256-byte datagram at 128 Hz. Two series each ran both
+route orders. The second series also sampled the FRP dashboard's per-proxy
+payload byte counters. Columns give the worst measurement across four trials
+per route and rate. CPU is the largest combined frpc + frps CPU-seconds delta
+per ten-second trial, including the driver's final one-second receive window.
+
+| Offered packets/s | Route | Minimum sent/s | Loss % | RTT p95/p99 ms | Jitter p95/p99 ms | Relay CPU s |
+|---:|---|---:|---:|---:|---:|---:|
+| 1,024 | Direct | 1,024 | 0 | 0.14 / 0.19 | 0.07 / 0.13 | 0.00 |
+| 1,024 | FRP | 1,021.7 | 0 | 0.61 / 1.13 | 0.32 / 1.20 | 2.71 |
+| 4,096 | Direct | 4,050.8 | 0 | 0.13 / 0.18 | 0.10 / 0.17 | 0.00 |
+| 4,096 | FRP | 4,093.4 | 0 | 0.96 / 4.79 | 1.24 / 6.14 | 5.70 |
+| 8,192 | Direct | 8,045.5 | 0 | 0.18 / 3.00 | 0.21 / 3.62 | 0.01 |
+| 8,192 | FRP | 8,189 | 0.22 | 1.06 / 8.98 | 1.41 / 7.88 | 9.16 |
+| 16,384 | Direct | 16,384 | 1.32 | 0.13 / 0.28 | 0.13 / 0.30 | 0.01 |
+| 16,384 | FRP | 16,364.5 | 0.57 | 32.39 / 98.87 | 7.48 / 14.12 | 10.01 |
+
+For a budget of at least 99% of offered sends, at most 0.1% loss and at most
+5 ms each for p99 RTT and jitter, 1,024 offered packets/s passed all four FRP
+trials. At 8,192 packets/s one instrumented trial sent 81,920 datagrams. The
+server counted 81,738 datagrams' worth of payload in each direction and the
+client received 81,738. The direct route left the FRP counters unchanged. One
+high-load direct trial also lost packets, so the host contributes variability.
+Report the individual trials when repeating this procedure on a deployment.
 
 ## Regression coverage
 
