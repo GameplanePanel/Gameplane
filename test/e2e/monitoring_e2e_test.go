@@ -77,7 +77,6 @@ func TestMonitoring_DiscoveryPerformanceAndPolicy(t *testing.T) {
 			return err == nil && got == want, fmt.Sprintf("%s: got %s want %s (%v)", expression, got, want, err)
 		})
 	}
-	envInstance.ApplyYAML(t, "frps.yaml")
 	name := fmt.Sprintf("monitoring-%d", stamp)
 	const gameCode = `from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import json,pathlib,threading
@@ -90,7 +89,7 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
     def do_GET(self):
         if self.path=='/allocate': heap.append(bytearray(16*1024*1024))
-        self.send_response(200); self.end_headers(); self.wfile.write(b'ok')
+        self.send_response(200); self.end_headers(); self.wfile.write(b'reachable\n')
     def do_POST(self):
         command=json.loads(self.rfile.read(int(self.headers.get('Content-Length','0')))).get('command','')
         if command=='stats':
@@ -116,7 +115,11 @@ ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
 	t.Cleanup(func() {
 		_ = envInstance.Dyn.Resource(gameTemplateGVR).Delete(context.Background(), name, metav1.DeleteOptions{})
 	})
-	gs := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "gameplane.local/v1alpha1", "kind": "GameServer", "metadata": map[string]any{"name": name, "namespace": ocGamesNS}, "spec": map[string]any{"templateRef": map[string]any{"name": name}, "networking": map[string]any{"expose": "ClusterIP", "tunnel": map[string]any{"enabled": false, "provider": "frp", "frp": map[string]any{"serverAddr": ocFrpsAddr, "remotePorts": []any{map[string]any{"name": "game", "remotePort": int64(30020)}}}}}}}}
+	gs := &unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "gameplane.local/v1alpha1", "kind": "GameServer",
+		"metadata": map[string]any{"name": name, "namespace": ocGamesNS},
+		"spec":     map[string]any{"templateRef": map[string]any{"name": name}, "networking": map[string]any{"expose": "ClusterIP"}},
+	}}
 	other := gs.DeepCopy()
 	other.SetNamespace(otherTenant)
 	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(otherTenant).Create(ctx, other, metav1.CreateOptions{}); err != nil {
@@ -125,21 +128,13 @@ ThreadingHTTPServer(('0.0.0.0',25566),Handler).serve_forever()
 	t.Cleanup(func() {
 		_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(otherTenant).Delete(context.Background(), name, metav1.DeleteOptions{})
 	})
-	gs, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ocGamesNS).Create(ctx, gs, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ocGamesNS).Create(ctx, gs, metav1.CreateOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
 		_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ocGamesNS).Delete(context.Background(), name, metav1.DeleteOptions{})
 	})
-	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: name + "-auth", Namespace: ocGamesNS, OwnerReferences: []metav1.OwnerReference{{APIVersion: "gameplane.local/v1alpha1", Kind: "GameServer", Name: name, UID: gs.GetUID()}}}, StringData: map[string]string{"token": ocFrpsToken}}
-	if _, err := envInstance.K8s.CoreV1().Secrets(ocGamesNS).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
-		t.Fatal(err)
-	}
-	patch, _ := json.Marshal(map[string]any{"spec": map[string]any{"networking": map[string]any{"tunnel": map[string]any{"enabled": true, "credentialsSecretRef": map[string]any{"name": secret.Name}}}}})
-	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ocGamesNS).Patch(ctx, name, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
-		t.Fatal(err)
-	}
+	enableIsolatedFRP(t, ocGamesNS, name)
 	selector := fmt.Sprintf(`namespace="gameplane-games",server="%s"`, name)
 	waitQuery(`max(up{gameplane_component="agent",`+selector+`})`, "1")
 	otherSelector := fmt.Sprintf(`namespace="%s",server="%s"`, otherTenant, name)
