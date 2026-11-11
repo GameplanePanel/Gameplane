@@ -1,11 +1,21 @@
-// Point @monaco-editor/loader at the Monaco build this image ships, before
-// any <Editor> mounts. Without this the loader fetches Monaco from
-// cdn.jsdelivr.net at runtime: code outside the lockfile and the image,
-// and blocked by the dashboard's Content-Security-Policy. Production
-// serves the copy vite.config.ts places in dist/monaco/vs; the dev server
-// serves it straight from node_modules.
 import loader from "@monaco-editor/loader";
+import * as monaco from "monaco-editor/editor";
+import "monaco-editor/features/register.all";
+import "monaco-editor/languages/definitions/ini/register";
+import "monaco-editor/languages/definitions/javascript/register";
+import "monaco-editor/languages/definitions/markdown/register";
+import "monaco-editor/languages/definitions/shell/register";
+import "monaco-editor/languages/definitions/typescript/register";
+import "monaco-editor/languages/definitions/yaml/register";
+import "monaco-editor/languages/features/json/register";
+import EditorWorker from "monaco-editor/editor/editor.worker?worker";
+import JsonWorker from "monaco-editor/languages/features/json/json.worker?worker";
 
-const vs = import.meta.env.DEV ? "/node_modules/monaco-editor/min/vs" : `${import.meta.env.BASE_URL}monaco/vs`;
+// Vite serves each worker from the same origin. The Files editor connects
+// JavaScript and TypeScript to their own TS7 language service on demand.
+self.MonacoEnvironment = {
+  getWorker: (_moduleId, label) => label === "json" ? new JsonWorker() : new EditorWorker(),
+};
+loader.config({ monaco });
 
-loader.config({ paths: { vs } });
+export { default } from "@monaco-editor/react";

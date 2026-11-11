@@ -1301,7 +1301,11 @@ func (r *GameServerReconciler) desiredReplicas(
 	}
 	if op, held, err := lifecycleOwner(&live); err != nil {
 		return 0, 0, err
-	} else if held && op.Kind == "Rollout" && !op.Baseline && len(op.Recovery) == 0 && op.Token != live.Annotations[effectiveTemplateAnnotation] {
+	} else if held && op.Kind == "Rollout" && len(op.Recovery) == 0 &&
+		((op.Baseline && r.GameWorkloadPolicy != nil) || (!op.Baseline && op.Token != live.Annotations[effectiveTemplateAnnotation])) {
+		if op.Baseline && live.Annotations[lifecycleOperationAnnotation] != gs.Annotations[lifecycleOperationAnnotation] {
+			return 1, restartDrainPoll, nil
+		}
 		replicas, poll, err := r.softStop(ctx, gs, tmpl)
 		if poll == 0 {
 			poll = restartDrainPoll
@@ -1456,6 +1460,19 @@ func selectStopTransport(tmpl *gameplanev1alpha1.GameTemplate) stopTransport {
 func (r *GameServerReconciler) softStop(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) (int32, time.Duration, error) {
+	if r.GameWorkloadPolicy != nil && gs.Annotations[lifecycleOperationAnnotation] != "" {
+		op, _, err := lifecycleOwner(gs)
+		if err != nil {
+			return 0, 0, err
+		}
+		if op.Kind == "Rollout" && op.Baseline {
+			// This also applies when a Hostport node disappears during migration.
+			tmpl, err = r.baselineStopTemplate(ctx, gs)
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	}
 	declared := tmpl.Spec.Capabilities != nil &&
 		tmpl.Spec.Capabilities.Lifecycle != nil &&
 		len(tmpl.Spec.Capabilities.Lifecycle.Stop) > 0
@@ -1724,6 +1741,16 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					actualReplicas = replicas
 				}
 			}
+		}
+		if held && op.Baseline && r.GameWorkloadPolicy != nil && ss.ResourceVersion != "" {
+			// A stale pre-admission decision may stamp the owner but cannot
+			// change replicas. During the drain, never raise replicas or roll
+			// the live Pod's template, including on previously pinned baselines.
+			if live.Annotations[lifecycleOperationAnnotation] == gs.Annotations[lifecycleOperationAnnotation] &&
+				(ss.Spec.Replicas == nil || actualReplicas < *ss.Spec.Replicas) {
+				ss.Spec.Replicas = &actualReplicas
+			}
+			return nil
 		}
 		preserveBaseline, err := r.preserveBaselinePodTemplate(ctx, &live, ss)
 		if err != nil {
@@ -2319,6 +2346,7 @@ func effectiveResources(
 	return *resources
 }
 
+// mergeResourceList owns its defaults map and copies each override quantity before replacing its template value.
 func mergeResourceList(defaults, override corev1.ResourceList) corev1.ResourceList {
 	if defaults == nil {
 		return override.DeepCopy()

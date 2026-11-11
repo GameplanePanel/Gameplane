@@ -113,6 +113,10 @@ to each game Pod. A server can narrow placement with additional node labels
 or affinity. A conflicting pool selector or an extra toleration produces a
 failed Ready condition. A pool with no schedulable workers leaves games Pending.
 Keep permission to change pool labels and taints with cluster administrators.
+Enabling the policy for a legacy game can briefly interrupt play. The operator
+drains its existing Pod before moving it to the configured pool. Games with
+a verified running template use its stop sequence. Unversioned games use the
+termination grace already configured on their Pods.
 With the NodeRestriction admission plugin, a label key such as
 `gameplane.node-restriction.kubernetes.io/pool` also prevents a kubelet from
 labeling itself as a game worker. Set the configured key and worker taint to match.

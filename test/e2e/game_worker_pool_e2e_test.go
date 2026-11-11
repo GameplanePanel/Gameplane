@@ -92,7 +92,7 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 		"gameWorkloadPolicy": map[string]string{"poolLabel": key, "poolValue": "games", "minCPURequest": "10m",
 			"maxCPURequest": "1", "minMemoryRequest": "8Mi", "maxMemoryLimit": "32Mi"},
 		"tenantQuotas": map[string]any{ns: map[string]any{"hard": map[string]string{
-			"pods": "1", "requests.cpu": "1", "requests.memory": "32Mi", "limits.memory": "32Mi",
+			"pods": "1", "requests.cpu": "1", "requests.memory": "32Mi", "limits.memory": "64Mi",
 			"persistentvolumeclaims": "1", "requests.storage": "1Gi",
 		}}},
 	}}
@@ -130,8 +130,9 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 	pod.Spec.NodeSelector[key] = "games"
 	oversized := pod.DeepCopy()
 	oversized.Spec.Containers[0].Resources.Limits[corev1.ResourceMemory] = resource.MustParse("64Mi")
-	if _, err := pods.Create(ctx, oversized, metav1.CreateOptions{DryRun: []string{metav1.DryRunAll}}); err == nil {
-		t.Fatal("admission accepted an oversized game")
+	if _, err := pods.Create(ctx, oversized, metav1.CreateOptions{DryRun: []string{metav1.DryRunAll}}); err == nil ||
+		!strings.Contains(err.Error(), "game containers must meet the configured CPU request and memory request/limit bounds") {
+		t.Fatalf("expected worker-policy admission to reject the oversized game: %v", err)
 	}
 	if _, err := pods.Create(ctx, pod, metav1.CreateOptions{}); err != nil {
 		t.Fatal(err)

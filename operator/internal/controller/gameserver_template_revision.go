@@ -184,6 +184,14 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			return effective, true, err
 		}
 		if op.Baseline {
+			if r.GameWorkloadPolicy != nil {
+				waiting, err := r.workerPolicyBaselineNeedsDrain(ctx, gs)
+				if waiting || err != nil {
+					// Continue to desiredReplicas with the durable owner held. The
+					// StatefulSet may scale down but must keep its Pod template.
+					return effective, false, err
+				}
+			}
 			return effective, true, r.initializeTemplateBaseline(ctx, gs, op)
 		}
 		if op.Token != pin {
@@ -239,27 +247,35 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 	if held {
 		return effective, false, nil
 	}
-	if desired != "" && desired != pin {
+	// An earlier operator may have recorded a first pin while preserving the
+	// original, unversioned Pod. Migrate that baseline under the same fence
+	// when the worker policy is enabled later, even with OnRequest updates.
+	migrateBaseline := r.GameWorkloadPolicy != nil && pin != "" && gs.Annotations[baselineTemplateAnnotation] == pin
+	if (desired != "" && desired != pin) || migrateBaseline {
+		target, revision := &installed, desired
+		if migrateBaseline {
+			target, revision = effective, pin
+		}
 		policy := gs.Spec.TemplateRollout
-		admit := pin == "" || policy == nil || policy.Policy == "" || policy.Policy == "Automatic" || policy.RequestedRevision == desired
-		if gs.Annotations[cancelTemplateRolloutAnnotation] == desired {
+		admit := pin == "" || migrateBaseline || policy == nil || policy.Policy == "" || policy.Policy == "Automatic" || policy.RequestedRevision == revision
+		if gs.Annotations[cancelTemplateRolloutAnnotation] == revision {
 			admit = false
 		}
 		if admit {
-			if err := validateTemplatePasswordTransition(gs, effective, &installed); err != nil {
+			if err := validateTemplatePasswordTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}
-			if _, err := materializeConfig(gs, &installed); err != nil {
+			if _, err := materializeConfig(gs, target); err != nil {
 				return nil, false, err
 			}
-			if _, err := resolveVersion(gs, &installed); err != nil {
+			if _, err := resolveVersion(gs, target); err != nil {
 				return nil, false, err
 			}
-			if err := r.GameWorkloadPolicy.validate(gs, &installed); err != nil {
+			if err := r.GameWorkloadPolicy.validate(gs, target); err != nil {
 				return effective, false, workloadPolicyRejection{err}
 			}
 			if r.RestrictedWorkloads {
-				if err := validateRestrictedTemplate(&installed); err != nil {
+				if err := validateRestrictedTemplate(target); err != nil {
 					return nil, false, err
 				}
 			}
@@ -268,16 +284,54 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if err != nil || pending {
 				return effective, false, err
 			}
-			revision, err := r.saveTemplateSnapshot(ctx, gs, &installed)
+			revision, err := r.saveTemplateSnapshot(ctx, gs, target)
 			if err != nil {
 				return nil, false, err
 			}
-			want := lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Generation: gs.Generation, Token: revision, Baseline: pin == ""}
+			want := lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Generation: gs.Generation, Token: revision, Baseline: pin == "" || migrateBaseline}
 			claimed, err := claimLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, want, r.OperationQuiescer)
 			return effective, claimed, err
 		}
 	}
 	return effective, false, r.pruneTemplateSnapshots(ctx, gs)
+}
+
+// workerPolicyBaselineNeedsDrain waits for the fenced StatefulSet and all world writers.
+// A new server or an already-replaced historical baseline can render immediately.
+func (r *GameServerReconciler) workerPolicyBaselineNeedsDrain(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
+	var ss appsv1.StatefulSet
+	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return false, err
+		}
+		// A deleted StatefulSet can leave a terminating Pod that still holds the world.
+		gone, err := r.templateWritersGone(ctx, gs, nil)
+		return !gone, err
+	}
+	if !metav1.IsControlledBy(&ss, gs) {
+		return false, fmt.Errorf("baseline workload belongs to another server")
+	}
+	if gs.Annotations[effectiveTemplateAnnotation] != "" && (string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "") {
+		return false, nil
+	}
+	drained, err := r.templateWorkloadDrained(ctx, gs)
+	return !drained, err
+}
+
+// baselineStopTemplate uses only an owned running Pod and its verified snapshot.
+// An unversioned game retains its Kubernetes termination grace and receives no catalog commands.
+func (r *GameServerReconciler) baselineStopTemplate(ctx context.Context, gs *gameplanev1alpha1.GameServer) (*gameplanev1alpha1.GameTemplate, error) {
+	revision, err := observedTemplateRevision(ctx, r.wipeReader(), gs)
+	if err != nil {
+		return nil, err
+	}
+	if revision != "" {
+		tmpl, err := loadTemplateSnapshot(ctx, r.wipeReader(), gs, revision)
+		if !apierrors.IsNotFound(err) {
+			return tmpl, err
+		}
+	}
+	return &gameplanev1alpha1.GameTemplate{}, nil
 }
 
 // Baseline captures render inputs rather than comparing reconstructed PodSpecs:
@@ -330,7 +384,7 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 		}
 		// A real spec edit after admission must render normally. Recording
 		// its new inputs against the old workload would silently swallow it.
-		if gs.Generation == op.Generation {
+		if r.GameWorkloadPolicy == nil && gs.Generation == op.Generation {
 			inputs, err := r.baselineRenderInputs(gs, op.Token)
 			if err != nil {
 				return err
@@ -339,6 +393,12 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 			gs.Annotations[baselineWorkloadAnnotation] = string(ss.UID)
 			gs.Annotations[baselineInputsAnnotation] = inputs
 		}
+	}
+	if r.GameWorkloadPolicy != nil {
+		delete(gs.Annotations, baselineTemplateAnnotation)
+		delete(gs.Annotations, baselineWorkloadAnnotation)
+		delete(gs.Annotations, baselineInputsAnnotation)
+		delete(gs.Annotations, stopRequestedAtAnnotation)
 	}
 	if err := pruneEmptyProtectedConfigKeys(gs); err != nil {
 		return err
@@ -351,14 +411,13 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 }
 
 func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, gs *gameplanev1alpha1.GameServer, ss *appsv1.StatefulSet) (bool, error) {
-	// A pre-upgrade template may predate the required pool or the merged
-	// resource bounds. Re-render it before scaling the workload.
-	if r.GameWorkloadPolicy != nil {
-		return false, nil
-	}
 	pin := gs.Annotations[effectiveTemplateAnnotation]
 	if pin == "" || gs.Annotations[baselineTemplateAnnotation] != pin || string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "" {
 		return false, nil
+	}
+	if r.GameWorkloadPolicy != nil {
+		// The migration clears these baseline markers only after draining.
+		return true, nil
 	}
 	inputs, err := r.baselineRenderInputs(gs, pin)
 	if err != nil || inputs != gs.Annotations[baselineInputsAnnotation] {
@@ -470,13 +529,18 @@ func (r *GameServerReconciler) templateWorkloadDrained(ctx context.Context, gs *
 	if ss.Annotations[lifecycleOperationAnnotation] != gs.Annotations[lifecycleOperationAnnotation] || ss.Spec.Replicas == nil || *ss.Spec.Replicas != 0 || ss.Status.Replicas != 0 || ss.Status.ObservedGeneration < ss.Generation {
 		return false, nil
 	}
+	return r.templateWritersGone(ctx, gs, &ss)
+}
+
+// templateWritersGone also sees terminating or orphaned Pods that can still hold the world volume.
+func (r *GameServerReconciler) templateWritersGone(ctx context.Context, gs *gameplanev1alpha1.GameServer, ss *appsv1.StatefulSet) (bool, error) {
 	var pods corev1.PodList
 	if err := r.wipeReader().List(ctx, &pods, client.InNamespace(gs.Namespace)); err != nil {
 		return false, err
 	}
 	for i := range pods.Items {
 		pod := &pods.Items[i]
-		if pod.Name == gs.Name+"-0" || metav1.IsControlledBy(pod, &ss) || (liveRestorePod(pod) && podMountsRestoreTarget(pod, gs.Name)) {
+		if pod.Name == gs.Name+"-0" || (ss != nil && metav1.IsControlledBy(pod, ss)) || (liveRestorePod(pod) && podMountsRestoreTarget(pod, gs.Name)) {
 			return false, nil
 		}
 	}

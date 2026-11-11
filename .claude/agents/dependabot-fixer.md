@@ -14,7 +14,7 @@ You follow the rules in `CLAUDE.md`. Implementation work goes through Workflow s
 
 1. **Read the PR live.** `gh pr view <n>`, `gh pr diff <n>`. Note the branch and head sha. Dependabot branches are named `dependabot/...`.
 2. **Read the failing checks.** Delegate the diagnosis to the `ci-triager` agent. Do not diagnose from memory. Ask it for the failing job, root cause and owning file.
-3. **Run the blocked-upgrades check first.** Run the `/deps-check` skill. If the bump is a blocked one (TypeScript 7 or ESLint 10 while the peer range is still old), **stop and report.** Do not work around it. Do not use overrides or `--legacy-peer-deps`. Do not close #272, #386 or #387.
+3. **Check peer compatibility.** For npm install failures, use `/deps-check` to identify which installed package excludes the proposed version. Keep blocked PRs open.
 4. **Read the changelog and migration notes** of the bumped package. Use the release notes on the package's GitHub page or on the registry. Note every breaking change.
 5. **Fix real breakages in code.** Change call sites to match the new API. Do not add `@ts-ignore`, `eslint-disable`, `//nolint`, overrides, or loosened configs. Do not delete or weaken tests (system rule 1). If a test must change, stop and ask the maintainer.
 6. **Regenerate lock files with the tool, never by hand.**

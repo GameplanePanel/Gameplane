@@ -35,6 +35,7 @@ type GameWorkloadPolicy struct {
 // game's stop sequence. The rejected target is never rendered or executed.
 type workloadPolicyRejection struct{ error }
 
+// reconcileRejectedGameWorkload permits a suspended, owned server to drain while its requested configuration is invalid.
 func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	effective *gameplanev1alpha1.GameTemplate, rejection error,
 ) (ctrl.Result, error) {
@@ -116,6 +117,7 @@ func ParseGameWorkloadPolicy(raw string) (*GameWorkloadPolicy, error) {
 	return &policy, nil
 }
 
+// validate checks the merged game resources and placement before the controller can create or change a workload.
 func (p *GameWorkloadPolicy) validate(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
 	res := effectiveResources(gs, tmpl)
 	for name, request := range res.Requests {
@@ -146,6 +148,7 @@ func (p *GameWorkloadPolicy) validate(gs *gameplanev1alpha1.GameServer, tmpl *ga
 	return nil
 }
 
+// placement combines the server's node selectors with the administrator's dedicated worker-pool taint and label.
 func (p *GameWorkloadPolicy) placement(gs *gameplanev1alpha1.GameServer) (map[string]string, []corev1.Toleration) {
 	if p == nil {
 		return gs.Spec.NodeSelector, gs.Spec.Tolerations

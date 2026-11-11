@@ -345,6 +345,12 @@ owned StatefulSet using its pinned template, subject to lifecycle ownership.
 A legacy workload without a pin uses its Kubernetes termination grace.
 Only its replica count can change. Correct the reported policy violation
 before starting or rolling out the game.
+When the worker policy takes over a legacy StatefulSet, a Rollout owner
+keeps its Pod template intact until the StatefulSet observes zero replicas
+and the old Pod and world-volume writers have gone. A running game with
+a verified Pod revision uses its own saved stop sequence. An unversioned
+Pod uses its existing Kubernetes termination grace. The operator then
+starts the policy-compliant template according to the server's power intent.
 Chart placement and optional PDBs are documented in
 [`docs/production-placement.md`](../docs/production-placement.md).
 
