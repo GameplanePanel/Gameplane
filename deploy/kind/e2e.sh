@@ -401,9 +401,7 @@ EOF
             --set networkPolicies.probePorts[0].port=25566)
     fi
     if [ "${PROFILE}" = postgres ]; then
-        dsn="$(kubectl get secret gameplane-postgres --namespace gameplane-system \
-            -o jsonpath='{.data.dsn}' | base64 -d)"
-        DB_SETS=(--set "api.db.driver=postgres" --set-string "api.db.dsn=${dsn}")
+        DB_SETS=(--set api.db.driver=postgres --set api.db.existingSecret=gameplane-postgres)
     fi
 
     echo "helm upgrade --install gameplane"

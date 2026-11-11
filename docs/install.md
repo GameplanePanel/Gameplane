@@ -176,8 +176,9 @@ Top-level knobs (see `values.yaml` for the full list):
   GameServer enters Pending with a `PVCProvisioningFailed` condition (visible in
   the dashboard); no pod starts until resolved. Example:
   `--set operator.gameDataStorage.storageClassName=fast-nvme`
-- `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; not yet covered by e2e or upgrade tests)
-- `api.db.dsn` — connection string; SQLite default persists to a PVC
+- `api.db.driver` — `sqlite` (default) or `postgres` (experimental). PostgreSQL requires an API image built with `-tags postgres`.
+- `api.db.dsn` — literal connection string. The SQLite default persists to a PVC.
+- `api.db.existingSecret` and `api.db.secretKey` — name of a pre-provisioned Secret in the release namespace and the key holding the complete DSN (default key `dsn`). A Secret reference takes precedence over the literal DSN for both the API and `bootstrap-admin`. A missing Secret or key prevents the API container from starting.
 - `api.storage.existingClaim` — pre-existing PVC for the API's SQLite database (default `""`). PostgreSQL standalone deployments create no local database PVC or mount. The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
 - `api.panelKey.storage.existingClaim` — pre-existing key-only PVC for generated standalone encryption keys; independent of database storage. `api.panelKey.storage.size` and `storageClassName` configure a new key PVC when no existing claim is selected.
 - `api.panelKey.existingSecret` — mount an externally provisioned standalone key read-only instead of a key PVC. `api.panelKey.secretKey` selects the Secret entry (default `panel.key`); `api.panelKey.fileName` selects its mounted filename. Back up the database and matching key separately under different access policies. See [key custody](standalone-panel.md#central-panel-on-kubernetes).
@@ -994,6 +995,29 @@ before allowing a replacement to access the database. Multi-replica API HA is
 a separate feature requiring database-level transaction serialization for
 audit append/prune and user-management invariants, plus coordinated background
 work and rate limiting.
+
+### Moving a PostgreSQL DSN into a Secret
+
+Provision an Opaque Secret in the API release namespace through your secret
+manager. Store the complete connection string under the key `dsn`. Apply
+these Helm values with the rest of the installation's configuration:
+
+```yaml
+api:
+  db:
+    driver: postgres
+    existingSecret: gameplane-postgres
+    secretKey: dsn
+```
+
+When migrating a literal DSN, remove the password-bearing `api.db.dsn` from
+your values files and supply the full sanitized configuration with
+`helm upgrade --reset-values`. Reusing old values can copy the old credential
+into the next release record. Historical Helm revisions retain earlier
+credentials. Rotate those credentials and restrict access to retained history.
+After changing the Secret contents, restart the API Deployment so serve and
+exec subcommands pick up the new environment. Check readiness and a database
+login before revoking the previous credential.
 
 ### API database readiness
 
