@@ -68,6 +68,11 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxTemplate(t, tmpl)
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
+	claims := envInstance.K8s.CoreV1().PersistentVolumeClaims(ns)
+	beforeClaim, err := claims.Get(ctx, gs+"-data", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
@@ -109,10 +114,6 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolve repo root: %v", err)
 	}
-	tag := envInstance.Tag
-	if tag == "" {
-		tag = "e2e"
-	}
 
 	// ---- 3. upgrade to the working tree ----------------------------------
 	// Exercise the SSA migration even when the published fixture already uses
@@ -122,19 +123,19 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("seed operator RollingUpdate strategy: %v\n%s", err, out)
 	}
 
-	upgrade := exec.CommandContext(ctx, "helm", "upgrade", "gameplane",
-		filepath.Join(repoRoot, "charts", "gameplane"),
+	upgradeArgs := []string{"upgrade", "gameplane", upgradeTargetChart(),
 		"--namespace", "gameplane-system",
-		"--set", "image.registry=gameplane-test",
-		"--set", "image.tag="+tag,
 		"--set", "ingress.enabled=false",
-		"--set", "web.enabled=false",
-		"--set", "operator.agentImage=gameplane-test/agent:"+tag,
 		"--set", "api.resources.limits.memory=1Gi",
 		"--set", "operator.leaderElect=false",
 		"--set", "defaultModuleSource.enabled=false",
 		"--wait", "--timeout", "6m",
-	)
+	}
+	if os.Getenv("GAMEPLANE_PUBLISHED_CHART") == "" {
+		tag := getenvOr("GAMEPLANE_E2E_TAG", "e2e")
+		upgradeArgs = append(upgradeArgs, "--set", "image.registry=gameplane-test", "--set", "image.tag="+tag, "--set", "web.enabled=false")
+	}
+	upgrade := exec.CommandContext(ctx, "helm", upgradeArgs...)
 	upgrade.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	if out, err := upgrade.CombinedOutput(); err != nil {
 		t.Fatalf("helm upgrade to the working-tree chart failed: %v\n%s", err, out)
@@ -177,6 +178,10 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	}
 
 	waitPVCBound(t, ns, gs+"-data", 2*time.Minute)
+	afterClaim, err := claims.Get(ctx, beforeClaim.Name, metav1.GetOptions{})
+	if err != nil || afterClaim.UID != beforeClaim.UID {
+		t.Fatalf("upgrade replaced the game data claim or made it unavailable: %v", err)
+	}
 	waitGameContainerReady(t, ns, gs+"-0", 4*time.Minute)
 
 	// Retry the read rather than exec'ing once. An upgrade re-renders the
@@ -260,6 +265,15 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	}
 
 	// ---- 7. F-218: a fresh `helm install` over leftover, STALE CRDs ------
+	if os.Getenv("GAMEPLANE_PUBLISHED_CHART") != "" {
+		check := exec.CommandContext(ctx, "bash", filepath.Join(repoRoot, "deploy", "kind", "verify-release-runtime.sh"),
+			envInstance.Context, "api", "operator", "web", "agent")
+		if out, err := check.CombinedOutput(); err != nil {
+			t.Fatalf("published upgrade runtime image IDs: %v\n%s", err, out)
+		} else {
+			t.Logf("published upgrade image IDs:\n%s", out)
+		}
+	}
 	//
 	// Deliberately LAST, after steps 3-6 have proven the pre-upgrade hook
 	// against the old release's genuinely stale schema: running any
@@ -376,14 +390,11 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	// install cannot race the uninstalled release's games Namespace deletion.
 	chartStamp := manifestCRDStamp(t, "gameplane.local_gameservers.yaml")
 	reinstall := exec.CommandContext(ctx, "helm", "install", "gameplane",
-		filepath.Join(repoRoot, "charts", "gameplane"),
+		upgradeTargetChart(),
 		"--namespace", "gameplane-system",
 		"--create-namespace",
-		"--set", "image.registry=gameplane-test",
-		"--set", "image.tag="+tag,
 		"--set", "ingress.enabled=false",
 		"--set", "web.enabled=false",
-		"--set", "operator.agentImage=gameplane-test/agent:"+tag,
 		"--set", "operator.leaderElect=false",
 		"--set", "operator.replicas=0",
 		"--set", "api.enabled=false",
@@ -471,12 +482,16 @@ func crdSpecProperties(t *testing.T, crdName string) map[string]struct{} {
 	return keySet(props)
 }
 
-// manifestSpecProperties reads the same property set out of the working-tree
+func upgradeTargetChart() string {
+	return getenvOr("GAMEPLANE_PUBLISHED_CHART", filepath.Join("..", "..", "charts", "gameplane"))
+}
+
+// manifestSpecProperties reads the same property set out of the target
 // chart's crd-manifests/ copy — the exact files the pre-upgrade hook applies
 // (CI already guards crd-manifests/ against crds/ drift).
 func manifestSpecProperties(t *testing.T, file string) map[string]struct{} {
 	t.Helper()
-	path := filepath.Join("..", "..", "charts", "gameplane", "crd-manifests", file)
+	path := filepath.Join(upgradeTargetChart(), "crd-manifests", file)
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)
@@ -575,7 +590,7 @@ func helmMajorVersion(ctx context.Context, t *testing.T) int {
 // crd-manifests/ copy of the named CRD file.
 func manifestCRDStamp(t *testing.T, file string) string {
 	t.Helper()
-	path := filepath.Join("..", "..", "charts", "gameplane", "crd-manifests", file)
+	path := filepath.Join(upgradeTargetChart(), "crd-manifests", file)
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)

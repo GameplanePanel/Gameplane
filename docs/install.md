@@ -951,6 +951,12 @@ test and asserts that
 - the pre-upgrade admin can still log in — i.e. the new binary's database
   migrations ran against the populated SQLite volume without data loss.
 
+The release workflow also pulls the signed chart and release images from GHCR
+on a fresh amd64 runner using anonymous access and the public signing key.
+It installs the verified chart in a clean Kind cluster, then runs the populated
+upgrade fixture in a second cluster using the published candidate. The job
+summary records the chart and image digests and the image IDs actually running.
+
 See `test/e2e/upgrade_e2e_test.go`. What this does **not** yet cover: upgrades
 that skip several releases at once, and Postgres (still an experimental
 driver — see [`roadmap.md`](roadmap.md)). Take a backup before upgrading

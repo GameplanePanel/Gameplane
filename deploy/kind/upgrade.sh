@@ -63,14 +63,16 @@ EOF
     # Load the NEW (working-tree) images now, so the upgrade the test performs
     # later needs no network. The OLD release's images are pulled from GHCR by
     # the install below — that is the point of the test.
-    echo "loading working-tree gameplane-test/{operator,api,agent,sentinel}:${TAG} into kind"
-    for img in operator api agent sentinel; do
-        if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
-            echo "  missing local image gameplane-test/${img}:${TAG} — building"
-            docker build -t "gameplane-test/${img}:${TAG}" -f "${REPO}/${img}/Dockerfile" "${REPO}"
-        fi
-        kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
-    done
+    if [[ -z "${GAMEPLANE_PUBLISHED_CHART:-}" ]]; then
+        echo "loading working-tree gameplane-test/{operator,api,agent,sentinel}:${TAG} into kind"
+        for img in operator api agent sentinel; do
+            if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
+                echo "  missing local image gameplane-test/${img}:${TAG} — building"
+                docker build -t "gameplane-test/${img}:${TAG}" -f "${REPO}/${img}/Dockerfile" "${REPO}"
+            fi
+            kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
+        done
+    fi
 
     echo "installing PUBLISHED chart ${CHART_REF} --version ${FROM_VERSION}"
     # Value overrides mirror e2e.sh's, and are all about the harness rather
