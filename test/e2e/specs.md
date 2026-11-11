@@ -11,9 +11,15 @@ The amd64 `network-isolation` bucket requires the Cilium fixture
 cluster. It tests actual legacy versus isolated sentinel connections, an
 existing template's opt-in rollout without selector changes, HTTP kubelet
 readiness, fresh agent heartbeats, and API-to-agent mTLS access. The tenant
-profile drill exercises same-named games in separate namespaces, relay-to-game
-and relay-to-waker access, revocation, and per-game versus shared probe ports. It uses one
-admin login and runs separately from the kindnet shape-only checks.
+profile drill exercises same-named games in two Restricted namespaces, real
+frp forwarding, relay-to-waker access and revocation, and per-game versus
+shared probe ports. A player on the kind bridge connects through a NodePort
+with its source address preserved. An operator-created Backup writes to a Restic REST
+repository on the bridge. A monitoring client reads both agents' metrics.
+The drill checks fresh heartbeats after policy rollout and denies lateral agent
+and RCON connections, private HTTPS and a reachable link-local metadata fixture.
+`deploy/kind/with-network-peers.sh` installs the fixture route only inside the
+disposable node and removes it and its peer containers on exit.
 
 ### Restricted workload drill (#714)
 

@@ -5,6 +5,8 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"net"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -15,6 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 )
 
 // This bucket uses Cilium, not kindnet. Exercise the effective union of all
@@ -101,7 +104,9 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 	// each other's relay backend.
 	tenant := fmt.Sprintf("tenant-net-%d", stamp)
 	_, err := envInstance.K8s.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: tenant},
+		ObjectMeta: metav1.ObjectMeta{Name: tenant, Labels: map[string]string{
+			"pod-security.kubernetes.io/enforce": "restricted", "pod-security.kubernetes.io/enforce-version": "v1.34",
+		}},
 	}, metav1.CreateOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -109,9 +114,16 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 	t.Cleanup(func() {
 		_ = envInstance.K8s.CoreV1().Namespaces().Delete(context.Background(), tenant, metav1.DeleteOptions{})
 	})
+	peerIP := os.Getenv("GAMEPLANE_NET_PEER_IP")
+	if ip := net.ParseIP(peerIP); ip == nil || ip.To4() == nil || !ip.IsPrivate() {
+		t.Fatal("network isolation requires the private IPv4 endpoint from deploy/kind/with-network-peers.sh")
+	}
 	helmUpgradeReuse(ctx, t, "operator.gameNamespaces[0]="+tenant, "networkPolicies.tenantIsolation=true",
-		"networkPolicies.probePorts=null", "networkPolicies.backupEgress.enabled=false", "networkPolicies.gameEgress.enabled=false",
-		"networkPolicies.gameIngress.fromCIDRs[0]=192.0.2.1/32")
+		"podSecurity.enforceRestricted=true", "networkPolicies.probePorts=null", "networkPolicies.gameEgress.enabled=false",
+		"networkPolicies.backupEgress.enabled=true", "networkPolicies.backupEgress.toCIDRs[0]="+peerIP+"/32",
+		"networkPolicies.backupEgress.ports[0].port=8000", "networkPolicies.backupEgress.ports[0].protocol=TCP",
+		"networkPolicies.gameIngress.fromCIDRs[0]="+peerIP+"/32")
+	profileApplied := time.Now().UTC().Truncate(time.Second)
 	secondTemplate := fmt.Sprintf("second-probe-%d", stamp)
 	isolationTemplate(t, secondTemplate, true)
 	_, err = envInstance.Dyn.Resource(gameTemplateGVR).Patch(ctx, secondTemplate, types.MergePatchType,
@@ -142,6 +154,7 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 		}
 	}
 
+	checkTenantEndpoints(t, ns, tenant, a, b, aIP, otherIP, peerIP, profileApplied)
 	checkTunnelPolicy(t, ns, a, b, probeA, aIP, home, away)
 	checkSharedProbeFallback(t, ns, a, secondTemplate)
 }
@@ -149,12 +162,7 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 func checkTunnelPolicy(t *testing.T, ns, a, b, probeA, aIP, home, away string) {
 	t.Helper()
 	ctx := t.Context()
-	// Enable a real GameServer tunnel with a fixture endpoint. A synthetic tunnel
-	// pod exercises its policy without needing upstream provider credentials.
-	enable := []byte(`{"spec":{"networking":{"tunnel":{"enabled":true,"provider":"frp","credentialsSecretRef":{"name":"fixture-token"},"frp":{"serverAddr":"192.0.2.1","remotePorts":[{"name":"game","remotePort":30000}]}}}}}`)
-	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Patch(ctx, a, types.MergePatchType, enable, metav1.PatchOptions{}); err != nil {
-		t.Fatal(err)
-	}
+	enableIsolatedFRP(t, ns, a)
 	tunnel := isolationClient(t, ns, a+"-relay-probe", map[string]string{
 		"app.kubernetes.io/name": "gameplane-tunnel", "app.kubernetes.io/instance": a,
 	})
@@ -220,7 +228,8 @@ func isolationTemplate(t *testing.T, name string, isolated bool) {
 	t.Helper()
 	spec := map[string]any{
 		"displayName": name, "game": "busybox", "version": "1", "image": "busybox:1.36",
-		"command": []any{"sh", "-c", "mkdir -p /tmp/http; echo reachable >/tmp/http/index.html; httpd -p 25575 -h /tmp/http; exec httpd -f -p 25566 -h /tmp/http"},
+		"security": map[string]any{"runAsUser": int64(1000), "runAsGroup": int64(1000), "fsGroup": int64(1000)},
+		"command":  []any{"sh", "-c", "mkdir -p /tmp/http; echo reachable >/tmp/http/index.html; httpd -p 25575 -h /tmp/http; exec httpd -f -p 25566 -h /tmp/http"},
 		"ports": []any{
 			map[string]any{"name": "game", "containerPort": int64(25566), "protocol": "TCP", "advertise": true},
 			map[string]any{"name": "management", "containerPort": int64(25575), "protocol": "TCP", "advertise": false},
@@ -246,6 +255,11 @@ func isolationTemplate(t *testing.T, name string, isolated bool) {
 
 func isolationGameIP(t *testing.T, ns, name string, isolated bool) string {
 	t.Helper()
+	namespace, err := envInstance.K8s.CoreV1().Namespaces().Get(t.Context(), ns, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	restricted := namespace.Labels["pod-security.kubernetes.io/enforce"] == "restricted"
 	var ip string
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
 		pod, err := envInstance.K8s.CoreV1().Pods(ns).Get(t.Context(), name+"-0", metav1.GetOptions{})
@@ -254,6 +268,9 @@ func isolationGameIP(t *testing.T, ns, name string, isolated bool) string {
 		}
 		if pod.DeletionTimestamp != nil || (pod.Labels["gameplane.local/sentinel-isolation"] == "true") != isolated {
 			return false, "waiting for rollout with expected isolation label"
+		}
+		if restricted && pod.Annotations["gameplane.local/workload-security"] != "restricted" {
+			return false, "waiting for replacement game pod after the restricted profile rollout"
 		}
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue && pod.Status.PodIP != "" {
@@ -281,7 +298,16 @@ func isolationClient(t *testing.T, ns, name string, labels map[string]string) st
 	noToken := false
 	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns, Labels: labels},
 		Spec: corev1.PodSpec{AutomountServiceAccountToken: &noToken,
-			Containers: []corev1.Container{{Name: "probe", Image: "busybox:1.36", Command: []string{"sleep", "3600"}}}},
+			SecurityContext: &corev1.PodSecurityContext{RunAsNonRoot: ptr.To(true), RunAsUser: ptr.To(int64(1000)),
+				SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault}},
+			Containers: []corev1.Container{{
+				Name: "probe", Image: "busybox:1.36", Command: []string{"sleep", "3600"},
+				SecurityContext: &corev1.SecurityContext{
+					AllowPrivilegeEscalation: ptr.To(false),
+					Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+				},
+			}},
+		},
 	}
 	if _, err := envInstance.K8s.CoreV1().Pods(ns).Create(t.Context(), pod, metav1.CreateOptions{}); err != nil {
 		t.Fatal(err)
@@ -303,12 +329,17 @@ func isolationHTTP(t *testing.T, ns, source, ip string, port int, allowed bool) 
 	t.Helper()
 	// Every exec must succeed regardless of network outcome. Otherwise a broken
 	// kubectl/CNI fixture could masquerade as the expected denied connection.
-	target := fmt.Sprintf("http://%s:%d/", ip, port)
+	isolationAttempt(t, ns, source, allowed, `wget -q -T 2 -O /dev/null "$1"`, fmt.Sprintf("http://%s:%d/", ip, port))
+}
+
+// Each command is fixed by the test. Pass hosts, ports and URLs separately.
+func isolationAttempt(t *testing.T, ns, source string, allowed bool, command string, args ...string) {
+	t.Helper()
 	envInstance.Eventually(t, 45*time.Second, func() (bool, string) {
 		ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 		defer cancel()
-		out, err := envInstance.Kubectl(ctx, "exec", "-n", ns, source, "--",
-			"sh", "-c", `if wget -q -T 2 -O /dev/null "$1"; then echo ALLOWED; else echo DENIED; fi`, "probe", target)
+		execArgs := []string{"exec", "-n", ns, source, "--", "sh", "-c", "if " + command + "; then echo ALLOWED; else echo DENIED; fi", "probe"}
+		out, err := envInstance.Kubectl(ctx, append(execArgs, args...)...)
 		if err != nil {
 			return false, "probe execution failed: " + err.Error() + out
 		}
@@ -317,7 +348,7 @@ func isolationHTTP(t *testing.T, ns, source, ip string, port int, allowed bool) 
 		if allowed {
 			want = "ALLOWED"
 		}
-		return got == want, fmt.Sprintf("%s -> %s: got %q, want %s; output: %q", source, target, got, want, out)
+		return got == want, fmt.Sprintf("%s -> %v: got %q, want %s; output: %q", source, args, got, want, out)
 	})
 }
 
