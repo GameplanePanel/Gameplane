@@ -2175,13 +2175,18 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: bring up cluster on the PREVIOUS release
         run: ./deploy/kind/upgrade.sh up "$CLUSTER" e2e
+      - name: install Argo CD for the populated GitOps upgrade
+        if: matrix.arch == 'amd64'
+        run: bash deploy/kind/argocd.sh
       - name: run go e2e (upgrade)
+        env:
+          GAMEPLANE_E2E_ARGOCD: ${{ matrix.arch == 'amd64' && '1' || '' }}
         run: |
           RUN_REGEX="$(./test/e2e/buckets.sh regex upgrade)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
-            go test -tags=e2e -timeout 25m -v -run "$RUN_REGEX" ./...
+            go test -tags=e2e -timeout 45m -v -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-upgrade)
         if: failure()
         uses: ./.github/actions/dump-cluster-state

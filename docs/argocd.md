@@ -1,6 +1,6 @@
 # Argo CD delivery of a native Gameplane installation
 
-Use the chart’s Argo CD values for a combined API and operator installation. The profile uses two externally managed mTLS Secrets and requires discovery of the GA admission policy and binding APIs. It also gives the games Namespace and chart-managed SQLite claim explicit Argo CD retention annotations. The fixture covers Helm rendering and the populated Helm upgrade path. A populated Argo CD sync and prune drill is tracked in [#882](https://github.com/GameplanePanel/Gameplane/issues/882).
+Use the chart’s Argo CD values for a combined API and operator installation. The profile uses two externally managed mTLS Secrets and requires discovery of the GA admission policy and binding APIs. It also gives the games Namespace and chart-managed SQLite claim explicit Argo CD retention annotations.
 
 ## One owner for each resource
 
@@ -8,7 +8,7 @@ Pin both Applications to the same Gameplane Git commit. Sync the CRD Application
 
 | Application | Source | Settings |
 | --- | --- | --- |
-| CRDs | Plain directory `charts/gameplane/charts/gameplane-crds/crds` | Use server-side apply for the large schemas. Set `spec.syncPolicy.syncOptions` to include `ServerSideApply=true`, `Prune=false` and `Delete=false`. |
+| CRDs | Plain directory `charts/gameplane/charts/gameplane-crds/crds` | Use `ServerSideApply=true` for the large schemas. Keep automated pruning off and sync this Application without prune. For Application deletion, preserve its resources by using non-cascading deletion. |
 | Workload | Helm chart `charts/gameplane` | Set `spec.source.helm.skipCrds: true` and include `examples/argocd-values.yaml` in `spec.source.helm.valueFiles`. The profile disables the CRD apply hook. Set the release name to `gameplane` and the destination namespace to `gameplane-system`. |
 
 Provision the release namespace, CA and client Secret before syncing. Keep ownership of the release namespace and external Secrets outside the workload Application. The example expects `gameplane-external-ca-v1` with `ca.crt` and `ca.key`, and a different Secret named `gameplane-external-client-v1` with `tls.crt` and `tls.key`. Use immutable, versioned Secret names. The operator signs per-game serving certificates with this CA, and the API and operator present the client certificate to the agents.
@@ -42,3 +42,7 @@ The chart fails the profile render if either kind is missing. Supplying a capabi
 For a client renewal under the same CA, stage a new immutable client Secret and change its reference in Git. For a CA rollover, schedule a maintenance window, stage a new CA and matching client Secret, then change both references in one revision. The reference change rolls the API and operator. The operator reissues each GameServer’s agent TLS Secret against the active CA. Kubelet projection and the next TLS handshake determine when each agent starts using the new trust.
 
 Finish the rollout by checking the new CA fingerprint on each `<server>-agent-tls` Secret and making a fresh authenticated agent call for every running game. A stopped game needs that check on its next start. Retain the previous Secret pair until the checks finish. If rolling back the CA, restore both references together and repeat the per-agent checks while certificates are reissued.
+
+## CI qualification
+
+The amd64 upgrade job installs Argo CD Core v3.6.1 on a disposable kind cluster. Two Applications sync the PR commit from a read-only Git endpoint on the kind bridge. After adoption, the workload Application renews the client, switches to the previously populated database claim and prunes a tracked dashboard. A second sync replaces the CA and client together. At each stage the fixture verifies the claim and CRD identities, validates stored versions, authenticates with the original account and reads a saved world marker through the agent. Server-side dry runs check the waker's allowed annotation and denied spec mutation. [Populated upgrade fixture](../test/e2e/argocd_upgrade_e2e_test.go)

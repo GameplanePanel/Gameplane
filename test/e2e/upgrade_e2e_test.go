@@ -74,7 +74,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
 	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
-	beforeIdentity := readUpgradeIdentity(t)
+	beforeIdentity := readUpgradeIdentity(t, "gameplane-agent-ca")
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
 	// restarted by the upgrade, not sitting in the page cache.
@@ -159,7 +159,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("operator strategy migration retained RollingUpdate fields: %+v", operator.Spec.Strategy)
 	}
 
-	afterIdentity := readUpgradeIdentity(t)
+	afterIdentity := readUpgradeIdentity(t, "gameplane-agent-ca")
 	for name, before := range beforeIdentity {
 		if afterIdentity[name] != before {
 			t.Errorf("upgrade changed %s identity: before %s, after %s", name, before, afterIdentity[name])
@@ -276,6 +276,12 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	// "extended":false next to a saved value, so only sendMetrics is compared.
 	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
 		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
+	}
+
+	if os.Getenv("GAMEPLANE_E2E_ARGOCD") == "1" {
+		t.Run("ArgoCD", func(t *testing.T) {
+			checkArgoUpgrade(t, ns, gs, marker, adminUser, adminPass, credentialsNS)
+		})
 	}
 
 	// ---- 7. F-218: a fresh `helm install` over leftover, STALE CRDs ------

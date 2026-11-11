@@ -16,7 +16,7 @@ import (
 
 // Snapshot the populated installation's storage and trust identities. Remaining
 // Gameplane CRDs must include every version still recorded as stored by Kubernetes.
-func readUpgradeIdentity(t *testing.T) map[string]string {
+func readUpgradeIdentity(t *testing.T, issuerSecret string) map[string]string {
 	t.Helper()
 	identity := map[string]string{}
 	pvc, err := envInstance.K8s.CoreV1().PersistentVolumeClaims("gameplane-system").Get(t.Context(), "gameplane-api-data", metav1.GetOptions{})
@@ -24,7 +24,7 @@ func readUpgradeIdentity(t *testing.T) map[string]string {
 		t.Fatalf("read gameplane-system/gameplane-api-data PVC identity: %v", err)
 	}
 	identity["gameplane-system/gameplane-api-data"] = string(pvc.UID)
-	ca, err := envInstance.K8s.CoreV1().Secrets("gameplane-system").Get(t.Context(), "gameplane-agent-ca", metav1.GetOptions{})
+	ca, err := envInstance.K8s.CoreV1().Secrets("gameplane-system").Get(t.Context(), issuerSecret, metav1.GetOptions{})
 	if err != nil || len(ca.Data["ca.crt"]) == 0 {
 		t.Fatalf("read public agent CA certificate: %v", err)
 	}
