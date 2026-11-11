@@ -5,8 +5,6 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"net"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -114,10 +112,7 @@ func checkTenantNetworkProfile(t *testing.T, ns, a, b, probeA string) {
 	t.Cleanup(func() {
 		_ = envInstance.K8s.CoreV1().Namespaces().Delete(context.Background(), tenant, metav1.DeleteOptions{})
 	})
-	peerIP := os.Getenv("GAMEPLANE_NET_PEER_IP")
-	if ip := net.ParseIP(peerIP); ip == nil || ip.To4() == nil || !ip.IsPrivate() {
-		t.Fatal("network isolation requires the private IPv4 endpoint from deploy/kind/with-network-peers.sh")
-	}
+	peerIP := kindFixtureIP(t, "GAMEPLANE_NET_PEER_IP")
 	helmUpgradeReuse(ctx, t, "operator.gameNamespaces[0]="+tenant, "networkPolicies.tenantIsolation=true",
 		"podSecurity.enforceRestricted=true", "networkPolicies.probePorts=null", "networkPolicies.gameEgress.enabled=false",
 		"networkPolicies.backupEgress.enabled=true", "networkPolicies.backupEgress.toCIDRs[0]="+peerIP+"/32",

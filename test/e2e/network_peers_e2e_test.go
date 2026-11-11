@@ -4,8 +4,9 @@ package e2e
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
-	"net"
+	"net/netip"
 	"os"
 	"os/exec"
 	"strings"
@@ -20,6 +21,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 )
+
+// The wrapper discovers both endpoints on kind's private IPv4 bridge. Render
+// the parsed address before passing it to Helm, kubectl or Docker.
+func kindFixtureIP(t *testing.T, key string) string {
+	t.Helper()
+	ip, err := netip.ParseAddr(os.Getenv(key))
+	if err != nil || !ip.Is4() || !ip.IsPrivate() {
+		t.Fatalf("%s must identify a private IPv4 address on the kind bridge", key)
+	}
+	return ip.String()
+}
 
 func checkTenantEndpoints(t *testing.T, ns, tenant, server, localPeer, homeIP, awayIP, peerIP string, profileApplied time.Time) {
 	t.Helper()
@@ -100,10 +112,12 @@ func checkExternalPlayer(t *testing.T, ns, server string) {
 	t.Cleanup(func() {
 		_ = envInstance.K8s.CoreV1().Services(ns).Delete(context.Background(), svc.Name, metav1.DeleteOptions{})
 	})
-	node, client := os.Getenv("GAMEPLANE_NET_NODE_IP"), os.Getenv("GAMEPLANE_NET_PEER_CONTAINER")
-	if net.ParseIP(node) == nil || client == "" {
-		t.Fatal("missing kind network peer or node")
+	node := kindFixtureIP(t, "GAMEPLANE_NET_NODE_IP")
+	id, err := hex.DecodeString(os.Getenv("GAMEPLANE_NET_PEER_CONTAINER"))
+	if err != nil || len(id) != 32 {
+		t.Fatal("expected the full container ID from the kind network fixture")
 	}
+	client := hex.EncodeToString(id)
 	url := fmt.Sprintf("http://%s:%d/", node, svc.Spec.Ports[0].NodePort)
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		out, err := exec.CommandContext(t.Context(), "docker", "exec", client, "wget", "-T", "3", "-qO-", url).CombinedOutput()
