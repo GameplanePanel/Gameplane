@@ -167,7 +167,7 @@ Install/configure those collectors (kube-prometheus-stack normally provides
 them); the minimal Prometheus example demonstrates Gameplane discovery and
 does not deploy them or Grafana. A missing upstream collector leaves those
 series absent; it does not mean zero pressure. Agent process RSS is not total
-container memory. These rules filter the games namespace and use `max` to
+container memory. These rules filter the explicitly managed game namespaces and use `max` to
 deduplicate replicated sources. The existing fleet rules likewise collapse
 duplicate operator replicas instead of adding their cache-derived counts.
 
@@ -178,12 +178,17 @@ engine profiler, such as JVM allocation and GC events from Java Flight Recorder
 on a compatible Minecraft JVM. Allocation rate can rise while RSS stays flat.
 Native engine heap or frame profiles require that engine's profiling tools.
 
-At official module revision `48b8b65c`, the Minecraft Java, ARK Survival
-Ascended, Palworld, Project Zomboid and CS2 templates have no numeric tick
-or frame declarations. Minecraft Java's `seed` readout is display-only. Use
-a module version with an engine-verified command, response and unit before
-setting a performance alert for that game. A server tick-rate setting describes
-its configured target, while the time series must describe observed ticks.
+At official module revision `48b8b65c`, Minecraft Java, ARK Survival
+Ascended, Palworld, Project Zomboid and CS2 have no numeric tick or frame
+declarations. Minecraft Java's `seed` readout is display-only. The
+[Palworld module change](https://github.com/GameplanePanel/module/pull/60)
+declares instantaneous server FPS from the authenticated REST metrics
+endpoint. Its [engine fixture](https://github.com/GameplanePanel/module/blob/54e9a11a694c10b0dc2550391782b95bf1a883de/palworld/samples/metrics.json)
+records 59 FPS on Steam build 25247047. Its average FPS and frame time are
+separate fields. Select a module revision containing the declaration. Missing
+or malformed responses leave the numeric series absent. A server tick-rate
+setting describes a configured target, while this series describes observed
+frames.
 
 The Workloads dashboard shows scrape health, relay readiness/known state,
 supported game measurements, container pressure, restarts and Pending Pods.
