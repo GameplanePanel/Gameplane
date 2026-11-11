@@ -1051,9 +1051,9 @@ To qualify an already published candidate from a review branch, run the CI
 workflow on that branch with its `published_release` input set to the actual
 version tag. With `REVIEW_REF` set to the branch under review
 and `TAG` set to the published tag, run
-`gh workflow run ci.yaml --ref "$REVIEW_REF" -f published_release="$TAG"`. The read-only consumer job uses
-the tagged publisher's component list and reports the chart and image digests
-in its Actions summary.
+`gh workflow run ci.yaml --ref "$REVIEW_REF" -f published_release="$TAG"`. This runs only the read-only
+consumer, which uses the tagged publisher's component list and reports chart and image digests
+in its Actions summary. Omit `published_release` to run the ordinary full CI suite.
 
 See `test/e2e/upgrade_e2e_test.go`. What this does **not** yet cover: upgrades
 that skip several releases at once, and Postgres (still an experimental

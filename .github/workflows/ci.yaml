@@ -38,17 +38,17 @@ on:
       # Feature catalog and the website gitlink feed the features sync gate (spec 024).
       - "FEATURES.md"
       - "website"
-  # Manual full-suite run on any branch (spec 023 OD-7).
+  # An empty dispatch runs the full suite (spec 023 OD-7). A tag runs the release consumer.
   workflow_dispatch:
     inputs:
       published_release:
-        description: Optional published tag to qualify from this checkout (for example v1.0.0)
+        description: Run only release qualification for this published tag (for example v1.0.0)
         required: false
         type: string
 # Cancel superseded runs so rapid pushes to the same ref don't waste
 # runner minutes on stale commits.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ inputs.published_release && format('published-{0}', inputs.published_release) || 'suite' }}-${{ github.ref }}
   cancel-in-progress: true
 
 # The Go module mirror and checksum database have repeatedly dropped HTTP/2
@@ -93,6 +93,7 @@ jobs:
   # selection table to this job's summary.
   changes:
     name: detect changes
+    if: github.event_name != 'workflow_dispatch' || inputs.published_release == ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -863,6 +864,7 @@ jobs:
   # separate: not part of `make lint`, and not in the `report` job's needs.
   telemetry-default-gate:
     name: telemetry default gate
+    if: github.event_name != 'workflow_dispatch' || inputs.published_release == ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -2687,7 +2689,7 @@ jobs:
         e2e-postgres,
         e2e-kind-ingress-smoke,
       ]
-    if: always()
+    if: always() && (github.event_name != 'workflow_dispatch' || inputs.published_release == '')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
