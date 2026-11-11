@@ -5,9 +5,11 @@ For a central dashboard/API on a host without Kubernetes, use the
 panel-only Helm profile. The instructions below describe the default combined
 installation, with an operator and a local game cluster.
 
+For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
+
 ## Prerequisites
 
-- Kubernetes 1.28+
+- Kubernetes 1.30+ with ValidatingAdmissionPolicy and PodSecurity admission enabled
 - Helm 3.13+
 - A default StorageClass (any RWO CSI driver works)
 - Optional: an ingress controller (nginx-ingress by default) + cert-manager for TLS
@@ -106,6 +108,85 @@ password, promote them to `admin`, and end their existing sessions.
 
 Open `https://<ingress.host>` and log in.
 
+## Upgrading native API credentials
+
+The native API now reads dashboard OIDC client secrets, registry keys, notification
+credentials, remote kubeconfigs and gateway client credentials from a dedicated
+namespace. The release namespace holds the operator identity, the agent signer and
+the Secrets referenced by pod volumes or environment variables (including Helm's
+OIDC client secret). Backup repositories and tunnel credentials belong to their
+game namespace. Standalone panels continue to use their encrypted SQL store.
+
+For an existing native installation:
+
+1. Schedule a panel maintenance window and keep cluster-admin access and a tested
+   local panel login available. Freeze credential edits. Before running Helm's
+   privileged pre-upgrade hooks, delete the old `<release>-api-uploads`
+   RoleBinding and Role from the release namespace if present. This revokes
+   the old API's access to release Secrets and upload ConfigMaps during cutover.
+   Helm recreates the narrower grants. Check for additional grants with
+   `kubectl auth can-i get secret/gameplane-agent-ca -n gameplane-system --as=system:serviceaccount:gameplane-system:gameplane-api`;
+   the answer must be `no`. Substitute your release namespace and signer name.
+2. Inventory long-lived tokens with
+   `kubectl get secrets -A --field-selector type=kubernetes.io/service-account-token -o custom-columns=NAMESPACE:.metadata.namespace,SECRET:.metadata.name`.
+   Replace consumers with projected or TokenRequest credentials, then delete each
+   old token Secret in the release, credential, signer, module and managed game
+   namespaces. Admission prevents new token Secrets and updates to existing ones.
+   If the old API credential was compromised, rotate previously readable
+   credentials, including the agent CA and its issued certificates.
+3. Inventory the five feature labels in the old API namespace. For a standard
+   release, these commands show the names without printing credential values:
+
+   ```sh
+   for feature in auth-provider mod-registry notification-sink cluster-kubeconfig agent-gateway-credentials; do
+     kubectl -n gameplane-system get secret -l "gameplane.local/$feature=true" -o name
+   done
+   ```
+
+   Also inventory uploaded bundles with
+   `kubectl -n gameplane-system get configmap -l gameplane.local/module-upload=true -o name`.
+   If the release already runs an operator, check its current
+   `--control-plane-namespace` for cluster kubeconfigs and
+   `--module-configmap-namespace` for uploaded bundles and locale maps.
+   The latter defaults to `--module-namespace`. On a v0.3 install both
+   locations are the release namespace. Check these sources even when enabling
+   the API for the first time on an operator-only release.
+   If you have objects to move, pre-create a dedicated namespace, set
+   `api.credentialsNamespace` to its name, and keep that value on future
+   upgrades. Provision each reviewed Secret there with the same name, type,
+   data, `immutable` setting, feature labels and `gameplane.local/managed-by`
+   label. Review individually any Secret also used by a pod. Keep signing keys,
+   unrelated credentials, Helm release history, workloads and privileged
+   ServiceAccounts outside this namespace. Copy uploaded ConfigMaps with their original names, labels,
+   `data`, `binaryData` and `immutable` setting. Module locale ConfigMaps
+   (`<template>-locales`, owned by a GameTemplate) also belong in the new
+   namespace. Preserve their owner reference when copying to keep translations
+   available during cutover.
+   Live Helm upgrades compare credentials, uploaded bundles and locale maps before
+   applying the chart. With GitOps or `helm template`, verify copies before sync.
+4. For each private HTTP or Git ModuleSource, annotate its credential Secret
+   in `operator.moduleNamespace` with the exact configured source URL. Use
+   `gameplane.local/http-source-url` for HTTP archives and
+   `gameplane.local/git-source-url` for Git repositories. For an authenticated
+   Git source, use the final repository URL in both the Secret and ModuleSource.
+   See [module source credentials](module-authoring.md#module-source-credentials).
+5. Prepare compatible game images with a positive UID and fsGroup, verify PVC
+   ownership and use Service-backed exposure. Add both
+   `pod-security.kubernetes.io/enforce=restricted` and
+   `pod-security.kubernetes.io/enforce-version=v1.34` (or your tested
+   `podSecurity.version`) to each externally managed game namespace. Enable
+   PodSecurity and ValidatingAdmissionPolicy admission without exemptions for
+   these workloads. Set `podSecurity.enforceRestricted=true` explicitly on
+   upgrades that reuse older values. Keep `clusterOps.enabled` and
+   `capture.nodeDiagnostics.enabled` false for untrusted workloads.
+6. Upgrade the chart and its matching API/operator images together. Confirm the
+   API cannot read the signer or create token Secrets, a privileged or hostPath
+   Pod fails admission in each managed game namespace, and an ordinary game
+   reports fresh heartbeats. Test dashboard OIDC login, remote-cluster health,
+   uploaded bundles, translations and any registry or notification integrations.
+   After verification, remove the old copies that have no remaining consumer. For rollback, account
+   for credential changes since cutover and the old chart's broader permissions.
+
 ## Upgrading the operator Secret boundary
 
 The operator now reads Secrets only in an explicit namespace set: `gamesNamespace`,
@@ -157,7 +238,8 @@ Top-level knobs (see `values.yaml` for the full list):
 - `api.standalone` — store management records and encrypted credentials in SQL without a local cluster (default `false`). Requires `operator.enabled=false` and one API replica. The standalone profile omits native CRDs and the CRD apply hook/RBAC without an additional CLI flag. See the [standalone guide](standalone-panel.md).
 - `operator.replicas` — leader-elected, safe at 2+
 - `operator.gameNamespaces` — additional managed game namespaces beyond `gamesNamespace`; each must already exist. The chart grants namespace-local workload permissions there and adds their Secrets to the operator cache.
-- `operator.controlPlaneNamespace`, `operator.agentCASecretNamespace`, `operator.moduleNamespace` — namespaces for cluster kubeconfig, signing CA, and module credential Secret reads. Empty values use the release namespace. The chart grants read-only Secret access in each distinct namespace; provision the referenced Secrets there before upgrading. These flags do not relocate the API's own credentials or its mounted mTLS material.
+- `api.credentialsNamespace` — an existing, dedicated namespace for native API management Secrets. By default Helm creates `<release namespace>-credentials` and retains it on uninstall. Names longer than 63 characters are shortened and include a hash of the release namespace. An existing `operator.controlPlaneNamespace` override selects an external credentials namespace for both components. If both values are set they must match.
+- `operator.agentCASecretNamespace` and `operator.moduleNamespace` — namespaces for signing CA and module credential reads. Both default to the release namespace. Provision referenced Secrets before using a custom namespace. On operator-only installs, `operator.controlPlaneNamespace` also defaults to the release namespace.
 - `operator.configInitImage` / `operator.resticImage` — the two images the operator
   injects into workloads it creates: the config-init container on game pods
   (`busybox`) and the backup/restore Jobs (`restic/restic`). Both default to the
@@ -253,7 +335,7 @@ Top-level knobs (see `values.yaml` for the full list):
 - `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](../mcp-server/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
-- `podSecurity.enforceRestricted` — enable the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
+- `podSecurity.enforceRestricted` — defaults to true on new installs. Enables the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
   - `podSecurity.version` — pinned PSA minor, default `v1.34`; administrator override for a tested cluster version.
   - `operator.agentTokenExpirationSeconds` — projected agent-only token lifetime, 600–3600 seconds (default 3600); rotation is handled by client-go.
   - `capture.nodeDiagnostics.enabled` — off by default. With `capture.enabled`, creates a separate privileged namespace and bounded diagnostic storage. An administrator must additionally opt each server in through `:capture-node-enable`. Linux/containerd only; no capture-related game restart. Read the [host-privilege and cleanup requirements](security.md#network-capture-security-exception) before deployment.
@@ -692,7 +774,7 @@ design details.
 
 Before registering a target cluster, ensure it has:
 
-- Kubernetes 1.28+
+- Kubernetes 1.30+ with ValidatingAdmissionPolicy and PodSecurity admission enabled
 - Gameplane operator and agent images accessible (same registry as the control-plane)
 - A valid kubeconfig scoped to the intended Gameplane operations and namespaces
 
@@ -748,7 +830,7 @@ This path applies to a combined installation with a central Kubernetes cluster.
 A standalone panel uses the dashboard or API in Path 2 and stores registrations
 in its database.
 
-1. Create a `kubeconfig` Secret in the control-plane's `gameplane-system` namespace.
+1. Create a `kubeconfig` Secret in the API credentials namespace (normally `gameplane-system-credentials`).
    The Secret **must** be labelled `gameplane.local/cluster-kubeconfig=true`:
 
    ```yaml
@@ -756,7 +838,7 @@ in its database.
    kind: Secret
    metadata:
      name: my-cluster-kubeconfig
-     namespace: gameplane-system
+     namespace: gameplane-system-credentials
      labels:
        gameplane.local/cluster-kubeconfig: "true"
    type: Opaque
@@ -920,6 +1002,8 @@ credential's identity; they do not create Gameplane user grants.
 
 These Helm commands upgrade a combined installation. For Compose and panel-only
 Helm releases, use [standalone upgrades](standalone-panel.md#upgrading).
+When crossing the native API namespace change, first follow the
+[credential migration](#upgrading-native-api-credentials).
 
 ```sh
 helm upgrade gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \

@@ -389,8 +389,8 @@ audit-syslog-bridge) runs as:
 - `capabilities.drop: [ALL]`
 - `allowPrivilegeEscalation: false`
 
-The agent sidecar in each game pod gets the same fixed hardening. The game
-container itself does not: it runs as the template's
+The agent sidecar in each game pod gets the same fixed hardening. When an
+administrator sets `podSecurity.enforceRestricted=false`, the game container uses the legacy profile: it runs as the template's
 `spec.security.runAsUser`/`runAsGroup` when the template sets them (see
 [module authoring](module-authoring.md#security-context)), and otherwise as
 the image's own default user, which may be root. The operator sets no
@@ -399,8 +399,7 @@ the image's own default user, which may be root. The operator sets no
 container runtime's defaults. This keeps arbitrary third-party game images
 working unchanged.
 
-`podSecurity.enforceRestricted=true` enables a different workload profile as
-well as Restricted admission. Game and config-init containers use a positive
+The default `podSecurity.enforceRestricted=true` enables Restricted admission and the nonroot workload profile. Game and config-init containers use a positive
 template UID/GID, `runAsNonRoot`, no privilege escalation, `drop: [ALL]`, and
 `RuntimeDefault` seccomp. The operator rejects templates without positive
 `security.runAsUser` and `security.fsGroup` (and a positive `runAsGroup` when
@@ -986,6 +985,8 @@ install is locked out. See
 
 ## API cluster-wide pod list
 
+The [native Kubernetes permission matrix](native-rbac.md) describes catalog administration, remote kubeconfig custody, game Secret and PTY access, and CSI content reclamation. The chart binds these capabilities according to the selected installation profile.
+
 The API's `<release>-api-read` ClusterRole grants `list` on Pods in **every**
 namespace, so the Cluster page can show per-node pod usage
 (`countNodePods` in `api/internal/handlers/cluster.go`). A pod list returns
@@ -1030,7 +1031,7 @@ fail startup. Other resource informers remain cluster-wide, including cluster-sc
 Gameplane CRDs; this does not grant Secret reads outside the configured set.
 
 Remote-cluster registration reads the kubeconfig Secret from the configured local
-control-plane namespace and performs remote discovery, without opening remote
+cluster credentials namespace and performs remote discovery, without opening remote
 Secret informers. The direct readers used for workload lifecycle checks remain
 subject to the same Kubernetes RBAC boundary. The API's credentials and grants
 are separate from the operator's. A cluster administrator can widen access with
@@ -1038,7 +1039,12 @@ additional RoleBindings; the boundary assumes no such extra grants. See
 [operator Secret upgrades](install.md#upgrading-the-operator-secret-boundary) for
 namespace registration and migration steps.
 
-Combined installations store management credentials in Kubernetes Secrets.
+Combined installations store API-managed credentials in a dedicated namespace.
+The API can read its mounted mTLS client identity and CA certificate. Its Kubernetes
+identity has no Secret or ConfigMap permissions in the release namespace.
+Module upload and translation ConfigMaps live beside the API-managed credentials.
+Admission denies persistent ServiceAccount token Secrets in protected namespaces. See the
+[native credential upgrade procedure](install.md#upgrading-native-api-credentials).
 Standalone panels store their labelled management credentials, including remote
 kubeconfigs, gateway keys, OIDC client secrets, notification credentials, and mod
 registry keys, as AES-GCM ciphertext in SQL. They use a persistent 32-byte key.
@@ -1080,7 +1086,7 @@ Secrets Gameplane reads or creates, by convention:
   `GAMEPLANE_AUDIT_S3_SECRET_KEY`), never flags, so they do not appear in the pod
   spec or `ps` output.
 - notification sinks — any Secret labelled
-  `gameplane.local/notification-sink=true` in the control-plane namespace
+  `gameplane.local/notification-sink=true` in the API credentials namespace
   (user-supplied; referenced by name from Admin Settings → Notifications, read
   by the API at delivery time — see [notifications](notifications.md)).
 - telemetry receiver credentials — `api.telemetry.receiver.dashboard.tokenSecretRef`

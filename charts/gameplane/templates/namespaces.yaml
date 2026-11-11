@@ -8,6 +8,10 @@ metadata:
     {{- if .Values.podSecurity.enforceRestricted }}
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/enforce-version: {{ .Values.podSecurity.version | default "v1.34" | quote }}
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: {{ .Values.podSecurity.version | default "v1.34" | quote }}
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: {{ .Values.podSecurity.version | default "v1.34" | quote }}
     {{- end }}
   annotations:
     # F-212: exclude the games Namespace from Helm's ownership so
@@ -15,5 +19,8 @@ metadata:
     # StatefulSet, PVC and per-server Secret Kubernetes garbage-collects
     # underneath it). Same pattern as the API PVC in api.yaml.
     helm.sh/resource-policy: keep
+    {{- if (.Values.argoCD | default dict).enabled }}
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    {{- end }}
 
 {{- end }}

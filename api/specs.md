@@ -235,8 +235,17 @@ headers retain the existing allowlist, so browser cookies, authorization and CSR
 material do not reach agents. Proxy body limits and JSON response limits remain at
 the caller boundary.
 
+The API reads and writes dashboard-managed OIDC, registry and notification
+credentials, remote kubeconfigs and gateway TLS Secrets in
+`GAMEPLANE_CREDENTIALS_NAMESPACE`. When unset or empty, this defaults to the
+resolved `--namespace` value, preserving existing standalone database keys.
+Native installs store module uploads and translations in that same namespace.
+System logs use `--namespace`. In standalone mode `--namespace` selects the
+remote operator's module ConfigMap namespace independently of the panel's
+credential storage.
+
 Registered clusters may additionally configure `spec.agentGateway.url` and a
-labeled `tlsSecretRef` in the central API namespace. Each remote request resolves
+labeled `tlsSecretRef` in the credentials namespace. Each remote request resolves
 its Kubernetes client, GameServer UID and gateway mTLS credentials independently;
 unknown/missing routes never fall back locally. HTTP/WebSocket agent operations,
 RCON module actions and internal mod-update reads use the versioned gateway
@@ -465,6 +474,8 @@ A submitted stylesheet is rejected with 400 and a message naming the offending r
 - **Sidecar authentication:** mTLS only; both client cert+key and server CA are passed from cmd/main.go to MountCapture and built into an http.Client. No sidecar auth tokens in URLs (SSRF risk), no secrets echoed in logs.
 
 ### RBAC roles (three built-in + custom)
+
+Kubernetes authorizes the native panel's ServiceAccount separately from the user's Gameplane role. In local-only mode, `--remote-clusters=false` skips remote credential discovery, exposes only authorized local cluster discovery and omits remote registration and gateway-management routes. Native Helm grants and the upgrade contract are specified in [the Kubernetes permission matrix](../docs/native-rbac.md).
 
 **Built-in roles:**
 - **admin:** wildcard permission `*`; full access to all resources and config

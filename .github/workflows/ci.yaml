@@ -1261,6 +1261,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
+      - name: deterministic offline native chart and upgrade renders
+        run: python3 charts/tests/check_argocd.py
       - name: gateway isolation and API-disabled chart renders
         run: python3 charts/tests/check_gateway.py
       - name: standalone panel isolation and persistence chart renders
@@ -2144,7 +2146,7 @@ jobs:
     needs: [changes, build-images]
     if: (needs.changes.outputs.e2e == 'true' && needs.changes.outputs.e2e-upgrade == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'e2e-upgrade')
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
-    timeout-minutes: 60 # Same, plus a chart upgrade across versions.
+    timeout-minutes: 85 # Published upgrade, RBAC transition and live Argo CD adoption/rotation.
     permissions:
       contents: read
     strategy:
@@ -2173,13 +2175,19 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: bring up cluster on the PREVIOUS release
         run: ./deploy/kind/upgrade.sh up "$CLUSTER" e2e
+      - name: install Argo CD for the populated GitOps upgrade
+        if: matrix.arch == 'amd64'
+        run: bash deploy/kind/argocd.sh
       - name: run go e2e (upgrade)
+        env:
+          GAMEPLANE_E2E_ARGOCD: ${{ matrix.arch == 'amd64' && '1' || '' }}
+          UPGRADE_TEST_TIMEOUT: ${{ matrix.arch == 'amd64' && '55m' || '35m' }}
         run: |
           RUN_REGEX="$(./test/e2e/buckets.sh regex upgrade)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
-            go test -tags=e2e -timeout 25m -v -run "$RUN_REGEX" ./...
+            go test -tags=e2e -timeout "$UPGRADE_TEST_TIMEOUT" -v -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-upgrade)
         if: failure()
         uses: ./.github/actions/dump-cluster-state

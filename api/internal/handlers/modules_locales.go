@@ -14,8 +14,8 @@ import (
 )
 
 // localesConfigMapSuffix names the ConfigMap the operator writes a module's
-// validated translations to: <module name> + this suffix, in the operator
-// namespace. Keys are "<tag>.json" holding an app.json style entry map.
+// validated translations to: <module name> + this suffix, in the module
+// ConfigMap namespace. Keys are "<tag>.json" holding an app.json style entry map.
 const localesConfigMapSuffix = "-locales"
 
 // getLocales serves GET /modules/{name}/locales/{tag}: the module's
