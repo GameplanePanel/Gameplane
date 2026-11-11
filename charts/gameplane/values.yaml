@@ -82,6 +82,9 @@ operator:
   # Required with multiple replicas and recommended during rolling upgrades.
   # Disabling it with one replica selects Recreate to prevent overlapping writers.
   leaderElect: true
+  # Size for the smallest available startup CPU, memory and I/O headroom
+  # following a worker loss. Zero preserves unlimited native idle wake.
+  wakeStartLimit: 0
   resources:
     requests: { cpu: 100m, memory: 64Mi }
     limits:   { cpu: 500m, memory: 256Mi }

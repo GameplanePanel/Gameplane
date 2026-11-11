@@ -101,9 +101,30 @@ For a tier whose first connection cannot tolerate the observed cold join,
 configure the existing `spec.idle.wakeWindows` ahead of its playing hours
 and verify the warm result with the same single-attempt client.
 
-This harness does not change scheduling or start admission. A pool admission
-policy needs the actual eligible worker set from #875/#876, resource requests,
-storage startup pressure, and durable reservation/ownership recovery across
-operator restarts. The per-server sentinel coalescing and retry policy still
-applies. Hostport, hosted heavy-game UDP, operator restart timing and sustainable
-fleet concurrency need measurements on that topology before closing #878.
+## Bounding simultaneous cold starts
+
+Set `operator.wakeStartLimit` to a fleet-wide ceiling from 1 through 128.
+Zero keeps the existing unlimited behavior. Measure the largest supported
+game's startup CPU, resident memory and storage throughput, then repeat
+with your maximum backup concurrency and one worker unavailable. Divide
+each resource's remaining headroom by that game's measured peak demand.
+Take the smallest whole number across all three resources and test it in
+the burst. If no complete start fits, provision capacity or keep that
+tier warm. On heterogeneous pools use the most constrained eligible pool.
+
+The operator records each reservation in the `gameplane-wake-starts`
+ConfigMap in its own namespace before it clears the GameServer sleep marker.
+The GameServer UID and sleep episode let a replacement operator resume the
+same reservation. A queued game retains its unacknowledged wake token and
+waker. Its `status.idle.reason` reports the capacity wait. When the game
+StatefulSet first has a Ready replica the next waiter can use the slot.
+Readiness ends startup accounting. Only the game client's completed join
+measures the player objective.
+
+An indefinitely Pending or unready cold start continues to consume capacity.
+Inspect the named GameServer, its StatefulSet and scheduler events. Repair
+the fault, or stop the game and wait for its replicas to reach zero. Manual
+stops and operation-owned games retain the existing lifecycle precedence.
+Explicit starts, fresh games and backup/restore are outside this limit;
+include them in the headroom calculation. Avoid editing the reservation
+ConfigMap while games are waking.

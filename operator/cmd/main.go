@@ -138,6 +138,7 @@ func main() {
 		moduleNamespace                  string
 		moduleLocalRoot                  string
 		controlPlaneNamespace            string
+		wakeStartLimit                   int
 		gameNamespaces                   string
 		addressManager                   string
 		metalLBNamespace                 string
@@ -258,6 +259,7 @@ func main() {
 	}
 	flag.StringVar(&controlPlaneNamespace, "control-plane-namespace", controlPlaneNamespaceDefault,
 		"Namespace where the operator runs and where cluster kubeconfig Secrets are stored.")
+	flag.IntVar(&wakeStartLimit, "wake-start-limit", 0, "Maximum concurrent idle cold starts across the fleet; zero disables admission.")
 	addressManagerDefault := os.Getenv("GAMEPLANE_ADDRESS_MANAGER")
 	if addressManagerDefault == "" {
 		addressManagerDefault = "none"
@@ -295,6 +297,10 @@ func main() {
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	if wakeStartLimit < 0 || wakeStartLimit > 128 {
+		fmt.Fprintln(os.Stderr, "--wake-start-limit must be between 0 and 128")
+		os.Exit(1)
+	}
 	if agentTokenExpirationSeconds < 600 || agentTokenExpirationSeconds > 3600 {
 		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
 		os.Exit(1)
@@ -484,6 +490,8 @@ func main() {
 		AgentLogLevel:          agentLogLevel,
 		AgentCASecretName:      agentCASecretName,
 		AgentCASecretNamespace: agentCASecretNamespace,
+		WakeStartLimit:         wakeStartLimit,
+		WakeStartNamespace:     controlPlaneNamespaceDefault,
 		AgentClient:            agentClient,
 		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{
