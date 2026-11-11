@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: cd1d212902c11b75266ed926aa2646b9ad16756530aca94123d66559bf09c711
+    gameplane.local/crd-bundle-sha256: d3efd1281c2997c24937b847986ca018a49591589bbb105d8ed74fa1259003c8
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -1639,6 +1639,15 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                    x-kubernetes-validations:
+                    - fieldPath: .httpGet.host
+                      message: omit httpGet.host to probe the game pod
+                      rule: '!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host
+                        == '''''
+                    - fieldPath: .tcpSocket.host
+                      message: omit tcpSocket.host to probe the game pod
+                      rule: '!has(self.tcpSocket) || !has(self.tcpSocket.host) ||
+                        self.tcpSocket.host == '''''
                   readiness:
                     description: |-
                       Probe describes a health check to be performed against a container to determine whether it is
@@ -1804,6 +1813,15 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                    x-kubernetes-validations:
+                    - fieldPath: .httpGet.host
+                      message: omit httpGet.host to probe the game pod
+                      rule: '!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host
+                        == '''''
+                    - fieldPath: .tcpSocket.host
+                      message: omit tcpSocket.host to probe the game pod
+                      rule: '!has(self.tcpSocket) || !has(self.tcpSocket.host) ||
+                        self.tcpSocket.host == '''''
                   startup:
                     description: |-
                       Probe describes a health check to be performed against a container to determine whether it is
@@ -1969,6 +1987,15 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                    x-kubernetes-validations:
+                    - fieldPath: .httpGet.host
+                      message: omit httpGet.host to probe the game pod
+                      rule: '!has(self.httpGet) || !has(self.httpGet.host) || self.httpGet.host
+                        == '''''
+                    - fieldPath: .tcpSocket.host
+                      message: omit tcpSocket.host to probe the game pod
+                      rule: '!has(self.tcpSocket) || !has(self.tcpSocket.host) ||
+                        self.tcpSocket.host == '''''
                 type: object
               rcon:
                 description: RCON declares the remote-console protocol used by this
