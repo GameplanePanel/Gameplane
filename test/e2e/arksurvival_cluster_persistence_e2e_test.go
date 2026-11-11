@@ -31,7 +31,7 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 	uid := time.Now().UnixNano() % 100000
 	tmplName := fmt.Sprintf("e2e-ark-cluster-%d", uid)
 	gsName := fmt.Sprintf("ark-shard-01-%d", uid)
-	const mountPath = "/data"
+	const mountPath = "/app"
 	clusterID := fmt.Sprintf("cluster-%d", uid)
 	marker := fmt.Sprintf("ark-survivor-payload-%d", uid)
 
@@ -43,7 +43,10 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 			"displayName": "E2E ARK Cluster Shard",
 			"game":        "ark-survival-evolved",
 			"version":     "1.0.0",
-			"image":       "ghcr.io/gameplanepanel/gameplane/ark-survival-evolved:latest@sha256:2a4298f8055dbff4107c49c961cace1f2bed42809e6b93fb4924371ae4484e58",
+			"image":       "hermsi/ark-server:latest@sha256:ce291990613e76f7019be31b96fe247188ce4957724c913c0e30097042c44bf5",
+			"configSchema": []any{
+				map[string]any{"name": "CLUSTER_ID", "type": "string"},
+			},
 			"ports": []any{
 				map[string]any{"name": "game", "containerPort": int64(7777), "protocol": "UDP", "advertise": true},
 				map[string]any{"name": "query", "containerPort": int64(27015), "protocol": "UDP", "advertise": true},
@@ -52,6 +55,9 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 			"storage": map[string]any{
 				"size":      "35Gi",
 				"mountPath": mountPath,
+				"extra": []any{
+					map[string]any{"name": "cluster", "mountPath": "/cluster", "size": "1Gi"},
+				},
 			},
 			"resources": map[string]any{
 				"requests": map[string]any{"cpu": "2", "memory": "8Gi"},
@@ -105,7 +111,22 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 	waitPVCBound(t, ns, gsName+"-data", 2*time.Minute)
 	waitGameContainerReady(t, ns, gsName+"-0", 5*time.Minute)
 
-	clusterDir := fmt.Sprintf("%s/ShooterGame/Saved/clusters/%s", mountPath, clusterID)
+	// The marker below only proves the /cluster volume persists. Check that
+	// the ARK server itself was started against it: hermsi/ark-server passes
+	// -ClusterDirOverride=/cluster and -clusterid once CLUSTER_ID is set. The
+	// server starts only after SteamCMD has installed ~25GB, hence the wait.
+	envInstance.Eventually(t, 45*time.Minute, func() (bool, string) {
+		out, err := envInstance.KubectlExec(t, ns, "pod/"+gsName+"-0", "pgrep", "-af", "ShooterGameServer")
+		if err != nil {
+			return false, "ShooterGameServer not running yet: " + err.Error() + " out=" + out
+		}
+		if !strings.Contains(out, "ClusterDirOverride=/cluster") || !strings.Contains(out, "clusterid="+clusterID) {
+			return false, fmt.Sprintf("ShooterGameServer command line lacks the /cluster override or cluster id %q: %s", clusterID, out)
+		}
+		return true, ""
+	})
+
+	clusterDir := fmt.Sprintf("/cluster/%s", clusterID)
 	markerFile := fmt.Sprintf("%s/survivor.dat", clusterDir)
 
 	writeCmd := fmt.Sprintf("mkdir -p %s && echo -n %s > %s && sync", clusterDir, marker, markerFile)

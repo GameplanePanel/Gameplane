@@ -60,4 +60,58 @@ test.describe("file manager tab", () => {
     await page.getByText("server.properties").click();
     await readReq;
   });
+
+  test("loads TypeScript on opening a script and provides diagnostics, completions, and definitions", async ({ page, context }) => {
+    test.setTimeout(90_000);
+    await page.addInitScript(() => localStorage.setItem("gameplane-e2e-dataset", "typescript-file"));
+    const wasmUrls: URL[] = [];
+    context.on("response", (response) => {
+      const url = new URL(response.url());
+      if (/\/tsc(?:-[\w-]+)?\.wasm$/.test(url.pathname) &&
+        response.ok() && response.headers()["content-type"]?.startsWith("application/wasm")) {
+        wasmUrls.push(url);
+      }
+    });
+
+    const server = new ServerDetailPage(page);
+    await server.goto("alpha");
+    await server.clickTab("Settings");
+    await page.getByRole("tab", { name: "Placement", exact: true }).click();
+    await expect(page.locator(".monaco-editor .view-line").first()).toBeVisible();
+    await server.clickTab("Files");
+    const file = page.getByText("server.ts", { exact: true });
+    await expect(file).toBeVisible();
+    expect(wasmUrls).toHaveLength(0);
+    const openedAt = performance.now();
+    await file.click();
+
+    const editor = page.locator(".monaco-editor");
+    await expect(editor.locator(".squiggly-error").first()).toBeVisible({ timeout: 60_000 });
+    const firstDiagnosticMs = Math.round(performance.now() - openedAt);
+    expect(wasmUrls.map((url) => url.origin)).toContain(new URL(page.url()).origin);
+    await editor.locator(".view-line").first().click();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.insertText("const port: number = 25565;");
+    await expect(editor.locator(".squiggly-error")).toHaveCount(0);
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    await page.keyboard.insertText("port.toF");
+    const completionRequestedAt = performance.now();
+    await page.keyboard.press("Control+Space");
+    const suggestion = editor.getByRole("listbox", { name: "Suggest" }).getByText("toFixed", { exact: true });
+    await expect(suggestion).toBeVisible();
+    const completionMs = Math.round(performance.now() - completionRequestedAt);
+    console.log(`Monaco TS7: file click to first error ${firstDiagnosticMs} ms, completion shortcut to suggestion ${completionMs} ms`);
+
+    await suggestion.click();
+    await expect(editor.locator(".view-line").last()).toContainText("port.toFixed");
+    await page.keyboard.press("Home");
+    for (let i = 0; i < "port.to".length; i++) await page.keyboard.press("ArrowRight");
+    // Monaco binds Peek Definition to a different shortcut on Linux.
+    const linux = await page.evaluate(() => navigator.userAgent.includes("Linux"));
+    await page.keyboard.press(linux ? "Control+Shift+F10" : "Alt+F12");
+    const peek = page.locator(".reference-zone-widget");
+    await expect(peek).toContainText("lib.es5.d.ts");
+    await expect(peek.locator(".preview .view-lines")).toContainText(/toFixed\s*\(fractionDigits\?:\s*number\):\s*string/);
+  });
 });
