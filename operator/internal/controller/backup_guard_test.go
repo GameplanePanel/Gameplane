@@ -766,7 +766,7 @@ func TestBackupResticCleanupWithoutSnapshotScheme(t *testing.T) {
 	b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 	b.Status.SnapshotID = "abc123"
 	q := &scrapeQuiescer{}
-	r := newScrapeReconciler(t, b, nil, time.Hour, q)
+	r := newLiveScrapeReconciler(t, b, nil, time.Hour, q)
 	r.Scheme = nil
 	res, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(b)})
 	if err != nil || res.RequeueAfter > 0 || q.unquiesced != 1 {

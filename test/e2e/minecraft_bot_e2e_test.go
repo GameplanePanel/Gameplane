@@ -52,6 +52,10 @@ func TestGameServer_MinecraftJavaBot_Joined(t *testing.T) {
 
 	spec := minecraftBotSpec()
 	spec.Env["PAUSE_WHEN_EMPTY_SECONDS"] = "-1"
+	// The image creates private server files under /data. Use the same
+	// unprivileged identity as the Restic reader for this local-path PVC.
+	spec.Env["UID"] = "65532"
+	spec.Env["GID"] = "65532"
 	spec.Quiesce = map[string]any{"quiesce": []any{"save-off", "save-all flush"}, "unquiesce": []any{"save-on"}}
 	gs, ns := runGameBotTest(t, spec)
 	verifyMinecraftBackupResumesAutosave(t, ns, gs)
@@ -165,6 +169,12 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { deleteBackupCR(t, ns, name) })
+	defer func() {
+		if t.Failed() {
+			logs, err := envInstance.Kubectl(t.Context(), "logs", "-n", ns, "-l", "job-name="+name, "--all-containers", "--prefix", "--tail=25")
+			t.Logf("backup worker logs before cleanup: %s (%v)", logs, err)
+		}
+	}()
 	waitBackupSucceeded(t, ns, name, 8*time.Minute)
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})

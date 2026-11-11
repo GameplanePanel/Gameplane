@@ -64,7 +64,7 @@ func TestVerifiedSequenceBlocksCleanupUntilRollbackFinishes(t *testing.T) {
 	pause := make(chan int, 1)
 	go func() {
 		w := httptest.NewRecorder()
-		router.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/quiesce", nil))
+		router.ServeHTTP(w, httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/quiesce", nil))
 		pause <- w.Code
 	}()
 	<-reached
@@ -78,7 +78,7 @@ func TestVerifiedSequenceBlocksCleanupUntilRollbackFinishes(t *testing.T) {
 	resumed := make(chan *httptest.ResponseRecorder, 1)
 	go func() {
 		w := httptest.NewRecorder()
-		router.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/unquiesce", nil))
+		router.ServeHTTP(w, httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/unquiesce", nil))
 		resumed <- w
 	}()
 	close(release)
