@@ -308,8 +308,10 @@ every later migration is one portable file both drivers run
 builds the api with the tag and runs `api/internal/db`'s tests against a real
 PostgreSQL server. It stays **experimental** until the rest lands: running the
 handler/auth/audit test suites against Postgres (the `e2e-postgres` CI job already
-runs the auth, roles and RBAC e2e buckets and the `postgres-availability` upgrade
-bucket on it), a published image built with `-tags postgres`, and multi-replica
+runs the auth, roles and RBAC e2e buckets on it, plus the `postgres-availability`
+bucket, a deployment-strategy change and outage recovery on the working-tree
+chart, not an upgrade from a previous release), a published image built with
+`-tags postgres`, and multi-replica
 safety (the user-management lock and the audit hash chain assume a single API
 process).
 

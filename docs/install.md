@@ -952,10 +952,11 @@ test and asserts that
   migrations ran against the populated SQLite volume without data loss.
 
 See `test/e2e/upgrade_e2e_test.go`. What this does **not** yet cover: upgrades
-that skip several releases at once. A PostgreSQL combined-install upgrade has
-its own `postgres-availability` bucket, but Postgres remains an experimental
-driver (see [`roadmap.md`](roadmap.md)). Take a backup before upgrading
-production either way.
+that skip several releases at once. The `postgres-availability` bucket tests a
+PostgreSQL combined-install deployment-strategy change and outage recovery
+using the working-tree chart. It does not test an upgrade from a previous
+release. Postgres remains an experimental driver (see [`roadmap.md`](roadmap.md)).
+Take a backup before upgrading production either way.
 
 ### SQLite database adoption (Kestrel → Gameplane)
 
