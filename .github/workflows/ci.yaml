@@ -1026,6 +1026,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - run: npm ci
+      - name: Verify dashboard lint rules and compiler version
+        run: bash scripts/check-lint-toolchain.sh
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: web-i18n
@@ -1087,7 +1089,7 @@ jobs:
             fi
             echo "ok $code"
           done
-      - name: eslint
+      - name: ESLint and Oxlint
         run: npm run lint
       - run: npm run build
       - name: unit tests + coverage
@@ -1176,6 +1178,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install chromium
         run: bash e2e/install-chromium.sh
+      - name: build production dashboard for plain HTTP browser check
+        run: npm run build
+      - name: TypeScript editor on plain HTTP
+        run: npx playwright test --config=e2e/http/playwright.config.ts
       - name: playwright (mock)
         run: npm run test:e2e:mock
       - name: upload playwright report

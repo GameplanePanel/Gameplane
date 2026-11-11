@@ -99,7 +99,7 @@ Reopen the container with one of the named profiles (or `full`) and run the targ
 **Any change to the web dashboard's visual surface starts in
 `design.pen` (Pencil), not in code.** Open `design.pen`, update the
 relevant screen, review with the maintainers, *then* translate to
-React. This keeps the 18 designed screens the source of truth and
+React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
 prevents the dashboard from drifting into code-led redesigns.
 
 Backend/operator/API changes do not need a Pencil pass.
@@ -146,7 +146,7 @@ Every job in every workflow must have:
 - An explicit `permissions` block granting only what that job needs (top-level default is `contents: read`; anything more is granted only to the specific job that needs it)
 - An explicit `timeout-minutes` (default budget is ≤30 minutes; anything above it requires an inline justification comment)
 
-Documented exceptions with longer timeouts are the five e2e jobs (60 minutes each) and the image build in `publish-edge.yaml` (35 minutes).
+Documented exceptions with longer timeouts are the e2e jobs that set 45 to 75 minutes (the multicluster, upgrade, web live and game bot jobs at 60 minutes each, the PostgreSQL job at 75, the capture overhead job at 45, and the matrix-driven `e2e-go` jobs) and the image build in `publish-edge.yaml` (35 minutes).
 
 ### Security and drift gates
 
