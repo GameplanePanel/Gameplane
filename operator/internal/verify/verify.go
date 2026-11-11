@@ -284,6 +284,8 @@ func newKeyless(ctx context.Context, issuer, identity string, auth authn.Authent
 	return &cosignVerifier{mkOpts: mk, insecure: insecure}, nil
 }
 
+// readKey loads cosign.pub from the configured module namespace. The shared
+// Secret reader rejects service-account token Secrets even if they contain that key.
 func readKey(ctx context.Context, c client.Client, namespace, name string) ([]byte, error) {
 	sec, err := secretscope.ReadModuleSecret(ctx, c, namespace, name)
 	if err != nil {
