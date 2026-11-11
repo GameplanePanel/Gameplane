@@ -1,10 +1,48 @@
 #!/usr/bin/env bash
+# Classic keyed cosign verification checks the digest. Also check the
+# repository named in the signed payload before trusting a component.
+verify_release_signature() {
+  local repository=$1 digest=$2
+  if ! cosign verify --key signing/cosign.pub --new-bundle-format=false "$repository@$digest" |
+    jq -e --arg repo "$repository" --arg digest "$digest" 'any(.[];
+      .critical.identity["docker-reference"] == $repo and
+      .critical.image["docker-manifest-digest"] == $digest)' >/dev/null; then
+    echo "Missing valid release signature for $repository@$digest" >&2
+    return 1
+  fi
+}
+
 # The config blob is addressed through the verified release index.
 verify_release_config() {
   jq -e --arg arch "$1" --arg revision "$2" --arg version "$3" '
     .os == "linux" and .architecture == $arch and
     .config.Labels["org.opencontainers.image.revision"] == $revision and
     .config.Labels["org.opencontainers.image.version"] == $version' >/dev/null
+}
+
+verify_release_image() {
+  local image=$1 version=$2 revision=$3 digest_file=$4
+  local index ref index_json arch manifest config
+  index=$(oras resolve "$image:$version")
+  ref="$image@$index"
+  verify_release_signature "$image" "$index"
+  docker pull --platform linux/amd64 "$ref"
+  printf '\n- `%s`\n' "$ref" >> "$GITHUB_STEP_SUMMARY"
+  index_json=$(oras manifest fetch "$ref")
+  for arch in amd64 arm64; do
+    manifest=$(jq -er --arg arch "$arch" '
+      [.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest]
+      | if length == 1 then .[0] else error("expected one linux/" + $arch + " manifest") end' <<< "$index_json")
+    config=$(oras manifest fetch "$image@$manifest" | jq -er '.config.digest')
+    if ! oras blob fetch --output - "$image@$config" | verify_release_config "$arch" "$revision" "$version"; then
+      echo "$image@$config must identify linux/$arch, version $version and Git commit $revision" >&2
+      return 1
+    fi
+    printf '  - linux/%s manifest `%s`, config `%s`\n' "$arch" "$manifest" "$config" >> "$GITHUB_STEP_SUMMARY"
+    if [[ $arch == amd64 ]]; then
+      printf '%s\t%s\t%s\t%s\t%s\n' "${image##*/}" "$image:$version" "$index" "$manifest" "$config" >> "$digest_file"
+    fi
+  done
 }
 
 # Each consumer cluster has one Docker control-plane node. Capture its

@@ -22,12 +22,13 @@ cleanup() {
 }
 trap cleanup EXIT
 export GAMEPLANE_PUBLISHED_CHART="$scratch/gameplane" GAMEPLANE_RELEASE_DIGESTS="$scratch/images.tsv"
+export GAMEPLANE_PREVIOUS_RELEASE_DIGESTS="$scratch/previous-images.tsv"
 mkdir -p "$DOCKER_CONFIG"
 cosign initialize
 
 chart="$registry/charts/gameplane"
 digest="$(oras resolve "$chart:$version")"
-cosign verify --key signing/cosign.pub --new-bundle-format=false "$chart@$digest" >/dev/null
+verify_release_signature "$chart" "$digest"
 helm pull "oci://$chart@$digest" --untar --untardir "$scratch"
 test "$(yq -r '.version' "$GAMEPLANE_PUBLISHED_CHART/Chart.yaml")" = "$version"
 test "$(yq -r '.appVersion' "$GAMEPLANE_PUBLISHED_CHART/Chart.yaml")" = "$version"
@@ -42,27 +43,7 @@ printf 'Release `%s` at Git commit `%s`\n' "$tag" "$revision" >> "$GITHUB_STEP_S
 components="$(yq -r '.jobs.images.strategy.matrix.include[].component' "$scratch/published-release.yaml")"
 test -n "$components"
 while read -r component; do
-  image="$registry/gameplane/$component"
-  index="$(oras resolve "$image:$version")"
-  ref="$image@$index"
-  cosign verify --key signing/cosign.pub --new-bundle-format=false "$ref" >/dev/null
-  docker pull --platform linux/amd64 "$ref"
-  printf '\n- `%s`\n' "$ref" >> "$GITHUB_STEP_SUMMARY"
-  index_json=$(oras manifest fetch "$ref")
-  for arch in amd64 arm64; do
-    manifest=$(jq -er --arg arch "$arch" '
-      [.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest]
-      | if length == 1 then .[0] else error("expected one linux/" + $arch + " manifest") end' <<< "$index_json")
-    config=$(oras manifest fetch "$image@$manifest" | jq -er '.config.digest')
-    if ! oras blob fetch --output - "$image@$config" | verify_release_config "$arch" "$revision" "$version"; then
-      echo "$image@$config must identify linux/$arch, version $version and Git commit $revision" >&2
-      exit 1
-    fi
-    printf '  - linux/%s manifest `%s`, config `%s`\n' "$arch" "$manifest" "$config" >> "$GITHUB_STEP_SUMMARY"
-    if [[ $arch == amd64 ]]; then
-      printf '%s\t%s\t%s\t%s\t%s\n' "$component" "$image:$version" "$index" "$manifest" "$config" >> "$GAMEPLANE_RELEASE_DIGESTS"
-    fi
-  done
+  verify_release_image "$registry/gameplane/$component" "$version" "$revision" "$GAMEPLANE_RELEASE_DIGESTS"
 done <<< "$components"
 
 run_id=$(cat /proc/sys/kernel/random/uuid)
@@ -71,7 +52,7 @@ create_consumer_cluster "$fresh"
 helm install gameplane "$GAMEPLANE_PUBLISHED_CHART" --kube-context "kind-$fresh" \
   --namespace gameplane-system --create-namespace --set ingress.enabled=false \
   --set defaultModuleSource.enabled=false --wait --timeout 6m
-bash deploy/kind/verify-release-runtime.sh "kind-$fresh" api operator web
+bash deploy/kind/verify-release-runtime.sh "kind-$fresh" "$GAMEPLANE_RELEASE_DIGESTS" api operator web
 delete_consumer_cluster
 
 # The regular upgrade fixture seeds the old API database and game PVC,

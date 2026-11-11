@@ -3,6 +3,19 @@
 set -euo pipefail
 source deploy/kind/release-consumer-lib.sh
 
+# A different component in the same release can have a valid project-key
+# signature and identical revision/version labels. Its signed name differs.
+cosign() {
+  echo '[{"critical":{"identity":{"docker-reference":"ghcr.io/example/gameplane/web"},"image":{"docker-manifest-digest":"sha256:abc"}}}]'
+}
+verify_release_signature ghcr.io/example/gameplane/web sha256:abc
+if verify_release_signature ghcr.io/example/gameplane/api sha256:abc ||
+   verify_release_signature ghcr.io/example/gameplane/web sha256:def; then
+  echo "Accepted a signature for another repository or digest" >&2
+  exit 1
+fi
+unset -f cosign
+
 revision=040e10ee16253f6ead593bd076ed90835b68e2c1
 config='{"os":"linux","architecture":"amd64","config":{"Labels":{"org.opencontainers.image.revision":"040e10ee16253f6ead593bd076ed90835b68e2c1","org.opencontainers.image.version":"0.3.0"}}}'
 verify_release_config amd64 "$revision" 0.3.0 <<< "$config"

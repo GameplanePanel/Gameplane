@@ -3,9 +3,10 @@
 # digest derived from that index. Runtimes differ in which ID they expose.
 set -euo pipefail
 context="$1"
-shift
+digests="$2"
+shift 2
 for component in "$@"; do
-  row="$(awk -F '\t' -v name="$component" '$1 == name' "$GAMEPLANE_RELEASE_DIGESTS")"
+  row="$(awk -F '\t' -v name="$component" '$1 == name' "$digests")"
   test -n "$row"
   IFS=$'\t' read -r _ image index manifest config <<< "$row"
   namespace=gameplane-system

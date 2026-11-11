@@ -36,7 +36,8 @@ REPO="$(cd "${HERE}/../.." && pwd)"
 FROM_VERSION="${GAMEPLANE_UPGRADE_FROM:-0.3.0}"
 # Releases up to v0.3.0 were published before the repo moved to the
 # GameplanePanel org, so they live under the original owner on GHCR.
-CHART_REF="oci://ghcr.io/valgulnecron/charts/gameplane"
+FROM_REGISTRY="ghcr.io/valgulnecron"
+CHART_REF="oci://$FROM_REGISTRY/charts/gameplane"
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }
 
@@ -72,7 +73,28 @@ up|install)
         done
     fi
 
-    echo "installing PUBLISHED chart ${CHART_REF} --version ${FROM_VERSION}"
+    chart_args=(--version "$FROM_VERSION")
+    if [[ -n ${GAMEPLANE_PUBLISHED_CHART:-} ]]; then
+        # Resolve the documented predecessor in its original registry. Record
+        # what should be running before the seeded game and database migrate.
+        source "$HERE/release-consumer-lib.sh"
+        git -C "$REPO" fetch --quiet --no-tags --depth=1 origin "refs/tags/v$FROM_VERSION"
+        previous_commit=$(git -C "$REPO" rev-parse --verify 'FETCH_HEAD^{commit}')
+        repository=${CHART_REF#oci://}
+        digest=$(oras resolve "$repository:$FROM_VERSION")
+        verify_release_signature "$repository" "$digest"
+        CHART_REF="$CHART_REF@$digest"
+        chart_args=()
+        metadata=$(helm show chart "$CHART_REF")
+        [[ $(yq -r '.version' <<< "$metadata") == "$FROM_VERSION" &&
+           $(yq -r '.appVersion' <<< "$metadata") == "$FROM_VERSION" ]]
+        printf '\nPrevious chart `%s@%s`, version `%s`, Git commit `%s`\n' \
+            "$repository" "$digest" "$FROM_VERSION" "$previous_commit" >> "$GITHUB_STEP_SUMMARY"
+        for component in api operator agent; do
+            verify_release_image "$FROM_REGISTRY/gameplane/$component" "$FROM_VERSION" "$previous_commit" "$GAMEPLANE_PREVIOUS_RELEASE_DIGESTS"
+        done
+    fi
+    echo "installing PUBLISHED chart ${CHART_REF}, version ${FROM_VERSION}"
     # Value overrides mirror e2e.sh's, and are all about the harness rather
     # than the version under test:
     #   - api memory 1Gi: argon2id uses ~64Mi per hash and the 256Mi default
@@ -86,7 +108,7 @@ up|install)
     # must pull its own published GHCR images, or this tests nothing.
     helm install gameplane "${CHART_REF}" \
         --kube-context "kind-${CLUSTER}" \
-        --version "${FROM_VERSION}" \
+        "${chart_args[@]}" \
         --namespace gameplane-system --create-namespace \
         --set "ingress.enabled=false" \
         --set "web.enabled=false" \

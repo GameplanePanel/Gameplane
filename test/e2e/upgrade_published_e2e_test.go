@@ -30,10 +30,10 @@ func upgradePublishedChart(t *testing.T, chart string) {
 	}
 }
 
-func checkPublishedRuntime(t *testing.T) {
+func checkPublishedRuntime(t *testing.T, digestFile string, components ...string) {
 	t.Helper()
-	check := exec.CommandContext(t.Context(), "bash", filepath.Join("..", "..", "deploy", "kind", "verify-release-runtime.sh"),
-		envInstance.Context, "api", "operator", "web", "agent")
+	args := []string{filepath.Join("..", "..", "deploy", "kind", "verify-release-runtime.sh"), envInstance.Context, digestFile}
+	check := exec.CommandContext(t.Context(), "bash", append(args, components...)...)
 	out, err := check.CombinedOutput()
 	if err != nil {
 		t.Fatalf("published upgrade runtime image IDs: %v\n%s", err, out)

@@ -1037,11 +1037,15 @@ test and asserts that
 
 The release workflow also pulls the signed chart and release images from GHCR
 on a fresh amd64 runner using anonymous access and the public signing key.
-For each signed image index, it verifies that the amd64 and arm64 configs name
+It checks the repository and digest in the signed payload. For each image
+index, it verifies that the amd64 and arm64 configs name
 the release version and the commit referenced by the Git tag. It installs the
 chart in a clean Kind cluster, then runs the populated upgrade fixture in a
-second cluster. Both use a private kubeconfig. The job summary records the Git
-commit, chart digest, image index and platform digests, and running image IDs.
+second cluster. It verifies the previous chart in its original registry and
+checks the running API, operator, and seeded game agent against the previous
+release before upgrading. Both clusters use a private kubeconfig. The job
+summary records the Git commit, chart digest, image index and platform digests,
+and running image IDs.
 
 To qualify an already published candidate from a review branch, run the CI
 workflow on that branch with its `published_release` input set to the actual

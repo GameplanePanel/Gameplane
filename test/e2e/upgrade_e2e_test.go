@@ -90,9 +90,10 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatal(err)
 	}
 	if chart := os.Getenv("GAMEPLANE_PUBLISHED_CHART"); chart != "" {
+		checkPublishedRuntime(t, os.Getenv("GAMEPLANE_PREVIOUS_RELEASE_DIGESTS"), "api", "operator", "agent")
 		upgradePublishedChart(t, chart)
 		verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID)
-		checkPublishedRuntime(t)
+		checkPublishedRuntime(t, os.Getenv("GAMEPLANE_RELEASE_DIGESTS"), "api", "operator", "web", "agent")
 		return
 	}
 
