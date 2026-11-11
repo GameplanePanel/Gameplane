@@ -1041,6 +1041,14 @@ It installs the verified chart in a clean Kind cluster, then runs the populated
 upgrade fixture in a second cluster using the published candidate. The job
 summary records the chart and image digests and the image IDs actually running.
 
+To qualify an already published candidate from a review branch, run the CI
+workflow on that branch with its `published_release` input set to the actual
+version tag. With `REVIEW_REF` set to the branch under review
+and `TAG` set to the published tag, run
+`gh workflow run ci.yaml --ref "$REVIEW_REF" -f published_release="$TAG"`. The read-only consumer job uses
+the tagged publisher's component list and reports the chart and image digests
+in its Actions summary.
+
 See `test/e2e/upgrade_e2e_test.go`. What this does **not** yet cover: upgrades
 that skip several releases at once, and Postgres (still an experimental
 driver — see [`roadmap.md`](roadmap.md)). Take a backup before upgrading

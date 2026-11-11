@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Release CI runs this on a fresh amd64 runner without a registry login.
 set -euo pipefail
-version="${GITHUB_REF_NAME#v}"
+tag=${1:?pass the published release tag}
+[[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]] || {
+  echo "expected a published vMAJOR.MINOR.PATCH tag, optionally with a prerelease suffix" >&2
+  exit 2
+}
+version=${tag#v}
 owner="${GITHUB_REPOSITORY_OWNER,,}"
 registry="ghcr.io/$owner"
 scratch="$(mktemp -d)"
@@ -20,7 +25,9 @@ printf 'Verified chart `%s@%s`\n' "$chart" "$digest" >> "$GITHUB_STEP_SUMMARY"
 
 # Read the publisher's complete matrix, including optional images. Keep the
 # signed index and its amd64 manifest/config IDs for containerd comparisons.
-components="$(yq -r '.jobs.images.strategy.matrix.include[].component' .github/workflows/release.yaml)"
+git fetch --quiet --no-tags --depth=1 origin "refs/tags/$tag"
+git show FETCH_HEAD:.github/workflows/release.yaml > "$scratch/published-release.yaml"
+components="$(yq -r '.jobs.images.strategy.matrix.include[].component' "$scratch/published-release.yaml")"
 test -n "$components"
 while read -r component; do
   image="$registry/gameplane/$component"

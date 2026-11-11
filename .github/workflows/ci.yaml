@@ -40,6 +40,11 @@ on:
       - "website"
   # Manual full-suite run on any branch (spec 023 OD-7).
   workflow_dispatch:
+    inputs:
+      published_release:
+        description: Optional published tag to qualify from this checkout (for example v1.0.0)
+        required: false
+        type: string
 # Cancel superseded runs so rapid pushes to the same ref don't waste
 # runner minutes on stale commits.
 concurrency:
@@ -69,6 +74,15 @@ permissions:
 # its own kind cluster, so the slowest suite — not the sum of all of
 # them — sets the wall-clock time.
 jobs:
+  published-release:
+    name: qualify a published release
+    if: github.event_name == 'workflow_dispatch' && inputs.published_release != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/qualify-release.yaml
+    with:
+      release_tag: ${{ inputs.published_release }}
+
   # Path-filter gate. Computes which parts of the tree a change touches so the
   # heavy jobs below can skip when they can't be affected (a web-only PR drops
   # from ~22 jobs to a handful). Any shared/CI-config path (this workflow, the
