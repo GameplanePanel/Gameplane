@@ -361,6 +361,27 @@ func TestWorkerPolicyDrainsLegacyPodBeforeFirstPin(t *testing.T) {
 			if *ss.Spec.Replicas != 0 || !reflect.DeepEqual(*original, ss.Spec.Template) {
 				t.Fatal("zero replicas did not fence the still-present legacy Pod")
 			}
+			if contract == "previously pinned baseline" {
+				// The StatefulSet can disappear while its old Pod still owns the
+				// world. Race the owner with a stale scale-up decision on recreate.
+				if err := r.Delete(ctx, ss); err != nil {
+					t.Fatal(err)
+				}
+				stale := gs.DeepCopy()
+				delete(stale.Annotations, lifecycleOperationAnnotation)
+				if err := r.reconcileStatefulSet(ctx, stale, catalog, nil, &materializedConfig{}, 1); err != nil {
+					t.Fatal(err)
+				}
+				for range 3 {
+					if err := r.Get(ctx, key, ss); err != nil {
+						t.Fatal(err)
+					}
+					if *ss.Spec.Replicas != 0 {
+						t.Fatalf("replacement escaped the baseline fence while the old writer survived: replicas=%d", *ss.Spec.Replicas)
+					}
+					step()
+				}
+			}
 			if err := r.Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

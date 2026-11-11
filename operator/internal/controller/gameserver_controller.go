@@ -1670,6 +1670,11 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				ss.Annotations = map[string]string{}
 			}
 			ss.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+			if op.Kind == "Rollout" && op.Baseline && r.GameWorkloadPolicy != nil && ss.ResourceVersion == "" {
+				// A stale scale-up can race recreation while the old world
+				// writer is terminating. Create the fenced replacement stopped.
+				actualReplicas, replicas = 0, 0
+			}
 			if op.InitialStartup {
 				actualReplicas = replicas
 				delete(ss.Annotations, restoreGuardAnnotation)

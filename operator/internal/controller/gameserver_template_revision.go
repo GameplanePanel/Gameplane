@@ -185,8 +185,8 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		}
 		if op.Baseline {
 			if r.GameWorkloadPolicy != nil {
-				waiting, err := r.workerPolicyBaselineNeedsDrain(ctx, gs)
-				if waiting || err != nil {
+				drained, err := r.templateWorkloadDrained(ctx, gs)
+				if !drained || err != nil {
 					// Continue to desiredReplicas with the durable owner held. The
 					// StatefulSet may scale down but must keep its Pod template.
 					return effective, false, err
@@ -294,28 +294,6 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		}
 	}
 	return effective, false, r.pruneTemplateSnapshots(ctx, gs)
-}
-
-// workerPolicyBaselineNeedsDrain waits for the fenced StatefulSet and all world writers.
-// A new server or an already-replaced historical baseline can render immediately.
-func (r *GameServerReconciler) workerPolicyBaselineNeedsDrain(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
-	var ss appsv1.StatefulSet
-	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return false, err
-		}
-		// A deleted StatefulSet can leave a terminating Pod that still holds the world.
-		gone, err := r.templateWritersGone(ctx, gs, nil)
-		return !gone, err
-	}
-	if !metav1.IsControlledBy(&ss, gs) {
-		return false, fmt.Errorf("baseline workload belongs to another server")
-	}
-	if gs.Annotations[effectiveTemplateAnnotation] != "" && (string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "") {
-		return false, nil
-	}
-	drained, err := r.templateWorkloadDrained(ctx, gs)
-	return !drained, err
 }
 
 // baselineStopTemplate uses only an owned running Pod and its verified snapshot.
@@ -521,6 +499,17 @@ func observedTemplateRevision(ctx context.Context, reader client.Reader, gs *gam
 func (r *GameServerReconciler) templateWorkloadDrained(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
 	var ss appsv1.StatefulSet
 	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
+		if apierrors.IsNotFound(err) && r.GameWorkloadPolicy != nil {
+			op, held, err := lifecycleOwner(gs)
+			if err != nil {
+				return false, err
+			}
+			if held && op.Kind == "Rollout" && op.Baseline {
+				// A new server has no workload to fence. A deleted StatefulSet
+				// can leave a terminating Pod that still holds the world.
+				return r.templateWritersGone(ctx, gs, nil)
+			}
+		}
 		return false, client.IgnoreNotFound(err)
 	}
 	if !metav1.IsControlledBy(&ss, gs) {
