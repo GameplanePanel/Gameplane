@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/netip"
 	"path"
 	"sort"
@@ -178,6 +179,7 @@ type GameServerReconciler struct {
 
 	// RestrictedWorkloads applies the opt-in PSA-compatible game profile.
 	RestrictedWorkloads         bool
+	GameWorkloadPolicy          *GameWorkloadPolicy
 	AgentTokenExpirationSeconds int64
 	DiagnosticsNamespace        string
 
@@ -320,6 +322,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err := validateRestrictedTemplate(&tmpl); err != nil {
 			return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 		}
+	}
+	if err := r.GameWorkloadPolicy.validate(&gs, &tmpl); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
 	mc, err := materializeConfig(&gs, &tmpl)
 	if err != nil {
@@ -1838,8 +1843,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// Assign unconditionally so clearing spec.nodeSelector also clears the
 		// pod template's selector (nil resets it); the previous nil-guard left
 		// a removed scheduling pin active on the StatefulSet.
-		ss.Spec.Template.Spec.NodeSelector = gs.Spec.NodeSelector
-		ss.Spec.Template.Spec.Tolerations = gs.Spec.Tolerations
+		ss.Spec.Template.Spec.NodeSelector, ss.Spec.Template.Spec.Tolerations = r.GameWorkloadPolicy.placement(gs)
 		// Do not change a live Pod's template merely because its node was
 		// recorded while a graceful stop is still saving the game. Apply the
 		// endpoint pin at zero replicas, then retain it on every future wake.
@@ -2294,15 +2298,28 @@ func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate
 	}
 }
 
-// effectiveResources resolves the game container's compute resources:
-// the template's defaults, replaced wholesale by spec.resources when set.
+// Each explicit request or limit overrides that resource's template value.
+// An unconfigured CPU limit stays absent for Burstable games.
 func effectiveResources(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) corev1.ResourceRequirements {
-	if gs.Spec.Resources != nil {
-		return *gs.Spec.Resources
+	resources := tmpl.Spec.Resources.DeepCopy()
+	if override := gs.Spec.Resources; override != nil {
+		resources.Requests = mergeResourceList(resources.Requests, override.Requests)
+		resources.Limits = mergeResourceList(resources.Limits, override.Limits)
+		if override.Claims != nil {
+			resources.Claims = override.DeepCopy().Claims
+		}
 	}
-	return tmpl.Spec.Resources
+	return *resources
+}
+
+func mergeResourceList(defaults, override corev1.ResourceList) corev1.ResourceList {
+	if defaults == nil {
+		return override.DeepCopy()
+	}
+	maps.Copy(defaults, override.DeepCopy())
+	return defaults
 }
 
 // buildGameContainer constructs the primary game server container definition.

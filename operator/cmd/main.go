@@ -163,6 +163,7 @@ func main() {
 		backupCSICaptureTimeout          time.Duration
 		backupHardSameNode               bool
 		agentResourcesJSON               string
+		gameWorkloadPolicyJSON           string
 		sentinelResourcesJSON            string
 		tunnelResourcesJSON              string
 		backupResourcesJSON              string
@@ -171,6 +172,7 @@ func main() {
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "Address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
 	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&gameWorkloadPolicyJSON, "game-workload-policy", "", "JSON game worker pool and per-game resource bounds. Unset disables policy enforcement.")
 	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
 	flag.StringVar(&tunnelResourcesJSON, "tunnel-resources", "", "JSON ResourceRequirements for tunnel relays; default requests 25m/64Mi, {} clears defaults.")
 	flag.StringVar(&backupResourcesJSON, "backup-resources", "", "JSON ResourceRequirements for restic backup/init, restore and cleanup workers; default backup/restore requests 100m/128Mi, {} clears defaults.")
@@ -313,6 +315,11 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
 
+	gameWorkloadPolicy, err := controller.ParseGameWorkloadPolicy(gameWorkloadPolicyJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --game-workload-policy")
+		os.Exit(1)
+	}
 	agentResources, err := controller.ParseAuxiliaryResources(agentResourcesJSON)
 	if err != nil {
 		setupLog.Error(err, "invalid --agent-resources")
@@ -498,6 +505,7 @@ func main() {
 		ProbeIngressFromCIDRs:       probeIngressFromCIDR,
 		CaptureEnabled:              captureEnabled,
 		RestrictedWorkloads:         restrictedWorkloads,
+		GameWorkloadPolicy:          gameWorkloadPolicy,
 		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
 		DiagnosticsNamespace:        diagnosticsNamespace,
 		CaptureSidecarImage:         captureSidecarImage,

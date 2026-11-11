@@ -201,6 +201,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			if _, err := resolveVersion(gs, target); err != nil {
 				return nil, false, err
 			}
+			if err := r.GameWorkloadPolicy.validate(gs, target); err != nil {
+				return nil, false, err
+			}
 			if r.RestrictedWorkloads {
 				if err := validateRestrictedTemplate(target); err != nil {
 					return nil, false, err
@@ -250,6 +253,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 				return nil, false, err
 			}
 			if _, err := resolveVersion(gs, &installed); err != nil {
+				return nil, false, err
+			}
+			if err := r.GameWorkloadPolicy.validate(gs, &installed); err != nil {
 				return nil, false, err
 			}
 			if r.RestrictedWorkloads {
@@ -310,6 +316,9 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 	if err := validateTemplatePasswordTransition(gs, nil, target); err != nil {
 		return err
 	}
+	if err := r.GameWorkloadPolicy.validate(gs, target); err != nil {
+		return err
+	}
 	var ss appsv1.StatefulSet
 	err = r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
 	if err != nil && !apierrors.IsNotFound(err) {
@@ -342,6 +351,11 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 }
 
 func (r *GameServerReconciler) preserveBaselinePodTemplate(ctx context.Context, gs *gameplanev1alpha1.GameServer, ss *appsv1.StatefulSet) (bool, error) {
+	// A pre-upgrade template may predate the required pool or the merged
+	// resource bounds. Re-render it before scaling the workload.
+	if r.GameWorkloadPolicy != nil {
+		return false, nil
+	}
 	pin := gs.Annotations[effectiveTemplateAnnotation]
 	if pin == "" || gs.Annotations[baselineTemplateAnnotation] != pin || string(ss.UID) != gs.Annotations[baselineWorkloadAnnotation] || ss.Spec.Template.Annotations[templateRevisionAnnotation] != "" {
 		return false, nil

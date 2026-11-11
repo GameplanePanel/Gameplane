@@ -134,6 +134,12 @@ a cordon, readiness of the surviving replica, and singleton API eviction. Node
 labels and cordons are restored in cleanup. This validates scheduler/PDB behavior,
 not application HA or storage migration.
 
+`TestGameWorkerPoolAndQuota` applies the production chart's game Pod
+admission and tenant quota to an isolated namespace. A second Pod exceeds its
+quota. When the test cordons the only game worker and evicts its game Pod, the
+replacement stays Pending until a second worker joins the pool. Its allocating
+process must terminate with `OOMKilled` at the configured memory limit.
+
 ### Backup preparation acceptance
 
 The `backup-preparation` bucket also uses the `management` Kind profile and zero
