@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import "@/lib/monaco-loader";
-import Editor from "@monaco-editor/react";
+import Editor from "@/lib/monaco-editor";
 import { Label, Description } from "@heroui/react";
 import type { SectionProps } from "./types";
 import { useOptionalIntl } from "@/lib/i18n/format";
