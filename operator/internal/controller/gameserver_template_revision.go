@@ -202,7 +202,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 				return nil, false, err
 			}
 			if err := r.GameWorkloadPolicy.validate(gs, target); err != nil {
-				return nil, false, err
+				return effective, false, workloadPolicyRejection{err}
 			}
 			if r.RestrictedWorkloads {
 				if err := validateRestrictedTemplate(target); err != nil {
@@ -256,7 +256,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 				return nil, false, err
 			}
 			if err := r.GameWorkloadPolicy.validate(gs, &installed); err != nil {
-				return nil, false, err
+				return effective, false, workloadPolicyRejection{err}
 			}
 			if r.RestrictedWorkloads {
 				if err := validateRestrictedTemplate(&installed); err != nil {
@@ -317,7 +317,7 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 		return err
 	}
 	if err := r.GameWorkloadPolicy.validate(gs, target); err != nil {
-		return err
+		return workloadPolicyRejection{err}
 	}
 	var ss appsv1.StatefulSet
 	err = r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)

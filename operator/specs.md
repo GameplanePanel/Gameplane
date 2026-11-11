@@ -332,7 +332,19 @@ No new limits are set. Forget/prune retains 50m/128Mi and its existing 512Mi
 memory limit when no override is configured. Explicit `{}` clears defaults.
 Builders deep-copy resource maps. Template agent requests/limits, when declared,
 replace install agent defaults; image-only overrides keep those defaults.
-Game resources and GameServer placement retain their existing semantics.
+For the game container, each GameServer request or limit overrides the matching
+resource in the template. Omitted quantities retain the template value. The
+operator rejects effective requests above their limits. The optional
+`--game-workload-policy` JSON flag (`operator.gameWorkloadPolicy` in Helm)
+bounds CPU requests and requires a memory reservation and ceiling. It adds
+the configured game worker selector and exact NoSchedule toleration and
+rejects conflicting selectors or broader tolerations. These checks run for
+direct and stored GameServers and before template revision adoption. An
+explicit suspend on a rejected configuration gracefully drains an existing
+owned StatefulSet using its pinned template, subject to lifecycle ownership.
+A legacy workload without a pin uses its Kubernetes termination grace.
+Only its replica count can change. Correct the reported policy violation
+before starting or rolling out the game.
 Chart placement and optional PDBs are documented in
 [`docs/production-placement.md`](../docs/production-placement.md).
 

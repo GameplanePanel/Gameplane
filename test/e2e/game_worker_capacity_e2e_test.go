@@ -64,11 +64,10 @@ func startPlacementBackup(ctx context.Context, t *testing.T, ns, poolKey, worker
 	work := `export RESTIC_REPOSITORY=/tmp/repo RESTIC_PASSWORD=disposable
 mkdir /tmp/world
 restic init
-for i in $(seq 1 120); do
+while test ! -e /tmp/finish; do
   dd if=/dev/urandom of=/tmp/world/chunk bs=1M count=2 2>/dev/null
   restic backup -q /tmp/world
   touch /tmp/snapshot-complete
-  test ! -e /tmp/finish || break
   sleep 1
 done
 restic check --read-data`
