@@ -32,6 +32,7 @@ discovered along the way gets added.
 - Removed: the Hell Let Loose module is withdrawn from the official catalog ([changelog](../CHANGELOG.md)).
 - Upgrade-note behaviour changes: telemetry is on by default for new installs after a first-login notice; installs with a saved basic toggle start sending to the default receiver after upgrade; an empty `api.telemetry.endpoint` means the project default receiver; the receiver `/metrics` moved to `:8081` and needs the dashboard token; the bundled receiver stores data on a PVC by default; receiver `DASHBOARD_TOKEN` must be at least 32 characters ([changelog](../CHANGELOG.md)).
 - Breaking: selected-cluster module and template grants need a cluster-wide grant for remote catalogs ([changelog](../CHANGELOG.md)).
+- Language selection and community language packs (spec 019): dashboard language per account with an admin instance default, shared language packs, and a per-destination notification language ([changelog](../CHANGELOG.md)). Follow-ups are listed under In progress.
 - Feature catalog: [FEATURES.md](../FEATURES.md) lists every capability with its maturity and default, mirrored on the website and kept in step by `make check-features-sync` (spec 024, PR #703).
 
 ### Shipped in v0.3.0 <!-- doc-versions: historical -->
@@ -264,22 +265,22 @@ opt-out), and a monthly workflow refreshes the pins. Authoring rules live in
 
 ## In progress
 
-Status as of 2026-10-14. Task counts come from each spec's `tasks.md`.
+Status as of 2026-11-11. Task counts come from each spec's `tasks.md`.
 
 - **Spec 002, Nuclear Option module and load-balancer IP pool override** (`specs/002-nuclear-option-ip-pool/`): 136 of 143 tasks done. Blocked: the server does not bind UDP 7777, so no join client can be built until a real-client packet capture documents the handshake (maintainer decision, 2026-10-11). Unblocked by: that packet capture. The join test, its bucket and the coverage row wait on it.
 - **Spec 009, code scanning remediation and Dependabot** (`specs/009-remediate-security-dependabot/`): 80 of 82 tasks done. Blocked: TypeScript 7 is blocked because the `@typescript-eslint` peer range stops before TypeScript 7, and ESLint 10 is blocked because `eslint-plugin-react` does not accept `^10`. Unblocked by: a `@typescript-eslint` release that accepts TypeScript 7 (then T055/T056 and PR #272), and an `eslint-plugin-react` release that accepts `^10` (then PR #386, and #387 if open).
-- **Spec 013, expand test coverage** (`specs/done_013-expand-test-coverage/`): 39 of 62 tasks done. No external blocker is named. Open work is the live web e2e specs, the optional-components e2e, the Postgres e2e, docs and checks, and the archive step. Some tasks wait for the first green CI run of their job, and the archive waits until every PR is merged. Open PRs for this spec are in progress.
-- **Spec 019, app localization and community language packs** (`specs/019-localization-language-packs/`): 0 of 105 tasks checked; the four design decisions are settled. The implementation is on open PR #668 and is not yet on `master`. Unblocked by: merging PR #668, which needs human approval. The first step is the `i18n/` module and checker.
+- **Spec 013, expand test coverage** (`specs/done_013-expand-test-coverage/`): done. All 62 tasks complete; archived.
+- **Spec 019, app localization and community language packs** (`specs/019-localization-language-packs/`): shipped in v0.4.0 (PR #668 is on `master`). 102 of 105 tasks done. Open: T080, the French Reviewers group and reviewer rules; T103, the quickstart run against a `make dev-up` cluster; T105, the archive to `done_019` after every task is complete or withdrawn and the PR is merged.
 - **Spec 021, edit game configuration from server Settings** (`specs/done_021-settings-game-config/`): done. All 24 tasks complete; merged in PR #568 and PR #652, then archived.
-- **Spec 022, default telemetry destination, extended telemetry and telemetry dashboard** (`specs/done_022-default-telemetry-dashboard/`): 109 of 119 tasks done. The shipped feature is unchanged until the version-trend amendment (2026-10-14, T101 to T110) lands. Blocked: T104 needs Pencil design work on the machine where Pencil runs; T109 needs the user's sign-off before editing existing tests `lifecycle_test.go:11` and `charts_test.go:83`; T110 waits for the PR to merge. Unblocked by: the design work, that sign-off, and the merge.
-- **Spec 023, change-based test selection** (`specs/023-change-based-test-selection/`): 0 of 52 tasks done; no open decisions remain. No blocker is named. T001 creates the `ci: full-run` label. T052 needs 30 merged PRs to measure runner minutes.
+- **Spec 022, default telemetry destination, extended telemetry and telemetry dashboard** (`specs/done_022-default-telemetry-dashboard/`): done. All 126 tasks complete, including the 2026-10-14 version-trend amendment (Phase 11 of its `tasks.md`); archived.
+- **Spec 023, change-based test selection** (`specs/023-change-based-test-selection/`): 51 of 52 tasks done. The open task is T052, which measures median runner-minutes after 30 merged PRs. No blocker is named.
 - **Spec 025, standalone panel and API** (`specs/025-standalone-panel/`, see [standalone panel](standalone-panel.md)): implemented and merged in PR #630; all 51 tasks done, with known gaps listed in the spec. The folder was renumbered from `023-standalone-panel` and written after the fact. Next step: archive to `done_025`.
 
 ---
 
 ## Blocking v1
 
-Nothing hard-blocks v1 anymore. What stands between v0.3 and a v1 GA is the
+Nothing hard-blocks v1 anymore. What stands between v0.4 and a v1 GA is the
 production-readiness hardening below — tracked items, not code gaps.
 
 ---
@@ -306,8 +307,9 @@ every later migration is one portable file both drivers run
 `$n`, and runtime timestamps are generated in Go. The `api (postgres)` CI job
 builds the api with the tag and runs `api/internal/db`'s tests against a real
 PostgreSQL server. It stays **experimental** until the rest lands: running the
-handler/auth/audit test suites and the kind e2e and upgrade suites against
-Postgres, a published image built with `-tags postgres`, and multi-replica
+handler/auth/audit test suites against Postgres (the `e2e-postgres` CI job already
+runs the auth, roles and RBAC e2e buckets and the `postgres-availability` upgrade
+bucket on it), a published image built with `-tags postgres`, and multi-replica
 safety (the user-management lock and the audit hash chain assume a single API
 process).
 

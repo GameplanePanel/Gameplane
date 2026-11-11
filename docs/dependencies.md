@@ -114,7 +114,7 @@ is the shared telemetry report contract: the basic and extended report types,
 the fixed category enumerations and band functions, the strict decoder, the
 embedded official-module catalog, and Ed25519 report signing.
 
-Imported by (spec 022, in progress):
+Imported by (spec 022):
 - `telemetry-receiver/` — to decode and validate reports (`Decode`) and to verify signatures (`Verify`).
 - `api/` — to build, encode and sign the reporter's payload and the admin preview.
 
