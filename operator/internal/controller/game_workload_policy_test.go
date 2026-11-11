@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -252,6 +253,35 @@ func TestRejectedRolloutDrainsWithThePinnedStopContract(t *testing.T) {
 	}
 	if err := r.Get(t.Context(), key, ss); err != nil || *ss.Spec.Replicas != 1 {
 		t.Fatalf("failed to preserve the running world during grace: %v", err)
+	}
+}
+
+// Historical baseline migration must validate the pinned probe before claiming a drain.
+func TestWorkerPolicyRefusesUnsafeProbeInHistoricalBaseline(t *testing.T) {
+	ctx := t.Context()
+	r, gs, catalog := revisionFixture(t)
+	policy, _, valid := gamePolicyFixture(t)
+	r.GameWorkloadPolicy = policy
+	old := catalog.DeepCopy()
+	old.Spec.Resources = valid.Spec.Resources
+	old.Spec.Probes = &gameplanev1alpha1.GameProbesSpec{Liveness: probeSecHTTP("169.254.169.254", intstr.FromInt32(80))}
+	pin, err := r.saveTemplateSnapshot(ctx, gs, old)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gs.Annotations[effectiveTemplateAnnotation] = pin
+	gs.Annotations[baselineTemplateAnnotation] = pin
+	if err := r.Update(ctx, gs); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := r.reconcileTemplateRevision(ctx, gs); err == nil || !strings.Contains(err.Error(), "spec.probes.liveness.httpGet.host") {
+		t.Fatalf("expected the pinned probe host to block migration: %v", err)
+	}
+	if err := r.Get(ctx, client.ObjectKeyFromObject(gs), gs); err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations[lifecycleOperationAnnotation] != "" {
+		t.Fatal("unsafe pinned probe claimed a migration drain")
 	}
 }
 
