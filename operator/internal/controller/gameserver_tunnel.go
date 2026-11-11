@@ -582,6 +582,26 @@ func (r *GameServerReconciler) reconcileTunnelNetworkPolicy(
 			},
 		}
 
+		np.Spec.PolicyTypes = []networkingv1.PolicyType{networkingv1.PolicyTypeEgress}
+		if r.RestrictTunnelEgress {
+			// DNS and provider endpoints get separate administrator-owned rules.
+			// An empty Ports list would grant every backend port.
+			np.Spec.Egress = nil
+			if ports := networkPolicyPortsFromTemplate(tmpl); len(ports) > 0 {
+				np.Spec.Egress = []networkingv1.NetworkPolicyEgressRule{{
+					To: []networkingv1.NetworkPolicyPeer{{PodSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{"app.kubernetes.io/instance": gs.Name},
+						MatchExpressions: []metav1.LabelSelectorRequirement{{
+							Key: "app.kubernetes.io/name", Operator: metav1.LabelSelectorOpIn,
+							Values: []string{"gameplane-game", "gameplane-waker"},
+						}},
+					}}},
+					Ports: ports,
+				}}
+			}
+			return controllerutil.SetControllerReference(gs, np, r.Scheme)
+		}
+
 		// Egress rules: allow DNS, advertised ports for inbound relay traffic,
 		// and the provider's relay endpoint ports for outbound control traffic.
 		egressPorts := make([]networkingv1.NetworkPolicyPort, 0)
@@ -665,7 +685,6 @@ func (r *GameServerReconciler) reconcileTunnelNetworkPolicy(
 		}
 
 		// Egress with no "To" means "to any destination".
-		np.Spec.PolicyTypes = []networkingv1.PolicyType{networkingv1.PolicyTypeEgress}
 		egressRules := []networkingv1.NetworkPolicyEgressRule{{
 			Ports: egressPorts,
 			// Empty To = allow to any destination

@@ -99,6 +99,7 @@ type GameServerReconciler struct {
 	TunnelFrpImage       string
 	TunnelTailscaleImage string
 	TunnelPlayitImage    string
+	RestrictTunnelEgress bool
 
 	// AgentCASecretName / AgentCASecretNamespace point at the cluster-
 	// wide Secret holding `ca.crt` + `ca.key` used to sign the

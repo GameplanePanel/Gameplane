@@ -576,6 +576,10 @@ networkPolicies:
   # Fail closed unless actual kubelet source CIDRs/probe ports and apiserver
   # endpoint CIDRs are supplied. Defaults retain the legacy broad allowances.
   strict: false
+  # Opt in only after provisioning each managed namespace and its provider
+  # egress. Requires strict endpoints, per-server probes, and explicit backup
+  # destinations. See the tenant network profile in docs/security.md.
+  tenantIsolation: false
   # CIDRs that hold kubelet source IPs for liveness/readiness probes.
   # If unset, the chart falls back to RFC1918 + link-local ranges,
   # which cover most clusters without opening the public internet.
@@ -629,6 +633,10 @@ networkPolicies:
   # store) as well as public.
   backupEgress:
     enabled: true
+    # Explicit repository destinations. The compatibility profile defaults
+    # to any IPv4 address on the configured ports. Tenant isolation requires
+    # a nonempty list (or backupEgress.enabled=false and administrator policies).
+    toCIDRs: []
     # Ports opened for restic repository connections. Defaults cover
     # HTTPS-based backends (S3, B2, REST-over-TLS, Swift, Azure, GCS)
     # and SFTP. Add your repository's port if it uses neither, e.g. a

@@ -1,4 +1,32 @@
 {{- $network := .Values.networkPolicies | default dict }}
+{{- if $network.tenantIsolation }}
+{{- if or (not $network.strict) (not ($network.probeIngress | default dict).enabled) $network.probePorts }}
+{{- fail "networkPolicies.tenantIsolation requires strict=true, probeIngress.enabled=true and empty shared probePorts" }}
+{{- end }}
+{{- if ($network.gameEgress | default dict).enabled }}
+{{- fail "networkPolicies.tenantIsolation requires gameEgress.enabled=false; grant approved game downloads with destination-specific policies" }}
+{{- end }}
+{{- $protected := list .Release.Namespace "default" "kube-system" "kube-public" "kube-node-lease" .Values.operator.controlPlaneNamespace .Values.operator.agentCASecretNamespace .Values.operator.moduleNamespace }}
+{{- range $ns := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
+{{- if has $ns $protected }}
+{{- fail "networkPolicies.tenantIsolation requires dedicated game namespaces" }}
+{{- end }}
+{{- end }}
+{{- range $cidr := concat ($network.apiServerCIDRs | default list) ($network.kubeletCIDRs | default list) }}
+{{- if not (regexMatch "(/32|/128)$" (toString $cidr)) }}
+{{- fail "networkPolicies.tenantIsolation requires individual API and kubelet host CIDRs" }}
+{{- end }}
+{{- end }}
+{{- $backup := $network.backupEgress | default (dict "enabled" true) }}
+{{- if and $backup.enabled (or (not $backup.ports) (not $backup.toCIDRs)) }}
+{{- fail "networkPolicies.tenantIsolation requires explicit backupEgress.toCIDRs and ports, or backupEgress.enabled=false" }}
+{{- end }}
+{{- range $backup.toCIDRs }}
+{{- if hasSuffix "/0" (toString .) }}
+{{- fail "networkPolicies.tenantIsolation forbids unrestricted backup destinations" }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- if $network.strict }}
 {{- if not $network.enabled }}
 {{- fail "networkPolicies.strict requires networkPolicies.enabled=true" }}

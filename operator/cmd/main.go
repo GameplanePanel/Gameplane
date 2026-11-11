@@ -129,6 +129,7 @@ func main() {
 		tunnelFrpImage                   string
 		tunnelTailscaleImage             string
 		tunnelPlayitImage                string
+		restrictTunnelEgress             bool
 		agentLogLevel                    string
 		agentCABundle                    string
 		agentClientCert                  string
@@ -206,6 +207,8 @@ func main() {
 	flag.StringVar(&tunnelTailscaleImage, "tunnel-tailscale-image", controller.DefaultTunnelTailscaleImage,
 		"Image for the Tailscale tunnel relay pod that routes players through a Tailscale tailnet. "+
 			"Point at a private registry mirror for air-gapped installs.")
+	flag.BoolVar(&restrictTunnelEgress, "restrict-tunnel-egress", false,
+		"Only grant tunnel egress to this server's advertised backend ports; administrators supply provider egress policies.")
 	flag.StringVar(&tunnelPlayitImage, "tunnel-playit-image", controller.DefaultTunnelPlayitImage,
 		"Image for the Playit tunnel relay pod that routes players through a Playit tunnel. "+
 			"Point at a private registry mirror for air-gapped installs.")
@@ -481,6 +484,7 @@ func main() {
 		TunnelFrpImage:         tunnelFrpImage,
 		TunnelTailscaleImage:   tunnelTailscaleImage,
 		TunnelPlayitImage:      tunnelPlayitImage,
+		RestrictTunnelEgress:   restrictTunnelEgress,
 		AgentLogLevel:          agentLogLevel,
 		AgentCASecretName:      agentCASecretName,
 		AgentCASecretNamespace: agentCASecretNamespace,

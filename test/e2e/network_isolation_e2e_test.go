@@ -33,18 +33,18 @@ func TestNetworkIsolation_EnforcedAndUpgrade(t *testing.T) {
 	for _, pair := range [][2]string{{a, legacyTemplate}, {b, legacyTemplate}, {c, isolatedTemplate}} {
 		applyBusyboxGameServer(t, ns, pair[0], pair[1])
 	}
-	aIP := isolationGameIP(t, a, false)
-	bIP := isolationGameIP(t, b, false)
-	cIP := isolationGameIP(t, c, true)
-	probeA := isolationProbe(t, a, false)
-	probeC := isolationProbe(t, c, true)
+	aIP := isolationGameIP(t, ns, a, false)
+	bIP := isolationGameIP(t, ns, b, false)
+	cIP := isolationGameIP(t, ns, c, true)
+	probeA := isolationProbe(t, ns, a, false)
+	probeC := isolationProbe(t, ns, c, true)
 
 	// Compatibility: absent-field templates keep their existing broad grant.
-	isolationHTTP(t, probeA, bIP, 25575, true)
-	isolationHTTP(t, probeC, cIP, 25566, true)
-	isolationHTTP(t, probeC, cIP, 25575, false)
-	isolationHTTP(t, probeC, aIP, 25566, false)
-	isolationHTTP(t, probeA, cIP, 25566, false)
+	isolationHTTP(t, ns, probeA, bIP, 25575, true)
+	isolationHTTP(t, ns, probeC, cIP, 25566, true)
+	isolationHTTP(t, ns, probeC, cIP, 25575, false)
+	isolationHTTP(t, ns, probeC, aIP, 25566, false)
+	isolationHTTP(t, ns, probeA, cIP, 25566, false)
 
 	ss, err := envInstance.K8s.AppsV1().StatefulSets(ns).Get(ctx, a, metav1.GetOptions{})
 	if err != nil {
@@ -56,7 +56,7 @@ func TestNetworkIsolation_EnforcedAndUpgrade(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	aIP, bIP = isolationGameIP(t, a, true), isolationGameIP(t, b, true)
+	aIP, bIP = isolationGameIP(t, ns, a, true), isolationGameIP(t, ns, b, true)
 	ss, err = envInstance.K8s.AppsV1().StatefulSets(ns).Get(ctx, a, metav1.GetOptions{})
 	if err != nil || !reflect.DeepEqual(oldSelector, ss.Spec.Selector) {
 		t.Fatalf("opt-in must preserve the immutable StatefulSet selector: %v", err)
@@ -66,10 +66,10 @@ func TestNetworkIsolation_EnforcedAndUpgrade(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	isolationHTTP(t, probeA, aIP, 25566, true)
-	isolationHTTP(t, probeA, aIP, 25575, false)
-	isolationHTTP(t, probeA, bIP, 25566, false)
-	isolationHTTP(t, probeA, bIP, 25575, false)
+	isolationHTTP(t, ns, probeA, aIP, 25566, true)
+	isolationHTTP(t, ns, probeA, aIP, 25575, false)
+	isolationHTTP(t, ns, probeA, bIP, 25566, false)
+	isolationHTTP(t, ns, probeA, bIP, 25575, false)
 
 	// Kubelet HTTP readiness and agent heartbeats still work with strict CIDRs.
 	// Also exercise an actual API -> agent mTLS call through its Service.
@@ -87,6 +87,58 @@ func TestNetworkIsolation_EnforcedAndUpgrade(t *testing.T) {
 		stamp, err := time.Parse(time.RFC3339, hb)
 		return err == nil && time.Since(stamp) < 45*time.Second, "waiting for fresh agent heartbeat"
 	})
+
+	checkTenantNetworkProfile(t, ns, a, probeA)
+}
+
+func checkTenantNetworkProfile(t *testing.T, ns, a, probeA string) {
+	t.Helper()
+	ctx := t.Context()
+	stamp := time.Now().UnixNano()
+	// Exercise the opt-in upgrade after checking the historical compatibility
+	// path. Identically named servers in separate namespaces must not become
+	// each other's relay backend.
+	tenant := fmt.Sprintf("tenant-net-%d", stamp)
+	_, err := envInstance.K8s.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: tenant},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = envInstance.K8s.CoreV1().Namespaces().Delete(context.Background(), tenant, metav1.DeleteOptions{})
+	})
+	helmUpgradeReuse(ctx, t, "operator.gameNamespaces[0]="+tenant, "networkPolicies.tenantIsolation=true",
+		"networkPolicies.probePorts=null", "networkPolicies.backupEgress.enabled=false", "networkPolicies.gameEgress.enabled=false")
+	secondTemplate := fmt.Sprintf("second-probe-%d", stamp)
+	isolationTemplate(t, secondTemplate, true)
+	_, err = envInstance.Dyn.Resource(gameTemplateGVR).Patch(ctx, secondTemplate, types.MergePatchType,
+		[]byte(`{"spec":{"probes":{"readiness":{"httpGet":{"port":25575}}}}}`), metav1.PatchOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	applyBusyboxGameServer(t, tenant, a, secondTemplate)
+	otherIP := isolationGameIP(t, tenant, a, true)
+	aIP := isolationGameIP(t, ns, a, true)
+	otherProbe := isolationProbe(t, tenant, a, true)
+	isolationHTTP(t, tenant, otherProbe, otherIP, 25566, true)
+	isolationHTTP(t, ns, probeA, otherIP, 25575, false)
+	isolationHTTP(t, tenant, otherProbe, aIP, 25575, false)
+	// Both Services resolve and are reachable from their own sentinels.
+	// Cross-tenant denials through the same DNS names exercise Service NAT.
+	home := a + "." + ns + ".svc"
+	away := a + "." + tenant + ".svc"
+	isolationHTTP(t, ns, probeA, home, 25566, true)
+	isolationHTTP(t, tenant, otherProbe, away, 25566, true)
+	isolationHTTP(t, ns, probeA, away, 25566, false)
+	isolationHTTP(t, tenant, otherProbe, home, 25566, false)
+	for namespace, want := range map[string]int{ns: 25566, tenant: 25575} {
+		policy, err := envInstance.K8s.NetworkingV1().NetworkPolicies(namespace).Get(ctx, a+"-probes", metav1.GetOptions{})
+		if err != nil || len(policy.Spec.Ingress) != 1 || len(policy.Spec.Ingress[0].Ports) != 1 ||
+			policy.Spec.Ingress[0].Ports[0].Port == nil || policy.Spec.Ingress[0].Ports[0].Port.IntValue() != want {
+			t.Fatalf("expected only kubelet probe port %d in %s: %v", want, namespace, err)
+		}
+	}
 }
 
 func isolationTemplate(t *testing.T, name string, isolated bool) {
@@ -117,11 +169,11 @@ func isolationTemplate(t *testing.T, name string, isolated bool) {
 	})
 }
 
-func isolationGameIP(t *testing.T, name string, isolated bool) string {
+func isolationGameIP(t *testing.T, ns, name string, isolated bool) string {
 	t.Helper()
 	var ip string
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
-		pod, err := envInstance.K8s.CoreV1().Pods("gameplane-games").Get(t.Context(), name+"-0", metav1.GetOptions{})
+		pod, err := envInstance.K8s.CoreV1().Pods(ns).Get(t.Context(), name+"-0", metav1.GetOptions{})
 		if err != nil {
 			return false, err.Error()
 		}
@@ -141,9 +193,8 @@ func isolationGameIP(t *testing.T, name string, isolated bool) string {
 
 // A synthetic client carries the exact real sentinel selectors. It exposes no
 // listener and owns no Service/Deployment, so the running game is unaffected.
-func isolationProbe(t *testing.T, server string, isolated bool) string {
+func isolationProbe(t *testing.T, ns, server string, isolated bool) string {
 	t.Helper()
-	const ns = "gameplane-games"
 	name := server + "-probe"
 	labels := map[string]string{"app.kubernetes.io/name": "gameplane-waker", "app.kubernetes.io/instance": server}
 	if isolated {
@@ -170,7 +221,7 @@ func isolationProbe(t *testing.T, server string, isolated bool) string {
 	return name
 }
 
-func isolationHTTP(t *testing.T, source, ip string, port int, allowed bool) {
+func isolationHTTP(t *testing.T, ns, source, ip string, port int, allowed bool) {
 	t.Helper()
 	// Every exec must succeed regardless of network outcome. Otherwise a broken
 	// kubectl/CNI fixture could masquerade as the expected denied connection.
@@ -178,7 +229,7 @@ func isolationHTTP(t *testing.T, source, ip string, port int, allowed bool) {
 	envInstance.Eventually(t, 45*time.Second, func() (bool, string) {
 		ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 		defer cancel()
-		out, err := envInstance.Kubectl(ctx, "exec", "-n", "gameplane-games", source, "--",
+		out, err := envInstance.Kubectl(ctx, "exec", "-n", ns, source, "--",
 			"sh", "-c", `if wget -q -T 2 -O /dev/null "$1"; then echo ALLOWED; else echo DENIED; fi`, "probe", target)
 		if err != nil {
 			return false, "probe execution failed: " + err.Error() + out
