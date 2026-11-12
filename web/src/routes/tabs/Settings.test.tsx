@@ -67,7 +67,7 @@ describe("SettingsTab", () => {
       });
       throw new Error(`unexpected fetch: ${url}`);
     });
-    const snapshot = gs({ metadata: { name: "mc-survival", annotations: { "gameplane.local/effective-template-revision": "pinned" } } });
+    const snapshot = gs({ metadata: { name: "mc-survival", annotations: { "gameplane.local/effective-template-revision": "pinned" } }, status: { phase: "Running", templateRevision: { running: "pinned" } } });
     renderWithQuery(<SettingsTab gs={snapshot} name="mc-survival" />);
     await userEvent.click(await screen.findByRole("tab", { name: "Game configuration" }));
     expect(await screen.findByLabelText("MAX_MEMORY")).toBeVisible();

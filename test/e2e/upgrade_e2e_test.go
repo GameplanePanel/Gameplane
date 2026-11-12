@@ -344,7 +344,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("write %s: %v", oldCRDFile, err)
 	}
 	if out, err := envInstance.Kubectl(ctx, "apply", "--server-side", "--force-conflicts",
-		"--field-manager=helm", "-f", oldCRDFile); err != nil {
+		"--field-manager=helm", "-f", filepath.ToSlash(oldCRDFile)); err != nil {
 		t.Fatalf("re-apply the %s release's CRDs: %v\n%s", fromVersion, err, out)
 	}
 

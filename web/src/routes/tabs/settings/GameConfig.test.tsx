@@ -75,6 +75,12 @@ it("omits the image-specific preview for a template that replaces its entrypoint
   expect(screen.queryByText(/Heap options before/)).not.toBeInTheDocument();
 });
 
+it("keeps the adoption warning until the running pod reports the selected revision", () => {
+  const gs = server({ MAX_MEMORY: "2G" }, { phase: "Running", templateRevision: { running: "old" } });
+  renderWithQuery(<Harness initial={gs} template={tmpl(heaps)} />);
+  expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/may restart once/i);
+});
+
 it("warns about adoption when the running server still uses its baseline Pod", () => {
   const gs = server();
   gs.metadata.annotations = { ...gs.metadata.annotations, "gameplane.local/template-baseline": "admitted" };
@@ -93,7 +99,7 @@ function server(config?: Record<string, string>, status?: GameServer["status"]):
   return {
     metadata: { name: "mc-survival", namespace: "gameplane-games", resourceVersion: "1", annotations: { "gameplane.local/effective-template-revision": "admitted" } },
     spec: { templateRef: { name: "minecraft-java" }, config },
-    status,
+    status: status ?? { phase: "Running", templateRevision: { running: "admitted" } },
   };
 }
 

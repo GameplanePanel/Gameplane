@@ -34,7 +34,9 @@ export function GameConfigSection({ draft, onChange, template, moduleText, store
   const relevant = edited.length ? edited : schema;
   const hasDeferred = schema.some((f) => f.applyOnRestart && f.target !== "file");
   const revision = draft.metadata.annotations?.["gameplane.local/effective-template-revision"];
-  const adopted = !!revision && draft.metadata.annotations?.["gameplane.local/template-baseline"] !== revision;
+  const stopped = draft.status?.phase === "Stopped" || draft.status?.phase === "Suspended";
+  const adopted = !!revision && draft.metadata.annotations?.["gameplane.local/template-baseline"] !== revision &&
+    (stopped || draft.status?.templateRevision?.running === revision);
   const deferredOnly = relevant.length > 0 && relevant.every((f) => f.applyOnRestart && f.target !== "file");
   const errorText = useMemo(
     () => Object.fromEntries(errors.map((e) => [e.name, e.text])),
