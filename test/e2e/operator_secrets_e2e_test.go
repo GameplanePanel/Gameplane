@@ -9,11 +9,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const credentialsNS = "gameplane-system-credentials"
+
 func TestHelmInstall_OperatorSecretNamespaceBoundary(t *testing.T) {
 	t.Parallel()
-	for _, namespace := range []string{"gameplane-games", "gameplane-system", "kube-system", ""} {
+	for _, namespace := range []string{"gameplane-games", "gameplane-system", credentialsNS, "kube-system", ""} {
 		for _, verb := range []string{"get", "list", "watch", "create", "update", "patch", "delete"} {
-			want := namespace == "gameplane-games" || namespace == "gameplane-system" && (verb == "get" || verb == "list" || verb == "watch")
+			want := namespace == "gameplane-games" || (namespace == "gameplane-system" || namespace == credentialsNS) && (verb == "get" || verb == "list" || verb == "watch")
 			review, err := envInstance.K8s.AuthorizationV1().SubjectAccessReviews().Create(t.Context(), &authorizationv1.SubjectAccessReview{
 				Spec: authorizationv1.SubjectAccessReviewSpec{
 					User:               "system:serviceaccount:gameplane-system:gameplane-operator",

@@ -11,6 +11,23 @@
 ##   serviceMonitors — Prometheus Operator integration
 ##   podSecurity     — cluster-wide hardening knobs
 
+# Native Kubernetes grants. The defaults retain the full native dashboard.
+# See docs/native-rbac.md for single-cluster and GitOps profiles.
+nativeRBAC:
+  catalogAdmin: true
+  remoteClusters: true
+  # With remoteClusters disabled, the API can read just these named Secrets
+  # for existing OIDC, notification or registry settings.
+  runtimeSecretNames: []
+  gameSecretManagement: true
+  podAttach: true
+  # Independent of interactive dashboard access. PTY-only games need attach
+  # for their configured graceful-stop sequence.
+  operatorStopAttach: true
+  snapshotContentReclamation: true
+  # Explicit opt-in for API access to additional operator.gameNamespaces.
+  additionalAPIGameNamespaces: []
+
 image:
   # Component images are published to {registry}/{operator,api,agent} by the
   # release workflow. The release matches this default; override only to pin a
@@ -68,13 +85,16 @@ operator:
   priorityClassName: ""
   pdb: { enabled: false } # optional minAvailable OR maxUnavailable; defaults to maxUnavailable: 1
   # Additional managed game namespaces, beyond gamesNamespace. They must already
-  # exist. The chart grants namespace-local workload permissions and includes
-  # their Secrets in the operator cache. A Helm upgrade restarts the operator.
+  # exist. Label each with Restricted enforcement and the podSecurity.version
+  # pin before enabling workloads. The chart grants namespace-local workload
+  # permissions and includes their Secrets in the operator cache.
   gameNamespaces: []
+  # Remote-cluster kubeconfigs. A native API shares api.credentialsNamespace.
+  # With no native API, empty uses the release namespace.
+  controlPlaneNamespace: ""
   # Empty uses the release namespace. Non-default namespaces must already exist;
   # provision the referenced Secrets there before upgrading. These settings move
   # the operator's API reads, not the API pod or its mounted mTLS client material.
-  controlPlaneNamespace: ""
   agentCASecretNamespace: ""
   moduleNamespace: ""
   logLevel: info     # zap log level: debug|info|error (warn not supported by zap's --zap-log-level)
@@ -180,6 +200,10 @@ api:
   # Requires operator.enabled=false, which excludes bundled native CRDs.
   # Standalone mode also skips the CRD apply hook and its RBAC.
   standalone: false
+  # Native API management Secrets. Empty creates <release namespace>-credentials
+  # unless operator.controlPlaneNamespace already names an external namespace.
+  # An explicit namespace must already exist and be dedicated to these Secrets.
+  credentialsNamespace: ""
   # Must be 1 in every enabled API install, including PostgreSQL. Audit-chain
   # and user-management locks are per-process. Recreate rollouts stop the old
   # API before starting its replacement and accept a brief panel outage.
@@ -764,7 +788,7 @@ grafanaDashboards:
     grafana_dashboard: "1"
 
 podSecurity:
-  enforceRestricted: false   # require compatible nonroot templates and enforce Restricted game pods
+  enforceRestricted: true    # require compatible nonroot templates and enforce Restricted game pods
   version: v1.34             # pinned admission policy; change after testing workload compatibility
 
 # Default ModuleSource shipped with the chart. Disable when you manage

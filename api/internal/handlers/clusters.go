@@ -28,11 +28,14 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
-// MountClusters wires /clusters onto the supplied router.
+// MountClusters registers only local discovery when no remote client is supplied.
 func MountClusters(r chi.Router, reg *kube.Registry, k *kube.Client, ns string) {
 	h := clustersHandler{reg: reg, k: k, namespace: ns}
 	r.Route("/clusters", func(r chi.Router) {
 		r.Get("/", h.list)
+		if k == nil {
+			return
+		}
 		r.Post("/", h.create)
 		r.Delete("/{name}", h.delete)
 		r.Put("/{name}/kubeconfig", h.replaceKubeconfig)
@@ -122,6 +125,10 @@ func (h clustersHandler) list(w http.ResponseWriter, req *http.Request) {
 		out.Items = append(out.Items, clusterRegistryView{Name: local, Phase: "Healthy",
 			CanViewInventory: u.Can("cluster:read", true, local, "")})
 	}
+	if h.k == nil {
+		writeJSON(w, out)
+		return
+	}
 	// Persisted registrations remain discoverable when a kubeconfig cannot
 	// load; the client registry alone would silently drop those clusters.
 	registrations, err := h.k.Clusters().List(req.Context(), metav1.ListOptions{})
@@ -193,7 +200,7 @@ func (h clustersHandler) create(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Create the kubeconfig Secret in the control-plane namespace. The
+	// Create the kubeconfig Secret in the credentials namespace. The
 	// managed-by label marks it as created by the API, which is what lets
 	// DELETE /clusters/{name} remove it again.
 	secretName := clusterKubeconfigSecretName(in.Name)

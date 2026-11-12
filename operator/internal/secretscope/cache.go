@@ -15,9 +15,9 @@ import (
 // without restricting cluster-scoped Gameplane resources or other informers.
 // Empty names are rejected: controller-runtime treats an empty namespace as
 // all namespaces, and an empty ByObject namespace map inherits the defaults.
-func CacheOptions(games, controlPlane, ca, modules string) (cache.Options, error) {
+func CacheOptions(games string, secretNamespaces ...string) (cache.Options, error) {
 	namespaces := make(map[string]cache.Config)
-	for _, namespace := range append(strings.Split(games, ","), controlPlane, ca, modules) {
+	for _, namespace := range append(strings.Split(games, ","), secretNamespaces...) {
 		if problems := validation.IsDNS1123Label(namespace); len(problems) != 0 {
 			return cache.Options{}, fmt.Errorf("secret namespace %q must be an explicit DNS-label namespace: %s", namespace, strings.Join(problems, "; "))
 		}

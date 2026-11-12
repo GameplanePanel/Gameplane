@@ -134,6 +134,7 @@ func TestHTTPFetcher_AuthHeaders(t *testing.T) {
 		sec := &corev1.Secret{}
 		sec.Name, sec.Namespace = "creds", "gameplane-system"
 		sec.Data = map[string][]byte{"token": []byte("tok123")}
+		sec.Annotations = map[string]string{"gameplane.local/http-source-url": srv.URL + "/m.zip"}
 		f := newHTTPFetcher(t, &gameplanev1alpha1.HTTPSourceSpec{
 			URL: srv.URL + "/m.zip", Insecure: true,
 			SecretRef: &corev1.LocalObjectReference{Name: "creds"},
@@ -150,6 +151,7 @@ func TestHTTPFetcher_AuthHeaders(t *testing.T) {
 		sec := &corev1.Secret{}
 		sec.Name, sec.Namespace = "creds", "gameplane-system"
 		sec.Data = map[string][]byte{"username": []byte("u"), "password": []byte("p")}
+		sec.Annotations = map[string]string{"gameplane.local/http-source-url": srv.URL + "/m.zip"}
 		f := newHTTPFetcher(t, &gameplanev1alpha1.HTTPSourceSpec{
 			URL: srv.URL + "/m.zip", Insecure: true,
 			SecretRef: &corev1.LocalObjectReference{Name: "creds"},
@@ -166,6 +168,7 @@ func TestHTTPFetcher_AuthHeaders(t *testing.T) {
 		sec := &corev1.Secret{}
 		sec.Name, sec.Namespace = "creds", "gameplane-system"
 		sec.Data = map[string][]byte{"junk": []byte("x")}
+		sec.Annotations = map[string]string{"gameplane.local/http-source-url": "https://x/m.zip"}
 		b := fake.NewClientBuilder().WithObjects(sec).Build()
 		_, err := newHTTP(context.Background(), b, "gameplane-system",
 			&gameplanev1alpha1.HTTPSourceSpec{URL: "https://x/m.zip",
@@ -228,5 +231,31 @@ func TestHTTPFetcher_ServerErrorIsTotalFailure(t *testing.T) {
 	f := newHTTPFetcher(t, &gameplanev1alpha1.HTTPSourceSpec{URL: srv.URL + "/m.tar.gz", Insecure: true})
 	if _, _, err := f.Index(context.Background()); err == nil || !strings.Contains(err.Error(), "500") {
 		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestHTTPFetcherDoesNotForwardBoundCredentialOnRedirect(t *testing.T) {
+	archive := zipArchive(t, archiveFiles("", "mc", "1.0.0"))
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/approved" {
+			http.Redirect(w, r, "/other", http.StatusFound)
+			return
+		}
+		if r.Header.Get("Authorization") != "" {
+			t.Error("redirect target received the approved URL's credential")
+		}
+		_, _ = w.Write(archive)
+	}))
+	t.Cleanup(srv.Close)
+	spec := &gameplanev1alpha1.HTTPSourceSpec{URL: srv.URL + "/approved", Insecure: true}
+	if _, _, err := newHTTPFetcher(t, spec).Index(t.Context()); err != nil {
+		t.Fatalf("anonymous redirect: %v", err)
+	}
+	sec := &corev1.Secret{Data: map[string][]byte{"token": []byte("credential")}}
+	sec.Name, sec.Namespace = "creds", "gameplane-system"
+	sec.Annotations = map[string]string{"gameplane.local/http-source-url": spec.URL}
+	spec.SecretRef = &corev1.LocalObjectReference{Name: sec.Name}
+	if _, _, err := newHTTPFetcher(t, spec, sec).Index(t.Context()); err != nil {
+		t.Fatalf("authenticated archive redirect to public download: %v", err)
 	}
 }
