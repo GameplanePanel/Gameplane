@@ -361,7 +361,7 @@ func TestTailnetConfirmedObservationsResetRetryEscalation(t *testing.T) {
 	var ready atomic.Bool
 	confirmed := 0
 	start := time.Unix(100, 0)
-	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, func(healthy bool) {
+	err := serveTailnetObserved(ctx, node, nil, []forwardPort{{network: "tcp", port: "25565", target: "127.0.0.1:1"}}, &ready, time.Millisecond, nil, func(healthy bool) {
 		if !healthy {
 			history.observe(start.Add(time.Duration(confirmed)*healthPollInterval), relayObservation{Connection: "unknown"}, backoff)
 			return

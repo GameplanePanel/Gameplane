@@ -55,8 +55,7 @@ gh pr list \
 - Go: 10 PRs (#263, #265, #267, #269, #271, #273, #274, #276, #279, #281)
 - npm: 11 PRs (#262, #264, #266, #268, #270, #272, #275, #277, #278, #280, #283)
 
-**Current state (2026-08-29)**: 1 open PR remains:
-- **#272** (typescript 6.0.3→7.0.2) — npm, upstream-blocked (no @typescript-eslint release accepts TS 7; npm ci dies at ERESOLVE)
+**TypeScript follow-up.** [#902](https://github.com/GameplanePanel/Gameplane/pull/902) carries the TypeScript 7.0.2 upgrade originally proposed in #272. Track its merge under T056 in `tasks.md`.
 
 **Merged/closed (2026-08-29)**: 20 PRs addressed:
 - 19 merged: #283, #281, #280, #279, #278, #277, #276, #275, #274, #273, #271, #270, #268, #267, #266, #265, #264, #263, #262
@@ -222,7 +221,7 @@ All responses must be bounded at max 500 entries. The API pod memory must not sp
 
 ## Scenario E: Dependency Bump Verification
 
-All 21 Dependabot PRs must be addressed individually (per user decision) and verified green on CI before acceptance. TypeScript 7 (#272) is deferred as upstream-blocked after the other 20 are resolved—19 merged and 1 (#269) closed without merging.
+Track each of the 21 baseline PRs individually. Verify the TypeScript 7 upgrade from #272 through the migration in #902.
 
 ### Per-PR Verification Pattern
 
@@ -308,14 +307,14 @@ Expected: line shows `modernc.org/sqlite v1.57.0` (or a compatible indirect vers
 | #278 | vitest 4.1.10→4.1.11 | green — MERGE |
 | #277 | @vitejs/plugin-react 6.0.4→6.1.0 | green — MERGE |
 | #275 | @types/node 26.1.2→26.2.0 | green — MERGE |
-| #272 | typescript 6.0.3→7.0.2 (major) | 4 FAILING CHECKS — DEFER |
+| #272 | typescript 6.0.3→7.0.2 (major) | Follow migration #902 (T055/T056) |
 | #270 | @tanstack/react-router 1.170.18→1.170.32 | green — MERGE |
 | #268 | @eslint/js 9.39.5→10.0.1 (major) | green — MERGE |
 | #266 | @playwright/test 1.62.0→1.62.1 | green — MERGE |
 | #264 | @testing-library/jest-dom 7.0.0→7.0.1 | green — MERGE |
 | #262 | @typescript-eslint/parser 8.65.0→8.67.0 | green — MERGE |
 
-**Exception**: PR #272 (TypeScript 7, upstream-blocked) is deferred to a separate feature branch and phase. The other 20 Dependabot PRs are resolved: 19 merged and 1 (#269) closed without merging. #272 will be handled in a follow-up once the upstream blocker is resolved.
+**Exception**: #902 replaces the lint tooling that prevented #272 from installing. Verify the migration's CI and code-owner approval before merging. If #272 is still open afterward, close it as superseded.
 
 **Observing CI on a merged npm PR**:
 
@@ -353,29 +352,14 @@ If any alerts remain open:
 
 ### SC-002: Dependabot PRs Resolved
 
-Query open Dependabot PRs:
+Check the last PR from the August baseline and the migration that supersedes it:
 
 ```bash
-gh pr list \
-  -R GameplanePanel/Gameplane \
-  --author='dependabot[bot]' \
-  --state=open \
-  --json title,number \
-  --jq '[.[] | select(.title | test("^chore:"))] | length'
+gh pr view 272 -R GameplanePanel/Gameplane --json state
+gh pr view 902 -R GameplanePanel/Gameplane --json state,mergedAt
 ```
 
-**Expected**: 0 (all merged) or 1 (#272 deferred, upstream-blocked).
-
-If 1 is open, confirm it is #272:
-
-```bash
-gh pr list \
-  -R GameplanePanel/Gameplane \
-  --author='dependabot[bot]' \
-  --state=open \
-  --json number \
-  --jq '.[].number'
-```
+After T056, expect #902 to be merged and #272 closed as superseded.
 
 Map to spec success criterion SC-002: "100% of open Dependabot PRs are merged or resolved." The baseline is 21 PRs (#262–#281 + #283 security). As of 2026-08-29:
 - 19 PRs merged (9 Go + 10 npm): #283, #281, #280, #279, #278, #277, #276, #275, #274, #273, #271, #270, #268, #267, #266, #265, #264, #263, #262
@@ -444,6 +428,6 @@ gh api repos/GameplanePanel/Gameplane/actions/runs \
 - [ ] **Scenario B**: TLS guard unit test passes; `go-e2e-unit` job green
 - [ ] **Scenario C**: api-mods e2e tests pass; new negative tests bucketed and passing; `e2e-buckets` verification green
 - [ ] **Scenario D**: audit handler clamping confirmed in diff; TestAPI_AuditPaginationAndFilter passes; extreme limit queries bounded at 500
-- [ ] **Scenario E**: 19 Go/npm PRs merged and 1 (#269) closed without merge; versions confirmed in go.mod/package.json; #272 deferred (upstream-blocked); CI green after each merge
-- [ ] **Final**: 0 open alerts, 0 open Dependabot PRs (or 1 deferred), master CI green across all jobs
+- [ ] **Scenario E**: Verify the baseline upgrades in `go.mod` and `package.json`, including TypeScript 7.0.2 from #902. Confirm CI passes on master after the migration merges (T060).
+- [ ] **Final**: Verify zero open security alerts, all 21 baseline Dependabot PRs resolved, and green CI on master.
 - [ ] **SC-001** through **SC-006**: All success criteria met

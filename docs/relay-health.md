@@ -104,6 +104,117 @@ limits. A non-null empty object explicitly clears defaults; supplied requests
 and limits replace them. These are scheduling reservations, not a fleet
 capacity guarantee. Readiness and replacement changes preserve this contract.
 
+## Forwarding capacity
+
+The embedded Tailscale relay exports the following series on port 8091 at
+`/metrics`. A Ready relay can have full queues. Readiness measures the
+connection and listeners, while these series measure the local forwarding path.
+
+| Series | Meaning |
+| --- | --- |
+| `gameplane_tunnel_forward_metrics_supported` | 1 for Tailscale, 0 for frp and Playit. Those child processes own their data paths, so their forwarding series are absent. |
+| `gameplane_tunnel_active_flows{protocol}` | Admitted TCP connections or UDP peer sessions, including upstream dial time. Protocol is `tcp` or `udp`. |
+| `gameplane_tunnel_flow_rejections_total{protocol}` | TCP accepts closed at the shared limit, or incoming UDP datagrams from a peer for which no slot was available. A retry from the same UDP peer counts again. |
+| `gameplane_tunnel_udp_queue_drops_total` | Datagrams discarded on arrival at an existing full peer queue. |
+| `gameplane_tunnel_udp_forwarded_packets_total{direction}` | Successful datagram writes. Use `rate(...[1m])` for packets per second. Directions are `to_backend` and `to_client`. |
+| `gameplane_tunnel_udp_forward_duration_seconds{direction}` | Histogram from local receipt through successful write, including the queue wait toward the backend. The echo client measures round-trip time. |
+
+Counters span listener retries and reset on process restart. A successful UDP
+write records handoff to the local socket. A datagram can still be lost
+downstream, during dialing, or when a session ends.
+
+The Helm values `operator.tailscaleMaxSessions` (default 128, range 1–256)
+and `operator.tailscaleUDPQueue` (default 4, range 1–16) apply to every
+Tailscale relay. Sessions × (queue + 1) must be at most 640. This keeps
+queued datagrams and per-session receive buffers within the default worst-case
+payload budget of about 40 MiB. The relay also needs memory for listeners,
+socket buffers, workers, tsnet and the Go runtime. Changing the values replaces
+the affected relay Pods. frp and Playit retain their provider-managed limits.
+
+## Comparing direct and relayed UDP
+
+Build `./cmd/relay-load` in the `tunnel` module and run its echo endpoint on
+an isolated test backend. Expose the same UDP port through both the direct and
+provider routes. Run the driver on one client host with access to both paths.
+
+```sh
+relay-load -echo 0.0.0.0:9000
+# On the client, substituting the addresses reachable from that host:
+relay-load -clients 32 -hz 128 -bytes 256 -seconds 30 direct.example:9000 relay.example:9000
+```
+
+Each target gets the same number of sockets, send schedule and payload size.
+The driver emits a JSON object per target with scheduled sends, actual sends,
+unique echoes within a one-second drain, late generator ticks, observed send
+rate, loss percentage, and p95/p99 RTT and jitter in milliseconds. Jitter is
+the absolute RTT difference for consecutive received sequence numbers on one
+socket. Absent percentiles are null. Compare actual sends with the offered
+rate before attributing a shortfall to the relay.
+
+For a saturation trial, set the session limit below the number of clients.
+Capture counter deltas between scrapes and compare UDP rejections and queue
+drops with the client's missing echoes. Repeat both target orders at increasing
+load on the same hardware. Record image digest, provider/route (including
+direct tailnet or DERP), CPU and memory limits, relay CPU seconds during each
+trial, offered and achieved packet rates, loss, jitter and RTT percentiles.
+The sustainable rate is the highest repeated load meeting the game's declared
+loss and latency limits with the generator keeping pace.
+
+The amd64 tunnel CI job runs the driver against direct loopback echo and the
+local Tailscale forwarding code. Its profile step prints CPU and allocation
+hot spots under 32 clients at 128 Hz. It bypasses tsnet transport. Hosted
+Tailscale direct/DERP and Playit rates require separate provider runs.
+
+### Isolated FRP capacity qualification
+
+On November 11, 2026, the actual frpc and frps processes forwarded UDP over a
+loopback TCP connection on a Core i9-13900K Linux/WSL2 runner (kernel
+6.18.54.1). The generator and echo process each had one logical CPU. Both FRP
+processes shared a third. This topology measures software forwarding with a
+finite relay CPU budget. WAN latency, cross-node CNI and hosted FRP capacity
+remain unqualified.
+
+Build the driver in `tunnel` with `go build -o /tmp/relay-load ./cmd/relay-load`.
+Build frpc using the pinned Go module in `tunnel/frpc` and take frps from the
+upstream FRP 0.71.0 Linux/amd64 archive (SHA-256
+`84f27e39f11169f7adcef8e8b70c9329de17747b1f14dad9fb95eef5682ea716`).
+On a Linux host with Python 3.11+, `taskset` and three available CPUs:
+
+```sh
+(cd tunnel/frpc && CGO_ENABLED=0 GOWORK=off go build -trimpath -mod=readonly -tags frpc,noweb -o /tmp/frpc github.com/fatedier/frp/cmd/frpc)
+python3 tunnel/bench/frp_udp.py --relay-load /tmp/relay-load --frpc /tmp/frpc --frps /tmp/frps --clients 8 32 64 128 --seconds 10
+```
+
+Each client sent a 256-byte datagram at 128 Hz. Two series each ran both
+route orders. The second series also sampled the FRP dashboard's per-proxy
+payload byte counters. Columns give the worst measurement across four trials
+per route and rate. CPU is the largest combined frpc + frps CPU-seconds delta
+per ten-second trial, including the driver's final one-second receive window.
+
+The [first series](../tunnel/bench/results/frp-loopback-series-1.jsonl) and
+[counter-instrumented series](../tunnel/bench/results/frp-loopback-series-2.jsonl)
+contain all 32 direct and relayed trial records, the runner kernel and the
+SHA-256 digest of each executable.
+
+| Offered packets/s | Route | Minimum sent/s | Loss % | RTT p95/p99 ms | Jitter p95/p99 ms | Relay CPU s |
+|---:|---|---:|---:|---:|---:|---:|
+| 1,024 | Direct | 1,024 | 0 | 0.14 / 0.19 | 0.07 / 0.13 | 0.00 |
+| 1,024 | FRP | 1,021.7 | 0 | 0.61 / 1.13 | 0.32 / 1.20 | 2.71 |
+| 4,096 | Direct | 4,050.8 | 0 | 0.13 / 0.18 | 0.10 / 0.17 | 0.00 |
+| 4,096 | FRP | 4,093.4 | 0 | 0.96 / 4.79 | 1.24 / 6.14 | 5.70 |
+| 8,192 | Direct | 8,045.5 | 0 | 0.18 / 3.00 | 0.21 / 3.62 | 0.01 |
+| 8,192 | FRP | 8,189 | 0.22 | 1.06 / 8.98 | 1.41 / 7.88 | 9.16 |
+| 16,384 | Direct | 16,384 | 1.32 | 0.13 / 0.28 | 0.13 / 0.30 | 0.01 |
+| 16,384 | FRP | 16,364.5 | 0.57 | 32.39 / 98.87 | 7.48 / 14.12 | 10.01 |
+
+For a budget of at least 99% of offered sends, at most 0.1% loss and at most
+5 ms each for p99 RTT and jitter, 1,024 offered packets/s passed all four FRP
+trials. At 8,192 packets/s one instrumented trial sent 81,920 datagrams. The
+server counted 81,738 datagrams' worth of payload in each direction and the
+client received 81,738. The direct route left the FRP counters unchanged. One
+high-load direct trial also lost packets, so the host contributes variability.
+Report the individual trials when repeating this procedure on a deployment.
+
 ## Regression coverage
 
 The CI optional-components lifecycle test runs two GameServers from the same
