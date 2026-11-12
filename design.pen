@@ -4323,7 +4323,7 @@
               "name": "Tabs Bar",
               "width": "fill_container",
               "padding": [
-                0,
+                18,
                 24
               ],
               "descendants": {
@@ -4350,6 +4350,12 @@
               "fill": "$background/background",
               "layout": "vertical",
               "gap": 12,
+              "padding": [
+                4,
+                0,
+                0,
+                0
+              ],
               "children": [
                 {
                   "type": "frame",
@@ -4474,7 +4480,8 @@
                       "type": "frame",
                       "id": "DDLse",
                       "name": "Download ZIP",
-                      "fill": "$default/default",
+                      "height": 32,
+                      "fill": "$accent/accent",
                       "cornerRadius": 6,
                       "padding": [
                         5,
@@ -4485,7 +4492,7 @@
                         {
                           "type": "text",
                           "id": "NEfnl",
-                          "fill": "$foreground/foreground",
+                          "fill": "$accent/foreground",
                           "content": "Download ZIP",
                           "fontFamily": "$typography/font-sans",
                           "fontSize": 12,
@@ -4497,7 +4504,8 @@
                       "type": "frame",
                       "id": "B9GUU",
                       "name": "Create ZIP",
-                      "fill": "$default/default",
+                      "height": 32,
+                      "fill": "$accent/accent",
                       "cornerRadius": 6,
                       "padding": [
                         5,
@@ -4508,7 +4516,7 @@
                         {
                           "type": "text",
                           "id": "cTVra",
-                          "fill": "$foreground/foreground",
+                          "fill": "$accent/foreground",
                           "content": "Create ZIP",
                           "fontFamily": "$typography/font-sans",
                           "fontSize": 12,
@@ -4520,6 +4528,7 @@
                       "type": "frame",
                       "id": "LtJ0P",
                       "name": "Delete selected",
+                      "height": 32,
                       "fill": "$danger/danger",
                       "cornerRadius": 6,
                       "padding": [
@@ -4531,7 +4540,7 @@
                         {
                           "type": "text",
                           "id": "mMYEH",
-                          "fill": "$foreground/foreground",
+                          "fill": "$danger/foreground",
                           "content": "Delete selected",
                           "fontFamily": "$typography/font-sans",
                           "fontSize": 12,
@@ -5939,9 +5948,12 @@
                           "name": "Monaco editor",
                           "width": "fill_container",
                           "height": "fill_container",
-                          "fill": "$surface/tertiary",
-                          "gap": 14,
-                          "padding": 12,
+                          "fill": "#1E1E1E",
+                          "gap": 22,
+                          "padding": [
+                            0,
+                            28
+                          ],
                           "children": [
                             {
                               "type": "text",
@@ -138507,12 +138519,17 @@
       "reusable": true,
       "ref": "x3beP",
       "name": "Gameplane/Dialog/Create ZIP",
-      "width": 440,
+      "width": 448,
       "x": 4240,
       "y": 6274,
       "descendants": {
         "E7Whx": {
           "content": "Create ZIP"
+        },
+        "ABbjS": {
+          "enabled": false,
+          "width": 1,
+          "height": 0
         },
         "qzcst": {
           "enabled": false,
@@ -138524,7 +138541,7 @@
           "name": "Archive name",
           "width": "fill_container",
           "layout": "vertical",
-          "gap": 6,
+          "gap": 8,
           "padding": [
             16,
             0,
@@ -138547,6 +138564,9 @@
               "ref": "D0cDM",
               "name": "Archive filename",
               "width": "fill_container",
+              "stroke": "$accent/accent",
+              "strokeWidth": 2,
+              "effect": [],
               "descendants": {
                 "PJERm": {
                   "content": ""
@@ -138555,8 +138575,26 @@
             }
           ]
         },
+        "SBdeH": {
+          "height": 36,
+          "padding": [
+            0,
+            16
+          ]
+        },
+        "REcmP": {
+          "fontSize": 14
+        },
+        "V7HYp": {
+          "height": 36,
+          "padding": [
+            0,
+            16
+          ]
+        },
         "TZ7Ef": {
-          "content": "Create"
+          "content": "Create",
+          "fontSize": 14
         }
       }
     }

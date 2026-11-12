@@ -4,12 +4,17 @@
   "reusable": true,
   "ref": "x3beP",
   "name": "Gameplane/Dialog/Create ZIP",
-  "width": 440,
+  "width": 448,
   "x": 4240,
   "y": 6274,
   "descendants": {
     "E7Whx": {
       "content": "Create ZIP"
+    },
+    "ABbjS": {
+      "enabled": false,
+      "width": 1,
+      "height": 0
     },
     "qzcst": {
       "enabled": false,
@@ -21,7 +26,7 @@
       "name": "Archive name",
       "width": "fill_container",
       "layout": "vertical",
-      "gap": 6,
+      "gap": 8,
       "padding": [
         16,
         0,
@@ -44,6 +49,9 @@
           "ref": "D0cDM",
           "name": "Archive filename",
           "width": "fill_container",
+          "stroke": "$accent/accent",
+          "strokeWidth": 2,
+          "effect": [],
           "descendants": {
             "PJERm": {
               "content": ""
@@ -52,8 +60,26 @@
         }
       ]
     },
+    "SBdeH": {
+      "height": 36,
+      "padding": [
+        0,
+        16
+      ]
+    },
+    "REcmP": {
+      "fontSize": 14
+    },
+    "V7HYp": {
+      "height": 36,
+      "padding": [
+        0,
+        16
+      ]
+    },
     "TZ7Ef": {
-      "content": "Create"
+      "content": "Create",
+      "fontSize": 14
     }
   }
 }

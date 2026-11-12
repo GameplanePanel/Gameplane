@@ -559,9 +559,10 @@ describe("FilesTab", () => {
       throw new Error(`unexpected fetch: ${url}`);
     });
     const originalLocation = window.location;
+    const assign = vi.fn();
     Object.defineProperty(window, "location", {
       writable: true,
-      value: { href: "" },
+      value: { assign },
     });
     try {
       renderWithQuery(<FilesTab name="mc-survival" />);
@@ -570,9 +571,9 @@ describe("FilesTab", () => {
       const download = screen.getByRole("button", { name: /^Download$/ });
       fireEvent.click(download);
       await waitFor(() =>
-        expect(window.location.href).toContain(
+        expect(assign).toHaveBeenCalledWith(expect.stringContaining(
           "/servers/mc-survival/files/download?path=%2Fserver.properties",
-        ),
+        )),
       );
     } finally {
       Object.defineProperty(window, "location", { value: originalLocation });

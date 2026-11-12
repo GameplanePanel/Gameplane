@@ -75,7 +75,7 @@
           "name": "Tabs Bar",
           "width": "fill_container",
           "padding": [
-            0,
+            18,
             24
           ],
           "descendants": {
@@ -102,6 +102,12 @@
           "fill": "$background/background",
           "layout": "vertical",
           "gap": 12,
+          "padding": [
+            4,
+            0,
+            0,
+            0
+          ],
           "children": [
             {
               "type": "frame",
@@ -226,7 +232,8 @@
                   "type": "frame",
                   "id": "DDLse",
                   "name": "Download ZIP",
-                  "fill": "$default/default",
+                  "height": 32,
+                  "fill": "$accent/accent",
                   "cornerRadius": 6,
                   "padding": [
                     5,
@@ -237,7 +244,7 @@
                     {
                       "type": "text",
                       "id": "NEfnl",
-                      "fill": "$foreground/foreground",
+                      "fill": "$accent/foreground",
                       "content": "Download ZIP",
                       "fontFamily": "$typography/font-sans",
                       "fontSize": 12,
@@ -249,7 +256,8 @@
                   "type": "frame",
                   "id": "B9GUU",
                   "name": "Create ZIP",
-                  "fill": "$default/default",
+                  "height": 32,
+                  "fill": "$accent/accent",
                   "cornerRadius": 6,
                   "padding": [
                     5,
@@ -260,7 +268,7 @@
                     {
                       "type": "text",
                       "id": "cTVra",
-                      "fill": "$foreground/foreground",
+                      "fill": "$accent/foreground",
                       "content": "Create ZIP",
                       "fontFamily": "$typography/font-sans",
                       "fontSize": 12,
@@ -272,6 +280,7 @@
                   "type": "frame",
                   "id": "LtJ0P",
                   "name": "Delete selected",
+                  "height": 32,
                   "fill": "$danger/danger",
                   "cornerRadius": 6,
                   "padding": [
@@ -283,7 +292,7 @@
                     {
                       "type": "text",
                       "id": "mMYEH",
-                      "fill": "$foreground/foreground",
+                      "fill": "$danger/foreground",
                       "content": "Delete selected",
                       "fontFamily": "$typography/font-sans",
                       "fontSize": 12,
@@ -1691,9 +1700,12 @@
                       "name": "Monaco editor",
                       "width": "fill_container",
                       "height": "fill_container",
-                      "fill": "$surface/tertiary",
-                      "gap": 14,
-                      "padding": 12,
+                      "fill": "#1E1E1E",
+                      "gap": 22,
+                      "padding": [
+                        0,
+                        28
+                      ],
                       "children": [
                         {
                           "type": "text",

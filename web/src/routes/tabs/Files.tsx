@@ -17,6 +17,7 @@ import {
   ModalContainer,
   ModalDialog,
   ModalHeader,
+  ModalHeading,
   ModalBody,
   ModalFooter,
   Button,
@@ -256,7 +257,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
   function downloadSelected() {
     if (!selected || selected.dir) return;
-    window.location.href = Files.downloadURL(name, selected.path, ns);
+    window.location.assign(Files.downloadURL(name, selected.path, ns));
   }
 
   return (
@@ -559,6 +560,7 @@ function NamePromptDialog({
   onSubmit,
 }: NamePromptProps) {
   const intl = useOptionalIntl();
+  const inputId = useId();
   const [value, setValue] = useState("");
   // Clear the input whenever the dialog transitions to open. Adjusted
   // directly during render (not in an effect), gated on the previous
@@ -579,7 +581,7 @@ function NamePromptDialog({
       <ModalBackdrop isDismissable={!busy}>
         <ModalContainer>
           <ModalDialog>
-            <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>
+            <ModalHeader><ModalHeading>{title}</ModalHeading></ModalHeader>
             <ModalBody>
               <form
                 onSubmit={(e) => {
@@ -589,8 +591,9 @@ function NamePromptDialog({
                 className="space-y-4"
               >
                 <div>
-                  <label className="block pb-2 text-xs text-default-500">{label}</label>
+                  <label htmlFor={inputId} className="block pb-2 text-xs text-default-500">{label}</label>
                   <Input
+                    id={inputId}
                     autoFocus
                     value={value}
                     placeholder={placeholder}
