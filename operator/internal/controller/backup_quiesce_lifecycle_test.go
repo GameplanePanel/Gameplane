@@ -46,7 +46,7 @@ func TestReconcile_RetriesUnquiesceOnTerminalBackup(t *testing.T) {
 	b.Status.SnapshotID = "snap-x"
 
 	q := &scrapeQuiescer{unquiesceErr: errors.New("agent unreachable")}
-	r := newScrapeReconciler(t, b, nil, time.Hour, q)
+	r := newLiveScrapeReconciler(t, b, nil, time.Hour, q)
 	req := ctrl.Request{NamespacedName: types.NamespacedName{Namespace: b.Namespace, Name: b.Name}}
 
 	res, err := r.Reconcile(context.Background(), req)
