@@ -2,6 +2,7 @@
 package main
 
 import (
+	"cmp"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -136,8 +138,10 @@ func main() {
 		agentCASecretName                string
 		agentCASecretNamespace           string
 		moduleNamespace                  string
+		moduleConfigMapNamespace         string
 		moduleLocalRoot                  string
 		controlPlaneNamespace            string
+		remoteClusters                   bool
 		gameNamespaces                   string
 		addressManager                   string
 		metalLBNamespace                 string
@@ -163,6 +167,8 @@ func main() {
 		backupCSICaptureTimeout          time.Duration
 		backupHardSameNode               bool
 		agentResourcesJSON               string
+		gameWorkloadPolicyJSON           string
+		auxiliaryWorkerPool              string
 		sentinelResourcesJSON            string
 		tunnelResourcesJSON              string
 		tailscaleMaxSessions             int
@@ -173,6 +179,8 @@ func main() {
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "Address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
 	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&gameWorkloadPolicyJSON, "game-workload-policy", "", "JSON game worker pool and per-game resource bounds. Unset disables policy enforcement.")
+	flag.StringVar(&auxiliaryWorkerPool, "auxiliary-worker-pool", "", "Exact key=value node label and matching NoSchedule taint for service wakers and relays. Defaults to the configured game worker pool.")
 	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
 	flag.IntVar(&tailscaleMaxSessions, "tailscale-max-sessions", 128, "Maximum concurrent TCP and UDP flows per Tailscale relay (1-256).")
 	flag.IntVar(&tailscaleUDPQueue, "tailscale-udp-queue", 4, "Queued datagrams per UDP peer (1-16). Sessions times (queue + 1) must be at most 640.")
@@ -241,7 +249,9 @@ func main() {
 		"Log level (debug, info, warn, or error) injected into agent sidecars as GAMEPLANE_LOG_LEVEL. "+
 			"Empty injects nothing (the agent defaults to info) and avoids rolling existing pods.")
 	flag.StringVar(&moduleNamespace, "module-namespace", "gameplane-system",
-		"Namespace where ModuleSource credential Secrets, uploaded module bundles and module translation ConfigMaps live.")
+		"Namespace where ModuleSource credential Secrets live.")
+	flag.StringVar(&moduleConfigMapNamespace, "module-configmap-namespace", "",
+		"Namespace for uploaded module bundles and translations (defaults to --module-namespace).")
 	flag.StringVar(&gameNamespaces, "game-namespaces", "gameplane-games",
 		"Comma-separated managed game namespaces whose Secrets the operator may cache. Must be nonempty; changes require matching namespace RBAC and an operator restart.")
 	flag.StringVar(&moduleLocalRoot, "module-local-root", "",
@@ -261,7 +271,8 @@ func main() {
 		controlPlaneNamespaceDefault = "gameplane-system"
 	}
 	flag.StringVar(&controlPlaneNamespace, "control-plane-namespace", controlPlaneNamespaceDefault,
-		"Namespace where the operator runs and where cluster kubeconfig Secrets are stored.")
+		"Namespace where registered cluster kubeconfig Secrets are stored.")
+	flag.BoolVar(&remoteClusters, "remote-clusters", true, "watch registered clusters and their kubeconfig credentials")
 	addressManagerDefault := os.Getenv("GAMEPLANE_ADDRESS_MANAGER")
 	if addressManagerDefault == "" {
 		addressManagerDefault = "none"
@@ -303,7 +314,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
 		os.Exit(1)
 	}
-	protectedNamespaces := append(strings.Split(gameNamespaces, ","), controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
+	moduleConfigMapNamespace = cmp.Or(moduleConfigMapNamespace, moduleNamespace)
+	if problems := validation.IsDNS1123Label(moduleConfigMapNamespace); len(problems) != 0 {
+		fmt.Fprintln(os.Stderr, "invalid --module-configmap-namespace:", strings.Join(problems, "; "))
+		os.Exit(1)
+	}
+	protectedNamespaces := append(strings.Split(gameNamespaces, ","), controlPlaneNamespace, agentCASecretNamespace, moduleNamespace, moduleConfigMapNamespace)
 	// A configured credential namespace may differ from the actual operator
 	// deployment namespace. Neither may host privileged diagnostic workers.
 	if podNamespace := os.Getenv("POD_NAMESPACE"); podNamespace != "" {
@@ -317,6 +333,16 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
 
+	gameWorkloadPolicy, err := controller.ParseGameWorkloadPolicy(gameWorkloadPolicyJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --game-workload-policy")
+		os.Exit(1)
+	}
+	auxiliaryPool, err := controller.ParseAuxiliaryWorkerPool(auxiliaryWorkerPool)
+	if err != nil {
+		setupLog.Error(err, "invalid --auxiliary-worker-pool")
+		os.Exit(1)
+	}
 	agentResources, err := controller.ParseAuxiliaryResources(agentResourcesJSON)
 	if err != nil {
 		setupLog.Error(err, "invalid --agent-resources")
@@ -438,7 +464,11 @@ func main() {
 		probeIngressFromCIDR[i] = ipnet.String()
 	}
 
-	secretCache, err := secretscope.CacheOptions(gameNamespaces, controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
+	secretNamespaces := []string{agentCASecretNamespace, moduleNamespace}
+	if remoteClusters {
+		secretNamespaces = append(secretNamespaces, controlPlaneNamespace)
+	}
+	secretCache, err := secretscope.CacheOptions(gameNamespaces, secretNamespaces...)
 	if err != nil {
 		setupLog.Error(err, "invalid Secret namespace configuration")
 		os.Exit(1)
@@ -508,6 +538,8 @@ func main() {
 		ProbeIngressFromCIDRs:       probeIngressFromCIDR,
 		CaptureEnabled:              captureEnabled,
 		RestrictedWorkloads:         restrictedWorkloads,
+		GameWorkloadPolicy:          gameWorkloadPolicy,
+		AuxiliaryWorkerPool:         auxiliaryPool,
 		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
 		DiagnosticsNamespace:        diagnosticsNamespace,
 		CaptureSidecarImage:         captureSidecarImage,
@@ -587,7 +619,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fetchOptions := modsrc.Options{LocalRoot: moduleLocalRoot}
+	fetchOptions := modsrc.Options{LocalRoot: moduleLocalRoot, ConfigMapNamespace: moduleConfigMapNamespace}
 	if err := (&controller.ModuleSourceReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
@@ -608,13 +640,15 @@ func main() {
 		setupLog.Error(err, "unable to set up controller", "controller", "Module")
 		os.Exit(1)
 	}
-	if err := (&controller.ClusterStatusReconciler{
-		Client:    mgr.GetClient(),
-		Scheme:    mgr.GetScheme(),
-		Namespace: controlPlaneNamespace,
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to set up controller", "controller", "Cluster")
-		os.Exit(1)
+	if remoteClusters {
+		if err := (&controller.ClusterStatusReconciler{
+			Client:    mgr.GetClient(),
+			Scheme:    mgr.GetScheme(),
+			Namespace: controlPlaneNamespace,
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to set up controller", "controller", "Cluster")
+			os.Exit(1)
+		}
 	}
 
 	// Fleet metrics: report how many GameServers and Backups sit in each phase,

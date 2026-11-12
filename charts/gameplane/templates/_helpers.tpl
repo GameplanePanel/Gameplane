@@ -182,9 +182,51 @@ mergeOverwrite preserves explicit zero/empty values so validation can reject the
 {{- uniq $namespaces | toJson -}}
 {{- end -}}
 
+{{- /* helm upgrade --reuse-values can omit a values map introduced by a
+new chart. Preserve the privileges and watch behavior of that installation. */ -}}
+{{- define "gameplane.nativeRBAC" -}}
+{{- $defaults := dict "catalogAdmin" true "remoteClusters" true "gameSecretManagement" true "podAttach" true "operatorStopAttach" true "snapshotContentReclamation" true "runtimeSecretNames" (list) "additionalAPIGameNamespaces" (list) -}}
+{{- $overrides := dict -}}
+{{- if hasKey .Values "nativeRBAC" }}{{ $overrides = .Values.nativeRBAC }}{{ end -}}
+{{- if not (kindIs "map" $overrides) }}{{ fail "nativeRBAC must be a map" }}{{ end -}}
+{{- range $key := keys $overrides -}}
+{{- if not (hasKey $defaults $key) }}{{ fail (printf "unknown nativeRBAC capability %q" $key) }}{{ end -}}
+{{- end -}}
+{{- $config := mergeOverwrite $defaults $overrides -}}
+{{- range $key := list "catalogAdmin" "remoteClusters" "gameSecretManagement" "podAttach" "operatorStopAttach" "snapshotContentReclamation" -}}
+{{- if not (kindIs "bool" (index $config $key)) }}{{ fail (printf "nativeRBAC.%s must be a boolean" $key) }}{{ end -}}
+{{- end -}}
+{{- range $key := list "additionalAPIGameNamespaces" "runtimeSecretNames" -}}
+{{- if not (kindIs "slice" (index $config $key)) }}{{ fail (printf "nativeRBAC.%s must be a list" $key) }}{{ end -}}
+{{- end -}}
+{{- $config | toJson -}}
+{{- end -}}
+
+{{- /* Both native components resolve remote-cluster credentials here. Keep
+the existing operator override for installations with a dedicated namespace. */ -}}
+{{- define "gameplane.credentialsNamespace" -}}
+{{- $generated := printf "%s-credentials" .Release.Namespace -}}
+{{- if gt (len $generated) 63 -}}
+{{- $generated = printf "%s-credentials-%s" (trunc 38 .Release.Namespace | trimSuffix "-") (sha256sum .Release.Namespace | trunc 12) -}}
+{{- end -}}
+{{- include "gameplane.namespace" (.Values.api.credentialsNamespace | default .Values.operator.controlPlaneNamespace | default $generated) -}}
+{{- end -}}
+
+{{- define "gameplane.operatorClusterCredentialsNamespace" -}}
+{{- if and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) -}}
+{{- include "gameplane.credentialsNamespace" . -}}
+{{- else -}}
+{{- .Values.operator.controlPlaneNamespace | default .Release.Namespace -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "gameplane.operatorSecretNamespaces" -}}
+{{- $rbac := include "gameplane.nativeRBAC" . | fromJson -}}
 {{- $namespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray -}}
-{{- range list (.Values.operator.controlPlaneNamespace | default .Release.Namespace) (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) -}}
+{{- if $rbac.remoteClusters -}}
+{{- $namespaces = append $namespaces (include "gameplane.operatorClusterCredentialsNamespace" .) -}}
+{{- end -}}
+{{- range list (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) -}}
 {{- $namespaces = append $namespaces (include "gameplane.namespace" .) -}}
 {{- end -}}
 {{- uniq $namespaces | toJson -}}

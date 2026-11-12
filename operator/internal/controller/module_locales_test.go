@@ -162,7 +162,7 @@ func newLocalesFixture(t *testing.T, rec *events.FakeRecorder) (*ModuleReconcile
 	if err := cl.Get(context.Background(), types.NamespacedName{Name: "demo"}, tmpl); err != nil {
 		t.Fatal(err)
 	}
-	r := &ModuleReconciler{Client: cl, Scheme: scrapeScheme(t), Namespace: "gp-system"}
+	r := &ModuleReconciler{Client: cl, Scheme: scrapeScheme(t), Namespace: "module-secrets", FetchOptions: modsrc.Options{ConfigMapNamespace: "gp-system"}}
 	if rec != nil {
 		r.EventRecorder = rec
 	}

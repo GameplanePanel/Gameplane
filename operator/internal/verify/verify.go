@@ -24,11 +24,11 @@ import (
 	"github.com/sigstore/sigstore-go/pkg/root"
 	sgtuf "github.com/sigstore/sigstore-go/pkg/tuf"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
+	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // cosignPubKey is the Secret data key holding a keyed-verification public key.
@@ -284,9 +284,11 @@ func newKeyless(ctx context.Context, issuer, identity string, auth authn.Authent
 	return &cosignVerifier{mkOpts: mk, insecure: insecure}, nil
 }
 
+// readKey loads cosign.pub from the configured module namespace. The shared
+// Secret reader rejects service-account token Secrets even if they contain that key.
 func readKey(ctx context.Context, c client.Client, namespace, name string) ([]byte, error) {
-	var sec corev1.Secret
-	if err := c.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &sec); err != nil {
+	sec, err := secretscope.ReadModuleSecret(ctx, c, namespace, name)
+	if err != nil {
 		return nil, fmt.Errorf("get cosign key secret %s: %w", name, err)
 	}
 	pub, ok := sec.Data[cosignPubKey]
@@ -304,8 +306,8 @@ func authFor(ctx context.Context, c client.Client, namespace string, ref *corev1
 	if ref == nil || ref.Name == "" {
 		return authn.Anonymous, nil
 	}
-	var sec corev1.Secret
-	if err := c.Get(ctx, types.NamespacedName{Namespace: namespace, Name: ref.Name}, &sec); err != nil {
+	sec, err := secretscope.ReadModuleSecret(ctx, c, namespace, ref.Name)
+	if err != nil {
 		return nil, fmt.Errorf("get pull secret %s: %w", ref.Name, err)
 	}
 	cfg := sec.Data[corev1.DockerConfigJsonKey]

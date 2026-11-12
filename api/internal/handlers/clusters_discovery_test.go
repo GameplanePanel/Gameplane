@@ -79,6 +79,44 @@ func TestClusterDiscovery_FiltersRegistrationsAndInventoryCapability(t *testing.
 	}
 }
 
+func TestClusterDiscovery_LocalOnlyRoutes(t *testing.T) {
+	home := fakeKubeClientWithClusters(newCluster("remote", nil, nil))
+	reg := clusterTestRegistry(home)
+	router := chi.NewRouter()
+	MountClusters(router, reg, nil, "gameplane-system")
+	user := inventoryUser("*", "*", "cluster:read")
+
+	list := inventoryRequest(t, router, user, http.MethodGet, "/clusters/")
+	var got clustersListResp
+	if err := json.Unmarshal(list.Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if list.Code != http.StatusOK || len(got.Items) != 1 || got.Items[0].Name != "local" || !got.Items[0].CanViewInventory {
+		t.Fatalf("local-only discovery: status=%d items=%+v", list.Code, got.Items)
+	}
+	if kubeClientCalls(t, home) != 0 {
+		t.Fatal("local-only discovery contacted Kubernetes for remote registrations")
+	}
+	for _, route := range []struct {
+		method, path string
+		status       int
+	}{
+		{http.MethodPost, "/clusters/", http.StatusMethodNotAllowed},
+		{http.MethodDelete, "/clusters/remote", http.StatusNotFound},
+		{http.MethodPut, "/clusters/remote/kubeconfig", http.StatusNotFound},
+		{http.MethodPut, "/clusters/remote/gateway", http.StatusNotFound},
+		{http.MethodDelete, "/clusters/remote/gateway", http.StatusNotFound},
+	} {
+		response := inventoryRequest(t, router, user, route.method, route.path)
+		if response.Code != route.status {
+			t.Errorf("%s %s = %d, want %d", route.method, route.path, response.Code, route.status)
+		}
+	}
+	if kubeClientCalls(t, home) != 0 {
+		t.Fatal("local-only administration request contacted Kubernetes")
+	}
+}
+
 func TestClusterDiscovery_RetainsDisconnectedRegistration(t *testing.T) {
 	home := fakeKubeClientWithClusters(newCluster("offline", map[string]any{"displayName": "Offline cluster"}, map[string]any{"phase": "Healthy"}))
 	reg := clusterTestRegistry(home)

@@ -150,6 +150,13 @@ func TestAPI_I18n_ModuleLocales(t *testing.T) {
 	}
 
 	t.Run("ValidTranslationIsServed", func(t *testing.T) {
+		localeName := goodModule + "-locales"
+		if _, err := envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).Get(ctx, localeName, metav1.GetOptions{}); err != nil {
+			t.Fatalf("get module translations in %s: %v", credentialsNS, err)
+		}
+		if _, err := envInstance.K8s.CoreV1().ConfigMaps("gameplane-system").Get(ctx, localeName, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
+			t.Fatalf("module translations in the release namespace: want NotFound, got %v", err)
+		}
 		code, got := getLocales(goodModule, "fr")
 		if code != http.StatusOK {
 			t.Fatalf("status = %d", code)

@@ -1,0 +1,29 @@
+{{- if eq (include "gameplane.operatorEnabled" .) "true" }}
+{{- $managed := include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
+{{- range $ns, $config := .Values.operator.tenantQuotas }}
+{{- if not (has $ns $managed) }}{{ fail (printf "operator.tenantQuotas namespace %s must be a managed game namespace" $ns) }}{{ end }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ $.Release.Name }}-tenant-budget
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+spec:
+  hard: {{- required "each operator.tenantQuotas entry requires hard resources" $config.hard | toYaml | nindent 4 }}
+{{- with $config.defaultContainerMemoryLimit }}
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ $.Release.Name }}-container-defaults
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+spec:
+  limits:
+    - type: Container
+      default:
+        memory: {{ . | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

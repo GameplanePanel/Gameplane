@@ -51,6 +51,30 @@ func TestBuild_KeyMissingSecretErrors(t *testing.T) {
 	}
 }
 
+func TestBuildRejectsServiceAccountTokenSecret(t *testing.T) {
+	key := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "key", Namespace: "ns"}, Data: map[string][]byte{cosignPubKey: testPubPEM(t)}}
+	token := key.DeepCopy()
+	token.Name = "operator-token"
+	token.Type = corev1.SecretTypeServiceAccountToken
+	token.Data[corev1.ServiceAccountTokenKey] = []byte("service-account-token")
+	token.Data[corev1.DockerConfigJsonKey] = []byte(`{"auths":{"ghcr.io":{"username":"user","password":"secret"}}}`)
+	client := fake.NewClientBuilder().WithObjects(key, token).Build()
+	for _, tc := range []struct{ name, key, pull string }{
+		{name: "signature registry credentials", key: key.Name, pull: token.Name},
+		{name: "cosign public key", key: token.Name},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			source := ociSource(&gameplanev1alpha1.VerifySpec{Key: &corev1.LocalObjectReference{Name: tc.key}})
+			if tc.pull != "" {
+				source.Spec.OCI.PullSecretRef = &corev1.LocalObjectReference{Name: tc.pull}
+			}
+			if _, err := Build(t.Context(), client, "ns", source); err == nil {
+				t.Fatal("accepted a ServiceAccount token Secret for module verification")
+			}
+		})
+	}
+}
+
 func TestBuild_KeyBadPEMErrors(t *testing.T) {
 	sec := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "k", Namespace: "ns"},

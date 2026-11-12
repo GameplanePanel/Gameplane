@@ -675,7 +675,6 @@ func checkMissingRemoteTargetsDoNotReachHome(t *testing.T, admin *APIClient, clu
 // it is removed.
 func checkClusterRemoval(t *testing.T, admin, operatorClient *APIClient, clusterID, gsName, tmplName string) {
 	t.Helper()
-	const controlNS = "gameplane-system"
 	ctx := context.Background()
 
 	// The GameServer and GameTemplate on cluster B are reached through the
@@ -722,8 +721,8 @@ func checkClusterRemoval(t *testing.T, admin, operatorClient *APIClient, cluster
 
 	// The kubeconfig Secret POST /clusters created is removed with it.
 	apiSecret := "cluster-" + clusterID + "-kubeconfig"
-	if _, err := envInstance.K8s.CoreV1().Secrets(controlNS).Get(ctx, apiSecret, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
-		t.Errorf("secret %s/%s still present after DELETE /clusters/%s (err=%v)", controlNS, apiSecret, clusterID, err)
+	if _, err := envInstance.K8s.CoreV1().Secrets(credentialsNS).Get(ctx, apiSecret, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
+		t.Errorf("secret %s/%s still present after DELETE /clusters/%s (err=%v)", credentialsNS, apiSecret, clusterID, err)
 	}
 
 	// --- Removing a registration made with kubectl --------------------------
@@ -743,15 +742,15 @@ func checkClusterRemoval(t *testing.T, admin, operatorClient *APIClient, cluster
 		crName := "e2e-mc-ref-" + suffix
 
 		secret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: controlNS, Labels: tc.labels},
+			ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: credentialsNS, Labels: tc.labels},
 			Type:       corev1.SecretTypeOpaque,
 			Data:       map[string][]byte{"kubeconfig": []byte("not-a-kubeconfig")},
 		}
-		if _, err := envInstance.K8s.CoreV1().Secrets(controlNS).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
-			t.Fatalf("%s: create secret %s/%s: %v", tc.name, controlNS, secretName, err)
+		if _, err := envInstance.K8s.CoreV1().Secrets(credentialsNS).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
+			t.Fatalf("%s: create secret %s/%s: %v", tc.name, credentialsNS, secretName, err)
 		}
 		t.Cleanup(func() {
-			_ = envInstance.K8s.CoreV1().Secrets(controlNS).Delete(context.Background(), secretName, metav1.DeleteOptions{})
+			_ = envInstance.K8s.CoreV1().Secrets(credentialsNS).Delete(context.Background(), secretName, metav1.DeleteOptions{})
 		})
 
 		cr := &unstructured.Unstructured{Object: map[string]any{
@@ -781,8 +780,8 @@ func checkClusterRemoval(t *testing.T, admin, operatorClient *APIClient, cluster
 		if _, err := envInstance.Dyn.Resource(clusterGVR).Get(ctx, crName, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
 			t.Errorf("%s: Cluster %s still present after DELETE /clusters/%s (err=%v)", tc.name, crName, crName, err)
 		}
-		if _, err := envInstance.K8s.CoreV1().Secrets(controlNS).Get(ctx, secretName, metav1.GetOptions{}); err != nil {
-			t.Errorf("%s: secret %s/%s was removed with Cluster %s: %v", tc.name, controlNS, secretName, crName, err)
+		if _, err := envInstance.K8s.CoreV1().Secrets(credentialsNS).Get(ctx, secretName, metav1.GetOptions{}); err != nil {
+			t.Errorf("%s: secret %s/%s was removed with Cluster %s: %v", tc.name, credentialsNS, secretName, crName, err)
 		}
 	}
 }

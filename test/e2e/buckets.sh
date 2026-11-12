@@ -441,6 +441,8 @@ EOF
 
 bucket_management_placement() { cat <<'EOF'
 TestManagementPlacementAndDisruption
+TestGameWorkerPoolAndQuota
+TestAuxiliaryWorkersAndWakeHandoff
 EOF
 }
 
