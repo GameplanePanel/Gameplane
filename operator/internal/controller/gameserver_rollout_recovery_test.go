@@ -29,7 +29,7 @@ func TestRecoverObsoleteFailedPod(t *testing.T) {
 		change func(fixture)
 		evict  bool
 	}{
-		{"image pull backoff", func(f fixture) {}, true},
+		{"image pull backoff", func(fixture) {}, true},
 		{"repeated crash", func(f fixture) {
 			s := &f.pod.Status.ContainerStatuses[0]
 			s.State.Waiting.Reason = "CrashLoopBackOff"
@@ -62,7 +62,7 @@ func TestRecoverObsoleteFailedPod(t *testing.T) {
 			tc.change(fixture{gs, ss, pod})
 			evictions := 0
 			c := fake.NewClientBuilder().WithScheme(wipeScheme(t)).WithObjects(gs, ss, pod).WithInterceptorFuncs(interceptor.Funcs{
-				SubResourceCreate: func(ctx context.Context, c client.Client, sub string, obj client.Object, body client.Object, opts ...client.SubResourceCreateOption) error {
+				SubResourceCreate: func(ctx context.Context, c client.Client, sub string, obj client.Object, body client.Object, _ ...client.SubResourceCreateOption) error {
 					evictions++
 					competing := lifecycleIdentity{Kind: "Backup", Name: "snapshot", UID: "backup-uid", TargetUID: gs.UID}
 					claimed, err := claimLifecycleOperation(ctx, c, c, gs.DeepCopy(), competing, nil)
