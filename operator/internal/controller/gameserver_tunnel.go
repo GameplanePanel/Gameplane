@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -354,6 +355,12 @@ func (r *GameServerReconciler) reconcileTunnel(
 				{Name: "TAILSCALE_TAGS", Value: tagsStr},
 				{Name: "BACKING_SERVICE_DNS", Value: backingServiceDNS},
 				{Name: "BACKING_SERVICE_PORTS", Value: buildTailscalePortsConfig(tmpl)},
+			}
+			if r.TailscaleMaxSessions > 0 {
+				envVars = append(envVars, corev1.EnvVar{Name: "TAILSCALE_MAX_SESSIONS", Value: strconv.Itoa(r.TailscaleMaxSessions)})
+			}
+			if r.TailscaleUDPQueue > 0 {
+				envVars = append(envVars, corev1.EnvVar{Name: "TAILSCALE_UDP_QUEUE", Value: strconv.Itoa(r.TailscaleUDPQueue)})
 			}
 
 		case "playit":

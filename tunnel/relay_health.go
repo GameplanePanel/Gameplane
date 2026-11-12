@@ -41,6 +41,7 @@ type relaySnapshot struct {
 type relayHealth struct {
 	// Immutable provider capability, independent of fresh observation state.
 	connectionUnsupported bool
+	forwarding            *forwardTelemetry
 	mu                    sync.Mutex
 	supervisorUnavailable bool
 	observation           relayObservation
