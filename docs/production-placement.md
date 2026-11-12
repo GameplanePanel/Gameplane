@@ -53,8 +53,9 @@ requests or limits, replacing the install agent object wholesale. An image-only
 agent override keeps install defaults. Kubernetes may omit empty maps in a
 template, so use explicit zero CPU/memory requests for a per-template zero
 reservation, or the install-level empty object to clear all defaults. Game
-container resources continue to use the existing template defaults and complete
-`GameServer.spec.resources` override. Game placement fields are unchanged.
+container requests and limits merge per resource. For example, a server
+overriding only `requests.cpu` inherits both memory values and any template
+CPU limit. A tier with no CPU limit in either object keeps CPU bursting.
 
 Changing resources changes generated Pod templates. Existing game StatefulSets,
 sentinels and tunnels roll according to their normal reconciliation policy;
@@ -106,7 +107,36 @@ kubectl label node game-a game-b gameplane.local/pool=games
 kubectl taint node game-a game-b gameplane.local/pool=games:NoSchedule
 ```
 
-Use existing GameServer placement fields for game workers:
+The production example enables `operator.gameWorkloadPolicy`. The operator
+adds the chosen pool selector and its exact `Equal` / `NoSchedule` toleration
+to each game Pod. A server can narrow placement with additional node labels
+or affinity. A conflicting pool selector or an extra toleration produces a
+failed Ready condition. A pool with no schedulable workers leaves games Pending.
+Keep permission to change pool labels and taints with cluster administrators.
+Enabling the policy for a legacy game can briefly interrupt play. The operator
+drains its existing Pod before moving it to the configured pool. Games with
+a verified running template use its stop sequence. Unversioned games use the
+termination grace already configured on their Pods.
+With the NodeRestriction admission plugin, a label key such as
+`gameplane.node-restriction.kubernetes.io/pool` also prevents a kubelet from
+labeling itself as a game worker. Set the configured key and worker taint to match.
+
+The policy validates effective game resources before workload creation and
+template adoption. The CPU request must fall between the configured bounds.
+The memory request must meet its floor, and the memory limit must cover the
+request and fit the configured ceiling. Set a CPU limit in the template or
+server only for tiers that require one. Identify tiers by their measured
+reservations and ceilings, since sidecar requests also influence Pod QoS.
+
+The chart installs a Kubernetes v1 ValidatingAdmissionPolicy with the profile.
+It checks newly created game Pods and in-place resizes in the managed game
+namespaces, including replacements from pre-upgrade StatefulSets. Existing
+running Pods keep their allocation until replaced. Before enabling the profile,
+inventory live requests, limits, selectors, tolerations and PVC topology.
+Correct incompatible templates or server overrides and roll games during a
+maintenance window. A `null` policy keeps administrator enforcement disabled.
+
+Without a policy, a server can request its own placement:
 
 ```yaml
 spec:
@@ -117,8 +147,35 @@ spec:
 
 Preserve control-plane taints. Avoid broad `operator: Exists` tolerations.
 Optional management components need their corresponding placement values too.
-Per-game sentinel and tunnel Deployments are operator-generated and are not
-covered by these chart management placement keys. A priorityClassName must name
+The operator places Service-backed wakers and FRP, playit and Tailscale relays
+on the game worker pool by default when `operator.gameWorkloadPolicy` is set.
+To run those components on a separate pool, set
+`operator.auxiliaryWorkerPool: gameplane.local/pool=relays`. Label the relay
+workers with that pair and taint them `gameplane.local/pool=relays:NoSchedule`.
+The operator adds the exact selector and toleration to each generated Deployment.
+A Hostport waker always uses the game placement and the recorded endpoint node;
+moving it to a relay worker would change the address players reconnect to.
+Relays and Service wakers do not mount the game PVC. A node-bound game PVC
+still determines where the game can resume after that relay receives a wake.
+
+If the pool is full, drained or absent, the scheduler leaves the listener
+Pending. Run `kubectl -n TENANT describe pod POD` and inspect its
+`PodScheduled=False` condition and `FailedScheduling` events for conflicting
+selectors, taints, affinity, or exhausted resources. Restore an eligible
+worker for the same pool (and the original endpoint for Hostport).
+
+The disposable kind management drill runs the operator on a tainted management
+worker and provisions local-path and topology-bound CSI game volumes on a
+separate game worker. It reads each world's saved marker after a wake through
+ClusterIP, NodePort, the MetalLB address and Hostport. It drains each pool
+in turn. The relay and games must report an unschedulable replacement while
+their own worker is cordoned. After the game worker returns, the drill records
+recovery time and verifies both PVC and PV identities and saved markers.
+Each tunnel provider uses a local health responder. The CSI lane uses the
+upstream distributed host-path reference driver. Qualify the site's external
+network path and production CSI driver on its deployment topology.
+
+A priorityClassName must name
 an existing PriorityClass. Unsatisfied hard selectors, taints or topology
 constraints correctly leave pods Pending; do not silently relax them.
 
@@ -126,6 +183,23 @@ Local or node-bound volumes cannot move just because a pod has a new selector.
 Check API/receiver PVC node affinity before selecting management workers, and
 game PVC topology before backups or moving game pods. Restic scheduling and
 source preparation are separate from management placement.
+
+## Tenant namespace quotas
+
+Provision a namespace for each tenant and add it to the operator's managed
+game namespaces. Configure API/RBAC grants for the same tenant boundary.
+Set `operator.tenantQuotas.<namespace>.hard` for `requests.cpu`,
+`requests.memory`, `limits.memory`, `pods`, `persistentvolumeclaims` and
+`requests.storage`. The production values illustrate a budget for the default
+games namespace. Replace that key if you change `gamesNamespace`. Tenants
+sharing a namespace share its quota.
+
+When using `limits.memory`, give supporting containers a memory limit.
+`defaultContainerMemoryLimit` installs a LimitRange that supplies a default
+for containers without an explicit memory limit. Size it for backup workers,
+sidecars and initializers as well as games. A quota denial appears in
+StatefulSet or Job events. Reserve quota for active backups, restore PVCs,
+surge Pods and starts. Leave `limits.cpu` out of quotas for uncapped CPU tiers.
 
 ## Sizing and controlled-drain checks
 
@@ -135,6 +209,28 @@ backup concurrency. Use `kubectl top pods --containers`, scheduler events and
 the available Prometheus metrics. Include headroom for one failed management
 node, game startup, repository maintenance and replacement pods. No fixed server
 count follows from these request values.
+
+Qualify each production tier on the intended node and storage classes. Record
+the concurrent game count, tick/query latency p95 and p99, CPU throttling,
+memory working sets and completed backup duration at steady state. Repeat
+while a neighboring game allocates to its memory limit, a cold game starts and
+the expected peak backup concurrency runs. Record the OOM termination and
+verify the neighboring game stays within its latency target. Cordon and drain
+one game worker and record replacement placement, PVC attachment, Pending
+events and recovery time. For each eligible worker, compare remaining
+allocatable CPU and memory after requests to the largest game start plus its
+sidecars, and reserve capacity for the backup burst after one worker is lost.
+Record each tier's accepted tenant quotas, node count and latency target from
+that run before offering it to tenants.
+
+The disposable `management-placement` CI bucket runs a Minecraft Java
+1.21.4 flat world alongside the replacement tenant Pod and a Restic worker
+on the sole remaining eligible node. It records Minecraft's own `tick query`
+p95/p99, the worker's allocatable and requested resources, the tenant OOM
+exit and the time to complete and verify the backup. It checks the neighbor's
+Pod UID and container restart counts across the event. The small fixture's
+100 ms p95 and 250 ms p99 budgets apply to this CI run. Qualify production
+tiers with representative player counts, worlds and storage.
 
 In a disposable multi-worker environment, apply the example and verify every
 management pod's node labels. Temporarily set a nonexistent selector and verify
