@@ -32,6 +32,7 @@ func Mount(r chi.Router, root, path string) {
 	h := newHandler(root, path)
 	r.Get("/logs/tail", h.tail)
 	r.Get("/logs/download", h.download)
+	r.Get("/logs/history", h.history)
 }
 
 func (h *handler) download(w http.ResponseWriter, req *http.Request) {

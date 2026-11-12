@@ -40,7 +40,11 @@ func mockStreamCluster(t *testing.T, id string) (*kube.Client, *atomic.Int64, *a
 		}
 		switch {
 		case strings.HasSuffix(r.URL.Path, "/log"):
-			_, _ = w.Write([]byte(id + " logs\n"))
+			if r.URL.Query().Get("timestamps") == "true" {
+				_, _ = w.Write([]byte("2026-01-01T00:00:00Z " + id + " logs\n"))
+			} else {
+				_, _ = w.Write([]byte(id + " logs\n"))
+			}
 		case strings.HasSuffix(r.URL.Path, "/attach"):
 			attaches.Add(1)
 			if r.Method != http.MethodPost || r.URL.Query().Get("container") != "game" {
@@ -235,5 +239,38 @@ func TestPodLogs_StopsWhenPodIsReplaced(t *testing.T) {
 	proxy := &podLogProxy{k: k, podUID: "old-pod-uid"}
 	if _, err := proxy.readPod(t.Context(), "gameplane-games", "alpha-0"); err == nil {
 		t.Fatal("replacement pod accepted by old stream")
+	}
+}
+
+func TestPodHistoryRemoteScope(t *testing.T) {
+	local, localHits, _ := mockStreamCluster(t, "local")
+	remote, _, _ := mockStreamCluster(t, "remote")
+	reg := kube.NewRegistry("local")
+	reg.Set("local", local)
+	reg.Set("remote", remote)
+	router := streamRouter(reg, remoteStreamUser())
+	for _, tc := range []struct {
+		selector string
+		status   int
+	}{
+		{"cluster=remote", http.StatusOK},
+		{"cluster=local", http.StatusForbidden},
+		{"cluster=unknown", http.StatusBadRequest},
+		{"cluster=remote&namespace=not-allowed", http.StatusBadRequest},
+	} {
+		rr := httptest.NewRecorder()
+		router.ServeHTTP(rr, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/servers/alpha/logs/pod/history?"+tc.selector, nil))
+		if rr.Code != tc.status {
+			t.Fatalf("%s: %d %s", tc.selector, rr.Code, rr.Body.String())
+		}
+		if tc.status == http.StatusOK {
+			var page podHistoryPage
+			if err := json.Unmarshal(rr.Body.Bytes(), &page); err != nil || page.Text != "remote logs\n" {
+				t.Fatalf("unexpected remote page: %+v, %v", page, err)
+			}
+		}
+	}
+	if localHits.Load() != 0 {
+		t.Fatal("remote caller reached the local cluster")
 	}
 }

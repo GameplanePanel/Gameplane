@@ -47,6 +47,8 @@ export const INVALID_BPF_FILTER_FIXTURE = "tcp prot 8080 foo";
 const isColonAction = (params: PathParams) => String(params.name).includes(":");
 
 export const handlers = [
+  http.get("/servers/:name/logs/pod/history", () => HttpResponse.json({ text: "", source: "game" })),
+  http.get("/servers/:name/logs/history", () => HttpResponse.json({ text: "" })),
   ...fleetHandlers,
   http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
   // Auth
