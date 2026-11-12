@@ -119,6 +119,9 @@ server {
         # same ones on its own responses (secureHeaders in api/cmd/main.go).
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-Frame-Options "DENY" always;
+        # The TypeScript editor and its worker share a buffer for LSP messages.
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+        add_header Cross-Origin-Embedder-Policy "credentialless" always;
         add_header Referrer-Policy "no-referrer" always;
         add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
         add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
@@ -131,7 +134,10 @@ server {
     # Hashed assets are content-addressed and keep their immutable cache.
     location /assets/ {
         try_files $uri =404;
+        gzip_static on;
+        gzip_vary on;
         expires 1y;
+        add_header Cross-Origin-Embedder-Policy "credentialless" always;
         add_header Cache-Control "public, immutable";
         add_header X-Content-Type-Options "nosniff" always;
     }

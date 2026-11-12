@@ -316,34 +316,45 @@ func TestBackupGuardRolloutWaitsForLegacyWorkersAndCleanup(t *testing.T) {
 }
 
 func TestBackupGuardOrphanRecoveryWaitsForWorkers(t *testing.T) {
-	r, q := guardFixture(t, guardBackup("first"), guardBackup("second"))
-	guardPass(t, r, "first")
-	b := guardGetBackup(t, r, "first")
-	b.Finalizers = nil
-	if err := r.Update(context.Background(), b); err != nil {
-		t.Fatal(err)
-	}
-	if err := r.Delete(context.Background(), b); err != nil {
-		t.Fatal(err)
-	}
-	var job batchv1.Job
-	if err := r.Get(context.Background(), types.NamespacedName{Namespace: "ns", Name: "first"}, &job); err != nil {
-		t.Fatal(err)
-	}
-	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "orphan", Namespace: "ns", Labels: job.Spec.Template.Labels}, Status: corev1.PodStatus{Phase: corev1.PodRunning}}
-	if err := r.Create(context.Background(), pod); err != nil {
-		t.Fatal(err)
-	}
-	guardPass(t, r, "second")
-	if q.quiesced != 1 || q.unquiesced != 0 {
-		t.Fatalf("reclaimed before orphan drain: %+v", q)
-	}
-	if err := r.Delete(context.Background(), pod); err != nil {
-		t.Fatal(err)
-	}
-	guardPass(t, r, "second")
-	if q.quiesced != 2 || q.unquiesced != 1 {
-		t.Fatalf("orphan owner not recovered: %+v", q)
+	for _, replaced := range []bool{false, true} {
+		t.Run(fmt.Sprintf("game-replaced-%t", replaced), func(t *testing.T) {
+			r, q := guardFixture(t, guardBackup("first"), guardBackup("second"))
+			guardPass(t, r, "first")
+			b := guardGetBackup(t, r, "first")
+			b.Finalizers = nil
+			if err := r.Update(context.Background(), b); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Delete(context.Background(), b); err != nil {
+				t.Fatal(err)
+			}
+			var job batchv1.Job
+			if err := r.Get(context.Background(), types.NamespacedName{Namespace: "ns", Name: "first"}, &job); err != nil {
+				t.Fatal(err)
+			}
+			pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "orphan", Namespace: "ns", Labels: job.Spec.Template.Labels}, Status: corev1.PodStatus{Phase: corev1.PodRunning}}
+			if err := r.Create(context.Background(), pod); err != nil {
+				t.Fatal(err)
+			}
+			guardPass(t, r, "second")
+			if q.quiesced != 1 || q.unquiesced != 0 {
+				t.Fatalf("reclaimed before orphan drain: %+v", q)
+			}
+			if err := r.Delete(context.Background(), pod); err != nil {
+				t.Fatal(err)
+			}
+			wantResume := 1
+			if replaced {
+				changeBackupGamePod(t, r, backupGameChanges()["container-id"])
+				wantResume = 0
+			}
+			// Recovery must use the persisted predecessor identity after restart.
+			r = &BackupReconciler{Client: r.Client, Scheme: r.Scheme, AgentClient: q, LogReader: r.LogReader}
+			guardPass(t, r, "second")
+			if q.quiesced != 2 || q.unquiesced != wantResume {
+				t.Fatalf("orphan owner not recovered: %+v", q)
+			}
+		})
 	}
 }
 
@@ -484,6 +495,17 @@ func TestBackupQuiesceIntentSurvivesPostAgentWriteFailure(t *testing.T) {
 	b := guardGetBackup(t, r, "first")
 	if b.Annotations[annoQuiesceAttempted] != "pending" {
 		t.Fatal("cleanup intent was not durable before save-off")
+	}
+	// A fresh reconciler reads the pending intent. An unsupported retry
+	// describes that retry only; the previous save-off may have succeeded.
+	r = &BackupReconciler{Client: base, Scheme: r.Scheme, AgentClient: q, LogReader: r.LogReader}
+	q.quiesceErr = agent.ErrUnsupported
+	if err := r.maybeQuiesce(t.Context(), b); err == nil {
+		t.Fatal("unsupported retry erased an ambiguous pause")
+	}
+	b = guardGetBackup(t, r, "first")
+	if b.Annotations[annoQuiesceAttempted] != "pending" || b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed {
+		t.Fatalf("lost pending cleanup across restart: %+v", b)
 	}
 	if err := r.Delete(context.Background(), b); err != nil {
 		t.Fatal(err)
@@ -744,7 +766,7 @@ func TestBackupResticCleanupWithoutSnapshotScheme(t *testing.T) {
 	b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 	b.Status.SnapshotID = "abc123"
 	q := &scrapeQuiescer{}
-	r := newScrapeReconciler(t, b, nil, time.Hour, q)
+	r := newLiveScrapeReconciler(t, b, nil, time.Hour, q)
 	r.Scheme = nil
 	res, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(b)})
 	if err != nil || res.RequeueAfter > 0 || q.unquiesced != 1 {

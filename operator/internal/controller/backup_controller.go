@@ -404,7 +404,8 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 		}
 		return nil
 	}
-	if state := b.Annotations[annoQuiesceAttempted]; state != "" && state != "pending" {
+	state := b.Annotations[annoQuiesceAttempted]
+	if state != "" && state != "pending" {
 		return nil
 	}
 	// Verify the versioned endpoint before creating the first cleanup debt.
@@ -447,9 +448,9 @@ func (r *BackupReconciler) maybeQuiesce(ctx context.Context, b *gameplanev1alpha
 			annoQuiesceAttempted: "true",
 			annoQuiescedAt:       now,
 		})
-	case errors.Is(err, agent.ErrUnsupported):
-		// Game has no quiesce equivalent. Mark attempted and proceed —
-		// games like Valheim write to disk consistently anyway.
+	case errors.Is(err, agent.ErrUnsupported) && state != "pending":
+		// Only a first, explicitly unsupported operation proves that no
+		// command was issued. An ambiguous earlier attempt still owes resume.
 		patchBackupAnnotations(b, map[string]string{
 			annoQuiesceAttempted: "unsupported",
 		})
@@ -689,7 +690,7 @@ func (r *BackupReconciler) setUnquiescedCondition(
 		cond.Reason = "Unquiesced"
 		if b.Annotations[backupCleanupOutcomeAnnotation] == "source-gone" {
 			cond.Reason = "SourceProcessGone"
-			cond.Message = "original process no longer exists; no unquiesce RPC was sent"
+			cond.Message = "original game process no longer exists"
 		}
 	} else {
 		cond.Status = metav1.ConditionFalse
@@ -805,11 +806,11 @@ func (r *BackupReconciler) unquiesceTargetGone(ctx context.Context, b *gameplane
 	if err != nil {
 		return false, err
 	}
-	var podUID types.UID
-	if preparation != nil {
-		podUID = preparation.PodUID
+	if preparation == nil {
+		preparation = &backupPreparation{}
 	}
-	return backupQuiesceProcessGone(ctx, r.backupAPIReader(), b.Namespace, targetName, podUID)
+	state, err := backupGameState(ctx, r.backupAPIReader(), b.Namespace, targetName, preparation.PodUID, preparation.GameContainerID, preparation.GameRestartCount)
+	return state == gameGone, err
 }
 
 // unquiesceRetryExpired records (on first call) when finalizeDelete's
@@ -897,29 +898,19 @@ func (r *BackupReconciler) maybeUnquiesce(ctx context.Context, b *gameplanev1alp
 			return fmt.Errorf("legacy quiesce cleanup is blocked by a protected backup")
 		}
 	}
-	if targetName != "" {
-		gone, err := r.unquiesceTargetGone(ctx, b)
-		if err != nil {
-			return err
-		}
-		if gone {
-			patchBackupAnnotations(b, map[string]string{backupCleanupOutcomeAnnotation: "source-gone"})
-			return r.recordBackupUnquiesced(ctx, b)
-		}
-	}
-	if !agentQuiesceAvailable(r.AgentClient) {
-		return fmt.Errorf("cannot release quiesced world without an agent client")
-	}
 	preparation, err := parseBackupPreparation(b)
 	if err != nil {
 		return err
 	}
-	var podUID types.UID
-	if preparation != nil {
-		podUID = preparation.PodUID
+	if preparation == nil {
+		preparation = &backupPreparation{}
 	}
-	if err := callBackupQuiesce(ctx, r.AgentClient, b.Namespace, targetName, podUID, true); err != nil {
+	gone, err := resumeBackupProcess(ctx, r.backupAPIReader(), r.AgentClient, b.Namespace, targetName, preparation.PodUID, preparation.GameContainerID, preparation.GameRestartCount)
+	if err != nil {
 		return err
+	}
+	if gone {
+		patchBackupAnnotations(b, map[string]string{backupCleanupOutcomeAnnotation: "source-gone"})
 	}
 	return r.recordBackupUnquiesced(ctx, b)
 }

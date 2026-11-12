@@ -90,6 +90,9 @@ operator:
   # {}) clears defaults. No new CPU/memory limits are set by default.
   agentResources: null    # requests 25m CPU / 64Mi memory; also config-init
   sentinelResources: null # requests 25m CPU / 32Mi memory
+  # Per Tailscale relay. sessions * (queue + 1) must stay within 640 datagram buffers.
+  tailscaleMaxSessions: 128
+  tailscaleUDPQueue: 4
   tunnelResources: null   # requests 25m CPU / 64Mi memory (every provider)
   backupResources: null   # backup/init/restore requests 100m CPU / 128Mi memory;
                           # cleanup retains 50m / 128Mi, memory limit 512Mi

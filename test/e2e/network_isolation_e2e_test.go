@@ -98,9 +98,10 @@ func isolationTemplate(t *testing.T, name string, isolated bool) {
 			map[string]any{"name": "game", "containerPort": int64(25566), "protocol": "TCP", "advertise": true},
 			map[string]any{"name": "management", "containerPort": int64(25575), "protocol": "TCP", "advertise": false},
 		},
-		"probes": map[string]any{"readiness": map[string]any{
-			"httpGet": map[string]any{"path": "/", "port": int64(25566)}, "periodSeconds": int64(2),
-		}},
+		"probes": map[string]any{
+			"startup":   map[string]any{"tcpSocket": map[string]any{"port": "game"}, "periodSeconds": int64(2)},
+			"readiness": map[string]any{"httpGet": map[string]any{"path": "/", "port": int64(25566)}, "periodSeconds": int64(2)},
+		},
 	}
 	if isolated {
 		spec["sentinelIsolation"] = true

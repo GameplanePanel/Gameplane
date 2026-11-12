@@ -92,6 +92,23 @@ func TestLoadConfigTailscale(t *testing.T) {
 	}
 }
 
+func TestTailscaleForwardLimits(t *testing.T) {
+	env := map[string]string{"GAMESERVER_NAME": "game", "GAMESERVER_NAMESPACE": "games", "TUNNEL_TYPE": "tailscale", "TAILSCALE_HOSTNAME": "game", "BACKING_SERVICE_DNS": "game.games.svc", "BACKING_SERVICE_PORTS": "echo:9000:udp"}
+	for _, tc := range []struct {
+		sessions, queue string
+		ok              bool
+	}{{"", "", true}, {"256", "1", true}, {"32", "16", true}, {"0", "1", false}, {"257", "1", false}, {"1", "17", false}, {"256", "4", false}, {"bad", "1", false}} {
+		env["TAILSCALE_MAX_SESSIONS"], env["TAILSCALE_UDP_QUEUE"] = tc.sessions, tc.queue
+		cfg, err := loadConfig(stubEnv(env))
+		if (err == nil) != tc.ok {
+			t.Fatalf("limits %q/%q: %v", tc.sessions, tc.queue, err)
+		}
+		if tc.sessions == "" && cfg.ForwardLimits != defaultForwardLimits {
+			t.Fatalf("changed default: %+v", cfg.ForwardLimits)
+		}
+	}
+}
+
 func TestLoadConfigPlayit(t *testing.T) {
 	cfg, err := loadConfig(stubEnv(map[string]string{
 		"GAMESERVER_NAME":       "my-server",

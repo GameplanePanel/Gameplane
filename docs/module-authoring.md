@@ -1214,13 +1214,13 @@ capabilities:
   From `modules/palworld/template.yaml` (note: Palworld uses the REST
   admin API `protocol: palworld`, not RCON, so the players list is
   fetched via the REST endpoint, not a console command).
-- The quiesce sequence runs in order; any command error — or output
-  matching `failurePattern` (case-insensitive) — aborts the backup. If
-  at least one earlier command in the sequence already succeeded,
-  `unquiesce` then runs best-effort so the game is never left paused;
-  a failure on the *first* command means nothing was paused yet, so
-  `unquiesce` is skipped. Games that can't quiesce simply omit the
-  block; backups proceed without pausing.
+- The operator uses the verified agent endpoint for live backups. For
+  `minecraft-java`, declare the sequence above. The agent checks the English
+  vanilla response to each command, including the already-on and already-off
+  replies on retries. A rejected flush triggers a save-on attempt. Unrecognized
+  command sequences report unsupported before issuing a command. The legacy
+  agent endpoints still execute module-declared sequences and check their
+  optional failure pattern on both pause and resume.
 - `lifecycle.stop` runs before the pod is scaled down (stop button,
   restarts): the operator issues the sequence — over RCON when the
   template has it, otherwise over a stdin pod-attach for `consoleMode:
