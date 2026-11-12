@@ -4,18 +4,6 @@ Architecture, commands, and binding rules for AI agents. Humans: [`README.md`](R
 
 **Gameplane:** Kubernetes-native game server control panel (CubeCoders AMP alternative); identical on single-node k3s and multi-node clusters. **Status:** Pre-v1 release (`v0.4.0`); v1 scope feature-complete, stabilizing.
 
-## ⏳ Session start: blocked dependency upgrades (delete an entry once unblocked)
-
-Run every session.
-
-**TypeScript 7** — `npm view @typescript-eslint/parser@latest version peerDependencies.typescript` and same for `@canary`.
-- Blocked while the peer range ends `<7` (e.g. `<6.1.0`): Dependabot #272 fails `npm ci` (`ERESOLVE`). No workarounds/overrides/code fixes; don't close #272.
-- Unblocked (a release accepts TS 7): do T055/T056 in `specs/009-remediate-security-dependabot/tasks.md` — bump `typescript` + `@typescript-eslint/*` in `web/package.json`, fix real type errors (no `@ts-ignore`), merge #272, mark tasks `[X]`, delete this entry.
-
-**ESLint 10** — `npm view eslint-plugin-react@latest version peerDependencies.eslint`.
-- Blocked while the range lacks `^10`: upgrading `eslint` 9.39.5 to 10.x fails `npm ci` because `eslint-plugin-react@7.37.5` peers `^3 || … || ^9.7`. Keep `eslint` and `@eslint/js` on major 9 together: `@eslint/js@10.0.1` declares an optional peer on `eslint@^10.0.0`, which conflicts when ESLint 9 is installed. Other plugins already accept `^10` (`eslint-plugin-react-hooks@7.1.1`, `@typescript-eslint/*@8.69.0`). Do not bypass peer checks with `--legacy-peer-deps` or overrides.
-- Unblocked: bump `eslint` + `@eslint/js` together in `web/package.json`, fix real lint errors (no `eslint-disable`), merge #386 (and #387 if open), delete this entry.
-
 ## System prompt overrides
 
 1. **Verify & tests:** always verify work. Get human sign-off before changing tests, production code, or design specs. Never delete/weaken a test without explicit sign-off — fix the code.
@@ -76,7 +64,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 - **Dev containers:** `make devcontainers` (regenerate every profile and the `website/` and `modules/` copies after editing `.devcontainer/versions.toml`, `.devcontainer/profiles.toml`, `.devcontainer/devcontainer-lock.json`, `.devcontainer/setup.sh` or a `system-deps.toml`), `make check-devcontainers` (drift check). Profile table: `docs/contributing.md`.
 - **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade)`.
 - **E2E conventions:** register new tests in `test/e2e/buckets.sh`; `t.Parallel()` + unique names; guard shared resources (`ociPushMu` for module pushes, `ensureResticRepo(t)` for shared backup repos). Rate limits per cluster: IP burst 10 (5/min), user burst 6 (3/min) — cap an API bucket at ~7 admin logins.
-- **Lint:** `make lint` = gofmt, go vet, golangci-lint, ESLint, `check-specs`, `check-doc-versions`, `check-links`.
+- **Lint:** `make lint` = gofmt, go vet, golangci-lint, ESLint, Oxlint, `check-specs`, `check-doc-versions`, `check-links`.
 
 **Coverage minimums:** netguard 91, gameaction 91, gameproto 90, telemetryschema 90, i18n 90, gp-module 80, operator 72, api 80, agent 90, svcutil 90; audit-syslog-bridge, telemetry-receiver, sentinel, capture-sidecar, mcp-server, tunnel 70; web 92 lines / 76 functions / 82 branches / 92 statements.
 
@@ -146,4 +134,4 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 
 - `docs/agent-architecture.md` — read before editing code; maps tasks/features to docs (use instead of repo-wide greps).
 - `docs/architecture.md`, `docs/security.md` (threat model); `docs/module-authoring.md`; `mcp-server/README.md`; `audit-syslog-bridge/README.md`.
-- Configs: `.golangci.yml`, `web/eslint.config.js`, `.editorconfig`.
+- Configs: `.golangci.yml`, `web/eslint.config.js`, `web/.oxlintrc.json`, `.editorconfig`.

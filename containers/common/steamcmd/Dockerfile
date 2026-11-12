@@ -53,13 +53,18 @@ FROM steamcmd/steamcmd@sha256:a3ea6f8722e7b2ed2300927076794db199febd6fa4a316c0b0
 ARG GAMESERVER_UID=10000
 ARG GAMESERVER_GID=10000
 
-# Install dependencies needed by SteamCMD and game servers.
-# ca-certificates is needed for HTTPS to the Steam CDN. Whether the upstream
-# steamcmd/steamcmd image already ships it could not be verified offline (no
-# shell access to introspect the base image's package list from here); the
-# install is idempotent and cheap either way, so it stays as a safety net —
-# `apt-get install` on an already-installed package is a no-op.
-RUN apt-get update && \
+# Keep Canonical first for each pocket. Derived games inherit the same signed
+# archive and fallback mirrors when they install tini or Wine.
+RUN set -e; \
+    for origin in archive security; do \
+        printf '%s\tpriority:1\n%s\tpriority:2\n%s\tpriority:3\n' \
+            "http://${origin}.ubuntu.com/ubuntu/" \
+            'https://mirror.math.princeton.edu/pub/ubuntu/' \
+            'https://mirrors.edge.kernel.org/ubuntu/' > "/etc/apt/${origin}.mirrors"; \
+    done; \
+    sed -Ei 's#^URIs: https?://(archive|security)\.ubuntu\.com/ubuntu/?$#URIs: mirror+file:/etc/apt/\1.mirrors#' \
+        /etc/apt/sources.list.d/ubuntu.sources; \
+    apt-get --error-on=any update && \
     apt-get install -y --no-install-recommends ca-certificates=20260816ubuntu0.26.04.2 && \
     rm -rf /var/lib/apt/lists/*
 

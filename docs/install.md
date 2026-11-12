@@ -258,7 +258,7 @@ Top-level knobs (see `values.yaml` for the full list):
   GameServer enters Pending with a `PVCProvisioningFailed` condition (visible in
   the dashboard); no pod starts until resolved. Example:
   `--set operator.gameDataStorage.storageClassName=fast-nvme`
-- `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; not yet covered by e2e or upgrade tests)
+- `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; the published image is built without it). The CI `api (postgres)` job and the PostgreSQL E2E buckets, including `postgres-availability` (`TestUpgrade_PostgresAvailability`), exercise it.
 - `api.db.dsn` — connection string; SQLite default persists to a PVC
 - `api.storage.existingClaim` — pre-existing PVC for the API's SQLite database (default `""`). PostgreSQL standalone deployments create no local database PVC or mount. The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
 - `api.panelKey.storage.existingClaim` — pre-existing key-only PVC for generated standalone encryption keys; independent of database storage. `api.panelKey.storage.size` and `storageClassName` configure a new key PVC when no existing claim is selected.
@@ -1056,9 +1056,11 @@ consumer, which uses the tagged publisher's component list and reports chart and
 in its Actions summary. Omit `published_release` to run the ordinary full CI suite.
 
 See `test/e2e/upgrade_e2e_test.go`. What this does **not** yet cover: upgrades
-that skip several releases at once, and Postgres (still an experimental
-driver — see [`roadmap.md`](roadmap.md)). Take a backup before upgrading
-production either way.
+that skip several releases at once. The `postgres-availability` bucket tests a
+PostgreSQL combined-install deployment-strategy change and outage recovery
+using the working-tree chart. It does not test an upgrade from a previous
+release. Postgres remains an experimental driver (see [`roadmap.md`](roadmap.md)).
+Take a backup before upgrading production either way.
 
 ### SQLite database adoption (Kestrel → Gameplane)
 

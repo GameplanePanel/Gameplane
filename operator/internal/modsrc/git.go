@@ -32,15 +32,13 @@ import (
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
-// registerGuardedGitHTTP installs an SSRF-guarded http client as go-git's
-// https transport so a clone cannot be redirected at the cloud metadata
-// endpoint (see internal/netguard). It is process-global go-git state, set
-// once on the first real clone; tests stub gitClone and never reach it.
+// registerGuardedGitHTTP installs an SSRF-guarded HTTPS transport on the first
+// clone. go-git checks its ten-hop redirect limit before calling our hook.
+// Authenticated clones must use their final URL because go-git can reapply
+// BasicAuth to later requests under a redirected repository path.
 var registerGuardedGitHTTP = sync.OnceFunc(func() {
 	c := netguard.HTTPClient(2*time.Minute, netguard.IsAllowed)
 	c.CheckRedirect = func(_ *http.Request, via []*http.Request) error {
-		// go-git adopts a redirected repository URL and can reapply BasicAuth
-		// on later requests to another repository on the same host.
 		if via[0].Header.Get("Authorization") != "" {
 			return errors.New("authenticated Git redirect refused; configure the final repository URL")
 		}
