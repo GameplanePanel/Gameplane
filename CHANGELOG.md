@@ -9,6 +9,23 @@ See the [unreleased change entries](changelog/unreleased/) for individual fixes 
 
 ## [Unreleased]
 
+### Added
+
+- The Files editor checks the open JavaScript or TypeScript file against the
+  standard library and provides inline diagnostics, completions, and Peek
+  Definition. The browser downloads the compiler on first use (about 12.7 MiB
+  gzipped). These features also work over plain HTTP on LAN browsers that
+  support WebAssembly JavaScript Promise Integration (PR #902).
+- Placement settings now underline JSON syntax errors as you type (PR #902).
+
+### Changed
+
+- The dashboard builds with TypeScript 7.0.2 and uses Monaco Editor 0.57.0.
+  ESLint 10 runs the React Hooks and FormatJS checks, and Oxlint checks React
+  and TypeScript code for issues such as unhandled promises. The translation
+  migration uses Babel and preserves JSX comments, escaped entities, Unicode,
+  and line endings (PR #902).
+
 ## [0.4.0] — 2026-11-10
 
 A pre-v1 release with every change made since v0.3.0: an independent central
@@ -43,7 +60,7 @@ does not claim v1 or production support; see [`docs/roadmap.md`](docs/roadmap.md
 ### Upgrade Notes
 
 - **Breaking: admin-level grants need a full administrator:** holders of
-  `users:manage`, `roles:manage` or `config:manage` without `*` can no longer
+  `users:manage`, `roles:manage`, `config:manage` or `cluster:manage` without `*` can no longer
   grant `*` or another admin-level permission, edit or reset an administrator,
   or edit auth providers (`/admin/config/auth`, `/admin/auth` need `*`)
   (PR #862).

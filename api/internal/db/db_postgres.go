@@ -8,6 +8,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/stdlib"
 )
@@ -18,6 +19,8 @@ func openPostgres(ctx context.Context, dsn string) (*Store, error) {
 		return nil, fmt.Errorf("open postgres: %w", err)
 	}
 	db := sql.OpenDB(connector)
+	// Shared by API traffic, probes and the serialized audit writer.
+	db.SetMaxOpenConns(16)
 	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("ping postgres: %w", err)
@@ -61,6 +64,10 @@ func newRebindConnector(dsn string) (driver.Connector, error) {
 }
 
 func (c rebindConnector) Connect(ctx context.Context) (driver.Conn, error) {
+	// database/sql can open a replacement using the pool's lifetime context.
+	// Bound that handshake even when the originating request has returned.
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 	conn, err := c.base.Connect(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("connect postgres: %w", err)
