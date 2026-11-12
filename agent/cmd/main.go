@@ -138,36 +138,39 @@ func main() {
 		modsSpec = capSpec.Mods
 	}
 
-	var rconClient interface {
-		Exec(cmd string) (string, error)
-	}
+	var transport rcon.Executor
 	switch {
 	case !rconEnabled:
 		// The game declares no RCON (e.g. consoleMode pty/none). Dialing
 		// 127.0.0.1:25575 would just fail on every request; the Disabled
 		// client makes that explicit so handlers degrade cleanly.
-		rconClient = rcon.Disabled{}
+		transport = rcon.Disabled{}
 	case strings.EqualFold(rconProtocol, "telnet"):
-		rconClient = rcon.NewTelnet(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.NewTelnet(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	case strings.EqualFold(rconProtocol, "websocket"):
-		rconClient = rcon.NewWebSocket(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.NewWebSocket(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	case strings.EqualFold(rconProtocol, "battleye"):
-		rconClient = rcon.NewBattlEye(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.NewBattlEye(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	case strings.EqualFold(rconProtocol, "satisfactory"):
-		rconClient = rcon.NewSatisfactory(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.NewSatisfactory(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	case strings.EqualFold(rconProtocol, "palworld"):
-		rconClient = rcon.NewPalworld(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.NewPalworld(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	case strings.EqualFold(rconProtocol, "nuclearoption"):
-		rconClient = rcon.NewNuclearOption(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.NewNuclearOption(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	case strings.EqualFold(rconProtocol, "rest"):
-		rconClient = rcon.NewREST(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile), rcon.WithGame(gameName))
+		transport = rcon.NewREST(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile), rcon.WithGame(gameName))
 	case strings.EqualFold(rconProtocol, "cli"):
-		rconClient = rcon.NewCLI(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile), rcon.WithPipePath(cliPipe))
+		transport = rcon.NewCLI(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile), rcon.WithPipePath(cliPipe))
 	default:
 		// "source", empty, or anything unrecognized: back-compat default.
-		rconClient = rcon.New(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
+		transport = rcon.New(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	}
 
+	commands := rcon.NewCommands(transport)
+	rconClient := transport
+	if quiesceSpec != nil {
+		rconClient = commands
+	}
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer)
 
@@ -197,7 +200,7 @@ func main() {
 		protected.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))
 			players.Mount(bounded, rconClient, gameName, playerActions)
-			quiesce.Mount(bounded, rconClient, gameName, quiesceSpec)
+			quiesce.Mount(bounded, commands, gameName, quiesceSpec)
 			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
 			actions.Mount(bounded, rconClient, gameName, actionSpecs)
 			statusSource.Mount(bounded)
@@ -213,11 +216,17 @@ func main() {
 	})
 	// Backups bind save-off/save-on to the process they prepared. The service
 	// may already route to a replacement pod, which must reject the old UID.
-	r.Route("/v1/pods/{uid}", func(protected chi.Router) {
-		protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
-		protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
-		quiesce.Mount(protected, rconClient, gameName, quiesceSpec)
-	})
+	for _, version := range []string{"v1", "v2"} {
+		r.Route("/"+version+"/pods/{uid}", func(protected chi.Router) {
+			protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
+			protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
+			if version == "v2" {
+				quiesce.MountVerified(protected, commands, gameName, quiesceSpec)
+			} else {
+				quiesce.Mount(protected, commands, gameName, quiesceSpec)
+			}
+		})
+	}
 
 	srv := &http.Server{
 		Addr:              addr,

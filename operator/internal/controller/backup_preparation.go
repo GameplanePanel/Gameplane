@@ -289,16 +289,86 @@ func (r *BackupReconciler) backupSourceDrained(ctx context.Context, b *gameplane
 // unready pod, or terminating pod with the same UID is never proof of exit.
 // Empty UID is legacy state: only absence or an observed terminal pod suffices.
 func backupQuiesceProcessGone(ctx context.Context, reader client.Reader, namespace, server string, uid types.UID) (bool, error) {
+	state, err := backupGameState(ctx, reader, namespace, server, uid, "", nil)
+	return state == gameGone, err
+}
+
+type gameState int
+
+const (
+	gameUnknown gameState = iota
+	gameOriginal
+	gameGone
+)
+
+// A bound game container may restart without replacing the pod. Missing
+// kubelet status is ambiguous. Never send save-on to an unidentified game.
+func backupGameState(ctx context.Context, reader client.Reader, namespace, server string, uid types.UID, containerID string, restarts *int32) (gameState, error) {
 	var pod corev1.Pod
 	err := reader.Get(ctx, client.ObjectKey{Namespace: namespace, Name: server + "-0"}, &pod)
 	if apierrors.IsNotFound(err) {
-		return true, nil
+		return gameGone, nil
 	}
 	if err != nil {
-		return false, err
+		return gameUnknown, err
 	}
 	if uid != "" && pod.UID != uid {
-		return true, nil
+		return gameGone, nil
 	}
-	return pod.DeletionTimestamp.IsZero() && (pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed), nil
+	if pod.DeletionTimestamp.IsZero() && (pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed) {
+		return gameGone, nil
+	}
+	// Pre-upgrade owners can lack a container fingerprint. Preserve their
+	// pod-bound cleanup rules and never invent a fingerprint from current state.
+	if uid == "" || (containerID == "" && restarts == nil) {
+		return gameOriginal, nil
+	}
+	for _, game := range pod.Status.ContainerStatuses {
+		if game.Name != "game" {
+			continue
+		}
+		if restarts != nil && game.RestartCount > *restarts {
+			return gameGone, nil
+		}
+		if last := game.LastTerminationState.Terminated; last != nil && containerID != "" && last.ContainerID == containerID {
+			return gameGone, nil
+		}
+		if game.ContainerID == "" {
+			continue
+		}
+		if game.State.Terminated != nil {
+			return gameGone, nil
+		}
+		if game.State.Running != nil {
+			if containerID != "" && game.ContainerID != containerID {
+				return gameGone, nil
+			}
+			if restarts == nil || game.RestartCount == *restarts {
+				return gameOriginal, nil
+			}
+		}
+	}
+	return gameUnknown, nil
+}
+
+// Confirm the same process both sides of the verified RPC. Cleanup callers
+// record a replacement as process exit, independently of a successful reply.
+func resumeBackupProcess(ctx context.Context, reader client.Reader, q AgentQuiescer, ns, server string, uid types.UID, containerID string, restarts *int32) (bool, error) {
+	if server == "" {
+		return false, fmt.Errorf("cleanup target has no server name")
+	}
+	check := func() (bool, error) {
+		state, err := backupGameState(ctx, reader, ns, server, uid, containerID, restarts)
+		if err == nil && state == gameUnknown {
+			err = fmt.Errorf("original game container state is unavailable")
+		}
+		return state == gameGone, err
+	}
+	if gone, err := check(); gone || err != nil {
+		return gone, err
+	}
+	if err := callBackupQuiesce(ctx, q, ns, server, uid, true); err != nil {
+		return false, err
+	}
+	return check()
 }
