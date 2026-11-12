@@ -270,7 +270,9 @@ spec:
             {{- end }}
             {{- end }}
             - --db-driver={{ .Values.api.db.driver }}
+            {{- if not .Values.api.db.existingSecret }}
             - --db-dsn={{ .Values.api.db.dsn }}
+            {{- end }}
             {{- if .Values.api.oidc.enabled }}
             - {{ printf "--oidc-issuer=%s" .Values.api.oidc.issuer | quote }}
             - {{ printf "--oidc-client-id=%s" .Values.api.oidc.clientID | quote }}
@@ -385,7 +387,14 @@ spec:
             - name: GAMEPLANE_DB_DRIVER
               value: {{ .Values.api.db.driver | quote }}
             - name: GAMEPLANE_DB_DSN
+              {{- if .Values.api.db.existingSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.api.db.existingSecret | quote }}
+                  key: {{ .Values.api.db.secretKey | default "dsn" | quote }}
+              {{- else }}
               value: {{ .Values.api.db.dsn | quote }}
+              {{- end }}
             {{- if and (not .Values.api.standalone) .Values.clusterOps.enabled }}
             - name: GAMEPLANE_CLUSTER_OPS
               value: "true"
