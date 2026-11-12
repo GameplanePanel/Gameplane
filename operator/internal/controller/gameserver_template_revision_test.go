@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -732,7 +733,7 @@ func TestTemplateBaselinePreservesLegacyWorkloadUntilAdmittedUpdate(t *testing.T
 }
 
 func TestTemplateBaselineAllowsRealWorkloadChanges(t *testing.T) {
-	for _, change := range []string{"inputs", "stopped", "new-workload", "credential-isolation", "restricted-profile"} {
+	for _, change := range []string{"inputs", "stopped", "new-workload", "credential-isolation", "restricted-profile", "probe-host"} {
 		t.Run(change, func(t *testing.T) {
 			r, gs, _ := revisionFixture(t)
 			pin := gs.Annotations[effectiveTemplateAnnotation]
@@ -757,6 +758,10 @@ func TestTemplateBaselineAllowsRealWorkloadChanges(t *testing.T) {
 				ss.UID = "replacement"
 			case "credential-isolation":
 				ss.Spec.Template.Spec.AutomountServiceAccountToken = nil
+			case "probe-host":
+				ss.Spec.Template.Spec.Containers = []corev1.Container{{
+					Name: gameContainerName, StartupProbe: probeSecTCPHost("::1", intstr.FromInt32(80)),
+				}}
 			case "restricted-profile":
 				r.RestrictedWorkloads = true
 			}

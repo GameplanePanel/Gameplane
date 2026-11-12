@@ -308,6 +308,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	tmpl := *effective
 
+	if err := validateProbeHosts(effectiveGameProbes(&gs, &tmpl)); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
 		phaseErr := r.setPhase(ctx, &gs,
@@ -2382,23 +2385,10 @@ func buildGameContainer(
 		VolumeMounts: mounts,
 		Resources:    res,
 	}
-	if tmpl.Spec.Probes != nil {
-		c.ReadinessProbe = tmpl.Spec.Probes.Readiness
-		c.LivenessProbe = tmpl.Spec.Probes.Liveness
-		c.StartupProbe = tmpl.Spec.Probes.Startup
-	}
-	// Per-server probe overrides win over the template, one probe at a time.
-	if p := gs.Spec.Probes; p != nil {
-		if p.Readiness != nil {
-			c.ReadinessProbe = p.Readiness
-		}
-		if p.Liveness != nil {
-			c.LivenessProbe = p.Liveness
-		}
-		if p.Startup != nil {
-			c.StartupProbe = p.Startup
-		}
-	}
+	probes := effectiveGameProbes(gs, tmpl)
+	c.ReadinessProbe = probes.Readiness
+	c.LivenessProbe = probes.Liveness
+	c.StartupProbe = probes.Startup
 	// PTY console mode requires the kubelet to allocate a TTY for the
 	// container at start time. These fields are immutable once the pod
 	// exists, so changing ConsoleMode forces a pod recreate (handled by
