@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CHART = ROOT / "charts" / "gameplane"
 
 
-def render(values=None, failure=None, upgrade=False, namespace="gameplane-system", release="gameplane", include_crds=False, chart=CHART, api_versions=()):
+def render(values=None, failure=None, upgrade=False, namespace="gameplane-system", release="gameplane", include_crds=False, chart=CHART, api_versions=(), kube_version=None):
     """Return rendered objects, or assert the expected Helm validation failure.
 
     Accept a source chart or packaged archive; native CRDs are opt-in to match
@@ -22,6 +22,7 @@ def render(values=None, failure=None, upgrade=False, namespace="gameplane-system
             ["helm", "template", release, str(chart), "--namespace", namespace, "--values", str(values_path)]
             + (["--is-upgrade"] if upgrade else [])
             + (["--include-crds"] if include_crds else [])
+            + (["--kube-version", kube_version] if kube_version else [])
             + [arg for version in api_versions for arg in ("--api-versions", version)],
             capture_output=True, text=True, check=False,
         )

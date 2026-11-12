@@ -11,6 +11,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -27,15 +28,17 @@ type lifecycleIdentity struct {
 	// PreservePower allows v2 restores to stop with the guard, without altering user suspend intent.
 	PreservePower bool `json:"preservePower,omitempty"`
 
-	StoppedBackup  *stoppedBackup `json:"stoppedBackup,omitempty"`
-	Kind           string         `json:"kind"`
-	Name           string         `json:"name"`
-	UID            types.UID      `json:"uid"`
-	TargetUID      types.UID      `json:"targetUID"`
-	Generation     int64          `json:"generation"`
-	Token          string         `json:"token,omitempty"`
-	NeedsUnquiesce bool           `json:"needsUnquiesce,omitempty"`
-	QuiescePodUID  types.UID      `json:"quiescePodUID,omitempty"`
+	StoppedBackup       *stoppedBackup `json:"stoppedBackup,omitempty"`
+	Kind                string         `json:"kind"`
+	Name                string         `json:"name"`
+	UID                 types.UID      `json:"uid"`
+	TargetUID           types.UID      `json:"targetUID"`
+	Generation          int64          `json:"generation"`
+	Token               string         `json:"token,omitempty"`
+	NeedsUnquiesce      bool           `json:"needsUnquiesce,omitempty"`
+	QuiescePodUID       types.UID      `json:"quiescePodUID,omitempty"`
+	QuiesceContainerID  string         `json:"quiesceContainerID,omitempty"`
+	QuiesceRestartCount *int32         `json:"quiesceRestartCount,omitempty"`
 	// InitialStartup permits only the first workload of a CSI restore's new
 	// target (including WaitForFirstConsumer PVCs), while other operations wait.
 	InitialStartup bool `json:"initialStartup,omitempty"`
@@ -323,17 +326,7 @@ func recoverLifecycleOperation(ctx context.Context, c client.Client, reader clie
 		if !predecessor.NeedsUnquiesce {
 			continue
 		}
-		gone, err := backupQuiesceProcessGone(ctx, reader, gs.Namespace, gs.Name, predecessor.QuiescePodUID)
-		if err != nil {
-			return false, err
-		}
-		if gone {
-			continue
-		}
-		if !agentQuiesceAvailable(quiescer) {
-			return false, fmt.Errorf("cannot recover orphaned quiesce without an agent client")
-		}
-		if err := callBackupQuiesce(ctx, quiescer, gs.Namespace, gs.Name, predecessor.QuiescePodUID, true); err != nil {
+		if _, err := resumeBackupProcess(ctx, reader, quiescer, gs.Namespace, gs.Name, predecessor.QuiescePodUID, predecessor.QuiesceContainerID, predecessor.QuiesceRestartCount); err != nil {
 			return false, fmt.Errorf("recover orphaned lifecycle quiesce: %w", err)
 		}
 	}
@@ -385,23 +378,30 @@ func (r *BackupReconciler) setLifecycleUnquiesceIntent(ctx context.Context, b *g
 	if err != nil {
 		return err
 	}
-	var podUID types.UID
 	if needed {
-		preparation, err := parseBackupPreparation(b)
+		prep, err := parseBackupPreparation(b)
 		if err != nil {
 			return err
 		}
-		if preparation != nil {
-			podUID = preparation.PodUID
+		if prep != nil {
+			if op.NeedsUnquiesce && op.QuiescePodUID != "" && op.QuiescePodUID != prep.PodUID {
+				return fmt.Errorf("cleanup pod identity changed")
+			}
+			if op.NeedsUnquiesce && op.QuiesceContainerID != "" &&
+				(op.QuiesceContainerID != prep.GameContainerID || !ptr.Equal(op.QuiesceRestartCount, prep.GameRestartCount)) {
+				return fmt.Errorf("cleanup game incarnation changed")
+			}
+			if op.NeedsUnquiesce && op.QuiescePodUID == prep.PodUID && op.QuiesceContainerID == prep.GameContainerID && ptr.Equal(op.QuiesceRestartCount, prep.GameRestartCount) {
+				return nil
+			}
+			op.QuiescePodUID = prep.PodUID
+			op.QuiesceContainerID = prep.GameContainerID
+			op.QuiesceRestartCount = prep.GameRestartCount
 		}
-	}
-	if op.NeedsUnquiesce == needed && (!needed || op.QuiescePodUID == podUID) {
+	} else if !op.NeedsUnquiesce {
 		return nil
 	}
 	op.NeedsUnquiesce = needed
-	if needed {
-		op.QuiescePodUID = podUID
-	}
 	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
 	return r.Update(ctx, gs)
 }

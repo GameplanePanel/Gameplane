@@ -919,10 +919,13 @@ self-reported, and the dashboard labels them that way.
 When a receiver sets `INGEST_POW=true`, `/ingest` requires a solved
 challenge from `GET /v1/challenge` in the `Gameplane-Telemetry-PoW` header.
 Challenges are HMAC-signed with a key held only in the receiver's memory,
-expire after 15 minutes and work once. The difficulty is `INGEST_POW_MIN_BITS` (default zero) while at most
-than `INGEST_POW_TARGET_PER_MIN` challenges a minute are issued, then rises
-with the rate (up to `INGEST_POW_MAX_BITS`, at most 26) and falls one bit per
-five minutes. The check runs before the body is read, so a refused report
+expire after 15 minutes and work once. The rate-derived difficulty is zero
+while at most `INGEST_POW_TARGET_PER_MIN` challenges a minute are issued and
+rises with the rate above that (up to `INGEST_POW_MAX_BITS`, at most 26). The
+receiver keeps the highest recent difficulty as a peak that falls one bit per
+five minutes, so after a flood the difficulty can stay above
+`INGEST_POW_MIN_BITS` (default zero) for a while; it never drops below that
+minimum. The check runs before the body is read, so a refused report
 costs the receiver one HMAC and one hash, and it answers `428`
 (`pow_required` or `pow_invalid`) or, when its used-challenge set (1,000,000
 entries) is full, `503 pow_busy`. Challenge requests have their own
