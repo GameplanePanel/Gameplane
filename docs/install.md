@@ -207,8 +207,10 @@ operator:
 ```
 
 These additional namespaces receive operator workload RBAC. Provision their
-namespace admission labels, NetworkPolicies, and any API/gateway access settings
-separately; those chart resources still target `gamesNamespace`. Registering a
+Restricted admission labels and any required API/gateway access before use.
+The [tenant network profile](security.md#tenant-network-profile) installs the
+chart's baseline NetworkPolicies in every managed namespace. With the compatibility
+defaults, provision additional namespaces' NetworkPolicies separately. Registering a
 remote cluster does not add local namespaces or extend Secret authority: remote
 health checks use discovery only, while each remote operator has its own scope.
 

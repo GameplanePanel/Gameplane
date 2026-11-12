@@ -10,8 +10,16 @@ The amd64 `network-isolation` bucket requires the Cilium fixture
 (`GAMEPLANE_E2E_CNI=cilium`) and strict chart CIDRs derived from the single-node
 cluster. It tests actual legacy versus isolated sentinel connections, an
 existing template's opt-in rollout without selector changes, HTTP kubelet
-readiness, fresh agent heartbeats, and API-to-agent mTLS access. It uses one
-admin login and runs separately from the kindnet shape-only checks.
+readiness, fresh agent heartbeats, and API-to-agent mTLS access. The tenant
+profile drill exercises same-named games in two Restricted namespaces, real
+frp forwarding, relay-to-waker access and revocation, and per-game versus
+shared probe ports. A player on the kind bridge connects through a NodePort
+with its source address preserved. An operator-created Backup writes to a Restic REST
+repository on the bridge. A monitoring client reads both agents' metrics.
+The drill checks fresh heartbeats after policy rollout and denies lateral agent
+and RCON connections, private HTTPS and a reachable link-local metadata fixture.
+`deploy/kind/with-network-peers.sh` installs the fixture route only inside the
+disposable node and removes it and its peer containers on exit.
 
 ### Restricted workload drill (#714)
 
@@ -49,7 +57,7 @@ stop, status reset/leader recovery, exact request binding, snapshot integrity,
 complete pinned render inputs and source-template preservation for CSI restore.
 
 - Keep the lint workflow, devcontainer and `lint-gate-verify.sh` on the exact `v2.14.0` linter pin, whose importer supports Go 1.27.3 export data. The verifier's valid fixtures use the same pin; regression fixtures reject `latest` and a stale fixed version in any lint step.
-- The serial `monitoring` bucket installs a checksum-pinned Prometheus Operator and Prometheus in a distinct namespace on the Cilium profile. It discovers real agent/tunnel targets through the documented chart values, verifies cached numeric samples, valid zero, invalid-value omission, no scrape-driven commands, policy revocation/recovery and refusal from an unapproved namespace. It performs no API login and does not opt in external modules.
+- The serial `monitoring` bucket installs a checksum-pinned Prometheus Operator and Prometheus in a distinct namespace on the Cilium profile. It runs identically named games in two tenant namespaces, removes and restores one discovery target, revokes and restores scrape ingress, and verifies that a tenant and a management Pod cannot read another tenant's metrics. It checks zero versus unknown player counts, game-process memory growth, numeric tick samples and invalid-value omission. Repeated scrapes must use the interval cache. The game fixture implements deterministic RCON responses and requires no external module or API login.
 
 - The optional-components lifecycle's `frp-identity-health` subtest runs two same-template TCP/UDP echo GameServers through one real frps. It asserts backend identity, registration rejection, replacement isolation, invalid credentials, relay outage/recovery and secret-free logs. It shares the lifecycle's controlled fixture and serial bucket; no extra top-level test or login budget is introduced.
 

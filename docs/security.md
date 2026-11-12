@@ -306,6 +306,59 @@ intended for local `kind` development where mTLS is overkill.
 
 ## NetworkPolicies
 
+### Tenant network profile
+
+Pre-provision a dedicated namespace per tenant and apply the cluster's restricted
+Pod Security Admission labels there. Upgrade each wake-enabled template to
+`spec.sentinelIsolation: true`, and verify its advertised ports before switching
+profiles. With `networkPolicies.tenantIsolation: true`, Helm owns the baseline
+policies in the primary namespace and every namespace in `operator.gameNamespaces`.
+Inventory policies with the same names before enabling this on an existing system.
+Removing a namespace from the list can remove its Helm-owned policies. Drain
+its games or hand policy ownership to the cluster administrator first.
+
+```yaml
+podSecurity:
+  enforceRestricted: true
+operator:
+  gameNamespaces: [tenant-b]
+networkPolicies:
+  tenantIsolation: true
+  strict: true
+  kubeletCIDRs: [192.0.2.10/32, 192.0.2.11/32]
+  apiServerCIDRs: [192.0.2.2/32]
+  probeIngress: {enabled: true}
+  probePorts: []
+  gameEgress: {enabled: false}
+  backupEgress:
+    enabled: true
+    toCIDRs: [192.0.2.30/32]
+    ports: [{protocol: TCP, port: 443}]
+```
+
+Replace the example addresses with endpoints observed by the enforcing CNI
+after Service translation. The profile omits legacy cross-game sentinel rules,
+limits DNS to kube-dns-labeled pods in kube-system, and admits both tunnel egress
+and backend ingress between a relay and its own game/waker on advertised ports. Provide scoped DNS allowances if
+the cluster uses NodeLocal DNS. Open approved asset downloads explicitly.
+Use a namespace-local policy for each relay's provider control/data endpoints.
+Select its `app.kubernetes.io/name: gameplane-tunnel` and
+`app.kubernetes.io/instance: <server>` labels. For Playit also allow the exact
+Kubernetes API endpoint for address publication. Providers with dynamic
+destinations require a provider-aware egress policy or a separately isolated
+deployment. Check existing provider policies after the operator reconciles.
+
+Run positive joins, heartbeat, scrape and backup checks on the deployed CNI.
+When upgrading with Helm's `--reuse-values` from a shared kubelet probe list,
+pass `--set-json 'networkPolicies.probePorts=[]'` to replace the previous
+list explicitly. Check that each managed game namespace has its per-server
+probe policies and that the legacy `allow-kubelet-probes` grant is absent.
+From an independent tenant, check the target Pod IP and Service for RCON and
+agent access. Verify private HTTPS and metadata endpoints are unreachable.
+Review additional policies in each namespace because their grants are additive.
+
+### Chart and operator policy rules
+
 When `networkPolicies.enabled=true` (default) the chart applies:
 
 - `default-deny-ingress` — denies all ingress to all pods in the games
@@ -359,9 +412,9 @@ When `networkPolicies.enabled=true` (default) the chart applies:
 - `allow-prometheus-to-agent` — opt-in (rendered only when
   `serviceMonitors.scrapeNamespaceSelector` is set) policy allowing Prometheus
   pods in the selected namespace to reach the agent's plain-HTTP metrics port
-  (TCP 9090). That port is unauthenticated HTTP, not mTLS, and is otherwise
-  already reachable from `kubeletCIDRs` via `allow-kubelet-probes` above
-  unless `networkPolicies.probePorts` is narrowed to exclude it.
+  (TCP 9090). The per-server probe policy opens it only for a game that uses
+  that probe port. A shared `probePorts` entry for 9090 or the legacy all-port
+  kubelet allowance can also grant access to this unauthenticated listener.
 - `allow-game-public-egress` — (enabled by default, gated by
   `networkPolicies.gameEgress.enabled`) allows game pods to reach the public
   internet for binary/asset/mod downloads. Set `networkPolicies.gameEgress.enabled: false`

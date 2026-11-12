@@ -190,6 +190,7 @@ func TestDeleteIfControlledBy_DeleteIsUIDPreconditioned(t *testing.T) {
 	controllerutil.SetControllerReference(gs, secret, scheme)
 
 	var gotUID *types.UID
+	var gotVersion *string
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(gs, secret).
 		WithInterceptorFuncs(interceptor.Funcs{
 			Delete: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
@@ -197,6 +198,7 @@ func TestDeleteIfControlledBy_DeleteIsUIDPreconditioned(t *testing.T) {
 				do.ApplyOptions(opts)
 				if do.Preconditions != nil {
 					gotUID = do.Preconditions.UID
+					gotVersion = do.Preconditions.ResourceVersion
 				}
 				return c.Delete(ctx, obj, opts...)
 			},
@@ -212,5 +214,8 @@ func TestDeleteIfControlledBy_DeleteIsUIDPreconditioned(t *testing.T) {
 	}
 	if *gotUID != secret.UID {
 		t.Errorf("Delete UID precondition = %q, want %q", *gotUID, secret.UID)
+	}
+	if gotVersion == nil || *gotVersion == "" || *gotVersion != secret.ResourceVersion {
+		t.Fatalf("expected delete fenced at observed resourceVersion %q, got %v", secret.ResourceVersion, gotVersion)
 	}
 }

@@ -340,6 +340,46 @@
           "legendFormat": "{{namespace}} / {{pod}} {{metric}}"
         }
       ]
+    },
+    {
+      "id": 11,
+      "title": "Relay drops and rejected flows",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "ops", "noValue": "Unknown", "custom": { "spanNulls": false } } },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod,protocol) (rate(gameplane_tunnel_flow_rejections_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{namespace}} / {{pod}} {{protocol}} rejections"
+        },
+        {
+          "refId": "B",
+          "expr": "max by (namespace,pod) (rate(gameplane_tunnel_udp_queue_drops_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "{{namespace}} / {{pod}} UDP queue drops"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Game process RSS and container working set",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "bytes", "noValue": "Unknown", "custom": { "spanNulls": false } } },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (namespace,pod) (gameplane_agent_memory_bytes{namespace=~\"$namespace\"})",
+          "legendFormat": "{{namespace}} / {{pod}} process RSS"
+        },
+        {
+          "refId": "B",
+          "expr": "max by (namespace,pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",container=\"game\"})",
+          "legendFormat": "{{namespace}} / {{pod}} working set"
+        }
+      ]
     }
   ]
 }
