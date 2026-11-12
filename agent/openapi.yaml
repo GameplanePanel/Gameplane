@@ -376,3 +376,52 @@ paths:
                   quiesced: { type: boolean, description: "false on success" }
                   reason:   { type: string }
         "502": { description: RCON unavailable; the game may still be quiesced — retry }
+
+  /v2/pods/{uid}/identity:
+    parameters:
+      - &podUID
+        name: uid
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Verify the pod UID and availability of the verified backup protocol
+      responses:
+        "204": { description: Matching pod UID }
+        "404": { description: Missing or mismatched pod UID }
+  /v2/pods/{uid}/quiesce:
+    parameters: [*podUID]
+    post:
+      summary: Pause with verified game command replies
+      responses:
+        "200":
+          description: Paused or unsupported
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [outcome, quiesced]
+                properties:
+                  outcome: { type: string, enum: [paused, unsupported] }
+                  quiesced: { type: boolean, description: "true only when paused" }
+                  reason: { type: string }
+        "502": { description: Transport failure or unacknowledged command }
+        "404": { description: Missing or mismatched pod UID }
+  /v2/pods/{uid}/unquiesce:
+    parameters: [*podUID]
+    post:
+      summary: Resume with verified game command replies
+      responses:
+        "200":
+          description: Only resumed confirms completion of cleanup
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [outcome, quiesced]
+                properties:
+                  outcome: { type: string, enum: [resumed, unsupported] }
+                  quiesced: { type: boolean, enum: [false] }
+                  reason: { type: string }
+        "502": { description: Transport failure or unacknowledged command }
+        "404": { description: Missing or mismatched pod UID }

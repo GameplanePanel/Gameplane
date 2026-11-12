@@ -129,14 +129,14 @@ func TestPodBoundQuiesceNeverFallsBackToLegacyRoute(t *testing.T) {
 			c, closeServer := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 				paths = append(paths, r.URL.Path)
 				w.WriteHeader(status)
-				_, _ = w.Write([]byte(`{"quiesced":true}`))
+				_, _ = w.Write([]byte(`{"quiesced":true,"outcome":"paused"}`))
 			})
 			defer closeServer()
 			err := c.QuiescePod(t.Context(), "ns", "server", "original-pod")
 			if (err == nil) != (status == http.StatusOK) {
 				t.Fatalf("status=%d error=%v", status, err)
 			}
-			if len(paths) != 1 || paths[0] != "/v1/pods/original-pod/quiesce" {
+			if len(paths) != 1 || paths[0] != "/v2/pods/original-pod/quiesce" {
 				t.Fatalf("unbound mutation/fallback: %v", paths)
 			}
 		})
@@ -145,10 +145,10 @@ func TestPodBoundQuiesceNeverFallsBackToLegacyRoute(t *testing.T) {
 
 func TestPodBoundUnquiesceAndDisabledClient(t *testing.T) {
 	c, closeServer := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/pods/original-pod/unquiesce" {
+		if r.URL.Path != "/v2/pods/original-pod/unquiesce" {
 			t.Errorf("wrong cleanup target: %s", r.URL.Path)
 		}
-		_, _ = w.Write([]byte(`{"quiesced":false}`))
+		_, _ = w.Write([]byte(`{"quiesced":false,"outcome":"resumed"}`))
 	})
 	defer closeServer()
 	if err := c.UnquiescePod(t.Context(), "ns", "server", "original-pod"); err != nil {
@@ -303,7 +303,7 @@ func TestCheckPodRequiresIdentityEndpoint(t *testing.T) {
 			calls := 0
 			c, cleanup := newMockClient(t, func(w http.ResponseWriter, req *http.Request) {
 				calls++
-				if req.Method != http.MethodGet || req.URL.Path != "/v1/pods/original/identity" {
+				if req.Method != http.MethodGet || req.URL.Path != "/v2/pods/original/identity" {
 					t.Errorf("unexpected preflight request: %s %s", req.Method, req.URL.Path)
 				}
 				w.WriteHeader(status)
@@ -338,4 +338,16 @@ type errTransport struct{}
 
 func (errTransport) RoundTrip(*http.Request) (*http.Response, error) {
 	return nil, errors.New("dial fail")
+}
+
+func TestPodBoundQuiesceRequiresDirectionalAcknowledgment(t *testing.T) {
+	for _, body := range []string{"", "not json", "null", "{}", `{"outcome":"resumed"}`, `{"quiesced":null,"outcome":"resumed"}`, `{"quiesced":true,"outcome":"resumed"}`, `{"quiesced":false,"outcome":"paused"}`, `{"quiesced":false}`, `{"quiesced":false,"outcome":"unsupported","reason":"game does not support quiesce"}`, `{"quiesced":false,"outcome":"resumed","reason":"rcon error"}`, `{"quiesced":false,"outcome":"resumed"}{}`, strings.Repeat(" ", 16<<10+1)} {
+		t.Run(body[:min(64, len(body))], func(t *testing.T) {
+			c, closeServer := newMockClient(t, func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte(body)) })
+			defer closeServer()
+			if err := c.UnquiescePod(t.Context(), "ns", "game", "pod"); err == nil || errors.Is(err, ErrUnsupported) {
+				t.Fatalf("invalid response discharged cleanup: %v", err)
+			}
+		})
+	}
 }

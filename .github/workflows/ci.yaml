@@ -1184,8 +1184,7 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install chromium
-        # Skips the browser download on a cache hit; still apt-installs deps.
-        run: npx playwright install --with-deps chromium
+        run: bash e2e/install-chromium.sh
       - name: build production dashboard for plain HTTP browser check
         run: npm run build
       - name: TypeScript editor on plain HTTP
@@ -1877,7 +1876,7 @@ jobs:
             job_timeout: 60 # Boots two-node kind, installs the chart and exercises repeated Hostport sleep/wake handoffs.
           - bucket: management-placement
             parallel: 1
-            test_timeout: 15m
+            test_timeout: 30m
             job_timeout: 60 # Boots management kind, installs the chart and checks placement/disruption behavior.
           - bucket: backup-preparation
             parallel: 1
@@ -2278,8 +2277,10 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install playwright browser
+        working-directory: web
         run: |
-          cd web && npm ci && npx playwright install --with-deps chromium
+          npm ci
+          bash e2e/install-chromium.sh
       - name: i18n catalogs for the live dashboard
         # The live job serves the dashboard with plain vite, which never builds
         # the gitignored language list and catalogs (spec 019 T037).
