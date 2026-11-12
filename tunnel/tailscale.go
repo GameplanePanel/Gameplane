@@ -80,7 +80,7 @@ func runTailscale(ctx context.Context, cfg Config, authKey string) error {
 		return err
 	}
 	var ready atomic.Bool
-	healthHistory := &relayHealth{}
+	healthHistory := &relayHealth{forwarding: &forwardTelemetry{limits: cfg.ForwardLimits}}
 	listener, err := (&net.ListenConfig{}).Listen(ctx, "tcp", ":8091")
 	if err != nil {
 		return fmt.Errorf("tailscale health listener: %w", err)
@@ -134,7 +134,7 @@ func waitTailnetRetry(ctx context.Context, healthDone <-chan error, delay time.D
 func serveTailnetWithHealth(ctx context.Context, node tailnetNode, tags []string, ports []forwardPort, ready *atomic.Bool, poll time.Duration, history *relayHealth, backoff *exponentialBackoff) error {
 	history.markUnavailable()
 	defer history.markUnavailable()
-	return serveTailnetObserved(ctx, node, tags, ports, ready, poll, tailnetRetryObserver(history, backoff, time.Now))
+	return serveTailnetObserved(ctx, node, tags, ports, ready, poll, history.forwarding, tailnetRetryObserver(history, backoff, time.Now))
 }
 
 func tailnetRetryObserver(history *relayHealth, backoff *exponentialBackoff, now func() time.Time) func(bool) {
@@ -165,10 +165,10 @@ func tailnetReady(status *ipnstate.Status, tags []string) bool {
 }
 
 func serveTailnet(ctx context.Context, node tailnetNode, tags []string, ports []forwardPort, ready *atomic.Bool, poll time.Duration) error {
-	return serveTailnetObserved(ctx, node, tags, ports, ready, poll, nil)
+	return serveTailnetObserved(ctx, node, tags, ports, ready, poll, nil, nil)
 }
 
-func serveTailnetObserved(ctx context.Context, node tailnetNode, tags []string, ports []forwardPort, ready *atomic.Bool, poll time.Duration, observe func(bool)) error {
+func serveTailnetObserved(ctx context.Context, node tailnetNode, tags []string, ports []forwardPort, ready *atomic.Bool, poll time.Duration, telemetry *forwardTelemetry, observe func(bool)) error {
 	ready.Store(false)
 	defer ready.Store(false)
 	if observe != nil {
@@ -184,7 +184,10 @@ func serveTailnetObserved(ctx context.Context, node tailnetNode, tags []string, 
 		return errors.New("tailnet is not online with the requested tags")
 	}
 	ips := append([]netip.Addr(nil), status.TailscaleIPs...)
-	f := newForwarder(ctx, defaultForwardLimits)
+	if telemetry == nil {
+		telemetry = &forwardTelemetry{limits: defaultForwardLimits}
+	}
+	f := newForwarder(ctx, telemetry)
 	defer f.Close()
 	for _, port := range ports {
 		if port.network == "tcp" {

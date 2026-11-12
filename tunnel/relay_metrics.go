@@ -11,6 +11,9 @@ import (
 func relayMetrics(h *relayHealth) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+		if h.forwarding != nil {
+			h.forwarding.writeMetrics(w)
+		}
 		now := time.Now()
 		snapshot := h.snapshot(now)
 		checked := snapshot.checked
@@ -19,6 +22,7 @@ func relayMetrics(h *relayHealth) http.Handler {
 			name, help string
 			value      bool
 		}{
+			{"gameplane_tunnel_forward_metrics_supported", "Whether the supervisor observes data-plane forwarding.", h.forwarding != nil},
 			{"gameplane_tunnel_connection_supported", "Whether the provider can report live connection health.", !h.connectionUnsupported},
 			{"gameplane_tunnel_ready", "Whether the relay and all configured forwards are confirmed ready.", snapshot.Ready},
 			{"gameplane_tunnel_connection_known", "Whether current provider or supervisor evidence confirms the connection state.", known},
