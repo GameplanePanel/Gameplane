@@ -104,7 +104,7 @@ func TestGameWorkerPoolAndQuota(t *testing.T) {
 	if err := os.WriteFile(path, data, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	rendered, err := exec.CommandContext(ctx, "helm", "template", ns, chart, "-n", ns, "-f", path,
+	rendered, err := exec.CommandContext(ctx, "helm", "template", ns, chart, "-n", "gameplane-system", "-f", path,
 		"--show-only", "templates/game-worker-admission.yaml", "--show-only", "templates/tenant-quotas.yaml").CombinedOutput()
 	if err != nil {
 		t.Fatalf("helm: %v: %s", err, rendered)
