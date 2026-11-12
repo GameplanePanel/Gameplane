@@ -212,7 +212,7 @@ func TestBackupLiveTimeoutRetainsOwnerUntilOriginalPodGone(t *testing.T) {
 		t.Fatal(err)
 	}
 	op, _, err := lifecycleOwner(&gs)
-	if err != nil || op.QuiescePodUID != "game-pod-uid" || !op.NeedsUnquiesce {
+	if err != nil || op.QuiescePodUID != "game-pod-uid" || op.QuiesceContainerID != backupRunningGameStatus().ContainerID || op.QuiesceRestartCount == nil || *op.QuiesceRestartCount != 0 || !op.NeedsUnquiesce {
 		t.Fatalf("cleanup identity not durable: %+v %v", op, err)
 	}
 	guardPass(t, r, "first")

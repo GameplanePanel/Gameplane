@@ -158,13 +158,14 @@ type gameBotSpec struct {
 	RCON          map[string]any // spec.rcon
 	ConsoleMode   string         // spec.consoleMode
 	Actions       []any          // spec.capabilities.actions; nil means no actions
+	Quiesce       map[string]any // optional backup declaration
 	Control       pathAControl   // Path A: drive the server through Gameplane (optional)
 }
 
 // runGameBotTest creates the GameTemplate + GameServer, waits for
 // status.phase == Running, then runs the in-cluster probe. It expects
 // the probe to reach ExpectDepth or the test fails.
-func runGameBotTest(t *testing.T, s gameBotSpec) {
+func runGameBotTest(t *testing.T, s gameBotSpec) (string, string) {
 	t.Helper()
 
 	// Enforcement: verify the test name suffix matches the asserted depth.
@@ -253,6 +254,7 @@ func runGameBotTest(t *testing.T, s gameBotSpec) {
 	if s.Control.Mode != "" {
 		runGameBotPathA(t, gsName, ns, s.Control)
 	}
+	return gsName, ns
 }
 
 // createGameBotServer creates the GameTemplate and the GameServer described by s
@@ -323,10 +325,15 @@ func createGameBotServer(t *testing.T, env *Env, s gameBotSpec) (gsName, namespa
 	if s.ConsoleMode != "" {
 		spec["consoleMode"] = s.ConsoleMode
 	}
+	capabilities := map[string]any{}
 	if s.Actions != nil {
-		spec["capabilities"] = map[string]any{
-			"actions": s.Actions,
-		}
+		capabilities["actions"] = s.Actions
+	}
+	if s.Quiesce != nil {
+		capabilities["quiesce"] = s.Quiesce
+	}
+	if len(capabilities) > 0 {
+		spec["capabilities"] = capabilities
 	}
 
 	tmpl := &unstructured.Unstructured{Object: map[string]any{

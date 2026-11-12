@@ -16,23 +16,21 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
-// ErrUnsupported is returned when the agent acknowledges the request
-// but reports the underlying game has no quiesce equivalent. Callers
-// should treat this as success-with-degradation, not as a hard error
-// — backups must still proceed when the game can't be paused.
+// ErrUnsupported means the agent declined the pause because it cannot quiesce
+// this game. A first verified refusal allows the backup to proceed without a
+// pause. It cannot clear the resume obligation from an earlier ambiguous call.
 var ErrUnsupported = errors.New("agent: game does not support quiesce")
 
 // Client speaks to the agent's HTTPS endpoints. Zero value is unusable;
 // build via New.
 type Client struct {
 	http *http.Client
-	// Disabled is true when no mTLS material was configured. All
-	// methods on a disabled client return nil without dialing — this
-	// lets the operator boot in dev clusters without a chart-managed
-	// Secret. Production deployments are expected to set the flags.
+	// Disabled is true when no mTLS material was configured. Legacy requests
+	// may return success without dialing. Pod-bound operations return an error.
 	Disabled bool
 }
 
@@ -46,18 +44,13 @@ type Config struct {
 	Timeout    time.Duration
 }
 
-// Enabled reports whether c can actually reach an agent. A disabled
-// client (no mTLS material configured) silently no-ops every method, so
-// callers that need to pick a transport based on availability — rather
-// than just calling a method and accepting a no-op — must check this
-// instead of a nil-client check alone: agent.New never returns a nil
-// *Client, only a non-nil one with Disabled set.
+// Enabled reports whether the client has mTLS configured. It does not probe an agent.
 func (c *Client) Enabled() bool {
 	return !c.Disabled
 }
 
 // New builds an mTLS-configured Client. Empty cert paths produce a
-// disabled client (no-op methods).
+// disabled client. Partial configuration returns an error.
 func New(cfg Config) (*Client, error) {
 	if cfg.CABundle == "" && cfg.ClientCert == "" && cfg.ClientKey == "" {
 		return &Client{Disabled: true}, nil
@@ -103,7 +96,8 @@ func agentURL(namespace, server, path string) string {
 }
 
 type quiesceResponse struct {
-	Quiesced bool   `json:"quiesced"`
+	Quiesced *bool  `json:"quiesced"`
+	Outcome  string `json:"outcome"`
 	Reason   string `json:"reason,omitempty"`
 }
 
@@ -129,7 +123,7 @@ func (c *Client) CheckPod(ctx context.Context, namespace, server, podUID string)
 	if c.Disabled || podUID == "" {
 		return fmt.Errorf("agent: pod identity check requires an enabled client and pod UID")
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agentURL(namespace, server, "/v1/pods/"+url.PathEscape(podUID)+"/identity"), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agentURL(namespace, server, "/v2/pods/"+url.PathEscape(podUID)+"/identity"), nil)
 	if err != nil {
 		return err
 	}
@@ -145,11 +139,15 @@ func (c *Client) CheckPod(ctx context.Context, namespace, server, podUID string)
 }
 
 // QuiescePod disables saving only on the selected Pod's agent.
+// A lost acknowledgment can leave saving disabled. Record the resume obligation
+// before sending the request.
 func (c *Client) QuiescePod(ctx context.Context, namespace, server, podUID string) error {
 	return c.callPodQuiesce(ctx, namespace, server, podUID, "/quiesce", true)
 }
 
 // UnquiescePod restores saving only on the selected Pod's agent.
+// A Pod UID survives a container restart. The caller must check game container
+// identity before sending save-on to the process that owes a resume.
 func (c *Client) UnquiescePod(ctx context.Context, namespace, server, podUID string) error {
 	return c.callPodQuiesce(ctx, namespace, server, podUID, "/unquiesce", false)
 }
@@ -158,7 +156,7 @@ func (c *Client) callPodQuiesce(ctx context.Context, namespace, server, podUID, 
 	if c.Disabled || podUID == "" {
 		return fmt.Errorf("agent: pod-bound quiesce requires an enabled client and pod UID")
 	}
-	return c.callQuiesce(ctx, namespace, server, "/v1/pods/"+url.PathEscape(podUID)+path, expectQuiesced)
+	return c.callQuiesce(ctx, namespace, server, "/v2/pods/"+url.PathEscape(podUID)+path, expectQuiesced)
 }
 
 // expectQuiesced is what the response should report on a successful
@@ -177,25 +175,40 @@ func (c *Client) callQuiesce(ctx context.Context, namespace, server, path string
 		return fmt.Errorf("agent: %s: %w", path, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 16<<10))
+	const maxReply = 16 << 10
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxReply+1))
+	if err != nil {
+		return fmt.Errorf("agent: %s: read response: %w", path, err)
+	}
+	if len(body) > maxReply {
+		return fmt.Errorf("agent: %s: oversized response", path)
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("agent: %s: status %d", path, resp.StatusCode)
 	}
 
 	var parsed quiesceResponse
-	if len(body) > 0 {
-		if err := json.Unmarshal(body, &parsed); err != nil {
-			return fmt.Errorf("agent: %s: decode response: %w", path, err)
-		}
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return fmt.Errorf("agent: %s: decode response: %w", path, err)
 	}
-	// Detect the unsupported-game case via the canonical reason string
-	// so we can report it distinctly without leaking it as a hard error.
-	if !parsed.Quiesced && expectQuiesced {
-		if parsed.Reason == "game does not support quiesce" {
-			return ErrUnsupported
-		}
-		return fmt.Errorf("agent: %s: refused (%s)", path, parsed.Reason)
+	if parsed.Quiesced == nil {
+		return fmt.Errorf("agent: %s: missing quiesced field", path)
+	}
+	verified := strings.HasPrefix(path, "/v2/pods/")
+	if expectQuiesced && !*parsed.Quiesced && parsed.Reason == "game does not support quiesce" &&
+		(!verified || parsed.Outcome == "unsupported") {
+		return ErrUnsupported
+	}
+	if *parsed.Quiesced != expectQuiesced || parsed.Reason != "" {
+		return fmt.Errorf("agent: %s: refused or contradictory acknowledgment", path)
+	}
+	want := "resumed"
+	if expectQuiesced {
+		want = "paused"
+	}
+	if verified && parsed.Outcome != want {
+		return fmt.Errorf("agent: %s: missing or contradictory outcome", path)
 	}
 	return nil
 }
