@@ -945,7 +945,9 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
 
   const Files = {
     list: (server: string, path: string, ns?: string) =>
-      api<FileEntry[]>(withNS(`${filesBase(server)}/list?path=${encodeURIComponent(path)}`, ns)),
+      api<FileEntry[]>(withNS(`${filesBase(server)}/list?path=${encodeURIComponent(path)}`, ns), {
+        headers: expectedUID ? { "X-Gameplane-Server-UID": expectedUID } : undefined,
+      }),
     read: async (server: string, path: string, ns?: string): Promise<string> => {
       const res = await filesFetch(
         withNS(`${filesBase(server)}/read?path=${encodeURIComponent(path)}`, ns),
@@ -1016,7 +1018,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       if (!dest) return res.blob();
     },
     downloadURL: (server: string, path: string, ns?: string) =>
-      withCluster(withNS(`${filesBase(server)}/download?path=${encodeURIComponent(path)}`, ns)),
+      withCluster(withNS(`${filesBase(server)}/download?path=${encodeURIComponent(path)}${expectedUID ? "&expectedUID=" + encodeURIComponent(expectedUID) : ""}`, ns)),
   };
 
   const Logs = {

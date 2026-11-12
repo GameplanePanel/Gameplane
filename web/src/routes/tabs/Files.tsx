@@ -100,11 +100,6 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   }, []);
   const currentLocation = useRef(location);
   useLayoutEffect(() => { currentLocation.current = location; }, [location]);
-  // Below `md` the tree and the file view can't sit side by side — show one
-  // pane at a time, switched by tapping an entry (→ view) or the "Files"
-  // back-button (→ tree). At `md`+ both panes are always visible regardless
-  // of this state (see the `md:flex` overrides below).
-  const [pane, setPane] = useState<"tree" | "view">(selectedPath ? "view" : "tree");
   const loadedFile = selectedPath ? drafts.get(selectedPath) : undefined;
   const serverContent = loadedFile?.saved ?? null;
   const editorValue = loadedFile?.text ?? "";
@@ -130,14 +125,15 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   useEffect(() => {
     if (!selectedPath || drafts.get(selectedPath)) return;
     const controller = new AbortController();
+    const release = drafts.trackRead(selectedPath, controller);
     createResourceClient(resourceTarget, controller.signal).Files.read(name, selectedPath, ns)
       .then((text) => {
         if (!controller.signal.aborted) drafts.open(selectedPath, text);
       })
       .catch((err: Error) => {
         if (!controller.signal.aborted) setLoadError({ path: selectedPath, message: err.message });
-      });
-    return () => controller.abort();
+      }).finally(release);
+    return () => { controller.abort(); release(); };
   }, [selectedPath, name, ns, resourceTarget, drafts]);
 
   function changeLocation(next: string) {
@@ -151,12 +147,10 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
   function selectFile(entry: Pick<FileEntry, "path">) {
     changeLocation(entry.path);
-    setPane("view");
   }
 
   function navigateTo(folder: string) {
     changeLocation(folder === ROOT ? ROOT : folder + "/");
-    setPane("tree");
   }
 
   function toggleEntry(entry: FileEntry) {
@@ -227,15 +221,16 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
 
   const newFileMutation = useMutation({
     mutationFn: async (fileName: string) => {
+      const origin = currentLocation.current;
       const path = joinPath(cwd, fileName);
       await Files.create(name, path, "", ns);
-      return path;
+      return { path, origin };
     },
-    onSuccess: async (path) => {
+    onSuccess: async ({ path, origin }) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       setNewFileOpen(false);
       await qc.invalidateQueries({ queryKey: listKey(cwd) });
-      selectFile({ path });
+      if (currentLocation.current === origin) selectFile({ path });
       setOpError(null);
     },
     onError: (err: Error) => setOpError(err.message),
@@ -322,11 +317,23 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
         </div>
       )}
 
+      {drafts.paths().length > 0 && <nav aria-label={intl.formatMessage({ id: "web.routes.tabs.files.open_files", defaultMessage: "Open files", description: "Accessible name for the open file tabs." })} className="flex shrink-0 gap-1 overflow-x-auto border-b border-divider">
+        {drafts.paths().map((p) => <div key={p} className="flex items-center">
+          <button type="button" aria-current={p === selectedPath ? "page" : undefined} className="px-2 py-1 text-xs aria-current:bg-default-100" onClick={() => selectFile({path: p})}>{p}{drafts.get(p)?.text !== drafts.get(p)?.saved && <Circle aria-hidden="true" className="ml-1 inline size-2 fill-current" />}</button>
+          <button type="button" className="pr-2" aria-label={intl.formatMessage({ id: "web.routes.tabs.files.close_file", defaultMessage: "Close {path}", description: "Close a file tab after saving its edits." }, {path: p})} onClick={async () => {
+            let closed = await drafts.close(p);
+            if (!closed && drafts.get(p)?.error && window.confirm(intl.formatMessage({
+              id: "web.routes.tabs.files.discard_unsaved_changes", defaultMessage: "You have unsaved changes. Discard them and continue?", description: "Files: confirm prompt shown before discarding unsaved file edits",
+            }))) closed = drafts.discard(p);
+            if (closed && currentLocation.current === p) navigateTo(parentOf(p));
+          }}><X aria-hidden="true" className="size-3" /></button>
+        </div>)}
+      </nav>}
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
         <aside
           className={cn(
             "w-full shrink-0 flex-col border-r border-divider md:flex md:w-72",
-            pane === "tree" ? "flex" : "hidden",
+            isFolder ? "flex" : "hidden",
           )}
         >
           <div className="border-b border-divider bg-background px-3 py-2 font-mono text-xs text-default-500">
@@ -353,7 +360,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
         <main
           className={cn(
             "min-w-0 flex-1 flex-col md:flex",
-            pane === "view" ? "flex" : "hidden",
+            isFolder ? "hidden" : "flex",
           )}
         >
           <div className="flex items-center border-b border-divider bg-background px-2 py-1.5 md:hidden">
@@ -361,7 +368,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
               isIconOnly
               variant="ghost"
               size="sm"
-              onPress={() => setPane("tree")}
+              onPress={() => navigateTo(cwd)}
               aria-label={intl.formatMessage({ id: "web.routes.tabs.files.back_to_files", defaultMessage: "Back to files", description: "Files tab: icon-only button that returns from a file view to the file tree; read by screen readers" })}
               className="text-default-500"
             >
@@ -369,18 +376,6 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
             </Button>
             <span className="text-xs text-default-500 ml-1">{intl.formatMessage({ id: "web.routes.tabs.files.files", defaultMessage: "Files", description: "Files tab: label beside the back button in the file pane header, naming the files area" })}</span>
           </div>
-          {drafts.paths().length > 0 && <nav aria-label={intl.formatMessage({ id: "web.routes.tabs.files.open_files", defaultMessage: "Open files", description: "Accessible name for the open file tabs." })} className="flex shrink-0 gap-1 overflow-x-auto border-b border-divider">
-            {drafts.paths().map((p) => <div key={p} className="flex items-center">
-              <button type="button" aria-current={p === selectedPath ? "page" : undefined} className="px-2 py-1 text-xs aria-current:bg-default-100" onClick={() => selectFile({path: p})}>{p}{drafts.get(p)?.text !== drafts.get(p)?.saved && <Circle aria-hidden="true" className="ml-1 inline size-2 fill-current" />}</button>
-              <button type="button" className="pr-2" aria-label={intl.formatMessage({ id: "web.routes.tabs.files.close_file", defaultMessage: "Close {path}", description: "Close a file tab after saving its edits." }, {path: p})} onClick={async () => {
-                let closed = await drafts.close(p);
-                if (!closed && drafts.get(p)?.error && window.confirm(intl.formatMessage({
-                  id: "web.routes.tabs.files.discard_unsaved_changes", defaultMessage: "You have unsaved changes. Discard them and continue?", description: "Files: confirm prompt shown before discarding unsaved file edits",
-                }))) closed = drafts.discard(p);
-                if (closed && currentLocation.current === p) navigateTo(parentOf(p));
-              }}><X aria-hidden="true" className="size-3" /></button>
-            </div>)}
-          </nav>}
           {selected && !selected.dir ? (
             <>
               <div className="flex items-center justify-between border-b border-divider bg-background px-4 py-2">

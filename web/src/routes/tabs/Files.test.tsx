@@ -1,3 +1,4 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import { useState, type ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -328,7 +329,7 @@ describe("FilesTab", () => {
   });
 
   // Below `md` the tree and editor stack instead of sitting side by side;
-  // which one is showing is tracked by a `pane` state that toggles a
+  // the selected path chooses the active pane via its
   // "flex"/"hidden" class (real CSS, so it's inert in jsdom — this asserts
   // the class tokens directly rather than actual visibility).
   it("mobile pane toggle: selecting a file switches to the editor pane; 'Back to files' returns to the tree", async () => {
@@ -601,6 +602,42 @@ describe("FilesTab", () => {
     fireEvent.change(uploadInput, { target: { files: { 0: file, length: 1 } as unknown as FileList } });
     await waitFor(() => expect(uploadCalled).toBe(true));
     expect(uploadInput.value).toBe("");
+  });
+
+  it("keeps a later route selection when creation completes and follows mobile history", async () => {
+    const creation = deferredResponse();
+    const target = { cluster: "local", name: "mc-survival", uid: "first" };
+    const access = { canWrite:true, canControl:true, canConsole:true, canDelete:true, isOwner:true, isCollaborator:false };
+    const nav = vi.fn();
+    const browser = (path: string) => <ResourceTargetProvider target={target} access={access}>
+      <FilesTab name="mc-survival" path={path} onNavigate={nav} />
+    </ResourceTargetProvider>;
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes("/files/list")) return jsonRes(ROOT_ENTRIES);
+      if (url.includes("/files/create")) return creation.promise;
+      if (url.includes("/files/read")) return textRes("current");
+      throw new Error(url);
+    });
+    const view = baseRenderWithQuery(browser("/"));
+    await screen.findByText("server.properties");
+    fireEvent.click(screen.getByRole("button", { name: /New file/ }));
+    fireEvent.change(await screen.findByPlaceholderText("config.yaml"), {target:{value:"new.txt"}});
+    fireEvent.click(screen.getByRole("button", {name:"Create"}));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url.includes("/files/create"))).toBe(true));
+    view.rerender(<QueryClientProvider client={view.client}>{browser("/unlisted.properties")}</QueryClientProvider>);
+    expect(await screen.findByTestId("monaco")).toHaveValue("current");
+    expect(view.container.querySelector("main")).toHaveClass("flex");
+    await act(async () => creation.resolve(new Response(null, { status: 204 })));
+    await waitFor(() => expect(screen.queryByPlaceholderText("config.yaml")).not.toBeInTheDocument());
+    expect(nav).not.toHaveBeenCalled();
+    const list = fetchMock.mock.calls.find(([url]) => url.includes("/files/list"));
+    expect(new Headers(list?.[1]?.headers).get("X-Gameplane-Server-UID")).toBe("first");
+    view.rerender(<QueryClientProvider client={view.client}>{browser("/")}</QueryClientProvider>);
+    expect(view.container.querySelector("aside")).toHaveClass("flex");
+    const tabs = screen.getByRole("navigation", {name: "Open files"});
+    expect(tabs.closest("main")).toBeNull();
+    fireEvent.click(within(tabs).getByRole("button", {name: "/unlisted.properties"}));
+    expect(nav).toHaveBeenCalledWith("/unlisted.properties");
   });
 
   it("creates a new file and selects it after successful creation", async () => {

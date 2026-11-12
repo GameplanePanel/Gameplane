@@ -34,3 +34,31 @@ describe("file drafts", () => {
     expect(drafts.get("/dir/file")).toBeUndefined();
   });
 });
+
+it("resumes a debounced save after deleting the containing folder fails", async () => {
+  vi.useFakeTimers();
+  try {
+    const write = vi.fn().mockResolvedValue(undefined);
+    const drafts = new FileDrafts(write);
+    drafts.open("/dir/file", "before");
+    drafts.edit("/dir/file", "edited");
+    await expect(drafts.remove("/dir", async () => { throw new Error("busy"); })).rejects.toThrow("busy");
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(write).toHaveBeenCalledWith("/dir/file", "edited");
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("cancels outstanding reads of files removed in a batch", async () => {
+  const drafts = new FileDrafts(vi.fn());
+  const file = new AbortController();
+  const other = new AbortController();
+  const release = drafts.trackRead("/dir/file", file);
+  const releaseOther = drafts.trackRead("/other/file", other);
+  await drafts.remove("/dir", async () => {});
+  expect(file.signal.aborted).toBe(true);
+  expect(other.signal.aborted).toBe(false);
+  release();
+  releaseOther();
+});
