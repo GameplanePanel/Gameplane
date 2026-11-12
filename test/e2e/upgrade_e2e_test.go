@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"os"
@@ -13,9 +14,11 @@ import (
 	"testing"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -31,7 +34,7 @@ import (
 // from under everything in the namespace, so it gets its own cluster and its
 // own CI job (the same reason the multicluster bucket has one).
 //
-// The four things an upgrade can silently break, and what proves each:
+// The upgrade checks:
 //
 //  1. CRDs. Helm installs crds/ on first install and NEVER updates them on
 //     upgrade. The chart works around that with a pre-upgrade hook
@@ -41,6 +44,8 @@ import (
 //  3. The database. Migrations run against a populated SQLite PVC on startup;
 //     a user created before the upgrade must still be able to log in after.
 //  4. The new components must actually come up clean.
+//  5. The live credential migration preflight must reject missing or altered
+//     OIDC Secrets and module uploads, then accept faithful copies.
 //
 // A final phase (F-218) then covers the install-side twin of (1): a fresh
 // `helm install` onto CRDs an uninstalled older release left behind must
@@ -122,19 +127,25 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("seed operator RollingUpdate strategy: %v\n%s", err, out)
 	}
 
-	upgrade := exec.CommandContext(ctx, "helm", "upgrade", "gameplane",
+	upgradeArgs := []string{"upgrade", "gameplane",
 		filepath.Join(repoRoot, "charts", "gameplane"),
+		"--kube-context", envInstance.Context,
 		"--namespace", "gameplane-system",
 		"--set", "image.registry=gameplane-test",
-		"--set", "image.tag="+tag,
+		"--set", "image.tag=" + tag,
 		"--set", "ingress.enabled=false",
 		"--set", "web.enabled=false",
-		"--set", "operator.agentImage=gameplane-test/agent:"+tag,
+		"--set", "operator.agentImage=gameplane-test/agent:" + tag,
+		// The published release's busybox template and volume use the legacy profile.
+		"--set", "podSecurity.enforceRestricted=false",
 		"--set", "api.resources.limits.memory=1Gi",
+		"--set", "api.credentialsNamespace=" + credentialsNS,
 		"--set", "operator.leaderElect=false",
 		"--set", "defaultModuleSource.enabled=false",
 		"--wait", "--timeout", "6m",
-	)
+	}
+	verifyUpgradeMigration(ctx, t, upgradeArgs)
+	upgrade := exec.CommandContext(ctx, "helm", upgradeArgs...)
 	upgrade.Env = append(os.Environ(), "KUBECONFIG="+os.Getenv("KUBECONFIG"))
 	if out, err := upgrade.CombinedOutput(); err != nil {
 		t.Fatalf("helm upgrade to the working-tree chart failed: %v\n%s", err, out)
@@ -386,6 +397,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		"--set", "operator.agentImage=gameplane-test/agent:"+tag,
 		"--set", "operator.leaderElect=false",
 		"--set", "operator.replicas=0",
+		"--set", "operator.controlPlaneNamespace="+credentialsNS,
 		"--set", "api.enabled=false",
 		"--set", "gamesNamespace=e2e-crd-reinstall-games",
 		"--set", "defaultModuleSource.enabled=false",
@@ -426,6 +438,142 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	if got := liveCRDStamp(ctx, t, "gameservers.gameplane.local"); got != chartStamp {
 		t.Errorf("live gameservers CRD %s = %q after installing over leftover CRDs, want the chart's %q",
 			crdBundleStampAnnotation, got, chartStamp)
+	}
+
+	// This release now has only an operator. Enabling the native panel moves
+	// kubeconfigs from the operator's override and uploads from the release NS.
+	const nextNS = "e2e-next-credentials"
+	core := envInstance.K8s.CoreV1()
+	create := metav1.CreateOptions{}
+	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: nextNS}}, create); err != nil {
+		t.Fatal(err)
+	}
+	kubeconfig := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+		Name: "e2e-operator-kubeconfig", Labels: map[string]string{"gameplane.local/cluster-kubeconfig": "true"},
+	}}
+	if _, err := core.Secrets(credentialsNS).Create(ctx, kubeconfig, create); err != nil {
+		t.Fatal(err)
+	}
+	enableAPI := append(upgradeArgs, "--set", "api.credentialsNamespace="+nextNS)
+	migrationDryRun(ctx, t, enableAPI, "operator kubeconfig", "Migrate Secret "+credentialsNS+"/"+kubeconfig.Name)
+	if _, err := core.Secrets(nextNS).Create(ctx, kubeconfig, create); err != nil {
+		t.Fatal(err)
+	}
+	migrationDryRun(ctx, t, enableAPI, "operator upload", "Migrate module ConfigMap gameplane-system/module-upload-e2e-migration")
+}
+
+// verifyUpgradeMigration exercises live Helm lookups against the published
+// release. Each dry run uses the same chart and values as the actual upgrade.
+func verifyUpgradeMigration(ctx context.Context, t *testing.T, upgradeArgs []string) {
+	t.Helper()
+	const sourceNS = "gameplane-system"
+	core := envInstance.K8s.CoreV1()
+	create := metav1.CreateOptions{}
+	if _, err := core.Namespaces().Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: credentialsNS}}, create); err != nil {
+		t.Fatal(err)
+	}
+	immutable := true
+	oidc := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "e2e-upgrade-oidc", Labels: map[string]string{
+			"gameplane.local/auth-provider": "true", "gameplane.local/managed-by": "gameplane-api",
+		}},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{"clientSecret": []byte("synthetic-upgrade-fixture")},
+	}
+	if _, err := core.Secrets(sourceNS).Create(ctx, oidc, create); err != nil {
+		t.Fatal(err)
+	}
+	upload := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "module-upload-e2e-migration", Labels: map[string]string{
+			"gameplane.local/module-upload": "true", "gameplane.local/module-name": "e2e-migration",
+		}},
+		Data:       map[string]string{"module.yaml": "apiVersion: gameplane.local/module/v1\nname: e2e-migration\nversion: 1.0.0\ngame: busybox\n"},
+		BinaryData: map[string][]byte{"template.yaml": []byte("apiVersion: gameplane.local/v1alpha1\nkind: GameTemplate\nspec:\n  displayName: Migration\n  game: busybox\n  version: 1.0.0\n  image: busybox:1.36\n")},
+	}
+	if _, err := core.ConfigMaps(sourceNS).Create(ctx, upload, create); err != nil {
+		t.Fatal(err)
+	}
+	dryRun := func(stage, blockedObject string) {
+		t.Helper()
+		migrationDryRun(ctx, t, upgradeArgs, stage, blockedObject)
+	}
+	secretMarker := "Migrate Secret " + sourceNS + "/" + oidc.Name
+	dryRun("missing OIDC copy", secretMarker)
+	secretCopy := oidc.DeepCopy()
+	secretCopy.Data["clientSecret"] = []byte("incorrect-fixture")
+	secretCopy, err := core.Secrets(credentialsNS).Create(ctx, secretCopy, create)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dryRun("altered OIDC data", secretMarker)
+	secretCopy.Data = oidc.Data
+	delete(secretCopy.Labels, "gameplane.local/managed-by")
+	secretCopy, err = core.Secrets(credentialsNS).Update(ctx, secretCopy, metav1.UpdateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dryRun("missing OIDC management label", secretMarker)
+	secretCopy.Labels = oidc.Labels
+	secretCopy, err = core.Secrets(credentialsNS).Update(ctx, secretCopy, metav1.UpdateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.Secrets(sourceNS).Patch(ctx, oidc.Name, types.MergePatchType, []byte(`{"immutable":true}`), metav1.PatchOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	dryRun("mutable copy of immutable OIDC Secret", secretMarker)
+	secretCopy.Immutable = &immutable
+	if _, err := core.Secrets(credentialsNS).Update(ctx, secretCopy, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	uploadMarker := "Migrate module ConfigMap " + sourceNS + "/" + upload.Name
+	dryRun("missing upload copy", uploadMarker)
+	uploadCopy := upload.DeepCopy()
+	delete(uploadCopy.BinaryData, "template.yaml")
+	uploadCopy, err = core.ConfigMaps(credentialsNS).Create(ctx, uploadCopy, create)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dryRun("incomplete upload bundle", uploadMarker)
+	uploadCopy.BinaryData = upload.BinaryData
+	uploadCopy.Labels["gameplane.local/module-name"] = "wrong-module"
+	uploadCopy, err = core.ConfigMaps(credentialsNS).Update(ctx, uploadCopy, metav1.UpdateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dryRun("wrong upload module name", uploadMarker)
+	uploadCopy.Labels = upload.Labels
+	uploadCopy, err = core.ConfigMaps(credentialsNS).Update(ctx, uploadCopy, metav1.UpdateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.ConfigMaps(sourceNS).Patch(ctx, upload.Name, types.MergePatchType, []byte(`{"immutable":true}`), metav1.PatchOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	dryRun("mutable copy of immutable upload", uploadMarker)
+	uploadCopy.Immutable = &immutable
+	if _, err := core.ConfigMaps(credentialsNS).Update(ctx, uploadCopy, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	dryRun("matching OIDC Secret and module upload", "")
+}
+
+// migrationDryRun requires the preflight to name the expected unmigrated
+// object so a failure elsewhere in the chart cannot satisfy a rejection test.
+func migrationDryRun(ctx context.Context, t *testing.T, upgradeArgs []string, stage, blockedObject string) {
+	t.Helper()
+	cmd := exec.CommandContext(ctx, "helm", append(upgradeArgs, "--dry-run=server")...)
+	// A successful dry run can render private keys. Discard stdout and use
+	// stderr only to identify the rejected object, never as test output.
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if blockedObject == "" {
+		if err != nil {
+			t.Fatalf("%s: expected server dry run to succeed: %v", stage, err)
+		}
+	} else if err == nil || !strings.Contains(stderr.String(), blockedObject) {
+		t.Fatalf("%s: expected preflight rejection naming %s, command error: %v", stage, blockedObject, err)
 	}
 }
 

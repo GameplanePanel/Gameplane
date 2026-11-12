@@ -1,4 +1,4 @@
-"""CI-only chart checks for the opt-in Restricted workload and node exception."""
+"""CI-only chart checks for game workload and credential admission."""
 from pathlib import Path
 import shutil
 import tempfile
@@ -47,16 +47,58 @@ def check_namespace_separation():
     one(objects, "Namespace", "gameplane-diagnostics")
 
 
+def check_admission_policies():
+    """Check that token protection covers credential stores even when game Pod restrictions are disabled."""
+    def bound_namespaces(objects, name, resource_rules):
+        policy = one(objects, "ValidatingAdmissionPolicy", name)
+        assert policy["apiVersion"] == "admissionregistration.k8s.io/v1"
+        assert policy["spec"]["failurePolicy"] == "Fail"
+        assert policy["spec"]["matchConstraints"]["resourceRules"] == resource_rules
+        binding = one(objects, "ValidatingAdmissionPolicyBinding", name)["spec"]
+        assert binding["policyName"] == name and binding["validationActions"] == ["Deny"]
+        requirement, = binding["matchResources"]["namespaceSelector"]["matchExpressions"]
+        assert requirement["key"] == "kubernetes.io/metadata.name" and requirement["operator"] == "In"
+        return set(requirement["values"])
+
+    games = {"games-main", "games-eu"}
+    values = {"gamesNamespace": "games-main", "operator": {"gameNamespaces": ["games-eu", "games-main"],
+              "agentCASecretNamespace": "certificates", "moduleNamespace": "modules"}}
+    render(values, kube_version="1.29.99", failure="kubeVersion: >=1.30.0-0")
+    objects = render(values, namespace="panel", kube_version="1.30.0")
+    secret_rule = [{"apiGroups": [""], "apiVersions": ["v1"], "operations": ["CREATE", "UPDATE"],
+                    "resources": ["secrets"], "scope": "Namespaced"}]
+    protected = games | {"panel", "certificates", "modules"}
+    assert bound_namespaces(objects, "bound-tokens.gameplane.panel", secret_rule) == protected | {"panel-credentials"}
+    assert bound_namespaces(objects, "restricted-games.gameplane.panel", [
+        {"apiGroups": [""], "apiVersions": ["v1"], "operations": ["CREATE"],
+         "resources": ["pods"], "scope": "Namespaced"},
+        {"apiGroups": [""], "apiVersions": ["v1"], "operations": ["UPDATE"],
+         "resources": ["pods/ephemeralcontainers"], "scope": "Namespaced"},
+    ]) == games
+    assert not any(o["kind"] == "Namespace" and o["metadata"]["name"] == "games-eu" for o in objects)
+
+    # A legacy workload profile can still be used during a data migration.
+    # Persistent token issuance must stay blocked there, including remote operators.
+    legacy = render({**values, "api": {"enabled": False}, "podSecurity": {"enforceRestricted": False}}, namespace="panel")
+    assert bound_namespaces(legacy, "bound-tokens.gameplane.panel", secret_rule) == protected
+    assert "pod-security.kubernetes.io/enforce" not in one(legacy, "Namespace", "games-main")["metadata"]["labels"]
+    assert not any(o["metadata"]["name"] == "restricted-games.gameplane.panel" for o in legacy)
+    # A cluster at the minimum version must still serve the GA policy API.
+    render(kube_version="1.30.0", api_versions=["v1/Namespace"], failure="requires Kubernetes 1.30+")
+    central = render({"api": {"standalone": True}, "operator": {"enabled": False}}, api_versions=["v1/Namespace"])
+    assert not any(o["kind"].startswith("ValidatingAdmissionPolicy") for o in central)
+
+
 def main():
+    check_admission_policies()
     check_reuse_values()
     check_namespace_separation()
     defaults = render()
     assert not any(o["metadata"]["name"] == "gameplane-diagnostics" for o in defaults)
-    objects = render({"podSecurity": {"enforceRestricted": True}})
-    games = one(objects, "Namespace", "gameplane-games")
+    games = one(defaults, "Namespace", "gameplane-games")
     assert games["metadata"]["labels"]["pod-security.kubernetes.io/enforce"] == "restricted"
     assert games["metadata"]["labels"]["pod-security.kubernetes.io/enforce-version"] == "v1.34"
-    args = one(objects, "Deployment", "gameplane-operator")["spec"]["template"]["spec"]["containers"][0]["args"]
+    args = one(defaults, "Deployment", "gameplane-operator")["spec"]["template"]["spec"]["containers"][0]["args"]
     assert "--restricted-workloads=true" in args  # even when capture is disabled
     assert not any(a.startswith("--diagnostics-namespace=") for a in args)
     values = {"podSecurity": {"enforceRestricted": True, "version": "v1.35"},

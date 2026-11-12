@@ -33,15 +33,22 @@ func uploadClient(objs ...client.Object) client.Client {
 }
 
 func TestUploadFetcher_IndexAndPull(t *testing.T) {
+	bundle := uploadCM("bundle-mc", validModuleFiles("mc", "1.0.0"))
+	bundle.Namespace = "module-data"
 	c := uploadClient(
-		uploadCM("bundle-mc", validModuleFiles("mc", "1.0.0")),
+		bundle,
+		uploadCM("other-bundle", validModuleFiles("other", "1.0.0")),
 		// Unlabeled ConfigMaps in the namespace are ignored.
 		&corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: "unrelated", Namespace: "gameplane-system"},
+			ObjectMeta: metav1.ObjectMeta{Name: "unrelated", Namespace: "module-data"},
 			Data:       map[string]string{"foo": "bar"},
 		},
 	)
-	f := newUpload(c, "gameplane-system", nil)
+	source := &gameplanev1alpha1.ModuleSource{Spec: gameplanev1alpha1.ModuleSourceSpec{Type: gameplanev1alpha1.ModuleSourceTypeUpload}}
+	f, err := ForSource(t.Context(), c, "gameplane-system", source, Options{ConfigMapNamespace: "module-data"})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	entries, warnings, err := f.Index(context.Background())
 	if err != nil || len(warnings) != 0 {

@@ -235,8 +235,17 @@ headers retain the existing allowlist, so browser cookies, authorization and CSR
 material do not reach agents. Proxy body limits and JSON response limits remain at
 the caller boundary.
 
+The API reads and writes dashboard-managed OIDC, registry and notification
+credentials, remote kubeconfigs and gateway TLS Secrets in
+`GAMEPLANE_CREDENTIALS_NAMESPACE`. When unset or empty, this defaults to the
+resolved `--namespace` value, preserving existing standalone database keys.
+Native installs store module uploads and translations in that same namespace.
+System logs use `--namespace`. In standalone mode `--namespace` selects the
+remote operator's module ConfigMap namespace independently of the panel's
+credential storage.
+
 Registered clusters may additionally configure `spec.agentGateway.url` and a
-labeled `tlsSecretRef` in the central API namespace. Each remote request resolves
+labeled `tlsSecretRef` in the credentials namespace. Each remote request resolves
 its Kubernetes client, GameServer UID and gateway mTLS credentials independently;
 unknown/missing routes never fall back locally. HTTP/WebSocket agent operations,
 RCON module actions and internal mod-update reads use the versioned gateway

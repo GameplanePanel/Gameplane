@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -340,16 +341,15 @@ func localesReference(b *modsrc.Bundle) (map[string]pack.Entry, error) {
 	return modlocale.References(modlocale.Derive(module, tmpl)), nil
 }
 
+// localesNamespace keeps published translations with uploaded bundles. Older
+// installations without a separate ConfigMap namespace use the module namespace.
 func (r *ModuleReconciler) localesNamespace() string {
-	if r.Namespace != "" {
-		return r.Namespace
-	}
-	return defaultLocalesNamespace
+	return cmp.Or(r.FetchOptions.ConfigMapNamespace, r.Namespace, defaultLocalesNamespace)
 }
 
 // applyLocales validates the bundle's translation layers and publishes the
 // valid entries in the "<template>-locales" ConfigMap, owned by the
-// GameTemplate, in the operator namespace. It reports problems through the
+// GameTemplate, in the module ConfigMap namespace. It reports problems through the
 // template's LocalesValid condition and Warning events, which fire only when
 // the problem list changes. A translation problem never fails a module
 // install; the only error returned is a failed ConfigMap write or delete, so
