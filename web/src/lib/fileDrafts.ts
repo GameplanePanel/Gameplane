@@ -13,7 +13,7 @@ export class FileDrafts {
   private readonly files = new Map<string, Draft>();
   private readonly listeners = new Set<() => void>();
   private readonly reads = new Map<AbortController, string>();
-  private readonly removing = new Set<string>();
+  private readonly removals = new Map<string, { root: string; pending: Promise<void> }>();
   private revision = 0;
   private enabled = true;
 
@@ -32,7 +32,7 @@ export class FileDrafts {
   paths() { return Array.from(this.files.keys()); }
   get(path: string) { return this.files.get(path); }
   private isRemoving(path: string) {
-    return [...this.removing].some((root) => path === root || path.startsWith(root + "/"));
+    return [...this.removals.values()].some(({ root }) => path === root || path.startsWith(root + "/"));
   }
 
   open(path: string, text: string) {
@@ -115,17 +115,18 @@ export class FileDrafts {
     return true;
   }
 
-  async remove(path: string, operation: () => Promise<void>) {
+  remove(path: string, recursive: boolean, operation: () => Promise<void>): Promise<void> {
+    const requestKey = JSON.stringify([path, recursive]);
+    const existing = this.removals.get(requestKey);
+    if (existing) return existing.pending;
+
     const matches = (key: string) => key === path || key.startsWith(path + "/");
-    this.removing.add(path);
     const affected = [...this.files].filter(([key]) => matches(key));
     for (const [, draft] of affected) {
       draft.deleting = true;
       clearTimeout(draft.timer);
     }
-    this.changed();
-    try {
-      await Promise.all(affected.map(([, draft]) => draft.pending));
+    const pending = Promise.all(affected.map(([, draft]) => draft.pending)).then(async () => {
       await operation();
       for (const [controller, key] of this.reads) {
         if (matches(key)) controller.abort();
@@ -133,14 +134,19 @@ export class FileDrafts {
       for (const key of this.files.keys()) {
         if (matches(key)) this.files.delete(key);
       }
-    } finally {
-      this.removing.delete(path);
+    }).finally(() => {
+      this.removals.delete(requestKey);
       for (const [key, draft] of this.files) {
         if (!matches(key)) continue;
         draft.deleting = this.isRemoving(key);
         if (!draft.deleting && this.enabled && !draft.error && draft.saved !== draft.text) this.schedule(key, draft);
       }
       this.changed();
-    }
+    });
+    // A remounted browser must join the original DELETE even if the server
+    // already removed the file and its response is still on the wire.
+    this.removals.set(requestKey, { root: path, pending });
+    this.changed();
+    return pending;
   }
 }

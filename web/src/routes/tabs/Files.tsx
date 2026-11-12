@@ -168,7 +168,7 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
       const errors: string[] = [];
       for (const entry of items) {
         try {
-          await drafts.remove(entry.path, () => Files.remove(name, entry.path, entry.dir, ns));
+          await drafts.remove(entry.path, entry.dir, () => Files.remove(name, entry.path, entry.dir, ns));
           removed.push(entry.path);
         } catch (err) {
           errors.push(entry.path + " — " + (err as Error).message);

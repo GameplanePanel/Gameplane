@@ -1048,6 +1048,34 @@ describe("FilesTab", () => {
     expect(screen.getByText("Empty folder")).toBeInTheDocument();
   });
 
+  it("keeps a tab after a failed close-save until the user confirms discarding edits", async () => {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes("/files/list")) return jsonRes(ROOT_ENTRIES);
+      if (url.includes("/files/read")) return textRes("original");
+      if (url.includes("/files/write")) return textRes("read-only volume", 403);
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    const confirm = vi.fn().mockReturnValueOnce(false).mockReturnValueOnce(true);
+    vi.stubGlobal("confirm", confirm);
+    renderWithQuery(<FilesTab name="mc-survival" />);
+    fireEvent.click(await screen.findByText("server.properties"));
+    const editor = await screen.findByTestId("monaco");
+    fireEvent.change(editor, { target: { value: "unsaved edit" } });
+
+    const close = screen.getByRole("button", { name: "Close /server.properties" });
+    fireEvent.click(close);
+    expect(await screen.findByText(/read-only volume/)).toBeInTheDocument();
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(editor).toHaveValue("unsaved edit");
+
+    fireEvent.click(close);
+    await waitFor(() => expect(close).not.toBeInTheDocument());
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(screen.queryByTestId("monaco")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("server.properties"));
+    expect(await screen.findByTestId("monaco")).toHaveValue("original");
+  });
+
   it("keeps refused selections and reports the paths deleted in a batch", async () => {
     const removed: string[] = [];
     fetchMock.mockImplementation(async (url: string) => {
@@ -1087,6 +1115,76 @@ describe("FilesTab", () => {
     const url = new URL(calls[0], "http://localhost");
     expect(url.searchParams.getAll("path")).toEqual(["/config/one", "/server.properties"]);
     expect(url.searchParams.get("namespace")).toBe("custom");
+  });
+
+  it("downloads a ZIP of the selected roots and releases its browser URL", async () => {
+    const zip = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+    const createURL = vi.fn((_blob: Blob) => "blob:selection");
+    const revokeURL = vi.fn();
+    vi.stubGlobal("URL", class extends URL {
+      static createObjectURL = createURL;
+      static revokeObjectURL = revokeURL;
+    });
+    const archive = deferredResponse();
+    let request: URL | undefined;
+    fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
+      if (url.includes("/files/list?path=%2Fconfig")) return jsonRes([{ name: "a.yml", path: "/config/a.yml", dir: false, size: 10 }]);
+      if (url.includes("/files/list")) return jsonRes(ROOT_ENTRIES);
+      if (url.includes("/files/archive") && (init?.method ?? "GET") === "GET") {
+        request = new URL(url, "http://localhost");
+        return archive.promise;
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    renderWithQuery(<FilesTab name="mc-survival" ns="games" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Expand /config" }));
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Select /config/a.yml" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select /config" }));
+    fireEvent.click(screen.getByRole("button", { name: "Download ZIP" }));
+    await waitFor(() => expect(request?.searchParams.getAll("path")).toEqual(["/config"]));
+    expect(request?.searchParams.get("namespace")).toBe("games");
+    expect(request?.searchParams.has("dest")).toBe(false);
+    const download = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    vi.useFakeTimers();
+    try {
+      await act(async () => archive.resolve(new Response(zip, { headers: { "Content-Type": "application/zip" } })));
+      expect(createURL).toHaveBeenCalledOnce();
+      expect(new Uint8Array(await createURL.mock.calls[0][0].arrayBuffer())).toEqual(zip);
+      expect(download).toHaveBeenCalledOnce();
+      expect(download.mock.contexts[0]).toMatchObject({ href: "blob:selection", download: "selection.zip" });
+      expect(revokeURL).not.toHaveBeenCalled();
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+      expect(revokeURL).toHaveBeenCalledWith("blob:selection");
+    } finally {
+      download.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it("creates a ZIP in the current folder and refreshes the listing after the server accepts it", async () => {
+    const entry = { name: "server.yml", path: "/config/server.yml", size: 25, dir: false };
+    const created = { name: "selected.zip", path: "/config/selected.zip", size: 120, dir: false };
+    let destination: URL | undefined;
+    fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {
+      if (url.includes("/files/list?path=%2Fconfig")) return jsonRes(destination ? [entry, created] : [entry]);
+      if (url.includes("/files/archive") && init?.method === "POST") {
+        destination = new URL(url, "http://localhost");
+        return new Response(null, { status: 204 });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    renderWithQuery(<FilesTab name="mc-survival" ns="games" path="/config/" />);
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Select /config/server.yml" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create ZIP" }));
+    const dialog = await screen.findByRole("dialog", { name: "Create ZIP" });
+    const input = within(dialog).getByRole("textbox", { name: /archive filename/i });
+    fireEvent.change(input, { target: { value: "selected.zip" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(await screen.findByText("selected.zip")).toBeInTheDocument();
+    expect(destination?.searchParams.getAll("path")).toEqual([entry.path]);
+    expect(destination?.searchParams.get("dest")).toBe(created.path);
+    expect(destination?.searchParams.get("namespace")).toBe("games");
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 
   it("supports namespace parameter in API calls", async () => {
