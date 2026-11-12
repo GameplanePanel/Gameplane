@@ -319,10 +319,20 @@
               "type": "text",
               "id": "ws91g",
               "fill": "$foreground/foreground",
-              "content": "1.4 GiB",
+              "content": "1434Mi",
               "lineHeight": 1.4285714285714286,
               "fontFamily": "$typography/font-sans",
               "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "nzp8v",
+              "name": "Packed data added by this run",
+              "fill": "$muted",
+              "content": "14 KB added",
+              "fontFamily": "$typography/font-mono",
+              "fontSize": 12,
               "fontWeight": "normal"
             }
           ]
