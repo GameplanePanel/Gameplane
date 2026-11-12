@@ -1,0 +1,59 @@
+{{- if and (eq (include "gameplane.operatorEnabled" .) "true") (ne .Values.operator.gameWorkloadPolicy nil) }}
+{{- $p := .Values.operator.gameWorkloadPolicy }}
+{{- $key := required "gameWorkloadPolicy.poolLabel is required" $p.poolLabel | toJson }}
+{{- $value := required "gameWorkloadPolicy.poolValue is required" $p.poolValue | toJson }}
+{{- $name := printf "%s.%s.game-workers" .Release.Name .Release.Namespace }}
+# An existing StatefulSet can recreate its Pod before the operator sees a
+# changed policy. Enforce the scheduler constraint and bounds on that path too.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ $name }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [UPDATE]
+        resources: [pods/resize]
+  validations:
+    - expression: >-
+        has(object.spec.nodeSelector) && {{ $key }} in object.spec.nodeSelector &&
+        object.spec.nodeSelector[{{ $key }}] == {{ $value }}
+      message: "game pods must select the configured game worker pool"
+    - expression: >-
+        (request.operation != "CREATE" || !has(object.spec.nodeName) || object.spec.nodeName == "") &&
+        (!has(object.spec.tolerations) || object.spec.tolerations.all(t, has(t.key) && t.key != ""))
+      message: "game pods must use the scheduler and may not tolerate every taint"
+    - expression: >-
+        object.spec.containers.exists(c, c.name == "game" &&
+        has(c.resources) && has(c.resources.requests) && has(c.resources.limits) &&
+        "cpu" in c.resources.requests && "memory" in c.resources.requests && "memory" in c.resources.limits &&
+        quantity(string(c.resources.requests["cpu"])).compareTo(quantity({{ required "minCPURequest is required" $p.minCPURequest | toString | toJson }})) >= 0 &&
+        quantity(string(c.resources.requests["cpu"])).compareTo(quantity({{ required "maxCPURequest is required" $p.maxCPURequest | toString | toJson }})) <= 0 &&
+        quantity(string(c.resources.requests["memory"])).compareTo(quantity({{ required "minMemoryRequest is required" $p.minMemoryRequest | toString | toJson }})) >= 0 &&
+        quantity(string(c.resources.limits["memory"])).compareTo(quantity({{ required "maxMemoryLimit is required" $p.maxMemoryLimit | toString | toJson }})) <= 0)
+      message: "game containers must meet the configured CPU request and memory request/limit bounds"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ $name }}
+spec:
+  policyName: {{ $name }}
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values: {{ include "gameplane.operatorGameNamespaces" . }}
+    objectSelector:
+      matchLabels:
+        app.kubernetes.io/name: gameplane-game
+{{- end }}

@@ -182,7 +182,8 @@ func TestSentinelReconciliation(t *testing.T) {
 		}
 		deleteCleanup(t, tmpl)
 
-		node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: uniqueName("sentinel-node")}}
+		policy, _, _ := gamePolicyFixture(t)
+		node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: uniqueName("sentinel-node"), Labels: map[string]string{policy.PoolLabel: policy.PoolValue}}}
 		if err := k8sClient.Create(ctx, node); err != nil {
 			t.Fatalf("create node: %v", err)
 		}
@@ -206,7 +207,8 @@ func TestSentinelReconciliation(t *testing.T) {
 			t.Fatalf("create gameserver: %v", err)
 		}
 
-		r := &GameServerReconciler{Client: k8sClient, APIReader: k8sClient, Scheme: scheme}
+		r := &GameServerReconciler{Client: k8sClient, APIReader: k8sClient, Scheme: scheme,
+			GameWorkloadPolicy: policy, AuxiliaryWorkerPool: &AuxiliaryWorkerPool{key: policy.PoolLabel, value: "relays"}}
 		if err := r.reconcileSentinel(ctx, gs, tmpl, true); err != nil {
 			t.Fatalf("reconcileSentinel: %v", err)
 		}
@@ -216,6 +218,11 @@ func TestSentinelReconciliation(t *testing.T) {
 			Name: "test-sentinel-hostport-waker", Namespace: ns,
 		}, &dep); err != nil {
 			t.Fatalf("get sentinel deployment: %v", err)
+		}
+		pod := dep.Spec.Template.Spec
+		if pod.NodeSelector[policy.PoolLabel] != policy.PoolValue || len(pod.Tolerations) != 1 || pod.Tolerations[0].Value != policy.PoolValue ||
+			pod.Affinity == nil || pod.Affinity.NodeAffinity == nil {
+			t.Fatalf("hostport listener lost game pool or endpoint affinity: %+v", pod)
 		}
 		if len(dep.Spec.Template.Spec.Containers) == 0 {
 			t.Fatal("no containers in sentinel deployment")

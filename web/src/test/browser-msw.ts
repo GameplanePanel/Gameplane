@@ -14,7 +14,7 @@
 import { http, HttpResponse, passthrough } from "msw";
 import { setupWorker } from "msw/browser";
 import { handlers, buildScreenshotHandlers, buildSsoOnlyHandlers } from "./handlers";
-import { makeConfig } from "./factories";
+import { makeConfig, makeFileEntry } from "./factories";
 import type { TelemetryInfo, TelemetryPreview } from "@/lib/api";
 
 let noticePending = true;
@@ -30,6 +30,15 @@ function getHandlerSet(): Parameters<typeof setupWorker>[0][] {
       }
       if (dataset === "sso-only") {
         return buildSsoOnlyHandlers();
+      }
+      if (dataset === "typescript-file") {
+        const content = 'const port: number = "25565";';
+        const file = makeFileEntry({ name: "server.ts", path: "/data/server.ts", size: content.length });
+        return [
+          http.get("/servers/:name/files/list", () => HttpResponse.json([file])),
+          http.get("/servers/:name/files/read", () => new HttpResponse(content)),
+          ...handlers,
+        ];
       }
       if (dataset === "telemetry-notice") {
         return [
