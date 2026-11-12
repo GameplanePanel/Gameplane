@@ -277,6 +277,15 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err := r.Get(ctx, req.NamespacedName, &gs); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	// Recover the durable eviction decision before any validation that can
+	// return early (including a missing template or newly requested wipe).
+	if op, held, err := lifecycleOwner(&gs); held && err == nil && op.Kind == podRecoveryKind {
+		delay, err := r.resumeFailedPodEviction(ctx, &gs, op.lifecycleIdentity)
+		if delay == 0 {
+			delay = reconcileRetryInterval
+		}
+		return requeueOnConflict(ctrl.Result{RequeueAfter: delay}, err)
+	}
 	// Refresh and recover wipe ownership before deriving config or idle state.
 	// A later refresh would mix an older idle calculation with a newer status
 	// patch base and could overwrite a concurrent idle-clock update.
@@ -483,11 +492,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
 	}
-	var recoveryRetry time.Duration
 	if replicas == 1 && stopRequeue == 0 {
-		recoveryRetry, err = r.recoverObsoleteFailedPod(ctx, &gs)
+		recoveryRetry, err := r.recoverObsoleteFailedPod(ctx, &gs)
 		if err != nil {
 			return ctrl.Result{}, err
+		}
+		if recoveryRetry > 0 {
+			return ctrl.Result{RequeueAfter: recoveryRetry}, nil
 		}
 	}
 	// Node placement is a cosmetic annotation for the dashboard; a transient
@@ -548,7 +559,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry}
+	hints := []time.Duration{stopRequeue, idleRequeue}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}

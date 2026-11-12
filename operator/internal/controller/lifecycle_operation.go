@@ -65,7 +65,7 @@ func parseLifecycleOperation(value string) (lifecycleOperation, error) {
 		return op, fmt.Errorf("decode lifecycle owner: %w", err)
 	}
 	for _, id := range append([]lifecycleIdentity{op.lifecycleIdentity}, op.Recovery...) {
-		if id.Name == "" || id.UID == "" || id.TargetUID == "" || (id.Kind != "Backup" && id.Kind != "Restore" && id.Kind != "Wipe" && id.Kind != "Rollout") || (id.Kind == "Wipe" && id.Token == "") || (id.Kind == "Rollout" && !validTemplateRevision(id.Token)) {
+		if id.Name == "" || id.UID == "" || id.TargetUID == "" || (id.Kind != "Backup" && id.Kind != "Restore" && id.Kind != "Wipe" && id.Kind != "Rollout" && id.Kind != podRecoveryKind) || ((id.Kind == "Wipe" || id.Kind == podRecoveryKind) && id.Token == "") || (id.Kind == "Rollout" && !validTemplateRevision(id.Token)) {
 			return op, fmt.Errorf("invalid lifecycle owner identity")
 		}
 		if id.TargetUID != op.TargetUID {
@@ -149,7 +149,7 @@ func lifecycleOwnerExists(ctx context.Context, reader client.Reader, namespace s
 		obj = &gameplanev1alpha1.Backup{}
 	case "Restore":
 		obj = &gameplanev1alpha1.Restore{}
-	case "Wipe", "Rollout":
+	case "Wipe", "Rollout", podRecoveryKind:
 		// Only the GameServer reconciler may cancel/replace a wipe token after
 		// its workers drain. A removed request is not proof of worker absence.
 		return true, nil
@@ -175,7 +175,7 @@ func claimLifecycleOperation(ctx context.Context, c client.Client, reader client
 	if live.UID != want.TargetUID || !live.DeletionTimestamp.IsZero() {
 		return false, fmt.Errorf("lifecycle target changed identity or is being deleted")
 	}
-	if want.Kind == "Rollout" && live.Generation != want.Generation {
+	if (want.Kind == "Rollout" || want.Kind == podRecoveryKind) && live.Generation != want.Generation {
 		return false, errLifecycleGenerationChanged
 	}
 	*gs = live
@@ -187,6 +187,10 @@ func claimLifecycleOperation(ctx context.Context, c client.Client, reader client
 		return false, err
 	}
 	if occupied && !sameLifecycleOwner(op.lifecycleIdentity, want) {
+		// A failed ordinal can wait for an existing operation's own cleanup.
+		if want.Kind == podRecoveryKind {
+			return false, nil
+		}
 		exists, err := lifecycleOwnerExists(ctx, reader, gs.Namespace, op.lifecycleIdentity)
 		if err != nil || exists {
 			return false, err
@@ -214,7 +218,7 @@ func claimLifecycleOperation(ctx context.Context, c client.Client, reader client
 		}
 		// A stop command already sent may still save data and exit. Waiting
 		// here also lets pending restarts finish instead of freezing mid-stop.
-		if want.Kind == "Backup" || want.Kind == "Rollout" {
+		if want.Kind == "Backup" || want.Kind == "Rollout" || want.Kind == podRecoveryKind {
 			pending, err := backupLifecycleTransitionPending(ctx, reader, gs)
 			if err != nil || pending {
 				return false, err

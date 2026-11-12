@@ -847,3 +847,9 @@ and [operator operations](../docs/operator-operations.md) for defaults and failu
 ### Failed StatefulSet rollout recovery
 
 When a corrected rolling update stalls on a failed older ordinal, the GameServer controller requests a pod eviction with UID and resource-version preconditions. It checks live workload ownership, desired replicas, revision and lifecycle fences. The StatefulSet recreates the pod. Disruption budgets can delay recovery.
+
+Recovery first claims the GameServer's shared lifecycle owner for the exact
+failed pod UID and GameServer generation. Backups, restores, wipes and template
+rollouts wait through eviction and termination of that UID. On restart the
+controller resumes the claim before validating new render inputs. A disruption
+budget refusal releases the claim so other operations can proceed during the retry delay.
