@@ -216,7 +216,19 @@ func (h *podLogProxy) historyPage(ctx context.Context, ns string, pod *corev1.Po
 	if err != nil {
 		return podHistoryPage{}, err
 	}
+	limitedWindow := capped
 	end, boundaryErr := podBoundary(rows, cursor.Anchor)
+	// Kubelet's byte cap cuts the end of the requested tail. Reduce the
+	// excess line count to recover recent complete records from chatty logs.
+	// Keep enough depth for an existing anchor, then try its time bound.
+	for i := 0; i < 4 && capped && (cursor.Anchor == "" || boundaryErr != nil) && tail > cursor.Depth+1; i++ {
+		tail = cursor.Depth + max(int64(1), (tail-cursor.Depth)/4)
+		rows, capped, err = h.historyWindow(ctx, ns, pod.Name, identity, opts)
+		if err != nil {
+			return podHistoryPage{}, err
+		}
+		end, boundaryErr = podBoundary(rows, cursor.Anchor)
+	}
 	// A burst can move the record outside the line tail. Read again from a
 	// timestamp captured in the original page. Appends after the anchor cannot
 	// move this lower bound. Both reads have independent hard byte caps.
@@ -243,6 +255,10 @@ func (h *podLogProxy) historyPage(ctx context.Context, ns string, pod *corev1.Po
 		page.Before = historyIdentity(pod, steps[index-1]).encode()
 	}
 	if boundaryErr != nil {
+		if capped {
+			page.Limited = true
+			return page, nil
+		}
 		return podHistoryPage{}, boundaryErr
 	}
 	if capped && cursor.Anchor == "" {
@@ -252,7 +268,7 @@ func (h *podLogProxy) historyPage(ctx context.Context, ns string, pod *corev1.Po
 		return page, nil
 	}
 	lines, start, clipped := podPageRows(rows, end, podHistoryLines)
-	page.Limited = clipped
+	page.Limited = clipped || limitedWindow
 	if len(lines) == 0 {
 		if usedSince {
 			page.Limited = true

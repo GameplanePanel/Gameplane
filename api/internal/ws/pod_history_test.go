@@ -102,6 +102,7 @@ func TestPodHistoryRoutesAndContinuity(t *testing.T) {
 		return page
 	}
 	read("%", 400)
+	read(strings.Repeat("x", 2049), 400)
 	first := read("", 200)
 	if first.Source != "game" || !strings.HasPrefix(first.Text, "row-50\n") || !strings.HasSuffix(first.Text, "row-149\n") {
 		t.Fatalf("first=%+v", first)
@@ -115,11 +116,33 @@ func TestPodHistoryRoutesAndContinuity(t *testing.T) {
 	if setup.Text != "setup-output\n" || setup.Source != "setup" || setup.Before != "" {
 		t.Fatalf("setup=%+v", setup)
 	}
+	// One MiB from the beginning of a 164-line tail misses the newest
+	// records. A smaller bounded tail can still return useful pages.
+	for i := range rows {
+		rows[i] += " " + strings.Repeat("a", 8000)
+	}
+	large := read("", 200)
+	if !strings.Contains(large.Text, "row-749 ") || len(large.Text) > podHistoryBytes || large.Before == "" {
+		t.Fatalf("missing latest records from the capped window: %d bytes", len(large.Text))
+	}
+	previous := read(large.Before, 200)
+	if previous.Text == "" || strings.Contains(previous.Text, "row-749 ") {
+		t.Fatalf("missing preceding records from the capped window: %d bytes", len(previous.Text))
+	}
 	pod.Status.ContainerStatuses[0].RestartCount++
 	if _, err := fakeClient.CoreV1().Pods(pod.Namespace).UpdateStatus(t.Context(), pod, metav1.UpdateOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	read(first.Before, 409)
+	rows = []string{"2026-01-01T12:00:00Z " + strings.Repeat("x", podHistoryReadBytes+1), "2026-01-01T12:00:01Z latest"}
+	afterGiant := read("", 200)
+	if afterGiant.Text != "latest\n" || !afterGiant.Limited {
+		t.Fatalf("newest output after a large record: %+v", afterGiant)
+	}
+	rows = rows[:1]
+	if page := read("", 200); !page.Limited || page.Text != "" {
+		t.Fatalf("oversized record: %+v", page)
+	}
 	replaceDuringRead = true
 	read("", 409)
 }

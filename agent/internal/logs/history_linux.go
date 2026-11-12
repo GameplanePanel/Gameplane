@@ -26,19 +26,31 @@ type historyPage struct {
 	Before string `json:"before,omitempty"`
 }
 
-// The guard detects copytruncate followed by regrowth past the cursor. Pinning
-// a descriptor and checking device/inode also covers rename-and-replace.
-func fileCursor(f *os.File, identity *syscall.Stat_t, offset int64) (string, error) {
-	var sample [64]byte
-	n := min(offset, int64(len(sample)))
-	if _, err := f.ReadAt(sample[:n], offset-n); err != nil {
-		return "", fmt.Errorf("read cursor guard: %w", err)
-	}
-	hash := sha256.Sum256(sample[:n])
-	return fmt.Sprintf("%x.%x.%x.%s", identity.Dev, identity.Ino, offset, hex.EncodeToString(hash[:16])), nil
+// Authenticate the entire byte window the next request may return. A repeated
+// line near the boundary alone cannot identify a file generation.
+func fileCursor(identity *syscall.Stat_t, offset int64, window []byte) string {
+	hash := sha256.Sum256(window)
+	return fmt.Sprintf("%x.%x.%x.%s", identity.Dev, identity.Ino, offset, hex.EncodeToString(hash[:16]))
 }
 
-func filePage(f *os.File, before string, lines int) (historyPage, error) {
+func readHistoryWindow(f io.ReaderAt, end int64) ([]byte, error) {
+	start := max(end-historyBytes, 0)
+	buf := make([]byte, end-start)
+	if _, err := f.ReadAt(buf, start); err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil, errHistoryChanged
+		}
+		return nil, fmt.Errorf("read log page: %w", err)
+	}
+	return buf, nil
+}
+
+type historyFile interface {
+	io.ReaderAt
+	Stat() (os.FileInfo, error)
+}
+
+func filePage(f historyFile, before string, lines int) (historyPage, error) {
 	info, err := f.Stat()
 	if err != nil {
 		return historyPage{}, fmt.Errorf("stat log: %w", err)
@@ -60,18 +72,17 @@ func filePage(f *os.File, before string, lines int) (historyPage, error) {
 		if end > info.Size() {
 			return historyPage{}, errHistoryChanged
 		}
-		current, err := fileCursor(f, identity, end)
-		if err != nil || current != before {
-			return historyPage{}, errHistoryChanged
-		}
 	}
 	start := max(end-historyBytes, 0)
-	buf := make([]byte, end-start)
-	if _, err := f.ReadAt(buf, start); err != nil {
-		if errors.Is(err, io.EOF) {
+	buf, err := readHistoryWindow(f, end)
+	if err != nil {
+		if before != "" {
 			return historyPage{}, errHistoryChanged
 		}
-		return historyPage{}, fmt.Errorf("read log page: %w", err)
+		return historyPage{}, err
+	}
+	if before != "" && before != fileCursor(identity, end, buf) {
+		return historyPage{}, errHistoryChanged
 	}
 	search := bytes.TrimSuffix(buf, []byte{'\n'})
 	at := len(search)
@@ -90,9 +101,19 @@ func filePage(f *os.File, before string, lines int) (historyPage, error) {
 		}
 	}
 	page := historyPage{Text: strings.ToValidUTF8(string(buf[cut:]), "?")}
-	if start+int64(cut) > 0 {
-		page.Before, err = fileCursor(f, identity, start+int64(cut))
+	if next := start + int64(cut); next > 0 {
+		window, err := readHistoryWindow(f, next)
 		if err != nil {
+			return historyPage{}, err
+		}
+		page.Before = fileCursor(identity, next, window)
+		// Bind the outgoing cursor and returned text to the same observed
+		// bytes even when a writer truncates and regrows between our reads.
+		current, err := readHistoryWindow(f, end)
+		if err != nil {
+			return historyPage{}, err
+		}
+		if !bytes.Equal(buf, current) {
 			return historyPage{}, errHistoryChanged
 		}
 	}

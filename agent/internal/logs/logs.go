@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/coder/websocket"
@@ -170,13 +171,63 @@ func appendTail(buf []string, total int64, line string, maxLines, maxBytes int64
 	return buf, total
 }
 
-// replayTail reads all lines from file f and sends the last tailLines to conn.
+// readLogLine discards excess bytes in fixed-size fragments while keeping a
+// readable prefix. A writer can emit arbitrarily large unterminated records.
+func readLogLine(ctx context.Context, reader *bufio.Reader) (string, error) {
+	// The local API proxy and remote gateway use coder/websocket's
+	// default incoming message limit. Keep each live frame within it.
+	const frameBytes = 32 << 10
+	const marker = "... [log line truncated]\n"
+	var buf []byte
+	clipped := false
+	for {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
+		fragment, err := reader.ReadSlice('\n')
+		space := frameBytes - len(buf)
+		if len(fragment) > space {
+			clipped = true
+		}
+		buf = append(buf, fragment[:min(len(fragment), space)]...)
+		if errors.Is(err, bufio.ErrBufferFull) {
+			continue
+		}
+		if clipped {
+			return strings.ToValidUTF8(string(buf[:frameBytes-len(marker)]), "?") + marker, err
+		}
+		return string(buf), err
+	}
+}
+
+// replayTail reads a bounded snapshot from EOF and hands subsequent appends
+// to the live reader at exactly that position.
 func replayTail(ctx context.Context, conn *websocket.Conn, f *os.File, tailLines int64) error {
-	reader := bufio.NewReader(f)
+	end, err := f.Seek(0, io.SeekEnd)
+	if err != nil {
+		return err
+	}
+	start := max(int64(0), end-maxTailBytes)
+	// Inspect one preceding byte so a cut exactly at a line boundary can
+	// retain the complete first record. SectionReader leaves f at the live
+	// handoff position even when the file grows during replay.
+	readStart := max(int64(0), start-1)
+	reader := bufio.NewReader(io.NewSectionReader(f, readStart, end-readStart))
+	if readStart < start {
+		previous, err := reader.ReadByte()
+		if err != nil {
+			return err
+		}
+		if previous != '\n' {
+			if _, err := readLogLine(ctx, reader); err != nil && !errors.Is(err, io.EOF) {
+				return err
+			}
+		}
+	}
 	var buffer []string
 	var totalBytes int64
 	for {
-		line, err := reader.ReadString('\n')
+		line, err := readLogLine(ctx, reader)
 		buffer, totalBytes = appendTail(buffer, totalBytes, line, tailLines, maxTailBytes)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
@@ -200,7 +251,7 @@ func tailLoop(ctx context.Context, conn *websocket.Conn, source *logSource, f *o
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		line, err := reader.ReadString('\n')
+		line, err := readLogLine(ctx, reader)
 		if len(line) > 0 {
 			if werr := conn.Write(ctx, websocket.MessageText, []byte(line)); werr != nil {
 				return werr
@@ -241,7 +292,11 @@ func checkRotation(source *logSource, f *os.File) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return !os.SameFile(fi1, fi2), nil
+	if !os.SameFile(fi1, fi2) {
+		return true, nil
+	}
+	offset, err := f.Seek(0, io.SeekCurrent)
+	return offset > fi2.Size(), err
 }
 
 func sleep(ctx context.Context, d time.Duration) error {
