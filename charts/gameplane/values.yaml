@@ -85,6 +85,15 @@ operator:
   resources:
     requests: { cpu: 100m, memory: 64Mi }
     limits:   { cpu: 500m, memory: 256Mi }
+  # Optional game worker label/NoSchedule taint and per-game tenant bounds.
+  # See values-production.example.yaml and docs/production-placement.md.
+  gameWorkloadPolicy: null
+  # Optional exact key=value label and matching NoSchedule taint for Service
+  # wakers and every tunnel provider. Defaults to the configured game pool.
+  auxiliaryWorkerPool: ""
+  # ResourceQuota by managed game namespace. Each entry accepts hard and
+  # an optional defaultContainerMemoryLimit for containers without a limit.
+  tenantQuotas: {}
   # Complete auxiliary ResourceRequirements overrides. Null/missing uses binary
   # defaults, including on --reuse-values upgrades. {} (or requests: {}, limits:
   # {}) clears defaults. No new CPU/memory limits are set by default.

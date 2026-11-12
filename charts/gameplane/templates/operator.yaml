@@ -415,6 +415,12 @@ spec:
             {{- if .Values.operator.agentLogLevel }}
             - --agent-log-level={{ .Values.operator.agentLogLevel }}
             {{- end }}
+            {{- if ne .Values.operator.gameWorkloadPolicy nil }}
+            - {{ printf "--game-workload-policy=%s" (mustToJson .Values.operator.gameWorkloadPolicy) | quote }}
+            {{- end }}
+            {{- with .Values.operator.auxiliaryWorkerPool }}
+            - {{ printf "--auxiliary-worker-pool=%s" . | quote }}
+            {{- end }}
             {{- if and .Values.operator.gameDataStorage .Values.operator.gameDataStorage.storageClassName }}
             - --game-data-storage-class={{ .Values.operator.gameDataStorage.storageClassName }}
             {{- end }}
