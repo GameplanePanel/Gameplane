@@ -5,9 +5,9 @@
 // The command sequences are per-game and declared by the module's
 // template (spec.capabilities.quiesce), e.g. Minecraft toggles
 // auto-save with "save-off" + "save-all flush" / "save-on" over RCON.
-// Games that declare nothing get a best-effort no-op so the backup
-// pipeline can proceed unconditionally — backups should never fail
-// because a game can't be paused.
+// A verified pause reports unsupported before issuing any RCON command when
+// the agent cannot check the declared sequence. The operator decides whether
+// that permits a backup to proceed based on any earlier pause attempt.
 package quiesce
 
 import (
@@ -40,11 +40,8 @@ type Quiescer interface {
 	Unquiesce(rc Rcon) error
 }
 
-// Pick builds the quiescer from the module's declared sequences
-// (spec.capabilities.quiesce). A template that declares no sequence (or
-// only half of one) gets a no-op quiescer: backups proceed
-// unconditionally and we never pause a game we can't resume. Quiesce is
-// module-driven, with no per-game special-casing in the agent.
+// Pick builds the legacy quiescer from spec.capabilities.quiesce. It reports
+// unsupported unless the template supplies both a pause and a resume sequence.
 func Pick(spec *caps.Quiesce) Quiescer {
 	if spec != nil && len(spec.Quiesce) > 0 && len(spec.Unquiesce) > 0 {
 		return newDeclaredQuiescer(spec)
@@ -63,8 +60,9 @@ func Mount(r chi.Router, rc *rcon.Commands, game string, spec *caps.Quiesce) {
 	mount(r, rc, game, Pick(spec), false)
 }
 
-// MountVerified accepts only a sequence for which every game reply can be verified.
-// Unsupported pause is safe to degrade because no command has been issued.
+// MountVerified serves the verified Minecraft Java save-off, save-all flush and
+// save-on sequence. An unsupported response means this request sent no command.
+// A previous request may still have paused the game before losing its reply.
 func MountVerified(r chi.Router, rc *rcon.Commands, game string, spec *caps.Quiesce) {
 	var q Quiescer = unsupportedQuiescer{}
 	if game == "minecraft-java" && spec != nil &&
