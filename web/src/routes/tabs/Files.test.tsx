@@ -624,7 +624,7 @@ describe("FilesTab", () => {
     fireEvent.change(await screen.findByPlaceholderText("config.yaml"), {target:{value:"new.txt"}});
     fireEvent.click(screen.getByRole("button", {name:"Create"}));
     await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url.includes("/files/create"))).toBe(true));
-    view.rerender(<QueryClientProvider client={view.client}>{browser("/unlisted.properties")}</QueryClientProvider>);
+    view.rerender(<QueryClientProvider client={view.client}>{browser("///unlisted.properties")}</QueryClientProvider>);
     expect(await screen.findByTestId("monaco")).toHaveValue("current");
     expect(view.container.querySelector("main")).toHaveClass("flex");
     await act(async () => creation.resolve(new Response(null, { status: 204 })));

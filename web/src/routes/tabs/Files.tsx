@@ -72,7 +72,9 @@ function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: Re
   const editorId = useId();
 
   const [localPath, setLocalPath] = useState(ROOT);
-  const location = path ?? localPath;
+  // The rooted agent treats repeated separators as the same file. All tabs,
+  // saves and delete fences must use that same identity for a deep link.
+  const location = (path ?? localPath).replace(/\/{2,}/g, "/");
   const isFolder = location.endsWith("/");
   const cwd = isFolder ? location.replace(/\/$/, "") || ROOT : parentOf(location);
   const selectedPath = isFolder ? undefined : location;
