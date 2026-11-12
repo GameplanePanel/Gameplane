@@ -3,12 +3,19 @@ package files
 import (
 	"archive/zip"
 	"bytes"
+	"context"
+	"crypto/rand"
+	"errors"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"golang.org/x/sys/unix"
 )
 
 func TestFileSelectionArchive(t *testing.T) {
@@ -105,5 +112,127 @@ func TestArchiveDoesNotPublishRefusedSelection(t *testing.T) {
 				t.Fatalf("published refused archive: %v", err)
 			}
 		})
+	}
+}
+
+func TestArchiveRequestBoundaries(t *testing.T) {
+	h := &handler{root: t.TempDir()}
+	request := func(method string, paths url.Values, want int) {
+		t.Helper()
+		rec := httptest.NewRecorder()
+		h.archive(rec, httptest.NewRequestWithContext(t.Context(), method, "/files/archive?"+paths.Encode(), nil))
+		if rec.Code != want {
+			t.Fatalf("status=%d want=%d body=%s", rec.Code, want, rec.Body.String())
+		}
+	}
+	request(http.MethodGet, nil, http.StatusBadRequest)
+	request(http.MethodGet, url.Values{"path": make([]string, maxArchiveSelection+1)}, http.StatusBadRequest)
+	for _, dest := range []string{"", "/.private/a.zip", "/source.txt", "/source/a.zip"} {
+		request(http.MethodPost, url.Values{"path": {"/source"}, "dest": {dest}}, http.StatusBadRequest)
+	}
+	h.archiveLock.Lock()
+	request(http.MethodGet, url.Values{"path": {"/source"}}, http.StatusConflict)
+	h.archiveLock.Unlock()
+	h.root = filepath.Join(h.root, "missing")
+	request(http.MethodGet, url.Values{"path": {"/source"}}, http.StatusNotFound)
+}
+
+func TestArchiveFoldersAndSpecialEntries(t *testing.T) {
+	root := t.TempDir()
+	folder := filepath.Join(root, "world")
+	if err := os.Mkdir(folder, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(folder, "one"), []byte("contents"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	h := &handler{root: root}
+	archive := func(w io.Writer) *selectionArchive {
+		return &selectionArchive{h: h, zip: zip.NewWriter(w), ctx: t.Context(), names: make(map[string]bool)}
+	}
+	var buf bytes.Buffer
+	a := archive(&buf)
+	if err := a.add([]string{"world"}, "world"); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.add([]string{"world"}, "world"); !errors.Is(err, errBadPath) {
+		t.Fatalf("duplicate: %v", err)
+	}
+	if err := a.zip.Close(); err != nil {
+		t.Fatal(err)
+	}
+	result, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+	if err != nil || len(result.File) != 2 || result.File[0].Name != "world/" || result.File[1].Name != "world/one" {
+		t.Fatalf("archive: %+v, %v", result, err)
+	}
+	if err = unix.Mkfifo(filepath.Join(root, "pipe"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err = archive(io.Discard).add([]string{"pipe"}, "pipe"); !errors.Is(err, errBadPath) {
+		t.Fatalf("FIFO: %v", err)
+	}
+	if err = os.WriteFile(filepath.Join(folder, "bad:name"), nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err = archive(io.Discard).add([]string{"world"}, "world"); !errors.Is(err, errBadPath) {
+		t.Fatalf("unportable ZIP member: %v", err)
+	}
+	if err = archive(io.Discard).add(make([]string, 129), "deep"); !errors.Is(err, errArchiveLimit) {
+		t.Fatalf("depth: %v", err)
+	}
+}
+
+type rejectedArchiveOutput struct{}
+
+func (rejectedArchiveOutput) Write([]byte) (int, error) { return 0, io.ErrClosedPipe }
+
+func TestArchiveStopsOnCanceledReadsAndWriteErrors(t *testing.T) {
+	root := t.TempDir()
+	h := &handler{root: root}
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	a := selectionArchive{h: h, zip: zip.NewWriter(io.Discard), ctx: ctx, names: map[string]bool{}}
+	if err := a.add([]string{"file"}, "file"); !errors.Is(err, context.Canceled) {
+		t.Fatalf("canceled archive: %v", err)
+	}
+	if _, err := (archiveReader{ctx, strings.NewReader("text")}).Read(make([]byte, 4)); !errors.Is(err, context.Canceled) {
+		t.Fatalf("canceled read: %v", err)
+	}
+	a.ctx = t.Context()
+	data := make([]byte, 1<<18)
+	if _, err := rand.Read(data); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "large"), data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	a.zip = zip.NewWriter(rejectedArchiveOutput{})
+	if err := a.add([]string{"large"}, "large"); !errors.Is(err, io.ErrClosedPipe) {
+		t.Fatalf("write error: %v", err)
+	}
+	for _, path := range []string{"large", ""} {
+		a.zip = zip.NewWriter(io.Discard)
+		a.names = map[string]bool{}
+		var parts []string
+		if path != "" {
+			parts = []string{path}
+		}
+		if err := a.add(parts, strings.Repeat("a", 1<<16)); err == nil {
+			t.Fatal("accepted oversized ZIP member name")
+		}
+	}
+	dir, err := os.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := dir.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = dir.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err = a.addFolder(nil, "closed", dir, info); err == nil {
+		t.Fatal("closed directory unexpectedly readable")
 	}
 }
