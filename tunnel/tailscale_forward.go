@@ -54,13 +54,14 @@ type forwardLimits struct {
 }
 
 // The budget is shared by all listeners, protocols and address families.
-// At most 128 sessions, four queued UDP packets each and one 64KiB response
+// By default 128 sessions, four queued UDP packets each and one 64KiB response
 // buffer per UDP session bound memory independent of client fan-out.
 var defaultForwardLimits = forwardLimits{sessions: 128, udpQueue: 4, idle: 30 * time.Second, dial: 5 * time.Second}
 
 type forwarder struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
+	telemetry *forwardTelemetry
 	limits    forwardLimits
 	slots     chan struct{}
 	wg        sync.WaitGroup
@@ -69,9 +70,10 @@ type forwarder struct {
 	failed    chan error
 }
 
-func newForwarder(ctx context.Context, limits forwardLimits) *forwarder {
+func newForwarder(ctx context.Context, telemetry *forwardTelemetry) *forwarder {
 	ctx, cancel := context.WithCancel(ctx)
-	return &forwarder{ctx: ctx, cancel: cancel, limits: limits, slots: make(chan struct{}, limits.sessions), failed: make(chan error, 1)}
+	limits := telemetry.limits
+	return &forwarder{telemetry: telemetry, ctx: ctx, cancel: cancel, limits: limits, slots: make(chan struct{}, limits.sessions), failed: make(chan error, 1)}
 }
 
 func (f *forwarder) Close() {
@@ -93,11 +95,13 @@ func (f *forwarder) fail(err error) {
 	}
 }
 
-func (f *forwarder) acquire() bool {
+func (f *forwarder) acquire(protocol *flowCounts) bool {
 	select {
 	case f.slots <- struct{}{}:
+		protocol.active.Add(1)
 		return true
 	default:
+		protocol.rejected.Add(1)
 		return false
 	}
 }
@@ -113,12 +117,16 @@ func (f *forwarder) serveTCP(listener net.Listener, target string) {
 				f.fail(fmt.Errorf("TCP listener: %w", err))
 				return
 			}
-			if !f.acquire() {
+			if !f.acquire(&f.telemetry.tcp) {
 				_ = client.Close()
 				continue
 			}
 			f.wg.Add(1)
-			go func() { defer f.wg.Done(); defer func() { <-f.slots }(); f.proxyTCP(client, target) }()
+			go func() {
+				defer f.wg.Done()
+				defer f.release(&f.telemetry.tcp)
+				f.proxyTCP(client, target)
+			}()
 		}
 	}()
 }
@@ -166,7 +174,26 @@ func (c *idleConn) Write(p []byte) (int, error) {
 	return c.Conn.Write(p)
 }
 
-type udpForwardSession struct{ packets chan []byte }
+func (f *forwarder) release(protocol *flowCounts) {
+	protocol.active.Add(-1)
+	<-f.slots
+}
+
+type udpPacket struct {
+	data     []byte
+	received time.Time
+}
+
+type udpForwardSession struct{ packets chan udpPacket }
+
+func (f *forwarder) enqueue(s *udpForwardSession, p []byte, received time.Time) {
+	// Only the receive loop enqueues. Check space before copying the payload.
+	if len(s.packets) == cap(s.packets) {
+		f.telemetry.queueDrops.Add(1)
+		return
+	}
+	s.packets <- udpPacket{data: append([]byte(nil), p...), received: received}
+}
 
 func (f *forwarder) serveUDP(listener net.PacketConn, target string) {
 	f.listeners = append(f.listeners, listener)
@@ -185,32 +212,34 @@ func (f *forwarder) serveUDP(listener net.PacketConn, target string) {
 			if n > 65507 || f.ctx.Err() != nil {
 				continue
 			}
+			received := time.Now()
 			key := peer.String()
 			mu.Lock()
 			session := sessions[key]
-			if session == nil && f.acquire() {
-				session = &udpForwardSession{packets: make(chan []byte, f.limits.udpQueue)}
+			if session == nil && f.acquire(&f.telemetry.udp) {
+				session = &udpForwardSession{packets: make(chan udpPacket, f.limits.udpQueue)}
 				sessions[key] = session
 				f.wg.Add(1)
 				go func(session *udpForwardSession, peer net.Addr, key string) {
 					defer f.wg.Done()
-					defer func() { mu.Lock(); delete(sessions, key); mu.Unlock(); <-f.slots }()
+					defer func() {
+						mu.Lock()
+						delete(sessions, key)
+						f.release(&f.telemetry.udp)
+						mu.Unlock()
+					}()
 					f.proxyUDP(listener, peer, session.packets, target)
 				}(session, peer, key)
 			}
 			if session != nil {
-				// A slow backend or full queue drops the datagram; neither makes
-				// the receive loop wait, allocate workers, or grow memory.
-				if len(session.packets) < cap(session.packets) {
-					session.packets <- append([]byte(nil), buf[:n]...)
-				}
+				f.enqueue(session, buf[:n], received)
 			}
 			mu.Unlock()
 		}
 	}()
 }
 
-func (f *forwarder) proxyUDP(listener net.PacketConn, peer net.Addr, packets <-chan []byte, target string) {
+func (f *forwarder) proxyUDP(listener net.PacketConn, peer net.Addr, packets <-chan udpPacket, target string) {
 	upstream, err := (&net.Dialer{Timeout: f.limits.dial}).DialContext(f.ctx, "udp", target)
 	if err != nil {
 		return
@@ -227,6 +256,7 @@ func (f *forwarder) proxyUDP(listener net.PacketConn, peer net.Addr, packets <-c
 			if err != nil {
 				return
 			}
+			received := time.Now()
 			// Server-originated traffic is activity too, even when the client
 			// sends nothing after joining this UDP session.
 			_ = upstream.SetReadDeadline(time.Now().Add(f.limits.idle))
@@ -235,6 +265,7 @@ func (f *forwarder) proxyUDP(listener net.PacketConn, peer net.Addr, packets <-c
 				if _, err := listener.WriteTo(buf[:n], peer); err != nil {
 					return
 				}
+				f.telemetry.toClient.observe(time.Since(received))
 			}
 		}
 	}()
@@ -248,9 +279,10 @@ func (f *forwarder) proxyUDP(listener net.PacketConn, peer net.Addr, packets <-c
 		case packet := <-packets:
 			_ = upstream.SetWriteDeadline(time.Now().Add(f.limits.dial))
 			_ = upstream.SetReadDeadline(time.Now().Add(f.limits.idle))
-			if _, err := upstream.Write(packet); err != nil {
+			if _, err := upstream.Write(packet.data); err != nil {
 				return
 			}
+			f.telemetry.toBackend.observe(time.Since(packet.received))
 		}
 	}
 }

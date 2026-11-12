@@ -63,7 +63,8 @@ def check_admission_policies():
     games = {"games-main", "games-eu"}
     values = {"gamesNamespace": "games-main", "operator": {"gameNamespaces": ["games-eu", "games-main"],
               "agentCASecretNamespace": "certificates", "moduleNamespace": "modules"}}
-    objects = render(values, namespace="panel")
+    render(values, kube_version="1.29.99", failure="kubeVersion: >=1.30.0-0")
+    objects = render(values, namespace="panel", kube_version="1.30.0")
     secret_rule = [{"apiGroups": [""], "apiVersions": ["v1"], "operations": ["CREATE", "UPDATE"],
                     "resources": ["secrets"], "scope": "Namespaced"}]
     protected = games | {"panel", "certificates", "modules"}
@@ -82,8 +83,8 @@ def check_admission_policies():
     assert bound_namespaces(legacy, "bound-tokens.gameplane.panel", secret_rule) == protected
     assert "pod-security.kubernetes.io/enforce" not in one(legacy, "Namespace", "games-main")["metadata"]["labels"]
     assert not any(o["metadata"]["name"] == "restricted-games.gameplane.panel" for o in legacy)
-    # A live pre-1.30 cluster reports Namespace discovery without the GA policy.
-    render(api_versions=["v1/Namespace"], failure="requires Kubernetes 1.30+")
+    # A cluster at the minimum version must still serve the GA policy API.
+    render(kube_version="1.30.0", api_versions=["v1/Namespace"], failure="requires Kubernetes 1.30+")
     central = render({"api": {"standalone": True}, "operator": {"enabled": False}}, api_versions=["v1/Namespace"])
     assert not any(o["kind"].startswith("ValidatingAdmissionPolicy") for o in central)
 

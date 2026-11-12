@@ -1,5 +1,10 @@
 <!--
 Sync Impact Report
+- 2.2.0 → 2.2.1 (PATCH). Principle III names the Oxlint rules that enforce the existing
+  explicit-any and floating-promise requirements in the TypeScript 7 dashboard.
+  The corresponding configuration lives in `web/.oxlintrc.json`.
+
+Previous report (2.1.0 → 2.2.0)
 - Version change: 2.1.0 → 2.2.0
 - Bump rationale: MINOR. Principle IV is materially expanded with a completed-feature
   folder-naming rule: a finished feature's `specs/<NNN>-<slug>/` is renamed to
@@ -113,10 +118,10 @@ stale mirror actively misleads, so it cannot be allowed to drift from the source
 Code MUST follow the idioms of its language and the project's established tooling
 rather than working around them. Go code wraps errors with `%w` so `errors.Is`/`errors.As`
 keep working up the call stack; TypeScript runs under `strict` mode with
-`@typescript-eslint/no-explicit-any` and `@typescript-eslint/no-floating-promises`
+`typescript/no-explicit-any` and `typescript/no-floating-promises`
 enforced — an unavoidable `any` gets a one-line comment explaining why, and a
 fire-and-forget `Promise` is resolved with `await` or explicit `void`, never suppressed.
-When `golangci-lint` or ESLint flags something, the code MUST be fixed, not silenced.
+Findings from `golangci-lint`, ESLint and Oxlint MUST be fixed at source.
 In-source suppression directives are absolutely forbidden — no `//nolint`, no `//#nosec`,
 no `//lint:ignore`, no `// eslint-disable-next-line`, no `// @ts-ignore`. Narrowly-scoped,
 maintainer-authorized config-level exclusions in `.golangci.yml` are permitted in two
@@ -312,4 +317,4 @@ explicitly in the plan's Complexity Tracking section or the change MUST be redes
 to comply. Use `CLAUDE.md` for the day-to-day runtime guidance this constitution
 intentionally leaves at a higher level of abstraction.
 
-**Version**: 2.2.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-09-01
+**Version**: 2.2.1 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-11-11

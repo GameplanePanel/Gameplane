@@ -2,6 +2,25 @@
 # applying this profile; see docs/production-placement.md. Never remove or
 # tolerate control-plane taints just to satisfy these selectors.
 operator:
+  gameWorkloadPolicy:
+    poolLabel: gameplane.local/pool
+    poolValue: games
+    minCPURequest: 100m
+    maxCPURequest: "4"
+    minMemoryRequest: 128Mi
+    maxMemoryLimit: 8Gi
+  # Budget for the default games namespace. Use a separate managed namespace
+  # and independently sized quota for each tenant in a shared installation.
+  tenantQuotas:
+    gameplane-games:
+      defaultContainerMemoryLimit: 512Mi
+      hard:
+        requests.cpu: "12"
+        requests.memory: 24Gi
+        limits.memory: 32Gi
+        pods: "24"
+        persistentvolumeclaims: "12"
+        requests.storage: 200Gi
   replicas: 2
   leaderElect: true
   nodeSelector: &managementNodes { gameplane.local/pool: management }

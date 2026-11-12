@@ -101,7 +101,7 @@ These PRs have failing checks or require a separate gated phase and are NOT merg
 
 ```
 Go:  #263 (sigstore/sigstore 1.10.9, 3 modules) — 1 FAILING CHECK, cause not yet diagnosed
-Go:  #272 (TypeScript 7.0.2, MAJOR, 4 FAILING CHECKS) — DEFERRED to separate gated phase
+npm: #272 (TypeScript 7.0.2, MAJOR, 4 FAILING CHECKS) — DEFERRED to separate gated phase
 npm: #268 (@eslint/js 10.0.1, MAJOR, 1 FAILING CHECK) — DEFERRED to separate gated phase
 ```
 
@@ -136,9 +136,7 @@ grep '"vitest"' web/package.json  # example for PR #278
 
 ### Exception #272: TypeScript 7.0.2 (npm, MAJOR, 4 failing checks)
 
-**Status**: Major version bump with 4 failing checks; likely requires type annotations or config updates in the frontend code.  
-**Action**: **DEFERRED to a separate gated phase**. This PR will be merged only after all non-major Dependabot PRs (#262–#281 except #268/#272) are on master and passing. A dedicated TypeScript 7 migration task will then be created with explicit scope and review criteria.  
-**Rationale**: TypeScript major version bumps often require manual type annotation changes. This PR is intentionally isolated to avoid compounding failure modes when other packages have unrelated issues.
+The main wave deferred #272 for investigation. T054 traced the install failure to the lint plugin's TypeScript peer range. The replacement migration and its merge criteria are recorded under T054 below.
 
 ### Exception #268: @eslint/js 10.0.1 (npm, MAJOR, 1 failing check)
 
@@ -284,14 +282,10 @@ remediation above is correct either way.
 
 ---
 
-## T054 — PR #272 diagnosis (typescript 6.0.3 → 7.0.2): BLOCKED upstream
+## T054 — Original PR #272 install failure (TypeScript 6.0.3 → 7.0.2)
 
-**Status**: blocked by an upstream peer-dependency constraint. No code change on our side
-can clear it today. #272 stays open.
-
-**Failing checks**: `web`, `web e2e (mock)`, `e2e web live` — all three fail at the
-dependency-install step, before any TypeScript is compiled. There are no type errors to fix
-because `tsc` never runs.
+On 2026-08-29, `npm ci` failed on the standalone Dependabot update. The `web`,
+`web e2e (mock)`, and `e2e web live` jobs all stopped before running `tsc`.
 
 **Verbatim CI excerpt** (job 99082482156, run 33245283178):
 
@@ -306,11 +300,8 @@ npm error peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin
 npm error Conflicting peer dependency: typescript@6.0.3
 ```
 
-**Root cause**: `@typescript-eslint/*` declares `peerDependencies.typescript` as
-`>=4.8.4 <6.1.0`, which excludes all of TypeScript 7.
-
-**No upgrade path exists yet.** Verified live against `registry.npmjs.org` on 2026-08-29 —
-every published dist-tag of `@typescript-eslint/eslint-plugin`:
+The installed `@typescript-eslint/eslint-plugin` required TypeScript `>=4.8.4 <6.1.0`.
+The npm registry listed these alternatives on 2026-08-29:
 
 | dist-tag | version | peer `typescript` |
 |---|---|---|
@@ -318,19 +309,14 @@ every published dist-tag of `@typescript-eslint/eslint-plugin`:
 | `canary` | 8.68.1-alpha.6 | `>=4.8.4 <6.1.0` |
 | `rc-v8` | 8.0.0-alpha.62 | (none declared) |
 
-So even the canary channel still caps at TypeScript 6. Bumping the plugin cannot help, and
-the alpha `rc-v*` tags are pre-release lines that declare no peer at all — not a basis for a
-production toolchain.
+Forcing the install would have bypassed the peer check while leaving the dashboard
+dependent on the old compiler API.
 
-**Rejected workarounds**: `--legacy-peer-deps` / `--force` would install a plugin whose
-type-checking internals genuinely do not understand TypeScript 7's AST, silently degrading
-lint and type diagnostics. An `overrides` entry pinning the peer would do the same. Neither
-is a fix; both trade a loud failure for a silent one.
-
-**Disposition**: #272 stays open and unmerged pending a `@typescript-eslint` release that
-declares TypeScript 7 support. This is the same shape of blocker as #263 — an upstream
-dependency that has not yet caught up — and is tracked as an exception, not a defect in this
-repo. T055/T056 cannot proceed until upstream ships.
+**Superseding migration.** [PR #902](https://github.com/GameplanePanel/Gameplane/pull/902)
+implements T055. The dashboard builds with TypeScript 7.0.2, Oxlint runs the type-aware
+rules, and Babel parses TSX for the localization codemod. T056 remains open pending CI,
+code-owner approval, and merge of #902. After it merges, close #272 as superseded if
+Dependabot has left it open.
 
 ---
 

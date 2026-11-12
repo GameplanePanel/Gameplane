@@ -24,6 +24,10 @@ import (
 
 const postgresDSNEnv = "GAMEPLANE_TEST_POSTGRES_DSN"
 
+// NewPostgresTestStore shares the isolated schema with external package tests
+// exercising components that import db.
+var NewPostgresTestStore = newPostgresStore
+
 // newPostgresStore opens a migrated Store on a fresh schema of the test
 // database and drops the schema when the test ends.
 func newPostgresStore(t *testing.T) *Store {
