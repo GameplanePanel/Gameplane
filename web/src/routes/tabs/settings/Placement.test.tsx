@@ -4,7 +4,7 @@ import { PlacementSection } from "./Placement";
 import { makeServer } from "@/test/factories";
 
 // Monaco can't render in jsdom — replace with a textarea so onChange fires.
-vi.mock("@monaco-editor/react", () => ({
+vi.mock("@/lib/monaco-editor", () => ({
   default: ({
     value,
     onChange,

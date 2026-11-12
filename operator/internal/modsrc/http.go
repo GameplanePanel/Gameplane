@@ -40,11 +40,11 @@ const (
 // refused, at dial time so a DNS name rebinding to one is caught too.
 var httpFetchClient = newArchiveHTTPClient()
 
+// newArchiveHTTPClient follows redirects to pre-signed downloads but sends the
+// source credential only to the original URL, even for redirects on the same host.
 func newArchiveHTTPClient() *http.Client {
 	c := netguard.HTTPClient(2*time.Minute, netguard.IsAllowed)
 	c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		// A private archive may redirect to a pre-signed download. Only the
-		// exact URL selected by the Secret's owner receives its credential.
 		req.Header.Del("Authorization")
 		if len(via) >= 10 {
 			return errors.New("stopped after 10 redirects")
