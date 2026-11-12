@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/netip"
 	"path"
 	"sort"
@@ -78,6 +79,9 @@ type GameServerReconciler struct {
 	AgentResources    *corev1.ResourceRequirements
 	SentinelResources *corev1.ResourceRequirements
 	TunnelResources   *corev1.ResourceRequirements
+
+	TailscaleMaxSessions int
+	TailscaleUDPQueue    int
 
 	// ConfigInitImage is the image for the init container that copies
 	// operator-rendered config files onto the data volume. Set from an
@@ -178,6 +182,8 @@ type GameServerReconciler struct {
 
 	// RestrictedWorkloads applies the opt-in PSA-compatible game profile.
 	RestrictedWorkloads         bool
+	GameWorkloadPolicy          *GameWorkloadPolicy
+	AuxiliaryWorkerPool         *AuxiliaryWorkerPool
 	AgentTokenExpirationSeconds int64
 	DiagnosticsNamespace        string
 
@@ -295,6 +301,10 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// services and every other template-derived resource.
 	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
 	if err != nil {
+		var rejected workloadPolicyRejection
+		if errors.As(err, &rejected) {
+			return r.reconcileRejectedGameWorkload(ctx, &gs, effective, rejected)
+		}
 		if apierrors.IsConflict(err) {
 			return requeueOnConflict(ctrl.Result{}, err)
 		}
@@ -305,6 +315,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	tmpl := *effective
 
+	if err := validateProbeHosts(effectiveGameProbes(&gs, &tmpl)); err != nil {
+		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
+	}
 	if tmpl.Spec.SentinelIsolation && len(networkPolicyPortsFromTemplate(&tmpl)) == 0 {
 		cleanupErr := r.revokeInvalidSentinelIsolationExposure(ctx, &gs)
 		phaseErr := r.setPhase(ctx, &gs,
@@ -320,6 +333,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err := validateRestrictedTemplate(&tmpl); err != nil {
 			return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 		}
+	}
+	if err := r.GameWorkloadPolicy.validate(&gs, &tmpl); err != nil {
+		return r.reconcileRejectedGameWorkload(ctx, &gs, &tmpl, err)
 	}
 	mc, err := materializeConfig(&gs, &tmpl)
 	if err != nil {
@@ -1291,7 +1307,11 @@ func (r *GameServerReconciler) desiredReplicas(
 	}
 	if op, held, err := lifecycleOwner(&live); err != nil {
 		return 0, 0, err
-	} else if held && op.Kind == "Rollout" && !op.Baseline && len(op.Recovery) == 0 && op.Token != live.Annotations[effectiveTemplateAnnotation] {
+	} else if held && op.Kind == "Rollout" && len(op.Recovery) == 0 &&
+		((op.Baseline && r.GameWorkloadPolicy != nil) || (!op.Baseline && op.Token != live.Annotations[effectiveTemplateAnnotation])) {
+		if op.Baseline && live.Annotations[lifecycleOperationAnnotation] != gs.Annotations[lifecycleOperationAnnotation] {
+			return 1, restartDrainPoll, nil
+		}
 		replicas, poll, err := r.softStop(ctx, gs, tmpl)
 		if poll == 0 {
 			poll = restartDrainPoll
@@ -1446,6 +1466,19 @@ func selectStopTransport(tmpl *gameplanev1alpha1.GameTemplate) stopTransport {
 func (r *GameServerReconciler) softStop(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) (int32, time.Duration, error) {
+	if r.GameWorkloadPolicy != nil && gs.Annotations[lifecycleOperationAnnotation] != "" {
+		op, _, err := lifecycleOwner(gs)
+		if err != nil {
+			return 0, 0, err
+		}
+		if op.Kind == "Rollout" && op.Baseline {
+			// This also applies when a Hostport node disappears during migration.
+			tmpl, err = r.baselineStopTemplate(ctx, gs)
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	}
 	declared := tmpl.Spec.Capabilities != nil &&
 		tmpl.Spec.Capabilities.Lifecycle != nil &&
 		len(tmpl.Spec.Capabilities.Lifecycle.Stop) > 0
@@ -1644,6 +1677,11 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				ss.Annotations = map[string]string{}
 			}
 			ss.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
+			if op.Kind == "Rollout" && op.Baseline && r.GameWorkloadPolicy != nil && ss.ResourceVersion == "" {
+				// A stale scale-up can race recreation while the old world
+				// writer is terminating. Create the fenced replacement stopped.
+				actualReplicas, replicas = 0, 0
+			}
 			if op.InitialStartup {
 				actualReplicas = replicas
 				delete(ss.Annotations, restoreGuardAnnotation)
@@ -1714,6 +1752,16 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					actualReplicas = replicas
 				}
 			}
+		}
+		if held && op.Baseline && r.GameWorkloadPolicy != nil && ss.ResourceVersion != "" {
+			// A stale pre-admission decision may stamp the owner but cannot
+			// change replicas. During the drain, never raise replicas or roll
+			// the live Pod's template, including on previously pinned baselines.
+			if live.Annotations[lifecycleOperationAnnotation] == gs.Annotations[lifecycleOperationAnnotation] &&
+				(ss.Spec.Replicas == nil || actualReplicas < *ss.Spec.Replicas) {
+				ss.Spec.Replicas = &actualReplicas
+			}
+			return nil
 		}
 		preserveBaseline, err := r.preserveBaselinePodTemplate(ctx, &live, ss)
 		if err != nil {
@@ -1838,8 +1886,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// Assign unconditionally so clearing spec.nodeSelector also clears the
 		// pod template's selector (nil resets it); the previous nil-guard left
 		// a removed scheduling pin active on the StatefulSet.
-		ss.Spec.Template.Spec.NodeSelector = gs.Spec.NodeSelector
-		ss.Spec.Template.Spec.Tolerations = gs.Spec.Tolerations
+		ss.Spec.Template.Spec.NodeSelector, ss.Spec.Template.Spec.Tolerations = r.GameWorkloadPolicy.placement(gs)
 		// Do not change a live Pod's template merely because its node was
 		// recorded while a graceful stop is still saving the game. Apply the
 		// endpoint pin at zero replicas, then retain it on every future wake.
@@ -2294,15 +2341,29 @@ func buildConfigInitContainer(image string, tmpl *gameplanev1alpha1.GameTemplate
 	}
 }
 
-// effectiveResources resolves the game container's compute resources:
-// the template's defaults, replaced wholesale by spec.resources when set.
+// Each explicit request or limit overrides that resource's template value.
+// An unconfigured CPU limit stays absent for Burstable games.
 func effectiveResources(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) corev1.ResourceRequirements {
-	if gs.Spec.Resources != nil {
-		return *gs.Spec.Resources
+	resources := tmpl.Spec.Resources.DeepCopy()
+	if override := gs.Spec.Resources; override != nil {
+		resources.Requests = mergeResourceList(resources.Requests, override.Requests)
+		resources.Limits = mergeResourceList(resources.Limits, override.Limits)
+		if override.Claims != nil {
+			resources.Claims = override.DeepCopy().Claims
+		}
 	}
-	return tmpl.Spec.Resources
+	return *resources
+}
+
+// mergeResourceList owns its defaults map and copies each override quantity before replacing its template value.
+func mergeResourceList(defaults, override corev1.ResourceList) corev1.ResourceList {
+	if defaults == nil {
+		return override.DeepCopy()
+	}
+	maps.Copy(defaults, override.DeepCopy())
+	return defaults
 }
 
 // buildGameContainer constructs the primary game server container definition.
@@ -2379,23 +2440,10 @@ func buildGameContainer(
 		VolumeMounts: mounts,
 		Resources:    res,
 	}
-	if tmpl.Spec.Probes != nil {
-		c.ReadinessProbe = tmpl.Spec.Probes.Readiness
-		c.LivenessProbe = tmpl.Spec.Probes.Liveness
-		c.StartupProbe = tmpl.Spec.Probes.Startup
-	}
-	// Per-server probe overrides win over the template, one probe at a time.
-	if p := gs.Spec.Probes; p != nil {
-		if p.Readiness != nil {
-			c.ReadinessProbe = p.Readiness
-		}
-		if p.Liveness != nil {
-			c.LivenessProbe = p.Liveness
-		}
-		if p.Startup != nil {
-			c.StartupProbe = p.Startup
-		}
-	}
+	probes := effectiveGameProbes(gs, tmpl)
+	c.ReadinessProbe = probes.Readiness
+	c.LivenessProbe = probes.Liveness
+	c.StartupProbe = probes.Startup
 	// PTY console mode requires the kubelet to allocate a TTY for the
 	// container at start time. These fields are immutable once the pod
 	// exists, so changing ConsoleMode forces a pod recreate (handled by

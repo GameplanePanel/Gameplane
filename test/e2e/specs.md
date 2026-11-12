@@ -134,6 +134,21 @@ a cordon, readiness of the surviving replica, and singleton API eviction. Node
 labels and cordons are restored in cleanup. This validates scheduler/PDB behavior,
 not application HA or storage migration.
 
+`TestGameWorkerPoolAndQuota` first enables the operator worker policy with a
+legacy server running. It checks that the rejected server can stop, that a
+directly submitted out-of-bounds server gets no StatefulSet, and that a
+valid partial override preserves template memory bounds on the worker Pod.
+It then applies the production chart's game Pod
+admission and tenant quota to an isolated namespace. A second Pod exceeds its
+quota. When the test cordons the only game worker and evicts its game Pod, the
+replacement stays Pending until a second worker joins the pool. Its allocating
+process runs in a verified 32 MiB container cgroup. On the disposable Kind
+worker, the test measures the Pod's hierarchical cgroup-v2 `memory.events`
+before pressure and after a single container restart. The same Pod must record
+increases in `max`, `oom` and `oom_kill`. The preceding container ID must match
+the terminated game with exit 137. These counters distinguish a local limit
+kill even when the runtime records the generic termination reason `Error`.
+
 ### Backup preparation acceptance
 
 The `backup-preparation` bucket also uses the `management` Kind profile and zero

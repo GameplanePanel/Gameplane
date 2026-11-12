@@ -926,6 +926,13 @@ jobs:
           read -r -a packages <<<"$GO_PACKAGES"
           go test -covermode=atomic -coverpkg=./... \
             -coverprofile=coverage/unit.out "${packages[@]}"
+      - name: profile local UDP forwarding against direct echo
+        if: matrix.module == 'tunnel' && matrix.arch == 'amd64' && env.GO_PACKAGES != ''
+        working-directory: tunnel
+        run: |
+          go test -count=1 -v -run '^TestRelayLoadForwardingProfile$' -cpuprofile="$RUNNER_TEMP/relay.cpu" -memprofile="$RUNNER_TEMP/relay.mem" -o "$RUNNER_TEMP/relay.test" .
+          go tool pprof -top -cum -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.cpu"
+          go tool pprof -top -alloc_space -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.mem"
       - name: sentinel mixed-load regression measurements
         if: matrix.module == 'sentinel' && env.GO_PACKAGES != ''
         working-directory: sentinel
@@ -1026,6 +1033,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
       - run: npm ci
+      - name: Verify dashboard lint rules and compiler version
+        run: bash scripts/check-lint-toolchain.sh
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: web-i18n
@@ -1087,7 +1096,7 @@ jobs:
             fi
             echo "ok $code"
           done
-      - name: eslint
+      - name: ESLint and Oxlint
         run: npm run lint
       - run: npm run build
       - name: unit tests + coverage
@@ -1175,8 +1184,11 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install chromium
-        # Skips the browser download on a cache hit; still apt-installs deps.
-        run: npx playwright install --with-deps chromium
+        run: bash e2e/install-chromium.sh
+      - name: build production dashboard for plain HTTP browser check
+        run: npm run build
+      - name: TypeScript editor on plain HTTP
+        run: npx playwright test --config=e2e/http/playwright.config.ts
       - name: playwright (mock)
         run: npm run test:e2e:mock
       - name: upload playwright report
@@ -1864,7 +1876,7 @@ jobs:
             job_timeout: 60 # Boots two-node kind, installs the chart and exercises repeated Hostport sleep/wake handoffs.
           - bucket: management-placement
             parallel: 1
-            test_timeout: 15m
+            test_timeout: 30m
             job_timeout: 60 # Boots management kind, installs the chart and checks placement/disruption behavior.
           - bucket: backup-preparation
             parallel: 1
@@ -2265,8 +2277,10 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/package-lock.json') }}
       - name: install playwright browser
+        working-directory: web
         run: |
-          cd web && npm ci && npx playwright install --with-deps chromium
+          npm ci
+          bash e2e/install-chromium.sh
       - name: i18n catalogs for the live dashboard
         # The live job serves the dashboard with plain vite, which never builds
         # the gitignored language list and catalogs (spec 019 T037).

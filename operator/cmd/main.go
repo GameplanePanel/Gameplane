@@ -163,15 +163,23 @@ func main() {
 		backupCSICaptureTimeout          time.Duration
 		backupHardSameNode               bool
 		agentResourcesJSON               string
+		gameWorkloadPolicyJSON           string
+		auxiliaryWorkerPool              string
 		sentinelResourcesJSON            string
 		tunnelResourcesJSON              string
+		tailscaleMaxSessions             int
+		tailscaleUDPQueue                int
 		backupResourcesJSON              string
 	)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "Address the metrics endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "Address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
 	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
+	flag.StringVar(&gameWorkloadPolicyJSON, "game-workload-policy", "", "JSON game worker pool and per-game resource bounds. Unset disables policy enforcement.")
+	flag.StringVar(&auxiliaryWorkerPool, "auxiliary-worker-pool", "", "Exact key=value node label and matching NoSchedule taint for service wakers and relays. Defaults to the configured game worker pool.")
 	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
+	flag.IntVar(&tailscaleMaxSessions, "tailscale-max-sessions", 128, "Maximum concurrent TCP and UDP flows per Tailscale relay (1-256).")
+	flag.IntVar(&tailscaleUDPQueue, "tailscale-udp-queue", 4, "Queued datagrams per UDP peer (1-16). Sessions times (queue + 1) must be at most 640.")
 	flag.StringVar(&tunnelResourcesJSON, "tunnel-resources", "", "JSON ResourceRequirements for tunnel relays; default requests 25m/64Mi, {} clears defaults.")
 	flag.StringVar(&backupResourcesJSON, "backup-resources", "", "JSON ResourceRequirements for restic backup/init, restore and cleanup workers; default backup/restore requests 100m/128Mi, {} clears defaults.")
 	flag.StringVar(&agentImage, "agent-image", "ghcr.io/gameplanepanel/gameplane/agent:dev",
@@ -313,6 +321,16 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	setupLog := ctrl.Log.WithName("setup")
 
+	gameWorkloadPolicy, err := controller.ParseGameWorkloadPolicy(gameWorkloadPolicyJSON)
+	if err != nil {
+		setupLog.Error(err, "invalid --game-workload-policy")
+		os.Exit(1)
+	}
+	auxiliaryPool, err := controller.ParseAuxiliaryWorkerPool(auxiliaryWorkerPool)
+	if err != nil {
+		setupLog.Error(err, "invalid --auxiliary-worker-pool")
+		os.Exit(1)
+	}
 	agentResources, err := controller.ParseAuxiliaryResources(agentResourcesJSON)
 	if err != nil {
 		setupLog.Error(err, "invalid --agent-resources")
@@ -321,6 +339,10 @@ func main() {
 	sentinelResources, err := controller.ParseAuxiliaryResources(sentinelResourcesJSON)
 	if err != nil {
 		setupLog.Error(err, "invalid --sentinel-resources")
+		os.Exit(1)
+	}
+	if tailscaleMaxSessions < 1 || tailscaleMaxSessions > 256 || tailscaleUDPQueue < 1 || tailscaleUDPQueue > 16 || tailscaleMaxSessions*(tailscaleUDPQueue+1) > 640 {
+		fmt.Fprintln(os.Stderr, "invalid Tailscale forwarding limits: need 1-256 sessions, queue 1-16, sessions * (queue + 1) <= 640")
 		os.Exit(1)
 	}
 	tunnelResources, err := controller.ParseAuxiliaryResources(tunnelResourcesJSON)
@@ -475,6 +497,8 @@ func main() {
 		AgentResources:         agentResources,
 		SentinelResources:      sentinelResources,
 		TunnelResources:        tunnelResources,
+		TailscaleMaxSessions:   tailscaleMaxSessions,
+		TailscaleUDPQueue:      tailscaleUDPQueue,
 		AgentImagePullPolicy:   agentImagePullPolicy,
 		ConfigInitImage:        configInitImage,
 		SentinelImage:          sentinelImage,
@@ -498,6 +522,8 @@ func main() {
 		ProbeIngressFromCIDRs:       probeIngressFromCIDR,
 		CaptureEnabled:              captureEnabled,
 		RestrictedWorkloads:         restrictedWorkloads,
+		GameWorkloadPolicy:          gameWorkloadPolicy,
+		AuxiliaryWorkerPool:         auxiliaryPool,
 		AgentTokenExpirationSeconds: agentTokenExpirationSeconds,
 		DiagnosticsNamespace:        diagnosticsNamespace,
 		CaptureSidecarImage:         captureSidecarImage,
