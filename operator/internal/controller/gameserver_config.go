@@ -41,7 +41,7 @@ type materializedConfig struct {
 	// Retain the owned Secret even while all its deferred keys are unset.
 	hasDeferredEnv bool
 	// files holds the rendered configFiles in declaration order. They
-	// live in the per-server `<gs>-files` Secret â€” always a Secret,
+	// live in the per-server `<gs>-files` Secret — always a Secret,
 	// never a ConfigMap, because any template may embed password-type
 	// values.
 	files []renderedConfigFile
@@ -80,7 +80,7 @@ func filesSecretName(gs *gameplanev1alpha1.GameServer) string {
 // applied for absent keys (keeping `kubectl apply` behavior identical
 // to the wizard, which pre-fills them); empty optional values are
 // skipped entirely so games treat them as unset. Any violation is an
-// error â€” the caller fails the GameServer rather than silently
+// error — the caller fails the GameServer rather than silently
 // dropping user intent.
 func materializeConfig(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
@@ -189,7 +189,7 @@ func materializeConfig(
 		hashParts = append(hashParts, f.Name+"="+val)
 		if f.Target == "file" {
 			// File-target values exist only inside rendered
-			// configFiles â€” no env var, and password values reach
+			// configFiles — no env var, and password values reach
 			// the pod via the `<gs>-files` Secret instead of
 			// `<gs>-config`.
 			fileFieldSet = true
@@ -240,7 +240,7 @@ func materializeConfig(
 
 // autoMemoryValue renders percent% of the game container's effective
 // memory limit as whole mebibytes ("6144M"), or "" when the resolved
-// resources declare no memory limit â€” the field then stays unset and the
+// resources declare no memory limit — the field then stays unset and the
 // game keeps its own default, matching an unset optional field.
 func autoMemoryValue(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate, percent int32,
@@ -258,7 +258,7 @@ func autoMemoryValue(
 }
 
 // renderConfigFiles executes every spec.configFiles template against
-// the resolved config values. All failures are errors â€” a bad path or
+// the resolved config values. All failures are errors — a bad path or
 // template fails the GameServer rather than materializing a pod that
 // silently misses a config file.
 func renderConfigFiles(

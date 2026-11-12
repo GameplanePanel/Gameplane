@@ -46,20 +46,34 @@ export function jvmStartup(template: GameTemplate | undefined, server: GameServe
   const flags: string[] = [];
   const errors: ConfigError[] = [];
   const heaps: Partial<Record<HeapName, Heap>> = {};
-  if (!itzg) return { fields, flags, errors };
-  for (const name of heapNames) {
-    const field = fields.find((f) => f.name === name);
-    if (!field) continue;
-    const override = [...(server.spec.env ?? [])].reverse().find((v) => v.name === name);
-    const inherited = [...(template?.spec.env ?? []), ...(version?.env ?? [])].reverse().find((v) => v.name === name);
-    let value = server.spec.config?.[name] ?? field.default ?? "";
-    if (!value && field.autoFromMemoryLimit) {
+  if (!itzg || template?.spec.command?.length || !fields.some((f) => heapNames.some((name) => f.name === name))) {
+    return { fields, flags, errors };
+  }
+
+  // Resolve the operator's environment layers before applying the launcher's
+  // MEMORY fallback. null means a valueFrom or expansion is unknown here.
+  const base = [...(template?.spec.env ?? []), ...(version?.env ?? [])];
+  const resolveEnv = (name: string, fallback: string | null): string | null => {
+    const supplied = [...(server.spec.env ?? [])].reverse().find((e) => e.name === name);
+    const field = template?.spec.configSchema?.find((f) => f.target !== "file" && f.name === name);
+    let configured = field ? server.spec.config?.[name] ?? field.default ?? "" : "";
+    if (!configured && field?.autoFromMemoryLimit) {
       const mib = Math.floor(limit * field.autoFromMemoryLimit.percent / 100 / 1024 ** 2);
-      if (mib > 0) value = `${mib}M`;
+      if (mib > 0) configured = `${mib}M`;
     }
-    if (!value) value = inherited?.value ?? "";
-    if (override) value = override.value ?? "";
-    if (!value || value === CONFIG_REDACTED_MARKER || value.includes("$(")) continue;
+    const inherited = [...base].reverse().find((e) => e.name === name);
+    const env = supplied ?? (configured ? { value: configured } : inherited);
+    if (!env) return fallback;
+    if ("valueFrom" in env && env.valueFrom) return null;
+    const value = env.value ?? "";
+    return value === CONFIG_REDACTED_MARKER || value.includes("$(") ? null : value;
+  };
+  const memory = resolveEnv("MEMORY", "1G");
+  const values = { INIT_MEMORY: resolveEnv("INIT_MEMORY", memory), MAX_MEMORY: resolveEnv("MAX_MEMORY", memory) };
+  for (const name of heapNames) {
+    const other = name === "INIT_MEMORY" ? values.MAX_MEMORY : values.INIT_MEMORY;
+    const value = values[name] === "" && other ? memory : values[name];
+    if (!value) continue;
     const heap = parseHeap(name, value, limit);
     heaps[name] = heap;
     if (heap.flag) flags.push(heap.flag);
@@ -72,7 +86,7 @@ export function jvmStartup(template: GameTemplate | undefined, server: GameServe
   const maximum = heaps.MAX_MEMORY?.bytes;
   if (initial !== undefined && maximum !== undefined && initial > maximum) {
     const text = intl.formatMessage({ id: "web.jvm.heap_order", defaultMessage: "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.", description: "Settings: the independently resolved initial Java heap is larger than the maximum heap" });
-    errors.push({ name: "INIT_MEMORY", text, message: text });
+    errors.push({ name: fields.some((f) => f.name === "INIT_MEMORY") ? "INIT_MEMORY" : "MAX_MEMORY", text, message: text });
   }
   return { fields, flags, errors };
 }

@@ -1,0 +1,584 @@
+{
+  "type": "frame",
+  "id": "ZUAq1",
+  "x": 11280,
+  "y": 40770,
+  "name": "Screen/Server Detail — Settings · Minecraft JVM heap validation",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 980,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "cbpYZ",
+      "type": "ref",
+      "ref": "kKFX9",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "$accent/soft"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "sP4Mp",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "DIdDB",
+          "type": "ref",
+          "ref": "gu5WY",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "mc-survival"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Sr0hy",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "id": "MvP6f",
+              "type": "ref",
+              "ref": "S4k0x",
+              "name": "Detail Header",
+              "width": "fill_container"
+            },
+            {
+              "id": "RER4g",
+              "type": "ref",
+              "ref": "I9kvlZ",
+              "name": "Tabs Bar",
+              "width": "fill_container",
+              "padding": [
+                0,
+                0,
+                0,
+                24
+              ],
+              "descendants": {
+                "Wp6q1": {
+                  "fill": "#00000000"
+                },
+                "Wp6q1/YUR8N": {
+                  "fill": "$muted"
+                },
+                "Y4QES": {
+                  "fill": "$segment"
+                },
+                "Y4QES/VcxMI": {
+                  "fill": "$foreground/segment"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "Thzp3",
+              "name": "Settings Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "children": [
+                {
+                  "id": "Q8YcZN",
+                  "type": "ref",
+                  "ref": "EV8mp",
+                  "name": "Settings Sub Nav",
+                  "width": 224,
+                  "height": "fill_container",
+                  "descendants": {
+                    "oXEaP": {
+                      "fill": "#00000000"
+                    },
+                    "K2QiS9": {
+                      "fill": "#000000"
+                    },
+                    "KfnMt": {
+                      "fill": "$muted"
+                    },
+                    "axMXL": {
+                      "fill": "#00000000"
+                    },
+                    "P8u2Kj": {
+                      "fill": "$muted"
+                    },
+                    "VQPTx": {
+                      "fill": "$muted"
+                    },
+                    "p3HCVj": {
+                      "fill": "$surface/secondary"
+                    },
+                    "nbQNd": {
+                      "fill": "$foreground/foreground"
+                    },
+                    "nnoXy": {
+                      "fill": "#00000000"
+                    },
+                    "F1IWTf": {
+                      "fill": "$muted"
+                    },
+                    "bHNH0": {
+                      "fill": "$muted"
+                    },
+                    "QrhqW": {
+                      "fill": "#00000000"
+                    },
+                    "b0WSG": {
+                      "fill": "$muted"
+                    },
+                    "J4128": {
+                      "fill": "$muted"
+                    },
+                    "DnXAN": {
+                      "fill": "#00000000"
+                    },
+                    "RK6jY": {
+                      "fill": "$muted"
+                    },
+                    "rWM9D": {
+                      "fill": "$muted"
+                    },
+                    "tv3iR": {
+                      "fill": "#00000000"
+                    },
+                    "nfFt4": {
+                      "fill": "$muted"
+                    },
+                    "Y2PGH": {
+                      "fill": "$muted"
+                    },
+                    "bLFiu": {
+                      "fill": "#00000000"
+                    },
+                    "S7IwYB": {
+                      "fill": "$muted"
+                    },
+                    "IUddK": {
+                      "fill": "$muted"
+                    },
+                    "hNpsj": {
+                      "fill": "#00000000"
+                    },
+                    "lU1pD": {
+                      "fill": "$muted"
+                    },
+                    "Fkfhz": {
+                      "fill": "$muted"
+                    },
+                    "faW0l": {
+                      "fill": "#00000000"
+                    },
+                    "dDJ3f": {
+                      "fill": "$muted"
+                    },
+                    "v3XCDT": {
+                      "fill": "$muted"
+                    },
+                    "LktID": {
+                      "fill": "#00000000"
+                    },
+                    "OdmLx": {
+                      "fill": "$muted"
+                    },
+                    "paOZA": {
+                      "fill": "$muted"
+                    },
+                    "JlFDJ": {
+                      "fill": "#00000000"
+                    },
+                    "Hw7vh": {
+                      "fill": "$muted"
+                    },
+                    "Qbxnz": {
+                      "fill": "$muted"
+                    },
+                    "WLobW": {
+                      "fill": "#00000000"
+                    },
+                    "zpxa4": {
+                      "fill": "$danger/danger"
+                    },
+                    "xlVdh": {
+                      "fill": "$danger/danger"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "x4sGE",
+                  "name": "Settings Panel Wrap",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "T8eOy2",
+                      "name": "Settings Form",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zjzIl",
+                          "name": "Form Body",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": 24,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Q8tg6o",
+                              "name": "Section Header",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "YrXRN",
+                                  "name": "Section Title",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Game configuration",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 18,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "OvbzJ",
+                                  "name": "Section Description",
+                                  "fill": "$muted",
+                                  "content": "Settings from this server's game template.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "IdvNa",
+                              "type": "ref",
+                              "ref": "uJ3KZ",
+                              "name": "Restart Alert",
+                              "width": "fill_container",
+                              "descendants": {
+                                "xzGxP": {
+                                  "content": "The server may restart once when it adopts these startup settings."
+                                },
+                                "yLGJ9": {
+                                  "enabled": false,
+                                  "width": 240
+                                }
+                              }
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Ai0ep",
+                              "name": "JVM startup settings",
+                              "width": "fill_container",
+                              "cornerRadius": 12,
+                              "stroke": "$border/border",
+                              "strokeWidth": 1,
+                              "layout": "vertical",
+                              "gap": 14,
+                              "padding": 16,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "wWVuf",
+                                  "name": "Startup section title",
+                                  "fill": "$foreground/foreground",
+                                  "content": "JVM startup",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 16,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "O6oAHX",
+                                  "name": "JVM max heap",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "U7Bjg",
+                                      "name": "JVM max heap label",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 180,
+                                      "content": "JVM max heap",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "id": "Q18G7",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "JVM max heap control",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "2G"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dx3Hq",
+                                  "name": "JVM initial heap",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "lwnsm",
+                                      "name": "JVM initial heap label",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 180,
+                                      "content": "JVM initial heap",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "id": "EFCOd",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "JVM initial heap control",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "Automatic",
+                                          "fill": "$field/placeholder"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "x8uhMt",
+                                  "name": "Initial heap validation error",
+                                  "fill": "$danger/danger",
+                                  "content": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "pTPiO",
+                                  "name": "Extra JVM options",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "TFGAI",
+                                      "name": "Extra JVM options label",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 180,
+                                      "content": "Additional JVM options",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "id": "dutXY",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Extra JVM options control",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": "-Dexample=true"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "HKnqx",
+                                  "name": "Extra JVM -XX options",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Th6la",
+                                      "name": "Extra JVM -XX options label",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 180,
+                                      "content": "Additional JVM tuning options",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "id": "BxJ9b",
+                                      "type": "ref",
+                                      "ref": "D0cDM",
+                                      "name": "Extra JVM -XX options control",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "PJERm": {
+                                          "content": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "HboUw",
+                                  "name": "Use Aikar’s flags",
+                                  "width": "fill_container",
+                                  "gap": 16,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "jf14n",
+                                      "name": "Use Aikar’s flags label",
+                                      "fill": "$foreground/foreground",
+                                      "textGrowth": "fixed-width",
+                                      "width": 180,
+                                      "content": "Use Aikar’s flags",
+                                      "fontFamily": "$typography/font-sans",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "id": "WVVYM",
+                                      "type": "ref",
+                                      "ref": "AT7ya",
+                                      "name": "Use Aikar’s flags control",
+                                      "width": "fill_container",
+                                      "descendants": {
+                                        "cFsFk": {
+                                          "content": "false"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Hulio",
+                                  "name": "Heap argument preview",
+                                  "fill": "$muted",
+                                  "content": "Heap options before additional JVM arguments: -Xms3072M -Xmx2G",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Y5gkTT",
+                          "name": "Form Footer",
+                          "width": "fill_container",
+                          "stroke": "$border/border",
+                          "strokeWidth": {
+                            "top": 1
+                          },
+                          "strokeAlignment": "inner",
+                          "strokeLinejoin": "round",
+                          "gap": 12,
+                          "padding": [
+                            12,
+                            24
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "axDSN",
+                              "type": "ref",
+                              "ref": "J09iP",
+                              "name": "Btn Discard",
+                              "descendants": {
+                                "eWkIT/WtPjS": {
+                                  "icon": "pencil"
+                                }
+                              }
+                            },
+                            {
+                              "id": "ElsA3",
+                              "type": "ref",
+                              "ref": "z9ShNE",
+                              "name": "Btn Save Changes",
+                              "opacity": 0.45,
+                              "descendants": {
+                                "nWTJb": {
+                                  "enabled": false
+                                },
+                                "IVgQ8/U1xvSo": {
+                                  "content": "Save changes"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

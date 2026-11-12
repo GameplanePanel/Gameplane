@@ -58,6 +58,23 @@ it("uses only declared environment options and keeps a custom launcher editable 
   expect(screen.queryByTestId("config-restart-note")).not.toBeInTheDocument();
 });
 
+it("uses the launcher's MEMORY fallback with a partial schema and no memory limit", () => {
+  const gs = server({ MAX_MEMORY: "512M" });
+  const template = tmpl([heaps[1]]);
+  template.spec.env = [{ name: "MEMORY", value: "2G" }];
+  renderWithQuery(<Harness initial={gs} template={template} />);
+  expect(screen.getByText(/-Xms2G -Xmx512M/)).toBeInTheDocument();
+  expect(screen.getByText(/initial heap exceeds the maximum heap/i)).toBeInTheDocument();
+  expect(screen.queryByLabelText("INIT_MEMORY")).not.toBeInTheDocument();
+});
+
+it("omits the image-specific preview for a template that replaces its entrypoint", () => {
+  const template = tmpl(heaps);
+  template.spec.command = ["/custom/launch"];
+  renderWithQuery(<Harness initial={server({ INIT_MEMORY: "2G", MAX_MEMORY: "1G" })} template={template} />);
+  expect(screen.queryByText(/Heap options before/)).not.toBeInTheDocument();
+});
+
 it("warns about adoption when the running server still uses its baseline Pod", () => {
   const gs = server();
   gs.metadata.annotations = { ...gs.metadata.annotations, "gameplane.local/template-baseline": "admitted" };

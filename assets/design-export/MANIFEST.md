@@ -2874,3 +2874,9 @@ Nodes now follows the Backups toolbar: a plain search input, capped at 320px on 
 
 All seven roots have JSON from Pencil `Get` and 2× PNG from `Export`. Toolbar, popover, desktop, fixed-cluster and mobile layouts were inspected using `TakeScreenshot`; the full screens retain their previous dimensions and content. JSON exports retain component references without elided children or editing placeholders. No React source, tests or lint suites were changed or run for this design update.
 
+## Minecraft JVM startup settings
+
+| Screen ID | State |
+| --- | --- |
+| `KJdxg` | Saved JVM options apply on the next start. Both heap arguments appear below the fields. |
+| `ZUAq1` | A 4 GiB limit and a 2G maximum make the automatic 3072M initial heap invalid. The adoption notice and disabled Save button are visible. |

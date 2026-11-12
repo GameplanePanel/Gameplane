@@ -311,6 +311,7 @@ export interface GameTemplate {
     icon?: string;
     accentColor?: string;
     image: string;
+    command?: string[];
     versions?: GameVersion[];
     env?: EnvVar[];
     resources?: ResourceRequirements;
