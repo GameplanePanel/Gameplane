@@ -9,16 +9,23 @@ type FetchInit = Parameters<typeof fetch>[1];
 
 // Monaco can't render in jsdom — replace with a controlled textarea so
 // onChange fires and the editor value can be inspected/manipulated.
-vi.mock("@monaco-editor/react", () => ({
+vi.mock("@/lib/monaco-editor", () => ({
+  startFileLanguageService: vi.fn(),
   default: ({
     value,
     onChange,
+    language,
+    path,
   }: {
     value: string;
     onChange?: (v: string | undefined) => void;
+    language: string;
+    path: string;
   }) => (
     <textarea
       data-testid="monaco"
+      data-language={language}
+      data-model-uri={path}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
     />
@@ -1046,26 +1053,29 @@ describe("FilesTab", () => {
     );
   });
 
-  it("guesses language from filename for Monaco editor", async () => {
-    const entries = [
-      { name: "config.yaml", path: "/config.yaml", size: 100, dir: false },
-      { name: "data.json", path: "/data.json", size: 50, dir: false },
-      { name: "script.sh", path: "/script.sh", size: 200, dir: false },
+  it("switches Monaco's language and model URI when a different file is selected", async () => {
+    const files = [
+      { name: "config.yaml", language: "yaml", uriName: "config.yaml" },
+      { name: "data.json", language: "json", uriName: "data.json" },
+      { name: "server.mjs", language: "javascript", uriName: "server.mjs" },
+      { name: "view #1.TSX", language: "typescript", uriName: "view%20%231.TSX" },
     ];
+    const entries = files.map(({ name }) => ({ name, path: `/data/${name}`, size: 12, dir: false }));
     fetchMock.mockImplementation(async (url: string) => {
       if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(entries);
       if (url.startsWith("/servers/mc-survival/files/read")) return textRes("content");
       throw new Error(`unexpected fetch: ${url}`);
     });
     renderWithQuery(<FilesTab name="mc-survival" />);
-    fireEvent.click(await screen.findByText("config.yaml"));
-    let monaco = await screen.findByTestId("monaco") as HTMLTextAreaElement;
-    // Check that Editor component receives correct language prop
-    expect(monaco).toBeInTheDocument();
-    // Click config.json to test json detection
-    fireEvent.click(screen.getByText("data.json"));
-    monaco = await screen.findByTestId("monaco") as HTMLTextAreaElement;
-    expect(monaco).toBeInTheDocument();
+    for (const file of files) {
+      fireEvent.click(await screen.findByText(file.name));
+      const editor = await screen.findByTestId("monaco");
+      expect(editor).toHaveAttribute("data-language", file.language);
+      const uri = new URL(editor.getAttribute("data-model-uri")!);
+      expect(uri.protocol).toBe("file:");
+      expect(uri.pathname).toBe(`/workspace/${file.uriName}`);
+      expect(uri.searchParams.get("path")).toBe(`/data/${file.name}`);
+    }
   });
 
   it("trims whitespace from folder and file names", async () => {

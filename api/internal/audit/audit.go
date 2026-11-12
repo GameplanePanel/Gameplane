@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -55,11 +54,9 @@ type Auditor struct {
 	webhook *WebhookSink // outbound HTTP push sink; nil disables it
 	s3      *S3Sink      // S3 batch sink; nil disables it
 
-	// chainMu serializes the read-prev/compute-hash/insert sequence (and the
-	// checkpoint-then-delete sequence in Prune) so two requests never read
-	// the same "previous row" and fork the chain. See insertChained's doc
-	// comment for the single-writer/multi-replica caveat this doesn't cover.
-	chainMu sync.Mutex
+	// admitted bounds all chain writers, including the one holding chain.
+	admitted chan struct{}
+	chain    chan struct{}
 }
 
 // Option configures an Auditor.
@@ -232,7 +229,7 @@ type webhookPayload struct {
 
 // New returns an Auditor configured with options.
 func New(store *db.Store, opts ...Option) *Auditor {
-	a := &Auditor{db: store}
+	a := &Auditor{db: store, admitted: make(chan struct{}, 17), chain: make(chan struct{}, 1)}
 	for _, o := range opts {
 		o(a)
 	}
@@ -360,36 +357,32 @@ func computeHash(prevHash string, e Event) string {
 // headConfigKey) in the same transaction, so the newest-row anchor Verify
 // checks against is never out of sync with what was actually committed.
 //
-// Single-writer assumption: chainMu serializes the read-prev/compute/insert
+// Single-writer assumption: the chain gate serializes the read-prev/compute/insert
 // sequence against other requests in this process. That's correct for a
 // single API replica — the only deployment topology this covers today (see
 // docs/architecture.md). A multi-replica deployment would let two processes
 // each read the same "previous row" concurrently and insert two rows
 // chained to the same prev_hash, silently forking the chain; making that
 // safe needs a DB-level serialization point (e.g. a Postgres advisory lock
-// keyed on the audit_events table) in addition to this in-process mutex.
+// keyed on the audit_events table) in addition to this in-process gate.
 func (a *Auditor) insertChained(ctx context.Context, ts, actor, method, path, target, reason string, status int, ip string) error {
-	a.chainMu.Lock()
-	defer a.chainMu.Unlock()
+	return a.chainTransaction(ctx, "insert", 2*time.Second, func(ctx context.Context, tx *sql.Tx) error {
+		return a.appendEvent(ctx, tx, Event{TS: ts, Actor: actor, Method: method, Path: path, Target: target, Status: status, IP: ip, Reason: reason})
+	})
+}
 
-	tx, err := a.db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("begin audit tx: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-
+func (a *Auditor) appendEvent(ctx context.Context, tx *sql.Tx, e Event) error {
 	prevHash, err := a.previousHash(ctx, tx)
 	if err != nil {
 		return fmt.Errorf("read previous audit hash: %w", err)
 	}
 
-	e := Event{TS: ts, Actor: actor, Method: method, Path: path, Target: target, Status: status, IP: ip, Reason: reason}
 	hash := computeHash(prevHash, e)
 
 	if _, err := tx.ExecContext(ctx,
 		`INSERT INTO audit_events(ts, actor, method, path, target, status, ip, reason, prev_hash, hash)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		ts, actor, method, path, target, status, ip, reason, prevHash, hash,
+		e.TS, e.Actor, e.Method, e.Path, e.Target, e.Status, e.IP, e.Reason, prevHash, hash,
 	); err != nil {
 		return fmt.Errorf("insert audit event: %w", err)
 	}
@@ -397,7 +390,7 @@ func (a *Auditor) insertChained(ctx context.Context, ts, actor, method, path, ta
 	// Read back the id of the row just inserted rather than relying on
 	// driver-specific LastInsertId support (pgx's stdlib driver doesn't
 	// implement it): this SELECT runs inside the same tx, guarded by
-	// chainMu, so it can only see the row this call just committed.
+	// the chain gate, so it sees the row this call just inserted.
 	var newID int64
 	if err := tx.QueryRowContext(ctx,
 		`SELECT id FROM audit_events ORDER BY id DESC LIMIT 1`,
@@ -413,7 +406,7 @@ func (a *Auditor) insertChained(ctx context.Context, ts, actor, method, path, ta
 		return fmt.Errorf("write audit head: %w", err)
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // previousHash returns the hash to chain the next insert from: the current
@@ -670,14 +663,15 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 			// Share tokens are credentials; record the request structure without the token.
 			path := redactShareToken(req.URL.Path)
 
-			// WithoutCancel: the audit write must survive the request context being
-			// cancelled, or a client disconnect would silently punch a hole in the trail.
-			if err := a.insertChained(context.WithoutCancel(ctx), ts, actor, req.Method, path, target, "", rw.status, clientIP); err != nil {
-				// A dropped security-audit write must not be silent — surface it
-				// so an operator notices the trail has a hole.
-				slog.Warn("audit insert failed",
-					"err", err, "actor", actor, "method", req.Method, "path", path)
+			// The handler has already run. Keep its audit attempt on client
+			// disconnect, but never extend the request's original deadline.
+			writeCtx := context.WithoutCancel(ctx)
+			if deadline, ok := ctx.Deadline(); ok {
+				var cancel context.CancelFunc
+				writeCtx, cancel = context.WithDeadline(writeCtx, deadline)
+				defer cancel()
 			}
+			_ = a.insertChained(writeCtx, ts, actor, req.Method, path, target, "", rw.status, clientIP)
 			if a.sink != nil {
 				a.sink.Info("audit",
 					"actor", actor, "method", req.Method, "path", path,
@@ -711,11 +705,9 @@ func Middleware(a *Auditor) func(http.Handler) http.Handler {
 // status code. Actor and client IP are extracted from the request context
 // (set by Authenticate and ClientIPFromXFF middleware, respectively).
 //
-// On database write failure, WriteSync logs a warning with slog.Warn and
-// returns the error. Handlers must treat audit-write failures as non-fatal:
-// log the error (or rely on WriteSync's internal warning), but do not fail
-// the capture operation itself. The operation's actual HTTP response (status,
-// body) is returned to the client regardless of audit-write success.
+// WriteSync honors the caller's cancellation and deadline. Required-audit
+// handlers return a generic error before releasing their response on failure.
+// Callers recording a mutation already applied can keep its original response.
 func (a *Auditor) WriteSync(ctx context.Context, method, path, target, reason string, status int) error {
 	// Extract actor from context (set by auth.WithActorHolder).
 	actor := "anonymous"
@@ -731,14 +723,7 @@ func (a *Auditor) WriteSync(ctx context.Context, method, path, target, reason st
 	// Generate timestamp once so the audit row has a consistent time.
 	ts := time.Now().UTC().Format(time.RFC3339)
 
-	// WithoutCancel: the audit write must survive the request context being
-	// cancelled, or a client disconnect would silently punch a hole in the trail.
-	if err := a.insertChained(context.WithoutCancel(ctx), ts, actor, method, path, target, reason, status, clientIP); err != nil {
-		// A dropped security-audit write must not be silent — surface it
-		// so an operator notices the trail has a hole. The caller does not
-		// fail the operation; this log line is the only signal.
-		slog.Warn("audit write failed",
-			"err", err, "actor", actor, "method", method, "path", path)
+	if err := a.insertChained(ctx, ts, actor, method, path, target, reason, status, clientIP); err != nil {
 		return fmt.Errorf("audit write: %w", err)
 	}
 
@@ -945,31 +930,29 @@ func (a *Auditor) Stream(ctx context.Context, f StreamFilter, fn func(Event) err
 // chainCheckpoint) so Verify can still validate the hash-chain link into the
 // first surviving row after the boundary row itself is gone.
 func (a *Auditor) Prune(ctx context.Context, cutoff time.Time) (int64, error) {
-	cutoffStr := cutoff.UTC().Format(time.RFC3339)
-
-	// Same in-process serialization as insertChained: checkpointing and
-	// deleting must be atomic with respect to a concurrent insert reading
-	// "the previous row's hash", or that insert could read a row that's
-	// about to be pruned out from under it.
-	a.chainMu.Lock()
-	defer a.chainMu.Unlock()
-
-	tx, err := a.db.DB.BeginTx(ctx, nil)
+	var deleted int64
+	err := a.chainTransaction(ctx, "prune", 30*time.Second, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		deleted, err = pruneBefore(ctx, tx, cutoff.UTC().Format(time.RFC3339))
+		return err
+	})
 	if err != nil {
-		return 0, fmt.Errorf("begin prune tx: %w", err)
+		return 0, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	return deleted, nil
+}
 
+func pruneBefore(ctx context.Context, tx *sql.Tx, cutoffStr string) (int64, error) {
 	var boundaryID int64
 	var boundaryHash sql.NullString
-	err = tx.QueryRowContext(ctx,
+	err := tx.QueryRowContext(ctx,
 		`SELECT id, hash FROM audit_events WHERE ts < ? ORDER BY id DESC LIMIT 1`,
 		cutoffStr,
 	).Scan(&boundaryID, &boundaryHash)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		// Nothing to prune.
-		return 0, tx.Commit()
+		return 0, nil
 	case err != nil:
 		return 0, fmt.Errorf("find prune boundary: %w", err)
 	}
@@ -1003,9 +986,6 @@ func (a *Auditor) Prune(ctx context.Context, cutoff time.Time) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("prune audit events: %w", err)
 	}
-	if err := tx.Commit(); err != nil {
-		return 0, fmt.Errorf("commit prune: %w", err)
-	}
 	return n, nil
 }
 
@@ -1022,8 +1002,7 @@ func (a *Auditor) RunRetention(ctx context.Context, retention, interval time.Dur
 		cutoff := time.Now().Add(-retention)
 		n, err := a.Prune(ctx, cutoff)
 		if err != nil {
-			logger.Warn("audit retention sweep failed", "err", err)
-			return
+			return // chainTransaction reported the failed sweep.
 		}
 		if n > 0 {
 			logger.Info("audit retention sweep",

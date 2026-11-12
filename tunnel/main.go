@@ -107,6 +107,7 @@ type Config struct {
 	BackingServicePort string // "name:port,..." format
 
 	// Tailscale-specific
+	ForwardLimits       forwardLimits
 	TailscaleHostname   string
 	TailscaleTags       string // comma-separated
 	BackingServicePorts string // Tailscale: name:port:protocol; playit: name:port
@@ -171,6 +172,26 @@ func loadConfig(getenv func(string) string) (Config, error) {
 			return Config{}, errors.New("TAILSCALE_HOSTNAME is required for tailscale provider")
 		}
 		cfg.TailscaleTags = getenv("TAILSCALE_TAGS")
+		cfg.ForwardLimits = defaultForwardLimits
+		for _, option := range []struct {
+			key   string
+			value *int
+			max   int
+		}{
+			{"TAILSCALE_MAX_SESSIONS", &cfg.ForwardLimits.sessions, 256},
+			{"TAILSCALE_UDP_QUEUE", &cfg.ForwardLimits.udpQueue, 16},
+		} {
+			if raw := getenv(option.key); raw != "" {
+				n, err := strconv.Atoi(raw)
+				if err != nil || n < 1 || n > option.max {
+					return Config{}, fmt.Errorf("%s must be between 1 and %d", option.key, option.max)
+				}
+				*option.value = n
+			}
+		}
+		if cfg.ForwardLimits.sessions*(1+cfg.ForwardLimits.udpQueue) > 640 {
+			return Config{}, errors.New("configured Tailscale sessions times (UDP queue + 1) must not exceed 640")
+		}
 
 		cfg.BackingServicePorts = getenv("BACKING_SERVICE_PORTS")
 		if cfg.BackingServicePorts == "" {

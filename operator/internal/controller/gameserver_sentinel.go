@@ -337,13 +337,11 @@ func (r *GameServerReconciler) reconcileSentinel(
 
 		dep.Spec.Template.Spec.ServiceAccountName = sentinelSAName(gs)
 		if hostPort {
-			dep.Spec.Template.Spec.NodeSelector = gs.Spec.NodeSelector
-			dep.Spec.Template.Spec.Tolerations = gs.Spec.Tolerations
+			dep.Spec.Template.Spec.NodeSelector, dep.Spec.Template.Spec.Tolerations = r.GameWorkloadPolicy.placement(gs)
 			dep.Spec.Template.Spec.Affinity = hostportAffinity(gs)
 			dep.Spec.Strategy = appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType}
 		} else {
-			dep.Spec.Template.Spec.NodeSelector = nil
-			dep.Spec.Template.Spec.Tolerations = nil
+			dep.Spec.Template.Spec.NodeSelector, dep.Spec.Template.Spec.Tolerations = r.auxiliaryPlacement()
 			dep.Spec.Template.Spec.Affinity = nil
 		}
 		dep.Spec.Template.Spec.Containers = []corev1.Container{{
