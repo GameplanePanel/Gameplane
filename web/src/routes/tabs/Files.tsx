@@ -1,6 +1,7 @@
 import { useResourceClient, useResourceAccess, useResourceTarget, resourceKey, type ResourceTarget } from "@/lib/resourceTarget";
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type ChangeEvent,
@@ -18,8 +19,7 @@ import {
   Button,
   Input,
 } from "@heroui/react";
-import "@/lib/monaco-loader";
-import Editor from "@monaco-editor/react";
+import Editor, { startFileLanguageService } from "@/lib/monaco-editor";
 import {
   ChevronLeft,
   Download,
@@ -74,6 +74,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
   const { Files } = resourceClient;
   const qc = useQueryClient();
   const listKey = (cwd: string) => resourceKey(resourceTarget, "files", name, cwd, ns);
+  const editorId = useId();
 
   const [cwd, setCwd] = useState(ROOT);
   const [selection, setSelection] = useState<{ entry: FileEntry; id: number } | null>(null);
@@ -446,8 +447,12 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                   </div>
                 ) : (
                   <Editor
+                    key={selection?.id}
                     theme="vs-dark"
                     language={guessLang(selected.name)}
+                    path={`file:///workspace/${encodeURIComponent(selected.name)}?editor=${encodeURIComponent(editorId)}&path=${encodeURIComponent(selected.path)}`}
+                    saveViewState={false}
+                    onMount={startFileLanguageService}
                     value={editorValue}
                     onChange={(v) => setFileDraft((current) => current && current.selectionId === selection?.id
                       ? { ...current, editorValue: v ?? "" } : current)}
@@ -665,7 +670,8 @@ function guessLang(name: string): string {
   if (name.endsWith(".properties")) return "ini";
   if (name.endsWith(".toml")) return "toml";
   if (name.endsWith(".sh")) return "shell";
-  if (name.endsWith(".js") || name.endsWith(".ts")) return "typescript";
+  if (/\.(?:[cm]?js|jsx)$/i.test(name)) return "javascript";
+  if (/\.(?:[cm]?ts|tsx)$/i.test(name)) return "typescript";
   if (name.endsWith(".md")) return "markdown";
   return "plaintext";
 }

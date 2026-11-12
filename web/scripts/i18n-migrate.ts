@@ -13,10 +13,11 @@
 //
 // Run from web/. --root is the directory whose `src/` child defines id paths
 // (default: the current directory). Erasable TypeScript only (Node 22 type
-// stripping). Dependencies: typescript and @formatjs/icu-messageformat-parser.
+// stripping). Parse TS/TSX directly; edits use the original JavaScript string offsets.
 import fs from "node:fs";
 import path from "node:path";
-import ts from "typescript";
+import { parse as parseScript, type ParserPlugin } from "@babel/parser";
+import * as t from "@babel/types";
 import { parse } from "@formatjs/icu-messageformat-parser";
 
 type Edit = { start: number; end: number; text: string };
@@ -45,12 +46,7 @@ const MIGRATE_COMPONENT_PROPS = new Set([
 ]);
 // Calls whose result is side-effect free when the receiver and arguments are.
 const PURE_CALL_MEMBERS = new Set(["length", "toString", "toLocaleString", "toFixed"]);
-const PURE_ARITH = new Set<ts.SyntaxKind>([
-  ts.SyntaxKind.PlusToken,
-  ts.SyntaxKind.MinusToken,
-  ts.SyntaxKind.AsteriskToken,
-  ts.SyntaxKind.SlashToken,
-]);
+const PURE_ARITH = new Set(["+", "-", "*", "/"]);
 // JSX attributes whose string values are never user-visible copy.
 const IGNORED_ATTRS = new Set([
   "className",
@@ -93,8 +89,55 @@ const NAMED_ENTITIES: Record<string, string> = {
   rarr: "→",
 };
 
+type JsxChild = t.JSXElement["children"][number];
+type ComponentFunction = t.ArrowFunctionExpression | t.FunctionDeclaration | t.FunctionExpression | t.ObjectMethod | t.ClassMethod;
+
+interface Source {
+  text: string;
+  program: t.Program;
+  parents: WeakMap<t.Node, t.Node>;
+}
+
+function parseSource(file: string, text: string): Source {
+  const plugins: ParserPlugin[] = ["typescript", "decorators", "decoratorAutoAccessors", "deferredImportEvaluation"];
+  if (file.endsWith(".tsx")) plugins.push("jsx");
+  const { program } = parseScript(text, {
+    sourceType: "unambiguous",
+    plugins,
+    createParenthesizedExpressions: true,
+    errorRecovery: true,
+  });
+  const parents = new WeakMap<t.Node, t.Node>();
+  t.traverse(program, (node, ancestors) => {
+    const parent = ancestors.at(-1)?.node;
+    if (parent) parents.set(node, parent);
+  });
+  return { text, program, parents };
+}
+
+function forEachChild(node: t.Node, visit: (child: t.Node) => void): void {
+  for (const key of t.VISITOR_KEYS[node.type]) {
+    const value: unknown = Reflect.get(node, key);
+    if (Array.isArray(value)) {
+      for (const child of value) if (t.isNode(child)) visit(child);
+    } else if (t.isNode(value)) {
+      visit(value);
+    }
+  }
+}
+
+function sourceText(sf: Source, node: t.Node): string {
+  return sf.text.slice(node.start!, node.end!);
+}
+
+function literalText(node: t.Node | null | undefined): string | undefined {
+  if (t.isStringLiteral(node)) return node.value;
+  if (t.isTemplateLiteral(node) && node.expressions.length === 0) return node.quasis[0].value.cooked ?? undefined;
+  return undefined;
+}
+
 interface FileCtx {
-  sf: ts.SourceFile;
+  sf: Source;
   text: string;
   displayPath: string;
   pathPart: string;
@@ -102,7 +145,7 @@ interface FileCtx {
   edits: Edit[];
   skipped: Skip[];
   migrated: number;
-  hooks: Map<ts.Node, boolean>;
+  hooks: Map<ComponentFunction, boolean>;
   takenIds: Set<string>;
   idByMessage: Map<string, string>;
   descByMessage: Map<string, string>;
@@ -197,11 +240,11 @@ function camelName(raw: string): string {
 
 // Name for a placeholder: the last identifier in the expression, camelCased
 // ("stepIndex + 1" -> stepIndex, "steps.length" -> length, "STEP_TITLES[currentKey]" -> currentKey).
-function placeholderName(e: ts.Expression): string {
+function placeholderName(e: t.Node): string {
   const names: string[] = [];
-  const visit = (n: ts.Node): void => {
-    if (ts.isIdentifier(n)) names.push(n.text);
-    ts.forEachChild(n, visit);
+  const visit = (n: t.Node): void => {
+    if (t.isIdentifier(n)) names.push(n.name);
+    forEachChild(n, visit);
   };
   visit(e);
   const last = names[names.length - 1];
@@ -209,10 +252,22 @@ function placeholderName(e: ts.Expression): string {
 }
 
 // Root identifier of a property chain (`format.bytes` -> `format`).
-function rootIdentifier(e: ts.Expression): string | undefined {
-  let cur: ts.Expression = e;
-  while (ts.isPropertyAccessExpression(cur)) cur = cur.expression;
-  return ts.isIdentifier(cur) ? cur.text : undefined;
+function isMember(node: t.Node): node is t.MemberExpression | t.OptionalMemberExpression {
+  return t.isMemberExpression(node) || t.isOptionalMemberExpression(node);
+}
+
+function isCall(node: t.Node): node is t.CallExpression | t.OptionalCallExpression {
+  return t.isCallExpression(node) || t.isOptionalCallExpression(node);
+}
+
+function memberName(node: t.Node): string | undefined {
+  if (isMember(node) && !node.computed && t.isIdentifier(node.property)) return node.property.name;
+  return undefined;
+}
+
+function rootIdentifier(node: t.Node): string | undefined {
+  while (isMember(node) && !node.computed) node = node.object;
+  return t.isIdentifier(node) ? node.name : undefined;
 }
 
 // String literals: "any" allows them (call arguments such as format options); "nonprose"
@@ -223,133 +278,85 @@ type StringMode = "any" | "nonprose";
 // Side-effect-free expression that may stand inside a sentence as one placeholder:
 // identifiers, property/element access, numbers, + - * / arithmetic and concatenation,
 // parentheses, length/toString/toLocaleString/toFixed calls, and format.* / formatNumber calls.
-function isPureExpr(e: ts.Expression, strings: StringMode): boolean {
-  if (ts.isIdentifier(e) || ts.isNumericLiteral(e)) return true;
-  if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) {
-    return strings === "any" || !/\p{L}/u.test(e.text);
+function isPureExpr(e: t.Node, strings: StringMode): boolean {
+  if (t.isIdentifier(e) || t.isNumericLiteral(e)) return true;
+  const literal = literalText(e);
+  if (literal !== undefined) return strings === "any" || !/\p{L}/u.test(literal);
+  if (t.isParenthesizedExpression(e) || t.isTSNonNullExpression(e)) return isPureExpr(e.expression, strings);
+  if (isMember(e)) return isPureExpr(e.object, strings) && (!e.computed || isPureExpr(e.property, "any"));
+  if (t.isBinaryExpression(e)) {
+    return PURE_ARITH.has(e.operator) && isPureExpr(e.left, "nonprose") && isPureExpr(e.right, "nonprose");
   }
-  if (ts.isParenthesizedExpression(e) || ts.isNonNullExpression(e) || ts.isPropertyAccessExpression(e)) {
-    return isPureExpr(e.expression, strings);
-  }
-  if (ts.isElementAccessExpression(e)) {
-    return isPureExpr(e.expression, strings) && isPureExpr(e.argumentExpression, "any");
-  }
-  if (ts.isBinaryExpression(e)) {
-    return PURE_ARITH.has(e.operatorToken.kind) && isPureExpr(e.left, "nonprose") && isPureExpr(e.right, "nonprose");
-  }
-  if (ts.isCallExpression(e)) {
-    if (!e.arguments.every((a) => isPureExpr(a, "any"))) return false;
-    const callee = e.expression;
-    if (ts.isPropertyAccessExpression(callee) && PURE_CALL_MEMBERS.has(callee.name.text)) {
-      return isPureExpr(callee.expression, strings);
+  if (isCall(e) && e.arguments.every((a) => isPureExpr(a, "any"))) {
+    const callee = e.callee;
+    if (isMember(callee) && !callee.computed) {
+      return PURE_CALL_MEMBERS.has(memberName(callee) ?? "") ? isPureExpr(callee.object, strings) : rootIdentifier(callee) === "format";
     }
-    if (ts.isPropertyAccessExpression(callee)) return rootIdentifier(callee) === "format";
-    return ts.isIdentifier(callee) && callee.text === "formatNumber";
+    return t.isIdentifier(callee, { name: "formatNumber" });
   }
   return false;
 }
 
-function isRunPiece(c: ts.JsxChild): boolean {
-  if (ts.isJsxText(c)) return true;
-  if (ts.isJsxExpression(c)) {
-    const e = c.expression;
-    if (e === undefined) return false;
-    return ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e) || isPureExpr(e, "any");
-  }
-  return false;
+function hasJsxExpression(node: t.Node): node is t.JSXExpressionContainer | t.JSXSpreadChild {
+  return t.isJSXSpreadChild(node) || (t.isJSXExpressionContainer(node) && !t.isJSXEmptyExpression(node.expression));
 }
 
-// Children that split a sentence: JSX elements and expressions the codemod leaves alone.
-function isSplitter(c: ts.JsxChild): boolean {
-  return isElementNode(c) || (ts.isJsxExpression(c) && c.expression !== undefined);
+function isRunPiece(child: JsxChild): boolean {
+  return t.isJSXText(child) || (hasJsxExpression(child) && isPureExpr(child.expression, "any"));
 }
 
-function isElementNode(c: ts.Node): boolean {
-  return ts.isJsxElement(c) || ts.isJsxSelfClosingElement(c) || ts.isJsxFragment(c);
+function isSplitter(child: JsxChild): boolean {
+  return t.isJSXElement(child) || t.isJSXFragment(child) || hasJsxExpression(child);
 }
 
-function isFn(n: ts.Node): boolean {
-  return ts.isArrowFunction(n) || ts.isFunctionExpression(n) || ts.isFunctionDeclaration(n) || ts.isMethodDeclaration(n);
-}
-
-function fnParts(fn: ts.Node): { params: readonly ts.ParameterDeclaration[]; body: ts.ConciseBody | undefined } {
-  if (ts.isArrowFunction(fn) || ts.isFunctionExpression(fn) || ts.isFunctionDeclaration(fn) || ts.isMethodDeclaration(fn)) {
-    return { params: fn.parameters, body: fn.body };
-  }
-  return { params: [], body: undefined };
-}
-
-function isWrapperCall(c: ts.CallExpression): boolean {
-  const callee = c.expression;
-  const name = ts.isIdentifier(callee) ? callee.text : ts.isPropertyAccessExpression(callee) ? callee.name.text : "";
-  return name === "forwardRef" || name === "memo";
+function isComponentFunction(node: t.Node): node is ComponentFunction {
+  return t.isArrowFunctionExpression(node) || t.isFunctionDeclaration(node) || t.isFunctionExpression(node)
+    || t.isObjectMethod(node, { kind: "method" }) || t.isClassMethod(node, { kind: "method" });
 }
 
 // Name of a function: its own name, or the const it is assigned to (through forwardRef/memo).
-function ownerName(fn: ts.Node): string | undefined {
-  if (ts.isFunctionDeclaration(fn) || ts.isFunctionExpression(fn) || ts.isMethodDeclaration(fn)) {
-    if (fn.name && ts.isIdentifier(fn.name)) return fn.name.text;
+function ownerName(fn: ComponentFunction, sf: Source): string | undefined {
+  if ((t.isFunctionDeclaration(fn) || t.isFunctionExpression(fn)) && fn.id) return fn.id.name;
+  if ((t.isObjectMethod(fn) || t.isClassMethod(fn)) && !fn.computed && t.isIdentifier(fn.key)) return fn.key.name;
+  let parent = sf.parents.get(fn);
+  while (parent && isCall(parent) && ["forwardRef", "memo"].includes(calleeName(parent.callee))) {
+    parent = sf.parents.get(parent);
   }
-  let n: ts.Node = fn;
-  while (n.parent && ts.isCallExpression(n.parent) && isWrapperCall(n.parent)) n = n.parent;
-  const p = n.parent;
-  if (p && ts.isVariableDeclaration(p) && ts.isIdentifier(p.name)) return p.name.text;
-  return undefined;
+  return t.isVariableDeclarator(parent) && t.isIdentifier(parent.id) ? parent.id.name : undefined;
 }
 
-// Nearest enclosing named function. Anonymous callbacks are skipped; a named
-// function qualifies when PascalCase or `use*`; anything else (or a class or
-// module level) means there is no component to hook.
-function findComponent(node: ts.Node): ts.Node | null {
-  let cur: ts.Node | undefined = node.parent;
-  while (cur) {
-    if (ts.isClassLike(cur) || ts.isSourceFile(cur)) return null;
-    if (isFn(cur)) {
-      const name = ownerName(cur);
-      if (name !== undefined) {
-        return /^[A-Z]/.test(name) || /^use(?=[A-Z0-9_]|$)/.test(name) ? cur : null;
-      }
+// Anonymous callbacks inherit their enclosing component; named non-components and classes stop the search.
+function findComponent(node: t.Node, sf: Source): ComponentFunction | null {
+  for (let cur = sf.parents.get(node); cur; cur = sf.parents.get(cur)) {
+    if (t.isClass(cur)) return null;
+    if (isComponentFunction(cur)) {
+      const name = ownerName(cur, sf);
+      if (name !== undefined) return /^[A-Z]|^use(?=[A-Z0-9_]|$)/.test(name) ? cur : null;
     }
-    cur = cur.parent;
   }
   return null;
 }
 
-// True when a binding pattern (identifier, object or array destructuring) binds `target`.
-function bindsName(name: ts.BindingName, target: string): boolean {
-  if (ts.isIdentifier(name)) return name.text === target;
-  for (const el of name.elements) {
-    if (ts.isBindingElement(el) && bindsName(el.name, target)) return true;
-  }
-  return false;
+function bindsIntl(node: t.Node): boolean {
+  return Object.hasOwn(t.getBindingIdentifiers(node), "intl");
 }
 
-function isHookCall(e: ts.Expression | undefined, sf: ts.SourceFile): boolean {
-  return e !== undefined && e.getText(sf) === "useOptionalIntl()";
-}
-
-// Name clash check for the `intl` local the codemod inserts. Parameters and every
-// variable declaration in the body count; a top-level `const intl = useOptionalIntl()`
-// is reused; anything else (including `useIntl()`) is taken.
-function intlStatus(fn: ts.Node, sf: ts.SourceFile): "insert" | "reuse" | "taken" {
-  const { params, body } = fnParts(fn);
-  for (const p of params) {
-    if (bindsName(p.name, "intl")) return "taken";
-  }
-  if (!body) return "insert";
+// Reuse a top-level useOptionalIntl() binding. Other local bindings named intl prevent insertion.
+function intlStatus(fn: ComponentFunction, sf: Source): "insert" | "reuse" | "taken" {
+  if (fn.params.some(bindsIntl)) return "taken";
   let reusable = false;
   let taken = false;
-  const visit = (node: ts.Node): void => {
-    if (ts.isVariableDeclaration(node) && bindsName(node.name, "intl")) {
-      const stmt = node.parent.parent;
-      const topLevel = ts.isVariableStatement(stmt) && stmt.parent === body;
-      if (topLevel && ts.isIdentifier(node.name) && isHookCall(node.initializer, sf)) reusable = true;
+  const visit = (node: t.Node): void => {
+    if (t.isVariableDeclarator(node) && bindsIntl(node.id)) {
+      const declaration = sf.parents.get(node);
+      if (declaration && sf.parents.get(declaration) === fn.body && t.isIdentifier(node.id) &&
+          node.init && sourceText(sf, node.init) === "useOptionalIntl()") reusable = true;
       else taken = true;
     }
-    if (ts.isFunctionDeclaration(node) && node.name?.text === "intl") taken = true;
-    ts.forEachChild(node, visit);
+    if (t.isFunctionDeclaration(node) && node.id?.name === "intl") taken = true;
+    forEachChild(node, visit);
   };
-  visit(body);
+  visit(fn.body);
   if (taken) return "taken";
   return reusable ? "reuse" : "insert";
 }
@@ -364,10 +371,8 @@ function isClassLikeText(text: string): boolean {
   return toks.length > 0 && toks.every((t) => CLASS_TOKEN_RE.test(t) && !/\p{Lu}/u.test(t));
 }
 
-function calleeName(e: ts.Expression): string {
-  if (ts.isIdentifier(e)) return e.text;
-  if (ts.isPropertyAccessExpression(e)) return e.name.text;
-  return "";
+function calleeName(e: t.Node): string {
+  return t.isIdentifier(e) ? e.name : memberName(e) ?? "";
 }
 
 // Joins consecutive literal segments so escaping sees the full literal text.
@@ -386,20 +391,12 @@ function mergeLiterals(segs: Seg[]): Seg[] {
   return out;
 }
 
-function lineOf(ctx: FileCtx, pos: number): number {
-  return ctx.sf.getLineAndCharacterOfPosition(pos).line + 1;
-}
-
 function snippet(s: string): string {
   return s.replace(/\s+/g, " ").trim().slice(0, 160);
 }
 
-function startOf(ctx: FileCtx, c: ts.Node): number {
-  return ts.isJsxText(c) ? c.pos : c.getStart(ctx.sf);
-}
-
-function tagOf(ctx: FileCtx, container: ts.JsxElement | ts.JsxFragment): string {
-  return ts.isJsxElement(container) ? container.openingElement.tagName.getText(ctx.sf) : "Fragment";
+function tagOf(ctx: FileCtx, container: t.JSXElement | t.JSXFragment): string {
+  return t.isJSXElement(container) ? sourceText(ctx.sf, container.openingElement.name) : "Fragment";
 }
 
 function allocateId(ctx: FileCtx, icu: string, slug: string): string {
@@ -468,7 +465,7 @@ function screenWords(basename: string, parentDir: string): string {
 function emitSite(
   ctx: FileCtx,
   site: { start: number; end: number; line: number; text: string },
-  target: ts.Node | null,
+  target: ComponentFunction | null,
   icu: string,
   plain: string,
   names: string[],
@@ -505,19 +502,20 @@ function emitSite(
   ctx.migrated += 1;
 }
 
-function handleRun(ctx: FileCtx, run: ts.JsxChild[], container: ts.JsxElement | ts.JsxFragment, adjacentElement: boolean): void {
+function handleRun(ctx: FileCtx, run: JsxChild[], container: t.JSXElement | t.JSXFragment, adjacentElement: boolean): void {
   const segs: Seg[] = [];
   const byExpr = new Map<string, string>();
   const usedNames = new Set<string>();
   for (const c of run) {
-    if (ts.isJsxText(c)) {
-      segs.push({ kind: "lit", text: decodeEntities(jsxWhitespace(c.text)) });
-    } else if (ts.isJsxExpression(c) && c.expression) {
+    if (t.isJSXText(c)) {
+      segs.push({ kind: "lit", text: decodeEntities(jsxWhitespace(sourceText(ctx.sf, c))) });
+    } else if (hasJsxExpression(c)) {
       const e = c.expression;
-      if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) {
-        segs.push({ kind: "lit", text: e.text });
+      const literal = literalText(e);
+      if (literal !== undefined) {
+        segs.push({ kind: "lit", text: literal });
       } else {
-        const expr = e.getText(ctx.sf);
+        const expr = sourceText(ctx.sf, e);
         let name = byExpr.get(expr);
         if (name === undefined) {
           name = uniqueName(placeholderName(e), usedNames);
@@ -531,9 +529,9 @@ function handleRun(ctx: FileCtx, run: ts.JsxChild[], container: ts.JsxElement | 
 
   const first = run[0];
   const last = run[run.length - 1];
-  const siteStart = startOf(ctx, first);
-  const siteEnd = last.end;
-  const line = lineOf(ctx, siteStart);
+  const siteStart = first.start!;
+  const siteEnd = last.end!;
+  const line = first.loc!.start.line;
   const rawText = ctx.text.slice(siteStart, siteEnd);
 
   if (segs.some((s) => s.kind === "lit" && s.text.includes("<"))) {
@@ -583,7 +581,7 @@ function handleRun(ctx: FileCtx, run: ts.JsxChild[], container: ts.JsxElement | 
   const kind = names.length > 0 ? `sentence with ${names.join(", ")} in ${tagOf(ctx, container)}` : `text in ${tagOf(ctx, container)}`;
   const description = `${ctx.screen}: ${kind}`;
 
-  const target = findComponent(container);
+  const target = findComponent(container, ctx.sf);
   const before = ctx.migrated;
   emitSite(
     ctx,
@@ -604,7 +602,7 @@ function handleRun(ctx: FileCtx, run: ts.JsxChild[], container: ts.JsxElement | 
   }
 }
 
-function processChildren(ctx: FileCtx, container: ts.JsxElement | ts.JsxFragment, children: ts.NodeArray<ts.JsxChild>): void {
+function processChildren(ctx: FileCtx, container: t.JSXElement | t.JSXFragment, children: readonly JsxChild[]): void {
   let i = 0;
   while (i < children.length) {
     if (!isRunPiece(children[i])) {
@@ -620,23 +618,26 @@ function processChildren(ctx: FileCtx, container: ts.JsxElement | ts.JsxFragment
   }
 }
 
-function handleAttr(ctx: FileCtx, attr: ts.JsxAttribute): void {
-  const init = attr.initializer;
-  if (!init || !ts.isStringLiteral(init)) return;
-  const name = attr.name.getText(ctx.sf);
-  const tag = attr.parent.parent.tagName.getText(ctx.sf);
-  const value = decodeEntities(init.text);
+function handleAttr(ctx: FileCtx, attr: t.JSXAttribute): void {
+  const init = attr.value;
+  if (!init || !t.isStringLiteral(init)) return;
+  const name = sourceText(ctx.sf, attr.name);
+  const opening = ctx.sf.parents.get(attr);
+  if (!t.isJSXOpeningElement(opening)) return;
+  const tag = sourceText(ctx.sf, opening.name);
+  const rawValue = sourceText(ctx.sf, init);
+  const value = decodeEntities(rawValue.slice(1, -1));
   const migrate = MIGRATE_ANY_PROPS.has(name) || (MIGRATE_COMPONENT_PROPS.has(name) && /^[A-Z]/.test(tag));
   if (!migrate) {
     if (isIgnoredAttr(name)) return;
     if ((value.includes(" ") || /^\p{Lu}/u.test(value)) && !isClassLikeText(value)) {
-      ctx.skipped.push({ line: lineOf(ctx, init.getStart(ctx.sf)), kind: "prop-review", text: snippet(`${name}="${init.text}"`) });
+      ctx.skipped.push({ line: init.loc!.start.line, kind: "prop-review", text: snippet(`${name}="${rawValue.slice(1, -1)}"`) });
     }
     return;
   }
   if (!/\p{L}/u.test(value)) return;
-  const line = lineOf(ctx, init.getStart(ctx.sf));
-  const raw = `${name}=${init.getText(ctx.sf)}`;
+  const line = init.loc!.start.line;
+  const raw = `${name}=${rawValue}`;
   if (value.includes("<")) {
     ctx.skipped.push({ line, kind: "angle-bracket", text: snippet(raw) });
     return;
@@ -645,8 +646,8 @@ function handleAttr(ctx: FileCtx, attr: ts.JsxAttribute): void {
   const description = `${ctx.screen}: ${name} of ${tag}`;
   emitSite(
     ctx,
-    { start: init.getStart(ctx.sf), end: init.end, line, text: raw },
-    findComponent(attr),
+    { start: init.start!, end: init.end!, line, text: raw },
+    findComponent(attr, ctx.sf),
     icu,
     value,
     [],
@@ -660,56 +661,52 @@ function handleAttr(ctx: FileCtx, attr: ts.JsxAttribute): void {
 }
 
 // Reports strings inside JSX expression containers that the codemod does not change.
-function scanExpressionStrings(ctx: FileCtx, node: ts.Node): void {
-  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
-    const parent = node.parent;
-    if (parent && ts.isJsxAttribute(parent)) return;
-    let text = "";
-    if (ts.isTemplateExpression(node)) {
-      text = node.head.text + node.templateSpans.map((s) => s.literal.text).join("");
-    } else {
-      text = node.text;
-    }
+function scanExpressionStrings(ctx: FileCtx, node: t.Node): void {
+  if (t.isStringLiteral(node) || t.isTemplateLiteral(node)) {
+    const parent = ctx.sf.parents.get(node);
+    if (t.isJSXAttribute(parent)) return;
+    const text = t.isTemplateLiteral(node)
+      ? node.quasis.map((q) => q.value.cooked ?? q.value.raw).join("")
+      : node.value;
     if (!/\p{L}/u.test(text) || !text.includes(" ")) return;
     if (isClassLikeText(text)) return;
-    const start = node.getStart(ctx.sf);
+    const start = node.start!;
     if (ctx.replaced.some(([s, e]) => start >= s && start < e)) return;
     let inExpr = false;
-    let cur: ts.Node | undefined = node.parent;
+    let cur: t.Node | undefined = ctx.sf.parents.get(node);
     while (cur) {
-      if (ts.isJsxAttribute(cur) && isIgnoredAttr(cur.name.getText(ctx.sf))) return;
-      if (ts.isJsxExpression(cur)) inExpr = true;
-      if (ts.isCallExpression(cur)) {
-        if (/formatMessage$/.test(cur.expression.getText(ctx.sf))) return;
-        if (CLASS_HELPERS.has(calleeName(cur.expression))) return;
+      if (t.isJSXAttribute(cur) && isIgnoredAttr(sourceText(ctx.sf, cur.name))) return;
+      if (hasJsxExpression(cur)) inExpr = true;
+      if (isCall(cur)) {
+        if (/formatMessage$/.test(sourceText(ctx.sf, cur.callee))) return;
+        if (CLASS_HELPERS.has(calleeName(cur.callee))) return;
       }
-      if (ts.isSourceFile(cur)) break;
-      cur = cur.parent;
+      cur = ctx.sf.parents.get(cur);
     }
-    if (inExpr) ctx.skipped.push({ line: lineOf(ctx, start), kind: "string-in-expression", text: snippet(text) });
+    if (inExpr) ctx.skipped.push({ line: node.loc!.start.line, kind: "string-in-expression", text: snippet(text) });
     return;
   }
-  ts.forEachChild(node, (child) => scanExpressionStrings(ctx, child));
+  forEachChild(node, (child) => scanExpressionStrings(ctx, child));
 }
 
-function collectExistingIds(ctx: FileCtx, node: ts.Node): void {
-  if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === "id" && ts.isStringLiteral(node.initializer)) {
-    ctx.takenIds.add(node.initializer.text);
+function collectExistingIds(ctx: FileCtx, node: t.Node): void {
+  if (t.isObjectProperty(node) && !node.computed && t.isIdentifier(node.key, { name: "id" }) && t.isStringLiteral(node.value)) {
+    ctx.takenIds.add(node.value.value);
   }
-  ts.forEachChild(node, (child) => collectExistingIds(ctx, child));
+  forEachChild(node, (child) => collectExistingIds(ctx, child));
 }
 
-function visitJsx(ctx: FileCtx, node: ts.Node): void {
-  if (ts.isJsxElement(node) || ts.isJsxFragment(node)) {
+function visitJsx(ctx: FileCtx, node: t.Node): void {
+  if (t.isJSXElement(node) || t.isJSXFragment(node)) {
     processChildren(ctx, node, node.children);
-  } else if (ts.isJsxAttribute(node)) {
+  } else if (t.isJSXAttribute(node)) {
     handleAttr(ctx, node);
   }
-  ts.forEachChild(node, (child) => visitJsx(ctx, child));
+  forEachChild(node, (child) => visitJsx(ctx, child));
 }
 
-function indentOf(ctx: FileCtx, node: ts.Node): string {
-  const line = ctx.sf.getLineAndCharacterOfPosition(node.getStart(ctx.sf)).line;
+function indentOf(ctx: FileCtx, node: t.Node): string {
+  const line = node.loc!.start.line - 1;
   const lineText = ctx.text.split("\n")[line] ?? "";
   const m = /^[ \t]*/.exec(lineText);
   return m ? m[0] : "";
@@ -739,13 +736,7 @@ function migrateFile(file: string, root: string, migrate: boolean): MigrateResul
   const relFromSrc = path.relative(srcDir, file).split(path.sep).join("/");
   const base = path.basename(file).replace(/\.(tsx?)$/, "");
   const parentDir = path.basename(path.dirname(file));
-  const sf = ts.createSourceFile(
-    file,
-    text,
-    ts.ScriptTarget.Latest,
-    true,
-    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-  );
+  const sf = parseSource(file, text);
   const pathPart = relFromSrc
     .replace(/\.(tsx?)$/, "")
     .split("/")
@@ -760,7 +751,7 @@ function migrateFile(file: string, root: string, migrate: boolean): MigrateResul
     edits: [],
     skipped: [],
     migrated: 0,
-    hooks: new Map<ts.Node, boolean>(),
+    hooks: new Map<ComponentFunction, boolean>(),
     takenIds: new Set<string>(),
     idByMessage: new Map<string, string>(),
     descByMessage: new Map<string, string>(),
@@ -768,31 +759,30 @@ function migrateFile(file: string, root: string, migrate: boolean): MigrateResul
   };
 
   ctx.skipped.push(...joined.lone);
-  collectExistingIds(ctx, sf);
-  visitJsx(ctx, sf);
-  scanExpressionStrings(ctx, sf);
+  collectExistingIds(ctx, sf.program);
+  visitJsx(ctx, sf.program);
+  scanExpressionStrings(ctx, sf.program);
 
   let inserted = 0;
   for (const [fn, needsInsert] of ctx.hooks) {
     if (!needsInsert) continue;
     inserted += 1;
-    const { body } = fnParts(fn);
-    if (!body) continue;
-    if (ts.isBlock(body)) {
-      const at = body.getStart(sf) + 1;
+    const { body } = fn;
+    if (t.isBlockStatement(body)) {
+      const at = body.start! + 1;
       ctx.edits.push({ start: at, end: at, text: `\n${indentOf(ctx, fn)}  const intl = useOptionalIntl();` });
     } else {
-      const at = body.getStart(sf);
+      const at = body.start!;
       const ind = indentOf(ctx, fn);
       ctx.edits.push({ start: at, end: at, text: `{\n${ind}  const intl = useOptionalIntl();\n${ind}  return ` });
-      ctx.edits.push({ start: body.end, end: body.end, text: `;\n${ind}}` });
+      ctx.edits.push({ start: body.end!, end: body.end!, text: `;\n${ind}}` });
     }
   }
-  if (inserted > 0 && !sf.statements.some((st) => st.getText(sf).includes("useOptionalIntl"))) {
-    const imports = sf.statements.filter((st) => ts.isImportDeclaration(st));
+  if (inserted > 0 && !sf.program.body.some((st) => sourceText(sf, st).includes("useOptionalIntl"))) {
+    const imports = sf.program.body.filter((st) => t.isImportDeclaration(st));
     const lastImport = imports[imports.length - 1];
     if (lastImport) {
-      ctx.edits.push({ start: lastImport.end, end: lastImport.end, text: `\n${HOOK_IMPORT}` });
+      ctx.edits.push({ start: lastImport.end!, end: lastImport.end!, text: `\n${HOOK_IMPORT}` });
     } else {
       ctx.edits.push({ start: 0, end: 0, text: `${HOOK_IMPORT}\n` });
     }
@@ -815,22 +805,7 @@ type IcuEl = { type: number; value?: string; options?: Record<string, { value: I
 
 // Props checked by formatjs/no-literal-string-in-jsx (config include plus the plugin defaults).
 const CHECK_PROPS = new Set(["aria-label", "aria-description", "aria-details", "aria-errormessage", "title", "placeholder", "alt"]);
-const LITERAL_OPERATORS = new Set<ts.SyntaxKind>([
-  ts.SyntaxKind.PlusToken,
-  ts.SyntaxKind.AmpersandAmpersandToken,
-  ts.SyntaxKind.BarBarToken,
-  ts.SyntaxKind.QuestionQuestionToken,
-]);
-
-function parseSource(file: string, text: string): ts.SourceFile {
-  return ts.createSourceFile(
-    file,
-    text,
-    ts.ScriptTarget.Latest,
-    true,
-    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-  );
-}
+const LITERAL_OPERATORS = new Set(["+", "&&", "||", "??"]);
 
 function isNewline(s: string): boolean {
   return /[\r\n]/.test(s);
@@ -843,73 +818,70 @@ function rawEdge(s: string): string {
   return /^[ \t]+$/.test(s) ? s : `{${JSON.stringify(s)}}`;
 }
 
-function isSpaceChild(c: ts.JsxChild): boolean {
-  return (
-    ts.isJsxExpression(c) &&
-    c.expression !== undefined &&
-    (ts.isStringLiteral(c.expression) || ts.isNoSubstitutionTemplateLiteral(c.expression)) &&
-    c.expression.text === " "
-  );
+function isSpaceChild(c: JsxChild): boolean {
+  return t.isJSXExpressionContainer(c) && literalText(c.expression) === " ";
 }
 
 // Whitespace-only JSX text containing a newline is dropped by JSX, so it renders nothing.
-function rendersChild(c: ts.JsxChild): boolean {
-  return !(ts.isJsxText(c) && /^\s*$/.test(c.text) && isNewline(c.text));
+function rendersChild(sf: Source, c: JsxChild): boolean {
+  if (!t.isJSXText(c)) return true;
+  const raw = sourceText(sf, c);
+  return !(isNewline(raw) && /^\s*$/.test(raw));
 }
 
-type SpaceSite = { parent: ts.JsxElement | ts.JsxFragment; index: number };
+type SpaceSite = { parent: t.JSXElement | t.JSXFragment; index: number };
 
-function spaceSites(sf: ts.SourceFile): SpaceSite[] {
+function spaceSites(sf: Source): SpaceSite[] {
   const out: SpaceSite[] = [];
-  const visit = (node: ts.Node): void => {
-    if (ts.isJsxElement(node) || ts.isJsxFragment(node)) {
+  const visit = (node: t.Node): void => {
+    if (t.isJSXElement(node) || t.isJSXFragment(node)) {
       const parent = node;
       parent.children.forEach((c, index) => {
         if (isSpaceChild(c)) out.push({ parent, index });
       });
     }
-    ts.forEachChild(node, visit);
+    forEachChild(node, visit);
   };
-  visit(sf);
+  visit(sf.program);
   return out;
 }
 
 // A `{" "}` with no rendering sibling on either side (lone space child). Left alone and reported.
-function isLoneSite(site: SpaceSite): boolean {
-  return site.parent.children.every((c, j) => j === site.index || !rendersChild(c));
+function isLoneSite(sf: Source, site: SpaceSite): boolean {
+  return site.parent.children.every((c, j) => j === site.index || !rendersChild(sf, c));
 }
 
 // End of the content before a child: trailing whitespace that holds a newline is dropped.
-function edgeStart(sf: ts.SourceFile, c: ts.JsxChild): number {
-  if (!ts.isJsxText(c)) return c.end;
-  const trailing = /\s*$/.exec(sf.text.slice(c.pos, c.end))?.[0] ?? "";
-  return isNewline(trailing) ? c.end - trailing.length : c.end;
+function edgeStart(sf: Source, c: JsxChild): number {
+  if (!t.isJSXText(c)) return c.end!;
+  const trailing = /\s*$/.exec(sf.text.slice(c.start!, c.end!))?.[0] ?? "";
+  return isNewline(trailing) ? c.end! - trailing.length : c.end!;
 }
 
 // Start of the content after a child: leading whitespace that holds a newline is dropped.
-function edgeEnd(sf: ts.SourceFile, c: ts.JsxChild): number {
-  if (!ts.isJsxText(c)) return c.getStart(sf);
-  const leading = /^\s*/.exec(sf.text.slice(c.pos, c.end))?.[0] ?? "";
-  return isNewline(leading) ? c.pos + leading.length : c.pos;
+function edgeEnd(sf: Source, c: JsxChild): number {
+  if (!t.isJSXText(c)) return c.start!;
+  const leading = /^\s*/.exec(sf.text.slice(c.start!, c.end!))?.[0] ?? "";
+  return isNewline(leading) ? c.start! + leading.length : c.start!;
 }
 
 // Range replaced by a single space: from the previous content (or the opening tag) to the
 // next content (or the closing tag). It always contains the `{" "}` itself.
-function joinRange(sf: ts.SourceFile, site: SpaceSite): { start: number; end: number } {
+function joinRange(sf: Source, site: SpaceSite): { start: number; end: number } {
   const { parent, index } = site;
   const kids = parent.children;
   const start =
     index > 0
       ? edgeStart(sf, kids[index - 1])
-      : ts.isJsxElement(parent)
-        ? parent.openingElement.end
-        : parent.openingFragment.end;
+      : t.isJSXElement(parent)
+        ? parent.openingElement.end!
+        : parent.openingFragment.end!;
   const end =
     index < kids.length - 1
       ? edgeEnd(sf, kids[index + 1])
-      : ts.isJsxElement(parent)
-        ? parent.closingElement.getStart(sf)
-        : parent.closingFragment.getStart(sf);
+      : t.isJSXElement(parent)
+        ? parent.closingElement!.start!
+        : parent.closingFragment.start!;
   return { start, end };
 }
 
@@ -919,18 +891,18 @@ function joinSpaces(source: string, displayPath: string): { text: string; lone: 
   let text = source;
   for (;;) {
     const sf = parseSource(displayPath, text);
-    const site = spaceSites(sf).find((s) => !isLoneSite(s));
+    const site = spaceSites(sf).find((s) => !isLoneSite(sf, s));
     if (site === undefined) break;
     const { start, end } = joinRange(sf, site);
     text = `${text.slice(0, start)} ${text.slice(end)}`;
   }
   const sf = parseSource(displayPath, text);
   const lone = spaceSites(sf)
-    .filter(isLoneSite)
+    .filter((s) => isLoneSite(sf, s))
     .map((s) => {
       const node = s.parent.children[s.index];
-      const line = sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
-      return { line, kind: "lone-space", text: snippet(node.getText(sf)) };
+      const line = node.loc!.start.line;
+      return { line, kind: "lone-space", text: snippet(sourceText(sf, node)) };
     });
   return { text, lone };
 }
@@ -956,55 +928,51 @@ function checkFile(file: string, root: string): Finding[] {
   const sf = parseSource(file, fs.readFileSync(file, "utf8"));
   const displayPath = path.relative(root, file).split(path.sep).join("/");
   const findings: Finding[] = [];
-  const report = (node: ts.Node, rule: string, message: string): void => {
-    const pos = ts.isJsxText(node) ? node.pos : node.getStart(sf);
-    const at = sf.getLineAndCharacterOfPosition(pos);
-    findings.push({ file: displayPath, line: at.line + 1, col: at.character + 1, rule: `formatjs/${rule}`, message });
+  const report = (node: t.Node, rule: string, message: string): void => {
+    const at = node.loc!.start;
+    findings.push({ file: displayPath, line: at.line, col: at.column + 1, rule: `formatjs/${rule}`, message });
   };
   const literalRule = "no-literal-string-in-jsx";
   const literalMsg = "string literal in JSX; format it with intl.formatMessage";
 
-  const checkJsxExpr = (e: ts.Expression): void => {
-    if (ts.isParenthesizedExpression(e)) {
+  const checkJsxExpr = (e: t.Node): void => {
+    if (t.isParenthesizedExpression(e)) {
       checkJsxExpr(e.expression);
-    } else if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) {
-      if (e.text !== "") report(e, literalRule, literalMsg);
-    } else if (ts.isTemplateExpression(e)) {
-      report(e, literalRule, literalMsg);
-    } else if (ts.isConditionalExpression(e)) {
-      checkJsxExpr(e.whenTrue);
-      checkJsxExpr(e.whenFalse);
-    } else if (ts.isBinaryExpression(e) && LITERAL_OPERATORS.has(e.operatorToken.kind)) {
+    } else if (t.isStringLiteral(e) || t.isTemplateLiteral(e)) {
+      if (literalText(e) !== "") report(e, literalRule, literalMsg);
+    } else if (t.isConditionalExpression(e)) {
+      checkJsxExpr(e.consequent);
+      checkJsxExpr(e.alternate);
+    } else if ((t.isBinaryExpression(e) || t.isLogicalExpression(e)) && LITERAL_OPERATORS.has(e.operator)) {
       checkJsxExpr(e.left);
       checkJsxExpr(e.right);
     }
   };
 
-  const checkDescriptor = (obj: ts.ObjectLiteralExpression, values: ts.Expression | undefined, isFormat: boolean): void => {
-    const props = new Map<string, ts.Expression>();
+  const checkDescriptor = (obj: t.ObjectExpression, values: t.Node | undefined, isFormat: boolean): void => {
+    const props = new Map<string, t.Node>();
     for (const p of obj.properties) {
-      if (ts.isPropertyAssignment(p) && (ts.isIdentifier(p.name) || ts.isStringLiteral(p.name))) {
-        props.set(p.name.text, p.initializer);
-      } else if (ts.isShorthandPropertyAssignment(p)) {
-        props.set(p.name.text, p.name);
-      }
+      if (!t.isObjectProperty(p) || p.computed) continue;
+      if (t.isIdentifier(p.key)) props.set(p.key.name, p.value);
+      else if (t.isStringLiteral(p.key)) props.set(p.key.value, p.value);
     }
     const id = props.get("id");
     // A computed id (a variable, e.g. a server catalog key) cannot be checked statically.
     if (id === undefined) {
       report(obj, "enforce-id", "descriptor has no id");
-    } else if (ts.isStringLiteral(id) && !ID_RE.test(id.text)) {
+    } else if (t.isStringLiteral(id) && !ID_RE.test(id.value)) {
       report(id, "enforce-id", `id must match ${ID_RE.source}`);
     }
     const desc = props.get("description");
-    if (desc === undefined || !ts.isStringLiteral(desc) || desc.text === "") {
+    if (desc === undefined || !t.isStringLiteral(desc) || desc.value === "") {
       report(desc ?? obj, "enforce-description", "description must be a non-empty string literal");
     }
     const msg = props.get("defaultMessage");
-    if (msg === undefined || !(ts.isStringLiteral(msg) || ts.isNoSubstitutionTemplateLiteral(msg))) return;
+    const message = literalText(msg);
+    if (!msg || message === undefined) return;
     let els: IcuEl[];
     try {
-      els = parse(msg.text) as unknown as IcuEl[];
+      els = parse(message) as unknown as IcuEl[];
     } catch (err) {
       report(msg, "enforce-placeholders", `ICU parse error: ${snippet(String(err))}`);
       return;
@@ -1017,11 +985,12 @@ function checkFile(file: string, root: string): Finding[] {
       if (names.size > 0) report(obj, "enforce-placeholders", `no values for placeholder(s) ${[...names].join(", ")}`);
       return;
     }
-    if (!ts.isObjectLiteralExpression(values)) return;
+    if (!t.isObjectExpression(values)) return;
     const keys = new Set<string>();
     for (const p of values.properties) {
-      if (ts.isSpreadAssignment(p)) return;
-      if (ts.isIdentifier(p.name) || ts.isStringLiteral(p.name)) keys.add(p.name.text);
+      if (t.isSpreadElement(p)) return;
+      if (!p.computed && t.isIdentifier(p.key)) keys.add(p.key.name);
+      if (!p.computed && t.isStringLiteral(p.key)) keys.add(p.key.value);
     }
     const missing = [...names].filter((n) => !keys.has(n));
     const extra = [...keys].filter((k) => !names.has(k));
@@ -1029,48 +998,48 @@ function checkFile(file: string, root: string): Finding[] {
     if (extra.length > 0) report(values, "enforce-placeholders", `value(s) not used in defaultMessage: ${extra.join(", ")}`);
   };
 
-  const checkCall = (call: ts.CallExpression): void => {
-    const callee = call.expression;
+  const checkCall = (call: t.CallExpression | t.OptionalCallExpression): void => {
+    const callee = call.callee;
     const first = call.arguments[0];
-    if (ts.isPropertyAccessExpression(callee) && callee.name.text === "formatMessage") {
-      if (first && ts.isObjectLiteralExpression(first)) checkDescriptor(first, call.arguments[1], true);
-    } else if (ts.isIdentifier(callee) && callee.text === "defineMessages") {
-      if (first && ts.isObjectLiteralExpression(first)) {
+    if (memberName(callee) === "formatMessage") {
+      if (first && t.isObjectExpression(first)) checkDescriptor(first, call.arguments[1], true);
+    } else if (t.isIdentifier(callee) && callee.name === "defineMessages") {
+      if (first && t.isObjectExpression(first)) {
         for (const p of first.properties) {
-          if (ts.isPropertyAssignment(p) && ts.isObjectLiteralExpression(p.initializer)) {
-            checkDescriptor(p.initializer, undefined, false);
+          if (t.isObjectProperty(p) && t.isObjectExpression(p.value)) {
+            checkDescriptor(p.value, undefined, false);
           }
         }
       }
-    } else if (ts.isIdentifier(callee) && callee.text === "defineMessage") {
-      if (first && ts.isObjectLiteralExpression(first)) checkDescriptor(first, undefined, false);
+    } else if (t.isIdentifier(callee) && callee.name === "defineMessage") {
+      if (first && t.isObjectExpression(first)) checkDescriptor(first, undefined, false);
     }
   };
 
-  const visit = (node: ts.Node): void => {
-    if (ts.isJsxElement(node) || ts.isJsxFragment(node)) {
+  const visit = (node: t.Node): void => {
+    if (t.isJSXElement(node) || t.isJSXFragment(node)) {
       for (const c of node.children) {
-        if (ts.isJsxText(c)) {
-          if (/\S/.test(decodeEntities(c.text))) report(c, literalRule, literalMsg);
-        } else if (ts.isJsxExpression(c) && c.expression) {
+        if (t.isJSXText(c)) {
+          if (/\S/.test(decodeEntities(sourceText(sf, c)))) report(c, literalRule, literalMsg);
+        } else if (hasJsxExpression(c)) {
           checkJsxExpr(c.expression);
         }
       }
-    } else if (ts.isJsxAttribute(node)) {
-      const init = node.initializer;
-      if (init !== undefined && CHECK_PROPS.has(node.name.getText(sf))) {
-        if (ts.isStringLiteral(init)) {
-          if (init.text !== "") report(init, literalRule, literalMsg);
-        } else if (ts.isJsxExpression(init) && init.expression) {
+    } else if (t.isJSXAttribute(node)) {
+      const init = node.value;
+      if (init !== undefined && CHECK_PROPS.has(sourceText(sf, node.name))) {
+        if (t.isStringLiteral(init)) {
+          if (init.value !== "") report(init, literalRule, literalMsg);
+        } else if (t.isJSXExpressionContainer(init) && init.expression) {
           checkJsxExpr(init.expression);
         }
       }
-    } else if (ts.isCallExpression(node)) {
+    } else if (isCall(node)) {
       checkCall(node);
     }
-    ts.forEachChild(node, visit);
+    forEachChild(node, visit);
   };
-  visit(sf);
+  visit(sf.program);
   return findings;
 }
 
@@ -1094,11 +1063,10 @@ function collectInputs(input: string): string[] {
 }
 
 function previewDiff(displayPath: string, original: string, edits: Edit[]): void {
-  const sf = ts.createSourceFile("x.tsx", original, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   console.log(`--- a/${displayPath}`);
   console.log(`+++ b/${displayPath}`);
   for (const e of [...edits].sort((a, b) => a.start - b.start)) {
-    const line = sf.getLineAndCharacterOfPosition(e.start).line + 1;
+    const line = original.slice(0, e.start).split(/\r\n|[\r\n\u2028\u2029]/).length;
     console.log(`@@ ${displayPath}:${line} @@`);
     const oldLines = original.slice(e.start, e.end).split("\n").slice(0, 6);
     const newLines = e.text.split("\n").slice(0, 6);

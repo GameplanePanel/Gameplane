@@ -187,8 +187,9 @@ Resource usage env vars (set by the operator):
 | `/players/banned` | GET | Currently banned players; response: `[ { name, reason?, source? } ]`; 502 if RCON unavailable |
 | `/quiesce` | POST | Pause auto-saves before snapshot; response: `{ quiesced, reason? }` (boolean, reason optional); unsupported games return `quiesced: false` with a reason |
 | `/unquiesce` | POST | Resume auto-saves after snapshot; response: `{ quiesced, reason? }` |
-| `/v1/pods/{uid}/identity` | GET | Operator preflight: 204 only when `{uid}` matches `GAMEPLANE_POD_UID`; never mutates game state |
+| `/v2/pods/{uid}/identity`, `/v1/pods/{uid}/identity` | GET | Operator preflight: 204 only when `{uid}` matches `GAMEPLANE_POD_UID`; never mutates game state |
 | `/v1/pods/{uid}/quiesce`, `/v1/pods/{uid}/unquiesce` | POST | Pod-bound backup RPCs with the same response contract as the legacy routes; reject missing/mismatched Pod UID with 404 before RCON |
+| `/v2/pods/{uid}/quiesce`, `/v2/pods/{uid}/unquiesce` | POST | Verified backup RPCs. HTTP 200 requires `outcome: paused` with `quiesced: true`, or `outcome: resumed` with `quiesced: false`. The shipped Minecraft Java sequence checks each vanilla English RCON reply, including already-on/off retries. Unsupported sequences return `outcome: unsupported`, `quiesced: false` and a reason without issuing commands. The whole sequence, including rollback, excludes other agent RCON calls. |
 | `/lifecycle/stop` | POST | Run stop sequence before scale-to-zero; RCON connection drop is the expected outcome |
 | `/actions/run` | POST | Execute module-declared operator action; request: `{ id, params }`; response: `{ ok, raw? }` |
 | `/status` | GET | Live game metrics (module-declared); response: bare JSON array `[ { id, displayName?, value, unit? } ]` |
