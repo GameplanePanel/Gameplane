@@ -207,3 +207,47 @@ the existing operator override for installations with a dedicated namespace. */ 
 {{- end -}}
 {{- uniq $namespaces | toJson -}}
 {{- end -}}
+
+{{- /*
+gameplane.apiServerEgressPeers renders the NetworkPolicy `to:` peers of the
+agent and sentinel apiserver egress rules. An explicit
+networkPolicies.apiServerCIDRs list wins. Otherwise it renders the RFC1918 +
+link-local fallback plus every address the live cluster reports for the
+`kubernetes` Service: its ClusterIPs and its EndpointSlice endpoint addresses.
+On k3s and kubeadm single-node installs that endpoint is the node's own IP,
+which is often public and outside the fallback; without it heartbeats time
+out and every server stays "Starting". Offline renders (helm template, client
+dry-run) get empty lookups and keep the plain fallback. Addresses are read at
+install/upgrade time, so re-run helm upgrade if the API endpoint moves.
+*/}}
+{{- define "gameplane.apiServerEgressPeers" -}}
+{{- $cidrs := .Values.networkPolicies.apiServerCIDRs | default (list) -}}
+{{- if not $cidrs -}}
+{{- $cidrs = list "10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16" "169.254.0.0/16" -}}
+{{- $addrs := list -}}
+{{- $svc := lookup "v1" "Service" "default" "kubernetes" -}}
+{{- range (dig "spec" "clusterIPs" (list) $svc) -}}
+{{- $addrs = append $addrs . -}}
+{{- end -}}
+{{- $slices := lookup "discovery.k8s.io/v1" "EndpointSlice" "default" "" -}}
+{{- range (dig "items" (list) $slices) -}}
+{{- if eq (dig "metadata" "labels" "kubernetes.io/service-name" "" .) "kubernetes" -}}
+{{- range (dig "endpoints" (list) .) -}}
+{{- range (dig "addresses" (list) .) -}}
+{{- $addrs = append $addrs . -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- range $addrs -}}
+{{- if contains ":" . -}}
+{{- $cidrs = append $cidrs (printf "%s/128" .) -}}
+{{- else -}}
+{{- $cidrs = append $cidrs (printf "%s/32" .) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- range (uniq $cidrs) }}
+- ipBlock: { cidr: {{ . | quote }} }
+{{- end -}}
+{{- end -}}

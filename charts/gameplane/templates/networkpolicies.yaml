@@ -51,9 +51,10 @@ spec:
 # Allow the agent sidecar to reach the kube-apiserver for its status
 # heartbeat (gameservers/status patches). Service VIP traffic is DNATed
 # to the apiserver endpoint before policy evaluation on most CNIs, so an
-# ipBlock toward the endpoint address is required; like the kubelet
-# probes policy below, default to RFC1918 + link-local and let operators
-# narrow it via networkPolicies.apiServerCIDRs.
+# ipBlock toward the endpoint address is required. Unset
+# networkPolicies.apiServerCIDRs means RFC1918 + link-local plus the
+# kubernetes Service endpoints detected at install time (a k3s node's
+# public IP, for example); set the list to narrow it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -67,17 +68,7 @@ spec:
   policyTypes: [Egress]
   egress:
     - to:
-        {{- $apiCidrs := (.Values.networkPolicies.apiServerCIDRs | default (list)) }}
-        {{- if $apiCidrs }}
-        {{- range $apiCidrs }}
-        - ipBlock: { cidr: {{ . | quote }} }
-        {{- end }}
-        {{- else }}
-        - ipBlock: { cidr: 10.0.0.0/8 }
-        - ipBlock: { cidr: 172.16.0.0/12 }
-        - ipBlock: { cidr: 192.168.0.0/16 }
-        - ipBlock: { cidr: 169.254.0.0/16 }
-        {{- end }}
+        {{- include "gameplane.apiServerEgressPeers" . | trim | nindent 8 }}
       ports:
         - { protocol: TCP, port: 443 }
         - { protocol: TCP, port: 6443 }
@@ -354,17 +345,7 @@ spec:
   policyTypes: [Egress]
   egress:
     - to:
-        {{- $apiCidrs := (.Values.networkPolicies.apiServerCIDRs | default (list)) }}
-        {{- if $apiCidrs }}
-        {{- range $apiCidrs }}
-        - ipBlock: { cidr: {{ . | quote }} }
-        {{- end }}
-        {{- else }}
-        - ipBlock: { cidr: 10.0.0.0/8 }
-        - ipBlock: { cidr: 172.16.0.0/12 }
-        - ipBlock: { cidr: 192.168.0.0/16 }
-        - ipBlock: { cidr: 169.254.0.0/16 }
-        {{- end }}
+        {{- include "gameplane.apiServerEgressPeers" . | trim | nindent 8 }}
       ports:
         - { protocol: TCP, port: 443 }
         - { protocol: TCP, port: 6443 }

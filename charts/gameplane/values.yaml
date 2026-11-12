@@ -620,8 +620,12 @@ networkPolicies:
   # probe ports, e.g. [{ protocol: TCP, port: 25565 }].
   probePorts: []
   # CIDRs that hold the kube-apiserver endpoint(s) the agent sidecar
-  # patches its status heartbeat through. Same fallback semantics as
-  # kubeletCIDRs: unset means RFC1918 + link-local on TCP 443/6443.
+  # patches its status heartbeat through. Unset means RFC1918 + link-local
+  # plus the kubernetes Service endpoint addresses detected at install or
+  # upgrade time (e.g. a k3s node's public IP), on TCP 443/6443. Offline
+  # renders (helm template, Argo CD) cannot detect them: set the list
+  # explicitly there when the endpoint is public. Re-run helm upgrade if
+  # the API server endpoint changes.
   apiServerCIDRs: []
   # Egress allowance for game pods to reach the public internet. Game
   # servers download their binaries, assets, and mods on first start

@@ -323,7 +323,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - `networkPolicies.gameIngress` — control ingress to game pods from external sources (players)
     - `gameIngress.enabled` — toggle player-ingress allowance (default `true`)
     - `gameIngress.fromCIDRs` — CIDRs from which player traffic is allowed (default `[0.0.0.0/0]`)
-  - `networkPolicies.apiServerCIDRs` — CIDRs allowed for agent heartbeat to kube-apiserver (defaults to all RFC1918 and link-local addresses on TCP 443/6443; customize to narrow to specific API endpoint(s))
+  - `networkPolicies.apiServerCIDRs` — CIDRs allowed for agent heartbeat to kube-apiserver (defaults to all RFC1918 and link-local addresses plus the `kubernetes` Service endpoints detected at install/upgrade time, on TCP 443/6443; offline renders such as `helm template` or Argo CD cannot detect endpoints, so set this when the API endpoint is public; customize to narrow to specific API endpoint(s))
   - `networkPolicies.gameEgress` — control public-internet egress for game pods (downloads, mod registries)
     - `gameEgress.enabled` — toggle public-egress allowance (default `true`)
     - `gameEgress.ports` — TCP ports for downloads (default 80, 443)
