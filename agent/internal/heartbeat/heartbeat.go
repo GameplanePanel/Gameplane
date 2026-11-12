@@ -187,7 +187,7 @@ func sendOnce(ctx context.Context, dyn dynamic.Interface, cfg Config) error {
 		agent["memoryBytes"] = nullable(s.MemoryBytes, s.MemoryKnown)
 		agent["memoryLimitBytes"] = nullable(s.MemoryLimitBytes, s.MemoryLimitKnown)
 		agent["diskUsedBytes"] = nullable(s.DiskUsedBytes, s.DiskKnown)
-		agent["diskTotalBytes"] = nullable(s.DiskTotalBytes, s.DiskKnown)
+		agent["diskTotalBytes"] = nullable(s.DiskTotalBytes, s.DiskTotalKnown)
 		// Update metrics with usage data.
 		if cfg.Metrics != nil {
 			metricsSnap.CPUMillicores = s.CPUMillicores
@@ -199,8 +199,9 @@ func sendOnce(ctx context.Context, dyn dynamic.Interface, cfg Config) error {
 			metricsSnap.MemoryLimitBytes = s.MemoryLimitBytes
 			metricsSnap.MemoryLimitKnown = s.MemoryLimitKnown
 			metricsSnap.DiskUsedBytes = s.DiskUsedBytes
-			metricsSnap.DiskTotalBytes = s.DiskTotalBytes
 			metricsSnap.DiskKnown = s.DiskKnown
+			metricsSnap.DiskTotalKnown = s.DiskTotalKnown
+			metricsSnap.DiskTotalBytes = s.DiskTotalBytes
 		}
 	}
 

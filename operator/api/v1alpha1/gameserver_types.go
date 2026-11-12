@@ -759,12 +759,12 @@ type AgentStatus struct {
 	// +optional
 	MemoryLimitBytes *int64 `json:"memoryLimitBytes,omitempty"`
 
-	// DiskUsedBytes is the used space on the game data volume (statfs).
+	// DiskUsedBytes is observed usage scoped to the game data directory.
 	// nil means "unknown".
 	// +optional
 	DiskUsedBytes *int64 `json:"diskUsedBytes,omitempty"`
 
-	// DiskTotalBytes is the total size of the game data volume (statfs).
+	// DiskTotalBytes is the observed capacity scoped to the game data volume.
 	// nil means "unknown".
 	// +optional
 	DiskTotalBytes *int64 `json:"diskTotalBytes,omitempty"`

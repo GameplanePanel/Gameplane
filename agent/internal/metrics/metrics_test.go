@@ -24,6 +24,7 @@ func TestMetricsEmitsWhenKnown(t *testing.T) {
 		MemoryLimitKnown:   true,
 		DiskUsedBytes:      1024 * 1024 * 100,  // 100 MiB
 		DiskTotalBytes:     1024 * 1024 * 1024, // 1 GiB
+		DiskTotalKnown:     true,
 		DiskKnown:          true,
 		PlayersOnline:      5,
 		PlayersOnlineKnown: true,
@@ -257,6 +258,7 @@ func TestMetricsZeroValuesEmitted(t *testing.T) {
 		MemoryBytes:        0,
 		MemoryKnown:        true,
 		DiskUsedBytes:      0,
+		DiskTotalKnown:     true,
 		DiskKnown:          true,
 		PlayersOnline:      0,
 		PlayersOnlineKnown: true,
@@ -438,6 +440,7 @@ func TestMetricsDiskZeroTotal(t *testing.T) {
 	snap := Snapshot{
 		DiskUsedBytes:  0,
 		DiskTotalBytes: 0, // Edge case: zero total (e.g., mount failed)
+		DiskTotalKnown: true,
 		DiskKnown:      true,
 		ServerName:     "test-server",
 		Namespace:      "games",
@@ -592,6 +595,7 @@ func TestMetricsAllMetricsIndependent(t *testing.T) {
 		// Disk: known
 		DiskUsedBytes:  500 * 1024 * 1024,
 		DiskTotalBytes: 1024 * 1024 * 1024,
+		DiskTotalKnown: true,
 		DiskKnown:      true,
 		// Players: online known, max unknown
 		PlayersOnline:      8,

@@ -2433,13 +2433,13 @@ spec:
                     type: integer
                   diskTotalBytes:
                     description: |-
-                      DiskTotalBytes is the total size of the game data volume (statfs).
+                      DiskTotalBytes is the observed capacity scoped to the game data volume.
                       nil means "unknown".
                     format: int64
                     type: integer
                   diskUsedBytes:
                     description: |-
-                      DiskUsedBytes is the used space on the game data volume (statfs).
+                      DiskUsedBytes is observed usage scoped to the game data directory.
                       nil means "unknown".
                     format: int64
                     type: integer
