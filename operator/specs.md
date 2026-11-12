@@ -843,3 +843,7 @@ RecoveryIntervention is removed only after cleanup has durably released lifecycl
 ownership and its compatibility guards; unresolved owners retain the condition.
 See [the recovery contract](../specs/033-stopped-multivolume-recovery/contracts/recovery.md)
 and [operator operations](../docs/operator-operations.md) for defaults and failures.
+
+### Restic parent selection and accounting
+
+New workers use the bound GameServer UID as their Restic host. The first backup after upgrading may have no matching parent. Historical snapshots remain restorable by ID. `status.size` records the logical bytes processed. `status.bytesAdded` records the packed bytes added by that run, including a measured zero. Retention and pruning operate on shared repository data independently.
