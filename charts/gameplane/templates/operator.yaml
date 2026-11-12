@@ -168,6 +168,10 @@ rules:
   - apiGroups: [""]
     resources: [pods/attach]
     verbs: [create]
+  # Respect disruption budgets when replacing an obsolete failed game pod.
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
   # Network capture sidecar injection via ephemeral containers (reconcileCapture
   # in gameserver_controller.go). Namespace-scoped to this managed namespace.
   - apiGroups: [""]

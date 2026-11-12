@@ -483,6 +483,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
 	}
+	var recoveryRetry time.Duration
+	if replicas == 1 && stopRequeue == 0 {
+		recoveryRetry, err = r.recoverObsoleteFailedPod(ctx, &gs)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 	// Node placement is a cosmetic annotation for the dashboard; a transient
 	// pod-get hiccup shouldn't stall the rest of reconciliation, so log and go.
 	if err := r.reconcileNodePlacement(ctx, &gs); err != nil {
@@ -541,7 +548,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue}
+	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}

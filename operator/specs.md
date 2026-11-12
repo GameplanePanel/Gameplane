@@ -843,3 +843,7 @@ RecoveryIntervention is removed only after cleanup has durably released lifecycl
 ownership and its compatibility guards; unresolved owners retain the condition.
 See [the recovery contract](../specs/033-stopped-multivolume-recovery/contracts/recovery.md)
 and [operator operations](../docs/operator-operations.md) for defaults and failures.
+
+### Failed StatefulSet rollout recovery
+
+When a corrected rolling update stalls on a failed older ordinal, the GameServer controller requests a pod eviction with UID and resource-version preconditions. It checks live workload ownership, desired replicas, revision and lifecycle fences. The StatefulSet recreates the pod. Disruption budgets can delay recovery.
