@@ -838,6 +838,18 @@ const wsOrigin = typeof window !== "undefined" ? window.location.origin.replace(
 
 export function buildScreenshotHandlers() {
   const data = getScreenshotData();
+  const nightlyBackup = makeBackup({
+    metadata: { name: "mc-survival-nightly-0713", namespace: "default" },
+    spec: { serverRef: { name: "mc-survival" } },
+    status: {
+      phase: "Succeeded",
+      startTime: "2026-07-13T00:12:04Z",
+      completionTime: "2026-07-13T00:14:41Z",
+      size: "1.4 GiB",
+      bytesAdded: "14Ki",
+      snapshotID: "a1b2c3d4e5f6",
+    },
+  });
   return [
     ...fleetHandlers,
     http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
@@ -1246,10 +1258,7 @@ export function buildScreenshotHandlers() {
     http.get("/backups", () =>
       HttpResponse.json({
         items: [
-          makeBackup({
-            metadata: { name: "mc-survival-nightly-0713", namespace: "default" },
-            spec: { serverRef: { name: "mc-survival" } },
-          }),
+          nightlyBackup,
           makeBackup({
             metadata: { name: "mc-survival-nightly-0712", namespace: "default" },
             spec: { serverRef: { name: "mc-survival" } },
@@ -1267,14 +1276,9 @@ export function buildScreenshotHandlers() {
       if (name === "mc-survival-nightly-0713") {
         return HttpResponse.json(
           makeBackup({
-            metadata: { name, namespace: "default" },
-            spec: { serverRef: { name: "mc-survival" } },
+            ...nightlyBackup,
             status: {
-              phase: "Succeeded",
-              startTime: "2026-07-13T00:12:04Z",
-              completionTime: "2026-07-13T00:14:41Z",
-              size: "1.4 GiB",
-              snapshotID: "a1b2c3d4e5f6",
+              ...nightlyBackup.status,
               conditions: cookies.e2e_backup_coverage === "recorded"
                 ? [{ type: "Consistency", status: "False", reason: "UnsupportedRawCopy", message: "The game does not support quiesce." }]
                 : undefined,

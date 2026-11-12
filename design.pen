@@ -9213,7 +9213,7 @@
                               "fill": "$accent/accent"
                             },
                             "vj2Ru": {
-                              "content": "—"
+                              "content": "3h ago"
                             },
                             "h0n7zo": {
                               "enabled": false
@@ -9269,7 +9269,7 @@
                               "fill": "#895AF6"
                             },
                             "vj2Ru": {
-                              "content": "0"
+                              "content": "1"
                             },
                             "h0n7zo": {
                               "enabled": false
@@ -9284,7 +9284,7 @@
                           "width": "fill_container",
                           "descendants": {
                             "Nd4Wf": {
-                              "content": "TOTAL SIZE"
+                              "content": "TOTAL LOGICAL SIZE"
                             },
                             "QdcEm": {
                               "type": "icon",
@@ -9297,7 +9297,7 @@
                               "fill": "$warning/warning"
                             },
                             "vj2Ru": {
-                              "content": "—"
+                              "content": "1.4 GB"
                             },
                             "h0n7zo": {
                               "enabled": false
@@ -9487,6 +9487,131 @@
                                       "fontFamily": "$typography/font-mono"
                                     }
                                   }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "i5P60A",
+                              "name": "Backups",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "larZ1",
+                                  "name": "Completed Restic backup",
+                                  "width": "fill_container",
+                                  "height": 54,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "LWyaJ",
+                                      "name": "Backup name",
+                                      "width": "fill_container",
+                                      "height": 48,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "swtSj",
+                                          "name": "Backup name",
+                                          "fill": "$foreground/foreground",
+                                          "content": "survival-nightly",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 13,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "SAxWl",
+                                      "name": "Phase",
+                                      "width": 120,
+                                      "height": 48,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "BxNZC",
+                                          "name": "Phase",
+                                          "fill": "$foreground/foreground",
+                                          "content": "Succeeded",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 13,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "b7ipb",
+                                      "name": "Logical size and packed bytes added",
+                                      "width": 100,
+                                      "layout": "vertical",
+                                      "gap": 2,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "hjNfI",
+                                          "name": "Logical size",
+                                          "fill": "$foreground/foreground",
+                                          "content": "1434Mi",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 13,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "yXBnm",
+                                          "name": "Packed bytes added",
+                                          "fill": "$muted",
+                                          "content": "14 KB added",
+                                          "fontFamily": "$typography/font-mono",
+                                          "fontSize": 12,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "vL5Li",
+                                      "name": "Completed",
+                                      "width": 140,
+                                      "height": 48,
+                                      "padding": [
+                                        0,
+                                        12
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "t8xv6",
+                                          "name": "Completed",
+                                          "fill": "$foreground/foreground",
+                                          "content": "3h ago",
+                                          "fontFamily": "$typography/font-sans",
+                                          "fontSize": 13,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
                             }
@@ -22067,7 +22192,12 @@
                   "type": "ref",
                   "ref": "wKe4F",
                   "name": "Filter Row",
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "descendants": {
+                    "g9iDB": {
+                      "content": "1 of 1 backups"
+                    }
+                  }
                 },
                 {
                   "id": "KYn2g",
@@ -22188,7 +22318,8 @@
                           "type": "ref",
                           "ref": "tDY4O",
                           "name": "Empty Row",
-                          "width": "fill_container",
+                          "width": "fill_container(1124)",
+                          "enabled": false,
                           "children": [
                             {
                               "id": "AhRTF",
@@ -22207,6 +22338,170 @@
                                   "fill": "$muted"
                                 }
                               }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lhfrX",
+                          "name": "Completed Restic backup",
+                          "width": "fill_container",
+                          "height": 54,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "iccWL",
+                              "name": "Backup name",
+                              "width": "fill_container",
+                              "height": 48,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "l4BIu",
+                                  "name": "Backup name",
+                                  "fill": "$foreground/foreground",
+                                  "content": "survival-nightly",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "jBIfp",
+                              "name": "Server",
+                              "width": 216,
+                              "height": 48,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "u0T4s",
+                                  "name": "Server",
+                                  "fill": "$foreground/foreground",
+                                  "content": "mc-survival",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "ciPec",
+                              "name": "Phase",
+                              "width": 196,
+                              "height": 48,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "f3V71r",
+                                  "name": "Phase",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Succeeded",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Wc15b",
+                              "name": "Logical size and packed bytes added",
+                              "width": 160,
+                              "layout": "vertical",
+                              "gap": 2,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "lpzAb",
+                                  "name": "Logical size",
+                                  "fill": "$foreground/foreground",
+                                  "content": "1434Mi",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dYsvp",
+                                  "name": "Packed bytes added",
+                                  "fill": "$muted",
+                                  "content": "14 KB added",
+                                  "fontFamily": "$typography/font-mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "D7aND",
+                              "name": "Completed",
+                              "width": 288,
+                              "height": 48,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Ha4wo",
+                                  "name": "Completed",
+                                  "fill": "$foreground/foreground",
+                                  "content": "3h ago",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "aiBeF",
+                              "name": "Action",
+                              "width": 88,
+                              "height": 48,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "I7Enl",
+                                  "name": "Action",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Restore",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
                             }
                           ]
                         }
@@ -119080,10 +119375,20 @@
                       "type": "text",
                       "id": "ws91g",
                       "fill": "$foreground/foreground",
-                      "content": "1.4 GiB",
+                      "content": "1434Mi",
                       "lineHeight": 1.4285714285714286,
                       "fontFamily": "$typography/font-sans",
                       "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nzp8v",
+                      "name": "Packed data added by this run",
+                      "fill": "$muted",
+                      "content": "14 KB added",
+                      "fontFamily": "$typography/font-mono",
+                      "fontSize": 12,
                       "fontWeight": "normal"
                     }
                   ]
