@@ -6,7 +6,7 @@ Default column: **on** (enabled by the chart or the product), **off** (opt-in, s
 
 Notification rows take effect once a notification sink is configured.
 
-Status date: 2026-11-10 (v0.4.0, pre-v1).
+Status date: 2026-11-11 (v0.4.0, pre-v1).
 
 See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
@@ -25,7 +25,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Wipe world data with typed confirmation | beta | on | Suspends the server, erases the world volume and resumes, for owners or admins only. | [architecture](docs/architecture.md) |
 | Browse and filter the server list across namespaces | beta | on | The Servers page lists servers from every namespace the viewer may read and filters them with All, Running and Stopped tabs. | [unified-dashboard](docs/unified-dashboard.md) |
 | Keep game data on a PVC with clear storage errors | beta | on | Game data stays on its PVC when the game pod is deleted, and a missing storage class sets Ready to False with reason PVCProvisioningFailed; an install-time default storage class is opt-in. | [architecture](docs/architecture.md#start-a-server) |
-| Edit game configuration from the Settings tab | in progress | n/a | Lets an operator change a server game configuration from its Settings tab, with validation. | [roadmap](docs/roadmap.md#in-progress) |
+| Edit game configuration from the Settings tab | beta | on | Lets an operator change a server game configuration from its Settings tab, with validation. | [roadmap](docs/roadmap.md#in-progress) |
 
 ## Console and admin actions
 
@@ -215,7 +215,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Limit and proof-of-work gate report ingestion on the receiver | beta | off | INGEST_SOURCE_DAILY_LIMIT caps accepted reports per source per UTC day, with a default of 20, and INGEST_POW makes reporters solve a challenge whose difficulty rises with request rate. | [telemetry-provider](docs/telemetry-provider.md#configuration) |
 | Expose receiver summary, dashboard and metrics | beta | off | GET /v1/summary returns five fixed counts without credentials when PUBLIC_SUMMARY is true, the receiver dashboard on port 8081 starts only when DASHBOARD_TOKEN is at least 32 characters, and /metrics accepts only the Bearer token. | [telemetry-provider](docs/telemetry-provider.md#public-summary) |
 | Run a standalone telemetry provider | beta | n/a | A runbook covers deploying the receiver image, TLS, secrets, Cloudflare settings, metrics and backups for a provider serving other installs. | [telemetry-provider](docs/telemetry-provider.md) |
-| Show a version-trend view in the receiver dashboard | in progress | n/a | A version-trend view in the telemetry dashboard is in progress under the spec 022 amendment T101 to T110. | [roadmap](docs/roadmap.md) |
+| Show a version-trend view in the receiver dashboard | beta | off | A version-trend card in the telemetry receiver dashboard's extended section shows daily upgraded, downgraded and unordered version changes. | [roadmap](docs/roadmap.md) |
 
 ## Observability and admin
 
@@ -230,7 +230,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
 | Capability | Maturity | Default | Description | Docs |
 |---|---|---|---|---|
-| Localized dashboard and community language packs | in progress | n/a | Spec 019 adds app localization and community language packs; the work is on open PR #668 and is not yet on master. | [roadmap](docs/roadmap.md#in-progress) |
+| Localized dashboard and community language packs | beta | on | Shipped in v0.4.0 (spec 019): per-account or browser language choice with an admin instance default, translated server messages, per-destination notification language and module translations. A language is listed once its pack is at least 80% translated; missing strings fall back to English. | [translating](docs/translating.md) |
 
 ## Developer and operator tooling
 

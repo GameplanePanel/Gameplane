@@ -54,8 +54,10 @@ and validate kubelet source handling for your Cilium configuration as well.
 Before enabling strict mode, inventory the actual endpoints and configured
 game probes, observe their traffic in the CNI, then validate game readiness,
 agent heartbeats, wake requests and API/operator agent access in a staging
-namespace. The default profile retains RFC1918/link-local API egress and
-unrestricted probe ports for compatibility; it does not isolate those paths.
+namespace. The default profile retains RFC1918/link-local API egress for
+compatibility, and admits kubelet probes only to each server's probe ports
+(`networkPolicies.probeIngress.enabled`, on by default). It does not isolate
+those paths.
 Narrowing sentinel traffic alone cannot remove those separate grants.
 
 The dedicated CI `network-isolation` bucket installs pinned Cilium, exercises

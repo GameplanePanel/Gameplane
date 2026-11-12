@@ -19,6 +19,7 @@ test/e2e/.kube/
 web/node_modules/
 web/node_modules
 web/dist/
+web/*.tsbuildinfo
 web/build/
 web/.vite/
 web/.turbo/

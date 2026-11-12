@@ -37,7 +37,7 @@ COPY web/ ./
 # Generated language manifest (computed by the i18n stage above).
 COPY --from=i18n /out/languages.json ./src/generated/i18n/languages.json
 # Vite emits to web/dist. tsc + vite build run via `npm run build`.
-RUN npm run build
+RUN npm run build && gzip -9 -n -k dist/assets/tsc-*.wasm dist/assets/monaco-ts-worker-*.js
 
 # ---- serve with a non-root nginx ----
 # nginx-unprivileged listens on 8080 and runs as uid 101 (nginx), so it needs
@@ -59,13 +59,14 @@ ENV API_UPSTREAM=http://gameplane-api.gameplane-system.svc.cluster.local
 # (CVE-2026-111497) and curl/libcurl 8.22.0-r0 (CVE-2026-92392); Trivy fails
 # the publish on both. It also ships libexpat 2.9.0-r0 (CVE-2026-113351,
 # CVE-2026-115506, CVE-2026-117610, CVE-2026-118370), musl/musl-utils 1.2.6-r2
-# (CVE-2026-107891) and zlib 1.3.2-r0 (CVE-2026-85091). Upgrade them all to the
+# (CVE-2026-107891), zlib 1.3.2-r0 (CVE-2026-85091) and libxslt 1.1.43-r3
+# (CVE-2026-87636, CVE-2026-9947). Upgrade them all to the
 # Alpine 3.24 fixes as root, then drop back to the base image's unprivileged
 # nginx user (uid 101).
 USER root
 RUN apk add --no-cache brotli-libs~=1.2.1 curl~=8.23.0 libcurl~=8.23.0 \
       'libexpat>=2.10.0-r0' 'musl>=1.2.6-r3' 'musl-utils>=1.2.6-r3' \
-      'zlib>=1.3.2-r1'
+      'zlib>=1.3.2-r1' 'libxslt>=1.1.43-r4'
 USER 101
 
 # Replace the base image's default server block with ours.

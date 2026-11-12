@@ -79,6 +79,9 @@ type GameServerReconciler struct {
 	SentinelResources *corev1.ResourceRequirements
 	TunnelResources   *corev1.ResourceRequirements
 
+	TailscaleMaxSessions int
+	TailscaleUDPQueue    int
+
 	// ConfigInitImage is the image for the init container that copies
 	// operator-rendered config files onto the data volume. Set from an
 	// operator flag so air-gapped installs can point it at a private
