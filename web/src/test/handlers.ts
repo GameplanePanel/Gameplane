@@ -1852,6 +1852,19 @@ export function buildScreenshotHandlers() {
       });
     }),
 
+    http.get("/servers/:name/logs/pod/history", ({ request }) => {
+      const before = new URL(request.url).searchParams.get("before");
+      if (!before) {
+        return HttpResponse.json({
+          source: "game", text: "[Server thread/INFO] Preparing level world", before: "previous-page",
+        });
+      }
+      if (before === "previous-page") {
+        return HttpResponse.json({ source: "game", text: "[Server thread/INFO] Loading properties" });
+      }
+      return new HttpResponse(null, { status: 409 });
+    }),
+
     // WebSocket: Pod Logs
     ws.link(`${wsOrigin}/ws/servers/*/logs/pod*`).addEventListener("connection", ({ client }) => {
       if (typeof document !== "undefined" && document.cookie.includes("e2e_server_variant=failed")) return;
