@@ -2,7 +2,7 @@
 
 **Status:** pre-v1 (v0.4.0)  
 **Module / package:** @gameplane/web  
-**Build:** Vite 8.3 + React 19.3 + TypeScript 6.0 (strict)
+**Build:** Vite 8.3 + React 19.3 + TypeScript 7.0 (strict)
 
 ## Purpose
 
@@ -775,7 +775,8 @@ vite.config.ts              # Build config; dev proxy rules (Accept-header bypas
 tsconfig.json               # TS strict, noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch
 vitest.config.ts            # Coverage gates (lines 92 / functions 76 / branches 82 / statements 92)
 playwright.config.ts        # Mock + live test modes, serial execution (login state is shared)
-eslint.config.js            # Flat config: @typescript-eslint (strict), react-hooks, no-floating-promises
+eslint.config.js            # JavaScript, React Hooks and FormatJS rules
+.oxlintrc.json              # React and TypeScript rules, including type-aware promise checks
 package.json                # @gameplane/web v0.4.0; dev: vite, npm scripts for build/test/lint
 ```
 
@@ -1165,8 +1166,8 @@ openEventStream(opts: EventStreamOptions)
 ## Key Invariants
 
 1. **TypeScript strict mode** — `tsconfig.json` sets `strict: true`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`
-2. **No unjustified `any`** — `@typescript-eslint/no-explicit-any: error`; any real `any` must be a comment explaining why
-3. **No floating promises** — `@typescript-eslint/no-floating-promises: error`; either `await` or `void` prefix every Promise
+2. **No unjustified `any`** — `typescript/no-explicit-any` is an error. Explain any unavoidable `any` in a comment.
+3. **No floating promises** — `typescript/no-floating-promises` is an error. Await each promise or mark it explicitly with `void`.
 4. **Design-first for visuals** — all UI/layout changes start in `design.pen`, not React code
 5. **Pre-auth privacy** — login page and unauthenticated screens leak no internal state (rule 3, CLAUDE.md)
 6. **Fix, not silence** — ESLint / TypeScript flags are fixed at source, never suppressed inline (rule 4, CLAUDE.md)
@@ -1192,7 +1193,7 @@ openEventStream(opts: EventStreamOptions)
 - `@xterm/addon-fit@0.10.0` — xterm fit-to-container addon
 
 **Dev:**
-- `typescript@5.6.2` — strict type checking
+- `typescript@7.0.2` — strict type checking
 - `vite@5.4.8` — build + dev server
 - `@vitejs/plugin-react@4.3.1` — React JSX transform + fast refresh
 - `vitest@2.1.1` — unit test runner (Jest-like API, Vite-integrated)
@@ -1204,11 +1205,9 @@ openEventStream(opts: EventStreamOptions)
 - `vitest-websocket-mock@0.4.0` — WebSocket mock for unit tests
 - `@playwright/test@1.59.1` — browser e2e testing (mock + live modes)
 - `jsdom@25.0.1` — DOM implementation for unit tests
-- `eslint@9.11.1` — JavaScript linter
-- `@typescript-eslint/eslint-plugin@8.7.0` — TypeScript linting rules
-- `@typescript-eslint/parser@8.7.0` — TypeScript AST parser for ESLint
-- `eslint-plugin-react@7.37.0` — React-specific rules
-- `eslint-plugin-react-hooks@5.0.0` — React Hooks rules
+- `eslint@10.14.0` and `@babel/eslint-parser` — lint JavaScript, TypeScript and TSX
+- `eslint-plugin-react-hooks@7.1.1` — React Hooks and compiler diagnostics
+- `oxlint` and `oxlint-tsgolint` — React rules and type-aware TypeScript linting
 - `tailwindcss@3.4.13` + `postcss@8.4.47` + `autoprefixer@10.4.20` — CSS processing
 - `@tanstack/router-devtools@1.75.0` — TanStack Router dev tools (optional, for debugging)
 

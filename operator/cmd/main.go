@@ -168,6 +168,8 @@ func main() {
 		agentResourcesJSON               string
 		sentinelResourcesJSON            string
 		tunnelResourcesJSON              string
+		tailscaleMaxSessions             int
+		tailscaleUDPQueue                int
 		backupResourcesJSON              string
 	)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "Address the metrics endpoint binds to.")
@@ -175,6 +177,8 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election.")
 	flag.StringVar(&agentResourcesJSON, "agent-resources", "", "JSON ResourceRequirements for agents and config init containers; default requests 25m/64Mi, {} clears defaults.")
 	flag.StringVar(&sentinelResourcesJSON, "sentinel-resources", "", "JSON ResourceRequirements for sentinels; default requests 25m/32Mi, {} clears defaults.")
+	flag.IntVar(&tailscaleMaxSessions, "tailscale-max-sessions", 128, "Maximum concurrent TCP and UDP flows per Tailscale relay (1-256).")
+	flag.IntVar(&tailscaleUDPQueue, "tailscale-udp-queue", 4, "Queued datagrams per UDP peer (1-16). Sessions times (queue + 1) must be at most 640.")
 	flag.StringVar(&tunnelResourcesJSON, "tunnel-resources", "", "JSON ResourceRequirements for tunnel relays; default requests 25m/64Mi, {} clears defaults.")
 	flag.StringVar(&backupResourcesJSON, "backup-resources", "", "JSON ResourceRequirements for restic backup/init, restore and cleanup workers; default backup/restore requests 100m/128Mi, {} clears defaults.")
 	flag.StringVar(&agentImage, "agent-image", "ghcr.io/gameplanepanel/gameplane/agent:dev",
@@ -333,6 +337,10 @@ func main() {
 		setupLog.Error(err, "invalid --sentinel-resources")
 		os.Exit(1)
 	}
+	if tailscaleMaxSessions < 1 || tailscaleMaxSessions > 256 || tailscaleUDPQueue < 1 || tailscaleUDPQueue > 16 || tailscaleMaxSessions*(tailscaleUDPQueue+1) > 640 {
+		fmt.Fprintln(os.Stderr, "invalid Tailscale forwarding limits: need 1-256 sessions, queue 1-16, sessions * (queue + 1) <= 640")
+		os.Exit(1)
+	}
 	tunnelResources, err := controller.ParseAuxiliaryResources(tunnelResourcesJSON)
 	if err != nil {
 		setupLog.Error(err, "invalid --tunnel-resources")
@@ -485,6 +493,8 @@ func main() {
 		AgentResources:         agentResources,
 		SentinelResources:      sentinelResources,
 		TunnelResources:        tunnelResources,
+		TailscaleMaxSessions:   tailscaleMaxSessions,
+		TailscaleUDPQueue:      tailscaleUDPQueue,
 		AgentImagePullPolicy:   agentImagePullPolicy,
 		ConfigInitImage:        configInitImage,
 		SentinelImage:          sentinelImage,

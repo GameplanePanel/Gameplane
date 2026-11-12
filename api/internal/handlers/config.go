@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -175,12 +174,8 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 	// Emit audit events for any helmOverride changes.
 	for _, evt := range auditEvents {
 		reason := fmt.Sprintf("oidc role mapping override set: role=%s groups=%s", evt.role, evt.groups)
-		if err := h.auditor.WriteSync(req.Context(), http.MethodPut, "/admin/config/auth", evt.role, reason, http.StatusOK); err != nil {
-			// An audit failure must not fail the request, but it must not be
-			// silent either: the override still took effect.
-			slog.Error("config: oidc role mapping override audit write failed",
-				"role", evt.role, "err", err)
-		}
+		// The configuration is committed. WriteSync reports any missing audit row.
+		_ = h.auditor.WriteSync(req.Context(), http.MethodPut, "/admin/config/auth", evt.role, reason, http.StatusOK)
 	}
 
 	writeJSON(w, map[string]any{"section": section, "value": canon})
@@ -290,12 +285,8 @@ func (h *configHandler) resetRoleMapping(w http.ResponseWriter, req *http.Reques
 	// Emit audit event only if there was an actual change.
 	if hadOverride {
 		reason := fmt.Sprintf("oidc role mapping override reset: role=%s", roleParam)
-		if err := h.auditor.WriteSync(req.Context(), http.MethodDelete, "/admin/config/auth/role-mappings/"+roleParam, roleParam, reason, http.StatusOK); err != nil {
-			// An audit failure must not fail the request, but it must not be
-			// silent either: the reset still took effect.
-			slog.Error("config: oidc role mapping reset audit write failed",
-				"role", roleParam, "err", err)
-		}
+		// The configuration is committed. WriteSync reports any missing audit row.
+		_ = h.auditor.WriteSync(req.Context(), http.MethodDelete, "/admin/config/auth/role-mappings/"+roleParam, roleParam, reason, http.StatusOK)
 	}
 
 	// Return the updated auth section in the same envelope as put().
