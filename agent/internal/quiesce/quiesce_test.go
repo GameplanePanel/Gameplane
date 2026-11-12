@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 	"github.com/GameplanePanel/gameplane/agent/internal/target"
 )
 
@@ -83,7 +84,7 @@ func TestUnsupportedQuiescerNoOp(t *testing.T) {
 
 func newTestRouter(rc Rcon, spec *caps.Quiesce) *chi.Mux {
 	r := chi.NewRouter()
-	Mount(r, rc, "testgame", spec)
+	Mount(r, rcon.NewCommands(rc), "testgame", spec)
 	return r
 }
 
@@ -94,7 +95,7 @@ func TestPodBoundRoutesRejectReplacementBeforeRCON(t *testing.T) {
 			r := chi.NewRouter()
 			r.Route("/v1/pods/{uid}", func(bound chi.Router) {
 				bound.Use(target.Guard(actual))
-				Mount(bound, rc, "test", minecraftQuiesceSpec())
+				Mount(bound, rcon.NewCommands(rc), "test", minecraftQuiesceSpec())
 			})
 			for _, path := range []string{"quiesce", "unquiesce"} {
 				response := httptest.NewRecorder()

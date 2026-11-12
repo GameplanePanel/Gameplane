@@ -129,6 +129,12 @@ or agent connectivity before retrying. Removing owner annotations or force-remov
 finalizers cannot establish that a worker has stopped. A failed or canceled restore
 leaves its target suspended for inspection.
 
+Before upgrading from agents with only the v1 backup endpoint, let active live
+backups finish and check their `Unquiesced` condition. The new operator checks
+for v2 support before starting a new pause. If an upgrade interrupts an existing
+pause, the operator retains the owner until it receives a verified resume or
+observes the original process exit. An older agent cannot supply that acknowledgment.
+
 Upgrades recognize existing owner annotations and import backup recovery lineage.
 If that legacy record lacks the original Pod UID, cleanup cannot safely address
 save-on to a running Pod. Its owner remains held until an uncached read proves

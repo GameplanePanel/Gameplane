@@ -12,7 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -101,19 +101,29 @@ func succeededJob(completedAgo time.Duration) *batchv1.Job {
 
 func newScrapeReconciler(
 	t *testing.T, b *gameplanev1alpha1.Backup, lr BackupLogReader,
+	grace time.Duration, agent AgentQuiescer, extra ...client.Object,
+) *BackupReconciler {
+	t.Helper()
+	r := newScrapeReconcilerWithObjects(t, b, agent, extra...)
+	r.LogReader = lr
+	r.SnapshotScrapeGracePeriod = grace
+	return r
+}
+
+// A live cleanup test must observe the same pod that the Backup recorded.
+// Otherwise the reconciler must withhold save-on or retire the original process.
+func newLiveScrapeReconciler(
+	t *testing.T, b *gameplanev1alpha1.Backup, lr BackupLogReader,
 	grace time.Duration, agent AgentQuiescer,
 ) *BackupReconciler {
 	t.Helper()
-	s := scrapeScheme(t)
-	cl := fake.NewClientBuilder().WithScheme(s).
-		WithObjects(b).
-		WithStatusSubresource(&gameplanev1alpha1.Backup{}).
-		Build()
-	r := &BackupReconciler{Client: cl, Scheme: s, LogReader: lr, SnapshotScrapeGracePeriod: grace}
-	if agent != nil {
-		r.AgentClient = agent
+	b.Spec.ServerRef.Name = "server"
+	gs := &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{Name: "server", Namespace: b.Namespace, UID: "server-uid"}}
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{Name: "server-0", Namespace: b.Namespace, UID: "game-pod-uid"},
+		Status:     corev1.PodStatus{Phase: corev1.PodRunning, ContainerStatuses: []corev1.ContainerStatus{backupRunningGameStatus()}},
 	}
-	return r
+	return newScrapeReconciler(t, b, lr, grace, agent, gs, pod)
 }
 
 // A successful Job whose logs carry a summary line resolves to Succeeded with
@@ -188,7 +198,7 @@ func TestMirrorJobStatus_FailsWhenSnapshotUnavailablePastGrace(t *testing.T) {
 func TestMirrorJobStatus_UnquiescesBeforeFailingPastGrace(t *testing.T) {
 	b := quiescedBackup()
 	q := &scrapeQuiescer{}
-	r := newScrapeReconciler(t, b, scrapeLogReader{body: ""}, time.Millisecond, q)
+	r := newLiveScrapeReconciler(t, b, scrapeLogReader{body: ""}, time.Millisecond, q)
 
 	if _, err := r.mirrorJobStatus(context.Background(), b, succeededJob(time.Minute)); err != nil {
 		t.Fatalf("mirrorJobStatus: %v", err)
@@ -206,7 +216,7 @@ func TestMirrorJobStatus_UnquiescesBeforeFailingPastGrace(t *testing.T) {
 func TestMirrorJobStatus_DoesNotFailWhileUnquiesceIsPending(t *testing.T) {
 	b := quiescedBackup()
 	q := &scrapeQuiescer{unquiesceErr: errors.New("agent unreachable")}
-	r := newScrapeReconciler(t, b, scrapeLogReader{body: ""}, time.Millisecond, q)
+	r := newLiveScrapeReconciler(t, b, scrapeLogReader{body: ""}, time.Millisecond, q)
 
 	res, err := r.mirrorJobStatus(context.Background(), b, succeededJob(time.Minute))
 	if err != nil {
@@ -227,7 +237,7 @@ func TestRetrySnapshotScrape_FailsWhenJobIsGone(t *testing.T) {
 	b := quiescedBackup()
 	b.Status.Phase = gameplanev1alpha1.BackupPhaseSucceeded
 	q := &scrapeQuiescer{}
-	r := newScrapeReconciler(t, b, scrapeLogReader{body: ""}, time.Hour, q)
+	r := newLiveScrapeReconciler(t, b, scrapeLogReader{body: ""}, time.Hour, q)
 
 	if _, err := r.retrySnapshotScrape(context.Background(), b); err != nil {
 		t.Fatalf("retrySnapshotScrape: %v", err)
