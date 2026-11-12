@@ -369,6 +369,35 @@ paths:
       responses:
         '200':
           description: OK
+  '/servers/{name}/files/archive':
+    parameters:
+      - in: query
+        name: path
+        required: true
+        style: form
+        explode: true
+        schema: { type: array, items: { type: string }, minItems: 1, maxItems: 256 }
+    get:
+      summary: Download selected paths as a ZIP
+      responses:
+        '200': { description: Completed ZIP, content: { application/zip: { schema: { type: string, format: binary } } } }
+        '400': { description: Invalid or protected selection }
+        '404': { description: A selected path does not exist }
+        '409': { description: Another archive is running }
+        '413': { description: Archive limit exceeded }
+    post:
+      summary: Create a ZIP on the server
+      parameters:
+        - in: query
+          name: dest
+          required: true
+          schema: { type: string }
+      responses:
+        '201': { description: Archive created }
+        '400': { description: Invalid destination or selection }
+        '404': { description: A selected path does not exist }
+        '409': { description: Destination exists or another archive is running }
+        '413': { description: Archive limit exceeded }
   '/servers/{name}/files/download':
     get:
       responses:

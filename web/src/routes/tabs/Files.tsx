@@ -1,13 +1,16 @@
-import { useResourceClient, useResourceAccess, useResourceTarget, resourceKey, type ResourceTarget } from "@/lib/resourceTarget";
+import { useResourceAccess, useResourceTarget, resourceKey, type ResourceTarget } from "@/lib/resourceTarget";
 import {
   useEffect,
   useId,
+  useMemo,
+  useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ChangeEvent,
   type ReactNode,
 } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Modal,
   ModalBackdrop,
@@ -22,6 +25,8 @@ import {
 import Editor, { startFileLanguageService } from "@/lib/monaco-editor";
 import {
   ChevronLeft,
+  Circle,
+  X,
   Download,
   File as FileIcon,
   FilePlus,
@@ -37,63 +42,78 @@ import {
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { createResourceClient, type FileEntry } from "@/lib/endpoints";
-import { cn, formatBytes } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
-import type { IntlShape } from "react-intl";
+import { FileDrafts } from "@/lib/fileDrafts";
+import { FileTreeRows } from "./FileTreeRows";
 
 const ROOT = "/";
 
-export function FilesTab({ name, ns }: { name: string; ns?: string }) {
+interface FileLocation {
+  path?: string;
+  onNavigate?: (path: string) => void;
+}
+
+export function FilesTab({ name, ns, ...location }: { name: string; ns?: string } & FileLocation) {
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   // A different server incarnation, namespace or cluster starts a fresh browser.
   // Old asynchronous work remains attached to the instance that initiated it.
-  return <FilesBrowser key={JSON.stringify(resourceKey(resourceTarget, "file-editor"))} resourceTarget={resourceTarget} />;
+  return <FilesBrowser key={JSON.stringify(resourceKey(resourceTarget, "file-editor"))} resourceTarget={resourceTarget} {...location} />;
 }
 
-interface FileDraft {
-  target: ResourceTarget;
-  path: string;
-  selectionId: number;
-  serverContent: string;
-  editorValue: string;
-}
-
-interface FileSave {
-  target: ResourceTarget;
-  path: string;
-  selectionId: number;
-  directory: string;
-  body: string;
-}
-
-function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
+function FilesBrowser({ resourceTarget, path, onNavigate }: { resourceTarget: ResourceTarget } & FileLocation) {
   const intl = useOptionalIntl();
   const canControl = useResourceAccess()?.canControl === true;
   const { name, namespace: ns } = resourceTarget;
-  const resourceClient = useResourceClient(resourceTarget);
+  const resourceClient = useMemo(() => createResourceClient(resourceTarget), [resourceTarget]);
   const { Files } = resourceClient;
   const qc = useQueryClient();
   const listKey = (cwd: string) => resourceKey(resourceTarget, "files", name, cwd, ns);
   const editorId = useId();
 
-  const [cwd, setCwd] = useState(ROOT);
-  const [selection, setSelection] = useState<{ entry: FileEntry; id: number } | null>(null);
-  const selected = selection?.entry ?? null;
-  const selectionCounter = useRef(0);
+  const [localPath, setLocalPath] = useState(ROOT);
+  const location = path ?? localPath;
+  const isFolder = location.endsWith("/");
+  const cwd = isFolder ? location.replace(/\/$/, "") || ROOT : parentOf(location);
+  const selectedPath = isFolder ? undefined : location;
+  const selected = selectedPath ? { path: selectedPath, name: selectedPath.slice(selectedPath.lastIndexOf("/") + 1), dir: false } : null;
+  const { data: cachedDrafts } = useQuery<FileDrafts>({
+    queryKey: resourceKey(resourceTarget, "editor-drafts"),
+    queryFn: skipToken,
+    initialData: () => new FileDrafts(async (file, body) => {
+      await Files.write(name, file, body, ns);
+      void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "files", name, parentOf(file), ns) });
+    }),
+    gcTime: Infinity,
+    staleTime: Infinity,
+  });
+  const drafts = cachedDrafts!; // Synchronous initialData, never fetched or undefined.
+  useSyncExternalStore(drafts.subscribe, drafts.snapshot);
+  useEffect(() => {
+    drafts.setEnabled(canControl);
+    return () => drafts.setEnabled(false);
+  }, [drafts, canControl]);
+  const mounted = useRef(true);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  const currentLocation = useRef(location);
+  useLayoutEffect(() => { currentLocation.current = location; }, [location]);
   // Below `md` the tree and the file view can't sit side by side — show one
   // pane at a time, switched by tapping an entry (→ view) or the "Files"
   // back-button (→ tree). At `md`+ both panes are always visible regardless
   // of this state (see the `md:flex` overrides below).
-  const [pane, setPane] = useState<"tree" | "view">("tree");
-  const [fileDraft, setFileDraft] = useState<FileDraft | null>(null);
-  const loadedFile = fileDraft?.selectionId === selection?.id &&
-    fileDraft?.path === selected?.path && fileDraft?.target === resourceTarget ? fileDraft : null;
-  const serverContent = loadedFile?.serverContent ?? null;
-  const editorValue = loadedFile?.editorValue ?? "";
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [pane, setPane] = useState<"tree" | "view">(selectedPath ? "view" : "tree");
+  const loadedFile = selectedPath ? drafts.get(selectedPath) : undefined;
+  const serverContent = loadedFile?.saved ?? null;
+  const editorValue = loadedFile?.text ?? "";
+  const [loadError, setLoadError] = useState<{ path: string; message: string } | null>(null);
   const [opError, setOpError] = useState<string | null>(null);
 
-  const [confirmDelete, setConfirmDelete] = useState<FileEntry | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<FileEntry[] | null>(null);
+  const [checked, setChecked] = useState<FileEntry[]>([]);
+  const [zipOpen, setZipOpen] = useState(false);
   const [mkdirOpen, setMkdirOpen] = useState(false);
   const [newFileOpen, setNewFileOpen] = useState(false);
 
@@ -101,112 +121,94 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
 
   const dirty = serverContent !== null && editorValue !== serverContent;
 
-  const { data: entries, isFetching, refetch } = useQuery({
+  const { data: entries, error: listError, isFetching, refetch } = useQuery({
     queryKey: listKey(cwd),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Files.list(name, cwd, ns),
   });
 
-  // Load file contents when a file is selected (and only then). Folder
-  // navigation is handled in onEntryClick to avoid an effect cascade.
+  // Resolve the path itself. A large directory can have a truncated listing.
   useEffect(() => {
-    if (!selection || selection.entry.dir) return;
-    const { entry, id } = selection;
-    let aborted = false;
+    if (!selectedPath || drafts.get(selectedPath)) return;
     const controller = new AbortController();
-    const load = async () => {
-      // Clear any stale error as the first step of a fresh load.
-      setLoadError(null);
-      try {
-        const text = await createResourceClient(resourceTarget, controller.signal).Files.read(name, entry.path, ns);
-        if (aborted || selectionCounter.current !== id) return;
-        setFileDraft({ target: resourceTarget, path: entry.path, selectionId: id, serverContent: text, editorValue: text });
-      } catch (err) {
-        if (aborted || selectionCounter.current !== id) return;
-        setFileDraft(null);
-        setLoadError((err as Error).message);
-      }
-    };
-    void load();
-    return () => {
-      aborted = true;
-      controller.abort();
-    };
-  }, [selection, name, ns, resourceTarget]);
+    createResourceClient(resourceTarget, controller.signal).Files.read(name, selectedPath, ns)
+      .then((text) => {
+        if (!controller.signal.aborted) drafts.open(selectedPath, text);
+      })
+      .catch((err: Error) => {
+        if (!controller.signal.aborted) setLoadError({ path: selectedPath, message: err.message });
+      });
+    return () => controller.abort();
+  }, [selectedPath, name, ns, resourceTarget, drafts]);
 
-  function clearSelection() {
-    selectionCounter.current++;
-    setSelection(null);
-    setFileDraft(null);
+  function changeLocation(next: string) {
+    if (!mounted.current) return;
+    currentLocation.current = next;
     setLoadError(null);
     setOpError(null);
+    setLocalPath(next);
+    onNavigate?.(next);
   }
 
-  function selectFile(entry: FileEntry) {
-    const id = ++selectionCounter.current;
-    // Clear in the selection handler, before a new read can begin. No content
-    // from the previous path may be rendered or used as this file's draft.
-    setFileDraft(null);
-    setLoadError(null);
-    setOpError(null);
-    setSelection({ entry, id });
+  function selectFile(entry: Pick<FileEntry, "path">) {
+    changeLocation(entry.path);
     setPane("view");
   }
 
-  function navigateTo(path: string) {
-    if (dirty && !confirmDiscard(intl)) return;
-    clearSelection();
-    setCwd(path);
-    // Navigating (breadcrumbs, "..") is a browsing action — show the tree
-    // on mobile rather than stranding the user on the now-stale editor pane.
+  function navigateTo(folder: string) {
+    changeLocation(folder === ROOT ? ROOT : folder + "/");
     setPane("tree");
   }
 
-  function onEntryClick(e: FileEntry) {
-    if (e.dir) {
-      navigateTo(e.path);
-      return;
-    }
-    if (selected?.path === e.path) {
-      setPane("view");
-      return;
-    }
-    if (dirty && !confirmDiscard(intl)) return;
-    selectFile(e);
+  function toggleEntry(entry: FileEntry) {
+    setChecked((current) => current.some((item) => item.path === entry.path)
+      ? current.filter((item) => item.path !== entry.path) : [...current, entry]);
   }
 
-  const saveMutation = useMutation({
-    mutationFn: async ({ target, path, body }: FileSave) => {
-      await createResourceClient(target).Files.write(target.name, path, body, target.namespace);
+  const selectedRoots = checked.filter((item) => !checked.some((other) => other.dir && item.path.startsWith(other.path + "/")));
+  const deleteMutation = useMutation({
+    mutationFn: async (items: FileEntry[]) => {
+      const removed: string[] = [];
+      const errors: string[] = [];
+      for (const entry of items) {
+        try {
+          await drafts.remove(entry.path, () => Files.remove(name, entry.path, entry.dir, ns));
+          removed.push(entry.path);
+        } catch (err) {
+          errors.push(entry.path + " — " + (err as Error).message);
+        }
+      }
+      return { removed, errors, total: items.length };
     },
-    onSuccess: async (_data, saved) => {
+    onSuccess: ({ removed, errors, total }) => {
+      const deleted = (p: string) => removed.some((root) => p === root || p.startsWith(root + "/"));
+      const current = currentLocation.current.replace(/\/$/, "");
+      const root = removed.find((entry) => current === entry || current.startsWith(entry + "/"));
+      if (root) navigateTo(parentOf(root));
+      setChecked((items) => items.filter((entry) => !deleted(entry.path)));
+      setConfirmDelete(null);
+      if (errors.length) setOpError(intl.formatMessage({ id: "web.routes.tabs.files.partial_delete", defaultMessage: "Deleted {count} of {total}. {errors}", description: "Reports how many selected paths were deleted and which paths failed." }, {count: removed.length, total, errors: errors.join("; ")}));
+      void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "files") });
       void qc.invalidateQueries({ queryKey: ["fleet"] });
-      setFileDraft((current) => current?.selectionId === saved.selectionId &&
-        current.path === saved.path && current.target === saved.target
-        ? { ...current, serverContent: saved.body } : current);
-      // Keep edits typed after Save was pressed, and ignore a completion for a
-      // file that was discarded/reselected (even if its path is the same).
-      if (selectionCounter.current === saved.selectionId) setOpError(null);
-      await qc.invalidateQueries({ queryKey: resourceKey(saved.target, "files", saved.target.name, saved.directory, saved.target.namespace) });
-    },
-    onError: (err: Error, saved) => {
-      if (selectionCounter.current === saved.selectionId) setOpError(err.message);
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (entry: FileEntry) => {
-      await Files.remove(name, entry.path, entry.dir, ns);
-      return entry;
-    },
-    onSuccess: async (entry) => {
-      void qc.invalidateQueries({ queryKey: ["fleet"] });
-      if (selected?.path === entry.path) {
-        clearSelection();
-        setPane("tree");
+  const archiveMutation = useMutation({
+    mutationFn: async (dest?: string) => {
+      const paths = selectedRoots.map((entry) => entry.path);
+      const blob = await Files.archive(name, paths, dest && joinPath(cwd, dest), ns);
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "selection.zip";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
       }
-      setConfirmDelete(null);
-      await qc.invalidateQueries({ queryKey: listKey(cwd) });
+    },
+    onSuccess: () => {
+      setZipOpen(false);
       setOpError(null);
+      void qc.invalidateQueries({ queryKey: listKey(cwd) });
     },
     onError: (err: Error) => setOpError(err.message),
   });
@@ -233,12 +235,7 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
       void qc.invalidateQueries({ queryKey: ["fleet"] });
       setNewFileOpen(false);
       await qc.invalidateQueries({ queryKey: listKey(cwd) });
-      selectFile({
-        name: path.slice(path.lastIndexOf("/") + 1),
-        path,
-        size: 0,
-        dir: false,
-      });
+      selectFile({ path });
       setOpError(null);
     },
     onError: (err: Error) => setOpError(err.message),
@@ -314,6 +311,16 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
       </div>
 
       {opError && <ErrorBanner err={opError} onDismiss={() => setOpError(null)} />}
+      {loadedFile?.error && <ErrorBanner err={loadedFile.error} />}
+      {listError && <ErrorBanner err={listError} />}
+      {checked.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span>{intl.formatMessage({ id: "web.routes.tabs.files.selected_count", defaultMessage: "{count} selected", description: "Number of checked file paths." }, { count: checked.length })}</span>
+          <Button size="sm" isDisabled={archiveMutation.isPending} onPress={() => archiveMutation.mutate(undefined)}>{intl.formatMessage({ id: "web.routes.tabs.files.download_zip", defaultMessage: "Download ZIP", description: "Download the selected paths as one ZIP archive." })}</Button>
+          <Button size="sm" isDisabled={!canControl || archiveMutation.isPending} onPress={() => setZipOpen(true)}>{intl.formatMessage({ id: "web.routes.tabs.files.create_zip", defaultMessage: "Create ZIP", description: "Create a ZIP of the selected files on the server." })}</Button>
+          <Button size="sm" variant="danger" isDisabled={!canControl || deleteMutation.isPending} onPress={() => setConfirmDelete(selectedRoots)}>{intl.formatMessage({ id: "web.routes.tabs.files.delete_selected", defaultMessage: "Delete selected", description: "Delete all selected files and folders." })}</Button>
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-divider bg-surface">
         <aside
@@ -337,44 +344,9 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
             {entries?.length === 0 && (
               <li className="px-3 py-4 text-center text-xs text-default-500">{intl.formatMessage({ id: "web.routes.tabs.files.empty_folder", defaultMessage: "Empty folder", description: "Files tab: text shown in the file list when the current folder has no entries" })}</li>
             )}
-            {entries?.map((e) => (
-              <li
-                key={e.path}
-                onClick={() => onEntryClick(e)}
-                className={cn(
-                  "group flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm hover:bg-default-100",
-                  selected?.path === e.path && "bg-primary/10 text-foreground",
-                )}
-              >
-                {e.dir ? (
-                  <Folder className="h-3 w-3 text-default-500" />
-                ) : (
-                  <FileIcon className="h-3 w-3 text-default-500" />
-                )}
-                <span className="truncate" title={e.name}>{e.name}</span>
-                {e.dir ? (
-                  // Folders open on click, so the delete action sits in its own
-                  // button and the wrapper keeps its click from reaching the row.
-                  <span className="ml-auto" onClick={(ev) => ev.stopPropagation()}>
-                    <Button
-                      isIconOnly
-                      variant="ghost"
-                      size="sm"
-                      aria-label={intl.formatMessage({ id: "web.routes.tabs.files.delete_entry_aria", defaultMessage: "Delete {name}", description: "Files: aria-label of the delete button on a file or folder row; {name} is the file or folder name" }, { name: e.name })}
-                      isDisabled={!canControl}
-                      onPress={() => setConfirmDelete(e)}
-                      className="h-6 w-6 min-w-6 text-danger md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </span>
-                ) : (
-                  <span className="ml-auto text-xs text-default-500">
-                    {formatBytes(e.size)}
-                  </span>
-                )}
-              </li>
-            ))}
+            <FileTreeRows entries={entries ?? []} target={resourceTarget} checked={checked} active={selectedPath}
+              canControl={canControl} onToggle={toggleEntry} onOpen={(entry) => entry.dir ? navigateTo(entry.path) : selectFile(entry)}
+              onDelete={(entry) => setConfirmDelete([entry])} />
           </ul>
         </aside>
 
@@ -397,6 +369,18 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
             </Button>
             <span className="text-xs text-default-500 ml-1">{intl.formatMessage({ id: "web.routes.tabs.files.files", defaultMessage: "Files", description: "Files tab: label beside the back button in the file pane header, naming the files area" })}</span>
           </div>
+          {drafts.paths().length > 0 && <nav aria-label={intl.formatMessage({ id: "web.routes.tabs.files.open_files", defaultMessage: "Open files", description: "Accessible name for the open file tabs." })} className="flex shrink-0 gap-1 overflow-x-auto border-b border-divider">
+            {drafts.paths().map((p) => <div key={p} className="flex items-center">
+              <button type="button" aria-current={p === selectedPath ? "page" : undefined} className="px-2 py-1 text-xs aria-current:bg-default-100" onClick={() => selectFile({path: p})}>{p}{drafts.get(p)?.text !== drafts.get(p)?.saved && <Circle aria-hidden="true" className="ml-1 inline size-2 fill-current" />}</button>
+              <button type="button" className="pr-2" aria-label={intl.formatMessage({ id: "web.routes.tabs.files.close_file", defaultMessage: "Close {path}", description: "Close a file tab after saving its edits." }, {path: p})} onClick={async () => {
+                let closed = await drafts.close(p);
+                if (!closed && drafts.get(p)?.error && window.confirm(intl.formatMessage({
+                  id: "web.routes.tabs.files.discard_unsaved_changes", defaultMessage: "You have unsaved changes. Discard them and continue?", description: "Files: confirm prompt shown before discarding unsaved file edits",
+                }))) closed = drafts.discard(p);
+                if (closed && currentLocation.current === p) navigateTo(parentOf(p));
+              }}><X aria-hidden="true" className="size-3" /></button>
+            </div>)}
+          </nav>}
           {selected && !selected.dir ? (
             <>
               <div className="flex items-center justify-between border-b border-divider bg-background px-4 py-2">
@@ -417,19 +401,16 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                   <Button
                     variant="danger"
                     size="sm"
-                    isDisabled={!canControl} onPress={() => setConfirmDelete(selected)}
+                    isDisabled={!canControl} onPress={() => setConfirmDelete([{...selected, size: 0}])}
                   >
                     <Trash2 className="h-3 w-3" /> {intl.formatMessage({ id: "web.routes.tabs.files.delete", defaultMessage: "Delete", description: "Files tab: red button that deletes the selected file or folder, and the confirm button of the delete dialog; keep it short" })}</Button>
                   <Button
                     size="sm"
-                    isDisabled={!canControl || !loadedFile || !dirty || saveMutation.isPending}
-                    onPress={() => {
-                      if (!canControl || !loadedFile || !dirty || saveMutation.isPending) return;
-                      saveMutation.mutate({ target: loadedFile.target, path: loadedFile.path, selectionId: loadedFile.selectionId, directory: cwd, body: loadedFile.editorValue });
-                    }}
+                    isDisabled={!canControl || !dirty || !!loadedFile?.pending || loadedFile?.deleting}
+                    onPress={() => { if (canControl) void drafts.save(selected.path); }}
                     variant="primary"
                   >
-                    {saveMutation.isPending ? (
+                    {loadedFile?.pending ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       <Save className="h-3 w-3" />
@@ -437,9 +418,9 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                 </div>
               </div>
               <div className="min-h-0 flex-1 bg-background">
-                {loadError ? (
+                {loadError && loadError.path === selectedPath ? (
                   <div className="grid h-full place-items-center text-sm text-danger">
-                    {loadError}
+                    {loadError.message}
                   </div>
                 ) : serverContent === null ? (
                   <div className="grid h-full place-items-center text-sm text-default-500">
@@ -447,16 +428,16 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
                   </div>
                 ) : (
                   <Editor
-                    key={selection?.id}
+                    key={selected.path}
                     theme="vs-dark"
                     language={guessLang(selected.name)}
                     path={`file:///workspace/${encodeURIComponent(selected.name)}?editor=${encodeURIComponent(editorId)}&path=${encodeURIComponent(selected.path)}`}
                     saveViewState={false}
                     onMount={startFileLanguageService}
                     value={editorValue}
-                    onChange={(v) => setFileDraft((current) => current && current.selectionId === selection?.id
-                      ? { ...current, editorValue: v ?? "" } : current)}
+                    onChange={(v) => { if (canControl) drafts.edit(selected.path, v ?? ""); }}
                     options={{
+                      readOnly: !canControl || loadedFile?.deleting,
                       minimap: { enabled: false },
                       fontFamily: "JetBrains Mono",
                     }}
@@ -474,9 +455,9 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
         <ConfirmDialog
           open={!!confirmDelete}
           onOpenChange={(open) => !open && setConfirmDelete(null)}
-          title={intl.formatMessage({ id: "web.routes.tabs.files.delete_entry_title", defaultMessage: "Delete {name}?", description: "Files: title of the confirm dialog for deleting a file or folder; {name} is the file or folder name" }, { name: confirmDelete.name })}
+          title={confirmDelete.length > 1 ? intl.formatMessage({ id: "web.routes.tabs.files.delete_many_title", defaultMessage: "Delete {count} items?", description: "Confirmation to delete multiple selected paths." }, { count: confirmDelete.length }) : intl.formatMessage({ id: "web.routes.tabs.files.delete_entry_title", defaultMessage: "Delete {name}?", description: "Files: title of the confirm dialog for deleting a file or folder; {name} is the file or folder name" }, { name: confirmDelete[0].name })}
           description={
-            confirmDelete.dir
+            confirmDelete.some((entry) => entry.dir) || confirmDelete.length > 1
               ? intl.formatMessage({ id: "web.routes.tabs.files.delete_folder_body", defaultMessage: "This permanently removes the folder and everything inside it from the server's data volume. This action cannot be undone.", description: "Files: body of the confirm dialog for deleting a folder" })
               : intl.formatMessage({ id: "web.routes.tabs.files.delete_file_body", defaultMessage: "This permanently removes the file from the server's data volume. This action cannot be undone.", description: "Files: body of the confirm dialog for deleting a file" })
           }
@@ -487,6 +468,11 @@ function FilesBrowser({ resourceTarget }: { resourceTarget: ResourceTarget }) {
         />
       )}
 
+      <NamePromptDialog open={zipOpen} onOpenChange={setZipOpen}
+        title={intl.formatMessage({ id: "web.routes.tabs.files.create_zip", defaultMessage: "Create ZIP", description: "Create a ZIP of the selected files on the server." })}
+        label={intl.formatMessage({ id: "web.routes.tabs.files.zip_name", defaultMessage: "Archive filename (.zip)", description: "Label for the name of a ZIP to save on the server." })}
+        confirmLabel={intl.formatMessage({ id: "web.routes.tabs.files.create", defaultMessage: "Create", description: "Files tab: confirm button of the new file and new folder prompts that creates the item; keep it short" })}
+        busy={archiveMutation.isPending} onSubmit={(value) => archiveMutation.mutate(value)} />
       <NamePromptDialog
         open={mkdirOpen}
         onOpenChange={setMkdirOpen}
@@ -656,12 +642,6 @@ function parentOf(p: string): string {
   const trimmed = p.replace(/\/$/, "");
   const idx = trimmed.lastIndexOf("/");
   return idx <= 0 ? ROOT : trimmed.slice(0, idx);
-}
-
-function confirmDiscard(intl: IntlShape): boolean {
-  return window.confirm(
-    intl.formatMessage({ id: "web.routes.tabs.files.discard_unsaved_changes", defaultMessage: "You have unsaved changes. Discard them and continue?", description: "Files: confirm prompt shown before discarding unsaved file edits" }),
-  );
 }
 
 function guessLang(name: string): string {

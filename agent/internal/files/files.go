@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -45,7 +46,8 @@ func hasDotComponent(rel string) bool {
 }
 
 type handler struct {
-	root string
+	archiveLock sync.Mutex
+	root        string
 
 	// beforeOpen is a test seam. When non-nil it is called synchronously
 	// immediately before a path component is opened ("open"), before the
@@ -64,6 +66,8 @@ func Mount(r chi.Router, root string) {
 	r.Route("/files", func(r chi.Router) {
 		// Transfers can legitimately outlive the ordinary operation timeout.
 		r.Get("/download", h.download)
+		r.Get("/archive", h.archive)
+		r.Post("/archive", h.archive)
 		r.Post("/upload", h.upload)
 		r.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))

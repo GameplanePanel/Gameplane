@@ -53,13 +53,15 @@ func Allowed(method, path string) (int64, bool) {
 	switch method {
 	case http.MethodGet:
 		switch path {
-		case "/console", "/logs/tail", "/logs/download", "/files/list", "/files/read", "/files/download", "/players", "/players/banned", "/players/whitelist", "/status", "/mods":
+		case "/console", "/logs/tail", "/logs/download", "/files/list", "/files/read", "/files/download", "/files/archive", "/players", "/players/banned", "/players/whitelist", "/status", "/mods":
 			return 0, true
 		}
 	case http.MethodPost:
 		switch path {
 		case "/actions/run":
 			return 16 << 10, true
+		case "/files/archive":
+			return 0, true
 		case "/mods/upload":
 			return 512 << 20, true
 		case "/files/write", "/files/create", "/files/upload", "/files/mkdir", "/players/kick", "/players/ban", "/players/unban", "/players/whitelist/add", "/players/whitelist/remove", "/mods/install":

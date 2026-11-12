@@ -65,6 +65,8 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		r.Get("/list", p.agentHTTP("/files/list"))
 		r.Get("/read", p.agentHTTP("/files/read"))
 		r.Get("/download", p.agentHTTP("/files/download"))
+		r.Get("/archive", p.agentHTTP("/files/archive"))
+		r.Post("/archive", p.agentHTTP("/files/archive"))
 		r.Post("/write", p.agentHTTP("/files/write"))
 		r.Post("/create", p.agentHTTP("/files/create"))
 		r.Post("/upload", p.agentHTTP("/files/upload"))
@@ -240,6 +242,10 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 			return
 		}
 		target := agentTarget{name: name, namespace: ns, uid: p.remoteUID}
+		if uid := req.Header.Get("X-Gameplane-Server-UID"); uid != "" && uid != target.uid {
+			http.Error(w, "server identity changed", http.StatusConflict)
+			return
+		}
 		// Validate before opening an upstream or upgrading the browser connection.
 		if err := target.validate(); err != nil {
 			httperr.WriteCode(w, req, http.StatusBadRequest, err)
@@ -261,7 +267,7 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		}
 		defer func() { _ = resp.Body.Close() }()
 		copyResponseHeaders(w.Header(), resp.Header)
-		if strings.HasSuffix(agentPath, "/download") {
+		if strings.HasSuffix(agentPath, "/download") || (agentPath == "/files/archive" && req.Method == http.MethodGet) {
 			forceAttachment(w.Header())
 		}
 		w.WriteHeader(resp.StatusCode)

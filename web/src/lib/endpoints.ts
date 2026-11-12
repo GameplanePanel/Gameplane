@@ -657,7 +657,7 @@ export const ModuleBuilder = {
 
 type RequestClient = Pick<ReturnType<typeof createRequestClient>, "api" | "url" | "raw" | "Captures" | "Shares">;
 
-function makeResourceEndpoints(request: RequestClient) {
+function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
   const api = request.api;
   const withCluster = (path: string, cluster?: string) => request.url(cluster ? withClusterParam(path, cluster) : path);
   const fetch = request.raw;
@@ -934,7 +934,8 @@ function makeResourceEndpoints(request: RequestClient) {
   };
 
   async function filesFetch(input: string, init: RequestInit = {}): Promise<Response> {
-    const res = await fetch(withCluster(input), { credentials: "include", ...init });
+    const headers = { ...init.headers, ...(expectedUID && { "X-Gameplane-Server-UID": expectedUID }) };
+    const res = await fetch(withCluster(input), { credentials: "include", ...init, headers });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new APIError(res.status, text);
@@ -1007,6 +1008,13 @@ function makeResourceEndpoints(request: RequestClient) {
         body: fd,
       });
     },
+    archive: async (server: string, paths: string[], dest?: string, ns?: string): Promise<Blob | undefined> => {
+      const query = new URLSearchParams(paths.map((path) => ["path", path]));
+      if (dest) query.set("dest", dest);
+      const res = await filesFetch(withNS(`${filesBase(server)}/archive?${query}`, ns),
+        dest ? { method: "POST", headers: csrfHeaders() } : {});
+      if (!dest) return res.blob();
+    },
     downloadURL: (server: string, path: string, ns?: string) =>
       withCluster(withNS(`${filesBase(server)}/download?path=${encodeURIComponent(path)}`, ns)),
   };
@@ -1028,10 +1036,10 @@ function makeResourceEndpoints(request: RequestClient) {
 }
 
 /** Capture cluster/namespace once before starting any asynchronous operation. */
-export function createResourceClient(scope: ResourceScope, signal?: AbortSignal): ResourceClient {
+export function createResourceClient(scope: ResourceScope & {uid?: string}, signal?: AbortSignal): ResourceClient {
   const captured = Object.freeze({ ...scope });
   return {
-    ...makeResourceEndpoints(createRequestClient(captured, signal)),
+    ...makeResourceEndpoints(createRequestClient(captured, signal), captured.uid),
     withSignal: (nextSignal: AbortSignal) => createResourceClient(captured, nextSignal),
   };
 }

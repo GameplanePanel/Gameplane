@@ -132,9 +132,7 @@ describe("FilesTab", () => {
     await waitFor(() => expect(bodies).toEqual(["first edit"]));
     fireEvent.change(editor, { target: { value: "second edit" } });
     await act(async () => pendingSave.resolve(new Response(null, { status: 204 })));
-    await waitFor(() => expect(screen.getByRole("button", { name: /Save/ })).toBeEnabled());
     expect(editor).toHaveValue("second edit");
-    fireEvent.click(screen.getByRole("button", { name: /Save/ }));
     await waitFor(() => expect(bodies).toEqual(["first edit", "second edit"]));
   });
 
@@ -205,7 +203,7 @@ describe("FilesTab", () => {
     ]));
   });
 
-  it("does not reuse an earlier save's baseline after discarding and reopening the same path", async () => {
+  it("restores the same draft and pending save when returning to an open file", async () => {
     const pendingSave = deferredResponse();
     let firstFileReads = 0;
     let writeStarted = false;
@@ -225,9 +223,9 @@ describe("FilesTab", () => {
     fireEvent.click(screen.getByText("config.yaml"));
     expect(await screen.findByTestId("monaco")).toHaveValue("second file");
     fireEvent.click(within(container.querySelector("aside")!).getByText("server.properties"));
-    await waitFor(() => expect(screen.getByTestId("monaco")).toHaveValue("reopened content"));
+    await waitFor(() => expect(screen.getByTestId("monaco")).toHaveValue("saved draft"));
     await act(async () => pendingSave.resolve(new Response(null, { status: 204 })));
-    expect(screen.getByTestId("monaco")).toHaveValue("reopened content");
+    expect(screen.getByTestId("monaco")).toHaveValue("saved draft");
     expect(screen.queryByText(/modified/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Save/ })).toBeDisabled();
   });
@@ -985,57 +983,72 @@ describe("FilesTab", () => {
     });
   });
 
-  it("prevents navigation away when there are unsaved changes", async () => {
+  it("retains an unsaved tab while browsing another folder", async () => {
     fetchMock.mockImplementation(async (url: string) => {
-      if (url.startsWith("/servers/mc-survival/files/list")) return jsonRes(ROOT_ENTRIES);
-      if (url.startsWith("/servers/mc-survival/files/read")) return textRes("original");
-      throw new Error(`unexpected fetch: ${url}`);
+      if (url.includes("/files/list?path=%2Fconfig")) return jsonRes([]);
+      if (url.includes("/files/list")) return jsonRes(ROOT_ENTRIES);
+      if (url.includes("/files/read")) return textRes("original");
+      throw new Error("unexpected request");
     });
-    const confirmMock = vi.fn(() => false);
-    vi.stubGlobal("confirm", confirmMock);
-    try {
-      renderWithQuery(<FilesTab name="mc-survival" />);
-      fireEvent.click(await screen.findByText("server.properties"));
-      const monaco = await screen.findByTestId("monaco");
-      fireEvent.change(monaco, { target: { value: "modified" } });
-      // Try to navigate away
-      fireEvent.click(screen.getByText("config"));
-      expect(confirmMock).toHaveBeenCalled();
-      // Should still show the modified file (navigation cancelled)
-      expect(monaco).toHaveValue("modified");
-    } finally {
-      vi.unstubAllGlobals();
-    }
+    renderWithQuery(<FilesTab name="mc-survival" />);
+    fireEvent.click(await screen.findByText("server.properties"));
+    fireEvent.change(await screen.findByTestId("monaco"), { target: {value: "modified"} });
+    fireEvent.click(screen.getByText("config"));
+    expect(await screen.findByText("Empty folder")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "/server.properties" }));
+    expect(await screen.findByTestId("monaco")).toHaveValue("modified");
   });
 
-  it("allows navigation when user confirms discarding changes", async () => {
-    const configEntries = [
-      { name: "file.txt", path: "/config/file.txt", size: 100, dir: false },
-    ];
+  it("opens a deep link even when the parent list omits the file", async () => {
     fetchMock.mockImplementation(async (url: string) => {
-      if (url === "/servers/mc-survival/files/list?path=%2F")
-        return jsonRes(ROOT_ENTRIES);
-      if (url === "/servers/mc-survival/files/list?path=%2Fconfig")
-        return jsonRes(configEntries);
-      if (url.startsWith("/servers/mc-survival/files/read")) return textRes("content");
-      throw new Error(`unexpected fetch: ${url}`);
+      if (url.includes("/files/list?path=%2Flarge")) return jsonRes([]);
+      if (url.includes("/files/read?path=%2Flarge%2Fmissing-from-list.yml")) return textRes("found");
+      throw new Error("unexpected request");
     });
-    const confirmMock = vi.fn(() => true);
-    vi.stubGlobal("confirm", confirmMock);
-    try {
-      renderWithQuery(<FilesTab name="mc-survival" />);
-      fireEvent.click(await screen.findByText("server.properties"));
-      const monaco = await screen.findByTestId("monaco");
-      fireEvent.change(monaco, { target: { value: "modified" } });
-      // Confirm discarding changes
-      fireEvent.click(screen.getByText("config"));
-      expect(confirmMock).toHaveBeenCalled();
-      await waitFor(() =>
-        expect(screen.getByText("file.txt")).toBeInTheDocument(),
-      );
-    } finally {
-      vi.unstubAllGlobals();
-    }
+    renderWithQuery(<FilesTab name="mc-survival" path="/large/missing-from-list.yml" />);
+    expect(await screen.findByTestId("monaco")).toHaveValue("found");
+    expect(screen.getByText("Empty folder")).toBeInTheDocument();
+  });
+
+  it("keeps refused selections and reports the paths deleted in a batch", async () => {
+    const removed: string[] = [];
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes("/files/list")) return jsonRes(TWO_FILES);
+      if (url.includes("/files/delete")) {
+        const path = new URL(url, "http://localhost").searchParams.get("path")!;
+        removed.push(path);
+        return path === "/config.yaml" ? textRes("denied", 403) : new Response(null, {status: 204});
+      }
+      throw new Error("unexpected request");
+    });
+    renderWithQuery(<FilesTab name="mc-survival" />);
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Select /server.properties" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select /config.yaml" }));
+    fireEvent.click(screen.getByRole("button", {name: "Delete selected"}));
+    fireEvent.click(await screen.findByRole("button", {name: /^Delete$/}));
+    expect(await screen.findByText(/Deleted 1 of 2.*config.yaml.*denied/)).toBeInTheDocument();
+    expect(removed).toEqual(["/server.properties", "/config.yaml"]);
+    expect(screen.getByRole("checkbox", { name: "Select /config.yaml" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Select /server.properties" })).not.toBeChecked();
+  });
+
+  it("expands a folder in place and reports archive refusal for its checked children", async () => {
+    const calls: string[] = [];
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes("/files/list?path=%2Fconfig")) return jsonRes([{name: "one", path: "/config/one", dir:false, size:10}]);
+      if (url.includes("/files/list")) return jsonRes(ROOT_ENTRIES);
+      if (url.includes("/files/archive")) { calls.push(url); return textRes("archive denied", 403); }
+      throw new Error("unexpected request");
+    });
+    renderWithQuery(<FilesTab name="mc-survival" ns="custom" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Expand /config" }));
+    fireEvent.click(await screen.findByRole("checkbox", {name: "Select /config/one"}));
+    fireEvent.click(screen.getByRole("checkbox", {name: "Select /server.properties"}));
+    fireEvent.click(screen.getByRole("button", {name: "Download ZIP"}));
+    expect(await screen.findByText(/archive denied/)).toBeInTheDocument();
+    const url = new URL(calls[0], "http://localhost");
+    expect(url.searchParams.getAll("path")).toEqual(["/config/one", "/server.properties"]);
+    expect(url.searchParams.get("namespace")).toBe("custom");
   });
 
   it("supports namespace parameter in API calls", async () => {
