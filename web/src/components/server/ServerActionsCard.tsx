@@ -211,6 +211,7 @@ export function ServerActionsCard({
     // "not asleep yet" (players may be connected during the drain window).
     const asleep = gs.status?.idle?.asleep === true && phase !== "Stopping";
     const running = phase === "Running";
+    const canStop = running || asleep || phase === "Starting" || phase === "Pending";
     const canStart = (phase === "Stopped" || phase === "Suspended" || phase === "Failed") && !asleep;
     return (
       <Card className="border border-border bg-card p-0">
@@ -233,7 +234,7 @@ export function ServerActionsCard({
             icon={Square}
             label={intl.formatMessage({ id: "web.components.server.server_actions_card.stop", defaultMessage: "Stop", description: "Server actions card: button that stops the running server; keep it short" })}
             onClick={() => lifecycle.mutate("stop")}
-            disabled={!canRun || (!running && !asleep) || lifecycle.isPending}
+            disabled={!canRun || !canStop || lifecycle.isPending}
           />
           {asleep && (
             <LifecycleButton

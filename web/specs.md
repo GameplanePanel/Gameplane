@@ -246,6 +246,7 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
 
 2. **ServerDetail Page** (`web/src/routes/ServerDetail.tsx`, 289 lines)
    - Full server view with header showing phase chip, uptime, player count, and action buttons
+   - Both the header and Overview offer Stop during Pending and Starting to users with control access to that server.
    - Tabbed interface (HeroUI Tabs) routing to nine sub-views: Overview, Events, Console, Logs, Files, Mods, Modpacks, Players, Backups, Capture, Settings
    - Phase chip from ui/PhaseChip; game icon from ui/GameIcon
    - Lifecycle action buttons (start/stop/restart) gated by phase state

@@ -746,6 +746,15 @@ describe("ServersPage", () => {
     }, 10_000);
   });
 
+  it.each(["Pending", "Starting"] as const)("allows stopping a %s server from its fleet row", async (phase) => {
+    server.use(http.get("/servers", () => HttpResponse.json({
+      items: [makeServer({ metadata: { name: "booting", namespace: "gameplane-games" }, status: { phase } })],
+    })));
+    renderWithQuery(<ServersPage />);
+    const row = (await screen.findByText("booting")).closest("tr") as HTMLElement;
+    expect(within(row).getByTitle("Stop")).toBeEnabled();
+  });
+
   // C1: an asleep server is phase Suspended, but :stop is still a real
   // action (it patches spec.suspend=true) — Stop must not be dead here.
   it("keeps Stop enabled for an asleep server", async () => {
