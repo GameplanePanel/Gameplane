@@ -541,6 +541,9 @@ func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
 			t.Fatalf("kubectl %v: %v: %s", args, err, out)
 		}
 	}
+	readStartupOption := func() (string, error) {
+		return envInstance.Kubectl(ctx, "exec", "-n", ns, "pod/"+name, "--", "printenv", "STARTUP_OPTION")
+	}
 	// Finish recording the old template before installing its new revision.
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
 		server, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gs, metav1.GetOptions{})
@@ -610,7 +613,7 @@ func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
 		if live.UID != pod.UID || live.DeletionTimestamp != nil || !reflect.DeepEqual(sts.Spec.Template, current.Spec.Template) {
 			t.Fatalf("saving %q replaced the Pod or changed its template", step.after)
 		}
-		if out, err := envInstance.KubectlExec(t, ns, "pod/"+name, "printenv", "STARTUP_OPTION"); err != nil || !strings.HasSuffix(strings.TrimSpace(out), step.before) {
+		if out, err := readStartupOption(); err != nil || !strings.HasSuffix(strings.TrimSpace(out), step.before) {
 			t.Fatalf("running game lost %q: %v: %s", step.before, err, out)
 		}
 		run("-n", ns, "annotate", "gameserver", gs, "gameplane.local/restart-requested="+step.after, "--overwrite")
@@ -622,7 +625,7 @@ func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
 			if fresh.UID == pod.UID {
 				return false, "waiting for a new Pod"
 			}
-			out, err := envInstance.KubectlExec(t, ns, "pod/"+name, "printenv", "STARTUP_OPTION")
+			out, err := readStartupOption()
 			return err == nil && strings.HasSuffix(strings.TrimSpace(out), step.after), fmt.Sprintf("new process: %v: %s", err, out)
 		})
 	}
