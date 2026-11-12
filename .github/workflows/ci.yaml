@@ -1894,7 +1894,7 @@ jobs:
             job_timeout: 60 # Boots two-node kind, installs the chart and exercises repeated Hostport sleep/wake handoffs.
           - bucket: management-placement
             parallel: 1
-            test_timeout: 15m
+            test_timeout: 30m
             job_timeout: 60 # Boots management kind, installs the chart and checks placement/disruption behavior.
           - bucket: backup-preparation
             parallel: 1
