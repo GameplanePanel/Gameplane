@@ -130,6 +130,14 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await expect(page.getByText(/waiting on storage/i)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText(/PVCProvisioningFailed/)).toBeVisible();
     await page.waitForTimeout(200);
+    const stopButtons = page.getByRole("button", { name: "Stop", exact: true });
+    await expect(stopButtons).toHaveCount(2);
+    await expect(stopButtons.first()).toBeEnabled();
+    await expect(stopButtons.last()).toBeEnabled();
+    const restartButtons = page.getByRole("button", { name: "Restart", exact: true });
+    await expect(restartButtons).toHaveCount(2);
+    await expect(restartButtons.first()).toBeDisabled();
+    await expect(restartButtons.last()).toBeDisabled();
     await capture(page, "o4LH8W");
   });
 

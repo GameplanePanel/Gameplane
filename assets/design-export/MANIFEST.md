@@ -2874,3 +2874,6 @@ Nodes now follows the Backups toolbar: a plain search input, capped at 320px on 
 
 All seven roots have JSON from Pencil `Get` and 2× PNG from `Export`. Toolbar, popover, desktop, fixed-cluster and mobile layouts were inspected using `TakeScreenshot`; the full screens retain their previous dimensions and content. JSON exports retain component references without elided children or editing placeholders. No React source, tests or lint suites were changed or run for this design update.
 
+## Stop during provisioning
+
+The Pending server Overview (`o4LH8W`) shows Stop enabled in the header and in the lifecycle Quick actions card. Restart remains disabled until the server is running.

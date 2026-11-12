@@ -913,12 +913,20 @@ export function buildScreenshotHandlers() {
         items: data.templates,
       }),
     ),
-    http.get("/templates/:name", ({ params }) => {
+    http.get("/templates/:name", ({ params, cookies }) => {
       const name = String(params.name);
       const template = data.templates.find((t) => t.metadata.name === name);
       // Only the single-get carries a configSchema: Settings > Game
       // configuration reads it, the wizard's list view must stay unchanged.
       const configSchema = data.templateConfigSchemas[name];
+      // This Pending server uses the lifecycle actions shown for templates
+      // without in-game commands. Other Minecraft examples keep their commands.
+      if (template && name === "minecraft-java" && cookies.e2e_server_variant === "pvc-failed") {
+        return HttpResponse.json({
+          ...template,
+          spec: { ...template.spec, configSchema, capabilities: { ...template.spec.capabilities, actions: [] } },
+        });
+      }
       if (template && configSchema) {
         return HttpResponse.json({ ...template, spec: { ...template.spec, configSchema } });
       }
