@@ -115,7 +115,8 @@ func TestGameServer_ArkSurvival_ClusterPersistence(t *testing.T) {
 	// the ARK server itself was started against it: hermsi/ark-server passes
 	// -ClusterDirOverride=/cluster and -clusterid once CLUSTER_ID is set. The
 	// server starts only after SteamCMD has installed ~25GB, hence the wait.
-	envInstance.Eventually(t, 45*time.Minute, func() (bool, string) {
+	// It stays at 30m so the whole test fits make test-e2e-keep's 50m timeout.
+	envInstance.Eventually(t, 30*time.Minute, func() (bool, string) {
 		out, err := envInstance.KubectlExec(t, ns, "pod/"+gsName+"-0", "pgrep", "-af", "ShooterGameServer")
 		if err != nil {
 			return false, "ShooterGameServer not running yet: " + err.Error() + " out=" + out
