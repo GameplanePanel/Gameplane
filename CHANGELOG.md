@@ -9,13 +9,6 @@ See the [unreleased change entries](changelog/unreleased/) for individual fixes 
 
 ## [Unreleased]
 
-### Fixed
-
-- **SSO user profiles:** OIDC sign-in now reads `preferred_username`, falls
-  back to the IdP's userinfo endpoint when the ID token leaves out email,
-  name or username, and refreshes an existing user's email and display name
-  at every login. SSO users whose username is still the raw subject ID are
-  renamed to their `preferred_username` (or email) on their next login.
 ### Added
 
 - The Files editor checks the open JavaScript or TypeScript file against the
