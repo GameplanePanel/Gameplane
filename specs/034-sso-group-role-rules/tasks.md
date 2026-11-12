@@ -59,9 +59,12 @@ CI only (core rule 8); local checks are `go build ./...` and `npx tsc --noEmit`.
 
 ## Phase 6: E2E and docs
 
-- [ ] T021 E2E in the `api-auth` bucket (fake OIDC): custom-role rule, hand-set role kept,
-  return to SSO control applies at next sign-in, Helm-style missing role refused; register
-  in `test/e2e/buckets.sh`, stay within the bucket's login budget.
+- [ ] T021 E2E `test/e2e/api_sso_role_rules_e2e_test.go` per research.md R-9: one admin
+  login, own dashboard-managed provider against the fake IdP, covering custom-role rule,
+  rule order, hand-set role kept and admitted, and return to SSO control applying at next
+  sign-in. Register in an API bucket with admin-login headroom and no other
+  `/admin/config/auth` writer, and update that bucket's tally comment in
+  `test/e2e/buckets.sh`. (The Helm missing-role path is covered by T008 unit tests.)
 - [ ] T022 [P] `docs/oidc.md`, `docs/security.md`, `api/specs.md`, `web/specs.md`,
   `CHANGELOG.md`.
 - [ ] T023 [P] Website docs PR (`users-auth-rbac.mdx`, `helm-values-reference.mdx`,
