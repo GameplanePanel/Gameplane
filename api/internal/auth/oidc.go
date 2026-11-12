@@ -772,6 +772,11 @@ func (p oidcProfile) baseUsername() string {
 	}
 }
 
+// oidcUserInfoTimeout bounds the optional userinfo lookup at login, well
+// under oidcHTTPClient's 30s timeout, so a slow IdP endpoint only delays
+// sign-in briefly before falling back to the ID token claims.
+const oidcUserInfoTimeout = 5 * time.Second
+
 // fillFromUserInfo fills empty profile claims from the IdP's userinfo
 // endpoint. Per OIDC Core 5.3.2 the response is used only when its sub
 // matches the ID token's. Errors are logged, never fatal.
@@ -779,6 +784,8 @@ func (o *OIDC) fillFromUserInfo(ctx context.Context, tok *oauth2.Token, p *oidcP
 	if o.provider == nil || tok == nil {
 		return
 	}
+	ctx, cancel := context.WithTimeout(ctx, oidcUserInfoTimeout)
+	defer cancel()
 	info, err := o.provider.UserInfo(oidc.ClientContext(ctx, oidcHTTPClient), oauth2.StaticTokenSource(tok))
 	if err != nil {
 		slog.Debug("oidc userinfo unavailable", "err", err)
