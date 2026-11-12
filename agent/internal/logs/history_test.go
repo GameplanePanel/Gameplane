@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/coder/websocket"
@@ -69,6 +70,21 @@ func TestHistoryEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	request(mountServer(t, dir, filepath.Join(dir, "logs")), "", 500)
+}
+
+func TestHistoryRejectsMissingFileIdentity(t *testing.T) {
+	f, err := (fstest.MapFS{"server.log": {}}).Open("server.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	source, ok := f.(historyFile)
+	if !ok {
+		t.Fatal("test file does not support reading at an offset")
+	}
+	if _, err := filePage(source, "", 1); err == nil {
+		t.Fatal("served a file without a device and inode")
+	}
 }
 
 func TestHistoryReportsUnreadableFile(t *testing.T) {

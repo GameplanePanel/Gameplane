@@ -55,7 +55,10 @@ func filePage(f historyFile, before string, lines int) (historyPage, error) {
 	if err != nil {
 		return historyPage{}, fmt.Errorf("stat log: %w", err)
 	}
-	identity := info.Sys().(*syscall.Stat_t)
+	identity, ok := info.Sys().(*syscall.Stat_t)
+	if !ok || identity == nil {
+		return historyPage{}, errors.New("log file has no device or inode information")
+	}
 	end := info.Size()
 	if before != "" {
 		if len(before) > 128 {
