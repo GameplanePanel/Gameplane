@@ -32,7 +32,10 @@ func (r *Reader) monitorDisk(ctx context.Context, scan func(context.Context, str
 	for ctx.Err() == nil {
 		scanCtx, cancel := context.WithTimeout(ctx, diskTimeout)
 		sample, err := scan(scanCtx, r.cfg.DataDir, maxDiskEntries)
-		completed := err == nil && scanCtx.Err() == nil
+		// A scan and its timer can become runnable together. Observe the
+		// deadline itself even if cancellation has not been delivered yet.
+		deadline, _ := scanCtx.Deadline()
+		completed := err == nil && scanCtx.Err() == nil && time.Now().Before(deadline)
 		cancel()
 		r.mu.Lock()
 		r.diskMeasuredAt = time.Time{}
@@ -69,25 +72,27 @@ func volumeUsage(ctx context.Context, root string, limit int) (diskSample, error
 		return diskSample{}, err
 	}
 	dir := os.NewFile(uintptr(fd), root)
-	defer dir.Close()
+	defer func() { _ = dir.Close() }()
 	var fs unix.Statfs_t
 	if err := unix.Fstatfs(fd, &fs); err == nil && fs.Type == unix.CEPH_SUPER_MAGIC {
 		// Kernel CephFS exposes recursive usage and quotas as virtual xattrs on
 		// this directory. An inherited/absent quota cannot establish capacity.
-		read := func(key string) (int64, error) {
-			var value [32]byte
-			n, err := unix.Fgetxattr(fd, key, value[:])
-			if err != nil {
-				return 0, err
-			}
-			return strconv.ParseInt(string(value[:n]), 10, 64)
-		}
-		if s, ok := cephDiskUsage(read); ok {
+		if s, ok := cephDiskUsage(func(key string) (int64, error) { return diskAttribute(fd, key) }); ok {
 			return s, nil
 		}
 	}
 	used, err := allocatedDiskUsage(ctx, dir, limit)
 	return diskSample{used: used}, err
+}
+
+// CephFS exposes the counters as decimal integers on the opened directory.
+func diskAttribute(fd int, key string) (int64, error) {
+	var value [32]byte
+	n, err := unix.Fgetxattr(fd, key, value[:])
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(string(value[:n]), 10, 64)
 }
 
 func cephDiskUsage(read func(string) (int64, error)) (diskSample, bool) {
@@ -181,7 +186,7 @@ func (w *diskWalk) entry(parent int, name string, depth int) error {
 	if err != nil {
 		return fmt.Errorf("open disk entry: %w", err)
 	}
-	defer unix.Close(fd)
+	defer func() { _ = unix.Close(fd) }()
 	if err := w.count(fd); err != nil {
 		return err
 	}
@@ -195,6 +200,6 @@ func (w *diskWalk) entry(parent int, name string, depth int) error {
 		return err
 	}
 	dir := os.NewFile(uintptr(child), name)
-	defer dir.Close()
+	defer func() { _ = dir.Close() }()
 	return w.dir(dir, depth+1)
 }

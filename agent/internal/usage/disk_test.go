@@ -3,11 +3,14 @@ package usage
 import (
 	"context"
 	"errors"
-	"golang.org/x/sys/unix"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
+	"testing/synctest"
 	"time"
+
+	"golang.org/x/sys/unix"
 )
 
 func TestAllocatedDiskUsage(t *testing.T) {
@@ -170,5 +173,198 @@ func TestUnlinkDuringDirectoryScan(t *testing.T) {
 	walk := diskWalk{ctx: context.Background(), remaining: 1}
 	if err := walk.entry(int(root.Fd()), "already-removed", 0); err != nil || walk.bytes != 0 {
 		t.Fatalf("removed entry: %d %v", walk.bytes, err)
+	}
+}
+
+func TestDiskMonitorPublishesOnlyFreshCompleteScans(t *testing.T) {
+	root := t.TempDir()
+	file := filepath.Join(root, "region")
+	if err := os.WriteFile(file, []byte("world"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	synctest.Test(t, func(t *testing.T) {
+		r := New(Config{Root: root, DataDir: root})
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+		finish := make(chan struct{})
+		var starts int
+		go r.monitorDisk(ctx, func(ctx context.Context, root string, limit int) (diskSample, error) {
+			starts++
+			s, err := volumeUsage(ctx, root, limit)
+			<-finish
+			return s, err
+		})
+		synctest.Wait()
+		if starts != 1 || r.Read().DiskKnown {
+			t.Fatal("published first scan before completion")
+		}
+		time.Sleep(diskTimeout / 2)
+		finish <- struct{}{}
+		synctest.Wait()
+		if s := r.Read(); !s.DiskKnown || s.DiskUsedBytes <= 0 || s.DiskTotalKnown {
+			t.Fatalf("complete scan: %+v", s)
+		}
+		time.Sleep(diskInterval)
+		synctest.Wait()
+		if starts != 2 || !r.Read().DiskKnown {
+			t.Fatal("fresh prior measurement disappeared during second scan")
+		}
+		time.Sleep(diskTimeout)
+		if r.Read().DiskKnown {
+			t.Fatal("published expired sample while the second scan was blocked")
+		}
+		finish <- struct{}{}
+		synctest.Wait()
+		if r.Read().DiskKnown {
+			t.Fatal("late scan result resurrected a stale measurement")
+		}
+	})
+}
+
+func TestPublicDiskMonitorAndFailedRefresh(t *testing.T) {
+	root := t.TempDir()
+	synctest.Test(t, func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+		New(Config{}).MonitorDisk(ctx)
+		r := New(Config{Root: root, DataDir: root})
+		go r.MonitorDisk(ctx)
+		synctest.Wait()
+		if !r.Read().DiskKnown {
+			t.Fatal("missing initial measurement")
+		}
+		if err := os.Remove(root); err != nil {
+			t.Fatal(err)
+		}
+		time.Sleep(diskInterval)
+		synctest.Wait()
+		if r.Read().DiskKnown {
+			t.Fatal("measurement from a removed data directory remained visible")
+		}
+	})
+}
+
+func TestDiskUsageRecursesAndRejectsDeepTrees(t *testing.T) {
+	root := t.TempDir()
+	where := root
+	var want int64
+	for i := 0; i < 4; i++ {
+		var st unix.Stat_t
+		if err := unix.Stat(where, &st); err != nil {
+			t.Fatal(err)
+		}
+		want += st.Blocks * 512
+		child := filepath.Join(where, "child")
+		if err := os.Mkdir(child, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		where = child
+	}
+	file := filepath.Join(where, "data")
+	if err := os.WriteFile(file, make([]byte, 8192), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{where, file} {
+		var st unix.Stat_t
+		if err := unix.Stat(path, &st); err != nil {
+			t.Fatal(err)
+		}
+		want += st.Blocks * 512
+	}
+	if got, err := volumeUsage(t.Context(), root, maxDiskEntries); err != nil || got.used != want {
+		t.Fatalf("recursive size: %+v want %d, err=%v", got, want, err)
+	}
+	for i := 4; i <= maxDiskDepth; i++ {
+		where = filepath.Join(where, "d")
+		if err := os.Mkdir(where, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got, err := volumeUsage(t.Context(), root, maxDiskEntries); err == nil || got.used != 0 {
+		t.Fatalf("deep scan published %+v (%v)", got, err)
+	}
+}
+
+func TestDiskUsageReadFailures(t *testing.T) {
+	root := t.TempDir()
+	file := filepath.Join(root, "file")
+	if err := os.WriteFile(file, []byte("allocated"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	f, err := os.Open(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if bytes, err := allocatedDiskUsage(t.Context(), f, 50); !errors.Is(err, unix.ENOTDIR) || bytes != 0 {
+		t.Fatalf("non-directory produced %d bytes, %v", bytes, err)
+	}
+	w := diskWalk{ctx: t.Context(), bytes: math.MaxInt64}
+	if err := w.count(int(f.Fd())); err == nil {
+		t.Fatal("overflow produced a finite measurement")
+	}
+	dir, err := os.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := w.entry(int(dir.Fd()), "file", 0); err == nil {
+		t.Fatal("entry overflow did not abort scan")
+	}
+	if err := dir.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if bytes, err := allocatedDiskUsage(t.Context(), dir, 0); !errors.Is(err, unix.EBADF) || bytes != 0 {
+		t.Fatalf("closed root produced %d bytes, %v", bytes, err)
+	}
+	if err := w.entry(-1, "child", 0); !errors.Is(err, unix.EBADF) {
+		t.Fatalf("invalid parent: %v", err)
+	}
+}
+
+func TestDiskUsageUnreadableSubtree(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root bypasses directory mode checks")
+	}
+	root := t.TempDir()
+	child := filepath.Join(root, "save")
+	if err := os.Mkdir(child, 0); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(child, 0o700) })
+	got, err := volumeUsage(t.Context(), root, 100)
+	if !errors.Is(err, unix.EACCES) || got.used != 0 {
+		t.Fatalf("unreadable subtree produced %+v (%v)", got, err)
+	}
+}
+
+func TestDiskAttributesFromPinnedDirectory(t *testing.T) {
+	dir, err := os.Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dir.Close()
+	fd := int(dir.Fd())
+	set := func(k, v string) {
+		t.Helper()
+		if err := unix.Fsetxattr(fd, "user."+k, []byte(v), 0); errors.Is(err, unix.ENOTSUP) {
+			t.Skip("filesystem does not support user xattrs")
+		} else if err != nil {
+			t.Fatal(err)
+		}
+	}
+	// The same descriptor-based getxattr and parser used on kernel CephFS
+	// can be exercised on an ordinary Linux filesystem with user attributes.
+	read := func(key string) (int64, error) { return diskAttribute(fd, "user."+key) }
+	set("ceph.dir.rbytes", "123456")
+	if got, ok := cephDiskUsage(read); !ok || got != (diskSample{used: 123456}) {
+		t.Fatalf("missing quota: %+v %t", got, ok)
+	}
+	set("ceph.quota.max_bytes", "204800")
+	if got, ok := cephDiskUsage(read); !ok || got != (diskSample{used: 123456, capacity: 204800}) {
+		t.Fatalf("measured quota: %+v %t", got, ok)
+	}
+	set("ceph.dir.rbytes", "invalid")
+	if _, ok := cephDiskUsage(read); ok {
+		t.Fatal("malformed counter accepted")
 	}
 }
