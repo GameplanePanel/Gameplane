@@ -65,12 +65,12 @@ describe("BackupRow", () => {
     expect(screen.getByText("alpha")).toBeInTheDocument();
   });
 
-  it.each([undefined, "0", "317Ki"])("keeps logical size separate from packed bytes %s", (added) => {
+  it.each([[undefined, undefined], ["0", "0 B"], ["13827", "14 KB"], ["317Ki", "317 KB"]])("keeps logical size separate from packed bytes %s", (added, formatted) => {
     const backup = makeBackup({ status: { size: "4Gi", bytesAdded: added } });
     render(tableWrap(<BackupRow backup={backup} showServer={false} onSelect={() => {}} onRestore={() => {}} />));
     expect(screen.getByText("4Gi")).toBeInTheDocument();
     if (added == null) expect(screen.queryByText(/ added$/)).not.toBeInTheDocument();
-    else expect(screen.getByText(added + " added")).toBeInTheDocument();
+    else expect(screen.getByText(formatted + " added")).toBeInTheDocument();
   });
 
   it("Restore button is enabled when phase=Succeeded with snapshotID", async () => {
