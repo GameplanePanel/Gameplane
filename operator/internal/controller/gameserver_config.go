@@ -103,6 +103,9 @@ func materializeConfig(
 		return nil, fmt.Errorf("unknown config keys %s: template %q accepts [%s]",
 			strings.Join(unknown, ", "), tmpl.Name, strings.Join(names, ", "))
 	}
+	if err := checkEnvNameCollisions(schema); err != nil {
+		return nil, err
+	}
 
 	mc := &materializedConfig{}
 	var hashParts []string
@@ -165,6 +168,11 @@ func materializeConfig(
 		}
 		values[f.Name] = val
 		hashParts = append(hashParts, f.Name+"="+val)
+		if f.EnvName != "" && f.Target != "file" {
+			// Only renamed fields add a part, so templates without
+			// envName keep their existing hash (no restarts on upgrade).
+			hashParts = append(hashParts, "env:"+f.Name+"="+f.EnvName)
+		}
 		if f.Target == "file" {
 			// File-target values exist only inside rendered
 			// configFiles — no env var, and password values reach
@@ -179,7 +187,7 @@ func materializeConfig(
 			}
 			mc.secretData[f.Name] = []byte(val)
 			mc.env = append(mc.env, corev1.EnvVar{
-				Name: f.Name,
+				Name: configEnvName(f),
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{Name: configSecretName(gs)},
@@ -188,7 +196,7 @@ func materializeConfig(
 				},
 			})
 		} else {
-			mc.env = append(mc.env, corev1.EnvVar{Name: f.Name, Value: val})
+			mc.env = append(mc.env, corev1.EnvVar{Name: configEnvName(f), Value: val})
 		}
 	}
 	if fileFieldSet && len(tmpl.Spec.ConfigFiles) == 0 {
@@ -207,6 +215,37 @@ func materializeConfig(
 		mc.hash = hex.EncodeToString(sum[:])
 	}
 	return mc, nil
+}
+
+// configEnvName is the env var a Target "env" config field is exported as:
+// EnvName when the template sets it, otherwise the field Name.
+func configEnvName(f gameplanev1alpha1.ConfigField) string {
+	if f.EnvName != "" {
+		return f.EnvName
+	}
+	return f.Name
+}
+
+// checkEnvNameCollisions refuses a schema where an envName makes two
+// env-target fields export the same env var, which would let one value
+// silently override the other. Schemas without envName are unaffected.
+func checkEnvNameCollisions(schema []gameplanev1alpha1.ConfigField) error {
+	owner := make(map[string]string, len(schema))
+	renamed := make(map[string]bool)
+	for _, f := range schema {
+		if f.Target == "file" {
+			continue
+		}
+		env := configEnvName(f)
+		if f.EnvName != "" {
+			renamed[env] = true
+		}
+		if prev, ok := owner[env]; ok && renamed[env] {
+			return fmt.Errorf("config fields %q and %q both export env var %q", prev, f.Name, env)
+		}
+		owner[env] = f.Name
+	}
+	return nil
 }
 
 // autoMemoryValue renders percent% of the game container's effective

@@ -1123,8 +1123,9 @@ type AgentSpec struct {
 
 // ConfigField is a single user-tunable setting surfaced in the wizard.
 type ConfigField struct {
-	// Name is the field identifier (also used as an env var when
-	// Target is "env").
+	// Name is the field identifier and the key in GameServer.spec.config.
+	// It is also the env var name when Target is "env" and EnvName is
+	// empty.
 	// +kubebuilder:validation:MinLength=1
 	Name string `json:"name"`
 
@@ -1162,6 +1163,14 @@ type ConfigField struct {
 	// +kubebuilder:default=env
 	// +optional
 	Target string `json:"target,omitempty"`
+
+	// EnvName, when set, is the env var name the value is exported as
+	// instead of Name (Target "env" only). It lets a module keep a stable
+	// config key while pointing it at the variable the game image reads.
+	// +kubebuilder:validation:Pattern=`^[A-Za-z_][A-Za-z0-9_]*$`
+	// +kubebuilder:validation:MaxLength=253
+	// +optional
+	EnvName string `json:"envName,omitempty"`
 
 	// AutoFromMemoryLimit, when set, computes this field's value from the
 	// game container's effective memory limit whenever neither
