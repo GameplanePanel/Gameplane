@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Alert, Button, Input } from "@heroui/react";
 
+import { jvmStartup } from "@/lib/jvmStartup";
 import { ConfigFields } from "@/components/server/ConfigFields";
 import { useResourceAccess } from "@/lib/resourceTarget";
 import { CONFIG_REDACTED_MARKER, validateConfig } from "@/lib/validation";
@@ -26,7 +27,15 @@ export function GameConfigSection({ draft, onChange, template, moduleText, store
   const schema = useMemo(() => template?.spec.configSchema ?? [], [template]);
   const values = useMemo(() => draft.spec.config ?? {}, [draft.spec.config]);
 
-  const errors = useMemo(() => validateConfig(schema, values, intl), [schema, values, intl]);
+  const jvm = useMemo(() => jvmStartup(template, draft, intl), [template, draft, intl]);
+  const errors = useMemo(() => [...validateConfig(schema, values, intl), ...jvm.errors], [schema, values, intl, jvm]);
+  const ordinary = schema.filter((f) => !jvm.fields.includes(f));
+  const edited = schema.filter((f) => values[f.name] !== storedConfig?.[f.name]);
+  const relevant = edited.length ? edited : schema;
+  const hasDeferred = schema.some((f) => f.applyOnRestart && f.target !== "file");
+  const revision = draft.metadata.annotations?.["gameplane.local/effective-template-revision"];
+  const adopted = !!revision && draft.metadata.annotations?.["gameplane.local/template-baseline"] !== revision;
+  const deferredOnly = relevant.length > 0 && relevant.every((f) => f.applyOnRestart && f.target !== "file");
   const errorText = useMemo(
     () => Object.fromEntries(errors.map((e) => [e.name, e.text])),
     [errors],
@@ -133,7 +142,7 @@ export function GameConfigSection({ draft, onChange, template, moduleText, store
     <div className="max-w-3xl space-y-5">
       <div>
         <h2 className="text-lg font-semibold">{intl.formatMessage({ id: "web.routes.tabs.settings.game_config.game_configuration", defaultMessage: "Game configuration", description: "Game config: heading of the game configuration section, shown at the top of the section" })}</h2>
-        <p className="pt-1 text-[13px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.game_config.settings_from_this_server_s_game", defaultMessage: "Settings from this server's game template. Saving restarts the server.", description: "Game config: hint under the heading saying these settings come from the game template and that saving restarts the server" })}</p>
+        <p className="pt-1 text-[13px] text-muted">{hasDeferred ? intl.formatMessage({ id: "web.settings.config_schema_source", defaultMessage: "Settings from this server's game template.", description: "Settings: source of the configuration fields for a server" }) : intl.formatMessage({ id: "web.routes.tabs.settings.game_config.settings_from_this_server_s_game", defaultMessage: "Settings from this server's game template. Saving restarts the server.", description: "Game config: hint under the heading saying these settings come from the game template and that saving restarts the server" })}</p>
       </div>
 
       {invalidMessage && (
@@ -153,7 +162,7 @@ export function GameConfigSection({ draft, onChange, template, moduleText, store
           <Alert.Indicator>
             <AlertTriangle className="h-5 w-5 shrink-0" />
           </Alert.Indicator>
-          <Alert.Content>{intl.formatMessage({ id: "web.routes.tabs.settings.game_config.saving_changes_restarts_the_server_so", defaultMessage: "Saving changes restarts the server so they apply.", description: "Game config: warning note saying that saving changes restarts the server so they apply; shown to users who can write the settings" })}</Alert.Content>
+          <Alert.Content>{deferredOnly && !adopted ? intl.formatMessage({ id: "web.settings.config_adoption", defaultMessage: "The server may restart once when it adopts these startup settings.", description: "Settings: startup notice before the server has adopted the effective template" }) : deferredOnly ? intl.formatMessage({ id: "web.settings.config_next_start", defaultMessage: "These configuration changes apply at the next container start.", description: "Settings: notice when all edited configuration fields defer application until startup" }) : hasDeferred && !edited.length ? intl.formatMessage({ id: "web.settings.config_mixed", defaultMessage: "Some settings apply at the next container start. Changing other settings restarts the server.", description: "Settings: initial notice for a template with both immediate and deferred settings" }) : intl.formatMessage({ id: "web.routes.tabs.settings.game_config.saving_changes_restarts_the_server_so", defaultMessage: "Saving changes restarts the server so they apply.", description: "Game config: warning note saying that saving changes restarts the server so they apply; shown to users who can write the settings" })}</Alert.Content>
         </Alert>
       )}
 
@@ -162,8 +171,15 @@ export function GameConfigSection({ draft, onChange, template, moduleText, store
       )}
 
       <div className="space-y-5">
+        {jvm.fields.length > 0 && (
+          <fieldset className="space-y-4 rounded-lg border border-border p-4">
+            <legend className="px-1 font-semibold">{intl.formatMessage({ id: "web.settings.jvm_startup", defaultMessage: "JVM startup", description: "Settings: heading for Minecraft Java startup options" })}</legend>
+            <ConfigFields schema={jvm.fields} values={values} onChange={setValue} variant="settings" disabled={!canWrite} text={moduleText} errors={errorText} />
+            {jvm.flags.length > 0 && <p className="text-sm text-muted">{intl.formatMessage({ id: "web.settings.jvm_heap_options", defaultMessage: "Heap options before additional JVM arguments: {options}", description: "Settings: JVM arguments computed from the initial and maximum heap settings" }, { options: <code>{jvm.flags.join(" ")}</code> })}</p>}
+          </fieldset>
+        )}
         <ConfigFields
-          schema={schema}
+          schema={ordinary}
           values={values}
           onChange={setValue}
           variant="settings"

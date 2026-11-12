@@ -41,6 +41,41 @@ func int32Ptr(v int32) *int32 {
 	return &v
 }
 
+func TestDeferredConfigEditsAndClearsKeepPodInputs(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "FLAGS", Type: "string", ApplyOnRestart: true}, {Name: "LIVE", Type: "string", Default: "one"},
+	}, nil)
+	tmpl.Spec.ConfigFiles = []gameplanev1alpha1.ConfigFile{{Path: "options", Template: "{{ .Values.FLAGS }}"}}
+	baseline, err := materializeConfig(gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []string{"-Xlog:gc", ""} {
+		gs.Spec.Config = map[string]string{"FLAGS": value}
+		mc, err := materializeConfig(gs, tmpl)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ref := mc.env[0].ValueFrom
+		if ref == nil || ref.SecretKeyRef == nil || ref.SecretKeyRef.Optional == nil || !*ref.SecretKeyRef.Optional || ref.SecretKeyRef.Key != "FLAGS" {
+			t.Fatalf("missing stable optional Secret reference: %+v", mc.env)
+		}
+		stored, exists := mc.secretData["FLAGS"]
+		if string(stored) != value || exists != (value != "") || string(mc.files[0].content) != value || mc.hash != baseline.hash {
+			t.Fatalf("deferred value %q: secret=%v files=%v hash=%s", value, mc.secretData, mc.files, mc.hash)
+		}
+	}
+	gs.Spec.Config["LIVE"] = "two"
+	immediate, err := materializeConfig(gs, tmpl)
+	if err != nil || immediate.hash == baseline.hash {
+		t.Fatalf("ordinary field did not roll: %v", err)
+	}
+	tmpl.Spec.ConfigSchema[0].Target = "file"
+	if _, err := materializeConfig(gs, tmpl); err == nil {
+		t.Fatal("file-only deferred field accepted")
+	}
+}
+
 func TestMaterializeConfig_ResolvesValuesAndDefaults(t *testing.T) {
 	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
 		{Name: "TYPE", Type: "enum", Enum: []string{"VANILLA", "PAPER"}, Default: "VANILLA", Required: true},

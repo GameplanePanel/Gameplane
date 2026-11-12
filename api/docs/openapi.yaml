@@ -512,6 +512,11 @@ paths:
       responses:
         '200':
           description: OK
+  '/servers/{name}/template':
+    get:
+      responses:
+        '200':
+          description: OK
   '/servers/{name}:capture':
     delete:
       responses:

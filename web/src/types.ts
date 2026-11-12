@@ -250,10 +250,10 @@ export type ProbeKind = "readiness" | "liveness" | "startup";
 // One entry in a template's version catalog (spec.versions[]). Selecting it
 // (GameServer.spec.version = id) pins the image and, when `loader` keys into
 // capabilities.mods.loaders, that loader's per-(version+loader) mod volume.
-// `env` is operator-side only and intentionally not surfaced here.
 export interface GameVersion {
   id: string;
   displayName: string;
+  env?: EnvVar[];
   image?: string;
   loader?: string;
   default?: boolean;
@@ -312,6 +312,8 @@ export interface GameTemplate {
     accentColor?: string;
     image: string;
     versions?: GameVersion[];
+    env?: EnvVar[];
+    resources?: ResourceRequirements;
     // Ports the game listens on. wakeProtocol picks the wake sentinel's parser
     // for the port while the server sleeps; the CRD defaults it to "generic",
     // and "none" means the port never wakes the server.
@@ -339,6 +341,7 @@ export interface GameTemplate {
       required?: boolean;
       target?: "env" | "file";
       autoFromMemoryLimit?: { percent: number };
+      applyOnRestart?: boolean;
       // Bounds mirror the CRD ConfigField: min/max apply to int fields,
       // minLength/maxLength to string and password fields (bytes).
       min?: number;

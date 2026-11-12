@@ -22,9 +22,7 @@ import (
 )
 
 // configHashAnnotation is stamped on the pod template whenever the
-// GameServer materializes any config. It covers every resolved value,
-// so changes that would otherwise not alter the pod spec (e.g. a
-// Secret-backed value) still roll the StatefulSet.
+// GameServer materializes config requiring an immediate rollout.
 const configHashAnnotation = "gameplane.local/config-hash"
 
 // materializedConfig is the result of resolving GameServer.spec.config
@@ -35,17 +33,19 @@ type materializedConfig struct {
 	// Password fields appear as SecretKeyRef entries into secretData's
 	// Secret rather than carrying the value inline.
 	env []corev1.EnvVar
-	// secretData holds password-type values destined for the
+	// secretData holds password and deferred environment values for the
 	// per-server `<gs>-config` Secret, keyed by field name. Pod specs
 	// are readable by anyone with pod read access, so secrets must
 	// never appear there as plain env values.
 	secretData map[string][]byte
+	// Retain the owned Secret even while all its deferred keys are unset.
+	hasDeferredEnv bool
 	// files holds the rendered configFiles in declaration order. They
-	// live in the per-server `<gs>-files` Secret — always a Secret,
+	// live in the per-server `<gs>-files` Secret â€” always a Secret,
 	// never a ConfigMap, because any template may embed password-type
 	// values.
 	files []renderedConfigFile
-	// hash fingerprints all resolved values (including secret ones)
+	// hash fingerprints immediate values (including secret ones)
 	// for configHashAnnotation, so Secret-only changes still roll the
 	// StatefulSet. Empty when no config materialized.
 	hash string
@@ -80,7 +80,7 @@ func filesSecretName(gs *gameplanev1alpha1.GameServer) string {
 // applied for absent keys (keeping `kubectl apply` behavior identical
 // to the wizard, which pre-fills them); empty optional values are
 // skipped entirely so games treat them as unset. Any violation is an
-// error — the caller fails the GameServer rather than silently
+// error â€” the caller fails the GameServer rather than silently
 // dropping user intent.
 func materializeConfig(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
@@ -113,6 +113,21 @@ func materializeConfig(
 	fileFieldSet := false
 	for _, f := range schema {
 		values[f.Name] = ""
+		if f.ApplyOnRestart {
+			if f.Target == "file" {
+				return nil, fmt.Errorf("config field %q: applyOnRestart requires an environment field", f.Name)
+			}
+			mc.hasDeferredEnv = true
+			// Keep the same reference when an optional value is added or
+			// cleared. A missing Secret/key leaves that variable unset.
+			optional := true
+			mc.env = append(mc.env, corev1.EnvVar{Name: f.Name, ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: configSecretName(gs)},
+					Key:                  f.Name, Optional: &optional,
+				},
+			}})
+		}
 		val, set := gs.Spec.Config[f.Name]
 		if !set {
 			val = f.Default
@@ -164,10 +179,17 @@ func materializeConfig(
 			}
 		}
 		values[f.Name] = val
+		if f.ApplyOnRestart {
+			if mc.secretData == nil {
+				mc.secretData = map[string][]byte{}
+			}
+			mc.secretData[f.Name] = []byte(val)
+			continue
+		}
 		hashParts = append(hashParts, f.Name+"="+val)
 		if f.Target == "file" {
 			// File-target values exist only inside rendered
-			// configFiles — no env var, and password values reach
+			// configFiles â€” no env var, and password values reach
 			// the pod via the `<gs>-files` Secret instead of
 			// `<gs>-config`.
 			fileFieldSet = true
@@ -199,8 +221,15 @@ func materializeConfig(
 		return nil, err
 	}
 	mc.files = files
-	for _, f := range files {
-		hashParts = append(hashParts, "file:"+f.path+"="+string(f.content))
+	for i, f := range files {
+		content := string(f.content)
+		if mc.hasDeferredEnv {
+			// File templates can interpolate deferred fields. Immediate
+			// values already participate in the hash above; fingerprint the
+			// recipe so edits to a deferred input alone do not roll the Pod.
+			content = tmpl.Spec.ConfigFiles[i].Template
+		}
+		hashParts = append(hashParts, "file:"+f.path+"="+content)
 	}
 	if len(hashParts) > 0 {
 		sum := sha256.Sum256([]byte(strings.Join(hashParts, "\n")))
@@ -211,7 +240,7 @@ func materializeConfig(
 
 // autoMemoryValue renders percent% of the game container's effective
 // memory limit as whole mebibytes ("6144M"), or "" when the resolved
-// resources declare no memory limit — the field then stays unset and the
+// resources declare no memory limit â€” the field then stays unset and the
 // game keeps its own default, matching an unset optional field.
 func autoMemoryValue(
 	gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate, percent int32,
@@ -229,7 +258,7 @@ func autoMemoryValue(
 }
 
 // renderConfigFiles executes every spec.configFiles template against
-// the resolved config values. All failures are errors — a bad path or
+// the resolved config values. All failures are errors â€” a bad path or
 // template fails the GameServer rather than materializing a pod that
 // silently misses a config file.
 func renderConfigFiles(
@@ -288,16 +317,14 @@ func validateConfigFilePath(p string) error {
 }
 
 // reconcileConfigSecret keeps the per-server `<gs>-config` Secret in
-// step with the materialized password values, deleting it outright when
-// no password fields are in play (same lifecycle as the managed
-// BackupSchedule).
+// step with password and deferred environment values.
 func (r *GameServerReconciler) reconcileConfigSecret(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, mc *materializedConfig,
 ) error {
 	sec := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: configSecretName(gs), Namespace: gs.Namespace},
 	}
-	if len(mc.secretData) == 0 {
+	if len(mc.secretData) == 0 && !mc.hasDeferredEnv {
 		return r.deleteIfControlledBy(ctx, gs, sec)
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, sec, func() error {

@@ -1122,6 +1122,7 @@ type AgentSpec struct {
 }
 
 // ConfigField is a single user-tunable setting surfaced in the wizard.
+// +kubebuilder:validation:XValidation:rule="!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target) || self.target == 'env'",message="applyOnRestart requires an environment field"
 type ConfigField struct {
 	// Name is the field identifier (also used as an env var when
 	// Target is "env").
@@ -1162,6 +1163,13 @@ type ConfigField struct {
 	// +kubebuilder:default=env
 	// +optional
 	Target string `json:"target,omitempty"`
+
+	// ApplyOnRestart stages this environment value for the next container start.
+	// Edits and clears update the config Secret without rolling the game Pod.
+	// Config files that reference the field are refreshed by their init container
+	// on the next Pod start. Other fields keep their usual rollout behavior.
+	// +optional
+	ApplyOnRestart bool `json:"applyOnRestart,omitempty"`
 
 	// AutoFromMemoryLimit, when set, computes this field's value from the
 	// game container's effective memory limit whenever neither
