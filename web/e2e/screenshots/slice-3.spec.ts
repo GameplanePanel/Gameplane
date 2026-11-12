@@ -180,6 +180,7 @@ test.describe("Slice 3: Create Server, Modules, Backups (Desktop — 1440x900) @
     await expect(page.getByText("mc-survival-nightly-0713")).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText("mc-survival-nightly-0712")).toBeVisible();
     await page.waitForTimeout(200);
+    await expect(page.getByText("14 KB added", { exact: true })).toBeVisible();
     await capture(page, "DPrYX");
   });
 
@@ -244,9 +245,10 @@ test.describe("Slice 3: Create Server, Modules, Backups (Desktop — 1440x900) @
     const dialog = page.getByRole("dialog", { name: /backup details/i });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("a1b2c3d4e5f6", { exact: true })).toBeVisible();
-    await expect(dialog.getByText("1.4 GiB", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("14 KB added", { exact: true }).locator("..")).toContainText("1.4 GiB");
     await expect(dialog.getByText("Consistency has not been reported.")).toBeVisible();
     await expect(dialog.getByText("Capture-time volume metadata is unavailable.", { exact: false })).toBeVisible();
+    await expect(dialog.getByText("14 KB added", { exact: true })).toBeVisible();
     await captureLocator(page, "zhLZN", dialog);
   });
 
