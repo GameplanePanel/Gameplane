@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	// Pure-Go SQLite driver; registered as "sqlite" via database/sql.
@@ -39,9 +38,8 @@ var migrations embed.FS
 // Store wraps the database connection and driver name, providing methods
 // for migrations and access to user/session/audit data.
 type Store struct {
-	DB         *sql.DB
-	Driver     string
-	userMgmtMu sync.Mutex // Serializes changes that can remove a user's user-management access.
+	DB     *sql.DB
+	Driver string
 }
 
 // Open connects to a database using the specified driver and DSN.
@@ -80,26 +78,48 @@ func Open(ctx context.Context, driver, dsn string) (*Store, error) {
 // Close closes the database connection.
 func (s *Store) Close() error { return s.DB.Close() }
 
-// LockUserManagement serializes changes that can remove a user's
-// user-management access (role permission edits, primary-role changes,
-// user deletion). Hold it from the last-user-manager check through the
-// commit of the change so two requests can't both pass the check. It
-// covers one API process; every database driver requires a single API replica.
-func (s *Store) LockUserManagement() (unlock func()) {
-	s.userMgmtMu.Lock()
-	return s.userMgmtMu.Unlock
+// BeginUserManagement serializes role, account and binding checks with their
+// writes. SQLite uses one connection. PostgreSQL releases the schema-local
+// advisory lock on commit, rollback or loss of the server connection.
+func (s *Store) BeginUserManagement(ctx context.Context) (*sql.Tx, error) {
+	return s.beginSerialized(ctx, "gameplane.user-management")
+}
+
+func (s *Store) beginSerialized(ctx context.Context, purpose string) (*sql.Tx, error) {
+	var opts *sql.TxOptions
+	if s.Driver == "postgres" {
+		// The advisory-lock SELECT can wait behind a committing replica. The
+		// next statement must see that commit even if the role defaults to
+		// REPEATABLE READ, which fixes its snapshot before the wait.
+		opts = &sql.TxOptions{Isolation: sql.LevelReadCommitted}
+	}
+	tx, err := s.DB.BeginTx(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	if s.Driver == "postgres" {
+		if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext(current_schema()::text), hashtext(?))", purpose); err != nil {
+			_ = tx.Rollback()
+			return nil, fmt.Errorf("acquire %s lock: %w", purpose, err)
+		}
+	}
+	return tx, nil
 }
 
 // Migrate applies every pending migration for s.Driver, in version order:
 // first the driver's legacy set (migrations/<driver>/, versions 001-012,
 // written per dialect), then the shared set (migrations/common/, 013
 // onward, portable SQL that both drivers run unchanged). See
-// migrations/README.md. Each file runs in a single transaction; failures
-// are fatal. Afterwards it seeds the telemetry_state row once (see
+// migrations/README.md. The pending files and initial seed commit atomically. It seeds the telemetry_state row once (see
 // seedTelemetryState), which is why it first notes whether the database was
 // fresh.
 func (s *Store) Migrate(ctx context.Context) error {
-	if _, err := s.DB.ExecContext(ctx,
+	tx, err := s.beginSerialized(ctx, "gameplane.migrations")
+	if err != nil {
+		return fmt.Errorf("begin migrations: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if _, err := tx.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)`,
 	); err != nil {
 		return fmt.Errorf("create schema_migrations: %w", err)
@@ -110,7 +130,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 	// upgrade. Counting here, before anything is applied, keeps the answer
 	// right whichever entrypoint (bootstrap-admin or serve) migrates first.
 	var recorded int
-	if err := s.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM schema_migrations`).Scan(&recorded); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM schema_migrations`).Scan(&recorded); err != nil {
 		return fmt.Errorf("count schema_migrations: %w", err)
 	}
 	fresh := recorded == 0
@@ -121,7 +141,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 	}
 
 	for _, f := range files {
-		applied, err := s.migrationApplied(ctx, f.name)
+		applied, err := migrationApplied(ctx, tx, f.name)
 		if err != nil {
 			return fmt.Errorf("migration %s: %w", f.name, err)
 		}
@@ -132,11 +152,14 @@ func (s *Store) Migrate(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("read migration %s: %w", f.path, err)
 		}
-		if err := s.runMigration(ctx, f.name, string(content)); err != nil {
+		if err := applyMigration(ctx, tx, f.name, string(content)); err != nil {
 			return fmt.Errorf("migration %s: %w", f.name, err)
 		}
 	}
-	return s.seedTelemetryState(ctx, fresh)
+	if err := seedTelemetryState(ctx, tx, fresh); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // Migration directories inside the embedded FS. legacyMigrationDirs maps a
@@ -219,9 +242,9 @@ func migrationVersion(name string) string {
 	return name[:i]
 }
 
-func (s *Store) migrationApplied(ctx context.Context, name string) (bool, error) {
+func migrationApplied(ctx context.Context, q Reader, name string) (bool, error) {
 	var v string
-	err := s.DB.QueryRowContext(ctx, `SELECT version FROM schema_migrations WHERE version=?`, name).Scan(&v)
+	err := q.QueryRowContext(ctx, `SELECT version FROM schema_migrations WHERE version=?`, name).Scan(&v)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -264,13 +287,7 @@ func NormalizeTimestamp(raw string) string {
 	return raw
 }
 
-func (s *Store) runMigration(ctx context.Context, name, sqlText string) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = tx.Rollback() }()
-
+func applyMigration(ctx context.Context, tx *sql.Tx, name, sqlText string) error {
 	for _, stmt := range splitStatements(sqlText) {
 		if isCommentOnly(stmt) {
 			continue
@@ -284,7 +301,7 @@ func (s *Store) runMigration(ctx context.Context, name, sqlText string) error {
 	); err != nil {
 		return err
 	}
-	return tx.Commit()
+	return nil
 }
 
 // isCommentOnly reports whether stmt holds nothing but blank lines and

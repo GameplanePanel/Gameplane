@@ -175,3 +175,87 @@ rows. Use repeated passing runs and your own production-shaped drills to select
 and demonstrate targets. This fixture covers SQLite panel recovery, not storage
 cluster loss, PostgreSQL failover, a particular game's save format, or a complete
 Kubernetes disaster recovery exercise.
+
+## PostgreSQL physical recovery
+
+### Active-active API state
+
+All API replicas must use the same writable PostgreSQL database and schema,
+the same configuration and credentials, and the same trusted ingress proxy
+ranges. For a multi-host DSN use `target_session_attrs=read-write` so pgx
+can select a writable host. The API checks PostgreSQL's transaction mode
+on each new connection and each checkout from its pool. A reachable but
+read-only endpoint fails readiness and cannot authorize a new request or
+revalidate an existing stream. The database platform still must fence the
+old primary before promoting another one. A
+chart-managed HA Pod starts with `--postgres-ha-protocol=1`. A legacy
+binary rejects this flag before opening the database. To downgrade to a
+version without this protocol, return to one writer before changing images. A
+session created on either API works on both, and logout and credential changes
+affect the next request on either replica. Long-lived consoles, event streams
+and transfers recheck their session and permissions every five seconds. Each
+stream authorized through GameServer ownership or collaboration adds one
+Kubernetes GET per check on the selected cluster to verify the original UID and
+current grant. Namespace-wide permissions require only the database check.
+A revoked grant or failed lookup cancels the stream on that check. The database
+and Kubernetes reads share a five-second deadline, so an outage just after a
+successful check can take up to ten seconds to cancel the stream. Provider edits,
+Secret rotation and redirect changes are read on the next dashboard-managed OIDC
+handshake.
+
+The API persists login-device signatures and rate budgets with the rest of the
+database. Preserve these tables in backups. To invalidate known-device cookies
+after disaster recovery, stop all API replicas, delete the `login_device` row
+from `api_runtime_keys`, then restart. A recognized device bypasses only the
+per-account password budget and still needs the password and per-IP budget.
+
+Each install elects one replica for notification watches, session and budget
+cleanup, usage reports, and audit retention. Reserve capacity for one additional
+database connection per active leader. The leader holds a read-committed
+transaction advisory lock for its tenure and heartbeats every two seconds.
+The database or pooler's maximum transaction age must accommodate this
+connection. After a backend loss, the replica cancels these workers and the
+standby retries election every two seconds. A prior worker can still have a
+request in flight. PostgreSQL reserves each notification's cluster, object UID,
+resource version, event type and sink before delivery, so overlapping workers
+cannot start two deliveries of the same observation. Claims expire after seven
+days. An API crash between reservation and delivery can lose that notification.
+HTTP or SMTP retries after an ambiguous transport response can still duplicate
+a message at the receiver. Telemetry claims each report slot in SQL, retention
+uses the audit-chain lock, and expired session/budget deletion is idempotent.
+Fence the old writable primary before
+enabling the new primary.
+
+### Physical recovery drill
+
+The PostgreSQL CI lane runs the release API image with one writer. After the
+availability and Secret checks, the dedicated PITR step takes a physical base
+backup, writes authorization state, creates a named WAL restore point, and
+records a subsequent revocation and a user created after that point. It fences
+the old API and database before promoting a copy from WAL. In the isolated
+cluster it keeps the old database claim for inspection. In production, retain
+the physical backup and archived WAL on storage independent of the database.
+
+Before reconnecting the API, the drill reapplies the recorded IdP revocation
+and invalidates restored sessions, tokens and shares. It then checks positive
+and denied requests, the old session, the audit chain, the owner on the live
+GameServer, the agent credential and a retained world marker. The CI log
+records the PostgreSQL target LSN, elapsed recovery-point age, time from loss
+to restored authorization and game verification, and the retained resource
+UIDs. Use actual successful job output when reporting recovery measurements.
+
+During physical recovery, fence every API process and the old writable
+PostgreSQL primary. Keep ingress closed while you reconcile IdP subjects,
+owners and grants with the external revocation record, invalidate sessions
+and API tokens, revoke share links and rotate the login-device key. Validate
+a permitted action and a denied action against the recovered account. Check
+the agent client certificate and CA, then read a known world marker through
+the agent. The drill restores onto a separate PVC and samples the running
+game throughout the outage. Its largest sampling gap bounds what the probe
+can observe.
+
+Start one API against the recovered primary. After verifying the audit chain,
+live game identity and retained claims, native PostgreSQL deployments can
+resume their configured replica count. The HA CI drill exercises a two-writer
+rolling upgrade, session revocation, election after replica loss, loss of one
+worker node and a PostgreSQL outage in a separate three-node cluster.

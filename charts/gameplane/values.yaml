@@ -212,17 +212,18 @@ api:
   # unless operator.controlPlaneNamespace already names an external namespace.
   # An explicit namespace must already exist and be dedicated to these Secrets.
   credentialsNamespace: ""
-  # Must be 1 in every enabled API install, including PostgreSQL. Audit-chain
-  # and user-management locks are per-process. Recreate rollouts stop the old
-  # API before starting its replacement and accept a brief panel outage.
+  # One replica with Recreate unless native PostgreSQL HA is enabled.
   replicas: 1
+  postgresHA:
+    # Requires a Secret-backed PostgreSQL DSN, 2+ eligible workers and one
+    # API replica per worker. Stage the current image at one replica first.
+    enabled: false
   nodeSelector: {}
   tolerations: []
   affinity: {}
   topologySpreadConstraints: []
   priorityClassName: ""
-  # The API is a singleton: eviction causes downtime. A blocking budget would
-  # hang voluntary node drains, so only maxUnavailable: 1 is supported here.
+  # Optional for a singleton; HA always installs maxUnavailable: 1.
   pdb: { enabled: false, maxUnavailable: 1 }
   logLevel: info     # API log verbosity (debug|info|warn|error), passed as GAMEPLANE_LOG_LEVEL
   # Port of the API's Prometheus metrics listener. It is separate from the
@@ -250,8 +251,7 @@ api:
     driver: sqlite       # sqlite | postgres
     dsn: "file:/data/gameplane.db?_pragma=journal_mode(WAL)"
     # An existing Secret in the release namespace takes precedence over dsn.
-    # For postgres, store the connection string there and use an API image
-    # built with -tags postgres. Helm only needs the Secret name and key.
+    # For postgres, provision the full connection string there. The release API includes both drivers.
     existingSecret: ""
     secretKey: dsn
 

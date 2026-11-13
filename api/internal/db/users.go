@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -20,6 +21,17 @@ func (s *Store) DeleteUser(ctx context.Context, userID int64) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	if err := s.DeleteUserTx(ctx, tx, userID); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("delete user: commit: %w", err)
+	}
+	return nil
+}
+
+// DeleteUserTx removes the account inside an existing management transaction.
+func (s *Store) DeleteUserTx(ctx context.Context, tx *sql.Tx, userID int64) error {
 	revokedAt := time.Now().UTC().Format(time.RFC3339)
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE share_links SET revoked_at = ? WHERE created_by = ? AND revoked_at IS NULL`,
@@ -44,9 +56,6 @@ func (s *Store) DeleteUser(ctx context.Context, userID int64) error {
 	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, userID); err != nil {
 		return fmt.Errorf("delete user: users row: %w", err)
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("delete user: commit: %w", err)
 	}
 	return nil
 }

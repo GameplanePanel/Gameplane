@@ -166,3 +166,64 @@ func TestPostgresAuditBlackholeRecovery(t *testing.T) {
 	}
 	verify(1) // New row chains off the checkpoint. Lost attempts were not replayed.
 }
+
+func TestPostgresAuditConcurrentReplicas(t *testing.T) {
+	ctx := t.Context()
+	store := db.NewPostgresTestStore(t)
+	first, second := audit.New(store), audit.New(store)
+	write := func(writer *audit.Auditor) error {
+		return writer.WriteSync(ctx, http.MethodPost, "/servers", "test", "", http.StatusCreated)
+	}
+	if err := write(first); err != nil {
+		t.Fatal(err)
+	}
+	// A relation lock held by another server connection must fence both
+	// append and prune, while verification can still read the previous state.
+	tx, err := store.DB.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if _, err := tx.ExecContext(ctx, "LOCK TABLE audit_events IN SHARE ROW EXCLUSIVE MODE"); err != nil {
+		t.Fatal(err)
+	}
+	short, stop := context.WithTimeout(ctx, 150*time.Millisecond)
+	err = second.WriteSync(short, http.MethodPost, "/servers", "", "", 200)
+	stop()
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("unfenced append: %v", err)
+	}
+	short, stop = context.WithTimeout(ctx, 150*time.Millisecond)
+	_, err = first.Prune(short, time.Now().Add(time.Hour))
+	stop()
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("unfenced prune: %v", err)
+	}
+	result, err := second.Verify(ctx)
+	if err != nil || !result.OK || result.Checked != 1 {
+		t.Fatalf("verify during lock: %+v, %v", result, err)
+	}
+	if err := tx.Rollback(); err != nil {
+		t.Fatal(err)
+	}
+	var writers sync.WaitGroup
+	for _, writer := range []*audit.Auditor{first, second} {
+		writers.Go(func() {
+			for range 20 {
+				if err := write(writer); err != nil {
+					t.Error(err)
+					return
+				}
+				if state, err := writer.Verify(ctx); err != nil || !state.OK {
+					t.Errorf("verify during append: %+v, %v", state, err)
+					return
+				}
+			}
+		})
+	}
+	writers.Wait()
+	result, err = first.Verify(ctx)
+	if err != nil || !result.OK || result.Checked != 41 {
+		t.Fatalf("concurrent chain: %+v, %v", result, err)
+	}
+}

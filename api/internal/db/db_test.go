@@ -1,7 +1,9 @@
 package db
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -703,4 +705,34 @@ func TestNormalizeTimestamp_ConvertsNaive(t *testing.T) {
 			}
 		})
 	}
+}
+
+func (s *Store) migrationApplied(ctx context.Context, name string) (bool, error) {
+	return migrationApplied(ctx, s.DB, name)
+}
+
+func (s *Store) runMigration(ctx context.Context, name, sqlText string) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if err := applyMigration(ctx, tx, name, sqlText); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (s *Store) seedTelemetryState(ctx context.Context, fresh bool) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("seed telemetry state: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if err := seedTelemetryState(ctx, tx, fresh); err != nil {
+		return err
+	}
+	return tx.Commit()
 }

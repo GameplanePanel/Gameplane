@@ -20,7 +20,7 @@ func mountHealthRoutes(r chi.Router, store *db.Store) {
 		_, _ = w.Write([]byte("ok"))
 	})
 	pingSlot := make(chan struct{}, 1)
-	r.Get("/readyz", func(w http.ResponseWriter, req *http.Request) {
+	ready := func(w http.ResponseWriter, req *http.Request) {
 		select {
 		case pingSlot <- struct{}{}:
 			defer func() { <-pingSlot }()
@@ -35,5 +35,11 @@ func mountHealthRoutes(r chi.Router, store *db.Store) {
 			return
 		}
 		_, _ = w.Write([]byte("ok"))
-	})
+	}
+	r.Get("/readyz", ready)
+	// Used to stage a PostgreSQL single writer before enabling rolling
+	// replicas. Older API images cannot pass this capability probe.
+	if store.Driver == "postgres" {
+		r.Get("/readyz/postgres-ha", ready)
+	}
 }

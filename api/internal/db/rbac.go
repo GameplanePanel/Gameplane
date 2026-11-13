@@ -47,10 +47,24 @@ func (s *Store) DeleteUserBindings(ctx context.Context, ex Execer, userID int64)
 	return nil
 }
 
+// Reader is the common read interface of a pool and a transaction.
+type Reader interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}
+
+// Roles reads authorization state from the caller's chosen transaction or pool.
+type Roles struct{ Reader }
+
 // RoleExists reports whether a role with the given name exists.
 func (s *Store) RoleExists(ctx context.Context, name string) (bool, error) {
+	return (Roles{s.DB}).RoleExists(ctx, name)
+}
+
+// RoleExists reports whether the named role exists in this snapshot.
+func (r Roles) RoleExists(ctx context.Context, name string) (bool, error) {
 	var x int
-	err := s.DB.QueryRowContext(ctx, `SELECT 1 FROM roles WHERE name = ?`, name).Scan(&x)
+	err := r.QueryRowContext(ctx, `SELECT 1 FROM roles WHERE name = ?`, name).Scan(&x)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -63,8 +77,13 @@ func (s *Store) RoleExists(ctx context.Context, name string) (bool, error) {
 // RoleGrantsUserManagement reports whether the named role can manage
 // users (holds users:manage or the "*" wildcard).
 func (s *Store) RoleGrantsUserManagement(ctx context.Context, role string) (bool, error) {
+	return (Roles{s.DB}).RoleGrantsUserManagement(ctx, role)
+}
+
+// RoleGrantsUserManagement checks the role's user-management permission.
+func (r Roles) RoleGrantsUserManagement(ctx context.Context, role string) (bool, error) {
 	var n int
-	err := s.DB.QueryRowContext(ctx,
+	err := r.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM role_permissions WHERE role_name = ? AND permission IN ('users:manage', '*')`,
 		role).Scan(&n)
 	if err != nil {
@@ -77,8 +96,13 @@ func (s *Store) RoleGrantsUserManagement(ctx context.Context, role string) (bool
 // role can manage users. No cluster filter: control-plane permissions are
 // not partitioned per cluster, so any cluster-wide binding confers users:manage.
 func (s *Store) UserManagesUsers(ctx context.Context, userID int64) (bool, error) {
+	return (Roles{s.DB}).UserManagesUsers(ctx, userID)
+}
+
+// UserManagesUsers checks the user's current primary role.
+func (r Roles) UserManagesUsers(ctx context.Context, userID int64) (bool, error) {
 	var n int
-	err := s.DB.QueryRowContext(ctx, `
+	err := r.QueryRowContext(ctx, `
 		SELECT COUNT(*)
 		FROM users u
 		JOIN role_permissions rp ON rp.role_name = u.role
@@ -93,8 +117,13 @@ func (s *Store) UserManagesUsers(ctx context.Context, userID int64) (bool, error
 // manage users. Used to refuse demoting/deleting the last such user so
 // the cluster never loses all user administration.
 func (s *Store) UserManagerCount(ctx context.Context) (int, error) {
+	return (Roles{s.DB}).UserManagerCount(ctx)
+}
+
+// UserManagerCount counts the users with user-management permission.
+func (r Roles) UserManagerCount(ctx context.Context) (int, error) {
 	var n int
-	err := s.DB.QueryRowContext(ctx, `
+	err := r.QueryRowContext(ctx, `
 		SELECT COUNT(DISTINCT u.id)
 		FROM users u
 		JOIN role_permissions rp ON rp.role_name = u.role
@@ -110,8 +139,13 @@ func (s *Store) UserManagerCount(ctx context.Context) (int, error) {
 // A role edit that removes users:manage uses it to check that some other
 // user can still manage users afterwards.
 func (s *Store) UserManagerCountExcludingRole(ctx context.Context, role string) (int, error) {
+	return (Roles{s.DB}).UserManagerCountExcludingRole(ctx, role)
+}
+
+// UserManagerCountExcludingRole counts the managers whose primary role differs.
+func (r Roles) UserManagerCountExcludingRole(ctx context.Context, role string) (int, error) {
 	var n int
-	err := s.DB.QueryRowContext(ctx, `
+	err := r.QueryRowContext(ctx, `
 		SELECT COUNT(DISTINCT u.id)
 		FROM users u
 		JOIN role_permissions rp ON rp.role_name = u.role

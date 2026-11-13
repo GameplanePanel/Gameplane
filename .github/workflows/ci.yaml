@@ -1808,7 +1808,7 @@ jobs:
         working-directory: api
         env:
           GAMEPLANE_TEST_POSTGRES_DSN: postgres://postgres@localhost:5432/gameplane_test?sslmode=disable
-        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/...
+        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/... ./cmd
 
   # ---------------------------------------------------------------------
   # kind e2e — one job per suite, each with its own throwaway cluster on
@@ -2516,9 +2516,8 @@ jobs:
 
   # Re-runs the api-auth, api-roles and api-rbac buckets against a
   # Postgres-backed API (spec 013 US5, OD-3). amd64 only. The API is restarted
-  # between buckets: its login rate limiter lives in memory and each bucket is
-  # sized to one fresh limiter's budget (see test/e2e/buckets.sh). The restart
-  # also means each later bucket runs on data the earlier ones left in Postgres.
+  # between buckets to check persistence. PostgreSQL owns login budgets,
+  # so independent suites wait for natural refill using the database clock.
   # A final serial bucket migrates the Deployment strategy and exercises a
   # PostgreSQL outage/recovery against that populated installation.
   e2e-postgres:
@@ -2526,7 +2525,7 @@ jobs:
     needs: [changes, build-images]
     if: (needs.changes.outputs.e2e == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'e2e-postgres')
     runs-on: ubuntu-latest
-    timeout-minutes: 75 # Boots PostgreSQL and runs auth, roles, RBAC, then availability.
+    timeout-minutes: 105 # Sequential singleton/PITR and isolated multi-worker failover drills.
     permissions:
       contents: read
     env:
@@ -2561,23 +2560,25 @@ jobs:
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 15m -v -parallel 4 -run "$RUN_REGEX" ./...
-      - name: restart the API (fresh login limiter)
+      - name: restart the API between suites
         run: |
           kubectl --context "$CTX" --namespace gameplane-system rollout restart deployment/gameplane-api
           kubectl --context "$CTX" --namespace gameplane-system rollout status deployment/gameplane-api --timeout=180s
       - name: run go e2e (api-roles on postgres)
         run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
           RUN_REGEX="$(./test/e2e/buckets.sh regex api-roles)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 10m -v -parallel 3 -run "$RUN_REGEX" ./...
-      - name: restart the API again (fresh login limiter)
+      - name: restart the API again between suites
         run: |
           kubectl --context "$CTX" --namespace gameplane-system rollout restart deployment/gameplane-api
           kubectl --context "$CTX" --namespace gameplane-system rollout status deployment/gameplane-api --timeout=180s
       - name: run go e2e (api-rbac on postgres)
         run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
           RUN_REGEX="$(./test/e2e/buckets.sh regex api-rbac)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
@@ -2585,6 +2586,7 @@ jobs:
             go test -tags=e2e -timeout 10m -v -parallel 4 -run "$RUN_REGEX" ./...
       - name: run go e2e (PostgreSQL singleton upgrade and outage recovery)
         run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
           RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-availability)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
@@ -2592,11 +2594,35 @@ jobs:
             go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: verify Secret-backed PostgreSQL configuration after upgrade
         run: bash deploy/kind/check-postgres-secret.sh "$CTX"
+      - name: run go e2e (postgres-pitr)
+        run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-pitr)"
+          cd test/e2e
+          GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-postgres)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
         with:
           context: ${{ env.CTX }}
+          namespaces: "gameplane-system,gameplane-games"
+          include-previous-logs: "true"
+      - name: replace the PITR cluster with an isolated HA cluster
+        run: |
+          ./deploy/kind/e2e.sh down "$CLUSTER"
+          ./deploy/kind/e2e.sh up gameplane-postgres-ha e2e postgres-ha
+      - name: run go e2e (postgres-ha)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-ha)"
+          cd test/e2e
+          GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER=gameplane-postgres-ha \
+            go test -tags=e2e -timeout 20m -v -parallel 1 -run "$RUN_REGEX" ./...
+      - name: dump the HA cluster on failure
+        if: failure()
+        uses: ./.github/actions/dump-cluster-state
+        with:
+          context: kind-gameplane-postgres-ha
           namespaces: "gameplane-system,gameplane-games"
           include-previous-logs: "true"
 
@@ -3012,6 +3038,10 @@ jobs:
               if (/^e2e postgres \//.test(n) && Array.isArray(j.steps)) {
                 const availability = j.steps.find((s) => s.name === 'run go e2e (PostgreSQL singleton upgrade and outage recovery)');
                 if (availability && availability.conclusion === 'success') bucketSet.add('postgres-availability');
+                const pitr = j.steps.find((s) => s.name === 'run go e2e (postgres-pitr)');
+                if (pitr && pitr.conclusion === 'success') bucketSet.add('postgres-pitr');
+                const ha = j.steps.find((s) => s.name === 'run go e2e (postgres-ha)');
+                if (ha && ha.conclusion === 'success') bucketSet.add('postgres-ha');
               }
               // The ratelimit bucket runs as a trailing step inside the
               // api-auth job leg (deliberately, so it drains the shared
