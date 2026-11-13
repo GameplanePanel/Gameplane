@@ -80,7 +80,7 @@ per batch.
 - [X] T023 [P] [US1] Add `AuthRoleRule`, `roleRules` on `AuthProvider` and `HelmRoleOverride`, `defaultRole` on `HelmRoleOverride`, and `AuthDefaultRole = "deny" | string` in `web/src/lib/config.ts`.
 - [ ] T024 [US1] Following the T003 export, build the ordered rule editor in `web/src/routes/AdminSettings.tsx`: group field, role select from `RolesAPI.list()`, move up and down, remove, add, a warning on a duplicate group, and a fallback select with "Refuse sign-in". Use it in the provider form and the Helm override card (with "Reset to Helm default"). The read-only Helm card lists rules in order. Saving an old-form provider writes `roleRules`.
 - [ ] T025 [US1] New Vitest file `web/src/routes/AdminSettings_rolerules.test.tsx` and MSW additions in `web/src/test/handlers.ts`: add, reorder and remove rules; duplicate warning; custom roles listed; old-form provider saved as `roleRules`; override reset.
-- [ ] T026 [US1] New E2E file `test/e2e/api_sso_role_rules_e2e_test.go` (`//go:build e2e`, `t.Parallel()`, unique names), set up per research R-9: one `e2e-admin` login, a custom role, a labelled client Secret, and the test's own dashboard OIDC provider against the in-cluster fake IdP. Subtests: custom-role rule, rule order, deny fallback refused, unknown-role save refused, delete of a used role refused.
+- [X] T026 [US1] New E2E file `test/e2e/api_sso_role_rules_e2e_test.go` (`//go:build e2e`, `t.Parallel()`, unique names), set up per research R-9: one `e2e-admin` login, a custom role, a labelled client Secret, and the test's own dashboard OIDC provider against the in-cluster fake IdP. Subtests: custom-role rule, rule order, deny fallback refused, unknown-role save refused, delete of a used role refused.
 
 **Checkpoint**: US1 works alone. SSO users get custom roles, and roles set by hand are still overwritten (fixed in US2).
 
@@ -105,7 +105,7 @@ per batch.
 - [X] T032 [P] [US2] (The user type is in `web/src/types.ts`; `roleSource` is optional there so existing fixtures still type-check.) Add `roleSource: "sso" | "sso_pending" | "manual"` to the user type in `web/src/lib/api.ts`.
 - [ ] T033 [US2] Following the T003 export, in `web/src/routes/Users.tsx`, show the "From SSO", "Set by hand" or "From SSO (applies at next sign-in)" badge next to the role for users whose `provider` is not `local`, and add the helper under the role select in the edit dialog for SSO users.
 - [ ] T034 [US2] New Vitest file `web/src/routes/Users_rolesource.test.tsx`: the badge for each source, no badge for local users, and the edit-dialog helper.
-- [ ] T035 [US2] Add subtests to `test/e2e/api_sso_role_rules_e2e_test.go`: set a user's role by hand, then sign in again and see the role kept; the same user in no group with a deny fallback is still admitted; an SSO-managed user removed from every group is refused.
+- [X] T035 [US2] Add subtests to `test/e2e/api_sso_role_rules_e2e_test.go`: set a user's role by hand, then sign in again and see the role kept; the same user in no group with a deny fallback is still admitted; an SSO-managed user removed from every group is refused.
 
 **Checkpoint**: US1 and US2 work together, and roles set by hand are stable.
 
@@ -144,7 +144,7 @@ per batch.
 - [X] T044 [P] [US3] (The patch body is in `web/src/lib/endpoints.ts`.) Accept `roleSource: "sso"` in the users patch client in `web/src/lib/api.ts`.
 - [ ] T045 [US3] Following the T003 export, in `web/src/routes/Users.tsx`, add "Return to SSO control" (row menu and edit dialog) for SSO users with source `manual`, with the confirm dialog text from the design, and refresh the users query on success.
 - [ ] T046 [US3] Add tests for the action, the confirm dialog, the pending badge and no action for local users to `web/src/routes/Users_rolesource.test.tsx`.
-- [ ] T047 [US3] Add a subtest to `test/e2e/api_sso_role_rules_e2e_test.go`: return the hand-set user to SSO control, check `sso_pending`, sign in, and check the rule result and `sso`.
+- [X] T047 [US3] Add a subtest to `test/e2e/api_sso_role_rules_e2e_test.go`: return the hand-set user to SSO control, check `sso_pending`, sign in, and check the rule result and `sso`.
 
 **Checkpoint**: all four stories work on their own and together.
 
@@ -152,10 +152,10 @@ per batch.
 
 ## Phase 7: Polish and cross-cutting
 
-- [ ] T048 Register `TestAPI_SSORoleRules` in `test/e2e/buckets.sh`, in an API bucket with admin-login headroom and no other `/admin/config/auth` writer (research R-9), and update that bucket's tally comment.
-- [ ] T049 [P] Update `docs/oidc.md` (rules, order, an Authentik example with `login-only`, role source, the return action) and `docs/security.md` (rewrite "Re-evaluation on Every Login" for role source, refusals and audit reasons).
-- [ ] T050 [P] Update `api/specs.md` (auth: rules, role source, sign-in table, new refusals) and `web/specs.md` (rule editor, role-source badge) in the same PR (Principle IV).
-- [ ] T051 [P] Add a `CHANGELOG.md` entry: custom-role mapping, hand-set roles kept, new Helm `api.oidc.roleRules`, and that old keys still work.
+- [X] T048 (Bucket `multicluster`: 6 admin logins, and 10 SSO callbacks shared with the account-removal test, which is exactly the callback burst. Add no more SSO sign-ins to that bucket.) Register `TestAPI_SSORoleRules` in `test/e2e/buckets.sh`, in an API bucket with admin-login headroom and no other `/admin/config/auth` writer (research R-9), and update that bucket's tally comment.
+- [X] T049 [P] Update `docs/oidc.md` (rules, order, an Authentik example with `login-only`, role source, the return action) and `docs/security.md` (rewrite "Re-evaluation on Every Login" for role source, refusals and audit reasons).
+- [X] T050 [P] Update `api/specs.md` (auth: rules, role source, sign-in table, new refusals) and `web/specs.md` (rule editor, role-source badge) in the same PR (Principle IV).
+- [X] T051 (Written as `changelog/unreleased/034-sso-group-role-rules.md`, the per-PR changelog convention valgul accepted on 2026-11-11.) [P] Add a `CHANGELOG.md` entry: custom-role mapping, hand-set roles kept, new Helm `api.oidc.roleRules`, and that old keys still work.
 - [ ] T052 Browser smoke test of Admin Settings and Users against the T003 screenshots (CLAUDE.md core rule 13, sonnet), in parallel with the diff review.
 - [ ] T053 Open a `GameplanePanel/website` PR updating `src/content/docs/users-auth-rbac.mdx`, `helm-values-reference.mdx` and `user-administration.mdx`; after it merges, bump the `website` submodule pointer in the main repo.
 - [ ] T054 Push, open the PR with `type: feature` and `area: api`, `area: web`, `area: chart`, `area: e2e` labels, and drive CI green with every review comment fixed. Run the quickstart.md scenarios through the E2E and envtest results, not locally.
