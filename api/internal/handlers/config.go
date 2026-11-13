@@ -442,6 +442,12 @@ func (h *configHandler) buildInstallTimeSettings() json.RawMessage {
 				"viewer":   h.helmPolicy.RoleMappings.Viewer,
 			}
 		}
+		// roleRules is the same seed as one ordered list (spec 034). It is
+		// present whenever mapping is on, from either the new or old flags;
+		// roleMappings stays for one release so older dashboards still render.
+		if rules := h.helmPolicy.EffectiveRules(); rules != nil {
+			oidcHelm["roleRules"] = rules
+		}
 		settings["oidcHelmProvider"] = oidcHelm
 	}
 

@@ -96,10 +96,10 @@ func TestDecideRole(t *testing.T) {
 			want:   Decision{RuleIndex: -1, Deny: true},
 		},
 		{
-			name:   "empty non-nil rules keep mapping on, so deny applies",
+			name:   "empty rule list means mapping off, so deny does not apply",
 			groups: []string{"anything"},
 			pol:    &ProviderPolicy{Rules: []RoleRule{}, DefaultRole: "deny"},
-			want:   Decision{RuleIndex: -1, Deny: true},
+			want:   Decision{RuleIndex: -1, Role: "viewer"},
 		},
 		{
 			name:   "rules take precedence over role mappings",
@@ -197,7 +197,7 @@ func TestProviderPolicyMappingOn(t *testing.T) {
 		{name: "nil", pol: nil, want: false},
 		{name: "empty policy", pol: &ProviderPolicy{}, want: false},
 		{name: "role mappings set", pol: &ProviderPolicy{RoleMappings: &RoleMappings{}}, want: true},
-		{name: "empty non-nil rules", pol: &ProviderPolicy{Rules: []RoleRule{}}, want: true},
+		{name: "empty rule list is mapping off", pol: &ProviderPolicy{Rules: []RoleRule{}}, want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

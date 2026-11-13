@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -19,9 +21,16 @@ import (
 
 // MountRoles wires the role-management surface: the permission catalog
 // plus CRUD over custom roles. RBAC gates GET on roles:read and writes
-// on roles:manage.
+// on roles:manage. It is MountRolesWithHelm with no Helm OIDC provider.
 func MountRoles(r chi.Router, store *db.Store) {
-	h := &roleHandler{db: store}
+	MountRolesWithHelm(r, store, nil)
+}
+
+// MountRolesWithHelm is MountRoles for an install with a Helm-configured OIDC
+// provider: helmPolicy is the policy loaded at startup, so deleting a role the
+// Helm rules or fallback name is refused (spec 034). nil means no Helm provider.
+func MountRolesWithHelm(r chi.Router, store *db.Store, helmPolicy *auth.ProviderPolicy) {
+	h := &roleHandler{db: store, helmPolicy: helmPolicy}
 	r.Route("/roles", func(r chi.Router) {
 		r.Get("/", h.list)
 		// Register the literal path before the {name} param so it isn't
@@ -34,7 +43,8 @@ func MountRoles(r chi.Router, store *db.Store) {
 }
 
 type roleHandler struct {
-	db *db.Store
+	db         *db.Store
+	helmPolicy *auth.ProviderPolicy
 }
 
 type roleDTO struct {
@@ -301,6 +311,15 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.roles.builtin_not_deletable", nil))
 		return
 	}
+	provider, err := h.ssoRoleUser(req.Context(), name)
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	if provider != "" {
+		httperr.WriteMessage(w, req, messages.New("server.roles.in_use_by_sso", map[string]any{"provider": provider}))
+		return
+	}
 	var inUse int
 	if err := h.db.DB.QueryRowContext(req.Context(),
 		`SELECT COUNT(*) FROM user_role_bindings WHERE role_name = ?`, name).Scan(&inUse); err != nil {
@@ -344,6 +363,60 @@ func (h *roleHandler) roleBuiltin(req *http.Request, name string) (builtin, foun
 		return false, false, err
 	}
 	return b != 0, true, nil
+}
+
+// ssoGuardCfg is the part of the "auth" config row the role deletion guard
+// reads: each provider's rules and fallback, and the Helm override's.
+type ssoGuardCfg struct {
+	Providers []struct {
+		Name        string          `json:"name"`
+		RoleRules   []auth.RoleRule `json:"roleRules"`
+		DefaultRole string          `json:"defaultRole"`
+	} `json:"providers"`
+	HelmOverride *struct {
+		RoleRules   []auth.RoleRule `json:"roleRules"`
+		DefaultRole string          `json:"defaultRole"`
+	} `json:"helmOverride"`
+}
+
+// ruleTargetsRole reports whether any rule assigns role.
+func ruleTargetsRole(rules []auth.RoleRule, role string) bool {
+	for _, r := range rules {
+		if r.Role == role {
+			return true
+		}
+	}
+	return false
+}
+
+// ssoRoleUser returns the name of the SSO provider whose rules or fallback
+// role name role ("helm" for the Helm policy or its dashboard override), or ""
+// when no provider uses it. Old-form roleMappings only name built-in roles,
+// which cannot be deleted, so they are not checked.
+func (h *roleHandler) ssoRoleUser(ctx context.Context, role string) (string, error) {
+	var raw string
+	err := h.db.DB.QueryRowContext(ctx, `SELECT value FROM config WHERE key = 'auth'`).Scan(&raw)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("read auth config: %w", err)
+	}
+	if err == nil {
+		var c ssoGuardCfg
+		if err := json.Unmarshal([]byte(raw), &c); err != nil {
+			return "", fmt.Errorf("decode auth config: %w", err)
+		}
+		for _, p := range c.Providers {
+			if p.DefaultRole == role || ruleTargetsRole(p.RoleRules, role) {
+				return p.Name, nil
+			}
+		}
+		if ov := c.HelmOverride; ov != nil && (ov.DefaultRole == role || ruleTargetsRole(ov.RoleRules, role)) {
+			return auth.HelmProviderName, nil
+		}
+	}
+	if hp := h.helmPolicy; hp != nil && (hp.DefaultRole == role || ruleTargetsRole(hp.Rules, role)) {
+		return auth.HelmProviderName, nil
+	}
+	return "", nil
 }
 
 // validatePermissions rejects the "*" wildcard (reserved for the

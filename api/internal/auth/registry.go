@@ -84,13 +84,10 @@ func rulesFromMappings(m *RoleMappings) []RoleRule {
 	return rules
 }
 
-// derefRules returns the rule list, or nil when the provider has none set.
+// derefRules returns the rule list; nil or empty both mean mapping off.
 func derefRules(r *[]RoleRule) []RoleRule {
 	if r == nil {
 		return nil
-	}
-	if *r == nil {
-		return []RoleRule{}
 	}
 	return *r
 }

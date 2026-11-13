@@ -58,17 +58,28 @@ type ProviderPolicy struct {
 	DefaultRole  string
 }
 
-// MappingOn reports whether group mapping applies: either rule form is set.
+// MappingOn reports whether group mapping applies: a non-empty rule list or
+// the old RoleMappings form. An empty rule list means mapping off
+// (data-model.md, "Rule forms").
 func (p *ProviderPolicy) MappingOn() bool {
-	return p != nil && (p.Rules != nil || p.RoleMappings != nil)
+	return p != nil && (len(p.Rules) > 0 || p.RoleMappings != nil)
 }
 
 // rules returns the ordered rule list the policy applies.
 func (p *ProviderPolicy) rules() []RoleRule {
-	if p.Rules != nil {
+	if len(p.Rules) > 0 {
 		return p.Rules
 	}
 	return rulesFromMappings(p.RoleMappings)
+}
+
+// EffectiveRules returns the ordered rules the policy applies: Rules, or the
+// old RoleMappings converted by rulesFromMappings. nil when mapping is off.
+func (p *ProviderPolicy) EffectiveRules() []RoleRule {
+	if !p.MappingOn() {
+		return nil
+	}
+	return p.rules()
 }
 
 // OIDC handles OpenID Connect authentication.
