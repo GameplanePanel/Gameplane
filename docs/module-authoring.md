@@ -837,6 +837,21 @@ Materialization rules:
   GameServer `spec.env` — an explicit env override always wins.
 - **`target: file` fields feed `configFiles` templates** instead of
   becoming env vars — see the next section.
+- **`envName` exports a field under another env var name.** By default
+  the env var is named after the field. Set `envName` when the image
+  reads a different variable than your config key, for example to fix a
+  wrong mapping without renaming the key (renaming orphans stored
+  values, see above). The value in `spec.config` stays under `name`;
+  only the container env var changes. Two env fields may not export the
+  same variable when either one sets `envName`.
+
+  ```yaml
+  - name: WHITELIST_ENABLED      # config key, unchanged
+    displayName: Enforce whitelist
+    type: bool
+    default: "false"
+    envName: ENABLE_WHITELIST    # what the itzg image reads
+  ```
 
 ### Config files
 

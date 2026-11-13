@@ -196,6 +196,10 @@ func GeneratePreview(opts Options) (*Result, error) {
 			if target == "" {
 				target = "env"
 			}
+			envName, _ := sMap["envName"].(string)
+			if envName == "" {
+				envName = fieldName
+			}
 
 			val := ""
 			source := ""
@@ -243,9 +247,9 @@ func GeneratePreview(opts Options) (*Result, error) {
 
 				if target == "env" {
 					if fieldType == "password" {
-						effectiveEnv[fieldName] = fmt.Sprintf("[secret: configSecret/%s]", fieldName)
+						effectiveEnv[envName] = fmt.Sprintf("[secret: configSecret/%s]", fieldName)
 					} else {
-						effectiveEnv[fieldName] = val
+						effectiveEnv[envName] = val
 					}
 				}
 			}

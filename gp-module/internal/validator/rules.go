@@ -14,6 +14,9 @@ import (
 
 var sha256DigestRegex = regexp.MustCompile(`@sha256:[0-9a-fA-F]{64}$`)
 
+// envNameRegex mirrors the GameTemplate CRD pattern for configSchema envName.
+var envNameRegex = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
 var allowedConfigTypes = map[string]bool{
 	"string":   true,
 	"int":      true,
@@ -262,6 +265,7 @@ func validateConfigSchemaRules(node *yaml.Node) []Finding {
 		return nil
 	}
 
+	var envFields []envFieldRef
 	for i, item := range cfgNode.Content {
 		if item.Kind != yaml.MappingNode {
 			continue
@@ -447,8 +451,105 @@ func validateConfigSchemaRules(node *yaml.Node) []Finding {
 				}
 			}
 		}
+
+		envFinding, ref := checkConfigEnvName(item, i, fieldName)
+		if envFinding != nil {
+			findings = append(findings, *envFinding)
+		}
+		if ref != nil {
+			envFields = append(envFields, *ref)
+		}
 	}
 
+	return append(findings, envNameCollisions(envFields)...)
+}
+
+// envFieldRef is one env-target configSchema field and the env var it
+// exports, for the collision check.
+type envFieldRef struct {
+	index   int
+	name    string
+	env     string
+	renamed bool
+	line    int
+	column  int
+}
+
+// checkConfigEnvName validates a field's optional envName the way the
+// operator does: a valid env var name, and only on target env fields.
+// It returns the field's env export for the collision check, or nil for
+// file-target fields.
+func checkConfigEnvName(item *yaml.Node, i int, fieldName string) (*Finding, *envFieldRef) {
+	target := "env"
+	if t := common.FindNode(item, "target"); t != nil && t.Value != "" {
+		target = t.Value
+	}
+	envNode := common.FindNode(item, "envName")
+	ref := &envFieldRef{index: i, name: fieldName, env: fieldName, line: item.Line, column: item.Column}
+	if target == "file" {
+		ref = nil
+	}
+	if envNode == nil || envNode.Value == "" {
+		return nil, ref
+	}
+	field := fmt.Sprintf("spec.configSchema[%d].envName", i)
+	if target == "file" {
+		return &Finding{
+			Level:       SeverityError,
+			RuleID:      RuleTemplateSchemaViolation,
+			File:        "template.yaml",
+			Line:        envNode.Line,
+			Column:      envNode.Column,
+			Field:       field,
+			Message:     fmt.Sprintf("envName on field %q has no effect because its target is file", fieldName),
+			Remediation: "Remove envName, or set 'target: env'.",
+		}, nil
+	}
+	if !envNameRegex.MatchString(envNode.Value) {
+		return &Finding{
+			Level:       SeverityError,
+			RuleID:      RuleTemplateSchemaViolation,
+			File:        "template.yaml",
+			Line:        envNode.Line,
+			Column:      envNode.Column,
+			Field:       field,
+			Message:     fmt.Sprintf("envName %q on field %q is not a valid env var name", envNode.Value, fieldName),
+			Remediation: "Use letters, digits and underscores, not starting with a digit.",
+		}, ref
+	}
+	ref.env = envNode.Value
+	ref.renamed = true
+	ref.line = envNode.Line
+	ref.column = envNode.Column
+	return nil, ref
+}
+
+// envNameCollisions reports two env-target fields exporting the same env
+// var when either one sets envName, which the operator refuses at
+// reconcile time. Plain duplicate names are left to other checks.
+func envNameCollisions(refs []envFieldRef) []Finding {
+	var findings []Finding
+	owner := make(map[string]envFieldRef, len(refs))
+	renamed := make(map[string]bool)
+	for _, r := range refs {
+		if r.renamed {
+			renamed[r.env] = true
+		}
+		if prev, ok := owner[r.env]; ok && renamed[r.env] {
+			findings = append(findings, Finding{
+				Level:       SeverityError,
+				RuleID:      RuleTemplateSchemaViolation,
+				File:        "template.yaml",
+				Line:        r.line,
+				Column:      r.column,
+				Field:       fmt.Sprintf("spec.configSchema[%d].envName", r.index),
+				Message:     fmt.Sprintf("config fields %q and %q both export env var %q", prev.name, r.name, r.env),
+				Remediation: "Give each env field a distinct envName (or name).",
+			})
+			continue
+		}
+		owner[r.env] = r
+	}
 	return findings
 }
 
