@@ -18,6 +18,16 @@
 - FTB App packs install with `TYPE=FTBA` plus `FTB_MODPACK_ID` and optional `FTB_MODPACK_VERSION_ID`; this needs an Ubuntu Hotspot image tag, which every tag the module uses is. FTB's public modpack API (`api.feed-the-beast.com/v1/modpacks/public/…`) answers search without a key (checked 2026-11-11), and it lists the CurseForge id of packs that are also on CurseForge.
 - The module uses `java8-multiarch` for Minecraft ≤1.16.5, `java17`, `java21` and `java25` for newer versions.
 
+## Clarifications
+
+### Session 2026-11-13
+
+- Q: When a modpack is removed, what happens to the mods it installed? → A: Remove empties the server's mods folder (everything in it, including mods added by hand); world data and configs stay.
+- Q: What happens to servers that already run an unpinned Modrinth pack? → A: After upgrade, each is pinned to the pack version it already has installed; if that version cannot be read, the Active modpack card shows "Not pinned" until the operator picks one.
+- Q: Should the panel back up the server before a modpack install, version change or remove? → A: The confirmation offers "Back up first", ticked by default when the server has a backup destination; the change waits for that backup to finish.
+- Q: Can an operator change a pinned pack to an older version? → A: Yes; the confirmation warns that a downgrade can break the world and keeps "Back up first" ticked.
+- Q: Which pack versions should the version picker list? → A: Only versions for the server's selected Minecraft version and loader; moving to another Minecraft version means changing the server version first.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Install a CurseForge modpack (Priority: P1)
@@ -49,6 +59,7 @@ The operator picks which version (file) of the pack to install, and the server s
 
 1. **Given** the operator installs a pack, **When** they choose a specific version, **Then** the server installs that version and keeps it on every restart.
 2. **Given** a pinned pack, **When** the operator chooses a newer version, **Then** the server restarts and upgrades to it, keeping world data.
+3. **Given** a pinned pack, **When** the operator chooses an older version, **Then** the confirmation warns that a downgrade can break the world, "Back up first" stays ticked (when a backup destination exists), and on confirm the server restarts on the older version.
 
 ---
 
@@ -63,7 +74,8 @@ The Modpacks tab shows which pack (name, registry, version) is active on the ser
 **Acceptance Scenarios**:
 
 1. **Given** a server with a pack installed from any registry, **When** the operator opens the Modpacks tab, **Then** the active pack's name, registry and version are shown.
-2. **Given** an active pack, **When** the operator removes it, **Then** every pack setting is cleared, the server restarts on its selected version's loader, and world data stays.
+2. **Given** an active pack, **When** the operator removes it, **Then** every pack setting is cleared, the server's mods folder is emptied (including mods added by hand), the server restarts on its selected version's loader, and world data and configs stay.
+3. **Given** an active pack, **When** the operator clicks Remove, **Then** the confirmation says that every mod in the mods folder will be deleted, including ones added by hand.
 
 ---
 
@@ -107,6 +119,9 @@ The operator switches the Modpacks registry to FTB, searches FTB's own pack list
 - The server is a Paper/Spigot/Bukkit/Purpur or vanilla server. The Modpacks tab stays hidden, as today (`serverHasModpacks`).
 - A pack is on both FTB and CurseForge. It shows in both registries; whichever registry the operator installs from is the one recorded as active.
 - FTB's API is unreachable. FTB is shown with the same error state the registry browser uses for other providers; the rest of the tab keeps working.
+- A server installed a Modrinth pack before this feature (no pinned version). After the panel upgrade it is pinned to the version it already has installed, so its next restart does not upgrade the pack. If the installed version cannot be read, the Active modpack card shows "Not pinned" and asks the operator to pick a version.
+- The operator ticks "Back up first" and the backup fails. The pack change does not happen; the panel shows the backup error and the server keeps its current pack.
+- A pack's newer versions target a newer Minecraft version than the server runs. They are not listed in the picker; the operator changes the server version first, then picks the pack version.
 - A pack needs more memory than the server has. Out of scope here; the operator raises memory in the server settings (itzg recommends at least 4 GB).
 
 ## Requirements *(mandatory)*
@@ -118,13 +133,14 @@ The operator switches the Modpacks registry to FTB, searches FTB's own pack list
 - **FR-003**: Installing a CurseForge pack MUST set the server to install that pack on boot through the game image's own CurseForge modpack mode, and MUST restart the server through the operator like the Modrinth install does today.
 - **FR-004**: Installing a pack from one registry MUST clear every setting of a pack from the other registries, so at most one pack is active per server.
 - **FR-005**: Game servers MUST use the image's built-in CurseForge key by default (OD-1 C). An admin setting "Share the CurseForge key with game servers" (off by default) MUST make the operator give each server with a CurseForge pack its own server-owned copy of the admin key, mounted as a file, kept in sync on rotation and removed when the admin key is removed or the setting is turned off. While the setting is off, CurseForge packs for Minecraft versions whose image has no built-in key (java8, ≤1.16.5) MUST NOT be offered. The key MUST NOT be written into GameServer env as plain text, into server logs, or into API responses.
-- **FR-006**: Installing a pack MUST open a version picker that defaults to the newest file for the server's game version and loader; the server MUST stay pinned to the chosen file across restarts until the operator picks another (OD-2 B). There is no "always latest" mode. The same picker and pinning apply to Modrinth packs (OD-3 A) and FTB packs (OD-6 B).
-- **FR-007**: The Modpacks tab MUST show an "Active modpack" card (name, registry, pinned version) with Change version and Remove actions, for every registry (OD-4 A). Remove MUST clear all pack settings and restart the server; world data stays.
+- **FR-006**: Installing a pack MUST open a version picker that lists only the pack's versions for the server's selected Minecraft version and loader, defaulting to the newest of them; the server MUST stay pinned to the chosen file across restarts until the operator picks another (OD-2 B). Older versions MAY be picked; the confirmation MUST warn that a downgrade can break the world (Clarifications 2026-11-13). There is no "always latest" mode. Servers with a Modrinth pack installed before this feature MUST be pinned to their currently installed version on upgrade, without restarting them; if that version cannot be read they show "Not pinned" (Clarifications 2026-11-13). The same picker and pinning apply to Modrinth packs (OD-3 A) and FTB packs (OD-6 B).
+- **FR-007**: The Modpacks tab MUST show an "Active modpack" card (name, registry, pinned version) with Change version and Remove actions, for every registry (OD-4 A). Remove MUST ask for confirmation, clear all pack settings, delete everything in the server's mods folder for the active loader (including mods added by hand), and restart the server; world data and configs stay.
 - **FR-008**: The server's data volume MUST have a `downloads/` folder that the image reads for manually downloaded files. When a pack install stops because files need a manual download, the Modpacks tab MUST list each missing file with a link to its download page and tell the operator to upload it to `downloads/` in the Files tab and restart (OD-5 A).
 - **FR-009**: Install, version change and remove MUST be limited to users who can manage the server (same permission as the Mods and Modpacks tabs today), and each MUST be written to the audit log.
 - **FR-010**: Every new user-facing string MUST go through the shared i18n packs.
 - **FR-011**: The module change MUST follow the module images rule: keep the official itzg image; no custom image.
 - **FR-012**: The panel MUST add an FTB modpack registry (OD-6 B): search FTB's public pack list filtered to the server's game version and loader, list a pack's versions for the picker, and install through the image's FTB mode pinned to the chosen version. FTB needs no key and is always offered on modpack-capable servers. FTB is a modpack-only registry; it does not appear in the Mods tab.
+- **FR-013**: The confirmation for install, version change and remove MUST offer "Back up first". It MUST be ticked by default when the server has a backup destination, and hidden or disabled with a short reason when it has none. When ticked, the pack change MUST start only after the backup succeeds; if the backup fails, the change MUST NOT happen and the operator sees why (Clarifications 2026-11-13).
 
 ### Key Entities
 
@@ -146,6 +162,6 @@ The operator switches the Modpacks registry to FTB, searches FTB's own pack list
 
 - The itzg image keeps supporting `AUTO_CURSEFORGE`, `CF_SLUG`, `CF_FILE_ID`, `CF_API_KEY_FILE` and `CF_DOWNLOADS_REPO` as documented today; the plan re-checks this against the pinned image digests.
 - The existing CurseForge search (class 4471, game 432) and version listing are reused; no new registry engine is needed for CurseForge. FTB needs a new registry engine; its outbound host goes through the same SSRF guard as the other registry engines.
-- Pack world data and the server's data volume are never deleted by install, version change or remove.
+- World data is never deleted by install, version change or remove. Remove empties only the mods folder (Clarifications 2026-11-13).
 - The design for the Modpacks tab changes (registry switch with CurseForge and FTB, version picker, active pack card, missing files notice) is done in `design.pen` through Pencil on valgul's machine before any React code. The copy-paste prompt is written once plan and tasks exist (repo `local-prompt` skill requires a finished spec).
 - Module changes go to `GameplanePanel/module` first; the main repo bumps the submodule pointer only after that PR merges, and installs get the module only after the republish-modules workflow runs.
