@@ -1189,6 +1189,16 @@ template today.
 
 ### Capabilities (moderation + backup quiesce)
 
+Minecraft Java authors can opt into a checkpoint while writes stay enabled
+with `spec.capabilities.backupFlush: minecraft-save-all`. This calls
+`save-all flush`, requires the game's positive reply, and records
+`flush-only`. Choose this field or the write-freeze declaration below.
+Gameplane reports unsupported engines as live copies. To capture recovery
+data with the server stopped, select `powerPolicy: stop-copy-restart` and
+`volumePolicy: all-data`. This excludes extra volumes marked
+`backupRole: rebuildable`. Document how to reconstruct each excluded volume
+and verify a restore for each supported engine before claiming full recovery.
+
 `spec.capabilities` declares the console commands behind agent
 features, so a module adds full Players-tab moderation and safe
 backups without any agent code. All of these commands run over RCON,
