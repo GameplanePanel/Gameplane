@@ -123,6 +123,39 @@ func TestBackupWinsEvictionAdmissionRace(t *testing.T) {
 	}
 }
 
+func TestRefusedEvictionReconcilesBackupScheduleAndStatus(t *testing.T) {
+	gs, ss, pod := failedPodFixture()
+	gs.Spec.BackupPolicy = &gp.InlineBackupPolicy{
+		Schedule: "0 */6 * * *",
+		RepoRef:  gp.SecretKeySelector{Name: "repo", Key: "url"},
+	}
+	r := lifecycleGameServerFixture(t, gs, ss, pod)
+	evictions := 0
+	r.Client = interceptor.NewClient(r.Client.(client.WithWatch), interceptor.Funcs{
+		SubResourceCreate: func(ctx context.Context, c client.Client, sub string, obj client.Object, body client.Object, opts ...client.SubResourceCreateOption) error {
+			if sub == "eviction" {
+				evictions++
+				return apierrors.NewTooManyRequests("disruption budget", 1)
+			}
+			return c.SubResource(sub).Create(ctx, obj, body, opts...)
+		},
+	})
+
+	req := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}
+	result, err := r.Reconcile(t.Context(), req)
+	if err != nil || result.RequeueAfter != evictionRetry || evictions != 1 {
+		t.Fatalf("refused eviction: result=%+v attempts=%d err=%v", result, evictions, err)
+	}
+	var schedule gp.BackupSchedule
+	if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-auto"}, &schedule); err != nil {
+		t.Fatalf("backup schedule missing after eviction refusal: %v", err)
+	}
+	current := wipeCurrent(t, r.Client, gs)
+	if current.Status.Phase != gp.GameServerPhaseFailed {
+		t.Fatalf("phase after eviction refusal = %q, want Failed", current.Status.Phase)
+	}
+}
+
 func TestEvictionOwnerRecoversThroughReconcile(t *testing.T) {
 	for _, tc := range []string{"accepted", "pdb", "changed intent", "uncertain response"} {
 		t.Run(tc, func(t *testing.T) {
