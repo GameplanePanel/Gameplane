@@ -271,7 +271,7 @@ const (
 // +kubebuilder:rbac:groups=metallb.io,resources=ipaddresspools,verbs=get;list;watch
 // +kubebuilder:rbac:groups=storage.k8s.io,resources=storageclasses,verbs=get;list;watch
 
-func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, reconcileErr error) {
 	logger := log.FromContext(ctx)
 
 	var gs gameplanev1alpha1.GameServer
@@ -282,10 +282,17 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// return early (including a missing template or newly requested wipe).
 	if op, held, err := lifecycleOwner(&gs); held && err == nil && op.Kind == podRecoveryKind {
 		delay, err := r.resumeFailedPodEviction(ctx, &gs, op.lifecycleIdentity)
-		if delay == 0 {
-			delay = reconcileRetryInterval
+		if err != nil {
+			return requeueOnConflict(ctrl.Result{RequeueAfter: delay}, err)
 		}
-		return requeueOnConflict(ctrl.Result{RequeueAfter: delay}, err)
+		// Keep ordinary resources and status current during termination. The
+		// live refresh below observes any release; a retained owner freezes
+		// the workload. Validation failures must still poll pending cleanup.
+		defer func() {
+			if reconcileErr == nil && delay > 0 && (result.RequeueAfter == 0 || delay < result.RequeueAfter) {
+				result.RequeueAfter = delay
+			}
+		}()
 	}
 	// Refresh and recover wipe ownership before deriving config or idle state.
 	// A later refresh would mix an older idle calculation with a newer status
@@ -1345,7 +1352,7 @@ func (r *GameServerReconciler) desiredReplicas(
 		return 1, 5 * time.Second, nil
 	} else if held && lifecycleRecoveryNeedsStop(op) {
 		return 0, 5 * time.Second, nil
-	} else if held && (op.Kind == "Backup" || op.Baseline || len(op.Recovery) != 0) {
+	} else if held && (op.Kind == "Backup" || op.Kind == podRecoveryKind || op.Baseline || len(op.Recovery) != 0) {
 		var ss appsv1.StatefulSet
 		err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
 		if apierrors.IsNotFound(err) {
@@ -1703,7 +1710,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				actualReplicas = replicas
 				delete(ss.Annotations, restoreGuardAnnotation)
 			}
-			if op.Kind == "Backup" || len(op.Recovery) != 0 {
+			if op.Kind == "Backup" || op.Kind == podRecoveryKind || len(op.Recovery) != 0 {
 				if !ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "" {
 					// Orphaned restores may leave a running initial workload.
 					// Stop it while preserving its complete pod template. Other

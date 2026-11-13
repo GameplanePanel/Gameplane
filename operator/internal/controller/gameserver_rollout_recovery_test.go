@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	gp "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -156,6 +157,90 @@ func TestRefusedEvictionReconcilesBackupScheduleAndStatus(t *testing.T) {
 	}
 }
 
+func TestAcceptedEvictionKeepsOrdinaryReconciliationActive(t *testing.T) {
+	for _, intent := range []string{"running", "suspend", "restart", "wipe"} {
+		t.Run(intent, func(t *testing.T) {
+			gs, ss, pod := failedPodFixture()
+			gs.Generation = 2
+			gs.Spec.BackupPolicy = &gp.InlineBackupPolicy{
+				Schedule: "0 */6 * * *",
+				RepoRef:  gp.SecretKeySelector{Name: "repo", Key: "url"},
+			}
+			pod.Finalizers = []string{"test.gameplane.local/drain"}
+			r := lifecycleGameServerFixture(t, gs, ss, pod)
+			evictions := 0
+			r.Client = interceptor.NewClient(r.Client.(client.WithWatch), interceptor.Funcs{
+				SubResourceCreate: func(ctx context.Context, c client.Client, sub string, obj client.Object, body client.Object, opts ...client.SubResourceCreateOption) error {
+					if sub == "eviction" {
+						evictions++
+						return c.Delete(ctx, obj)
+					}
+					return c.SubResource(sub).Create(ctx, obj, body, opts...)
+				},
+			})
+			req := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}
+			if _, err := r.Reconcile(t.Context(), req); err != nil {
+				t.Fatal(err)
+			}
+			current := wipeCurrent(t, r.Client, gs)
+			owner, held, err := lifecycleOwner(current)
+			if err != nil || !held || owner.Kind != podRecoveryKind || evictions != 1 {
+				t.Fatalf("eviction admission: owner=%+v held=%t attempts=%d err=%v", owner, held, evictions, err)
+			}
+			if err := r.Get(t.Context(), client.ObjectKeyFromObject(ss), ss); err != nil {
+				t.Fatal(err)
+			}
+			protectedSpec := ss.Spec.DeepCopy()
+			// The accepted eviction is still draining. Settings unrelated to
+			// its workload must reconcile while new power/template intent waits.
+			current.Generation++
+			current.Spec.BackupPolicy.Suspend = true
+			current.Spec.Image = "example.invalid/game:next"
+			switch intent {
+			case "suspend":
+				current.Spec.Suspend = true
+			case "restart":
+				current.Annotations[RestartRequestedAnnotation] = "later-restart"
+			case "wipe":
+				current.Annotations[WipeRequestedAnnotation] = "later-wipe"
+			}
+			if err := r.Update(t.Context(), current); err != nil {
+				t.Fatal(err)
+			}
+			for range 2 {
+				if result, err := r.Reconcile(t.Context(), req); err != nil || result.RequeueAfter <= 0 {
+					t.Fatalf("reconcile during eviction: result=%+v err=%v", result, err)
+				}
+			}
+			var schedule gp.BackupSchedule
+			if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-auto"}, &schedule); err != nil {
+				t.Fatal(err)
+			}
+			if !schedule.Spec.Suspend {
+				t.Fatal("backup schedule change stalled during accepted eviction")
+			}
+			current = wipeCurrent(t, r.Client, gs)
+			if current.Status.ObservedGeneration != current.Generation {
+				t.Fatalf("status stalled during eviction: observed=%d generation=%d", current.Status.ObservedGeneration, current.Generation)
+			}
+			liveOwner, held, err := lifecycleOwner(current)
+			if err != nil || !held || !sameLifecycleOwner(liveOwner.lifecycleIdentity, owner.lifecycleIdentity) || evictions != 1 {
+				t.Fatalf("eviction lost exclusion or repeated: owner=%+v held=%t attempts=%d err=%v", liveOwner, held, evictions, err)
+			}
+			if current.Annotations[RestartCompletedAnnotation] != "" || current.Annotations[WipeCompletedAnnotation] != "" || current.Annotations[stopRequestedAtAnnotation] != "" {
+				t.Fatal("power transition advanced before the evicted UID drained")
+			}
+			if err := r.Get(t.Context(), client.ObjectKeyFromObject(ss), ss); err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(ss.Spec, *protectedSpec) {
+				t.Fatal("accepted eviction did not preserve the complete workload spec")
+			}
+			requireNoWipeJob(t, r, gs)
+		})
+	}
+}
+
 func TestEvictionOwnerRecoversThroughReconcile(t *testing.T) {
 	for _, tc := range []string{"accepted", "pdb", "changed intent", "uncertain response"} {
 		t.Run(tc, func(t *testing.T) {
@@ -169,7 +254,7 @@ func TestEvictionOwnerRecoversThroughReconcile(t *testing.T) {
 			}
 			pod.Finalizers = []string{"test.gameplane.local/drain"}
 			evictions := 0
-			c := fake.NewClientBuilder().WithScheme(wipeScheme(t)).WithObjects(gs, ss, pod).WithInterceptorFuncs(interceptor.Funcs{
+			c := fake.NewClientBuilder().WithScheme(wipeScheme(t)).WithObjects(gs, ss, pod).WithStatusSubresource(gs).WithInterceptorFuncs(interceptor.Funcs{
 				SubResourceCreate: func(ctx context.Context, c client.Client, _ string, obj client.Object, _ client.Object, _ ...client.SubResourceCreateOption) error {
 					evictions++
 					if tc == "pdb" {
@@ -188,9 +273,12 @@ func TestEvictionOwnerRecoversThroughReconcile(t *testing.T) {
 			req := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}
 			// A new reconciler has no in-memory state from admission. No
 			// template is installed, so recovery must run before validation.
-			_, err := r.Reconcile(t.Context(), req)
+			result, err := r.Reconcile(t.Context(), req)
 			if (err != nil) != (tc == "uncertain response") {
 				t.Fatalf("first pass: %v", err)
+			}
+			if tc == "accepted" && result.RequeueAfter != evictionRetry {
+				t.Fatalf("missing template suppressed eviction cleanup polling: %+v", result)
 			}
 			if tc == "changed intent" && evictions != 0 {
 				t.Fatal("evicted after suspend")

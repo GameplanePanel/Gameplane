@@ -860,3 +860,6 @@ failed pod UID and GameServer generation. Backups, restores, wipes and template
 rollouts wait through eviction and termination of that UID. On restart the
 controller resumes the claim before validating new render inputs. A disruption
 budget refusal releases the claim so other operations can proceed during the retry delay.
+While an accepted eviction drains, ordinary resources and status keep reconciling;
+the shared owner preserves the workload's replica count and complete Pod template
+and defers new power operations until the old UID disappears.
