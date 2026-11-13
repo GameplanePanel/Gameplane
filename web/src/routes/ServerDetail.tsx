@@ -79,11 +79,11 @@ const tabs: Array<{ key: TabKey; label: MessageDescriptor }> = [
 
 export function ServerDetailPage() {
   const { name } = useParams({ from: "/app-layout/servers/$name" });
-  const { ns, cluster = "local" } = useSearch({ from: "/app-layout/servers/$name" });
-  return <ResolveServerDetail key={JSON.stringify([cluster, ns, name])} target={{ cluster, namespace: ns, name }} />;
+  const { ns, cluster = "local", file } = useSearch({ from: "/app-layout/servers/$name" });
+  return <ResolveServerDetail key={JSON.stringify([cluster, ns, name])} target={{ cluster, namespace: ns, name }} file={file} />;
 }
 
-function ResolveServerDetail({ target }: { target: ResourceTarget }) {
+function ResolveServerDetail({ target, file }: { target: ResourceTarget; file?: string }) {
   const intl = useOptionalIntl();
   const navigate = useNavigate();
   const server = useQuery({
@@ -100,9 +100,10 @@ function ResolveServerDetail({ target }: { target: ResourceTarget }) {
   });
   useEffect(() => {
     if (!target.namespace && server.data?.metadata.namespace) {
-      void navigate({ ...serverLink({ cluster: target.cluster, name: target.name, namespace: server.data.metadata.namespace }), replace: true });
+      const link = serverLink({ cluster: target.cluster, name: target.name, namespace: server.data.metadata.namespace });
+      void navigate({ ...link, search: { ...link.search, file }, replace: true });
     }
-  }, [target.cluster, target.namespace, target.name, server.data?.metadata.namespace, navigate]);
+  }, [target.cluster, target.namespace, target.name, server.data?.metadata.namespace, navigate, file]);
   const retry = () => { void server.refetch(); void access.refetch(); };
   if (server.error || access.error) return <div className="p-6"><ErrorCard message={intl.formatMessage({ id: "web.routes.server_detail.this_server_could_not_be_loaded_at_its", defaultMessage: "This server could not be loaded at its recorded cluster. Check your access and the site's connection.", description: "Server detail: error card shown when the server or the user's access to it cannot be loaded at its recorded cluster; a retry button is on the card" })} onRetry={retry} /></div>;
   if (!server.data || !access.data) return <div className="p-6"><LoadingCard message={intl.formatMessage({ id: "web.routes.server_detail.loading_server", defaultMessage: "Loading server…", description: "Server detail: loading text shown while the server and the user's access to it are being fetched" })} /></div>;
@@ -112,12 +113,12 @@ function ResolveServerDetail({ target }: { target: ResourceTarget }) {
   }
   return (
     <ResourceTargetProvider target={resolved} access={access.data}>
-      <ServerDetailView key={JSON.stringify(resourceKey(resolved))} lookupTarget={target} />
+      <ServerDetailView key={JSON.stringify(resourceKey(resolved))} lookupTarget={target} file={file} />
     </ResourceTargetProvider>
   );
 }
 
-function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
+function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget; file?: string }) {
   const intl = useOptionalIntl();
   const target = useResourceTarget(lookupTarget);
   const clusterId = target.cluster;
@@ -126,10 +127,20 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
   const client = useResourceClient();
   const { Servers } = client;
   const access = useResourceAccess();
-  const [tab, setTab] = useState<TabKey>("overview");
+  const [localTab, setTab] = useState<TabKey>("overview");
+  const tab = file !== undefined ? "files" : localTab;
   const [settingsDirty, setSettingsDirty] = useState(false);
   const qc = useQueryClient();
   const nav = useNavigate();
+  function navigateFile(path?: string) {
+    const link = serverLink(target);
+    void nav({ ...link, search: { ...link.search, file: path } });
+  }
+  function selectTab(next: TabKey) {
+    setTab(next);
+    if (next === "files" && file === undefined) navigateFile("/");
+    else if (next !== "files" && file !== undefined) navigateFile();
+  }
   const { data: me } = useMe();
 
   const { data: gs } = useQuery({
@@ -310,7 +321,7 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
                 <Play className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.start", defaultMessage: "Start", description: "Server detail: header button that starts a stopped server; keep it short" })}</Button>
             )}
             {consoleAvailable && (
-              <Button className="rounded-full" onPress={() => setTab("console")}>
+              <Button className="rounded-full" onPress={() => selectTab("console")}>
                 <Terminal className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.open_console", defaultMessage: "Open console", description: "Server detail: header button that switches to the console tab; shown only when a console is available; keep it short" })}</Button>
             )}
             {gs && (
@@ -331,7 +342,7 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
         <nav className="overflow-x-auto scrollbar-thin">
           <Tabs
             selectedKey={tab}
-            onSelectionChange={(key) => setTab(key as TabKey)}
+            onSelectionChange={(key) => selectTab(key as TabKey)}
             className="w-full"
           >
             <Tabs.List aria-label={intl.formatMessage({ id: "web.routes.server_detail.server_detail_tabs", defaultMessage: "Server detail tabs", description: "Server detail: accessible label of the row of server tabs, read by screen readers; not shown as text" })} className="flex w-full gap-1 overflow-x-auto">
@@ -368,7 +379,7 @@ function ServerDetailView({ lookupTarget }: { lookupTarget: ResourceTarget }) {
               progressMessage={progressMessage}
             />
           )}
-          {tab === "files"    && <FilesTab   name={name} ns={ns} />}
+          {tab === "files"    && <FilesTab name={name} ns={ns} path={file} onNavigate={navigateFile} />}
           {tab === "mods"     && <ModsTab    name={name} ns={ns} tmpl={tmpl} gs={gs} />}
           {tab === "modpacks" && <ModpacksTab name={name} ns={ns} tmpl={tmpl} />}
           {tab === "players"  && <PlayersTab name={name} ns={ns} />}

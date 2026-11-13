@@ -153,6 +153,8 @@ const SCALE_ALLOWLIST = {
 // alpha >= 250 bounding box. Re-measure it whenever the id is re-exported
 // or its shadow/size changes.
 const REFERENCE_CROP_ALLOWLIST = {
+  // Create ZIP dialog: the 448x196 panel excludes its outer shadow.
+  o1uEP: { left: 96, top: 72, width: 896, height: 392 },
   // Backup Detail Drawer: 440x760 panel at 2x. The refreshed Pencil export's
   // shadow leaves 60 CSS px bleed left, 36 right, and 48 top and bottom;
   // its alpha >= 250 panel bounds are (120,96)-(1000,1616) => 880x1520.
@@ -227,9 +229,9 @@ const SCALE_EPSILON = 0.0005;
 const DEFAULT_EXPECTED_SCREENS = [
   // Slice 1: Shell + Login (7 screens)
   'N1GkB', 'jmoi3', 'ljdA5', 'N13Xud', 'j24cXg', 'tooKB', 'SeizD',
-  // Slice 2a: Servers list + Server Detail core tabs (12 screens)
+  // Slice 2a: Servers list + Server Detail core tabs (13 screens)
   'F9pUrx', 'EZFW0', 'Hy9r0', 'TE2jI', 'IzuY2', 'o4LH8W',
-  'P08Uw', 'Xn5ns', 'kPmoo', 'FtdkI', 'Burtr', 'dPP50',
+  'P08Uw', 'Xn5ns', 'kPmoo', 'FtdkI', 'Burtr', 'o1uEP', 'dPP50',
 ];
 
 /**

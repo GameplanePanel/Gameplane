@@ -918,6 +918,7 @@ func isLargeTransferPath(method, path string) bool {
 			return false
 		}
 		return strings.HasSuffix(path, "/files/download") ||
+			strings.HasSuffix(path, "/files/archive") ||
 			strings.HasSuffix(path, "/logs/download") ||
 			strings.HasSuffix(path, ":capture-file")
 	}
@@ -925,6 +926,7 @@ func isLargeTransferPath(method, path string) bool {
 		// Uploads stream their body on req.Context(). URL installs also
 		// wait for the agent's download and extraction, which may exceed 60s.
 		return strings.HasSuffix(path, "/files/upload") ||
+			strings.HasSuffix(path, "/files/archive") ||
 			strings.HasSuffix(path, "/files/write") ||
 			strings.HasSuffix(path, "/mods/upload") ||
 			strings.HasSuffix(path, "/mods/install")

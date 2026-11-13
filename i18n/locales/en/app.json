@@ -8143,6 +8143,14 @@
     "defaultMessage": "Cancel",
     "description": "Files tab: button in the name prompt dialog that closes it without creating anything; keep it short"
   },
+  "web.routes.tabs.files.close_file": {
+    "defaultMessage": "Close {path}",
+    "description": "Close a file tab after saving its edits."
+  },
+  "web.routes.tabs.files.collapse": {
+    "defaultMessage": "Collapse {path}",
+    "description": "Hide a folder's children in the file tree."
+  },
   "web.routes.tabs.files.config_yaml": {
     "defaultMessage": "config.yaml",
     "description": "Files tab: example placeholder in the new file name field; an example name, not a default"
@@ -8150,6 +8158,10 @@
   "web.routes.tabs.files.create": {
     "defaultMessage": "Create",
     "description": "Files tab: confirm button of the new file and new folder prompts that creates the item; keep it short"
+  },
+  "web.routes.tabs.files.create_zip": {
+    "defaultMessage": "Create ZIP",
+    "description": "Create a ZIP of the selected files on the server."
   },
   "web.routes.tabs.files.delete": {
     "defaultMessage": "Delete",
@@ -8171,6 +8183,14 @@
     "defaultMessage": "This permanently removes the folder and everything inside it from the server's data volume. This action cannot be undone.",
     "description": "Files: body of the confirm dialog for deleting a folder"
   },
+  "web.routes.tabs.files.delete_many_title": {
+    "defaultMessage": "Delete {count} items?",
+    "description": "Confirmation to delete multiple selected paths."
+  },
+  "web.routes.tabs.files.delete_selected": {
+    "defaultMessage": "Delete selected",
+    "description": "Delete all selected files and folders."
+  },
   "web.routes.tabs.files.discard_unsaved_changes": {
     "defaultMessage": "You have unsaved changes. Discard them and continue?",
     "description": "Files: confirm prompt shown before discarding unsaved file edits"
@@ -8179,9 +8199,17 @@
     "defaultMessage": "Download",
     "description": "Files tab: button that downloads the selected file to the user's computer; keep it short"
   },
+  "web.routes.tabs.files.download_zip": {
+    "defaultMessage": "Download ZIP",
+    "description": "Download the selected paths as one ZIP archive."
+  },
   "web.routes.tabs.files.empty_folder": {
     "defaultMessage": "Empty folder",
     "description": "Files tab: text shown in the file list when the current folder has no entries"
+  },
+  "web.routes.tabs.files.expand": {
+    "defaultMessage": "Expand {path}",
+    "description": "Show a folder's children in the file tree."
   },
   "web.routes.tabs.files.file_name": {
     "defaultMessage": "File name",
@@ -8215,9 +8243,17 @@
     "defaultMessage": "New folder",
     "description": "Files tab: button that opens the prompt to create a new folder, and the title of that prompt dialog; keep it short"
   },
+  "web.routes.tabs.files.open_files": {
+    "defaultMessage": "Open files",
+    "description": "Accessible name for the open file tabs."
+  },
   "web.routes.tabs.files.parent_directory": {
     "defaultMessage": "..",
     "description": "Files: row that opens the parent folder of the current folder"
+  },
+  "web.routes.tabs.files.partial_delete": {
+    "defaultMessage": "Deleted {count} of {total}. {errors}",
+    "description": "Reports how many selected paths were deleted and which paths failed."
   },
   "web.routes.tabs.files.path_separator": {
     "defaultMessage": "/",
@@ -8239,6 +8275,14 @@
     "defaultMessage": "Select a file to edit.",
     "description": "Files tab: empty-state text in the editor pane shown when no file is selected"
   },
+  "web.routes.tabs.files.select_path": {
+    "defaultMessage": "Select {path}",
+    "description": "Select a path for file actions."
+  },
+  "web.routes.tabs.files.selected_count": {
+    "defaultMessage": "{count} selected",
+    "description": "Number of checked file paths."
+  },
   "web.routes.tabs.files.upload": {
     "defaultMessage": "Upload",
     "description": "Files tab: button that uploads a file to the current folder; shows a spinner while the upload runs; keep it short"
@@ -8246,6 +8290,10 @@
   "web.routes.tabs.files.working": {
     "defaultMessage": "Working…",
     "description": "Files: label of the dialog submit button while the request is running"
+  },
+  "web.routes.tabs.files.zip_name": {
+    "defaultMessage": "Archive filename (.zip)",
+    "description": "Label for the name of a ZIP to save on the server."
   },
   "web.routes.tabs.logs.connected_waiting_for_output": {
     "defaultMessage": "Connected — waiting for output…",

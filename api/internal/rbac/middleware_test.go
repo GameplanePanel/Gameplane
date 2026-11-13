@@ -618,6 +618,21 @@ func TestMiddleware_StrangerDenied(t *testing.T) {
 	}
 }
 
+func TestArchiveRejectsUnrelatedUser(t *testing.T) {
+	h := Middleware(fakeServerFetcher{
+		"gameplane-games/alpha": newOwnershipObj("alpha", 42, "alice", ""),
+	})(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { t.Fatal("request reached proxy") }))
+	for _, method := range []string{http.MethodGet, http.MethodPost} {
+		req := httptest.NewRequestWithContext(t.Context(), method, "/servers/alpha/files/archive?path=%2Fconfig", nil)
+		req = req.WithContext(auth.WithUser(req.Context(), &auth.User{ID: 999}))
+		res := httptest.NewRecorder()
+		h.ServeHTTP(res, req)
+		if res.Code != http.StatusForbidden {
+			t.Errorf("%s = %d", method, res.Code)
+		}
+	}
+}
+
 func TestMiddleware_UnknownClusterRejected(t *testing.T) {
 	// A namespaced route with an unregistered ?cluster= selector must be
 	// rejected with 400 before the permission check or fallback ever runs.
