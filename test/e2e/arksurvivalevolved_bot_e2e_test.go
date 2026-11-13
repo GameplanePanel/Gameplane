@@ -42,10 +42,13 @@ func TestGameServer_ArkSurvivalEvolvedBot_Query(t *testing.T) {
 			ReqCPU: "2", ReqMem: "8Gi",
 			LimCPU: "4", LimMem: "16Gi",
 		},
-		ReadyTimeout:  10 * time.Minute,
-		ProbePort:     27015,
-		ProbeDeadline: 4 * time.Minute,
-		ExpectDepth:   joindepth.QUERY,
+		ReadyTimeout: 10 * time.Minute,
+		ProbePort:    27015,
+		// Running comes before SteamCMD finishes the ~25GB install, so the
+		// positive probe waits for it; the negative control stays short.
+		ProbeDeadline:    30 * time.Minute,
+		NegativeDeadline: 4 * time.Minute,
+		ExpectDepth:      joindepth.QUERY,
 		// The operator injects its managed RCON password as ADMIN_PASSWORD,
 		// which hermsi/ark-server writes as ServerAdminPassword. Path A below
 		// proves the agent authenticates with it.

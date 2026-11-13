@@ -205,6 +205,7 @@ Resource usage env vars (set by the operator):
 | `/mods` | DELETE | Uninstall a mod; query param `?name=` (not a JSON body) |
 | `/mods/upload` | POST | Upload a mod archive; body is multipart/form-data |
 | `/logs/download` | GET | Download the full game log file as an attachment |
+| `/logs/history` | GET | Read back from EOF or the opaque `before` cursor. Each page returns up to 100 lines and 64 KiB of text. A long line may span pages. The cursor binds to the file identity, byte offset and full preceding 64 KiB window. A different inode, missing range or changed window returns 409. An in-place rewrite that leaves the observed bytes identical is indistinguishable from an append. Live records over 32 KiB carry a truncation marker; initial live replay reads the last 4 MiB. |
 | `/players/whitelist` | GET | Currently whitelisted players; response: bare JSON array of names (`[]` if whitelist management isn't supported or RCON is disabled) |
 | `/players/whitelist/add` | POST | Add a player to the whitelist; request: `{ name }`; response: `{ ok, raw? }` |
 | `/players/whitelist/remove` | POST | Remove a player from the whitelist; request: `{ name }`; response: `{ ok, raw? }` |

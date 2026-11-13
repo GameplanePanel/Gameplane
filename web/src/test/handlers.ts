@@ -47,6 +47,8 @@ export const INVALID_BPF_FILTER_FIXTURE = "tcp prot 8080 foo";
 const isColonAction = (params: PathParams) => String(params.name).includes(":");
 
 export const handlers = [
+  http.get("/servers/:name/logs/pod/history", () => HttpResponse.json({ text: "", source: "game" })),
+  http.get("/servers/:name/logs/history", () => HttpResponse.json({ text: "" })),
   ...fleetHandlers,
   http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
   // Auth
@@ -838,6 +840,18 @@ const wsOrigin = typeof window !== "undefined" ? window.location.origin.replace(
 
 export function buildScreenshotHandlers() {
   const data = getScreenshotData();
+  const nightlyBackup = makeBackup({
+    metadata: { name: "mc-survival-nightly-0713", namespace: "default" },
+    spec: { serverRef: { name: "mc-survival" } },
+    status: {
+      phase: "Succeeded",
+      startTime: "2026-07-13T00:12:04Z",
+      completionTime: "2026-07-13T00:14:41Z",
+      size: "1.4 GiB",
+      bytesAdded: "14Ki",
+      snapshotID: "a1b2c3d4e5f6",
+    },
+  });
   return [
     ...fleetHandlers,
     http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
@@ -913,12 +927,20 @@ export function buildScreenshotHandlers() {
         items: data.templates,
       }),
     ),
-    http.get("/templates/:name", ({ params }) => {
+    http.get("/templates/:name", ({ params, cookies }) => {
       const name = String(params.name);
       const template = data.templates.find((t) => t.metadata.name === name);
       // Only the single-get carries a configSchema: Settings > Game
       // configuration reads it, the wizard's list view must stay unchanged.
       const configSchema = data.templateConfigSchemas[name];
+      // This Pending server uses the lifecycle actions shown for templates
+      // without in-game commands. Other Minecraft examples keep their commands.
+      if (template && name === "minecraft-java" && cookies.e2e_server_variant === "pvc-failed") {
+        return HttpResponse.json({
+          ...template,
+          spec: { ...template.spec, configSchema, capabilities: { ...template.spec.capabilities, actions: [] } },
+        });
+      }
       if (template && configSchema) {
         return HttpResponse.json({ ...template, spec: { ...template.spec, configSchema } });
       }
@@ -1238,10 +1260,7 @@ export function buildScreenshotHandlers() {
     http.get("/backups", () =>
       HttpResponse.json({
         items: [
-          makeBackup({
-            metadata: { name: "mc-survival-nightly-0713", namespace: "default" },
-            spec: { serverRef: { name: "mc-survival" } },
-          }),
+          nightlyBackup,
           makeBackup({
             metadata: { name: "mc-survival-nightly-0712", namespace: "default" },
             spec: { serverRef: { name: "mc-survival" } },
@@ -1259,14 +1278,9 @@ export function buildScreenshotHandlers() {
       if (name === "mc-survival-nightly-0713") {
         return HttpResponse.json(
           makeBackup({
-            metadata: { name, namespace: "default" },
-            spec: { serverRef: { name: "mc-survival" } },
+            ...nightlyBackup,
             status: {
-              phase: "Succeeded",
-              startTime: "2026-07-13T00:12:04Z",
-              completionTime: "2026-07-13T00:14:41Z",
-              size: "1.4 GiB",
-              snapshotID: "a1b2c3d4e5f6",
+              ...nightlyBackup.status,
               conditions: cookies.e2e_backup_coverage === "recorded"
                 ? [{ type: "Consistency", status: "False", reason: "UnsupportedRawCopy", message: "The game does not support quiesce." }]
                 : undefined,
@@ -1846,6 +1860,19 @@ export function buildScreenshotHandlers() {
           // Ignore malformed messages
         }
       });
+    }),
+
+    http.get("/servers/:name/logs/pod/history", ({ request }) => {
+      const before = new URL(request.url).searchParams.get("before");
+      if (!before) {
+        return HttpResponse.json({
+          source: "game", text: "[Server thread/INFO] Preparing level world", before: "previous-page",
+        });
+      }
+      if (before === "previous-page") {
+        return HttpResponse.json({ source: "game", text: "[Server thread/INFO] Loading properties" });
+      }
+      return new HttpResponse(null, { status: 409 });
     }),
 
     // WebSocket: Pod Logs

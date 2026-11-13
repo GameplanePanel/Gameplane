@@ -53,6 +53,7 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 	r.Get("/ws/servers/{name}/console", p.agentWS("/console"))
 	r.Get("/ws/servers/{name}/logs", p.agentWS("/logs/tail"))
 	r.Get("/servers/{name}/logs/download", p.agentHTTP("/logs/download"))
+	r.Get("/servers/{name}/logs/history", p.agentHTTP("/logs/history"))
 	// PTY console attaches via the Kubernetes API (not the agent), so it
 	// doesn't need agent mTLS material — it uses the selected cluster's
 	// kubeconfig. Mounted unconditionally.

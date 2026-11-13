@@ -82,7 +82,6 @@ func postUploadBudgetBundle(t *testing.T, cli *APIClient, path string, body []by
 func TestAPI_ModuleUpload_ExtractionStaysWithinBudget(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	const opNS = "gameplane-system"
 	suffix := strconv.FormatInt(time.Now().UnixNano()%1_000_000_000, 10)
 	srcName := "e2e-upload-budget-" + suffix
 	okModule := "e2e-upload-ok-" + suffix
@@ -100,7 +99,7 @@ func TestAPI_ModuleUpload_ExtractionStaysWithinBudget(t *testing.T) {
 	}
 	t.Cleanup(func() {
 		for _, m := range []string{okModule, bigModule} {
-			_ = envInstance.K8s.CoreV1().ConfigMaps(opNS).Delete(context.Background(), "module-upload-"+m, metav1.DeleteOptions{})
+			_ = envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).Delete(context.Background(), "module-upload-"+m, metav1.DeleteOptions{})
 		}
 		_ = envInstance.Dyn.Resource(srcGVR).Delete(context.Background(), srcName, metav1.DeleteOptions{})
 	})
@@ -116,7 +115,7 @@ func TestAPI_ModuleUpload_ExtractionStaysWithinBudget(t *testing.T) {
 	if status != http.StatusCreated {
 		t.Fatalf("valid upload: got %d body=%q, want 201", status, body)
 	}
-	cm, err := envInstance.K8s.CoreV1().ConfigMaps(opNS).Get(ctx, "module-upload-"+okModule, metav1.GetOptions{})
+	cm, err := envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).Get(ctx, "module-upload-"+okModule, metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("get stored bundle: %v", err)
 	}
@@ -140,7 +139,7 @@ func TestAPI_ModuleUpload_ExtractionStaysWithinBudget(t *testing.T) {
 	if status != http.StatusBadRequest {
 		t.Fatalf("over-budget upload: got %d body=%q, want 400", status, body)
 	}
-	if _, err := envInstance.K8s.CoreV1().ConfigMaps(opNS).Get(ctx, "module-upload-"+bigModule, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
+	if _, err := envInstance.K8s.CoreV1().ConfigMaps(credentialsNS).Get(ctx, "module-upload-"+bigModule, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
 		t.Fatalf("over-budget upload was stored (get err = %v)", err)
 	}
 

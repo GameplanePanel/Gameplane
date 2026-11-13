@@ -108,14 +108,25 @@ describe("ServerDetailPage lifecycle buttons", () => {
     expect(screen.getByRole("button", { name: /^Restart$/i })).toBeDisabled();
   });
 
-  it("hides Start during a transitional phase (Starting)", async () => {
+  it.each(["Pending", "Starting"] as const)("can stop a remote server while %s", async (phase) => {
+    searchParams = { cluster: "remote", ns: "team-b" };
+    const stopRequests: URL[] = [];
     server.use(
-      http.get("/servers/alpha", () => HttpResponse.json(makeServer({ status: { phase: "Starting" } }))),
+      http.get("/servers/alpha", () => HttpResponse.json(makeServer({ metadata: { namespace: "team-b" }, status: { phase } }))),
+      http.post(/\/servers\/alpha:stop$/, ({ request }) => {
+        stopRequests.push(new URL(request.url));
+        return new HttpResponse(null, { status: 202 });
+      }),
     );
     renderWithQuery(<ServerDetailPage />);
-    await screen.findByRole("button", { name: /^Restart$/i });
+    const stop = await screen.findByRole("button", { name: /^Stop$/i });
+    await waitFor(() => expect(stop).toBeEnabled());
     expect(screen.queryByRole("button", { name: /^Start$/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Stop$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Restart$/i })).toBeDisabled();
+    await userEvent.click(stop);
+    await waitFor(() => expect(stopRequests).toHaveLength(1));
+    expect(stopRequests[0]?.searchParams.get("namespace")).toBe("team-b");
+    expect(stopRequests[0]?.searchParams.get("cluster")).toBe("remote");
   });
 
   it("when asleep: Wake button shown, Start hidden", async () => {

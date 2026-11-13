@@ -130,6 +130,14 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await expect(page.getByText(/waiting on storage/i)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText(/PVCProvisioningFailed/)).toBeVisible();
     await page.waitForTimeout(200);
+    const stopButtons = page.getByRole("button", { name: "Stop", exact: true });
+    await expect(stopButtons).toHaveCount(2);
+    await expect(stopButtons.first()).toBeEnabled();
+    await expect(stopButtons.last()).toBeEnabled();
+    const restartButtons = page.getByRole("button", { name: "Restart", exact: true });
+    await expect(restartButtons).toHaveCount(2);
+    await expect(restartButtons.first()).toBeDisabled();
+    await expect(restartButtons.last()).toBeDisabled();
     await capture(page, "o4LH8W");
   });
 
@@ -147,16 +155,28 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Console");
     await expect(page.getByText("— connected —").first()).toBeVisible({ timeout: 15_000 });
-    await page.waitForTimeout(200);
+    await expect(page.getByText("[Server thread/INFO] Preparing level world", { exact: true })).toBeVisible();
+    const older = page.getByRole("button", { name: "Load older" });
+    await expect(older).toBeEnabled();
     await capture(page, "Xn5ns");
+    await older.click();
+    await expect(page.getByText("[Server thread/INFO] Loading properties", { exact: true })).toBeVisible();
+    await expect(older).toHaveCount(0);
+    await expect(page.getByText("— connected —").first()).toBeVisible();
   });
 
   test("kPmoo: Server Detail — Logs", async ({ page }) => {
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Logs");
-    await expect(page.getByText(/Starting minecraft server version/i).first()).toBeVisible({ timeout: 15_000 });
-    await page.waitForTimeout(200);
+    const live = page.getByText(/Starting minecraft server version/i).first();
+    await expect(live).toBeVisible({ timeout: 15_000 });
+    const earlier = page.getByRole("button", { name: "Earlier output" });
+    await expect(earlier).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByText(/Server empty for 60 seconds/i)).toBeVisible();
     await capture(page, "kPmoo");
+    await earlier.click();
+    await expect(page.getByText("[Server thread/INFO] Preparing level world", { exact: true })).toBeVisible();
+    await expect(live).toBeVisible();
   });
 
   test("FtdkI: Server Detail — Logs (Failed)", async ({ context, page }) => {

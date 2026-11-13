@@ -246,6 +246,7 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
 
 2. **ServerDetail Page** (`web/src/routes/ServerDetail.tsx`, 289 lines)
    - Full server view with header showing phase chip, uptime, player count, and action buttons
+   - Both the header and Overview offer Stop during Pending and Starting to users with control access to that server.
    - Tabbed interface (HeroUI Tabs) routing to nine sub-views: Overview, Events, Console, Logs, Files, Mods, Modpacks, Players, Backups, Capture, Settings
    - Phase chip from ui/PhaseChip; game icon from ui/GameIcon
    - Lifecycle action buttons (start/stop/restart) gated by phase state
@@ -1140,6 +1141,7 @@ openWS(path: string, opts: WSOptions)
 **Used by:**
 - Console tab: streams RCON/stdin input/output (bidirectional)
 - Logs tab: streams container stdout and/or game log file (read-only)
+- **Earlier output** opens a bounded historical page independently of the live connection. **Load older** follows the source cursor, including across completed init containers. Console shows recent pod output separately from the interactive PTY or RCON session. Live attachment begins immediately. The two transports can overlap or have a gap.
 
 **Cluster routing:** WebSocket paths retain the open server's cluster and namespace. Pod startup/stdout logs and PTY attach use that cluster's Kubernetes client; remote RCON and game-file logs use its authenticated gateway. Reconnects retain the original target. Leaving the server view closes its streams; infrastructure selection cannot retarget them.
 

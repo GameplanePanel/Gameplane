@@ -235,8 +235,17 @@ headers retain the existing allowlist, so browser cookies, authorization and CSR
 material do not reach agents. Proxy body limits and JSON response limits remain at
 the caller boundary.
 
+The API reads and writes dashboard-managed OIDC, registry and notification
+credentials, remote kubeconfigs and gateway TLS Secrets in
+`GAMEPLANE_CREDENTIALS_NAMESPACE`. When unset or empty, this defaults to the
+resolved `--namespace` value, preserving existing standalone database keys.
+Native installs store module uploads and translations in that same namespace.
+System logs use `--namespace`. In standalone mode `--namespace` selects the
+remote operator's module ConfigMap namespace independently of the panel's
+credential storage.
+
 Registered clusters may additionally configure `spec.agentGateway.url` and a
-labeled `tlsSecretRef` in the central API namespace. Each remote request resolves
+labeled `tlsSecretRef` in the credentials namespace. Each remote request resolves
 its Kubernetes client, GameServer UID and gateway mTLS credentials independently;
 unknown/missing routes never fall back locally. HTTP/WebSocket agent operations,
 RCON module actions and internal mod-update reads use the versioned gateway
@@ -328,6 +337,11 @@ trust assumptions, rotation behavior and surfaces outside this protocol.
   - Legacy fallback paths for backward compat (legacy provider mirrors Helm config as identity)
 - **Provenance:** The "helm" provider's groupsClaim, defaultRole, and roleMappings come from CLI flags (`--oidc-groups-claim`, `--oidc-default-role`, `--oidc-role-mapping-*`) only. It is not a database row; it is synthesized at runtime from flags and the optional `helmOverride.roleMappings` overlay (see below).
 - **Per-login re-evaluation:** Role mappings are read at login time from the current "auth" config row, so override changes take effect immediately on the next login without restart or Helm upgrade.
+
+**Profile claims (username, display name, email):**
+- **Claims read:** `sub`, `email`, `name` and `preferred_username` from the ID token. When any of `email`, `name` or `preferred_username` is missing, the callback asks the provider's userinfo endpoint (bounded by `oidcUserInfoTimeout`, 5s) and fills only the empty fields. The userinfo response is used only when its `sub` equals the ID token's (OIDC Core 5.3.2). A userinfo error, timeout, subject mismatch or claim-decode failure is logged and the login continues with the ID token claims.
+- **New user username:** `preferred_username`, then `email`, then the raw `sub`; a taken name gets `+<first 8 chars of sub>` (`pickUniqueUsername`).
+- **Existing user refresh (every login):** a non-empty IdP `email` or `name` overwrites the stored `users.email` / `users.display_name`; empty claims never clear stored values. `oidc_links.email` follows an email change. A username still equal to the raw `sub` is renamed to the new-user choice above once `preferred_username` or `email` is available; any other username is never changed. A refresh failure is logged and never blocks the login.
 
 **Group-claim extraction & role assignment:**
 - **Claim name:** Defaults to "groups" when `--oidc-groups-claim` is empty or unset. Otherwise uses the configured name. Extraction honors the configured (or default) name on every login (not cached).
@@ -658,6 +672,10 @@ Foreign keys are enforced only on Postgres (modernc-sqlite runs with FK OFF); th
 - **Central administration:** cluster node-join/kubeconfig, users, provider credentials, module catalog and installation management remain central administrative operations. `TestHomeClientMounts_ServeHomeClusterOnly` and `TestHomeClientMounts_MatchMain` retain their local-client boundary checks. Remote routing, identity and isolation tests cover the registry-backed mounts separately.
 - **File selection archives:** GET `/servers/{name}/files/archive` returns an attachment; POST creates a ZIP on the server. Both proxy repeated `path` parameters, preserve agent errors and honor the selected cluster and namespace. File manager requests can carry `X-Gameplane-Server-UID`; direct browser downloads can supply `expectedUID` in the query. The API rejects a mismatch with 409 before contacting the agent.
 - **Gateway-enabled agent routes:** the production mount enables selected-cluster RCON, game-file logs/downloads, files, players, status and agent-based mods through the optional gateway. RCON module actions use that gateway; stdin actions, Pod logs and PTY attach use the selected Kubernetes client. GET `/servers/{name}/mods/updates` uses `MountModUpdatesWithRegistry` so its template and agent reads target the same selected cluster. Consumers mounted without the remote resolver retain the legacy 501 guard; missing or invalid gateway configuration fails closed rather than using a local agent. Tests: `TestModUpdatesRoutesAgentAndTemplateToRemoteCluster`, `TestModUpdatesRemoteCannotUseLocalOnlyAgent` and `ws/gateway_client_test.go` cover remote routing and fail-closed behavior.
+
+### Server log history
+
+`GET /servers/{name}/logs/history` reads the configured game file using the existing local or remote agent transport. `GET /servers/{name}/logs/pod/history` uses the selected Kubernetes client. Both require the same server read permission as live logs and return `text` plus an optional opaque `before` cursor. Pass the cursor to read an earlier page. Pod pages identify the source container and continue into completed init containers in reverse startup order. The API checks the pod and container identity around each read and returns 409 when the recorded boundary is stale or ambiguous. Pod reads are capped at 1 MiB plus one sentinel byte per attempt, with an initial tail, up to four shorter tails for dense output and one timestamp fallback; each output page contains at most 100 lines and 64 KiB of text. `limited` identifies clipped records or an exhausted lookback window.
 
 ### GameServer config password redaction
 - Every covered response omits `metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]`: this historical manifest can contain passwords absent from the current config or template. Omission applies even when current config is absent, empty, or malformed; stored Kubernetes metadata and other annotations remain unchanged.

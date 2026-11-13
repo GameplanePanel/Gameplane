@@ -401,9 +401,7 @@ EOF
             --set networkPolicies.probePorts[0].port=25566)
     fi
     if [ "${PROFILE}" = postgres ]; then
-        dsn="$(kubectl get secret gameplane-postgres --namespace gameplane-system \
-            -o jsonpath='{.data.dsn}' | base64 -d)"
-        DB_SETS=(--set "api.db.driver=postgres" --set-string "api.db.dsn=${dsn}")
+        DB_SETS=(--set api.db.driver=postgres --set api.db.existingSecret=gameplane-postgres)
     fi
 
     echo "helm upgrade --install gameplane"
@@ -423,6 +421,8 @@ EOF
     # would only add minutes, and `--wait` would block on an unloaded image.
     # Deploy the bundled telemetry receiver and point the API at it: never let
     # CI or dev installs reach the project provider (spec 022 R17).
+    # The legacy fixtures exercise Hostport, in-pod capture and root init.
+    # The restricted-workloads bucket upgrades this same installation to PSA.
     helm upgrade --install gameplane "${CHART_DIR}" \
         --namespace gameplane-system --create-namespace \
         --set "image.registry=gameplane-test" \
@@ -431,6 +431,7 @@ EOF
         --set "web.enabled=false" \
         --set "operator.agentImage=gameplane-test/agent:${TAG}" \
         --set "operator.sentinelImage=gameplane-test/sentinel:${TAG}" \
+        --set "podSecurity.enforceRestricted=false" \
         --set "capture.enabled=true" \
         --set "capture.image=gameplane-test/capture-sidecar:${TAG}" \
         --set "api.resources.limits.memory=1Gi" \

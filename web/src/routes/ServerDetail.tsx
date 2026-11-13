@@ -193,12 +193,7 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
     gs?.status?.conditions?.find((c) => c.type === "Ready"),
     gs?.status?.conditionArgs,
   );
-  // Gate lifecycle actions on phase so they aren't fired during a
-  // transition (Starting/Stopping/Pending): Start only from a stopped
-  // state, Stop/Restart only while Running. act.isPending blocks
-  // duplicate mutations from a double-click. When asleep, Start is a silent
-  // no-op (spec.suspend is already false) — only :wake clears the operator's
-  // sleep marker.
+  // An idle server must wake through :wake to clear its sleep marker.
   const canStart = (phase === "Stopped" || phase === "Suspended" || phase === "Failed") && !asleep;
   const version = gs?.status?.agent?.gameVersion;
   const uptime = formatUptime(gs?.status?.startedAt, intl);
@@ -304,7 +299,7 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
               variant="outline"
               className="rounded-full"
               onPress={() => act.mutate("stop")}
-              isDisabled={!access?.canControl || (!running && !asleep) || act.isPending}
+              isDisabled={!access?.canControl || (!running && !asleep && !provisioning) || act.isPending}
             >
               <Square className="h-4 w-4" /> {intl.formatMessage({ id: "web.routes.server_detail.stop", defaultMessage: "Stop", description: "Server detail: header button that stops the running server, or puts a sleeping server to sleep fully; keep it short" })}</Button>
             {asleep && (

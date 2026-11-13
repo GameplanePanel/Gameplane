@@ -8,6 +8,7 @@ import { createRequestClient } from "@/lib/api";
 import { resolveConsoleMode } from "@/lib/capabilities";
 
 import { ConsoleShell } from "./ConsoleShell";
+import { LogHistory } from "./LogHistory";
 import { useConsoleTerminal } from "./useConsoleTerminal";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
@@ -44,7 +45,12 @@ export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
       </div>
     );
   }
-  return mode === "pty" ? <PtyConsole key={JSON.stringify(target)} name={name} ns={ns} /> : <RconConsole key={JSON.stringify(target)} name={name} ns={ns} />;
+  return <div className="flex h-full min-h-0 flex-col">
+    <LogHistory name={name} ns={ns} source="pod" console />
+    <div className="min-h-0 flex-1">
+      {mode === "pty" ? <PtyConsole key={JSON.stringify(target)} name={name} ns={ns} /> : <RconConsole key={JSON.stringify(target)} name={name} ns={ns} />}
+    </div>
+  </div>;
 }
 
 // RconConsole speaks the existing line-based RCON protocol — text is

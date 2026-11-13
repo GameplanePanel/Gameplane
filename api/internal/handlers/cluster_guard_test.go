@@ -324,13 +324,13 @@ func TestHomeClientMounts_ServeHomeClusterOnly(t *testing.T) {
 		if strings.HasPrefix(path, "/servers/") || strings.HasPrefix(path, "/ws/servers/") {
 			want = http.StatusNotImplemented
 		}
-		attach := path == "/ws/servers/alpha/console-pty"
+		selectedPodRoute := path == "/ws/servers/alpha/console-pty" || path == "/servers/alpha/logs/pod/history"
 		// Only the registry and ID-list handlers above use the selected client.
 		// ws.Mount has no gateway options here, so install/upload keep their
 		// legacy 501 guard rather than performing a remote target lookup.
 		selectedModRoute := strings.HasPrefix(path, "/servers/alpha/mods/registry/") ||
 			path == "/servers/alpha/mods/ids" || path == "/servers/alpha/modpack"
-		if attach || selectedModRoute {
+		if selectedPodRoute || selectedModRoute {
 			// The registered remote cluster has no alpha GameServer.
 			want = http.StatusNotFound
 		} else if path == "/ws/servers/alpha/logs/pod" {
@@ -365,7 +365,7 @@ func TestHomeClientMounts_ServeHomeClusterOnly(t *testing.T) {
 		if n := kubeClientCalls(t, home) - before; n != wantHomeCalls {
 			t.Errorf("%s %s?cluster=%s: home client saw %d API calls, want %d", method, path, remote, n, wantHomeCalls)
 		}
-		if (attach || selectedModRoute) && kubeClientCalls(t, remoteClient) == remoteBefore {
+		if (selectedPodRoute || selectedModRoute) && kubeClientCalls(t, remoteClient) == remoteBefore {
 			t.Errorf("%s %s?cluster=%s: remote client saw no lookup", method, path, remote)
 		}
 		return nil
