@@ -8,10 +8,15 @@ import { CONFIG_REDACTED_MARKER, validateConfig, type ConfigError, type ConfigFi
 const heapNames = ["INIT_MEMORY", "MAX_MEMORY"] as const;
 type HeapName = (typeof heapNames)[number];
 
+function configEnvName(field: ConfigField): string {
+  return field.envName || field.name;
+}
+
 export function isJvmField(field: ConfigField): boolean {
   if (field.target === "file") return false;
-  if (field.name === "USE_AIKAR_FLAGS") return field.type === "bool";
-  return field.type === "string" && ["INIT_MEMORY", "MAX_MEMORY", "JVM_OPTS", "JVM_XX_OPTS"].includes(field.name);
+  const name = configEnvName(field);
+  if (name === "USE_AIKAR_FLAGS") return field.type === "bool";
+  return field.type === "string" && ["INIT_MEMORY", "MAX_MEMORY", "JVM_OPTS", "JVM_XX_OPTS"].includes(name);
 }
 
 interface Heap {
@@ -46,17 +51,18 @@ export function jvmStartup(template: GameTemplate | undefined, server: GameServe
   const flags: string[] = [];
   const errors: ConfigError[] = [];
   const heaps: Partial<Record<HeapName, Heap>> = {};
-  if (!itzg || template?.spec.command?.length || !fields.some((f) => heapNames.some((name) => f.name === name))) {
+  if (!itzg || template?.spec.command?.length || !fields.some((f) => heapNames.some((name) => configEnvName(f) === name))) {
     return { fields, flags, errors };
   }
 
   // Resolve the operator's environment layers before applying the launcher's
   // MEMORY fallback. null means a valueFrom or expansion is unknown here.
   const base = [...(template?.spec.env ?? []), ...(version?.env ?? [])];
+  const envField = (name: string) => template?.spec.configSchema?.find((f) => f.target !== "file" && configEnvName(f) === name);
   const resolveEnv = (name: string, fallback: string | null): string | null => {
     const supplied = [...(server.spec.env ?? [])].reverse().find((e) => e.name === name);
-    const field = template?.spec.configSchema?.find((f) => f.target !== "file" && f.name === name);
-    let configured = field ? server.spec.config?.[name] ?? field.default ?? "" : "";
+    const field = envField(name);
+    let configured = field ? server.spec.config?.[field.name] ?? field.default ?? "" : "";
     if (!configured && field?.autoFromMemoryLimit) {
       const mib = Math.floor(limit * field.autoFromMemoryLimit.percent / 100 / 1024 ** 2);
       if (mib > 0) configured = `${mib}M`;
@@ -79,14 +85,14 @@ export function jvmStartup(template: GameTemplate | undefined, server: GameServe
     if (heap.flag) flags.push(heap.flag);
     if (heap.invalid) {
       const text = intl.formatMessage({ id: "web.jvm.heap_format", defaultMessage: "Enter a JVM heap size such as 512M or 2G, or a percentage from 0% to 100%.", description: "Settings: invalid Minecraft Java heap value" });
-      errors.push({ name, text, message: text });
+      errors.push({ name: envField(name)?.name ?? name, text, message: text });
     }
   }
   const initial = heaps.INIT_MEMORY?.bytes;
   const maximum = heaps.MAX_MEMORY?.bytes;
   if (initial !== undefined && maximum !== undefined && initial > maximum) {
     const text = intl.formatMessage({ id: "web.jvm.heap_order", defaultMessage: "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.", description: "Settings: the independently resolved initial Java heap is larger than the maximum heap" });
-    errors.push({ name: fields.some((f) => f.name === "INIT_MEMORY") ? "INIT_MEMORY" : "MAX_MEMORY", text, message: text });
+    errors.push({ name: (envField("INIT_MEMORY") ?? envField("MAX_MEMORY"))!.name, text, message: text });
   }
   return { fields, flags, errors };
 }

@@ -37,6 +37,69 @@ it("previews the two heap fields independently and rejects an initial heap above
   expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/next container start/i);
 });
 
+it("resolves an aliased maximum heap instead of rejecting a valid default pair", () => {
+  const onValidity = vi.fn();
+  const template = tmpl([
+    { name: "INIT_MEMORY", type: "string", default: "2G" },
+    { name: "heap_max", envName: "MAX_MEMORY", type: "string", default: "4G" },
+  ]);
+  renderWithQuery(<Harness initial={server()} template={template} onValidity={onValidity} />);
+  expect(screen.getByRole("group", { name: "JVM startup" })).toHaveTextContent("heap_max");
+  expect(screen.getByText(/-Xms2G -Xmx4G/)).toBeInTheDocument();
+  expect(screen.queryByText(/initial heap exceeds the maximum heap/i)).not.toBeInTheDocument();
+  expect(onValidity).toHaveBeenLastCalledWith(true);
+});
+
+it("uses alias config keys for auto heaps, edits, and inline validation errors", () => {
+  const onValidity = vi.fn();
+  const template = tmpl([
+    { name: "heap_initial", envName: "INIT_MEMORY", type: "string", autoFromMemoryLimit: { percent: 75 } },
+    { name: "heap_max", envName: "MAX_MEMORY", type: "string", default: "4G" },
+    { name: "java_options", envName: "JVM_OPTS", type: "string" },
+    { name: "aikar_flags", envName: "USE_AIKAR_FLAGS", type: "bool", default: "false" },
+  ]);
+  template.spec.resources = { limits: { memory: "4Gi" } };
+  renderWithQuery(<Harness initial={server({ heap_max: "2G" })} template={template} onValidity={onValidity} />);
+  const startup = screen.getByRole("group", { name: "JVM startup" });
+  expect(startup).toHaveTextContent("java_options");
+  expect(startup).toHaveTextContent("aikar_flags");
+  expect(screen.getByText(/-Xms3072M -Xmx2G/)).toBeInTheDocument();
+  expect(screen.getByLabelText("heap_initial")).toHaveAttribute("aria-invalid", "true");
+  expect(onValidity).toHaveBeenLastCalledWith(false);
+  fireEvent.change(screen.getByLabelText("heap_initial"), { target: { value: "512M" } });
+  expect(screen.getByText(/-Xms512M -Xmx2G/)).toBeInTheDocument();
+  expect(onValidity).toHaveBeenLastCalledWith(true);
+  fireEvent.change(screen.getByLabelText("heap_max"), { target: { value: "invalid" } });
+  expect(screen.getByLabelText("heap_max")).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByRole("alert")).toHaveTextContent("Enter a JVM heap size");
+  expect(onValidity).toHaveBeenLastCalledWith(false);
+});
+
+it("preserves environment override precedence over aliased heap settings", () => {
+  const gs = server({ heap_initial: "2G", heap_max: "4G" });
+  gs.spec.env = [{ name: "MAX_MEMORY", value: "3G" }];
+  const template = tmpl([
+    { name: "heap_initial", envName: "INIT_MEMORY", type: "string", default: "1G" },
+    { name: "heap_max", envName: "MAX_MEMORY", type: "string", default: "1G" },
+  ]);
+  template.spec.env = [{ name: "INIT_MEMORY", value: "4G" }, { name: "MAX_MEMORY", value: "1G" }];
+  renderWithQuery(<Harness initial={gs} template={template} />);
+  expect(screen.getByText(/-Xms2G -Xmx3G/)).toBeInTheDocument();
+  expect(screen.queryByText(/initial heap exceeds the maximum heap/i)).not.toBeInTheDocument();
+});
+
+it("ignores canonical heap names remapped away and resolves an aliased MEMORY fallback", () => {
+  const template = tmpl([
+    { name: "INIT_MEMORY", envName: "OTHER_SETTING", type: "string", default: "not-a-heap" },
+    { name: "memory_fallback", envName: "MEMORY", type: "string", default: "2G" },
+    { name: "MAX_MEMORY", type: "string", default: "4G" },
+  ]);
+  renderWithQuery(<Harness initial={server()} template={template} />);
+  expect(screen.getByRole("group", { name: "JVM startup" })).not.toHaveTextContent("INIT_MEMORY");
+  expect(screen.getByText(/-Xms2G -Xmx4G/)).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
 it("reports immediate fields when a custom template mixes startup and ordinary configuration", () => {
   const template = tmpl([...heaps, { name: "MOTD", type: "string" }]);
   renderWithQuery(<Harness initial={server()} template={template} />);
