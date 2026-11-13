@@ -195,7 +195,7 @@ A save never changes the pod template while a pod runs (research R5). The pod te
 ### Invariants
 
 1. `desired` is a pure function of the template (as pinned by the template rollout machinery) and the override; two reconciles with the same inputs give the same `desired`.
-2. `applied` never reports a value that is not in the pod or StatefulSet template.
+2. `applied` changes only once a pod built from the new template has had its volumes set up; it never reports a value the data volume was not set up with (research R6, StatefulSet annotation `gameplane.local/security-applied-observed`).
 3. Helper containers (agent, sentinel, tunnel, wipe) and their security contexts are never derived from `desired` or `applied` (FR-012). Backup and restore jobs use `applied.fsGroup` for their pod `fsGroup` (FR-011).
 4. The override is never deleted by a module upgrade, uninstall or reinstall; it is reapplied if the template returns.
 5. The ownership check never changes the numeric ids; it changes only how often the kubelet re-applies the group.

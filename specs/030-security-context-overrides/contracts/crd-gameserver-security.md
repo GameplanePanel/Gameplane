@@ -52,7 +52,7 @@ status:
 | Field | Rule |
 |---|---|
 | `desired` | Always set after the first reconcile. A pure function of the pinned template and `spec.security`. |
-| `applied` | Read from the running game pod, else from the StatefulSet pod template. Omitted before the first start. |
+| `applied` | Read from the StatefulSet annotation `gameplane.local/security-applied-observed`, which the reconciler copies from the pod template once a pod built from it has had its volumes set up (research R6). A pending or failed-before-volume-setup start leaves it unchanged. Omitted before the first start. |
 | `pending` | `applied` present and any value differs from `desired`. Source-only changes do not count. |
 | `source` | `ModuleDefault`, `Override`, `ImageDefaultOverride`, `ImageDefault` (ids), `BuiltInDefault` (ownership check only). |
 | `value` | absent for an id with `ImageDefault` or `ImageDefaultOverride`. |

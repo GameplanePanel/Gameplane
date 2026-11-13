@@ -122,17 +122,18 @@ if refresh { render from desired } else { reuse what ss already carries }
 
 ## R6. Applied filesystem group for backups, restores and the "applied" report
 
-**Decision**: the applied value is read from the thing that will actually run:
-1. the running game pod's spec, when a game container is running (the same pod lookup the template revision code uses, `ownedTemplatePod`, `gameserver_template_revision.go:480`), else
-2. the StatefulSet pod template.
+**Decision**: the applied values are the ones the data volume was last set up with, recorded by the reconciler on the StatefulSet object (not its pod template) in the annotation `gameplane.local/security-applied-observed`:
+1. At a start (R5) the new values go into the pod template only. The observed annotation does not change yet.
+2. The reconciler copies the pod template's `gameplane.local/security-applied` value into the observed annotation once an owned game pod built from that template has had its volumes set up. The kubelet applies the filesystem group and change policy during volume setup, before any init or game container starts, so the signal is the pod condition `PodReadyToStartContainers=True` or, on clusters without that condition, any init or game container status that has started. The pod lookup is the one the template revision code uses (`ownedTemplatePod`, `gameserver_template_revision.go:480`).
+3. `status.security.applied`, `buildBackupPodSecurityContext` and the restore call site all read the observed annotation (FR-011), never the pod template and never the desired value.
 
-Because of R5 the StatefulSet template changes only at a start, so when no pod runs it still holds the values of the last start, which are what the data volume's ownership was last set to. `buildBackupPodSecurityContext` and the restore call site take that applied filesystem group (FR-011), never the pending one. A server that was never started has neither; backups of it use the desired value.
+So while a start is pending (template written, pod not yet past volume setup), backup and restore jobs keep using the previous applied filesystem group, and `status.security.applied` still shows the previous values with `pending=true`. A start that fails before volume setup (image pull error, unschedulable pod, `SecurityAllowed=False`) leaves the observed annotation, `applied` and `pending` unchanged. A start that fails after volume setup reports the new values as applied, which is true, because the volume was re-owned. A server that was never started has no observed annotation; backups of it use the desired value and `applied` is omitted.
 
-The annotation `gameplane.local/security-applied` on the pod template carries the sources (R7). A pod or StatefulSet that predates this feature has no annotation; the reader then reconstructs values from the specs and labels every non-empty value `ModuleDefault` and every empty one `ImageDefault`, which is correct because overrides did not exist.
+The pod-template annotation `gameplane.local/security-applied` carries the sources (R7) and is what step 2 copies. A StatefulSet that predates this feature has neither annotation; the reader then reconstructs values from the running pod's spec, or from the StatefulSet pod template when no pod runs (it has not changed since the last start, because before this feature nothing gated it), and the reconciler writes the observed annotation from that on its first pass and labels every non-empty value `ModuleDefault` and every empty one `ImageDefault`, which is correct because overrides did not exist.
 
-**Rationale**: it needs no extra persisted state and survives a status reset (the repo already treats status as a read model and keeps authority in operator-owned objects, see `gameserver_template_revision.go:1-60`). Using the *pending* group for a backup job would make the kubelet re-own the volume before the restart, which is exactly what FR-011 forbids.
+**Rationale**: the state lives on an operator-owned object, so it survives a status reset (the repo already treats status as a read model and keeps authority in operator-owned objects, see `gameserver_template_revision.go:1-60`). Using the *pending* group for a backup job would make the kubelet re-own the volume before the restart, which is exactly what FR-011 forbids.
 
-**Alternatives considered**: *Store applied values in `status` and read them back.* A reset status (leader change, CRD re-apply) would lose the very value a backup needs. *Store them in a GameServer annotation.* Another writer of GameServer metadata and another reconcile trigger, for information the StatefulSet already holds.
+**Alternatives considered**: *Store applied values in `status` and read them back.* A reset status (leader change, CRD re-apply) would lose the very value a backup needs. *Store them in a GameServer annotation.* Another writer of GameServer metadata and another reconcile trigger. *Read the StatefulSet pod template when no game container runs.* R5 writes the new template at scale-up, so during a pending start it would report, and hand backup jobs, a group the volume does not have yet (raised in review of PR #956).
 
 ## R7. How status reports desired, applied, sources and pending
 
@@ -204,7 +205,7 @@ Clone (`lifecycle.go:243`) reaches the same function with `live == nil`, so a cl
 
 ## R11. Audit event shape
 
-**Decision**: no database migration. After a create or update that changes `spec.security`, the handler writes one synchronous row with `Auditor.WriteSync` and then `audit.MarkRecorded` (the capture precedent, `handlers/capture.go:1252-1258`), so the request has a single row that carries the detail:
+**Decision**: no database migration. For a create or update that changes `spec.security`, the handler writes one synchronous row with `Auditor.WriteSync` **before** the Kubernetes write, then calls `audit.MarkRecorded` (the capture precedent, `handlers/capture.go:1252-1258`), so the request has a single row that carries the detail. Write order and failures are in [contracts/audit-events.md](contracts/audit-events.md) "Write order":
 - `method`, `path`: the request's own;
 - `target`: the server name;
 - `status`: the response status;

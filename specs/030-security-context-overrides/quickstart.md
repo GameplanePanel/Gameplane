@@ -11,7 +11,7 @@ cd operator && go build ./... && cd ..
 cd api && go build ./... && cd ..
 cd gp-module && go build ./... && cd ..
 cd mcp-server && go build ./... && cd ..
-cd test/e2e && go build -tags e2e ./... && cd ..   # the E2E suite's helpers; test files compile in CI
+cd test/e2e && go build -tags e2e ./... && cd ../..   # the E2E suite's helpers; test files compile in CI
 cd web && npx tsc --noEmit && cd ..
 ```
 
