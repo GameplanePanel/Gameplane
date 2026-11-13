@@ -85,7 +85,7 @@ func verifyPopulatedUpgrade(t *testing.T, ns, gs, marker, adminUser, adminPass s
 			pod.Labels[appsv1.StatefulSetRevisionLabel] != status.UpdateRevision {
 			return false, "waiting for replacement pod at revision " + status.UpdateRevision
 		}
-		out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0", "cat", "/data/marker.txt")
+		out, err := envInstance.Kubectl(ctx, "exec", "-n", ns, "pod/"+pod.Name, "--", "cat", "/data/marker.txt")
 		if err != nil {
 			return false, "exec: " + err.Error() + " out=" + out
 		}
