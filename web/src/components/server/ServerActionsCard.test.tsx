@@ -1000,6 +1000,17 @@ describe("ServerActionsCard", () => {
     expect(onOpenConsole).toHaveBeenCalled();
   });
 
+  it.each(["Pending", "Starting"] as const)("can stop a provisioning server while %s", async (phase) => {
+    routeFetch("operator", []);
+    const gs: GameServer = { metadata: { name: "s1" }, spec: { templateRef: { name: "minecraft-java" } }, status: { phase } };
+    renderWithQuery(<ServerActionsCard name="s1" ns="team-b" tmpl={tmpl([])} gs={gs} />);
+    const stop = await screen.findByRole("button", { name: /^Stop$/i });
+    expect(stop).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Restart$/i })).toBeDisabled();
+    fireEvent.click(stop);
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/servers/s1:stop?namespace=team-b"))).toHaveLength(1));
+  });
+
   // F-126-adjacent: the generic lifecycle shortcuts' mutation had no error
   // handler — a failed Restart/Stop/Start/Wake left "Quick actions" silent.
   it("shows an error banner when a generic lifecycle shortcut fails", async () => {

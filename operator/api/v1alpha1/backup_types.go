@@ -128,10 +128,15 @@ type BackupStatus struct {
 	// +optional
 	VolumeSnapshotContentName string `json:"volumeSnapshotContentName,omitempty"`
 
-	// Size is the on-disk size of the snapshot, as reported by the
-	// backup driver. Not always exact for incremental snapshots.
+	// Size is the logical size reported by the driver (total bytes processed
+	// for Restic, restore size for a CSI snapshot).
 	// +optional
 	Size *resource.Quantity `json:"size,omitempty"`
+
+	// BytesAdded is the packed data Restic added during this backup. Zero
+	// is a measured result. CSI and older Restic summaries omit this field.
+	// +optional
+	BytesAdded *resource.Quantity `json:"bytesAdded,omitempty"`
 
 	// Message is a human-readable reason when Phase=Failed.
 	// +optional

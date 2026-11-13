@@ -126,7 +126,7 @@ func (r *BackupReconciler) prepareBackupWorkerSource(ctx context.Context, b *gam
 	return &source, r.Update(ctx, b)
 }
 
-func (r *BackupReconciler) buildPreparedBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, source *backupWorkerSource, deadline time.Time) corev1.PodSpec {
+func (r *BackupReconciler) buildPreparedBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, source *backupWorkerSource, serverUID types.UID, deadline time.Time) corev1.PodSpec {
 	spec := r.buildBackupPodSpec(b, tmpl)
 	automount := false
 	spec.AutomountServiceAccountToken = &automount
@@ -141,6 +141,10 @@ func (r *BackupReconciler) buildPreparedBackupPodSpec(b *gameplanev1alpha1.Backu
 	}
 	spec.Volumes = append(spec.Volumes, corev1.Volume{Name: "start", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: backupStartConfigMapName(b)}}}})
 	worker := &spec.Containers[0]
+	// The default Restic parent group includes the source host. A Job's
+	// hostname changes every run, while the bound GameServer UID survives
+	// pod replacements and changes when a server is recreated.
+	worker.Args = append(worker.Args, "--host", "gameplane-"+string(serverUID))
 	worker.Command = []string{"/bin/sh", "-c"}
 	worker.Args = append([]string{resticWorkerScript, "backup-worker"}, worker.Args...)
 	worker.Env = append(worker.Env, corev1.EnvVar{Name: "BACKUP_UID", Value: string(b.UID)},
@@ -299,7 +303,7 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		}
 		backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)
 		job = batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace, Annotations: map[string]string{backupWorkerProtocolAnnotation: "v1"}}, Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline,
-			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, preparation)}}}
+			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, bound.UID, preparation)}}}
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
 		if err := controllerutil.SetControllerReference(b, &job, r.Scheme); err != nil {
 			return ctrl.Result{}, err

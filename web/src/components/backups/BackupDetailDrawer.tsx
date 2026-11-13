@@ -5,6 +5,7 @@ import { Drawer, Button } from "@heroui/react";
 import { RotateCcw, Trash2 } from "lucide-react";
 
 import { formatRelative } from "@/lib/utils";
+import { BackupSize } from "@/components/backups/BackupSize";
 import type { Backup } from "@/types";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "./ErrorBanner";
@@ -110,7 +111,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.snapshot_id", defaultMessage: "Snapshot ID", description: "Backup details drawer: field label above the snapshot identifier of the backup; a dash is shown when there is none" })}>
                     <span className="font-mono text-xs">{backup.status?.snapshotID ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</span>
                   </Field>
-                  <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.size", defaultMessage: "Size", description: "Backup details drawer: field label above the backup's size; a dash is shown when the size is unknown" })}>{backup.status?.size ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</Field>
+                  <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.size", defaultMessage: "Size", description: "Backup details drawer: field label above the backup's size; a dash is shown when the size is unknown" })}><BackupSize backup={backup} /></Field>
                   <Field label={intl.formatMessage({ id: "web.components.backups.backup_detail_drawer.started", defaultMessage: "Started", description: "Backup details drawer: field label above the time the backup started, shown in relative time" })}>
                     {formatRelative(backup.status?.startTime, intl)}
                     {backup.status?.startTime && (

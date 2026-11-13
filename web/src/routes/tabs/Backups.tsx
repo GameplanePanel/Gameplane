@@ -12,6 +12,7 @@ import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
+import { BackupSize } from "@/components/backups/BackupSize";
 import type { Backup } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
@@ -112,7 +113,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
           accent="violet"
         />
         <StatCard
-          label={intl.formatMessage({ id: "web.routes.tabs.backups.total_size", defaultMessage: "Total size", description: "Backups tab: stat card label for the combined size of all backups of this server" })}
+          label={intl.formatMessage({ id: "web.routes.tabs.backups.total_size", defaultMessage: "Total logical size", description: "Sum of the logical sizes reported by successful backups" })}
           value={backupsError ? unavailable : totalBytes ? formatBytes(totalBytes) : emptyValue}
           icon={<HardDrive size={16} />}
           accent="warning"
@@ -224,7 +225,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
                       <Table.Cell>
                         <PhaseChip phase={b.status?.phase} />
                       </Table.Cell>
-                      <Table.Cell className="font-mono">{b.status?.size ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</Table.Cell>
+                      <Table.Cell className="font-mono"><BackupSize backup={b} /></Table.Cell>
                       <Table.Cell className="font-mono text-foreground/60">
                         {formatRelative(b.status?.completionTime, intl)}
                       </Table.Cell>

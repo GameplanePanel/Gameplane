@@ -155,6 +155,20 @@ async function renderConsole(mode: "rcon" | "pty") {
 }
 
 describe("ConsoleTab", () => {
+  it("attaches the live console while a pod history request is pending", async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    server.use(http.get("/servers/alpha/logs/pod/history", async () => {
+      await pending;
+      return HttpResponse.json({ text: "pod snapshot" });
+    }));
+    const { term } = await renderConsole("pty");
+    expect(mocks.wsCalls.length).toBeGreaterThan(0);
+    release();
+    expect(await screen.findByText("pod snapshot")).toBeInTheDocument();
+    expect(term.write).not.toHaveBeenCalledWith(expect.stringContaining("pod snapshot"));
+    expect(screen.getByText(/output may overlap or have gaps/i)).toBeInTheDocument();
+  });
   it("keeps filters independent and disposes the old terminal when its resource route changes", async () => {
     const { term, unmount, rerender, client } = await renderConsole("pty");
     const calls = mocks.wsCalls.length;

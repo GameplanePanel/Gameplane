@@ -146,6 +146,15 @@ spec:
           status:
             description: BackupStatus is the observed state of a Backup.
             properties:
+              bytesAdded:
+                anyOf:
+                - type: integer
+                - type: string
+                description: |-
+                  BytesAdded is the packed data Restic added during this backup. Zero
+                  is a measured result. CSI and older Restic summaries omit this field.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
               captureManifest:
                 description: |-
                   CaptureManifest is recorded once, before the first capture worker starts.
@@ -319,8 +328,8 @@ spec:
                 - type: integer
                 - type: string
                 description: |-
-                  Size is the on-disk size of the snapshot, as reported by the
-                  backup driver. Not always exact for incremental snapshots.
+                  Size is the logical size reported by the driver (total bytes processed
+                  for Restic, restore size for a CSI snapshot).
                 pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                 x-kubernetes-int-or-string: true
               snapshotID:

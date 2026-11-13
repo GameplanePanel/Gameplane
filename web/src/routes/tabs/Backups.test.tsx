@@ -169,7 +169,7 @@ describe("BackupsTab", () => {
     expect(await screen.findByText(/Last backup/i)).toBeInTheDocument();
     expect(screen.getByText(/Next backup/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Backups/i })).toBeInTheDocument();
-    expect(screen.getByText(/Total size/i)).toBeInTheDocument();
+    expect(screen.getByText(/Total logical size/i)).toBeInTheDocument();
   });
 
   it("shows warning when multiple schedules exist", async () => {
@@ -350,7 +350,7 @@ describe("BackupsTab", () => {
     );
     renderWithQuery(<BackupsTab name="alpha" />);
     // Total size stat should show combined size
-    expect(await screen.findByText(/Total size/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Total logical size/i)).toBeInTheDocument();
   });
 });
 
