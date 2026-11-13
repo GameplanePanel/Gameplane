@@ -166,9 +166,10 @@ func main() {
 		transport = rcon.New(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	}
 
+	flushOnly := rconEnabled && capSpec != nil && capSpec.BackupFlush == "minecraft-save-all" && gameName == "minecraft-java" && capSpec.Quiesce == nil
 	commands := rcon.NewCommands(transport)
 	rconClient := transport
-	if quiesceSpec != nil {
+	if quiesceSpec != nil || flushOnly {
 		rconClient = commands
 	}
 	r := chi.NewRouter()
@@ -219,9 +220,17 @@ func main() {
 	for _, version := range []string{"v1", "v2"} {
 		r.Route("/"+version+"/pods/{uid}", func(protected chi.Router) {
 			protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
-			protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
+			protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) {
+				if version == "v2" && flushOnly {
+					w.Header().Set("Gameplane-Backup-Mode", "flush-only")
+				}
+				w.WriteHeader(http.StatusNoContent)
+			})
 			if version == "v2" {
 				quiesce.MountVerified(protected, commands, gameName, quiesceSpec)
+				if flushOnly {
+					quiesce.MountMinecraftFlush(protected, commands)
+				}
 			} else {
 				quiesce.Mount(protected, commands, gameName, quiesceSpec)
 			}

@@ -6,6 +6,12 @@
 
 ## Purpose
 
+Backup manifests record `verified-freeze` only after a successful pod-bound
+pause. Checkpoint-only and unsupported live copies receive weak consistency
+conditions. Historical unqualified hook success remains readable with
+unknown consistency. A drained source can establish stopped-copy consistency
+for the included claims.
+
 ### Restricted workloads and node capture (#714)
 
 `--restricted-workloads` applies nonroot, no escalation, drop ALL and

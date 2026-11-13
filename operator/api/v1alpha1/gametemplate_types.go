@@ -11,6 +11,7 @@ import (
 // references it.
 // +kubebuilder:validation:XValidation:rule="!has(self.consoleMode) || self.consoleMode != 'rcon' || (has(self.rcon) && (!has(self.rcon.protocol) || self.rcon.protocol != 'none'))",message="consoleMode 'rcon' requires spec.rcon with a protocol other than 'none'"
 // +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders) || size(self.capabilities.mods.loaders) == 0 || (has(self.versions) && size(self.versions) > 0)",message="capabilities.mods.loaders requires a non-empty spec.versions catalog (a mod loader is selected by versions[].loader)"
+// +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.backupFlush) || self.game == 'minecraft-java'",message="backupFlush requires the Minecraft Java adapter"
 type GameTemplateSpec struct {
 	// DisplayName is a human-friendly label shown in the dashboard.
 	// +kubebuilder:validation:MinLength=1
@@ -268,7 +269,13 @@ type GameVersion struct {
 
 // CapabilitiesSpec declares the per-game command surface the agent
 // interprets.
+// +kubebuilder:validation:XValidation:rule="!(has(self.backupFlush) && has(self.quiesce))",message="choose a flush-only checkpoint or a write-freeze declaration"
 type CapabilitiesSpec struct {
+	// BackupFlush requests an acknowledged checkpoint without disabling writes.
+	// +optional
+	// +kubebuilder:validation:Enum=minecraft-save-all
+	BackupFlush string `json:"backupFlush,omitempty"`
+
 	// Players configures the moderation actions on the Players tab.
 	// +optional
 	Players *PlayerActionsSpec `json:"players,omitempty"`

@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 0f12a0d07eb5b4e6917b52da401eac7001c6946d13b567e81fb05146cd0caf5e
+    gameplane.local/crd-bundle-sha256: 2c689b3ad7c4d06613062035da39c080d439b861fd42925942102d86b72d772d
     controller-gen.kubebuilder.io/version: v0.22.0
   name: backups.gameplane.local
 spec:
@@ -175,8 +175,9 @@ spec:
                     type: string
                   quiesceOutcome:
                     description: |-
-                      QuiesceOutcome is confirmed, already-stopped, unsupported, not-requested,
-                      agent-unavailable, or unknown, independent of subsequent copy success.
+                      QuiesceOutcome records verified-freeze, already-stopped, flush-only or
+                      a weaker observation independently of copy success. Historical confirmed
+                      records lack pod-bound proof of a write freeze.
                     type: string
                   recordedAt:
                     format: date-time

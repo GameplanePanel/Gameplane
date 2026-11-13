@@ -421,6 +421,18 @@ func validateTemplateSchema(node *yaml.Node) []Finding {
 			})
 		}
 		specVerNode := common.FindNode(node, "spec.version")
+		if flush := common.FindNode(node, "spec.capabilities.backupFlush"); flush != nil {
+			game := common.FindNode(node, "spec.game")
+			if flush.Value != "minecraft-save-all" || game == nil || game.Value != "minecraft-java" ||
+				common.FindNode(node, "spec.capabilities.quiesce") != nil {
+				findings = append(findings, Finding{
+					Level: SeverityError, RuleID: RuleTemplateSchemaViolation, File: "template.yaml",
+					Field: "spec.capabilities.backupFlush", Line: flush.Line, Column: flush.Column,
+					Message:     "backupFlush requires the minecraft-java save-all adapter and cannot be combined with quiesce",
+					Remediation: "Use minecraft-save-all with minecraft-java, or choose a stopped copy.",
+				})
+			}
+		}
 		if specVerNode == nil || specVerNode.Value == "" {
 			findings = append(findings, Finding{
 				Level:       SeverityError,
