@@ -1215,6 +1215,10 @@
     "defaultMessage": "Language",
     "description": "Label beside the language select of each notification sink row on the admin Notifications card"
   },
+  "web.backups.bytes_added": {
+    "defaultMessage": "{size} added",
+    "description": "Packed data added to the backup repository by this run. The size includes its unit."
+  },
   "web.cluster_configuration.access": {
     "defaultMessage": "Access",
     "description": "Cluster configuration access section"
@@ -4554,6 +4558,46 @@
   "web.lib.validation.whole_number": {
     "defaultMessage": "Must be a whole number.",
     "description": "Config field validation: integer field value is not a whole number"
+  },
+  "web.logs.history.boundary": {
+    "defaultMessage": "Pod logs and the live console use independent streams. Output may overlap or have gaps between them.",
+    "description": "Explain the boundary between the console and the pod output snapshot"
+  },
+  "web.logs.history.changed": {
+    "defaultMessage": "This log changed or its earlier output expired. Reopen history to read the current log.",
+    "description": "A server log cursor no longer matches its source"
+  },
+  "web.logs.history.console": {
+    "defaultMessage": "Recent pod output",
+    "description": "Pod log snapshot shown alongside the live terminal"
+  },
+  "web.logs.history.empty": {
+    "defaultMessage": "No earlier output.",
+    "description": "The log snapshot is empty"
+  },
+  "web.logs.history.failed": {
+    "defaultMessage": "Could not load log history.",
+    "description": "The selected server's log history request failed"
+  },
+  "web.logs.history.hide": {
+    "defaultMessage": "Hide history",
+    "description": "Close the historical log page"
+  },
+  "web.logs.history.limited": {
+    "defaultMessage": "Some output exceeds the history window.",
+    "description": "A container record or history read exceeded its size limit"
+  },
+  "web.logs.history.loading": {
+    "defaultMessage": "Loading history…",
+    "description": "A log history page is loading"
+  },
+  "web.logs.history.older": {
+    "defaultMessage": "Load older",
+    "description": "Read the preceding page of this log"
+  },
+  "web.logs.history.open": {
+    "defaultMessage": "Earlier output",
+    "description": "Open a snapshot of older log output"
   },
   "web.nodes.all_clusters": {
     "defaultMessage": "All clusters",
@@ -8000,8 +8044,8 @@
     "description": "Backups tab: warning note shown when the server has more than one backup schedule, advising to combine them to avoid duplicate backups"
   },
   "web.routes.tabs.backups.total_size": {
-    "defaultMessage": "Total size",
-    "description": "Backups tab: stat card label for the combined size of all backups of this server"
+    "defaultMessage": "Total logical size",
+    "description": "Sum of the logical sizes reported by successful backups"
   },
   "web.routes.tabs.backups.unavailable": {
     "defaultMessage": "Unavailable",

@@ -253,14 +253,24 @@ func tlDo(ctx context.Context, c *APIClient, method, path string, body any) (int
 // values on the e2e release and waits for the rollout.
 func helmUpgradeReuse(ctx context.Context, t *testing.T, sets ...string) {
 	t.Helper()
+	helmUpgradeReuseJSON(ctx, t, nil, sets...)
+}
+
+// Helm merges persisted release values on upgrade. Use --set-json when the
+// replacement must remain an explicitly empty array through that merge.
+func helmUpgradeReuseJSON(ctx context.Context, t *testing.T, jsonSets []string, sets ...string) {
+	t.Helper()
 	args := []string{"upgrade", "gameplane", filepath.Join("..", "..", "charts", "gameplane"),
 		"--kube-context", envInstance.Context, "--namespace", "gameplane-system", "--reuse-values"}
 	for _, set := range sets {
 		args = append(args, "--set", set)
 	}
+	for _, set := range jsonSets {
+		args = append(args, "--set-json", set)
+	}
 	args = append(args, "--wait", "--timeout", "6m")
 	if out, err := exec.CommandContext(ctx, "helm", args...).CombinedOutput(); err != nil {
-		t.Fatalf("helm upgrade %v failed: %v\n%s", sets, err, out)
+		t.Fatalf("helm upgrade %v (JSON values %v) failed: %v\n%s", sets, jsonSets, err, out)
 	}
 }
 

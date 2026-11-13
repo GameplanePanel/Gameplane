@@ -63,7 +63,7 @@ func sinkMatches(s Sink, t EventType) bool {
 	return false
 }
 
-// sinkSecret fetches the sink's credential Secret from the control-plane
+// sinkSecret fetches the sink's credential Secret from the credentials
 // namespace, refusing any Secret not labelled SinkSecretLabel=true.
 func (n *Notifier) sinkSecret(ctx context.Context, name string) (map[string][]byte, error) {
 	sec, err := n.k.Secrets(n.controlNS).Get(ctx, name, metav1.GetOptions{})

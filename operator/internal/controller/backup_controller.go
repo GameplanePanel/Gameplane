@@ -533,6 +533,9 @@ func (r *BackupReconciler) mirrorJobStatus(
 		switch {
 		case err == nil && summary.SnapshotID != "":
 			b.Status.SnapshotID = summary.SnapshotID
+			if n := summary.PackedBytesAdded; n != nil && *n >= 0 {
+				b.Status.BytesAdded = resource.NewQuantity(*n, resource.BinarySI)
+			}
 			if summary.TotalBytesProcessed > 0 {
 				q := resource.MustParse(strconv.FormatInt(summary.TotalBytesProcessed, 10))
 				b.Status.Size = &q

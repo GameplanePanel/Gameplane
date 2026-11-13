@@ -1,14 +1,17 @@
 package modsrc
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"path"
 
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 	"github.com/GameplanePanel/gameplane/operator/internal/oci"
+	"github.com/GameplanePanel/gameplane/operator/internal/secretscope"
 )
 
 // Fetcher is one ModuleSource's view of its backing store. Index builds
@@ -30,11 +33,13 @@ type Options struct {
 	// LocalRoot is the base directory that local-type sources resolve
 	// their relative paths under. Empty disables local sources.
 	LocalRoot string
+	// ConfigMapNamespace holds uploaded bundles and published translations.
+	// Empty uses the module credential namespace.
+	ConfigMapNamespace string
 }
 
 // ForSource builds the Fetcher for a ModuleSource based on its type.
-// c and namespace are used to resolve credential Secrets living in the
-// operator namespace.
+// namespace selects module credential Secrets.
 func ForSource(ctx context.Context, c client.Client, namespace string, src *gameplanev1alpha1.ModuleSource, opts Options) (Fetcher, error) {
 	switch src.Spec.Type {
 	// Empty matches pre-defaulting objects constructed in Go (the API
@@ -74,10 +79,23 @@ func ForSource(ctx context.Context, c client.Client, namespace string, src *game
 		}
 		return newHTTP(ctx, c, namespace, spec, src.Spec.Allow)
 	case gameplanev1alpha1.ModuleSourceTypeUpload:
-		return newUpload(c, namespace, src.Spec.Allow), nil
+		return newUpload(c, cmp.Or(opts.ConfigMapNamespace, namespace), src.Spec.Allow), nil
 	default:
 		return nil, fmt.Errorf("unknown source type %q", src.Spec.Type)
 	}
+}
+
+// A ModuleSource writer controls both the Secret reference and the URL. Only
+// the Secret's owner can authorize sending its contents to that destination.
+func readSourceCredential(ctx context.Context, c client.Reader, namespace, name, annotation, sourceURL string) (*corev1.Secret, error) {
+	secret, err := secretscope.ReadModuleSecret(ctx, c, namespace, name)
+	if err != nil {
+		return nil, err
+	}
+	if sourceURL == "" || secret.Annotations[annotation] != sourceURL {
+		return nil, fmt.Errorf("credential Secret requires annotation %s matching the source URL", annotation)
+	}
+	return secret, nil
 }
 
 // allowed reports whether name passes the source's allow-list. Entries

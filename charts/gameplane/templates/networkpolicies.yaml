@@ -1,5 +1,12 @@
 {{- if (eq (include "gameplane.operatorEnabled" .) "true") }}
 {{- if .Values.networkPolicies.enabled }}
+{{- $namespaces := list .Values.gamesNamespace }}
+{{- if .Values.networkPolicies.tenantIsolation }}
+{{- $namespaces = include "gameplane.operatorGameNamespaces" . | fromJsonArray }}
+{{- end }}
+{{- range $namespace := $namespaces }}
+{{- with $ }}
+---
 # Default-deny ingress in the games namespace. Individual GameServers
 # open only the ports declared in their template (and whatever the
 # operator surfaces via the backing Service / Ingress).
@@ -7,7 +14,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector: {}
@@ -23,7 +30,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-egress
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector: {}
@@ -33,6 +40,10 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: kube-system
+            {{- if .Values.networkPolicies.tenantIsolation }}
+          podSelector:
+            matchLabels: { k8s-app: kube-dns }
+            {{- end }}
       ports:
         - { protocol: UDP, port: 53 }
         - { protocol: TCP, port: 53 }
@@ -40,14 +51,15 @@ spec:
 # Allow the agent sidecar to reach the kube-apiserver for its status
 # heartbeat (gameservers/status patches). Service VIP traffic is DNATed
 # to the apiserver endpoint before policy evaluation on most CNIs, so an
-# ipBlock toward the endpoint address is required; like the kubelet
-# probes policy below, default to RFC1918 + link-local and let operators
-# narrow it via networkPolicies.apiServerCIDRs.
+# ipBlock toward the endpoint address is required. Unset
+# networkPolicies.apiServerCIDRs means RFC1918 + link-local plus the
+# kubernetes Service endpoints detected at install time (a k3s node's
+# public IP, for example); set the list to narrow it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-agent-to-apiserver
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -56,17 +68,7 @@ spec:
   policyTypes: [Egress]
   egress:
     - to:
-        {{- $apiCidrs := (.Values.networkPolicies.apiServerCIDRs | default (list)) }}
-        {{- if $apiCidrs }}
-        {{- range $apiCidrs }}
-        - ipBlock: { cidr: {{ . | quote }} }
-        {{- end }}
-        {{- else }}
-        - ipBlock: { cidr: 10.0.0.0/8 }
-        - ipBlock: { cidr: 172.16.0.0/12 }
-        - ipBlock: { cidr: 192.168.0.0/16 }
-        - ipBlock: { cidr: 169.254.0.0/16 }
-        {{- end }}
+        {{- include "gameplane.apiServerEgressPeers" . | trim | nindent 8 }}
       ports:
         - { protocol: TCP, port: 443 }
         - { protocol: TCP, port: 6443 }
@@ -78,7 +80,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-api-to-agent
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -110,7 +112,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-api-to-capture
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -150,7 +152,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-to-agent
-  namespace: {{ $.Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 spec:
   podSelector:
@@ -168,7 +170,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-to-tunnel
-  namespace: {{ $.Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" $ | nindent 4 }}
 spec:
   podSelector:
@@ -199,7 +201,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-kubelet-probes
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -237,7 +239,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-game-public-egress
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -279,7 +281,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-backup-restore-egress
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -288,7 +290,9 @@ spec:
   policyTypes: [Egress]
   egress:
     - to:
-        - ipBlock: { cidr: 0.0.0.0/0 }
+        {{- range ($backupEgress.toCIDRs | default (list "0.0.0.0/0")) }}
+        - ipBlock: { cidr: {{ . | quote }} }
+        {{- end }}
       ports:
         {{- range $backupEgress.ports }}
         - { protocol: {{ .protocol }}, port: {{ .port }} }
@@ -306,7 +310,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-sentinel-ingress
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -332,7 +336,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-sentinel-to-apiserver
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -341,21 +345,12 @@ spec:
   policyTypes: [Egress]
   egress:
     - to:
-        {{- $apiCidrs := (.Values.networkPolicies.apiServerCIDRs | default (list)) }}
-        {{- if $apiCidrs }}
-        {{- range $apiCidrs }}
-        - ipBlock: { cidr: {{ . | quote }} }
-        {{- end }}
-        {{- else }}
-        - ipBlock: { cidr: 10.0.0.0/8 }
-        - ipBlock: { cidr: 172.16.0.0/12 }
-        - ipBlock: { cidr: 192.168.0.0/16 }
-        - ipBlock: { cidr: 169.254.0.0/16 }
-        {{- end }}
+        {{- include "gameplane.apiServerEgressPeers" . | trim | nindent 8 }}
       ports:
         - { protocol: TCP, port: 443 }
         - { protocol: TCP, port: 6443 }
 ---
+{{- if not .Values.networkPolicies.tenantIsolation }}
 # Legacy sentinel proxy allowance, ingress half. This grants ALL ports between
 # non-isolated sentinels and games. NetworkPolicies are additive; per-server
 # player ingress does not narrow it. Opted-in templates use operator policies.
@@ -369,7 +364,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-sentinel-to-game
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -397,7 +392,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-sentinel-to-game-egress
-  namespace: {{ .Values.gamesNamespace }}
+  namespace: {{ $namespace }}
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   podSelector:
@@ -414,6 +409,9 @@ spec:
             matchExpressions:
               - { key: gameplane.local/sentinel-isolation, operator: NotIn, values: ["true"] }
       # Intentionally unrestricted for templates that have not opted in.
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- end }}

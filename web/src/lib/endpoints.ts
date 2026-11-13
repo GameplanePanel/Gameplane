@@ -62,6 +62,13 @@ function withNS(path: string, ns?: string): string {
 
 // Helper to append cluster query param for multi-cluster support.
 // Only appends when the current cluster is non-local (preserves back-compat).
+export interface LogHistoryPage {
+  text: string;
+  before?: string;
+  source?: string;
+  limited?: boolean;
+}
+
 export function withCluster(path: string, clusterId = "local"): string {
   return withClusterParam(path, clusterId);
 }
@@ -1013,6 +1020,10 @@ function makeResourceEndpoints(request: RequestClient) {
   };
 
   const Logs = {
+    history: (server: string, source: "pod" | "file", before = "", ns?: string) => {
+      const route = source === "pod" ? "logs/pod/history" : "logs/history";
+      return api<LogHistoryPage>(withNS(`/servers/${encodeURIComponent(server)}/${route}?before=${encodeURIComponent(before)}`, ns));
+    },
     downloadURL: (server: string, ns?: string) =>
       withCluster(withNS(`/servers/${encodeURIComponent(server)}/logs/download`, ns)),
     // Live tail of the configured game log file, via the agent (mTLS).

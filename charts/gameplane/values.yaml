@@ -68,13 +68,16 @@ operator:
   priorityClassName: ""
   pdb: { enabled: false } # optional minAvailable OR maxUnavailable; defaults to maxUnavailable: 1
   # Additional managed game namespaces, beyond gamesNamespace. They must already
-  # exist. The chart grants namespace-local workload permissions and includes
-  # their Secrets in the operator cache. A Helm upgrade restarts the operator.
+  # exist. Label each with Restricted enforcement and the podSecurity.version
+  # pin before enabling workloads. The chart grants namespace-local workload
+  # permissions and includes their Secrets in the operator cache.
   gameNamespaces: []
+  # Remote-cluster kubeconfigs. A native API shares api.credentialsNamespace.
+  # With no native API, empty uses the release namespace.
+  controlPlaneNamespace: ""
   # Empty uses the release namespace. Non-default namespaces must already exist;
   # provision the referenced Secrets there before upgrading. These settings move
   # the operator's API reads, not the API pod or its mounted mTLS client material.
-  controlPlaneNamespace: ""
   agentCASecretNamespace: ""
   moduleNamespace: ""
   logLevel: info     # zap log level: debug|info|error (warn not supported by zap's --zap-log-level)
@@ -180,6 +183,10 @@ api:
   # Requires operator.enabled=false, which excludes bundled native CRDs.
   # Standalone mode also skips the CRD apply hook and its RBAC.
   standalone: false
+  # Native API management Secrets. Empty creates <release namespace>-credentials
+  # unless operator.controlPlaneNamespace already names an external namespace.
+  # An explicit namespace must already exist and be dedicated to these Secrets.
+  credentialsNamespace: ""
   # Must be 1 in every enabled API install, including PostgreSQL. Audit-chain
   # and user-management locks are per-process. Recreate rollouts stop the old
   # API before starting its replacement and accept a brief panel outage.
@@ -217,10 +224,11 @@ api:
   db:
     driver: sqlite       # sqlite | postgres
     dsn: "file:/data/gameplane.db?_pragma=journal_mode(WAL)"
-    # When driver=postgres [experimental], set dsn to a postgres connection
-    # string and rebuild the api image with -tags postgres (the published
-    # image is built without it). Example:
-    # dsn: "postgres://gameplane:***@postgres/gameplane?sslmode=require"
+    # An existing Secret in the release namespace takes precedence over dsn.
+    # For postgres, store the connection string there and use an API image
+    # built with -tags postgres. Helm only needs the Secret name and key.
+    existingSecret: ""
+    secretKey: dsn
 
   # Standalone encryption keys use separate storage configured under panelKey.
   panelKey:
@@ -588,6 +596,10 @@ networkPolicies:
   # Fail closed unless actual kubelet source CIDRs/probe ports and apiserver
   # endpoint CIDRs are supplied. Defaults retain the legacy broad allowances.
   strict: false
+  # Opt in only after provisioning each managed namespace and its provider
+  # egress. Requires strict endpoints, per-server probes, and explicit backup
+  # destinations. See the tenant network profile in docs/security.md.
+  tenantIsolation: false
   # CIDRs that hold kubelet source IPs for liveness/readiness probes.
   # If unset, the chart falls back to RFC1918 + link-local ranges,
   # which cover most clusters without opening the public internet.
@@ -608,8 +620,12 @@ networkPolicies:
   # probe ports, e.g. [{ protocol: TCP, port: 25565 }].
   probePorts: []
   # CIDRs that hold the kube-apiserver endpoint(s) the agent sidecar
-  # patches its status heartbeat through. Same fallback semantics as
-  # kubeletCIDRs: unset means RFC1918 + link-local on TCP 443/6443.
+  # patches its status heartbeat through. Unset means RFC1918 + link-local
+  # plus the kubernetes Service endpoint addresses detected at install or
+  # upgrade time (e.g. a k3s node's public IP), on TCP 443/6443. Offline
+  # renders (helm template, Argo CD) cannot detect them: set the list
+  # explicitly there when the endpoint is public. Re-run helm upgrade if
+  # the API server endpoint changes.
   apiServerCIDRs: []
   # Egress allowance for game pods to reach the public internet. Game
   # servers download their binaries, assets, and mods on first start
@@ -641,6 +657,10 @@ networkPolicies:
   # store) as well as public.
   backupEgress:
     enabled: true
+    # Explicit repository destinations. The compatibility profile defaults
+    # to any IPv4 address on the configured ports. Tenant isolation requires
+    # a nonempty list (or backupEgress.enabled=false and administrator policies).
+    toCIDRs: []
     # Ports opened for restic repository connections. Defaults cover
     # HTTPS-based backends (S3, B2, REST-over-TLS, Swift, Azure, GCS)
     # and SFTP. Add your repository's port if it uses neither, e.g. a
@@ -764,7 +784,7 @@ grafanaDashboards:
     grafana_dashboard: "1"
 
 podSecurity:
-  enforceRestricted: false   # require compatible nonroot templates and enforce Restricted game pods
+  enforceRestricted: true    # require compatible nonroot templates and enforce Restricted game pods
   version: v1.34             # pinned admission policy; change after testing workload compatibility
 
 # Default ModuleSource shipped with the chart. Disable when you manage

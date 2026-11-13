@@ -9,7 +9,7 @@
   },
   "clip": true,
   "width": 1440,
-  "height": 1700,
+  "height": 1320,
   "fill": "$background/background",
   "children": [
     {
@@ -145,6 +145,12 @@
                   "fontWeight": "normal"
                 }
               ]
+            },
+            "EvWbj": {
+              "opacity": 0.5
+            },
+            "fXzP0": {
+              "opacity": 1
             }
           }
         },
@@ -1203,6 +1209,7 @@
                       "width": "fill_container",
                       "padding": 0,
                       "gap": 0,
+                      "layout": "vertical",
                       "children": [
                         {
                           "type": "frame",
@@ -1231,546 +1238,116 @@
                         },
                         {
                           "type": "frame",
-                          "id": "rKcnK",
-                          "name": "Content",
+                          "id": "KByTv",
+                          "name": "Pending server lifecycle actions",
                           "width": "fill_container",
                           "layout": "vertical",
-                          "gap": 14,
+                          "gap": 4,
                           "padding": [
-                            4,
-                            12,
-                            12,
-                            12
+                            8,
+                            0
                           ],
                           "children": [
                             {
                               "type": "frame",
-                              "id": "I5WLq",
-                              "name": "World Group",
+                              "id": "GS04u",
+                              "name": "Restart",
+                              "opacity": 0.5,
                               "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": 2,
+                              "gap": 12,
+                              "padding": [
+                                8,
+                                24
+                              ],
+                              "alignItems": "center",
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "QPvvz",
-                                  "name": "World Label",
-                                  "width": "fill_container",
-                                  "layout": "vertical",
-                                  "padding": [
-                                    8,
-                                    8,
-                                    4,
-                                    8
-                                  ],
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "y0bcsS",
-                                      "name": "Label",
-                                      "fill": "$muted",
-                                      "content": "WORLD",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 11,
-                                      "fontWeight": "600",
-                                      "letterSpacing": 1
-                                    }
-                                  ]
+                                  "type": "icon",
+                                  "id": "LoFmn",
+                                  "name": "Restart icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "rotate-cw",
+                                  "library": "lucide",
+                                  "fill": "$muted"
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "kZHSI",
-                                  "name": "Set time",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "aCLkV",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "timer",
-                                      "library": "lucide",
-                                      "fill": "$muted"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "Jq2Wt",
-                                      "name": "Title",
-                                      "fill": "$foreground/foreground",
-                                      "content": "Set time",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "RgMXe",
-                                  "name": "Set weather",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "v0lfW",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "cloud",
-                                      "library": "lucide",
-                                      "fill": "$muted"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "i7msV",
-                                      "name": "Title",
-                                      "fill": "$foreground/foreground",
-                                      "content": "Set weather",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "x1SZz",
-                                  "name": "Save world",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "YW55P",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "save",
-                                      "library": "lucide",
-                                      "fill": "$muted"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "yxeyi",
-                                      "name": "Text",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "wepSn",
-                                          "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Save world",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "jLIA7",
-                                          "name": "Description",
-                                          "fill": "$muted",
-                                          "content": "Flush the world to disk now.",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "G74JEx",
-                                  "name": "Output Echo",
-                                  "width": "fill_container",
-                                  "layout": "vertical",
-                                  "padding": [
-                                    4,
-                                    0,
-                                    0,
-                                    0
-                                  ],
-                                  "children": [
-                                    {
-                                      "type": "frame",
-                                      "id": "u4okt",
-                                      "name": "Echo",
-                                      "width": "fill_container",
-                                      "fill": "$default/default",
-                                      "cornerRadius": 6,
-                                      "stroke": "$border/border",
-                                      "strokeWidth": 1,
-                                      "gap": 12,
-                                      "padding": [
-                                        8,
-                                        12
-                                      ],
-                                      "justifyContent": "space_between",
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "yVyrx",
-                                          "name": "Output Text",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Saved the game",
-                                          "fontFamily": "$typography/font-mono",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "Ui2fR",
-                                          "name": "Dismiss",
-                                          "fill": "$muted",
-                                          "content": "dismiss",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                  "type": "text",
+                                  "id": "RmYnw",
+                                  "name": "Restart label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Restart",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             },
                             {
                               "type": "frame",
-                              "id": "PlIEJ",
-                              "name": "Server Group",
+                              "id": "r9Mzzj",
+                              "name": "Stop",
                               "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": 2,
+                              "gap": 12,
+                              "padding": [
+                                8,
+                                24
+                              ],
+                              "alignItems": "center",
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "I5UvR",
-                                  "name": "Server Label",
-                                  "width": "fill_container",
-                                  "layout": "vertical",
-                                  "padding": [
-                                    8,
-                                    8,
-                                    4,
-                                    8
-                                  ],
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "EouCC",
-                                      "name": "Label",
-                                      "fill": "$muted",
-                                      "content": "SERVER",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 11,
-                                      "fontWeight": "600",
-                                      "letterSpacing": 1
-                                    }
-                                  ]
+                                  "type": "icon",
+                                  "id": "k0puI",
+                                  "name": "Stop icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "square",
+                                  "library": "lucide",
+                                  "fill": "$muted"
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "lXQs3",
-                                  "name": "Broadcast message",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "jbGbW",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "megaphone",
-                                      "library": "lucide",
-                                      "fill": "$muted"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "pdiph",
-                                      "name": "Text",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "Mj6Ty",
-                                          "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Broadcast message",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "p8uLm",
-                                          "name": "Description",
-                                          "fill": "$muted",
-                                          "content": "Send a chat message to everyone on the server.",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "ZwCFe",
-                                  "name": "Sent Confirmation",
-                                  "width": "fill_container",
-                                  "layout": "vertical",
-                                  "padding": [
-                                    4,
-                                    0,
-                                    0,
-                                    38
-                                  ],
-                                  "children": [
-                                    {
-                                      "type": "frame",
-                                      "id": "l29RYg",
-                                      "name": "Sent Chip",
-                                      "fill": "$success/soft",
-                                      "cornerRadius": 9999,
-                                      "gap": 6,
-                                      "padding": [
-                                        5,
-                                        10
-                                      ],
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "icon",
-                                          "id": "fCYJy",
-                                          "name": "Check",
-                                          "width": 13,
-                                          "height": 13,
-                                          "icon": "check",
-                                          "library": "lucide",
-                                          "fill": "$success/soft-foreground"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "k9xIe",
-                                          "name": "Label",
-                                          "fill": "$success/soft-foreground",
-                                          "content": "Broadcast sent",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 12,
-                                          "fontWeight": "500"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "W5Eda",
-                                  "name": "Reload config",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "UF7Qn",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "refresh-cw",
-                                      "library": "lucide",
-                                      "fill": "$muted"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "D92Gdl",
-                                      "name": "Text",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "IBV4L",
-                                          "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Reload config",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "HHDND",
-                                          "name": "Description",
-                                          "fill": "$muted",
-                                          "content": "Reapply server.properties without a restart.",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "qtBNL",
-                                  "name": "Announce restart",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "jEX6x",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "alarm-clock",
-                                      "library": "lucide",
-                                      "fill": "$danger/danger"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "y5kB1",
-                                      "name": "Text",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "F8gSy",
-                                          "name": "Title",
-                                          "fill": "$danger/danger",
-                                          "content": "Announce restart",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "O6315W",
-                                          "name": "Description",
-                                          "fill": "$muted",
-                                          "content": "Warn players, save, and restart the server.",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                  "type": "text",
+                                  "id": "SwewK",
+                                  "name": "Stop label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Stop",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             },
                             {
                               "type": "frame",
-                              "id": "b2jcOU",
-                              "name": "Players Group",
+                              "id": "sHiTe",
+                              "name": "Open console",
                               "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": 2,
+                              "gap": 12,
+                              "padding": [
+                                8,
+                                24
+                              ],
+                              "alignItems": "center",
                               "children": [
                                 {
-                                  "type": "frame",
-                                  "id": "JNdR6",
-                                  "name": "Players Label",
-                                  "width": "fill_container",
-                                  "layout": "vertical",
-                                  "padding": [
-                                    8,
-                                    8,
-                                    4,
-                                    8
-                                  ],
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "Wy7gE",
-                                      "name": "Label",
-                                      "fill": "$muted",
-                                      "content": "PLAYERS",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 11,
-                                      "fontWeight": "600",
-                                      "letterSpacing": 1
-                                    }
-                                  ]
+                                  "type": "icon",
+                                  "id": "Y2z57y",
+                                  "name": "Open console icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "terminal",
+                                  "library": "lucide",
+                                  "fill": "$muted"
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "OaCMP",
-                                  "name": "Toggle PvP",
-                                  "width": "fill_container",
-                                  "cornerRadius": 6,
-                                  "gap": 12,
-                                  "padding": 8,
-                                  "children": [
-                                    {
-                                      "type": "icon",
-                                      "id": "OAW27",
-                                      "name": "Icon",
-                                      "width": 18,
-                                      "height": 18,
-                                      "icon": "swords",
-                                      "library": "lucide",
-                                      "fill": "$muted"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "X7SFDl",
-                                      "name": "Text",
-                                      "width": "fill_container",
-                                      "layout": "vertical",
-                                      "gap": 2,
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "Z1Gdp8",
-                                          "name": "Title",
-                                          "fill": "$foreground/foreground",
-                                          "content": "Toggle PvP",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 14,
-                                          "fontWeight": "500"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "hxvCh",
-                                          "name": "Description",
-                                          "fill": "$muted",
-                                          "content": "Enable or disable player-versus-player combat.",
-                                          "fontFamily": "$typography/font-sans",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
+                                  "type": "text",
+                                  "id": "BjuXX",
+                                  "name": "Open console label",
+                                  "fill": "$foreground/foreground",
+                                  "content": "Open console",
+                                  "fontFamily": "$typography/font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }

@@ -120,7 +120,7 @@ func TestInvalidIsolatedTemplateRevokesOnlyOwnedExposure(t *testing.T) {
 				owner.UID = "foreign-server"
 			}
 			var exposures []client.Object
-			for _, name := range []string{gameIngressPolicyName(gs), gs.Name + "-sentinel-ingress", gs.Name + "-sentinel-egress"} {
+			for _, name := range []string{gameIngressPolicyName(gs), gs.Name + "-sentinel-ingress", gs.Name + "-sentinel-egress", gs.Name + "-tunnel-ingress", gs.Name + "-tunnel-egress"} {
 				exposures = append(exposures, &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: gs.Namespace, UID: types.UID(name), OwnerReferences: []metav1.OwnerReference{owner}}})
 			}
 			for _, name := range []string{gs.Name, gs.Name + "-game-direct"} {

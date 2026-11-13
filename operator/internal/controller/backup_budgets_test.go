@@ -510,7 +510,7 @@ func TestPreparedBackupPlacementAndResources(t *testing.T) {
 		r := &BackupReconciler{HardSameNode: hard, BackupResources: &corev1.ResourceRequirements{}}
 		b := guardBackup("copy")
 		source := &backupWorkerSource{NodeName: "node-a", Tolerations: []corev1.Toleration{{Key: "games", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule}}}
-		spec := r.buildPreparedBackupPodSpec(b, &gameplanev1alpha1.GameTemplate{}, source, time.Now().Add(time.Minute))
+		spec := r.buildPreparedBackupPodSpec(b, &gameplanev1alpha1.GameTemplate{}, source, "server-uid", time.Now().Add(time.Minute))
 		if spec.AutomountServiceAccountToken == nil || *spec.AutomountServiceAccountToken || len(spec.Tolerations) != 1 || spec.Tolerations[0].Key != "games" {
 			t.Fatal("worker credentials or tolerations contract lost")
 		}
@@ -524,8 +524,24 @@ func TestPreparedBackupPlacementAndResources(t *testing.T) {
 			t.Fatal("resource clearing or preparation probe missing")
 		}
 		source.NodeName = ""
-		if stopped := r.buildPreparedBackupPodSpec(b, &gameplanev1alpha1.GameTemplate{}, source, time.Now()); stopped.Affinity != nil {
+		if stopped := r.buildPreparedBackupPodSpec(b, &gameplanev1alpha1.GameTemplate{}, source, "server-uid", time.Now()); stopped.Affinity != nil {
 			t.Fatal("stopped source invented a game node")
+		}
+	}
+}
+
+func TestResticWorkerHostUsesBoundServerIdentity(t *testing.T) {
+	r := &BackupReconciler{}
+	for _, tc := range []struct{ backupName, uid, want string }{
+		{"manual", "first-server", "gameplane-first-server"},
+		{"nightly", "first-server", "gameplane-first-server"},
+		{"nightly", "replacement-server", "gameplane-replacement-server"},
+	} {
+		b := guardBackup(tc.backupName)
+		s := r.buildPreparedBackupPodSpec(b, &gameplanev1alpha1.GameTemplate{}, &backupWorkerSource{}, types.UID(tc.uid), time.Now())
+		args := s.Containers[0].Args
+		if len(args) < 2 || args[len(args)-2] != "--host" || args[len(args)-1] != tc.want {
+			t.Fatalf("worker arguments %q", args)
 		}
 	}
 }

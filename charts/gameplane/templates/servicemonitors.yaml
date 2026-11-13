@@ -101,6 +101,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  namespaceSelector:
+    matchNames: {{ include "gameplane.operatorGameNamespaces" . }}
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-game }
   podMetricsEndpoints:
@@ -124,6 +126,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  namespaceSelector:
+    matchNames: {{ include "gameplane.operatorGameNamespaces" . }}
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-tunnel }
   podMetricsEndpoints:

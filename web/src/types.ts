@@ -701,6 +701,7 @@ export interface Backup {
     completionTime?: string;
     snapshotID?: string;
     size?: string;
+    bytesAdded?: string;
     captureManifest?: BackupCaptureManifest;
     conditions?: Array<{ type: string; status: string; reason?: string; message?: string }>;
   };

@@ -54,7 +54,7 @@ func TestBackup_CreatesJobWithExpectedSpec(t *testing.T) {
 	if !strings.HasPrefix(c.Image, "restic/restic:") {
 		t.Errorf("image = %q, want restic/restic:*", c.Image)
 	}
-	if got, want := c.Args, []string{resticWorkerScript, "backup-worker", "backup", "/data", "--json", "--retry-lock", "10m", "--tag", "gameplane"}; !equalStrings(got, want) {
+	if got, want := c.Args, []string{resticWorkerScript, "backup-worker", "backup", "/data", "--json", "--retry-lock", "10m", "--tag", "gameplane", "--host", "gameplane-" + string(getGameServer(t, ns, "smp").UID)}; !equalStrings(got, want) {
 		t.Errorf("args = %v, want %v", got, want)
 	}
 
@@ -362,7 +362,7 @@ func TestBackup_PassesTagsToRestic(t *testing.T) {
 		if !ok {
 			return false, "job not yet created"
 		}
-		want := []string{"backup", "/data", "--json", "--retry-lock", "10m", "--tag", "gameplane", "--tag", "nightly", "--tag", "preupgrade"}
+		want := []string{"backup", "/data", "--json", "--retry-lock", "10m", "--tag", "gameplane", "--tag", "nightly", "--tag", "preupgrade", "--host", "gameplane-" + string(getGameServer(t, ns, "smp").UID)}
 		want = append([]string{resticWorkerScript, "backup-worker"}, want...)
 		if !equalStrings(j.Spec.Template.Spec.Containers[0].Args, want) {
 			return false, "args = " + strings.Join(j.Spec.Template.Spec.Containers[0].Args, " ")

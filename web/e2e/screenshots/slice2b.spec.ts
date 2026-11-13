@@ -119,6 +119,7 @@ test.describe("Slice 2b: Mods/Modpacks/Backups + Settings (Desktop — 1440x900)
     await clickTab(page, "Backups");
     await expect(page.getByRole("rowheader", { name: "mc-survival-nightly-0713" })).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(200);
+    await expect(page.getByText("14 KB added", { exact: true })).toBeVisible();
     await capture(page, "pssCT");
   });
 

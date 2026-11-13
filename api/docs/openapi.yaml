@@ -404,6 +404,24 @@ paths:
       responses:
         '200':
           description: OK
+  '/servers/{name}/logs/history':
+    get:
+      summary: Read game-file history through the selected server's agent
+      parameters:
+        - { in: path, name: name, required: true, schema: { type: string } }
+        - { in: query, name: before, schema: { type: string } }
+      responses:
+        '200': { description: Log text and optional preceding-page cursor }
+        '409': { description: File replaced or truncated }
+  '/servers/{name}/logs/pod/history':
+    get:
+      summary: Read earlier output of an authorized game or init container
+      parameters:
+        - { in: path, name: name, required: true, schema: { type: string } }
+        - { in: query, name: before, schema: { type: string } }
+      responses:
+        '200': { description: 'Log text, source container, optional before cursor and limited flag' }
+        '409': { description: Container replaced or requested boundary unavailable }
   '/servers/{name}/modpack':
     post:
       responses:

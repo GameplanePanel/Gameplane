@@ -1864,8 +1864,8 @@ jobs:
             job_timeout: 75
           - bucket: network-isolation
             parallel: 1
-            test_timeout: 15m
-            job_timeout: 60
+            test_timeout: 25m
+            job_timeout: 75
           - bucket: operator
             parallel: 8
             test_timeout: 20m
@@ -1951,17 +1951,22 @@ jobs:
           GAMEPLANE_E2E_PROFILE: ${{ matrix.bucket == 'wake-hostport' && 'two-node' || (matrix.bucket == 'management-placement' || matrix.bucket == 'backup-preparation') && 'management' || 'default' }}
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e "$GAMEPLANE_E2E_PROFILE"
       - name: install real monitoring fixture
-        if: matrix.bucket == 'monitoring' && env.RUN_REGEX != ''
+        if: (matrix.bucket == 'monitoring' || matrix.bucket == 'network-isolation') && env.RUN_REGEX != ''
         run: bash deploy/kind/monitoring.sh
       - name: run go e2e (${{ matrix.bucket }})
         if: env.RUN_REGEX != ''
         env:
           GAMEPLANE_RECOVERY_REPORT_DIR: ${{ github.workspace }}/recovery-reports
+          E2E_BUCKET: ${{ matrix.bucket }}
         run: |
+          prefix=()
+          if [[ "$E2E_BUCKET" == network-isolation ]]; then
+            prefix=(bash ../../deploy/kind/with-network-peers.sh)
+          fi
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
-            go test -tags=e2e -timeout ${{ matrix.test_timeout }} -v \
+            "${prefix[@]}" go test -tags=e2e -timeout ${{ matrix.test_timeout }} -v \
               -parallel ${{ matrix.parallel }} -run "$RUN_REGEX" ./...
       - name: upload measured panel recovery report
         if: always() && matrix.bucket == 'recovery'
@@ -2497,7 +2502,6 @@ jobs:
         run: |
           args="$(kubectl --context "$CTX" --namespace gameplane-system get deployment gameplane-api \
             -o jsonpath='{.spec.template.spec.containers[?(@.name=="api")].args}')"
-          echo "api args: ${args}"
           if ! grep -q -- '--db-driver=postgres' <<<"${args}"; then
             echo "the gameplane-api Deployment does not run with --db-driver=postgres" >&2
             exit 1
@@ -2538,6 +2542,8 @@ jobs:
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
+      - name: verify Secret-backed PostgreSQL configuration after upgrade
+        run: bash deploy/kind/check-postgres-secret.sh "$CTX"
       - name: dump cluster state on failure (e2e-postgres)
         if: failure()
         uses: ./.github/actions/dump-cluster-state

@@ -306,6 +306,59 @@ intended for local `kind` development where mTLS is overkill.
 
 ## NetworkPolicies
 
+### Tenant network profile
+
+Pre-provision a dedicated namespace per tenant and apply the cluster's restricted
+Pod Security Admission labels there. Upgrade each wake-enabled template to
+`spec.sentinelIsolation: true`, and verify its advertised ports before switching
+profiles. With `networkPolicies.tenantIsolation: true`, Helm owns the baseline
+policies in the primary namespace and every namespace in `operator.gameNamespaces`.
+Inventory policies with the same names before enabling this on an existing system.
+Removing a namespace from the list can remove its Helm-owned policies. Drain
+its games or hand policy ownership to the cluster administrator first.
+
+```yaml
+podSecurity:
+  enforceRestricted: true
+operator:
+  gameNamespaces: [tenant-b]
+networkPolicies:
+  tenantIsolation: true
+  strict: true
+  kubeletCIDRs: [192.0.2.10/32, 192.0.2.11/32]
+  apiServerCIDRs: [192.0.2.2/32]
+  probeIngress: {enabled: true}
+  probePorts: []
+  gameEgress: {enabled: false}
+  backupEgress:
+    enabled: true
+    toCIDRs: [192.0.2.30/32]
+    ports: [{protocol: TCP, port: 443}]
+```
+
+Replace the example addresses with endpoints observed by the enforcing CNI
+after Service translation. The profile omits legacy cross-game sentinel rules,
+limits DNS to kube-dns-labeled pods in kube-system, and admits both tunnel egress
+and backend ingress between a relay and its own game/waker on advertised ports. Provide scoped DNS allowances if
+the cluster uses NodeLocal DNS. Open approved asset downloads explicitly.
+Use a namespace-local policy for each relay's provider control/data endpoints.
+Select its `app.kubernetes.io/name: gameplane-tunnel` and
+`app.kubernetes.io/instance: <server>` labels. For Playit also allow the exact
+Kubernetes API endpoint for address publication. Providers with dynamic
+destinations require a provider-aware egress policy or a separately isolated
+deployment. Check existing provider policies after the operator reconciles.
+
+Run positive joins, heartbeat, scrape and backup checks on the deployed CNI.
+When upgrading with Helm's `--reuse-values` from a shared kubelet probe list,
+pass `--set-json 'networkPolicies.probePorts=[]'` to replace the previous
+list explicitly. Check that each managed game namespace has its per-server
+probe policies and that the legacy `allow-kubelet-probes` grant is absent.
+From an independent tenant, check the target Pod IP and Service for RCON and
+agent access. Verify private HTTPS and metadata endpoints are unreachable.
+Review additional policies in each namespace because their grants are additive.
+
+### Chart and operator policy rules
+
 When `networkPolicies.enabled=true` (default) the chart applies:
 
 - `default-deny-ingress` — denies all ingress to all pods in the games
@@ -321,8 +374,9 @@ When `networkPolicies.enabled=true` (default) the chart applies:
   for status heartbeat (GameServer status patches). By default permits TCP 443
   and 6443 to all addresses in RFC1918 and link-local ranges (10.0.0.0/8,
   172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16), not limited to the apiserver
-  endpoint. Customize via `networkPolicies.apiServerCIDRs` to narrow to specific
-  API server addresses.
+  endpoint, plus the `kubernetes` Service ClusterIPs and endpoint addresses
+  the chart detects at install/upgrade time (as /32 or /128). Customize via
+  `networkPolicies.apiServerCIDRs` to narrow to specific API server addresses.
 - `allow-api-to-agent` — allows the API and operator pods (in the
   control-plane namespace) to reach every game pod's agent on TCP port 8090.
   The API proxies console/files/logs/players; the operator calls `/quiesce`
@@ -359,9 +413,9 @@ When `networkPolicies.enabled=true` (default) the chart applies:
 - `allow-prometheus-to-agent` — opt-in (rendered only when
   `serviceMonitors.scrapeNamespaceSelector` is set) policy allowing Prometheus
   pods in the selected namespace to reach the agent's plain-HTTP metrics port
-  (TCP 9090). That port is unauthenticated HTTP, not mTLS, and is otherwise
-  already reachable from `kubeletCIDRs` via `allow-kubelet-probes` above
-  unless `networkPolicies.probePorts` is narrowed to exclude it.
+  (TCP 9090). The per-server probe policy opens it only for a game that uses
+  that probe port. A shared `probePorts` entry for 9090 or the legacy all-port
+  kubelet allowance can also grant access to this unauthenticated listener.
 - `allow-game-public-egress` — (enabled by default, gated by
   `networkPolicies.gameEgress.enabled`) allows game pods to reach the public
   internet for binary/asset/mod downloads. Set `networkPolicies.gameEgress.enabled: false`
@@ -389,8 +443,8 @@ audit-syslog-bridge) runs as:
 - `capabilities.drop: [ALL]`
 - `allowPrivilegeEscalation: false`
 
-The agent sidecar in each game pod gets the same fixed hardening. The game
-container itself does not: it runs as the template's
+The agent sidecar in each game pod gets the same fixed hardening. When an
+administrator sets `podSecurity.enforceRestricted=false`, the game container uses the legacy profile: it runs as the template's
 `spec.security.runAsUser`/`runAsGroup` when the template sets them (see
 [module authoring](module-authoring.md#security-context)), and otherwise as
 the image's own default user, which may be root. The operator sets no
@@ -399,8 +453,7 @@ the image's own default user, which may be root. The operator sets no
 container runtime's defaults. This keeps arbitrary third-party game images
 working unchanged.
 
-`podSecurity.enforceRestricted=true` enables a different workload profile as
-well as Restricted admission. Game and config-init containers use a positive
+The default `podSecurity.enforceRestricted=true` enables Restricted admission and the nonroot workload profile. Game and config-init containers use a positive
 template UID/GID, `runAsNonRoot`, no privilege escalation, `drop: [ALL]`, and
 `RuntimeDefault` seccomp. The operator rejects templates without positive
 `security.runAsUser` and `security.fsGroup` (and a positive `runAsGroup` when
@@ -1033,7 +1086,7 @@ fail startup. Other resource informers remain cluster-wide, including cluster-sc
 Gameplane CRDs; this does not grant Secret reads outside the configured set.
 
 Remote-cluster registration reads the kubeconfig Secret from the configured local
-control-plane namespace and performs remote discovery, without opening remote
+cluster credentials namespace and performs remote discovery, without opening remote
 Secret informers. The direct readers used for workload lifecycle checks remain
 subject to the same Kubernetes RBAC boundary. The API's credentials and grants
 are separate from the operator's. A cluster administrator can widen access with
@@ -1041,7 +1094,12 @@ additional RoleBindings; the boundary assumes no such extra grants. See
 [operator Secret upgrades](install.md#upgrading-the-operator-secret-boundary) for
 namespace registration and migration steps.
 
-Combined installations store management credentials in Kubernetes Secrets.
+Combined installations store API-managed credentials in a dedicated namespace.
+The API can read its mounted mTLS client identity and CA certificate. Its Kubernetes
+identity has no Secret or ConfigMap permissions in the release namespace.
+Module upload and translation ConfigMaps live beside the API-managed credentials.
+Admission denies persistent ServiceAccount token Secrets in protected namespaces. See the
+[native credential upgrade procedure](install.md#upgrading-native-api-credentials).
 Standalone panels store their labelled management credentials, including remote
 kubeconfigs, gateway keys, OIDC client secrets, notification credentials, and mod
 registry keys, as AES-GCM ciphertext in SQL. They use a persistent 32-byte key.
@@ -1083,7 +1141,7 @@ Secrets Gameplane reads or creates, by convention:
   `GAMEPLANE_AUDIT_S3_SECRET_KEY`), never flags, so they do not appear in the pod
   spec or `ps` output.
 - notification sinks — any Secret labelled
-  `gameplane.local/notification-sink=true` in the control-plane namespace
+  `gameplane.local/notification-sink=true` in the API credentials namespace
   (user-supplied; referenced by name from Admin Settings → Notifications, read
   by the API at delivery time — see [notifications](notifications.md)).
 - telemetry receiver credentials — `api.telemetry.receiver.dashboard.tokenSecretRef`
