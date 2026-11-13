@@ -1,6 +1,6 @@
 # Contract: cluster-wide "allow root overrides" setting
 
-**Requirements**: FR-005, SC-003, OD-2, OD-4. **Research**: R9, R11.
+**Requirements**: FR-005, FR-005a, SC-003, OD-2, OD-4. **Research**: R9, R11.
 
 ## Storage and routes
 
@@ -24,11 +24,32 @@ PUT /admin/config/security
 |---|---|---|
 | `allowRootOverrides` | bool | Required. Invalid JSON or a non-boolean value returns 422 like the other sections. |
 
+## Operator mirror
+
+The operator must know the setting (FR-005a), and it neither reads the API database nor calls the API (CLAUDE.md rule 10). The API therefore mirrors the value into a ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gameplane-security-settings
+  namespace: <gameplane control-plane namespace>
+  labels: { app.kubernetes.io/managed-by: gameplane-api }
+data:
+  allowRootOverrides: "false"   # "true" or "false"
+```
+
+- `PUT /admin/config/security` writes the ConfigMap, then the config row; if the ConfigMap write fails the request fails (502 with the existing error body) and the config row is unchanged, so the two never silently disagree. A multi-cluster API writes the ConfigMap into every registered cluster it can reach.
+- On start the API rewrites the ConfigMap from the config row (it converges after a database restore, a new cluster or a deleted ConfigMap). No other writer exists; a hand edit is overwritten at the next sync.
+- **Fail closed**: the operator reads a missing ConfigMap, a missing key or any value other than `"true"` as off.
+- RBAC: the chart gives the API `get;create;update;patch` on this one ConfigMap by `resourceNames` in the release namespace (`charts/gameplane/templates/api.yaml`); the operator already holds `get;list;watch` on ConfigMaps.
+
 ## What it governs
 
-The API's server create, update and clone path (see [api-server-security.md](api-server-security.md), case 5) reads this value on each request that carries a new or changed root value. A root value is run-as user or run-as group set to 0 or to "use image default", or filesystem group set to 0. Nothing else reads it: the operator and the agent never see it, because the operator only applies stored values (FR-004).
+1. **API write path** (see [api-server-security.md](api-server-security.md), case 5): each request that carries a new or changed root value is refused while the setting is off. A root value is run-as user or run-as group set to 0 or to "use image default", or filesystem group set to 0.
+2. **Reconciler start path** (OD-4, settled A; FR-005a): while the setting is off, the operator does not start a server that holds a saved root override. Replicas stay at zero and the server reports condition `SecurityAllowed=False` with reason `RootOverrideDisallowed` (details in [data-model.md](../data-model.md), "Start refusal"). It starts once the override is cleared or the setting is on again.
 
-Turning it **off** does not touch stored overrides and does not restart anything (OD-4, option A, pending ruling). It only refuses future root values.
+Turning it **off** never restarts or stops a running server and never edits a stored override; it only makes future writes of root values fail and makes a stopped server holding one refuse to start. Turning it **on** lets such a server start on the next reconcile (the operator watches the ConfigMap, so there is no delay beyond the reconcile).
 
 Multi-cluster: the setting is the central API's, and applies to servers created or edited through that API on any registered cluster. Per-cluster values are out of scope.
 
@@ -43,5 +64,6 @@ The Admin Settings screen (`web/src/routes/AdminSettings.tsx`) gains a "Security
 ## Tests
 
 - Unit: validator accepts `{"allowRootOverrides":true}`, rejects non-boolean and empty body, drops unknown members.
-- Envtest (`config_envtest_test.go` pattern): the section round-trips through `GET /admin/config`; a viewer without `config:manage` gets 403 on `PUT`.
+- Envtest (`config_envtest_test.go` pattern): the section round-trips through `GET /admin/config`; a viewer without `config:manage` gets 403 on `PUT`; a flip writes the ConfigMap with the expected value and a failing ConfigMap write leaves the config row unchanged; the start-up sync recreates a deleted ConfigMap.
+- Operator envtest (`gameserver_security_envtest_test.go`): with the ConfigMap absent or `"false"`, a stopped server holding a root override stays at zero replicas with `SecurityAllowed=False` / `RootOverrideDisallowed`; a running one is untouched; flipping the ConfigMap to `"true"` starts the stopped one; clearing the override starts it too.
 - The server-path behavior with the setting on and off is covered by the handler envtest and the E2E in [api-server-security.md](api-server-security.md).

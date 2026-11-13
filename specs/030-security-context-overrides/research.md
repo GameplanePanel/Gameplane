@@ -2,7 +2,7 @@
 
 **Feature**: [spec.md](spec.md) | **Plan**: [plan.md](plan.md) | **Date**: 2026-11-13
 
-Each entry records a decision, why it was made, and what else was considered. Facts about current code cite `file:line` as of the `spec-030/plan-and-tasks` branch. Questions that need a product ruling are in [OPEN-DECISIONS.md](OPEN-DECISIONS.md) (OD-4, OD-5, OD-6); the plan builds on the recommended option of each and marks the place it touches.
+Each entry records a decision, why it was made, and what else was considered. Facts about current code cite `file:line` as of the `spec-030/plan-and-tasks` branch. Questions that need a product ruling are in [OPEN-DECISIONS.md](OPEN-DECISIONS.md) (OD-1 to OD-6, all settled by valgul, 2026-11-07 and 2026-11-13); each entry that a ruling shaped says which one.
 
 ## Baseline facts
 
@@ -86,7 +86,7 @@ security:
 
 **Decision**: a pure function in the operator, `resolveGameSecurity(tmpl, gs) -> GameSecurity`, returns for each setting a value and a source. Every consumer takes its result instead of reading `tmpl.Spec.Security`:
 - `gameContainerSecurityContext` and `gamePodSecurityContext` (`:2470`, `:2586`) and `buildConfigInitContainer` (`:2310`), by signature change;
-- `validateRestrictedTemplate` and `restrictedContainerSecurity` (`workload_security.go:15, 23`), on the effective values (OD-5, option A);
+- `validateRestrictedTemplate` and `restrictedContainerSecurity` (`workload_security.go:15, 23`), on the effective values (OD-5, settled A: an effective value the rule refuses fails the server with the existing message until fixed; a running pod keeps running);
 - `buildBackupPodSecurityContext` (`backup_controller.go:1133`), which receives the *applied* filesystem group (R6);
 - the status writer (`gameserver_status.go`), which publishes `status.security`.
 
@@ -156,17 +156,34 @@ The config-init container already makes copied files group-writable itself (`gam
 
 **Residual risk**: `OnRootMismatch` does not repair files created with the wrong group inside an otherwise correct top folder (for example by an earlier run as another uid). The dashboard's `EveryStart` choice is the remedy; the data-model and quickstart both cover it. A per-feature note in `docs/module-authoring.md` (FR-013) explains when a module should set `EveryStart`.
 
-## R9. The cluster-wide "allow root overrides" setting
+## R9. The cluster-wide "allow root overrides" setting, and how the operator learns it
 
 **Decision**: a new config section `security` with one boolean, `allowRootOverrides`, default false (absent row means false). It is added to `newValidators` (`config.go:462`), is read through `GET /admin/config`, and is written through `PUT /admin/config/security`, which the existing rule table already gates with `config:manage` (`rbac.go:223-228`). A change writes its own audit row (R11), following `config.go:174-179`.
 
-The API reads it per request inside the create and update path (a single indexed `SELECT` on `config`); the operator does not need it, because the operator only applies stored values and the API is the only writer of user intent (FR-004). In a multi-cluster install the setting is the central API's, and applies to servers created or edited through it on any member cluster.
+**The operator must read it (OD-4, settled A).** FR-005a: while the setting is off, the reconciler must not start a server that holds a saved root override, and must say why. The operator has no access to the API's database and must not call the API (CLAUDE.md rule 10), so the setting reaches it as a Kubernetes object:
 
-**Rationale**: the config store is the established home for admin switches, has validation, audit hooks, dashboard plumbing (`AdminSettings.tsx`) and RBAC for free. A Helm value would not be changeable at runtime, and the spec says an admin turns it on and off, audited (FR-005).
+- The API owns one ConfigMap, `gameplane-security-settings`, in the gameplane (control-plane) namespace of each cluster, with the single key `allowRootOverrides` (`"true"` or `"false"`). The API is its only writer; the config table stays the source of truth.
+- `PUT /admin/config/security` writes the ConfigMap first, then the config row, and fails the request if the ConfigMap write fails, so the two cannot drift silently. In a multi-cluster install the central API writes the ConfigMap into every registered cluster it can reach; a start-up sync in the API rewrites it from the config row, so a restored database, a newly registered cluster or a manually deleted ConfigMap converge.
+- **Fail closed**: a missing ConfigMap, a missing key or any value other than `"true"` means the setting is off. The default install therefore refuses root overrides on start with no extra step.
+- The operator reads it from its informer cache (it already has cluster-wide `get;list;watch` on ConfigMaps, `operator/internal/controller/gameserver_controller.go:258`; the cache cost is one more watched object) and adds a `Watches(&corev1.ConfigMap{})` entry next to the Pod and GameTemplate watches (`:583`), filtered to that name and namespace, with a map function that enqueues every GameServer holding a root override in any namespace (so a flip, in either direction, is picked up at once; unrelated servers are not enqueued).
+- The API's chart Role gains `get;create;update;patch` on that one ConfigMap by `resourceNames` (`charts/gameplane/templates/api.yaml`); the operator needs no new rule.
 
-**Alternatives considered**: *A Helm value or API flag.* Needs a rollout to change and cannot be audited as an admin action. *A field on a CRD.* The API's setting store is the one place that holds cluster-wide dashboard settings today.
+**What the reconciler does with it** (FR-005a). A *root override* is a saved `spec.security` whose `runAsUser` or `runAsGroup` is `value: 0` or `useImageDefault: true`, or whose `fsGroup` is `value: 0`. While the setting is off and the server holds one:
+- a server that is not running (zero replicas, so the next scale-up would be a start) is **not scaled up**: the zero-to-one transition in `reconcileStatefulSet` (the R5 refresh point) is held at zero and the server reports condition `SecurityAllowed` `False`, reason `RootOverrideDisallowed`, message naming the offending settings and how to clear them;
+- a server that is already running is **never touched**: no scale-down, no pod-template change, no restart, and its phase is unchanged; the same condition is set to `False` with a message saying the server keeps running but will not start again until the override is cleared or the setting is on, so the dashboard can warn before the next restart;
+- turning the setting off never restarts or stops any server, and turning it back on (or clearing the override) lets the next reconcile start the server with no other step. The module's own root defaults (a template that sets user 0) are not overrides and are not affected.
 
-**Open point**: what happens to a root override that already exists when the switch is turned off is OD-4 (asked; the recommended option is to refuse to start such a server, which needs the operator to read the setting). Independently of OD-4, the API refuses only a request that *sets or changes* a root value; an unchanged one passes through (so a whole-spec PUT from the dashboard still works) and removing it is always allowed.
+The check runs before the R5 refresh, so a refused start leaves the StatefulSet exactly as it was. The reconciler sets the condition from the same pure helper the tests exercise (`hasRootOverride(gs)` and `rootOverrideSettings(gs)` in `security_settings.go`).
+
+The API still reads the setting from the config table per request inside the create and update path (one indexed `SELECT` on `config`) and refuses only a request that *sets or changes* a root value; an unchanged one passes through (so a whole-spec PUT from the dashboard still works) and removing one is always allowed. The reconciler's refusal is the second line, for overrides saved before the setting was turned off, and for writers that bypass the API (`kubectl`).
+
+**Rationale**: the config store is the established home for admin switches, has validation, audit hooks, dashboard plumbing (`AdminSettings.tsx`) and RBAC for free, and the spec says an admin turns it on and off, audited (FR-005). A ConfigMap is the Kubernetes primitive for small cluster configuration the operator must watch (CLAUDE.md rule 9), is namespaced, RBAC-controlled and cached, and keeps the operator from learning the API's database or calling it (rule 10).
+
+**Alternatives considered**:
+- *The operator calls the API for the setting.* A runtime dependency in the wrong direction (operator to API), and it fails if the API is down exactly when a server must be started.
+- *A Helm value or operator flag.* Needs a rollout to change and cannot be changed or audited as an admin action.
+- *A field on a cluster-scoped CRD (a new `ClusterSecurityPolicy`).* A new CRD, schema, RBAC and generated copies for one boolean; a ConfigMap is enough.
+- *Copying the flag onto each GameServer (`status` or an annotation) from the API.* Fans out writes to every server on each flip and adds another writer of GameServer objects.
 
 ## R10. Where each permission and validation check runs
 
@@ -177,7 +194,7 @@ The new block in `validateAndProtectGameServer` (after the capture step), for `d
 2. **Absent in the request, present in live**, caller lacks `servers:security`: restore live's value into the request (the same move the capture and image steps make), so a client that drops the field cannot wipe it by accident.
 3. **Changed** and the caller lacks `servers:security`: refuse (403, `server.security.forbidden`).
 4. **Shape**: each id 0 to 4294967295, exactly one of `value`/`useImageDefault`, enum values valid: refuse (422, `server.security.invalid`). The CRD's CEL and bounds are the second line.
-5. **Root rule** (FR-005, OD-2): a new or changed `runAsUser`/`runAsGroup` with value 0 or `useImageDefault`, or `fsGroup` with value 0, is refused (403, `server.security.root_disabled`) unless `allowRootOverrides` is true. Only new or changed values are checked at write time; existing ones on start are OD-4.
+5. **Root rule** (FR-005, OD-2): a new or changed `runAsUser`/`runAsGroup` with value 0 or `useImageDefault`, or `fsGroup` with value 0, is refused (403, `server.security.root_disabled`) unless `allowRootOverrides` is true. Only new or changed values are checked at write time; an existing root override is checked by the reconciler on start (R9, OD-4 settled A).
 
 Clone (`lifecycle.go:243`) reaches the same function with `live == nil`, so a clone of a server that has overrides is refused for a caller without `servers:security`, with the same message; a holder can clone. That is the intended reading of "no inheriting a privilege on a clone" already used for the capture node exception (`lifecycle.go:232-234`).
 
@@ -193,7 +210,9 @@ Clone (`lifecycle.go:243`) reaches the same function with `live == nil`, so a cl
 - `status`: the response status;
 - `reason`: `security:` followed by compact JSON `{"before":{...},"after":{...}}` with only the settings that changed, in the same value notation as the spec (`{"runAsUser":1000}`, `{"runAsGroup":"image"}`, `{"volumeOwnershipCheck":"EveryStart"}`, and `null` for not set).
 
-A root refusal and a permission refusal also write a row (`status` 403, `reason` `security_forbidden` or `security_root_disabled`), as the capture handler records failures. The cluster setting change writes its own row: `PUT /admin/config/security`, `target` `security`, `reason` `allowRootOverrides:false->true`.
+**Risky marker (OD-6, settled C).** The change row also records which of the changed settings the pinned template had marked risky at the time of the change: the JSON gains `"risky":["runAsUser"]` after `after` (the setting names only, never the module's reason text). The handler learns it from the template it already loads for the server (the same `GameTemplate` read the create and update path uses for the template reference); a template without a `risky` map, or a change touching no risky setting, adds no key. Nothing is refused on this basis: the dashboard asks, a direct API call is accepted from any `servers:security` holder.
+
+A root refusal and a permission refusal also write a row (`status` 403, `reason` `security_forbidden` or `security_root_disabled`), as the capture handler records failures. The cluster setting change writes its own row: `PUT /admin/config/security`, `target` `security`, `reason` `allowRootOverrides:false->true`. The reconciler's refusal to start a server is a status condition and an event, not an audit row (the audit log records API actions).
 
 **Rationale**: FR-010 and SC-005 need who, when, before and after. The `reason` column is the existing structured, hash-chained, webhook-forwarded and S3-forwarded field (`audit.go:711-750`), so the entry reaches every sink with no schema or chain change. The values are four small numbers, bounded.
 
@@ -205,7 +224,7 @@ A root refusal and a permission refusal also write a row (`status` 403, `reason`
 
 ## R13. The dashboard
 
-**Decision**: one reusable "Advanced security" section component used in the create wizard and the server Settings tab, both behind a collapsed disclosure (FR-006, FR-007). It renders, per setting: the module default (or "image default"), the applied value and source (existing servers), the pending value, and an override control (value, "use image default", or clear). It reads permission from the existing user permission data to render read-only without `servers:security` (US4 scenario 1) and surfaces the three server refusals (R10) as inline errors. Risky values trigger a confirmation dialog showing the template's `reason` (OD-6, pending; recommended option C: dashboard confirmation plus a "risky" word in the audit reason). A saved change on an existing server shows the "applies on the next restart" notice and, for run-as user or group on a server with data, the file-access warning (FR-007, FR-008).
+**Decision**: one reusable "Advanced security" section component used in the create wizard and the server Settings tab, both behind a collapsed disclosure (FR-006, FR-007). It renders, per setting: the module default (or "image default"), the applied value and source (existing servers), the pending value, and an override control (value, "use image default", or clear). It reads permission from the existing user permission data to render read-only without `servers:security` (US4 scenario 1) and surfaces the three server refusals (R10) as inline errors. Risky values trigger a confirmation dialog showing the template's `reason` (OD-6, settled C: the confirmation is the dashboard's only; the API refuses nothing on that basis, and the audit row records that the value was risky at change time, R11). A saved change on an existing server shows the "applies on the next restart" notice and, for run-as user or group on a server with data, the file-access warning (FR-007, FR-008).
 
 **Design-first (constitution II, CLAUDE.md rule 1)**: the section, its states and the dialogs are designed in `design.pen` on the maintainer's local machine through the Pencil MCP and exported to `assets/design-export/` **before any web code**. A cloud session cannot run Pencil, so web tasks are blocked until that export is committed. Backend, operator, API, module and docs work is independent of the design and proceeds in parallel. All strings go through the shared packs (FR-014): `web.routes.create_server.advanced_*` and `web.routes.server_settings.security_*` keys in `i18n/locales/en/app.json`, plus `server.security.*` messages in `api/internal/messages/entries_server.go` for the three API refusals.
 
@@ -229,10 +248,10 @@ A root refusal and a permission refusal also write a row (`status` 403, `reason`
 ## R16. End-to-end proof
 
 **Decision**: two E2E tests in `test/e2e/`, registered in `test/e2e/buckets.sh`, both `t.Parallel()` with unique names:
-- `TestGameServer_SecurityOverrideAppliesOnRestart` (operator bucket, zero logins, busybox fixture from `test_helpers_e2e_test.go:42-90`): create with a run-as user override, assert the running uid with `Env.KubectlExec(... id -u)` (`env.go:259`); change the override, assert no restart (same pod UID, `status.security.pending` true, applied unchanged); restart, assert the new uid and `pending` false; remove the override, restart, assert the module default.
-- `TestAPI_SecurityOverride_PermissionAndRootRule` (needs admin and a non-admin login): a user without `servers:security` is refused (403) on create and on update; with the permission, accepted; a root value is refused (403) while `allowRootOverrides` is off and accepted after an admin enables it; the audit log has the rows.
+- `TestGameServer_SecurityOverrideAppliesOnRestart` (operator bucket, zero logins, busybox fixture from `test_helpers_e2e_test.go:42-90`): create with a run-as user override, assert the running uid with `Env.KubectlExec(... id -u)` (`env.go:259`); change the override, assert no restart (same pod UID, `status.security.pending` true, applied unchanged); restart, assert the new uid and `pending` false; remove the override, restart, assert the module default. Then the OD-4 phase, still without the API: save a root `fsGroup` override, stop the server, make sure the ConfigMap `gameplane-security-settings` says off (absent or `"false"`), start it and assert it stays at zero replicas with condition `SecurityAllowed=False` / `RootOverrideDisallowed`; set the ConfigMap to `"true"` with `kubectl` and assert the server starts; set it back to `"false"` and assert the running pod keeps its UID and restart count.
+- `TestAPI_SecurityOverride_PermissionAndRootRule` (needs admin and a non-admin login): a user without `servers:security` is refused (403) on create and on update; with the permission, accepted; a root value is refused (403) while `allowRootOverrides` is off and accepted after an admin enables it; the audit log has the rows, and each flip of the setting is mirrored into the ConfigMap (`allowRootOverrides` `"true"` or `"false"`).
 
-The operator bucket carries about four admin logins already and a cap near seven (`buckets.sh:355-363`); the second test's login count decides its bucket when tasks are written (operator if it fits, otherwise a new dedicated bucket, which also needs the CI matrix and `test/e2e/suite-components.json` entries per `docs/contributing.md` "How CI picks tests"). No game-module join is involved (constitution I's join rule is about game modules; this feature changes no module's game behavior).
+**Bucket (decided when writing tasks).** `bucket_operator` carries about four admin logins (`buckets.sh:355-362`: "operator: 4 admin logins with the EventStream test") against a per-job ceiling near seven, and `api-auth`, `api-roles`, `api-rbac`, `api-agent` and `api-mods` are documented as at their ceilings. The second test costs one admin login plus one login as its own non-admin user, which brings `operator` to about six, so both tests go in `bucket_operator`, with a comment recording the tally. No new bucket, CI matrix entry or `suite-components.json` entry is needed: `^TestGameServer_` and `^TestAPI_` already map both tests to their components (`test/e2e/suite-components.json:32, 46`). No game-module join is involved (constitution I's join rule is about game modules; this feature changes no module's game behavior).
 
 ## Resolved unknowns
 
@@ -244,7 +263,7 @@ The operator bucket carries about four admin logins already and a cap near seven
 | Desired vs applied vs sources | R4, R6, R7 |
 | Apply on restart, no auto-restart | R5 |
 | Ownership check mapping and default flip | R8 |
-| Cluster setting home and who learns it | R9 |
+| Cluster setting home, and how the operator learns it (OD-4) | R9 |
 | Permission and validation placement | R10 |
 | Audit shape | R11 |
 | Migration | R12 |
@@ -253,4 +272,4 @@ The operator bucket carries about four admin logins already and a cap near seven
 | MCP exposure | R15 |
 | E2E | R16 |
 
-Open product rulings (not unknowns about the code): OD-4, OD-5, OD-6 in [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
+Product rulings (not unknowns about the code): OD-1 to OD-6, all settled in [OPEN-DECISIONS.md](OPEN-DECISIONS.md).

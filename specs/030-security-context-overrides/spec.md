@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Draft
+**Status**: Ready for tasks
 
 **Input**: User description: "make the different security group controlable with default inside the module and a way in a "advanced" view to force it to something else on the frontend"
 
@@ -296,6 +296,9 @@ carrying overrides is refused; as a user with it, confirm both work.
 ## Decisions
 
 All open decisions are settled in [`OPEN-DECISIONS.md`](OPEN-DECISIONS.md)
-(valgul, 2026-11-07): OD-1 new `servers:security` permission (admin only by
-default), OD-2 root overrides only when a cluster-wide setting allows them (off by
-default), OD-3 changes apply on the next restart.
+(valgul, 2026-11-07 and 2026-11-13): OD-1 new `servers:security` permission (admin
+only by default), OD-2 root overrides only when a cluster-wide setting allows them (off
+by default), OD-3 changes apply on the next restart, OD-4 a saved root override is not
+started while the setting is off, OD-5 an override that breaks restricted workload mode
+fails the server with the reason, OD-6 the risky confirmation is in the dashboard and
+the audit entry records it.

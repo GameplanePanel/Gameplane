@@ -37,14 +37,22 @@ security:{"before":{"volumeOwnershipCheck":null},"after":{"volumeOwnershipCheck"
 
 On a create `before` is `{}` and `after` lists every setting the request set. The string is at most a few hundred bytes (four small settings). It never contains the module's risky reason or any credential.
 
-If OD-6 is ruled option C, the change row gains `"risky":["runAsUser"]` after `after`; nothing else changes.
+**Risky marker (OD-6, settled C).** The API refuses nothing because a value is risky; the dashboard asks for the confirmation. The change row records whether a changed value was marked risky by the template at the time of the change: the JSON gains `"risky":[...]` after `after`, listing the changed settings (`runAsUser`, `runAsGroup`, `fsGroup`, `volumeOwnershipCheck`) whose `risky` member the pinned template carried. The module's reason text is never copied into the row. The key is omitted when no changed setting was risky.
+
+```text
+security:{"before":{"runAsUser":null},"after":{"runAsUser":0},"risky":["runAsUser"]}
+```
+
+The marker is a fact about the template at that moment (a later template change does not rewrite old rows), and it is computed on the server from the template, not trusted from the request.
 
 ## Who, when, before, after (SC-005)
 
 - who: `actor`; when: `ts`; before and after: `reason`; where: `path` and `target`; from where: `ip`.
 - The audit page and exports show `reason` today; a table rendering of the JSON is optional follow-up and not required by the spec.
 
+The reconciler's refusal to start a server (`RootOverrideDisallowed`) is a status condition and an event, not an audit row.
+
 ## Tests
 
-- Unit: a function builds `reason` from two security blocks (all four settings, not set, number, image default).
+- Unit: a function builds `reason` from two security blocks (all four settings, not set, number, image default) and the template's risky set (a risky changed setting appears, a non-risky one and an unchanged risky one do not, an absent `risky` map adds no key).
 - Handler envtest: each event above produces exactly one row with the expected fields, and the hash chain still verifies (`GET /admin/audit/verify`).

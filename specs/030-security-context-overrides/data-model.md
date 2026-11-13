@@ -2,11 +2,11 @@
 
 **Feature**: [spec.md](spec.md) | **Research**: [research.md](research.md)
 
-Four places hold data. No database table or column is added (research R12).
+Five places hold data. No database table or column is added (research R12).
 
 - **GameTemplate** (CRD, cluster-scoped): the module's defaults and the risky flags. YAML in [contracts/crd-gametemplate-security.md](contracts/crd-gametemplate-security.md).
 - **GameServer** (CRD, namespaced): the per-server override in `spec`, the read model in `status`. YAML in [contracts/crd-gameserver-security.md](contracts/crd-gameserver-security.md).
-- **API config store**: one new section, `security`, in the existing `config` table. See [contracts/cluster-setting.md](contracts/cluster-setting.md).
+- **API config store**: one new section, `security`, in the existing `config` table, mirrored by the API into one ConfigMap per cluster that the operator reads (OD-4). See [contracts/cluster-setting.md](contracts/cluster-setting.md).
 - **Audit log**: one structured `reason` string per change. See [contracts/audit-events.md](contracts/audit-events.md).
 
 The four settings are named `runAsUser`, `runAsGroup`, `fsGroup` (numeric ids) and `volumeOwnershipCheck` (an enum). "Setting" below means any of the four.
@@ -93,7 +93,7 @@ Root rule table (FR-005, clarifications 2026-11-13):
 | `fsGroup` | root, needs setting | free (applies no chown) | free |
 | `volumeOwnershipCheck` | n/a | n/a | free |
 
-An id override that equals the module default is allowed and stored (it then survives a module upgrade, US3 scenario 3). The API checks only new or changed root values; what happens to existing ones when the setting is off is OD-4.
+An id override that equals the module default is allowed and stored (it then survives a module upgrade, US3 scenario 3). The API checks only new or changed root values. An existing root override is checked by the reconciler when the server would start, and the server is refused while the setting is off (OD-4 settled A, FR-005a; see "Start refusal" below).
 
 ---
 
@@ -144,6 +144,27 @@ The values are carried into the pod as follows (research R4, R8). An absent id a
 
 A pod or StatefulSet without the annotation (created before this feature) is read as module defaults: every non-empty value `ModuleDefault`, every empty id `ImageDefault`, and the ownership check `EveryStart` (a pod with no change policy gets the Kubernetes default, `Always`) with source `BuiltInDefault`. When a filesystem group applies, `desired` is `OnlyWhenWrong` (unless the module says otherwise), so such a server reports `pending` until its next start.
 
+### Start refusal (`SecurityAllowed` condition, OD-4)
+
+A GameServer condition, written by the reconciler next to `Ready` with the same merge-patch pattern as the rest of the status.
+
+| Field | Value |
+|---|---|
+| `type` | `SecurityAllowed` |
+| `status` | `False` while the cluster setting is off and `spec.security` holds a root override; `True` otherwise (also `True` or absent for servers with no override) |
+| `reason` | `RootOverrideDisallowed` when `False` |
+| `message` | names the settings (for example `runAsGroup: use image default`) and says what clears it: remove or change the override, or turn on "allow root overrides" |
+
+A *root override* is `runAsUser` or `runAsGroup` with `value: 0` or `useImageDefault: true`, or `fsGroup` with `value: 0` (same rule as the API's root rule, one shared definition in the operator).
+
+| Server state when the setting is off | Behavior |
+|---|---|
+| not running (zero replicas) | not started: replicas stay at zero, `SecurityAllowed=False`, `RootOverrideDisallowed` |
+| running | untouched: no restart, no scale-down, no pod-template change; condition `False` with a message that it will not start again until fixed |
+| setting turned on, or override cleared | the next reconcile (the ConfigMap watch re-enqueues the server) sets `SecurityAllowed=True` and starts a stopped server normally |
+
+The setting is read from the ConfigMap `gameplane-security-settings` (key `allowRootOverrides`); absent or anything but `"true"` means off. Turning the setting off never restarts or stops a server (FR-005a). Restricted workload mode (OD-5, settled A) is a separate check: the effective values are validated with `validateRestrictedTemplate`'s rule and a violation uses the existing failure phase message; a running pod is untouched.
+
 ### State transitions
 
 A change is `none`, then `pending`, then `applied`.
@@ -189,6 +210,18 @@ A save never changes the pod template while a pod runs (research R5). The pod te
 
 Stored as the JSON blob `{"allowRootOverrides":false}` in `config` under key `security`; written only through `PUT /admin/config/security` (`config:manage`).
 
+### Operator mirror (ConfigMap)
+
+| Property | Value |
+|---|---|
+| Name and namespace | `gameplane-security-settings` in the gameplane (control-plane) namespace of each cluster |
+| Data | `allowRootOverrides`: `"true"` or `"false"` |
+| Writer | the API only (on each flip, and a sync on API start); readers: the operator (watch) |
+| Missing or malformed | read as off (fail closed) |
+| Labels | `app.kubernetes.io/managed-by: gameplane-api` |
+
+The config row is the source of truth; the ConfigMap is a derived copy (research R9).
+
 ## Permission
 
 | Key | Namespaced | Held by default |
@@ -197,4 +230,4 @@ Stored as the JSON blob `{"allowRootOverrides":false}` in `config` under key `se
 
 ## Audit entries
 
-Described in [contracts/audit-events.md](contracts/audit-events.md); nothing is added to the audit schema.
+Described in [contracts/audit-events.md](contracts/audit-events.md); nothing is added to the audit schema. A change row also lists, under `risky`, the changed settings the template had marked risky at that time (OD-6, settled C).

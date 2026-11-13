@@ -19,12 +19,12 @@ cd web && npx tsc --noEmit && cd ..
 
 | What | Where |
 |---|---|
-| Resolver table tests, StatefulSet gate, backup/restore group, status | `go test` for `operator` (gate 72) |
-| Create, update, clone, permission, root rule, config section, audit rows | `make test-integration` (envtest, `api` gate 80) |
+| Resolver table tests, StatefulSet gate, backup/restore group, status, root-override start refusal, restricted-mode effective values | `go test` and envtest for `operator` (gate 72) |
+| Create, update, clone, permission, root rule, config section and its ConfigMap mirror, audit rows (with the risky marker) | `make test-integration` (envtest, `api` gate 80) |
 | Template checks | `gp-module` unit tests (gate 80); the module repo's validator tests (`test-validate-py.sh`) |
 | Dashboard section, wizard, settings, admin switch | vitest (`web` gates) |
 | i18n key coverage | `i18n-check` in `make lint` |
-| End to end | `make test-e2e-bucket BUCKET=operator` (`TestGameServer_SecurityOverrideAppliesOnRestart`) and the bucket of `TestAPI_SecurityOverride_PermissionAndRootRule` |
+| End to end | `make test-e2e-bucket BUCKET=operator` (`TestGameServer_SecurityOverrideAppliesOnRestart`, including the OD-4 refusal, and `TestAPI_SecurityOverride_PermissionAndRootRule`; both live in the `operator` bucket) |
 | CRD sync | `make lint` drift checks on the four generated locations |
 
 ## Manual walk-through on a dev cluster
@@ -81,13 +81,39 @@ cd web && npx tsc --noEmit && cd ..
 6. Open the server's Advanced section as the `operator`-role user.
    - **Expect** the values, sources and pending marker are visible and read-only.
 
-### S5: the root setting (FR-005; OD-2, OD-4)
+### S5: the root setting (FR-005, FR-005a; OD-2, OD-4)
 
 1. As admin, `PUT /admin/config/security {"allowRootOverrides": true}` ([cluster-setting.md](contracts/cluster-setting.md)).
 2. Create a server with `fsGroup { value: 0 }`, then one with `runAsUser { useImageDefault: true }`.
    - **Expect** both accepted.
-3. Turn the setting off and save an unrelated change to the first server.
-   - **Expect** 200 and the override remains (OD-4 option A); a new server with a root value is refused again.
+3. Turn the setting off (`PUT /admin/config/security {"allowRootOverrides": false}`) and save an unrelated change to the first server.
+   - **Expect** 200 and the override remains; a new server with a root value is refused again. `kubectl get configmap gameplane-security-settings -n <control-plane namespace> -o yaml` shows `allowRootOverrides: "false"`.
+
+### S5a: turning the setting off with root-override servers (FR-005a; OD-4)
+
+Prerequisite: S5 step 2 left two servers holding root overrides (`fsGroup { value: 0 }` and `runAsUser { useImageDefault: true }`) and the setting is on. Stop the first one (Suspend), keep the second running, then turn the setting off.
+
+1. Note the second server's pod UID and restart count, then `PUT /admin/config/security {"allowRootOverrides": false}`.
+   - **Expect** the running server's pod UID and restart count do not change; no server restarts or stops. Its `SecurityAllowed` condition is `False` with reason `RootOverrideDisallowed` and a message that it will not start again until the override is cleared or the setting is on.
+2. Start the stopped first server (Resume or Start).
+   - **Expect** it stays at zero replicas; its status shows `SecurityAllowed=False`, reason `RootOverrideDisallowed`, naming `fsGroup`; the dashboard shows the reason and what clears it.
+3. As admin, remove the override from the stopped server.
+   - **Expect** the server starts on the next reconcile, `SecurityAllowed` is `True`.
+4. Suspend the second server, then turn the setting back on, and start it.
+   - **Expect** it starts with its override; `SecurityAllowed` is `True`. Repeat step 2 with the setting on first: **expect** a stopped server holding a root override starts as soon as the setting is flipped on (no other action).
+5. Delete the ConfigMap `gameplane-security-settings` while a stopped server holds a root override.
+   - **Expect** the setting reads as off (fail closed): the server does not start; restarting the API recreates the ConfigMap from the stored setting.
+
+### S5b: restricted workload mode (OD-5)
+
+Prerequisite: the operator runs with `--restricted-workloads` (chart value) and the setting is on.
+
+1. Create a server with `runAsUser { useImageDefault: true }`, then start it.
+   - **Expect** the server is reported failed with the existing restricted-mode message about the missing positive run-as user or filesystem group; no pod is created.
+2. Replace the override with `runAsUser { value: 2000 }`.
+   - **Expect** the server leaves the failed state and starts.
+3. With a server already running, save `runAsUser { useImageDefault: true }`.
+   - **Expect** the running pod is untouched (same pod UID, `pending: true`); the next start would fail with the same message.
 
 ### S6: ownership check and the upgrade (FR-001, FR-002a, SC-006; research R8)
 
@@ -106,15 +132,17 @@ cd web && npx tsc --noEmit && cd ..
 1. With a pending `fsGroup` change on a stopped server (change saved, not yet started), create a Backup.
    - **Expect** the backup job's pod `fsGroup` equals `applied.fsGroup`, not `desired`.
 
-### S8: risky values (FR-006a; OD-6 pending)
+### S8: risky values (FR-006a; OD-6 settled C)
 
 1. Install a module that marks `runAsUser` risky with a reason (Palworld after the module PR).
 2. In the dashboard, set a run-as user override.
    - **Expect** a confirmation showing the reason; cancelling stores nothing; confirming stores the override.
+3. Send the same override directly to the API as a `servers:security` holder, with no confirmation parameter.
+   - **Expect** 200: the API refuses nothing on the risky flag. The audit row for the change lists `"risky":["runAsUser"]` in its reason (and no reason text).
 
 ### S9: audit (FR-010, SC-005)
 
-1. After S2 to S5, open the audit page.
+1. After S2 to S5 and S8, open the audit page.
    - **Expect** one row per change with actor, time, path, target and the before and after in the reason, one row per refusal, and one row for each flip of the cluster setting ([audit-events.md](contracts/audit-events.md)); `GET /admin/audit/verify` reports an intact chain.
 
 ### S10: read-only MCP (FR scope; research R15)

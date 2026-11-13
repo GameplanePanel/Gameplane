@@ -1,6 +1,6 @@
 # Open decisions: spec 030 security context overrides
 
-All three decisions were answered by valgul on 2026-11-07.
+OD-1..OD-3 were answered by valgul on 2026-11-07, OD-4..OD-6 on 2026-11-13. All are settled.
 
 ## OD-1: Who may set security overrides? (SETTLED: B)
 
@@ -39,9 +39,7 @@ the dashboard says so. Saving never restarts the server.
 
 ---
 
-The decisions below were raised while planning (2026-11-13). They are **OPEN**: the
-plan builds on the recommended option and says so, but nothing is settled until
-valgul rules. Each is isolated, so a different ruling changes one task, not the design.
+The decisions below were raised while planning (2026-11-13) and settled by valgul the same day.
 
 ## OD-4: What happens to saved root overrides when an admin turns the root setting off? (SETTLED: A)
 

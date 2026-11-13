@@ -13,7 +13,7 @@ No new route. The override travels in the GameServer object through the existing
 
 (All `/servers` paths take the usual `?cluster=` and namespace parameters.)
 
-The enforcement lives in `validateAndProtectGameServer` (`api/internal/handlers/resources.go:538`), called from `resources.go:218` (create), `:290` (update) and `lifecycle.go:243` (clone). `MountResources` (`resources.go:51`) gains the audit writer (`*audit.Auditor`) and reads the `security` config section through the `*db.Store` it already receives.
+The `security` config section is also mirrored by this API into the ConfigMap the operator reads ([cluster-setting.md](cluster-setting.md)). The enforcement lives in `validateAndProtectGameServer` (`api/internal/handlers/resources.go:538`), called from `resources.go:218` (create), `:290` (update) and `lifecycle.go:243` (clone). `MountResources` (`resources.go:51`) gains the audit writer (`*audit.Auditor`) and reads the `security` config section through the `*db.Store` it already receives.
 
 ## Request
 
@@ -37,7 +37,7 @@ Semantics, in the order the handler applies them (the first failure decides):
 | 5 | A new or changed root value (see below) and `allowRootOverrides` is false | **403** `server.security.root_disabled`. |
 | 6 | Otherwise | Accepted and stored; the response is the stored object. |
 
-A **root value** is `runAsUser` or `runAsGroup` with `value: 0` or `useImageDefault: true`, or `fsGroup` with `value: 0` (FR-005 and the 2026-11-13 clarifications). A root value that is already stored and unchanged does not trigger case 5 (OD-4, option A); removing or replacing one is always allowed.
+A **root value** is `runAsUser` or `runAsGroup` with `value: 0` or `useImageDefault: true`, or `fsGroup` with `value: 0` (FR-005 and the 2026-11-13 clarifications). A root value that is already stored and unchanged does not trigger case 5; removing or replacing one is always allowed. A stored root override is enforced later, by the reconciler, which refuses to start the server while the setting is off (OD-4 settled A, FR-005a; [cluster-setting.md](cluster-setting.md)). The API does not stop the save.
 
 Saving never restarts the server and the response does not say it did (FR-008); `status.security.pending` in a following `GET` reports the queued change.
 
@@ -63,7 +63,8 @@ Existing generic mapping: `writeServerValidationError` (`api/internal/handlers/r
 
 - Without `servers:security` (the user's permission set is already known to the dashboard) the Advanced section shows `desired`, `applied`, sources and `pending` read-only (US4 scenario 1) and never sends `spec.security` changes.
 - The server refusals above are shown inline; a refused root value says an administrator can allow it in Settings.
-- Risky-value confirmation is dashboard-only (OD-6, option A).
+- Risky-value confirmation is dashboard-only (OD-6, settled C): the API accepts a risky value from any `servers:security` holder and refuses nothing on that basis; the audit row records that the value was marked risky ([audit-events.md](audit-events.md)).
+- A server held back by the reconciler (`SecurityAllowed=False`, `RootOverrideDisallowed`) shows the reason from its status condition, with the text that an administrator can allow root overrides in Settings, or the override can be cleared.
 
 ## Tests
 

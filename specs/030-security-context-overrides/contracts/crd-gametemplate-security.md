@@ -28,8 +28,9 @@ A `risky` member can name a setting the template does not set. Presence means "o
 ## Behavior
 
 - **Operator**: reads the four values as module defaults (research R4). It never reads `risky`.
+- **API**: reads `risky` only to put the marker in the audit row of an override change (research R11); it never refuses a request because of it.
 - **API**: no change; `GET /templates` already returns the whole template, so `risky` reaches the dashboard through the template it loads for the wizard and the settings screen.
-- **Dashboard**: for each overridden setting whose template has a `risky` member, shows the extra confirmation with `reason` before saving (OD-6, option A: dashboard only).
+- **Dashboard**: for each overridden setting whose template has a `risky` member, shows the extra confirmation with `reason` before saving (OD-6, settled C: dashboard only; the API refuses nothing on this basis and the audit row records that the value was risky).
 - **Default flip**: a template with a `fsGroup` and no `volumeOwnershipCheck` now means `OnlyWhenWrong`. A module whose data volume depends on every file being re-owned each start sets `volumeOwnershipCheck: EveryStart` (guidance in `docs/module-authoring.md`, FR-013).
 
 ## Validators that must accept and check it
