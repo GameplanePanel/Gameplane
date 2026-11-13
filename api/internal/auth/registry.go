@@ -84,6 +84,18 @@ func rulesFromMappings(m *RoleMappings) []RoleRule {
 	return rules
 }
 
+// HelmOverride is the dashboard's override of the Helm provider's role
+// policy: the "helmOverride" object of the auth config row. RoleRules, when
+// set (even empty), replaces the whole Helm rule list and DefaultRole, when
+// set, replaces the Helm fallback (OD-3). RoleMappings is the old per-role
+// form, merged per role as before spec 034. effectiveHelmOverridePolicy
+// applies it.
+type HelmOverride struct {
+	RoleMappings *RoleMappings `json:"roleMappings,omitempty"`
+	RoleRules    *[]RoleRule   `json:"roleRules,omitempty"`
+	DefaultRole  *string       `json:"defaultRole,omitempty"`
+}
+
 // derefRules returns the rule list; nil or empty both mean mapping off.
 func derefRules(r *[]RoleRule) []RoleRule {
 	if r == nil {
@@ -136,6 +148,18 @@ func (p Provider) Label() string {
 // implementation reads labelled Secrets from the credentials namespace;
 // tests substitute a map.
 type SecretReader func(ctx context.Context, name string) (map[string][]byte, error)
+
+// policy returns the ProviderPolicy this provider's sign-ins decide with:
+// RoleRules when set, else the old RoleMappings (see ProviderPolicy).
+func (p Provider) policy() *ProviderPolicy {
+	return &ProviderPolicy{
+		Scopes:       p.Scopes,
+		GroupsClaim:  p.GroupsClaim,
+		RoleMappings: p.RoleMappings,
+		Rules:        derefRules(p.RoleRules),
+		DefaultRole:  p.DefaultRole,
+	}
+}
 
 // NewK8sSecretReader reads Secrets from ns, refusing any not labelled
 // ProviderSecretLabel=true.
@@ -203,12 +227,10 @@ func NewRegistry(store *db.Store, secrets SecretReader, legacy *OIDC, legacyLabe
 	// The legacy provider needs the store for account linking; wiring it
 	// here also fixes the Helm-flag path, whose callback previously ran
 	// with no store attached and 500'd on every login. Also attach the
-	// helm role overrides function so it can be read on every login (SC-007).
+	// helmOverride reader so it is read on every login (SC-007).
 	if legacy != nil {
 		legacy.AttachStore(store)
-		legacy.AttachHelmRoleOverridesFunc(func(ctx context.Context) *RoleMappings {
-			return reg.HelmRoleOverrides(ctx)
-		})
+		legacy.AttachHelmOverrideFunc(reg.HelmPolicyOverride)
 	}
 	return reg
 }
@@ -248,28 +270,33 @@ func (r *Registry) snapshot(ctx context.Context) ([]Provider, [sha256.Size]byte)
 	return cfg.Providers, sha256.Sum256([]byte(raw))
 }
 
-// HelmRoleOverrides returns the current helmOverride.roleMappings from the
-// "auth" config row, if present. It parses the row to extract the optional
-// per-role override lists that the login path uses to compute the effective
-// Helm policy. Returns nil if the auth row is missing, malformed, or carries
-// no helmOverride.
-func (r *Registry) HelmRoleOverrides(ctx context.Context) *RoleMappings {
+// HelmPolicyOverride returns the helmOverride object of the "auth" config
+// row, which the Helm provider's sign-ins apply on top of the Helm-seeded
+// policy. Returns nil if the auth row is missing, malformed, or carries no
+// helmOverride.
+func (r *Registry) HelmPolicyOverride(ctx context.Context) *HelmOverride {
 	raw, ok, err := r.store.ConfigValue(ctx, "auth")
 	if err != nil || !ok {
 		return nil
 	}
 	var cfg struct {
-		HelmOverride *struct {
-			RoleMappings *RoleMappings `json:"roleMappings"`
-		} `json:"helmOverride"`
+		HelmOverride *HelmOverride `json:"helmOverride"`
 	}
 	if json.Unmarshal([]byte(raw), &cfg) != nil {
 		return nil
 	}
-	if cfg.HelmOverride == nil || cfg.HelmOverride.RoleMappings == nil {
+	return cfg.HelmOverride
+}
+
+// HelmRoleOverrides returns the current helmOverride.roleMappings (the old
+// per-role form) from the "auth" config row, or nil if the auth row is
+// missing, malformed, or carries no helmOverride.roleMappings.
+func (r *Registry) HelmRoleOverrides(ctx context.Context) *RoleMappings {
+	ov := r.HelmPolicyOverride(ctx)
+	if ov == nil {
 		return nil
 	}
-	return cfg.HelmOverride.RoleMappings
+	return ov.RoleMappings
 }
 
 // Enabled lists the providers the login page may offer: enabled DB
@@ -376,20 +403,12 @@ func (r *Registry) build(ctx context.Context, p Provider) (*OIDC, error) {
 	if err != nil {
 		return nil, fmt.Errorf("provider %q: %w", p.Name, err)
 	}
-	o, err := NewOIDCWithPolicy(ctx, p.Issuer, p.ClientID, clientSecret, redirect, &ProviderPolicy{
-		Scopes:       p.Scopes,
-		GroupsClaim:  p.GroupsClaim,
-		RoleMappings: p.RoleMappings,
-		Rules:        derefRules(p.RoleRules),
-		DefaultRole:  p.DefaultRole,
-	})
+	o, err := NewOIDCWithPolicy(ctx, p.Issuer, p.ClientID, clientSecret, redirect, p.policy())
 	if err != nil {
 		return nil, fmt.Errorf("provider %q: discover issuer: %w", p.Name, err)
 	}
 	o.AttachStore(r.store)
-	o.AttachHelmRoleOverridesFunc(func(ctx context.Context) *RoleMappings {
-		return r.HelmRoleOverrides(ctx)
-	})
+	o.AttachHelmOverrideFunc(r.HelmPolicyOverride)
 	r.mu.Lock()
 	auditFn := r.auditWriteSync
 	r.mu.Unlock()

@@ -1402,6 +1402,49 @@ jobs:
             echo "::error::allow-prometheus-to-agent rendered without serviceMonitors.scrapeNamespaceSelector set"
             exit 1
           fi
+      - name: OIDC role rules render (spec 034 OD-1, FR-019)
+        # api.oidc.roleRules renders one --oidc-role-rules JSON flag with group
+        # names intact; old-form roleMappings still render the same per-role
+        # flags as before spec 034; setting both fails the render with an
+        # error naming both keys.
+        run: |
+          oidc=(--set api.oidc.enabled=true
+                --set api.oidc.issuer=https://idp.example
+                --set api.oidc.clientID=gameplane
+                --set api.oidc.redirectURL=https://gameplane.example/auth/oidc/callback)
+          rules='api.oidc.roleRules=[{"group":"sys-admin","role":"admin"},{"group":"gameplane login only, staff","role":"login-only"}]'
+          # Old form only: the per-role flags exactly as before, no rules flag.
+          helm template gameplane charts/gameplane "${oidc[@]}" \
+            --set-json 'api.oidc.roleMappings={"admin":["gp-admins"],"operator":["gp-ops","gp-sre"],"viewer":["gp-view"]}' \
+            --show-only templates/api.yaml > /tmp/api-oidc-old.yaml
+          grep -qF -- '- "--oidc-role-mapping-admin=gp-admins"' /tmp/api-oidc-old.yaml
+          grep -qF -- '- "--oidc-role-mapping-operator=gp-ops,gp-sre"' /tmp/api-oidc-old.yaml
+          grep -qF -- '- "--oidc-role-mapping-viewer=gp-view"' /tmp/api-oidc-old.yaml
+          if grep -q -- '--oidc-role-rules' /tmp/api-oidc-old.yaml; then
+            echo "::error::old-form api.oidc.roleMappings rendered --oidc-role-rules"
+            exit 1
+          fi
+          # New form: exactly one JSON flag, in list order, and no per-role flags.
+          helm template gameplane charts/gameplane "${oidc[@]}" \
+            --set-json "$rules" \
+            --show-only templates/api.yaml > /tmp/api-oidc-rules.yaml
+          if [ "$(grep -c -- '--oidc-role-rules=' /tmp/api-oidc-rules.yaml)" -ne 1 ]; then
+            echo "::error::api.oidc.roleRules must render exactly one --oidc-role-rules flag"
+            exit 1
+          fi
+          grep -qF -- '- "--oidc-role-rules=[{\"group\":\"sys-admin\",\"role\":\"admin\"},{\"group\":\"gameplane login only, staff\",\"role\":\"login-only\"}]"' /tmp/api-oidc-rules.yaml
+          if grep -q -- '--oidc-role-mapping-' /tmp/api-oidc-rules.yaml; then
+            echo "::error::api.oidc.roleRules rendered an --oidc-role-mapping-* flag"
+            exit 1
+          fi
+          # Both forms: the render fails and names both keys (OD-1).
+          if helm template gameplane charts/gameplane "${oidc[@]}" \
+            --set-json "$rules" \
+            --set-json 'api.oidc.roleMappings={"admin":["gp-admins"]}' > /tmp/api-oidc-both.txt 2>&1; then
+            echo "::error::api.oidc.roleRules together with api.oidc.roleMappings unexpectedly rendered"
+            exit 1
+          fi
+          grep -q 'api.oidc.roleRules and api.oidc.roleMappings' /tmp/api-oidc-both.txt
       - name: telemetry install values render (spec 022 FR-005, FR-006)
         # api.telemetry.enabled=false renders --telemetry-disabled; the bundled
         # receiver auto-wires the API and marks it bundled; a custom endpoint

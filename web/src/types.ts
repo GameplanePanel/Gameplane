@@ -776,6 +776,12 @@ export type BuiltinRole = "admin" | "operator" | "viewer";
 // the oidc_links table; "local" = password-backed local account.
 export type UserProvider = "local" | "oidc" | "pending";
 
+// Where a user's role came from (spec 034, contracts/users-api.md): "sso" =
+// each sign-in applies the SSO group rules; "sso_pending" = returned to SSO
+// control, the rules apply at the next sign-in; "manual" = set by hand and
+// never changed by sign-in.
+export type UserRoleSource = "sso" | "sso_pending" | "manual";
+
 export interface User {
   id: number;
   username: string;
@@ -783,6 +789,9 @@ export interface User {
   email: string;
   role: UserRole;
   provider?: UserProvider;
+  // Every user payload carries it; optional only so payloads typed before
+  // spec 034 still type-check. The dashboard shows it for non-local users.
+  roleSource?: UserRoleSource;
   createdAt?: string;
   // Effective permission set keyed by namespace ("*" = cluster-wide; a "*"
   // permission means all). Present on /users/me; drives can()-based UI
