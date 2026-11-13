@@ -56,6 +56,45 @@ type RoleMappings struct {
 	Viewer   []string `json:"viewer,omitempty"`
 }
 
+// RoleRule maps one IdP group to one role (spec 034). Rules form an
+// ordered list: the first rule whose group the user is in decides.
+type RoleRule struct {
+	Group string `json:"group"`
+	Role  string `json:"role"`
+}
+
+// rulesFromMappings converts the old per-role keys into rules: every admin
+// group, then every operator group, then every viewer group (research R-2),
+// which reproduces the old admin > operator > viewer precedence. nil in,
+// nil out.
+func rulesFromMappings(m *RoleMappings) []RoleRule {
+	if m == nil {
+		return nil
+	}
+	rules := make([]RoleRule, 0, len(m.Admin)+len(m.Operator)+len(m.Viewer))
+	for _, g := range m.Admin {
+		rules = append(rules, RoleRule{Group: g, Role: "admin"})
+	}
+	for _, g := range m.Operator {
+		rules = append(rules, RoleRule{Group: g, Role: "operator"})
+	}
+	for _, g := range m.Viewer {
+		rules = append(rules, RoleRule{Group: g, Role: "viewer"})
+	}
+	return rules
+}
+
+// derefRules returns the rule list, or nil when the provider has none set.
+func derefRules(r *[]RoleRule) []RoleRule {
+	if r == nil {
+		return nil
+	}
+	if *r == nil {
+		return []RoleRule{}
+	}
+	return *r
+}
+
 // Provider is one entry of the admin-managed auth config, as consumers
 // (login page, routes) see it.
 type Provider struct {
@@ -76,8 +115,10 @@ type Provider struct {
 	// mapping entirely: new users get viewer and roles are never touched
 	// again.
 	RoleMappings *RoleMappings `json:"roleMappings,omitempty"`
-	// DefaultRole applies when RoleMappings is set but no group matches:
-	// ""|viewer|operator|admin|deny ("" = viewer; deny refuses the login).
+	// RoleRules is the ordered group→role list (spec 034). It replaces
+	// RoleMappings; a provider may not set both. nil = not set.
+	RoleRules *[]RoleRule `json:"roleRules,omitempty"`
+	// DefaultRole applies when mapping is on but no rule matches: any role name, "" = viewer, deny refuses the login.
 	DefaultRole string `json:"defaultRole,omitempty"`
 }
 
@@ -342,6 +383,7 @@ func (r *Registry) build(ctx context.Context, p Provider) (*OIDC, error) {
 		Scopes:       p.Scopes,
 		GroupsClaim:  p.GroupsClaim,
 		RoleMappings: p.RoleMappings,
+		Rules:        derefRules(p.RoleRules),
 		DefaultRole:  p.DefaultRole,
 	})
 	if err != nil {

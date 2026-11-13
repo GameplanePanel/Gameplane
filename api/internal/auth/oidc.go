@@ -46,14 +46,29 @@ type RoleAssignmentOutcome struct {
 
 // ProviderPolicy carries a provider's group→role mapping configuration
 // into the OIDC client: extra OAuth scopes, the groups claim name, the
-// mappings themselves, and the fallback role. A nil policy — or a policy
-// whose RoleMappings is nil — disables mapping entirely: new users get
-// viewer and their role is never touched again.
+// rules (Rules, or the old RoleMappings converted by rulesFromMappings when
+// Rules is nil) and the fallback role. Mapping is off when the policy is nil
+// or both Rules and RoleMappings are nil: new users get viewer and their
+// role is never touched again.
 type ProviderPolicy struct {
 	Scopes       []string
 	GroupsClaim  string
 	RoleMappings *RoleMappings
+	Rules        []RoleRule
 	DefaultRole  string
+}
+
+// MappingOn reports whether group mapping applies: either rule form is set.
+func (p *ProviderPolicy) MappingOn() bool {
+	return p != nil && (p.Rules != nil || p.RoleMappings != nil)
+}
+
+// rules returns the ordered rule list the policy applies.
+func (p *ProviderPolicy) rules() []RoleRule {
+	if p.Rules != nil {
+		return p.Rules
+	}
+	return rulesFromMappings(p.RoleMappings)
 }
 
 // OIDC handles OpenID Connect authentication.
@@ -146,7 +161,7 @@ func extractGroups(claims map[string]any, claimName string) []string {
 }
 
 // effectiveHelmPolicy merges the DB overlay's per-role list replacements onto
-// the Helm-seeded base policy, producing the *ProviderPolicy that computeRole
+// the Helm-seeded base policy, producing the *ProviderPolicy that decideRole
 // is then called with, unmodified. Per-role list replacement (M3): for each
 // of admin/operator/viewer, a non-nil override list replaces the Helm-seeded
 // list for that role only; an empty non-nil list validly means "nobody maps
@@ -175,6 +190,7 @@ func effectiveHelmPolicy(base *ProviderPolicy, ov *RoleMappings) *ProviderPolicy
 		Scopes:       base.Scopes,
 		GroupsClaim:  base.GroupsClaim,
 		RoleMappings: &RoleMappings{},
+		Rules:        base.Rules,
 		DefaultRole:  base.DefaultRole,
 	}
 
@@ -199,88 +215,66 @@ func effectiveHelmPolicy(base *ProviderPolicy, ov *RoleMappings) *ProviderPolicy
 	return effective
 }
 
-// computeRole resolves a user's dashboard role from their IdP groups. A
-// nil policy or nil RoleMappings means mapping is off: viewer, never
-// denied. With mappings, the most privileged matching role wins (admin >
-// operator > viewer); an unmatched user gets the policy's DefaultRole,
-// where "" means viewer and "deny" refuses the login (deny=true, empty
-// role).
-func computeRole(groups []string, pol *ProviderPolicy) (role string, deny bool) {
-	if pol == nil || pol.RoleMappings == nil {
-		return "viewer", false
+// Decision is the sign-in rule result for one user (spec 034).
+type Decision struct {
+	// RuleIndex is the 0-based index of the matched rule, or -1 when the
+	// fallback applied (or mapping is off).
+	RuleIndex int
+	// Group is the matched rule's group; "" for the fallback.
+	Group string
+	// Role is the decided role; "" when Deny.
+	Role string
+	// Deny is true when the fallback is "deny".
+	Deny bool
+}
+
+// MatchedGroup returns the matched group, or "none" when the fallback applied.
+func (d Decision) MatchedGroup() string {
+	if d.RuleIndex < 0 {
+		return "none"
 	}
-	member := map[string]bool{}
+	return d.Group
+}
+
+// decideRole applies the policy's rules to the user's groups: the first rule
+// whose group the user is in decides, so order wins over privilege. With no
+// match the fallback applies: DefaultRole "" means viewer and "deny" refuses.
+// Mapping off (nil policy, no rules) always gives viewer. It does not check
+// that the role exists; the caller does.
+func decideRole(groups []string, pol *ProviderPolicy) Decision {
+	if !pol.MappingOn() {
+		return Decision{RuleIndex: -1, Role: "viewer"}
+	}
+	member := make(map[string]bool, len(groups))
 	for _, g := range groups {
 		member[g] = true
 	}
-	matches := func(mapped []string) bool {
-		for _, g := range mapped {
-			if member[g] {
-				return true
-			}
+	for i, r := range pol.rules() {
+		if member[r.Group] {
+			return Decision{RuleIndex: i, Group: r.Group, Role: r.Role}
 		}
-		return false
-	}
-	switch {
-	case matches(pol.RoleMappings.Admin):
-		return "admin", false
-	case matches(pol.RoleMappings.Operator):
-		return "operator", false
-	case matches(pol.RoleMappings.Viewer):
-		return "viewer", false
 	}
 	switch pol.DefaultRole {
 	case "deny":
-		return "", true
-	case "admin", "operator":
-		return pol.DefaultRole, false
-	default: // "" and "viewer" (validateAuth admits nothing else)
-		return "viewer", false
+		return Decision{RuleIndex: -1, Deny: true}
+	case "":
+		return Decision{RuleIndex: -1, Role: "viewer"}
+	default:
+		return Decision{RuleIndex: -1, Role: pol.DefaultRole}
 	}
 }
 
-// getMatchedGroup determines which group from the user's group list matched a role mapping,
-// following the same admin > operator > viewer precedence as computeRole. If no group matched,
-// returns "none" (indicating the default role will apply).
+// computeRole is decideRole's role and deny result. Kept until the spec 034
+// T002 test changes are signed off; new code calls decideRole.
+func computeRole(groups []string, pol *ProviderPolicy) (role string, deny bool) {
+	d := decideRole(groups, pol)
+	return d.Role, d.Deny
+}
+
+// getMatchedGroup is decideRole's matched group ("none" for the fallback).
+// Kept until the spec 034 T002 test changes are signed off.
 func getMatchedGroup(groups []string, pol *ProviderPolicy) string {
-	if pol == nil || pol.RoleMappings == nil {
-		return "none"
-	}
-	member := map[string]bool{}
-	for _, g := range groups {
-		member[g] = true
-	}
-	// Check admin tier first (highest priority)
-	for _, g := range groups {
-		if member[g] {
-			for _, adminGroup := range pol.RoleMappings.Admin {
-				if g == adminGroup {
-					return g
-				}
-			}
-		}
-	}
-	// Check operator tier
-	for _, g := range groups {
-		if member[g] {
-			for _, opGroup := range pol.RoleMappings.Operator {
-				if g == opGroup {
-					return g
-				}
-			}
-		}
-	}
-	// Check viewer tier
-	for _, g := range groups {
-		if member[g] {
-			for _, viewerGroup := range pol.RoleMappings.Viewer {
-				if g == viewerGroup {
-					return g
-				}
-			}
-		}
-	}
-	return "none"
+	return decideRole(groups, pol).MatchedGroup()
 }
 
 // emitRoleAssignmentAudit emits an audit event for OIDC role assignment (FR-014).
@@ -463,7 +457,8 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 			}
 		}
 
-		role, deny := computeRole(groups, resolvePolicy)
+		decision := decideRole(groups, resolvePolicy)
+		role, deny := decision.Role, decision.Deny
 		if deny {
 			// Log the identity, never the tokens.
 			slog.Warn("oidc login denied: no group grants a role and defaultRole is deny",
@@ -475,12 +470,12 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		// Determine which group matched a role mapping (or "none" if default role applies).
 		// For the Helm provider with overrides, use the effective policy to match against
 		// the merged role mappings, ensuring audit events report the correct matched group.
-		matchedGroup := getMatchedGroup(groups, resolvePolicy)
+		matchedGroup := decision.MatchedGroup()
 
 		// Re-evaluation runs whenever the effective policy — the one the role
 		// above was computed from, including any helmOverride merge — has role
 		// mappings.
-		syncRole := resolvePolicy != nil && resolvePolicy.RoleMappings != nil
+		syncRole := resolvePolicy.MappingOn()
 
 		user, roleOutcome, err := o.resolveOrLinkUser(req.Context(), idt.Issuer, claims.Sub, claims.Email, claims.Name,
 			role, matchedGroup, syncRole, claims.PreferredUsername)

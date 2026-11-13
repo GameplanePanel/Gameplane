@@ -871,6 +871,14 @@
     "defaultMessage": "user not found",
     "description": "API error when the user named in the request does not exist."
   },
+  "server.config.auth_both_mapping_forms": {
+    "defaultMessage": "a provider cannot set both roleMappings and roleRules",
+    "description": "API error from the admin config API when an auth provider sets both the old roleMappings and the new roleRules (config.go:validateAuth)."
+  },
+  "server.config.auth_role_unknown": {
+    "defaultMessage": "role {role} does not exist",
+    "description": "API error from the admin config API when an SSO role rule or fallback names a role that does not exist (config.go). {role} is the role name."
+  },
   "server.config.read_body": {
     "defaultMessage": "read body",
     "description": "API error from the admin config API (config.go:put)."
@@ -1006,6 +1014,10 @@
   "server.roles.builtin_not_deletable": {
     "defaultMessage": "built-in roles cannot be deleted",
     "description": "API error from the roles API (roles.go:del)."
+  },
+  "server.roles.in_use_by_sso": {
+    "defaultMessage": "role is used by the SSO sign-in rules of provider {provider}",
+    "description": "API error from the roles API when the role is a target or fallback of an SSO provider's sign-in rules (roles.go:del). {provider} is the provider name, or helm."
   },
   "server.roles.invalid_role_name": {
     "defaultMessage": "invalid role name",
@@ -1158,6 +1170,18 @@
   "server.users.remote_role_scope_limited": {
     "defaultMessage": "remote cluster-wide roles may grant only cluster:read and namespaced permissions",
     "description": "API error from the users API (users.go:addBinding)."
+  },
+  "server.users.role_source_invalid": {
+    "defaultMessage": "roleSource must be sso",
+    "description": "API error from the users API when roleSource has a value other than sso (users.go:patch)."
+  },
+  "server.users.role_source_not_sso": {
+    "defaultMessage": "user does not sign in with SSO",
+    "description": "API error from the users API when returning a user with no SSO link to SSO control (users.go:patch)."
+  },
+  "server.users.role_source_with_role": {
+    "defaultMessage": "roleSource and role cannot be set together",
+    "description": "API error from the users API when one request sets both roleSource and role (users.go:patch)."
   },
   "server.users.theme_type_invalid": {
     "defaultMessage": "themeType must be \"preset\" or \"custom_colors\"",
