@@ -342,6 +342,11 @@ func (e *Env) WriteAdminPasswordFile(t *testing.T, pw string) {
 // `target` follows kubectl conventions ("svc/foo" or "pod/foo").
 func (e *Env) PortForward(t *testing.T, ns, target string, remotePort int) (int, func()) {
 	t.Helper()
+	return e.portForwardContext(t.Context(), t, ns, target, remotePort)
+}
+
+func (e *Env) portForwardContext(ctx context.Context, t *testing.T, ns, target string, remotePort int) (int, func()) {
+	t.Helper()
 	// Retry the whole spawn: on a loaded self-hosted runner, kubectl
 	// port-forward can take a while to wire the pod tunnel, or fail
 	// transiently. A single attempt with a short deadline produces a
@@ -351,7 +356,7 @@ func (e *Env) PortForward(t *testing.T, ns, target string, remotePort int) (int,
 	const attempts = 4
 	var lastErr error
 	for attempt := 1; attempt <= attempts; attempt++ {
-		local, stop, err := e.tryPortForward(t.Context(), ns, target, remotePort)
+		local, stop, err := e.tryPortForward(ctx, ns, target, remotePort)
 		if err == nil {
 			return local, stop
 		}
@@ -497,7 +502,12 @@ type APIClient struct {
 // tear the port-forward down.
 func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 	t.Helper()
-	local, stop := e.PortForward(t, "gameplane-system", "svc/gameplane-api", 80)
+	return e.apiClientContext(t.Context(), t, username, password)
+}
+
+func (e *Env) apiClientContext(ctx context.Context, t *testing.T, username, password string) *APIClient {
+	t.Helper()
+	local, stop := e.portForwardContext(ctx, t, "gameplane-system", "svc/gameplane-api", 80)
 	base := fmt.Sprintf("http://127.0.0.1:%d", local)
 
 	// 90s tolerates the few legitimately-slow endpoints (notably :restart,
@@ -527,7 +537,7 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 	const maxAttempts = 7
 	reconnected := false
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		req, rerr := http.NewRequestWithContext(t.Context(), http.MethodPost, base+"/auth/login", bytes.NewReader(body))
+		req, rerr := http.NewRequestWithContext(ctx, http.MethodPost, base+"/auth/login", bytes.NewReader(body))
 		if rerr != nil {
 			stop()
 			t.Fatalf("new login request: %v", rerr)
@@ -539,8 +549,8 @@ func (e *Env) APIClient(t *testing.T, username, password string) *APIClient {
 			// A vanished local listener cannot have received this request.
 			// Reopen once within the existing attempt budget; never replay an
 			// ambiguous read/write failure or reconnect an established session.
-			if !reconnected && attempt+1 < maxAttempts && t.Context().Err() == nil && loginDialRefused(err) {
-				local, stop = e.PortForward(t, "gameplane-system", "svc/gameplane-api", 80)
+			if !reconnected && attempt+1 < maxAttempts && ctx.Err() == nil && loginDialRefused(err) {
+				local, stop = e.portForwardContext(ctx, t, "gameplane-system", "svc/gameplane-api", 80)
 				base = fmt.Sprintf("http://127.0.0.1:%d", local)
 				reconnected = true
 				continue

@@ -64,11 +64,13 @@ const serverDetailRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/servers/$name",
   component: ServerDetailPage,
-  validateSearch: (search: Record<string, unknown>): { ns?: string; cluster?: string } => {
+  validateSearch: (search: Record<string, unknown>): { ns?: string; cluster?: string; file?: string } => {
     for (const key of ["cluster", "ns"] as const) {
       if (search[key] !== undefined && (typeof search[key] !== "string" || !search[key])) throw new Error(`Invalid server ${key}`);
     }
-    return { ns: search.ns as string | undefined, cluster: search.cluster as string | undefined };
+    const file = search.file;
+    if (file !== undefined && (typeof file !== "string" || !file.startsWith("/") || file.split("/").some(part => part === "." || part === ".."))) throw new Error("Invalid file path");
+    return { ns: search.ns as string | undefined, cluster: search.cluster as string | undefined, file: file as string | undefined };
   },
 });
 

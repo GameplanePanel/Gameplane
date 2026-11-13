@@ -66,6 +66,8 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		r.Get("/list", p.agentHTTP("/files/list"))
 		r.Get("/read", p.agentHTTP("/files/read"))
 		r.Get("/download", p.agentHTTP("/files/download"))
+		r.Get("/archive", p.agentHTTP("/files/archive"))
+		r.Post("/archive", p.agentHTTP("/files/archive"))
 		r.Post("/write", p.agentHTTP("/files/write"))
 		r.Post("/create", p.agentHTTP("/files/create"))
 		r.Post("/upload", p.agentHTTP("/files/upload"))
@@ -241,6 +243,23 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 			return
 		}
 		target := agentTarget{name: name, namespace: ns, uid: p.remoteUID}
+		if uid := req.Header.Get("X-Gameplane-Server-UID"); uid != "" && uid != target.uid {
+			httperr.WriteCode(w, req, http.StatusConflict, errors.New("server identity changed"))
+			return
+		}
+		rawQuery := req.URL.RawQuery
+		if agentPath == "/files/download" {
+			// An ordinary browser download cannot attach a precondition header.
+			query := req.URL.Query()
+			if uid := query.Get("expectedUID"); uid != "" {
+				if uid != target.uid {
+					httperr.WriteCode(w, req, http.StatusConflict, errors.New("server identity changed"))
+					return
+				}
+				query.Del("expectedUID")
+				rawQuery = query.Encode()
+			}
+		}
 		// Validate before opening an upstream or upgrading the browser connection.
 		if err := target.validate(); err != nil {
 			httperr.WriteCode(w, req, http.StatusBadRequest, err)
@@ -253,7 +272,7 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		// compromised sidecar would hand over live session tokens.
 		resp, err := p.transport.Do(req.Context(), agentRequest{
 			target: target, method: req.Method, path: agentPath,
-			rawQuery: req.URL.RawQuery, header: req.Header,
+			rawQuery: rawQuery, header: req.Header,
 			body: http.MaxBytesReader(w, req.Body, maxBody),
 		})
 		if err != nil {
@@ -262,7 +281,7 @@ func (p *proxy) httpProxyLimit(agentPath string, maxBody int64) http.HandlerFunc
 		}
 		defer func() { _ = resp.Body.Close() }()
 		copyResponseHeaders(w.Header(), resp.Header)
-		if strings.HasSuffix(agentPath, "/download") {
+		if strings.HasSuffix(agentPath, "/download") || (agentPath == "/files/archive" && req.Method == http.MethodGet) {
 			forceAttachment(w.Header())
 		}
 		w.WriteHeader(resp.StatusCode)

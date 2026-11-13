@@ -271,6 +271,15 @@ jobs:
           cosign public-key --key env://COSIGN_PRIVATE_KEY --outfile "$RUNNER_TEMP/cosign.pub"
           cosign verify --key "$RUNNER_TEMP/cosign.pub" --new-bundle-format=false "$REF"
 
+  consumer:
+    name: qualify published artifacts as an anonymous consumer
+    needs: chart
+    permissions:
+      contents: read
+    uses: ./.github/workflows/qualify-release.yaml
+    with:
+      release_tag: ${{ github.ref_name }}
+
   # Publish the GitHub Release page for the tag, with the matching CHANGELOG
   # section as the notes. beta.3's page was created by hand and beta.4's was
   # forgotten entirely — this makes the page part of the release, not a
@@ -281,7 +290,7 @@ jobs:
     timeout-minutes: 15 # applied by extension per D-A, pending maintainer confirmation
     permissions:
       contents: write
-    needs: [images, chart]
+    needs: consumer
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: extract changelog section

@@ -5,6 +5,8 @@ For a central dashboard/API on a host without Kubernetes, use the
 panel-only Helm profile. The instructions below describe the default combined
 installation, with an operator and a local game cluster.
 
+For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
+
 ## Prerequisites
 
 - Kubernetes 1.30+ with ValidatingAdmissionPolicy and PodSecurity admission enabled
@@ -1044,6 +1046,26 @@ test and asserts that
 - the GameServer survives and the bytes on its volume are unchanged,
 - the pre-upgrade admin can still log in — i.e. the new binary's database
   migrations ran against the populated SQLite volume without data loss.
+
+The release workflow also pulls the signed chart and release images from GHCR
+on a fresh amd64 runner using anonymous access and the public signing key.
+It checks the repository and digest in the signed payload. For each image
+index, it verifies that the amd64 and arm64 configs name
+the release version and the commit referenced by the Git tag. It installs the
+chart in a clean Kind cluster, then runs the populated upgrade fixture in a
+second cluster. It verifies the previous chart in its original registry and
+checks the running API, operator, and seeded game agent against the previous
+release before upgrading. Both clusters use a private kubeconfig. The job
+summary records the Git commit, chart digest, image index and platform digests,
+and running image IDs.
+
+To qualify an already published candidate from a review branch, run the CI
+workflow on that branch with its `published_release` input set to the actual
+version tag. With `REVIEW_REF` set to the branch under review
+and `TAG` set to the published tag, run
+`gh workflow run ci.yaml --ref "$REVIEW_REF" -f published_release="$TAG"`. This runs only the read-only
+consumer, which uses the tagged publisher's component list and reports chart and image digests
+in its Actions summary. Omit `published_release` to run the ordinary full CI suite.
 
 See `test/e2e/upgrade_e2e_test.go`. What this does **not** yet cover: upgrades
 that skip several releases at once. The `postgres-availability` bucket tests a

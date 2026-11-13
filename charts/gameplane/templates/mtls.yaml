@@ -1,4 +1,5 @@
 {{- if or (eq (include "gameplane.operatorEnabled" .) "true") (and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone)) }}
+{{- if not (and (.Values.argoCD | default dict).enabled (ne (include "gameplane.liveCluster" .) "true")) }}
 {{- /*
   Agent mTLS material.
 
@@ -111,4 +112,5 @@ data:
   {{- end }}
 {{- end }}
 
+{{- end }}
 {{- end }}

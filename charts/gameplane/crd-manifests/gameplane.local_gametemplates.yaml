@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 93be61e09a77f5a634692fcf5b45ccc055f495429377e9da89b1eb10c0aff860
+    gameplane.local/crd-bundle-sha256: e780763815fcfb2d9b81c4093373c37a6e3948abd63fb1f298a778e875e72d21
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -1130,6 +1130,14 @@ spec:
                       items:
                         type: string
                       type: array
+                    envName:
+                      description: |-
+                        EnvName, when set, is the env var name the value is exported as
+                        instead of Name (Target "env" only). It lets a module keep a stable
+                        config key while pointing it at the variable the game image reads.
+                      maxLength: 253
+                      pattern: ^[A-Za-z_][A-Za-z0-9_]*$
+                      type: string
                     max:
                       description: |-
                         Max is the maximum numeric value for int-typed fields. Bounds are
@@ -1156,8 +1164,9 @@ spec:
                       type: integer
                     name:
                       description: |-
-                        Name is the field identifier (also used as an env var when
-                        Target is "env").
+                        Name is the field identifier and the key in GameServer.spec.config.
+                        It is also the env var name when Target is "env" and EnvName is
+                        empty.
                       minLength: 1
                       type: string
                     required:
@@ -1191,6 +1200,10 @@ spec:
                   - name
                   - type
                   type: object
+                  x-kubernetes-validations:
+                  - message: envName applies only to target env fields
+                    rule: '!has(self.envName) || !has(self.target) || self.target
+                      == ''env'''
                 type: array
               consoleMode:
                 description: |-

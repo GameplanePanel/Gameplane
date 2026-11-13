@@ -38,12 +38,17 @@ on:
       # Feature catalog and the website gitlink feed the features sync gate (spec 024).
       - "FEATURES.md"
       - "website"
-  # Manual full-suite run on any branch (spec 023 OD-7).
+  # An empty dispatch runs the full suite (spec 023 OD-7). A tag runs the release consumer.
   workflow_dispatch:
+    inputs:
+      published_release:
+        description: Run only release qualification for this published tag (for example v1.0.0)
+        required: false
+        type: string
 # Cancel superseded runs so rapid pushes to the same ref don't waste
 # runner minutes on stale commits.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ inputs.published_release && format('published-{0}', inputs.published_release) || 'suite' }}-${{ github.ref }}
   cancel-in-progress: true
 
 # The Go module mirror and checksum database have repeatedly dropped HTTP/2
@@ -69,6 +74,15 @@ permissions:
 # its own kind cluster, so the slowest suite — not the sum of all of
 # them — sets the wall-clock time.
 jobs:
+  published-release:
+    name: qualify a published release
+    if: github.event_name == 'workflow_dispatch' && inputs.published_release != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/qualify-release.yaml
+    with:
+      release_tag: ${{ inputs.published_release }}
+
   # Path-filter gate. Computes which parts of the tree a change touches so the
   # heavy jobs below can skip when they can't be affected (a web-only PR drops
   # from ~22 jobs to a handful). Any shared/CI-config path (this workflow, the
@@ -79,6 +93,7 @@ jobs:
   # selection table to this job's summary.
   changes:
     name: detect changes
+    if: github.event_name != 'workflow_dispatch' || inputs.published_release == ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -849,6 +864,7 @@ jobs:
   # separate: not part of `make lint`, and not in the `report` job's needs.
   telemetry-default-gate:
     name: telemetry default gate
+    if: github.event_name != 'workflow_dispatch' || inputs.published_release == ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -1273,6 +1289,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
+      - name: deterministic offline native chart and upgrade renders
+        run: python3 charts/tests/check_argocd.py
       - name: gateway isolation and API-disabled chart renders
         run: python3 charts/tests/check_gateway.py
       - name: standalone panel isolation and persistence chart renders
@@ -2161,7 +2179,7 @@ jobs:
     needs: [changes, build-images]
     if: (needs.changes.outputs.e2e == 'true' && needs.changes.outputs.e2e-upgrade == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'e2e-upgrade')
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
-    timeout-minutes: 60 # Same, plus a chart upgrade across versions.
+    timeout-minutes: 85 # Published upgrade, RBAC transition and live Argo CD adoption/rotation.
     permissions:
       contents: read
     strategy:
@@ -2176,6 +2194,10 @@ jobs:
       GAMEPLANE_UPGRADE_FROM: 0.3.0
     steps: &e2e-upgrade-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Argo fetches the exact tested commit from a read-only Git server.
+          # A shallow server can advertise a ref that a fresh fetch rejects.
+          fetch-depth: ${{ matrix.arch == 'amd64' && '0' || '1' }}
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
@@ -2188,15 +2210,24 @@ jobs:
         uses: ./.github/actions/e2e-images
         with:
           arch: ${{ matrix.arch }}
+      - name: verify release consumer provenance and cluster ownership guards
+        if: matrix.arch == 'amd64'
+        run: bash test/e2e/release-consumer-checks.sh
       - name: bring up cluster on the PREVIOUS release
         run: ./deploy/kind/upgrade.sh up "$CLUSTER" e2e
+      - name: install Argo CD for the populated GitOps upgrade
+        if: matrix.arch == 'amd64'
+        run: bash deploy/kind/argocd.sh
       - name: run go e2e (upgrade)
+        env:
+          GAMEPLANE_E2E_ARGOCD: ${{ matrix.arch == 'amd64' && '1' || '' }}
+          UPGRADE_TEST_TIMEOUT: ${{ matrix.arch == 'amd64' && '55m' || '35m' }}
         run: |
           RUN_REGEX="$(./test/e2e/buckets.sh regex upgrade)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
-            go test -tags=e2e -timeout 25m -v -run "$RUN_REGEX" ./...
+            go test -tags=e2e -timeout "$UPGRADE_TEST_TIMEOUT" -v -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-upgrade)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
@@ -2677,7 +2708,7 @@ jobs:
         e2e-postgres,
         e2e-kind-ingress-smoke,
       ]
-    if: always()
+    if: always() && (github.event_name != 'workflow_dispatch' || inputs.published_release == '')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

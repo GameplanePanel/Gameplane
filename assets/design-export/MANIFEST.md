@@ -2878,6 +2878,10 @@ All seven roots have JSON from Pencil `Get` and 2× PNG from `Export`. Toolbar, 
 
 The Pending server Overview (`o4LH8W`) shows Stop enabled in the header and in the lifecycle Quick actions card. Restart remains disabled until the server is running.
 
+## Server file workspace
+
+The Files screen (`Burtr`) shows selection checkboxes, folder expansion, open editor tabs and bulk actions. The Create ZIP dialog (`o1uEP`) asks for the archive filename. Both frames have JSON and PNG exports.
+
 ## Server volume measurements
 
 The running Overview (`EZFW0`) shows measured data usage alongside the requested PVC capacity when a filesystem total is unavailable. The sleeping Overview (`TE2jI`) shows the request and a dash while usage is unknown.
