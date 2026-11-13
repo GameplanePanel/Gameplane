@@ -760,11 +760,14 @@ type AgentStatus struct {
 	MemoryLimitBytes *int64 `json:"memoryLimitBytes,omitempty"`
 
 	// DiskUsedBytes is observed usage scoped to the game data directory.
+	// Older agents report usage across the entire filesystem. Templates that
+	// pin spec.agent.image must adopt an updated agent for directory-scoped readings.
 	// nil means "unknown".
 	// +optional
 	DiskUsedBytes *int64 `json:"diskUsedBytes,omitempty"`
 
 	// DiskTotalBytes is the observed capacity scoped to the game data volume.
+	// Older agents report the capacity of the entire filesystem.
 	// nil means "unknown".
 	// +optional
 	DiskTotalBytes *int64 `json:"diskTotalBytes,omitempty"`

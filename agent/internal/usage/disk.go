@@ -67,7 +67,9 @@ func (r *Reader) readDisk(s *Sample) {
 type diskSample struct{ used, capacity int64 }
 
 func volumeUsage(ctx context.Context, root string, limit int) (diskSample, error) {
-	fd, err := unix.Open(root, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
+	// The configured root is trusted and may be a symlink. Descendant lookups
+	// stay relative to this pinned directory descriptor.
+	fd, err := unix.Open(root, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
 	if err != nil {
 		return diskSample{}, err
 	}

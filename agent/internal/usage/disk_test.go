@@ -49,6 +49,13 @@ func TestAllocatedDiskUsage(t *testing.T) {
 	if err != nil || got.used != want {
 		t.Fatalf("size=%v, want %d; err=%v", got, want, err)
 	}
+	rootLink := filepath.Join(parent, "data")
+	if err := os.Symlink(root, rootLink); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := volumeUsage(context.Background(), rootLink, 100); err != nil || got.used != want {
+		t.Fatalf("trusted root symlink: size=%v, want %d; err=%v", got, want, err)
+	}
 	if _, err = volumeUsage(context.Background(), root, 2); err == nil {
 		t.Fatal("published incomplete scan")
 	}

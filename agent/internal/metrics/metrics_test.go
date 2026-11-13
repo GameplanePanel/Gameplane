@@ -656,6 +656,31 @@ func TestMetricsAllMetricsIndependent(t *testing.T) {
 	}
 }
 
+func TestMetricsDiskValuesIndependent(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		snapshot Snapshot
+		want     string
+	}{
+		{"usage only", Snapshot{DiskKnown: true}, "gameplane_agent_disk_used_bytes"},
+		{"capacity only", Snapshot{DiskTotalKnown: true, DiskTotalBytes: 4096}, "gameplane_agent_disk_total_bytes"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := prometheus.NewRegistry()
+			m := &Metrics{}
+			reg.MustRegister(m)
+			m.Update(tc.snapshot)
+			families, err := reg.Gather()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(families) != 1 || families[0].GetName() != tc.want {
+				t.Fatalf("expected only %s, got %v", tc.want, families)
+			}
+		})
+	}
+}
+
 func TestMetricsPlayerMaxZero(t *testing.T) {
 	t.Parallel()
 
