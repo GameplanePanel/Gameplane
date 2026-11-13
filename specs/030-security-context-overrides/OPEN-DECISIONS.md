@@ -36,3 +36,69 @@ the dashboard says so. Saving never restarts the server.
   matches how other settings that change the pod behave, and avoids kicking players
   without warning.)
 - B. Yes: saving restarts the server right away, after a confirmation.
+
+---
+
+The decisions below were raised while planning (2026-11-13). They are **OPEN**: the
+plan builds on the recommended option and says so, but nothing is settled until
+valgul rules. Each is isolated, so a different ruling changes one task, not the design.
+
+## OD-4: What happens to saved root overrides when an admin turns the root setting off? (OPEN, asked 2026-11-13)
+
+Raised by CodeRabbit on PR #956. The spec says root values (run-as user, run-as group or
+filesystem group 0, or "use image default" for run-as user or group) are refused unless
+the cluster setting is on. It does not say what happens to a server that already holds
+a saved root override when an admin later turns the setting off.
+
+- A. Refuse to start them: running servers keep running; on the next start a server with
+  a root override does not start and its status says why, until the override is cleared
+  or the setting is turned back on. (Recommended: fails closed, nothing changes silently,
+  and the admin can revoke root at once. Needs the operator to learn the setting, for
+  example an API-owned ConfigMap the reconciler reads.)
+- B. Fall back to the module default: on the next start the root override is ignored and
+  the module's value applies, with a warning in status; the game may lose access to its
+  files.
+- C. Block turning it off: the setting cannot be switched off while any server still
+  holds a root override; the admin clears those first.
+
+Plan impact: A and B need the operator to read the setting (research.md R11 currently
+assumes only the API reads it); C adds a cluster-wide scan in the config handler.
+
+## OD-5: How do overrides interact with restricted workload mode? (OPEN)
+
+The operator's restricted workload mode (`--restricted-workloads`,
+`operator/internal/controller/workload_security.go:15`) requires every template to
+declare a positive run-as user and filesystem group, and rejects the server otherwise.
+An override can now produce a value the mode refuses (a root value, or "use image
+default" for run-as user), and the API does not know whether the operator runs in
+that mode.
+
+- A. The reconciler validates the effective (desired) values with the same rule and
+  reports the server as failed with the existing message until the override is fixed;
+  a pod that is already running keeps running with its applied values. (Recommended:
+  one rule in one place, the reconciler; matches how an invalid template is handled
+  today (`gameserver_controller.go:334`).)
+- B. The reconciler ignores an override the mode refuses, applies the module default
+  instead, and reports that on the status.
+- C. The API also refuses such overrides at write time, which needs the API to be told
+  the operator mode (a chart value passed to both).
+
+## OD-6: Is the extra confirmation for a risky value enforced by the API or only by the dashboard? (OPEN)
+
+FR-006a says overriding a value a module marked as risky "MUST need an extra
+confirmation that shows the module's reason". The dashboard can show a confirmation,
+but a direct API call has no dialog.
+
+- A. Dashboard only: the dashboard asks, the API accepts the override from any
+  `servers:security` holder. (Recommended: the permission, the root rule and the audit
+  entry are the enforced boundary; a risky flag is advice from a module author, and
+  enforcing it in the API means the handler must fetch and trust the template on every
+  write.)
+- B. API enforced: a request that sets a risky value must carry an explicit
+  acknowledgement (for example a `confirmRisky=true` query parameter), otherwise it is
+  refused with a message naming the module's reason.
+- C. Dashboard confirmation plus an audit field that records whether the value was
+  risky at the time of the change, without refusing anything.
+
+Plan impact if the ruling differs: B adds a template read to the create and update
+handlers and one error code; C adds one word to the audit reason.
