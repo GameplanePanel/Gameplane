@@ -8,6 +8,7 @@ import { Button, Input, Tabs, Tab as TabComponent } from "@heroui/react";
 
 import { useFormat } from "@/lib/i18n/format";
 import { openWS } from "@/lib/ws";
+import { LogHistory } from "./LogHistory";
 import { capitalize, cn } from "@/lib/utils";
 import type { GameServerPhase } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -208,6 +209,7 @@ export function LogsTab({
             <Download className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.tabs.logs.download", defaultMessage: "Download", description: "Logs tab: button that downloads the log as a file; keep it short" })}</Button>
         </div>
       </div>
+      <LogHistory name={name} ns={ns} source={effectiveSource} />
       <div ref={scrollerRef} className="flex-1 overflow-auto bg-[#0b0b0d] font-mono text-xs">
         {noOutput ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-6 py-8 text-center">

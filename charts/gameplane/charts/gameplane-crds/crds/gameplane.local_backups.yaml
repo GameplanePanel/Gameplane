@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 9ffb2bdfc486b12cb927fed97d0ce3f185b9cb06d7875092aa4c28b16490d752
+    gameplane.local/crd-bundle-sha256: a445936f4a6222c45f8e756066d2e3e90d39e8d0375b3e4c5c3572e71871f8db
     controller-gen.kubebuilder.io/version: v0.22.0
   name: backups.gameplane.local
 spec:
@@ -147,6 +147,15 @@ spec:
           status:
             description: BackupStatus is the observed state of a Backup.
             properties:
+              bytesAdded:
+                anyOf:
+                - type: integer
+                - type: string
+                description: |-
+                  BytesAdded is the packed data Restic added during this backup. Zero
+                  is a measured result. CSI and older Restic summaries omit this field.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
               captureManifest:
                 description: |-
                   CaptureManifest is recorded once, before the first capture worker starts.
@@ -320,8 +329,8 @@ spec:
                 - type: integer
                 - type: string
                 description: |-
-                  Size is the on-disk size of the snapshot, as reported by the
-                  backup driver. Not always exact for incremental snapshots.
+                  Size is the logical size reported by the driver (total bytes processed
+                  for Restic, restore size for a CSI snapshot).
                 pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                 x-kubernetes-int-or-string: true
               snapshotID:

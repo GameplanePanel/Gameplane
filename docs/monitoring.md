@@ -28,6 +28,26 @@ Check Prometheus **Status → Targets** for agent and tunnel targets with `up=1`
 then query `gameplane_agent_players_online` and `gameplane_tunnel_ready`.
 Unknown player counts are absent even when scraping works.
 
+The agent and tunnel PodMonitors live in the primary games namespace. Their
+target lists include that namespace and every entry in `operator.gameNamespaces`.
+Ensure Prometheus honors PodMonitor namespace selectors and can list and watch
+pods in each target namespace. Provision the same approved scraper ingress in
+additional namespaces that enforce default deny, and allow Prometheus egress.
+Workload alerts select the same explicit list of namespaces.
+
+For installations using `networkPolicies.tenantIsolation: true`, the chart
+installs the approved scraper ingress in every managed game namespace. Tenant
+operators should query a tenant-scoped Prometheus endpoint or a datasource
+that enforces their namespace. A Grafana variable filters a view and grants no
+authorization. Keep the fleet-wide Prometheus credentials with operators.
+
+`GameplaneScrapeUnavailable` fires when a discovered endpoint stays down.
+`GameplaneScrapeTargetMissing` compares discovered targets with running
+agent/tunnel containers on Gameplane-labeled pods. Enable kube-state-metrics
+pod label collection for `app.kubernetes.io/name` (for example
+`--metric-labels-allowlist=pods=[app.kubernetes.io/name]`) and scrape its
+container-running and pod-label metrics to enable that comparison.
+
 With the operator and its NetworkPolicies enabled, the chart requires a nonempty
 `serviceMonitors.scrapeNamespaceSelector`. Missing configuration fails with a
 message naming the setting. If another system owns the policies, set
@@ -39,11 +59,13 @@ on TCP 9090 and `app.kubernetes.io/name: gameplane-tunnel` on TCP 8091, with a
 namespace selector for the scraper. Restricted Prometheus egress policies must
 also allow those destinations, DNS and API discovery.
 
-For enforced isolation, configure `networkPolicies.strict: true`, actual
-`kubeletCIDRs` and `apiServerCIDRs`, and the game modules' exact `probePorts`.
-The legacy broad kubelet allowance can otherwise admit other private-address
-sources on metrics ports. Keep metrics ports out of the game probe allowance;
-the dedicated scrape policies grant their access. The CI monitoring bucket
+For enforced isolation, configure `networkPolicies.strict: true` with the
+actual kubelet and API endpoints. With per-server probe ingress enabled,
+leave `networkPolicies.probePorts: []`. Each game receives its own probe ports.
+Every explicit shared port grants kubelets access to that port on **all** game
+pods. If you disable per-server probe ingress, list the shared ports explicitly:
+an empty list in that legacy mode opens every game-pod port to the kubelet CIDRs.
+Use the dedicated scrape policies for metrics. The CI monitoring bucket
 uses Cilium and actual node/API addresses, tests a scraper in a separate
 namespace, revokes/restores the scrape policy, and checks an unapproved namespace
 cannot reach agent metrics.
@@ -133,15 +155,40 @@ staleness limit. See [relay-health.md](relay-health.md).
 Tailscale, frp and Playit all use the same metrics path. Metrics contain no
 credentials, login URLs, proxy names or provider error messages.
 
+`GameplaneRelaySaturated` fires on an increase in a supervisor flow-rejection
+or UDP queue-drop counter over five minutes. The dashboard shows both rates
+by namespace and Pod. The embedded Tailscale forwarder supplies these counters.
+For frp and Playit the support gauge is zero and the counters are absent.
+Use provider-side measurements for those paths.
+
 Container CPU throttling and working-set pressure require kubelet/cAdvisor
 scrapes. OOM/restart, Pending Pod and node pressure rules require kube-state-metrics.
 Install/configure those collectors (kube-prometheus-stack normally provides
 them); the minimal Prometheus example demonstrates Gameplane discovery and
 does not deploy them or Grafana. A missing upstream collector leaves those
 series absent; it does not mean zero pressure. Agent process RSS is not total
-container memory. These rules filter the games namespace and use `max` to
+container memory. These rules filter the explicitly managed game namespaces and use `max` to
 deduplicate replicated sources. The existing fleet rules likewise collapse
 duplicate operator replicas instead of adding their cache-derived counts.
+
+In operator-managed games the RSS series sums the game processes in the shared
+PID namespace. cAdvisor reports the game container's working set independently.
+Distinguish sustained growth from allocator churn by correlating both with an
+engine profiler, such as JVM allocation and GC events from Java Flight Recorder
+on a compatible Minecraft JVM. Allocation rate can rise while RSS stays flat.
+Native engine heap or frame profiles require that engine's profiling tools.
+
+At official module revision `48b8b65c`, Minecraft Java, ARK Survival
+Ascended, Palworld, Project Zomboid and CS2 have no numeric tick or frame
+declarations. Minecraft Java's `seed` readout is display-only. The
+[Palworld module change](https://github.com/GameplanePanel/module/pull/60)
+declares instantaneous server FPS from the authenticated REST metrics
+endpoint. Its [engine fixture](https://github.com/GameplanePanel/module/blob/54e9a11a694c10b0dc2550391782b95bf1a883de/palworld/samples/metrics.json)
+records 59 FPS on Steam build 25247047. Its average FPS and frame time are
+separate fields. Select a module revision containing the declaration. Missing
+or malformed responses leave the numeric series absent. A server tick-rate
+setting describes a configured target, while this series describes observed
+frames.
 
 The Workloads dashboard shows scrape health, relay readiness/known state,
 supported game measurements, container pressure, restarts and Pending Pods.

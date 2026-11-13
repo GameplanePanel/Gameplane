@@ -61,6 +61,7 @@ func TestMount_RejectsNonLocalCluster(t *testing.T) {
 		{"GET", "/ws/servers/alpha/console"},
 		{"GET", "/ws/servers/alpha/logs"},
 		{"GET", "/servers/alpha/logs/download"},
+		{"GET", "/servers/alpha/logs/history"},
 		{"GET", "/servers/alpha/files/list"},
 		{"POST", "/servers/alpha/actions/run"},
 		{"GET", "/servers/alpha/status"},

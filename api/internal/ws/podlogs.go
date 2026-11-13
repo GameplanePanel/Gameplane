@@ -46,6 +46,7 @@ const podLogPollInterval = time.Second
 // /logs/tail protocol so the dashboard's Logs tab renders both sources
 // identically.
 func mountPodLogs(r chi.Router, reg *kube.Registry) {
+	mountPodHistory(r, reg)
 	r.Get("/ws/servers/{name}/logs/pod", func(w http.ResponseWriter, req *http.Request) {
 		k, ok := streamClient(w, req, reg)
 		if !ok {

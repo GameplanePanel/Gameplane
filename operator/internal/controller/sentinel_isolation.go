@@ -133,6 +133,8 @@ func (r *GameServerReconciler) revokeInvalidSentinelIsolationExposure(ctx contex
 		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gameIngressPolicyName(gs)}},
 		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-sentinel-ingress"}},
 		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-sentinel-egress"}},
+		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-ingress"}},
+		&networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-egress"}},
 		&corev1.Service{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name}},
 		&corev1.Service{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-game-direct"}},
 	}
