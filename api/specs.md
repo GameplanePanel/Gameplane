@@ -338,6 +338,11 @@ trust assumptions, rotation behavior and surfaces outside this protocol.
 - **Provenance:** The "helm" provider's groupsClaim, defaultRole, and roleMappings come from CLI flags (`--oidc-groups-claim`, `--oidc-default-role`, `--oidc-role-mapping-*`) only. It is not a database row; it is synthesized at runtime from flags and the optional `helmOverride.roleMappings` overlay (see below).
 - **Per-login re-evaluation:** Role mappings are read at login time from the current "auth" config row, so override changes take effect immediately on the next login without restart or Helm upgrade.
 
+**Profile claims (username, display name, email):**
+- **Claims read:** `sub`, `email`, `name` and `preferred_username` from the ID token. When any of `email`, `name` or `preferred_username` is missing, the callback asks the provider's userinfo endpoint (bounded by `oidcUserInfoTimeout`, 5s) and fills only the empty fields. The userinfo response is used only when its `sub` equals the ID token's (OIDC Core 5.3.2). A userinfo error, timeout, subject mismatch or claim-decode failure is logged and the login continues with the ID token claims.
+- **New user username:** `preferred_username`, then `email`, then the raw `sub`; a taken name gets `+<first 8 chars of sub>` (`pickUniqueUsername`).
+- **Existing user refresh (every login):** a non-empty IdP `email` or `name` overwrites the stored `users.email` / `users.display_name`; empty claims never clear stored values. `oidc_links.email` follows an email change. A username still equal to the raw `sub` is renamed to the new-user choice above once `preferred_username` or `email` is available; any other username is never changed. A refresh failure is logged and never blocks the login.
+
 **Group-claim extraction & role assignment:**
 - **Claim name:** Defaults to "groups" when `--oidc-groups-claim` is empty or unset. Otherwise uses the configured name. Extraction honors the configured (or default) name on every login (not cached).
 - **First-match precedence:** Roles are assigned in strict precedence order: admin → operator → viewer. A user whose IdP groups match any group in the admin mapping gets the admin role, even if they also match operator/viewer groups. If no tier matches, the policy's DefaultRole applies ("", "viewer", "operator", "admin", or "deny" to refuse login).
