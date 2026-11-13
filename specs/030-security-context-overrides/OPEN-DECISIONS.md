@@ -64,7 +64,7 @@ a saved root override when an admin later turns the setting off.
 Plan impact: A and B need the operator to read the setting (research.md R11 currently
 assumes only the API reads it); C adds a cluster-wide scan in the config handler.
 
-## OD-5: How do overrides interact with restricted workload mode? (OPEN)
+## OD-5: How do overrides interact with restricted workload mode? (OPEN, asked 2026-11-13)
 
 The operator's restricted workload mode (`--restricted-workloads`,
 `operator/internal/controller/workload_security.go:15`) requires every template to
@@ -83,22 +83,21 @@ that mode.
 - C. The API also refuses such overrides at write time, which needs the API to be told
   the operator mode (a chart value passed to both).
 
-## OD-6: Is the extra confirmation for a risky value enforced by the API or only by the dashboard? (OPEN)
+## OD-6: Is the extra confirmation for a risky value enforced by the API or only by the dashboard? (OPEN, asked 2026-11-13)
 
 FR-006a says overriding a value a module marked as risky "MUST need an extra
 confirmation that shows the module's reason". The dashboard can show a confirmation,
 but a direct API call has no dialog.
 
 - A. Dashboard only: the dashboard asks, the API accepts the override from any
-  `servers:security` holder. (Recommended: the permission, the root rule and the audit
-  entry are the enforced boundary; a risky flag is advice from a module author, and
-  enforcing it in the API means the handler must fetch and trust the template on every
-  write.)
+  `servers:security` holder.
 - B. API enforced: a request that sets a risky value must carry an explicit
   acknowledgement (for example a `confirmRisky=true` query parameter), otherwise it is
   refused with a message naming the module's reason.
 - C. Dashboard confirmation plus an audit field that records whether the value was
-  risky at the time of the change, without refusing anything.
+  risky at the time of the change, without refusing anything. (Recommended: the permission,
+  the root rule and the audit entry are the enforced boundary; a risky flag is advice
+  from a module author, and recording it in the audit costs one word.)
 
 Plan impact if the ruling differs: B adds a template read to the create and update
 handlers and one error code; C adds one word to the audit reason.
