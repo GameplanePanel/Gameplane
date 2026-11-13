@@ -480,6 +480,8 @@ A submitted stylesheet is rejected with 400 and a message naming the offending r
 
 ### RBAC roles (three built-in + custom)
 
+Kubernetes authorizes the native panel's ServiceAccount separately from the user's Gameplane role. In local-only mode, `--remote-clusters=false` skips remote credential discovery, exposes only authorized local cluster discovery and omits remote registration and gateway-management routes. Native Helm grants and the upgrade contract are specified in [the Kubernetes permission matrix](../docs/native-rbac.md).
+
 **Built-in roles:**
 - **admin:** wildcard permission `*`; full access to all resources and config
 - **operator:** read/write servers, backups, schedules, templates; read modules, destinations, cluster, roles (modules install/upgrade/uninstall requires `modules:manage`, seeded only to admin — see `api/internal/db/migrations/sqlite/003_roles.sql`)

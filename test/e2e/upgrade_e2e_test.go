@@ -52,7 +52,7 @@ import (
 // also bring them up to date. It runs last so steps 1-6 start from the old
 // release's genuinely stale schema.
 func TestUpgrade_FromPreviousRelease(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	ns := "gameplane-games"
 	tmpl := "e2e-upgrade-busybox"
 	gs := "e2e-upgrade-target"
@@ -73,13 +73,28 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxTemplate(t, tmpl)
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
-	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
+	seedPod := waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
+	beforeIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
+	legacyReadBinding := nativeReadBinding(t)
+	checkNativeCatalogAccess(t, tmpl, true)
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
 	// restarted by the upgrade, not sitting in the page cache.
 	if out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0",
 		"sh", "-c", "echo -n "+marker+" > /data/marker.txt && sync"); err != nil {
 		t.Fatalf("write marker: %v\n%s", err, out)
+	}
+
+	claim, err := envInstance.K8s.CoreV1().PersistentVolumeClaims(ns).Get(ctx, gs+"-data", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if chart := os.Getenv("GAMEPLANE_PUBLISHED_CHART"); chart != "" {
+		checkPublishedRuntime(t, os.Getenv("GAMEPLANE_PREVIOUS_RELEASE_DIGESTS"), "api", "operator", "agent")
+		upgradePublishedChart(t, chart)
+		verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID, seedPod)
+		checkPublishedRuntime(t, os.Getenv("GAMEPLANE_RELEASE_DIGESTS"), "api", "operator", "web", "agent")
+		return
 	}
 
 	// ---- 2. work out what the upgrade is supposed to change --------------
@@ -158,6 +173,13 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("operator strategy migration retained RollingUpdate fields: %+v", operator.Spec.Strategy)
 	}
 
+	afterIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
+	for name, before := range beforeIdentity {
+		if afterIdentity[name] != before {
+			t.Errorf("upgrade changed %s identity: before %s, after %s", name, before, afterIdentity[name])
+		}
+	}
+
 	// ---- 4. the CRDs were actually updated -------------------------------
 
 	// This is the hook's literal contract. Without it Helm leaves the old
@@ -176,68 +198,14 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		}
 	}
 
-	// ---- 5. the workload and its data survived ---------------------------
-
-	got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
-		Get(ctx, gs, metav1.GetOptions{})
-	if err != nil {
-		t.Fatalf("GameServer %s/%s is gone after the upgrade: %v", ns, gs, err)
-	}
-	if suspend, _, _ := unstructured.NestedBool(got.Object, "spec", "suspend"); suspend {
-		t.Errorf("GameServer was suspended by the upgrade; spec.suspend should be untouched")
-	}
-
-	waitPVCBound(t, ns, gs+"-data", 2*time.Minute)
-	waitGameContainerReady(t, ns, gs+"-0", 4*time.Minute)
-
-	// Retry the read rather than exec'ing once. An upgrade re-renders the
-	// StatefulSet, so the pod keeps its name but is legitimately replaced —
-	// a Ready observation can be of the outgoing pod, and the exec then
-	// lands mid-restart ("container not found", "no running task found").
-	// That is the workload behaving correctly, not a regression, so the
-	// assertion tolerates the churn and waits for the volume to be readable.
-	// What is being proven is that the bytes survived, not that they were
-	// readable at one exact instant.
-	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
-		out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0", "cat", "/data/marker.txt")
-		if err != nil {
-			return false, "exec: " + err.Error() + " out=" + out
-		}
-		// kubectl mixes its "Defaulted container ..." stderr preamble into
-		// CombinedOutput, so check for the marker as a substring.
-		if !strings.Contains(out, marker) {
-			return false, "marker not in output yet: " + out
-		}
-		return true, ""
-	})
-
-	// ---- 6. the database and its migrations survived ---------------------
-
-	// Deliberately after the upgrade: the API pod was replaced, so this both
-	// re-establishes a port-forward against the NEW pod and proves the new
-	// binary's migrations ran against the old release's populated SQLite file
-	// without dropping the user rows.
-	client := envInstance.APIClient(t, adminUser, adminPass)
-	defer client.Close()
-
-	resp, body, err := client.Get("/servers/" + gs + "?namespace=" + ns)
-	if err != nil {
-		t.Fatalf("read the pre-upgrade server through the upgraded API: %v", err)
-	}
-	if resp.StatusCode != 200 {
-		t.Fatalf("GET /servers/%s after upgrade: status %d body %s", gs, resp.StatusCode, body)
-	}
-	if !strings.Contains(string(body), gs) {
-		t.Errorf("upgraded API does not return the pre-upgrade GameServer %q; body=%s", gs, body)
-	}
-	resp.Body.Close()
+	client := verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID, seedPod)
 
 	// ---- 6b. telemetry stays off for an install that never opted in ------
 	//
 	// The previous release had no telemetry choice saved for this install, so
 	// the upgrade must not turn reporting on or show the notice (spec 022 US1
 	// scenario 5): migration 015 seeds consent_source "legacy".
-	resp, body, err = client.Get("/admin/telemetry/notice")
+	resp, body, err := client.Get("/admin/telemetry/notice")
 	if err != nil || resp.StatusCode != 200 {
 		t.Fatalf("GET /admin/telemetry/notice after upgrade: %v status %d body %s", err, resp.StatusCode, body)
 	}
@@ -268,6 +236,19 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	// "extended":false next to a saved value, so only sendMetrics is compared.
 	if cfgAll.Telemetry != nil && cfgAll.Telemetry.SendMetrics {
 		t.Errorf("telemetry sendMetrics is true after an upgrade with no saved choice; body=%s", body)
+	}
+
+	checkNativeRBACUpgrade(t, ns, gs, tmpl, legacyReadBinding)
+	localClient := envInstance.APIClient(t, adminUser, adminPass)
+	defer localClient.Close()
+	waitAgentReachable(t, localClient, gs)
+	verifyLocalClusterDiscovery(t, localClient)
+
+	if os.Getenv("GAMEPLANE_E2E_ARGOCD") == "1" {
+		t.Run("ArgoCD", func(t *testing.T) {
+			checkArgoUpgrade(t, ns, gs, marker, adminUser, adminPass, credentialsNS)
+			checkNativeCatalogAccess(t, tmpl, false)
+		})
 	}
 
 	// ---- 7. F-218: a fresh `helm install` over leftover, STALE CRDs ------
@@ -578,10 +559,11 @@ func migrationDryRun(ctx context.Context, t *testing.T, upgradeArgs []string, st
 }
 
 // waitGameContainerReady polls until the named pod's "game" container reports
-// Ready. Shared by the seed and post-upgrade phases.
-func waitGameContainerReady(t *testing.T, ns, pod string, timeout time.Duration) {
+// Ready and returns the observed pod.
+func waitGameContainerReady(t *testing.T, ns, pod string, timeout time.Duration) *corev1.Pod {
 	t.Helper()
 	ctx := context.Background()
+	var ready *corev1.Pod
 	envInstance.Eventually(t, timeout, func() (bool, string) {
 		p, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, pod, metav1.GetOptions{})
 		if err != nil {
@@ -589,11 +571,13 @@ func waitGameContainerReady(t *testing.T, ns, pod string, timeout time.Duration)
 		}
 		for _, cs := range p.Status.ContainerStatuses {
 			if cs.Name == "game" && cs.Ready {
+				ready = p
 				return true, ""
 			}
 		}
 		return false, "game container not ready yet"
 	})
+	return ready
 }
 
 // crdSpecProperties returns the top-level property names under the CRD's

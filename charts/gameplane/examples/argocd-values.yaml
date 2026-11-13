@@ -1,0 +1,13 @@
+# Native Argo CD profile. Pre-create these immutable Secrets and set the
+# workload Application's source.helm.skipCrds=true (see docs/argocd.md).
+argoCD:
+  enabled: true
+crds:
+  autoApply:
+    enabled: false
+api:
+  agentMTLS:
+    caSecretRef:
+      name: gameplane-external-ca-v1
+    clientCertRef:
+      name: gameplane-external-client-v1

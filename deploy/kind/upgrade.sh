@@ -12,6 +12,7 @@
 #
 # Usage:
 #   deploy/kind/upgrade.sh up   [cluster-name] [tag]
+#   deploy/kind/upgrade.sh install <existing-kind-cluster> [tag]
 #   deploy/kind/upgrade.sh down [cluster-name]
 
 set -euo pipefail
@@ -35,44 +36,65 @@ REPO="$(cd "${HERE}/../.." && pwd)"
 FROM_VERSION="${GAMEPLANE_UPGRADE_FROM:-0.3.0}"
 # Releases up to v0.3.0 were published before the repo moved to the
 # GameplanePanel org, so they live under the original owner on GHCR.
-CHART_REF="oci://ghcr.io/valgulnecron/charts/gameplane"
+FROM_REGISTRY="ghcr.io/valgulnecron"
+CHART_REF="oci://$FROM_REGISTRY/charts/gameplane"
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }
 
 case "${ACTION}" in
-up)
+up|install)
     need kind
     need kubectl
     need helm
     need docker
 
-    if kind get clusters | grep -qx "${CLUSTER}"; then
-        echo "removing pre-existing cluster ${CLUSTER} for a clean slate"
-        kind delete cluster --name "${CLUSTER}" || true
+    if [[ "$ACTION" == up ]]; then
+        # Kind's default is a single control-plane node. Creation rejects
+        # collisions and leaves the existing cluster and its volumes alone.
+        kind create cluster --name "${CLUSTER}" --wait 90s
+    elif [[ -z ${2:-} ]]; then
+        echo "install requires the name of the existing Kind cluster" >&2
+        exit 2
     fi
-    echo "creating kind cluster ${CLUSTER} (single-node)"
-    kind create cluster --name "${CLUSTER}" --wait 90s --config - <<EOF
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  - role: control-plane
-EOF
 
     kubectl cluster-info --context "kind-${CLUSTER}" >/dev/null
 
     # Load the NEW (working-tree) images now, so the upgrade the test performs
     # later needs no network. The OLD release's images are pulled from GHCR by
     # the install below — that is the point of the test.
-    echo "loading working-tree gameplane-test/{operator,api,agent,sentinel}:${TAG} into kind"
-    for img in operator api agent sentinel; do
-        if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
-            echo "  missing local image gameplane-test/${img}:${TAG} — building"
-            docker build -t "gameplane-test/${img}:${TAG}" -f "${REPO}/${img}/Dockerfile" "${REPO}"
-        fi
-        kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
-    done
+    if [[ -z "${GAMEPLANE_PUBLISHED_CHART:-}" ]]; then
+        echo "loading working-tree gameplane-test/{operator,api,agent,sentinel}:${TAG} into kind"
+        for img in operator api agent sentinel; do
+            if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
+                echo "  missing local image gameplane-test/${img}:${TAG} — building"
+                docker build -t "gameplane-test/${img}:${TAG}" -f "${REPO}/${img}/Dockerfile" "${REPO}"
+            fi
+            kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
+        done
+    fi
 
-    echo "installing PUBLISHED chart ${CHART_REF} --version ${FROM_VERSION}"
+    chart_args=(--version "$FROM_VERSION")
+    if [[ -n ${GAMEPLANE_PUBLISHED_CHART:-} ]]; then
+        # Resolve the documented predecessor in its original registry. Record
+        # what should be running before the seeded game and database migrate.
+        source "$HERE/release-consumer-lib.sh"
+        git -C "$REPO" fetch --quiet --no-tags --depth=1 origin "refs/tags/v$FROM_VERSION"
+        previous_commit=$(git -C "$REPO" rev-parse --verify 'FETCH_HEAD^{commit}')
+        repository=${CHART_REF#oci://}
+        digest=$(oras resolve "$repository:$FROM_VERSION")
+        verify_release_signature "$repository" "$digest"
+        CHART_REF="$CHART_REF@$digest"
+        chart_args=()
+        metadata=$(helm show chart "$CHART_REF")
+        [[ $(yq -r '.version' <<< "$metadata") == "$FROM_VERSION" &&
+           $(yq -r '.appVersion' <<< "$metadata") == "$FROM_VERSION" ]]
+        printf '\nPrevious chart `%s@%s`, version `%s`, Git commit `%s`\n' \
+            "$repository" "$digest" "$FROM_VERSION" "$previous_commit" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+        for component in api operator agent; do
+            verify_release_image "$FROM_REGISTRY/gameplane/$component" "$FROM_VERSION" "$previous_commit" "$GAMEPLANE_PREVIOUS_RELEASE_DIGESTS"
+        done
+    fi
+    echo "installing PUBLISHED chart ${CHART_REF}, version ${FROM_VERSION}"
     # Value overrides mirror e2e.sh's, and are all about the harness rather
     # than the version under test:
     #   - api memory 1Gi: argon2id uses ~64Mi per hash and the 256Mi default
@@ -85,7 +107,8 @@ EOF
     # Note what is NOT overridden: image.registry/image.tag. The old release
     # must pull its own published GHCR images, or this tests nothing.
     helm install gameplane "${CHART_REF}" \
-        --version "${FROM_VERSION}" \
+        --kube-context "kind-${CLUSTER}" \
+        "${chart_args[@]}" \
         --namespace gameplane-system --create-namespace \
         --set "ingress.enabled=false" \
         --set "web.enabled=false" \
@@ -108,7 +131,7 @@ down)
     ;;
 
 *)
-    echo "usage: $0 {up|down} [cluster-name] [tag]" >&2
+    echo "usage: $0 {up|install|down} [cluster-name] [tag]" >&2
     exit 2
     ;;
 esac
