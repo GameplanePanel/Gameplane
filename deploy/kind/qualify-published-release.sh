@@ -32,14 +32,14 @@ verify_release_signature "$chart" "$digest"
 helm pull "oci://$chart@$digest" --untar --untardir "$scratch"
 test "$(yq -r '.version' "$GAMEPLANE_PUBLISHED_CHART/Chart.yaml")" = "$version"
 test "$(yq -r '.appVersion' "$GAMEPLANE_PUBLISHED_CHART/Chart.yaml")" = "$version"
-printf 'Verified chart `%s@%s`\n' "$chart" "$digest" >> "$GITHUB_STEP_SUMMARY"
+printf 'Verified chart `%s@%s`\n' "$chart" "$digest" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
 # Read the publisher's complete matrix, including optional images. Keep the
 # signed index and its amd64 manifest/config IDs for containerd comparisons.
 git fetch --quiet --no-tags --depth=1 origin "refs/tags/$tag"
 revision=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
 git show "$revision:.github/workflows/release.yaml" > "$scratch/published-release.yaml"
-printf 'Release `%s` at Git commit `%s`\n' "$tag" "$revision" >> "$GITHUB_STEP_SUMMARY"
+printf 'Release `%s` at Git commit `%s`\n' "$tag" "$revision" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 components="$(yq -r '.jobs.images.strategy.matrix.include[].component' "$scratch/published-release.yaml")"
 test -n "$components"
 while read -r component; do

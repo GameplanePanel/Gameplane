@@ -89,7 +89,7 @@ up|install)
         [[ $(yq -r '.version' <<< "$metadata") == "$FROM_VERSION" &&
            $(yq -r '.appVersion' <<< "$metadata") == "$FROM_VERSION" ]]
         printf '\nPrevious chart `%s@%s`, version `%s`, Git commit `%s`\n' \
-            "$repository" "$digest" "$FROM_VERSION" "$previous_commit" >> "$GITHUB_STEP_SUMMARY"
+            "$repository" "$digest" "$FROM_VERSION" "$previous_commit" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
         for component in api operator agent; do
             verify_release_image "$FROM_REGISTRY/gameplane/$component" "$FROM_VERSION" "$previous_commit" "$GAMEPLANE_PREVIOUS_RELEASE_DIGESTS"
         done

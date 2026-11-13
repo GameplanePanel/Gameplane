@@ -3,13 +3,15 @@
 package e2e
 
 import (
-	"context"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
@@ -43,9 +45,9 @@ func checkPublishedRuntime(t *testing.T, digestFile string, components ...string
 
 // Both PR CI and release CI must prove that the seeded world, PVC and account
 // survived the upgrade. A Ready replacement pod alone does not establish this.
-func verifyPopulatedUpgrade(t *testing.T, ns, gs, marker, adminUser, adminPass string, previousClaim types.UID) *APIClient {
+func verifyPopulatedUpgrade(t *testing.T, ns, gs, marker, adminUser, adminPass string, previousClaim types.UID, seedPod *corev1.Pod) *APIClient {
 	t.Helper()
-	ctx := context.Background()
+	ctx := t.Context()
 	// ---- 5. the workload and its data survived ---------------------------
 
 	got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
@@ -62,17 +64,27 @@ func verifyPopulatedUpgrade(t *testing.T, ns, gs, marker, adminUser, adminPass s
 	if err != nil || claim.UID != previousClaim {
 		t.Fatalf("upgrade replaced the game data claim or made it unavailable: %v", err)
 	}
-	waitGameContainerReady(t, ns, gs+"-0", 4*time.Minute)
-
-	// Retry the read rather than exec'ing once. An upgrade re-renders the
-	// StatefulSet, so the pod keeps its name but is legitimately replaced —
-	// a Ready observation can be of the outgoing pod, and the exec then
-	// lands mid-restart ("container not found", "no running task found").
-	// That is the workload behaving correctly, not a regression, so the
-	// assertion tolerates the churn and waits for the volume to be readable.
-	// What is being proven is that the bytes survived, not that they were
-	// readable at one exact instant.
-	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
+	// Helm does not wait for this operator-owned StatefulSet. Its old pod
+	// can still serve the marker while the operator reconciles the upgrade.
+	envInstance.Eventually(t, 4*time.Minute, func() (bool, string) {
+		sts, err := envInstance.K8s.AppsV1().StatefulSets(ns).Get(ctx, gs, metav1.GetOptions{})
+		if err != nil {
+			return false, "get StatefulSet: " + err.Error()
+		}
+		status := sts.Status
+		if status.UpdateRevision == "" || status.UpdateRevision == seedPod.Labels[appsv1.StatefulSetRevisionLabel] ||
+			status.ObservedGeneration != sts.Generation || status.CurrentRevision != status.UpdateRevision ||
+			status.UpdatedReplicas != 1 || status.ReadyReplicas != 1 {
+			return false, fmt.Sprintf("waiting for upgraded game StatefulSet: %+v", status)
+		}
+		pod, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, seedPod.Name, metav1.GetOptions{})
+		if err != nil {
+			return false, "get replacement pod: " + err.Error()
+		}
+		if pod.UID == seedPod.UID || pod.DeletionTimestamp != nil || !metav1.IsControlledBy(pod, sts) ||
+			pod.Labels[appsv1.StatefulSetRevisionLabel] != status.UpdateRevision {
+			return false, "waiting for replacement pod at revision " + status.UpdateRevision
+		}
 		out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0", "cat", "/data/marker.txt")
 		if err != nil {
 			return false, "exec: " + err.Error() + " out=" + out

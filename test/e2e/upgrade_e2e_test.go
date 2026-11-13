@@ -73,7 +73,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	applyBusyboxTemplate(t, tmpl)
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
-	waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
+	seedPod := waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
 	beforeIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
 	legacyReadBinding := nativeReadBinding(t)
 	checkNativeCatalogAccess(t, tmpl, true)
@@ -92,7 +92,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	if chart := os.Getenv("GAMEPLANE_PUBLISHED_CHART"); chart != "" {
 		checkPublishedRuntime(t, os.Getenv("GAMEPLANE_PREVIOUS_RELEASE_DIGESTS"), "api", "operator", "agent")
 		upgradePublishedChart(t, chart)
-		verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID)
+		verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID, seedPod)
 		checkPublishedRuntime(t, os.Getenv("GAMEPLANE_RELEASE_DIGESTS"), "api", "operator", "web", "agent")
 		return
 	}
@@ -198,7 +198,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		}
 	}
 
-	client := verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID)
+	client := verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID, seedPod)
 
 	// ---- 6b. telemetry stays off for an install that never opted in ------
 	//
@@ -559,10 +559,11 @@ func migrationDryRun(ctx context.Context, t *testing.T, upgradeArgs []string, st
 }
 
 // waitGameContainerReady polls until the named pod's "game" container reports
-// Ready. Shared by the seed and post-upgrade phases.
-func waitGameContainerReady(t *testing.T, ns, pod string, timeout time.Duration) {
+// Ready and returns the observed pod.
+func waitGameContainerReady(t *testing.T, ns, pod string, timeout time.Duration) *corev1.Pod {
 	t.Helper()
 	ctx := context.Background()
+	var ready *corev1.Pod
 	envInstance.Eventually(t, timeout, func() (bool, string) {
 		p, err := envInstance.K8s.CoreV1().Pods(ns).Get(ctx, pod, metav1.GetOptions{})
 		if err != nil {
@@ -570,11 +571,13 @@ func waitGameContainerReady(t *testing.T, ns, pod string, timeout time.Duration)
 		}
 		for _, cs := range p.Status.ContainerStatuses {
 			if cs.Name == "game" && cs.Ready {
+				ready = p
 				return true, ""
 			}
 		}
 		return false, "game container not ready yet"
 	})
+	return ready
 }
 
 // crdSpecProperties returns the top-level property names under the CRD's

@@ -29,6 +29,41 @@ done
 
 scratch=$(mktemp -d)
 trap 'rm -rf -- "$scratch"' EXIT
+
+# Keep an amd64 image in Docker while checking every arm64 layer by digest.
+# Run outside Actions too, where no summary file is configured.
+(
+  unset GITHUB_STEP_SUMMARY
+  image=ghcr.io/example/gameplane/web
+  docker() { test "$*" = "pull --platform linux/amd64 $image@sha256:abc"; }
+  cosign() {
+    echo '[{"critical":{"identity":{"docker-reference":"ghcr.io/example/gameplane/web"},"image":{"docker-manifest-digest":"sha256:abc"}}}]'
+  }
+  oras() {
+    case "$*" in
+      "resolve $image:0.3.0") echo 'sha256:abc' ;;
+      "manifest fetch $image@sha256:abc")
+        echo '{"manifests":[{"platform":{"os":"linux","architecture":"amd64"},"digest":"amd64"},{"platform":{"os":"linux","architecture":"arm64"},"digest":"arm64"}]}' ;;
+      "manifest fetch $image@amd64") echo '{"config":{"digest":"config-amd64"}}' ;;
+      "manifest fetch $image@arm64") echo '{"config":{"digest":"config-arm64"},"layers":[{"digest":"first"},{"digest":"second"}]}' ;;
+      "blob fetch --output - $image@config-amd64") echo "$fixture_config" ;;
+      "blob fetch --output - $image@config-arm64") echo "${fixture_config/amd64/arm64}" ;;
+      "blob fetch --output - $image@first"|"blob fetch --output - $image@second")
+        echo "${*: -1}" >> "$scratch/layers"
+        [[ ${*: -1} != "$image@${missing:-}" ]] ;;
+      *) return 1 ;;
+    esac
+  }
+  fixture_config=$config
+  verify_release_image "$image" 0.3.0 "$revision" "$scratch/digests"
+  printf '%s\n' "$image@first" "$image@second" | diff - "$scratch/layers"
+  missing=first
+  if verify_release_image "$image" 0.3.0 "$revision" "$scratch/digests"; then
+    echo "Accepted an arm64 manifest with a missing layer" >&2
+    exit 1
+  fi
+)
+
 export KUBECONFIG="$scratch/kubeconfig"
 node_id=$(printf 'a%.0s' {1..64})
 owned_node=''

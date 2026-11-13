@@ -46,6 +46,6 @@ for component in "$@"; do
       exit 1
     fi
     printf '%s %s %s\n' "$context" "$image" "$id"
-    printf '\n- `%s` ran `%s` as `%s`\n' "$context" "$image" "$id" >> "$GITHUB_STEP_SUMMARY"
+    printf '\n- `%s` ran `%s` as `%s`\n' "$context" "$image" "$id" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
   done <<< "$ids"
 done

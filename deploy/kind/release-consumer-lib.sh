@@ -22,25 +22,33 @@ verify_release_config() {
 
 verify_release_image() {
   local image=$1 version=$2 revision=$3 digest_file=$4
-  local index ref index_json arch manifest config
+  local index ref index_json arch manifest manifest_json config layers layer
   index=$(oras resolve "$image:$version")
   ref="$image@$index"
   verify_release_signature "$image" "$index"
   docker pull --platform linux/amd64 "$ref"
-  printf '\n- `%s`\n' "$ref" >> "$GITHUB_STEP_SUMMARY"
+  printf '\n- `%s`\n' "$ref" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
   index_json=$(oras manifest fetch "$ref")
   for arch in amd64 arm64; do
     manifest=$(jq -er --arg arch "$arch" '
       [.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest]
       | if length == 1 then .[0] else error("expected one linux/" + $arch + " manifest") end' <<< "$index_json")
-    config=$(oras manifest fetch "$image@$manifest" | jq -er '.config.digest')
+    manifest_json=$(oras manifest fetch "$image@$manifest")
+    config=$(jq -er '.config.digest' <<< "$manifest_json")
     if ! oras blob fetch --output - "$image@$config" | verify_release_config "$arch" "$revision" "$version"; then
       echo "$image@$config must identify linux/$arch, version $version and Git commit $revision" >&2
       return 1
     fi
-    printf '  - linux/%s manifest `%s`, config `%s`\n' "$arch" "$manifest" "$config" >> "$GITHUB_STEP_SUMMARY"
+    printf '  - linux/%s manifest `%s`, config `%s`\n' "$arch" "$manifest" "$config" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
     if [[ $arch == amd64 ]]; then
       printf '%s\t%s\t%s\t%s\t%s\n' "${image##*/}" "$image:$version" "$index" "$manifest" "$config" >> "$digest_file"
+    else
+      # Docker pulled amd64 above. Read the other platform's blobs without
+      # replacing that image in the runner's Docker store.
+      layers=$(jq -er '.layers[].digest' <<< "$manifest_json") || return 1
+      while IFS= read -r layer; do
+        oras blob fetch --output - "$image@$layer" >/dev/null || return 1
+      done <<< "$layers"
     fi
   done
 }
