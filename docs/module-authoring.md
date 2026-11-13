@@ -739,7 +739,12 @@ writing or revising a module:
   field, set `applyOnRestart: true` to stage edits and clears for the next
   container start. Kubernetes reads the value from the server's config Secret
   each time it starts the container. An unset optional field has no Secret
-  key. A rendered file may interpolate the same field. The config init
+  key. The field's `name` must be a valid Secret key: at most 253 characters,
+  using letters, digits, `-`, `_`, or `.`, excluding `.` and any `..` prefix.
+  `envName` changes the exported variable, not this Secret key.
+  Admission checks length and reserved names; the reconciler checks the full
+  key before creating resources, including for older template revisions.
+  A rendered file may interpolate the same field. The config init
   container copies that file at the next Pod start. A container restart within
   the same Pod refreshes its environment and keeps its existing files.
 - Update the Gameplane CRDs and operator before installing a template that

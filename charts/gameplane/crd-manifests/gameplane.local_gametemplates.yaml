@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 7836d4e331edfd1a7bcf51ea263f597cfcfc3c695201ca8be235c66b8eb5087e
+    gameplane.local/crd-bundle-sha256: 703cee6d265ce3004a7f3d9a2daa2d9a5392e3f89c8074af1b0bc73b3dd284fe
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -1097,6 +1097,9 @@ spec:
                         Edits and clears update the config Secret without rolling the game Pod.
                         Config files that reference the field are refreshed by their init container
                         on the next Pod start. Other fields keep their usual rollout behavior.
+                        Name must be a valid Kubernetes Secret key. Admission checks its length
+                        and reserved names; the reconciler also validates the allowed characters,
+                        including for previously admitted template revisions.
                       type: boolean
                     autoFromMemoryLimit:
                       description: |-
@@ -1214,6 +1217,10 @@ spec:
                   - message: applyOnRestart requires an environment field
                     rule: '!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target)
                       || self.target == ''env'''
+                  - message: applyOnRestart requires a Secret key name of at most
+                      253 characters that is not '.' and does not start with '..'
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || (size(self.name)
+                      <= 253 && self.name != ''.'' && !self.name.startsWith(''..''))'
                 type: array
               consoleMode:
                 description: |-

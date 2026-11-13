@@ -15,6 +15,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -119,6 +120,9 @@ func materializeConfig(
 		if f.ApplyOnRestart {
 			if f.Target == "file" {
 				return nil, fmt.Errorf("config field %q: applyOnRestart requires an environment field", f.Name)
+			}
+			if problems := validation.IsConfigMapKey(f.Name); len(problems) > 0 {
+				return nil, fmt.Errorf("config field %q: applyOnRestart requires a valid Secret key: %s", f.Name, strings.Join(problems, "; "))
 			}
 			mc.hasDeferredEnv = true
 			// Keep the same reference when an optional value is added or

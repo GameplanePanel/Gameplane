@@ -250,6 +250,45 @@ func TestCRDValidation_GameTemplateRequiresImage(t *testing.T) {
 	}
 }
 
+func TestCRDValidation_DeferredConfigSecretKeys(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		deferred bool
+		valid    bool
+	}{
+		// Character validation is performed by materializeConfig, including
+		// for immutable template revisions admitted before this schema rule.
+		{"jvm/initialHeap", true, true},
+		{".", true, false},
+		{"..", true, false},
+		{"..initialHeap", true, false},
+		{strings.Repeat("a", 254), true, false},
+		{"jvm.initial-heap_1", true, true},
+		{".initialHeap", true, true},
+		{"-", true, true},
+		{strings.Repeat("a", 253), true, true},
+		{"jvm/initialHeap", false, true},
+		{"..initialHeap", false, true},
+		{strings.Repeat("a", 254), false, true},
+	} {
+		tmpl := buildGameTemplate(uniqueName("deferred-config-key"))
+		tmpl.Spec.ConfigSchema = []gameplanev1alpha1.ConfigField{{
+			Name: tc.name, EnvName: "INIT_MEMORY", Type: "string", ApplyOnRestart: tc.deferred,
+		}}
+		err := k8sClient.Create(t.Context(), tmpl)
+		if !tc.valid {
+			if !apierrors.IsInvalid(err) || !strings.Contains(err.Error(), "Secret key") {
+				t.Fatalf("deferred field %q: expected invalid Secret key, got %v", tc.name, err)
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatalf("field %q (deferred=%t) rejected: %v", tc.name, tc.deferred, err)
+		}
+		deleteCleanup(t, tmpl)
+	}
+}
+
 func TestCRDValidation_ModuleSourceUnion(t *testing.T) {
 	ociSpec := &gameplanev1alpha1.OCISourceSpec{
 		URL:     "ghcr.io/test/modules",
