@@ -47,6 +47,8 @@ export const INVALID_BPF_FILTER_FIXTURE = "tcp prot 8080 foo";
 const isColonAction = (params: PathParams) => String(params.name).includes(":");
 
 export const handlers = [
+  http.get("/servers/:name/logs/pod/history", () => HttpResponse.json({ text: "", source: "game" })),
+  http.get("/servers/:name/logs/history", () => HttpResponse.json({ text: "" })),
   ...fleetHandlers,
   http.get("/admin/installation", () => HttpResponse.json({ standalone: false, localCluster: true })),
   // Auth
@@ -1860,6 +1862,19 @@ export function buildScreenshotHandlers() {
           // Ignore malformed messages
         }
       });
+    }),
+
+    http.get("/servers/:name/logs/pod/history", ({ request }) => {
+      const before = new URL(request.url).searchParams.get("before");
+      if (!before) {
+        return HttpResponse.json({
+          source: "game", text: "[Server thread/INFO] Preparing level world", before: "previous-page",
+        });
+      }
+      if (before === "previous-page") {
+        return HttpResponse.json({ source: "game", text: "[Server thread/INFO] Loading properties" });
+      }
+      return new HttpResponse(null, { status: 409 });
     }),
 
     // WebSocket: Pod Logs

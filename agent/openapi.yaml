@@ -234,6 +234,19 @@ paths:
         "204": { description: OK }
         "400": { description: Refusing to delete root or invalid request }
 
+  /logs/history:
+    get:
+      summary: Read the preceding page of the configured log file
+      parameters:
+        - in: query
+          name: before
+          schema: { type: string, maxLength: 128 }
+      responses:
+        "200":
+          description: Up to 100 lines and 64 KiB of text, with an optional cursor for the preceding page
+        "400": { description: Invalid cursor }
+        "404": { description: File unavailable }
+        "409": { description: File replaced or truncated }
   /logs/tail:
     get:
       summary: Tail the game container log over WebSocket (text frames per line)

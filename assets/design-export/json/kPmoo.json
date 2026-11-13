@@ -322,6 +322,31 @@
             },
             {
               "type": "frame",
+              "id": "M6zSv",
+              "name": "Earlier output",
+              "width": "fill_container",
+              "stroke": "$border/border",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "padding": [
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZuO5r",
+                  "fill": "$foreground/foreground",
+                  "content": "Earlier output",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
               "id": "Ra2fe",
               "name": "Log Lines",
               "width": "fill_container",

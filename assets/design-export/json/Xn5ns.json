@@ -102,6 +102,99 @@
           "layout": "vertical",
           "children": [
             {
+              "type": "frame",
+              "id": "gD1oH",
+              "name": "Recent pod output",
+              "width": "fill_container",
+              "stroke": "$border/border",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 6,
+              "padding": [
+                6,
+                12
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "tafSr",
+                  "name": "History controls",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Pf4hf",
+                      "fill": "$foreground/foreground",
+                      "content": "Recent pod output",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wjGhk",
+                      "name": "Hide history",
+                      "fill": "$foreground/foreground",
+                      "content": "Hide history",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ldOKG",
+                      "name": "Load older",
+                      "fill": "$foreground/foreground",
+                      "content": "Load older",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Q71fl",
+                      "fill": "$foreground/foreground",
+                      "content": "game",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "sVEV6",
+                  "fill": "$muted",
+                  "content": "Pod logs and the live console use independent streams. Output may overlap or have gaps between them.",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "a9BGDp",
+                  "name": "Pod log snapshot",
+                  "width": "fill_container",
+                  "fill": "$surface/tertiary",
+                  "padding": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Y5Oxw",
+                      "fill": "$foreground/foreground",
+                      "content": "[Server thread/INFO] Preparing level world",
+                      "fontFamily": "$typography/font-mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "id": "cx9wt",
               "type": "ref",
               "ref": "qYOZe",
