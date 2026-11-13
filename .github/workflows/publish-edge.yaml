@@ -124,6 +124,10 @@ jobs:
         run: |
           owner_lc="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           echo "name=ghcr.io/${owner_lc}/gameplane/${{ matrix.component }}" >> "$GITHUB_OUTPUT"
+          # Short SHA, matching the sha-<short> tag. The full 40-char SHA made
+          # edge-<sha> 45 chars, over telemetryschema.VersionRE's 32-char
+          # limit, so every edge install reported its version as "invalid".
+          echo "version=edge-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
@@ -144,7 +148,7 @@ jobs:
           outputs: type=image,name=${{ steps.image.outputs.name }},push-by-digest=true,name-canonical=true,push=true
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=edge-${{ github.sha }}
+            VERSION=${{ steps.image.outputs.version }}
           cache-from: type=gha,scope=edge-${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=edge-${{ matrix.component }}
       # Spec 013 G2: never sign an image that has a fixed HIGH/CRITICAL
