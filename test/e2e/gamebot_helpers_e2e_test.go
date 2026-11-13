@@ -152,14 +152,16 @@ type gameBotSpec struct {
 	ReadyTimeout  time.Duration
 	ProbePort     int
 	ProbeDeadline time.Duration
-	ExpectDepth   joindepth.JoinDepth
-	ProbeArgs     []string
-	Probes        map[string]any // spec.probes; nil means the operator sets no probe
-	RCON          map[string]any // spec.rcon
-	ConsoleMode   string         // spec.consoleMode
-	Actions       []any          // spec.capabilities.actions; nil means no actions
-	Quiesce       map[string]any // optional backup declaration
-	Control       pathAControl   // Path A: drive the server through Gameplane (optional)
+	// NegativeDeadline bounds the negative-control probe; zero means ProbeDeadline.
+	NegativeDeadline time.Duration
+	ExpectDepth      joindepth.JoinDepth
+	ProbeArgs        []string
+	Probes           map[string]any // spec.probes; nil means the operator sets no probe
+	RCON             map[string]any // spec.rcon
+	ConsoleMode      string         // spec.consoleMode
+	Actions          []any          // spec.capabilities.actions; nil means no actions
+	Quiesce          map[string]any // optional backup declaration
+	Control          pathAControl   // Path A: drive the server through Gameplane (optional)
 }
 
 // runGameBotTest creates the GameTemplate + GameServer, waits for
@@ -224,12 +226,16 @@ func runGameBotTest(t *testing.T, s gameBotSpec) (string, string) {
 	// (the probe pod's own 127.0.0.1) with port 1, which is reserved and never
 	// listens. The probe will immediately get connection refused, proving
 	// transport failure, not a measurement error.
+	negDeadline := s.NegativeDeadline
+	if negDeadline == 0 {
+		negDeadline = s.ProbeDeadline
+	}
 	negCtrlResult := envInstance.RunGameProbe(t, GameProbe{
 		GameNS:      "default",
 		GSName:      "negative-control-" + s.Game,
 		Game:        s.Game,
 		Port:        1,
-		Deadline:    s.ProbeDeadline,
+		Deadline:    negDeadline,
 		ExpectDepth: s.ExpectDepth,
 		ExpectFail:  true,
 		Args:        s.ProbeArgs,

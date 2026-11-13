@@ -1,12 +1,120 @@
 package controller
 
 import (
+	"reflect"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
+
+func TestRestrictTunnelEgressReplacesLegacyPlayitRules(t *testing.T) {
+	scheme := testScheme(t)
+	if err := networkingv1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	r := &GameServerReconciler{Scheme: scheme, Client: fake.NewClientBuilder().WithScheme(scheme).Build()}
+	gs := &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{Name: "alpha", Namespace: "games", UID: "one"}}
+	gs.Spec.Networking.Tunnel = &gameplanev1alpha1.GameServerTunnel{Provider: "playit"}
+	tmpl := singlePortTemplate(true, "minecraft")
+	reconcile := func() []networkingv1.NetworkPolicyEgressRule {
+		t.Helper()
+		if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{wantTunnel: true}); err != nil {
+			t.Fatal(err)
+		}
+		var np networkingv1.NetworkPolicy
+		if err := r.Get(t.Context(), client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-egress"}, &np); err != nil {
+			t.Fatal(err)
+		}
+		return np.Spec.Egress
+	}
+	if rules := reconcile(); len(rules) != 2 {
+		t.Fatalf("unexpected compatibility rules: %+v", rules)
+	}
+	r.RestrictTunnelEgress = true
+	rules := reconcile()
+	if len(rules) != 1 || len(rules[0].To) != 1 || !reflect.DeepEqual(rules[0].Ports, networkPolicyPortsFromTemplate(tmpl)) {
+		t.Fatalf("unexpected restricted rules: %+v", rules)
+	}
+	peer := rules[0].To[0]
+	if peer.PodSelector == nil || peer.NamespaceSelector != nil || peer.IPBlock != nil {
+		t.Fatalf("expected a pod peer in the local namespace: %+v", peer)
+	}
+	sel, err := metav1.LabelSelectorAsSelector(peer.PodSelector)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, target := range []struct {
+		name, instance string
+		allowed        bool
+	}{
+		{"gameplane-game", "alpha", true}, {"gameplane-waker", "alpha", true},
+		{"gameplane-game", "beta", false}, {"gameplane-operator", "alpha", false},
+	} {
+		if sel.Matches(labels.Set{"app.kubernetes.io/name": target.name, "app.kubernetes.io/instance": target.instance}) != target.allowed {
+			t.Fatalf("unexpected peer match for %+v", target)
+		}
+	}
+	var ingress networkingv1.NetworkPolicy
+	inKey := client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-ingress"}
+	if err := r.Get(t.Context(), inKey, &ingress); err != nil {
+		t.Fatal(err)
+	}
+	wantTunnel := metav1.LabelSelector{MatchLabels: map[string]string{
+		tunnelLabel: tunnelValue, "app.kubernetes.io/instance": gs.Name,
+	}}
+	wantRules := []networkingv1.NetworkPolicyIngressRule{{
+		From: []networkingv1.NetworkPolicyPeer{{PodSelector: &wantTunnel}}, Ports: rules[0].Ports,
+	}}
+	if !reflect.DeepEqual(ingress.Spec.PodSelector, *peer.PodSelector) ||
+		!reflect.DeepEqual(ingress.Spec.Ingress, wantRules) || !metav1.IsControlledBy(&ingress, gs) {
+		t.Fatalf("unexpected ingress policy: %+v", ingress)
+	}
+	absent := func(key client.ObjectKey) {
+		t.Helper()
+		if err := r.Get(t.Context(), key, &networkingv1.NetworkPolicy{}); !apierrors.IsNotFound(err) {
+			t.Fatalf("expected %s to be absent, got %v", key, err)
+		}
+	}
+	r.RestrictTunnelEgress = false
+	reconcile()
+	absent(inKey)
+	r.RestrictTunnelEgress = true
+	reconcile()
+	tmpl.Spec.Ports = nil
+	if rules := reconcile(); len(rules) != 0 {
+		t.Fatalf("empty advertised port set grants egress: %+v", rules)
+	}
+	absent(inKey)
+	tmpl = singlePortTemplate(true, "minecraft")
+	reconcile()
+	if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{}); err != nil {
+		t.Fatal(err)
+	}
+	absent(inKey)
+	absent(client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-tunnel-egress"})
+
+	foreign := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: inKey.Name, Namespace: inKey.Namespace, UID: "foreign"}}
+	if err := r.Create(t.Context(), foreign); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{wantTunnel: true}); err == nil {
+		t.Fatal("accepted foreign ingress policy")
+	}
+	if err := r.reconcileTunnelNetworkPolicy(t.Context(), gs, tmpl, tunnelPlan{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.Get(t.Context(), inKey, &ingress); err != nil || ingress.UID != foreign.UID || len(ingress.OwnerReferences) != 0 {
+		t.Fatalf("changed foreign ingress policy: %+v, %v", ingress, err)
+	}
+}
 
 // TestBuildFrpRemotePortsConfig covers F-052: the BACKING_SERVICE_PORT env
 // var must carry the template port's own containerPort and protocol

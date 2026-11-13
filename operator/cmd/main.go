@@ -2,6 +2,7 @@
 package main
 
 import (
+	"cmp"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v8/apis/volumesnapshot/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -129,6 +131,7 @@ func main() {
 		tunnelFrpImage                   string
 		tunnelTailscaleImage             string
 		tunnelPlayitImage                string
+		restrictTunnelEgress             bool
 		agentLogLevel                    string
 		agentCABundle                    string
 		agentClientCert                  string
@@ -136,6 +139,7 @@ func main() {
 		agentCASecretName                string
 		agentCASecretNamespace           string
 		moduleNamespace                  string
+		moduleConfigMapNamespace         string
 		moduleLocalRoot                  string
 		controlPlaneNamespace            string
 		gameNamespaces                   string
@@ -214,6 +218,8 @@ func main() {
 	flag.StringVar(&tunnelTailscaleImage, "tunnel-tailscale-image", controller.DefaultTunnelTailscaleImage,
 		"Image for the Tailscale tunnel relay pod that routes players through a Tailscale tailnet. "+
 			"Point at a private registry mirror for air-gapped installs.")
+	flag.BoolVar(&restrictTunnelEgress, "restrict-tunnel-egress", false,
+		"Only grant tunnel egress to this server's advertised backend ports; administrators supply provider egress policies.")
 	flag.StringVar(&tunnelPlayitImage, "tunnel-playit-image", controller.DefaultTunnelPlayitImage,
 		"Image for the Playit tunnel relay pod that routes players through a Playit tunnel. "+
 			"Point at a private registry mirror for air-gapped installs.")
@@ -245,7 +251,9 @@ func main() {
 		"Log level (debug, info, warn, or error) injected into agent sidecars as GAMEPLANE_LOG_LEVEL. "+
 			"Empty injects nothing (the agent defaults to info) and avoids rolling existing pods.")
 	flag.StringVar(&moduleNamespace, "module-namespace", "gameplane-system",
-		"Namespace where ModuleSource credential Secrets, uploaded module bundles and module translation ConfigMaps live.")
+		"Namespace where ModuleSource credential Secrets live.")
+	flag.StringVar(&moduleConfigMapNamespace, "module-configmap-namespace", "",
+		"Namespace for uploaded module bundles and translations (defaults to --module-namespace).")
 	flag.StringVar(&gameNamespaces, "game-namespaces", "gameplane-games",
 		"Comma-separated managed game namespaces whose Secrets the operator may cache. Must be nonempty; changes require matching namespace RBAC and an operator restart.")
 	flag.StringVar(&moduleLocalRoot, "module-local-root", "",
@@ -265,7 +273,7 @@ func main() {
 		controlPlaneNamespaceDefault = "gameplane-system"
 	}
 	flag.StringVar(&controlPlaneNamespace, "control-plane-namespace", controlPlaneNamespaceDefault,
-		"Namespace where the operator runs and where cluster kubeconfig Secrets are stored.")
+		"Namespace where registered cluster kubeconfig Secrets are stored.")
 	addressManagerDefault := os.Getenv("GAMEPLANE_ADDRESS_MANAGER")
 	if addressManagerDefault == "" {
 		addressManagerDefault = "none"
@@ -307,7 +315,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
 		os.Exit(1)
 	}
-	protectedNamespaces := append(strings.Split(gameNamespaces, ","), controlPlaneNamespace, agentCASecretNamespace, moduleNamespace)
+	moduleConfigMapNamespace = cmp.Or(moduleConfigMapNamespace, moduleNamespace)
+	if problems := validation.IsDNS1123Label(moduleConfigMapNamespace); len(problems) != 0 {
+		fmt.Fprintln(os.Stderr, "invalid --module-configmap-namespace:", strings.Join(problems, "; "))
+		os.Exit(1)
+	}
+	protectedNamespaces := append(strings.Split(gameNamespaces, ","), controlPlaneNamespace, agentCASecretNamespace, moduleNamespace, moduleConfigMapNamespace)
 	// A configured credential namespace may differ from the actual operator
 	// deployment namespace. Neither may host privileged diagnostic workers.
 	if podNamespace := os.Getenv("POD_NAMESPACE"); podNamespace != "" {
@@ -505,6 +518,7 @@ func main() {
 		TunnelFrpImage:         tunnelFrpImage,
 		TunnelTailscaleImage:   tunnelTailscaleImage,
 		TunnelPlayitImage:      tunnelPlayitImage,
+		RestrictTunnelEgress:   restrictTunnelEgress,
 		AgentLogLevel:          agentLogLevel,
 		AgentCASecretName:      agentCASecretName,
 		AgentCASecretNamespace: agentCASecretNamespace,
@@ -603,7 +617,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fetchOptions := modsrc.Options{LocalRoot: moduleLocalRoot}
+	fetchOptions := modsrc.Options{LocalRoot: moduleLocalRoot, ConfigMapNamespace: moduleConfigMapNamespace}
 	if err := (&controller.ModuleSourceReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),

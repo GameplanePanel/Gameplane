@@ -425,15 +425,19 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 			return
 		}
 		clearCookieAt(w, oidcNonceCookie, cookiePath)
-		var claims struct {
-			Sub   string `json:"sub"`
-			Email string `json:"email"`
-			Name  string `json:"name"`
-		}
+		var claims oidcProfile
 		if err := idt.Claims(&claims); err != nil {
 			slog.Warn("oidc claim parse", "err", err)
 			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("invalid id_token claims"))
 			return
+		}
+		// Some IdPs (Authentik with "Include claims in id_token" off, or
+		// providers that keep the ID token minimal) only return profile
+		// and email claims from the userinfo endpoint. Fill the gaps from
+		// there; a failure is logged and the login continues with what
+		// the ID token carried.
+		if claims.missingProfile() {
+			o.fillFromUserInfo(req.Context(), tok, &claims)
 		}
 		// The typed struct above can't see arbitrary claim names, so the
 		// groups claim (admin-configurable) is read from a raw re-parse.
@@ -478,7 +482,8 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		// mappings.
 		syncRole := resolvePolicy != nil && resolvePolicy.RoleMappings != nil
 
-		user, roleOutcome, err := o.resolveOrLinkUser(req.Context(), idt.Issuer, claims.Sub, claims.Email, claims.Name, role, matchedGroup, syncRole)
+		user, roleOutcome, err := o.resolveOrLinkUser(req.Context(), idt.Issuer, claims.Sub, claims.Email, claims.Name,
+			role, matchedGroup, syncRole, claims.PreferredUsername)
 		if err != nil {
 			slog.Error("oidc resolveOrLinkUser", "err", err)
 			http.Error(w, "login failed", http.StatusInternalServerError)
@@ -520,9 +525,30 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 // matchedGroup should be the specific group from the user's token that matched a role mapping,
 // or "none" if no group matched and the default role was applied. For first login, it is included
 // in the outcome so T009 can emit an audit event.
+//
+// preferredUsername is optional: at most one value, the IdP's
+// preferred_username claim, which wins over email as a new user's username.
 func (o *OIDC) resolveOrLinkUser(
 	ctx context.Context, issuer, sub, email, name, role, matchedGroup string, syncRole bool,
+	preferredUsername ...string,
 ) (*User, *RoleAssignmentOutcome, error) {
+	p := oidcProfile{Sub: sub, Email: email, Name: name}
+	if len(preferredUsername) > 0 {
+		p.PreferredUsername = preferredUsername[0]
+	}
+	return o.resolveOrLinkUserProfile(ctx, issuer, p, role, matchedGroup, syncRole)
+}
+
+// resolveOrLinkUserProfile is resolveOrLinkUser taking the full set of
+// profile claims. A new user's username is preferred_username, else email,
+// else the subject. For an existing user the IdP's non-empty email and name
+// overwrite the stored ones on every login, and a username that is still
+// the raw subject (no better claim was available at first login) is
+// replaced once a preferred_username or email shows up.
+func (o *OIDC) resolveOrLinkUserProfile(
+	ctx context.Context, issuer string, p oidcProfile, role, matchedGroup string, syncRole bool,
+) (*User, *RoleAssignmentOutcome, error) {
+	sub, email, name := p.Sub, p.Email, p.Name
 	if o.db == nil {
 		return nil, nil, errors.New("oidc: no store attached")
 	}
@@ -533,6 +559,11 @@ func (o *OIDC) resolveOrLinkUser(
 		WHERE l.issuer = ? AND l.subject = ?`, issuer, sub,
 	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role)
 	if err == nil {
+		// A stale profile must never lock the user out: log and carry on
+		// with the stored values.
+		if err := o.refreshProfile(ctx, &u, issuer, p); err != nil {
+			slog.Warn("oidc profile refresh failed", "user_id", u.ID, "err", err)
+		}
 		// Existing user — re-evaluate role if mappings are configured.
 		if syncRole {
 			outcome, err := o.syncUserRole(ctx, u.ID, role, matchedGroup)
@@ -553,10 +584,7 @@ func (o *OIDC) resolveOrLinkUser(
 		}, nil
 	}
 	// First login — create user + link in a single tx.
-	baseUsername := email
-	if baseUsername == "" {
-		baseUsername = sub
-	}
+	baseUsername := p.baseUsername()
 	tx, err := o.db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, nil, err
@@ -715,4 +743,117 @@ func pickUniqueUsername(ctx context.Context, tx *sql.Tx, base, sub string) (stri
 		suffix = suffix[:8]
 	}
 	return base + "+" + suffix, nil
+}
+
+// oidcProfile holds the identity claims Gameplane reads from the ID token
+// and, when the token leaves them out, from the userinfo endpoint.
+type oidcProfile struct {
+	Sub               string `json:"sub"`
+	Email             string `json:"email"`
+	Name              string `json:"name"`
+	PreferredUsername string `json:"preferred_username"`
+}
+
+// missingProfile reports whether any profile claim is absent.
+func (p oidcProfile) missingProfile() bool {
+	return p.Email == "" || p.Name == "" || p.PreferredUsername == ""
+}
+
+// baseUsername is the username a new SSO user starts from:
+// preferred_username, then email, then the opaque subject.
+func (p oidcProfile) baseUsername() string {
+	switch {
+	case p.PreferredUsername != "":
+		return p.PreferredUsername
+	case p.Email != "":
+		return p.Email
+	default:
+		return p.Sub
+	}
+}
+
+// oidcUserInfoTimeout bounds the optional userinfo lookup at login, well
+// under oidcHTTPClient's 30s timeout, so a slow IdP endpoint only delays
+// sign-in briefly before falling back to the ID token claims.
+const oidcUserInfoTimeout = 5 * time.Second
+
+// fillFromUserInfo fills empty profile claims from the IdP's userinfo
+// endpoint. Per OIDC Core 5.3.2 the response is used only when its sub
+// matches the ID token's. Errors are logged, never fatal.
+func (o *OIDC) fillFromUserInfo(ctx context.Context, tok *oauth2.Token, p *oidcProfile) {
+	if o.provider == nil || tok == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(ctx, oidcUserInfoTimeout)
+	defer cancel()
+	info, err := o.provider.UserInfo(oidc.ClientContext(ctx, oidcHTTPClient), oauth2.StaticTokenSource(tok))
+	if err != nil {
+		slog.Debug("oidc userinfo unavailable", "err", err)
+		return
+	}
+	if info.Subject != p.Sub {
+		slog.Warn("oidc userinfo subject mismatch; ignoring userinfo")
+		return
+	}
+	var extra oidcProfile
+	if err := info.Claims(&extra); err != nil {
+		slog.Warn("oidc userinfo claim parse", "err", err)
+		return
+	}
+	if p.Email == "" {
+		p.Email = extra.Email
+	}
+	if p.Name == "" {
+		p.Name = extra.Name
+	}
+	if p.PreferredUsername == "" {
+		p.PreferredUsername = extra.PreferredUsername
+	}
+}
+
+// refreshProfile brings an existing SSO user's email, display name and
+// (when it is still the raw subject) username up to date with the IdP's
+// claims. Empty claims never clear stored values. u is updated in place.
+func (o *OIDC) refreshProfile(ctx context.Context, u *User, issuer string, p oidcProfile) error {
+	newEmail, newName, newUsername := u.Email, u.DisplayName, u.Username
+	if p.Email != "" {
+		newEmail = p.Email
+	}
+	if p.Name != "" {
+		newName = p.Name
+	}
+	renaming := u.Username == p.Sub && p.baseUsername() != p.Sub
+	if newEmail == u.Email && newName == u.DisplayName && !renaming {
+		return nil
+	}
+	tx, err := o.db.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if renaming {
+		newUsername, err = pickUniqueUsername(ctx, tx, p.baseUsername(), p.Sub)
+		if err != nil {
+			return fmt.Errorf("pick username: %w", err)
+		}
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE users SET username = ?, email = ?, display_name = ?, updated_at = ? WHERE id = ?`,
+		newUsername, newEmail, newName, db.NowTimestamp(), u.ID,
+	); err != nil {
+		return fmt.Errorf("update user: %w", err)
+	}
+	if newEmail != u.Email {
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE oidc_links SET email = ? WHERE issuer = ? AND subject = ?`,
+			newEmail, issuer, p.Sub,
+		); err != nil {
+			return fmt.Errorf("update oidc link: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+	u.Username, u.Email, u.DisplayName = newUsername, newEmail, newName
+	return nil
 }

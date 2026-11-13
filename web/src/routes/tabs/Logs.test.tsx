@@ -45,6 +45,8 @@ vi.mock("@/lib/ws", () => ({
 
 import { setCurrentCluster } from "@/lib/cluster";
 import { LogsTab, parseLogLevel } from "./Logs";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 
 beforeEach(() => {
   setCurrentCluster("local");
@@ -56,6 +58,53 @@ afterEach(() => {
 });
 
 describe("LogsTab", () => {
+  it("opens earlier pages on a short viewport and keeps the live socket attached", async () => {
+    const requests: string[] = [];
+    server.use(http.get("/servers/alpha/logs/pod/history", ({ request }) => {
+      const cursor = new URL(request.url).searchParams.get("before") ?? "";
+      requests.push(cursor);
+      return HttpResponse.json(cursor ? { text: "oldest row", source: "setup" } : { text: "recent row", source: "game", before: "stable-boundary" });
+    }));
+    render(<LogsTab name="alpha" />);
+    await userEvent.click(screen.getByRole("button", { name: "Earlier output" }));
+    expect(await screen.findByText("recent row")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Load older" }));
+    expect(await screen.findByText("oldest row")).toBeInTheDocument();
+    expect(requests).toEqual(["", "stable-boundary"]);
+    expect(sockets[0].close).not.toHaveBeenCalled();
+  });
+  it("resets file history on a source change and reports a rotated file", async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    const queries: URL[] = [];
+    server.use(
+      http.get("/servers/alpha/logs/pod/history", async () => {
+        await pending;
+        return HttpResponse.json({ text: "stale pod response" });
+      }),
+      http.get("/servers/alpha/logs/history", ({ request }) => {
+        const url = new URL(request.url);
+        queries.push(url);
+        return url.searchParams.get("before") ? new HttpResponse(null, { status: 409 }) :
+          HttpResponse.json({ text: "file row", before: "file-cursor" });
+      }),
+    );
+    render(<ResourceTargetProvider target={{ cluster: "remote", namespace: "games", name: "alpha", uid: "target" }}>
+      <LogsTab name="alpha" ns="games" logPath="/data/server.log" />
+    </ResourceTargetProvider>);
+    await userEvent.click(screen.getByRole("button", { name: "Earlier output" }));
+    await userEvent.click(screen.getByRole("tab", { name: /game log/i }));
+    release();
+    await userEvent.click(screen.getByRole("button", { name: "Earlier output" }));
+    expect(await screen.findByText("file row")).toBeInTheDocument();
+    expect(screen.queryByText("stale pod response")).not.toBeInTheDocument();
+    expect(queries[0].searchParams.get("cluster")).toBe("remote");
+    expect(queries[0].searchParams.get("namespace")).toBe("games");
+    await userEvent.click(screen.getByRole("button", { name: "Load older" }));
+    expect(await screen.findByText(/earlier output expired/i)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Hide history" }));
+    expect(screen.queryByText("file row")).not.toBeInTheDocument();
+  });
   it("keeps filters independent and clears output when its resource route changes", async () => {
     const { unmount, rerender } = render(<LogsTab name="alpha" />);
     const old = sockets[0];

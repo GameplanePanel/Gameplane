@@ -1,6 +1,7 @@
 import { useResourcePermissions, resourceCan, type ResourceTarget } from "@/lib/resourceTarget";
 import { Button, Table } from "@heroui/react";
 import { formatRelative } from "@/lib/utils";
+import { BackupSize } from "@/components/backups/BackupSize";
 import type { Backup } from "@/types";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -31,7 +32,7 @@ export function BackupRow({ backup, showServer, onSelect, onRestore, target, per
       <Table.Cell>
         <PhaseChip phase={backup.status?.phase} />
       </Table.Cell>
-      <Table.Cell className="font-mono">{backup.status?.size ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" })}</Table.Cell>
+      <Table.Cell className="font-mono"><BackupSize backup={backup} /></Table.Cell>
       <Table.Cell>
         {formatRelative(backup.status?.completionTime, intl)}
       </Table.Cell>

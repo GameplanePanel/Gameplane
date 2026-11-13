@@ -339,6 +339,9 @@ spec:
             - --tunnel-frp-image={{ include "gameplane.tunnelFrpImage" . }}
             - --tunnel-tailscale-image={{ include "gameplane.tunnelTailscaleImage" . }}
             - --tunnel-playit-image={{ include "gameplane.tunnelPlayitImage" . }}
+            {{- if .Values.networkPolicies.tenantIsolation }}
+            - --restrict-tunnel-egress
+            {{- end }}
             {{- if .Values.operator.configInitImage }}
             - --config-init-image={{ .Values.operator.configInitImage }}
             {{- end }}
@@ -387,8 +390,11 @@ spec:
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             - --agent-ca-secret-name={{ .Values.api.agentMTLS.caSecretRef.name }}
             - --game-namespaces={{ join "," $gameNamespaces }}
-            - --control-plane-namespace={{ .Values.operator.controlPlaneNamespace | default .Release.Namespace }}
+            - --control-plane-namespace={{ include "gameplane.operatorClusterCredentialsNamespace" . }}
             - --agent-ca-secret-namespace={{ .Values.operator.agentCASecretNamespace | default .Release.Namespace }}
+            {{- if and (eq (include "gameplane.apiEnabled" .) "true") (not .Values.api.standalone) }}
+            - --module-configmap-namespace={{ include "gameplane.credentialsNamespace" . }}
+            {{- end }}
             - --module-namespace={{ .Values.operator.moduleNamespace | default .Release.Namespace }}
             - --restricted-workloads={{ .Values.podSecurity.enforceRestricted }}
             - --agent-token-expiration-seconds={{ .Values.operator.agentTokenExpirationSeconds | default 3600 }}

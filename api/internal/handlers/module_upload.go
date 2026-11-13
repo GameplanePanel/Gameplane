@@ -6,7 +6,7 @@
 // The body is a tar.gz or zip holding one module directory (module.yaml
 // + template.yaml [+ README.md, icon.png, locales/<tag>.json]). After validation the files
 // are written into a ConfigMap labeled gameplane.local/module-upload=true in
-// the operator namespace — the exact shape an upload-type ModuleSource
+// the module ConfigMap namespace — the exact shape an upload-type ModuleSource
 // indexes, and the same thing `kubectl apply` of such a ConfigMap
 // produces, so the operator stays authoritative. ?dryRun=true validates
 // and returns the parsed metadata without storing anything.

@@ -148,6 +148,30 @@ func TestMirrorJobStatus_ScrapesSnapshotID(t *testing.T) {
 	}
 }
 
+func TestMirrorJobStatusPackedBytes(t *testing.T) {
+	for _, tc := range []struct {
+		field string
+		want  int64
+	}{
+		{"", -1}, {`,"data_added":121`, -1}, {`,"data_added_packed":0`, 0},
+		{`,"data_added_packed":317`, 317}, {`,"data_added_packed":-1`, -1},
+	} {
+		b := scrapeBackup()
+		body := `{"message_type":"summary","snapshot_id":"abc","total_bytes_processed":2048` + tc.field + "}"
+		r := newScrapeReconciler(t, b, scrapeLogReader{body: body}, time.Hour, nil)
+		if _, err := r.mirrorJobStatus(context.Background(), b, succeededJob(time.Second)); err != nil {
+			t.Fatal(err)
+		}
+		if b.Status.Size == nil || b.Status.Size.Value() != 2048 {
+			t.Fatalf("logical size = %v", b.Status.Size)
+		}
+		got := b.Status.BytesAdded
+		if tc.want < 0 && got != nil || tc.want >= 0 && (got == nil || got.Value() != tc.want) {
+			t.Errorf("summary %s: added %v, want %d (negative means unknown)", body, got, tc.want)
+		}
+	}
+}
+
 // While the snapshot id can't yet be read but the grace period hasn't lapsed,
 // the Backup stays Succeeded (unquiesce has run) and requeues to retry.
 func TestMirrorJobStatus_RetriesWhenSnapshotUnavailable(t *testing.T) {
