@@ -341,6 +341,8 @@ export interface GameTemplate {
       enum?: string[];
       required?: boolean;
       target?: "env" | "file";
+      // Env var the value is exported as instead of name (target "env").
+      envName?: string;
       autoFromMemoryLimit?: { percent: number };
       applyOnRestart?: boolean;
       // Bounds mirror the CRD ConfigField: min/max apply to int fields,

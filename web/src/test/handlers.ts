@@ -1531,28 +1531,26 @@ export function buildScreenshotHandlers() {
       HttpResponse.json({ ok: true }),
     ),
 
-    // Files
-    http.get("/servers/:name/files/list", () =>
-      HttpResponse.json([
-        makeFileEntry({ name: ".cache", path: "/data/.cache", size: 0, dir: true }),
-        makeFileEntry({ name: ".fabric", path: "/data/.fabric", size: 0, dir: true }),
-        makeFileEntry({ name: "libraries", path: "/data/libraries", size: 0, dir: true }),
-        makeFileEntry({ name: "logs", path: "/data/logs", size: 0, dir: true }),
-        makeFileEntry({ name: "mods", path: "/data/mods", size: 0, dir: true }),
-        makeFileEntry({ name: "versions", path: "/data/versions", size: 0, dir: true }),
-        makeFileEntry({ name: "world", path: "/data/world", size: 0, dir: true }),
-        makeFileEntry({ name: ".fabric-manifest.json", path: "/data/.fabric-manifest.json", size: 1024 }),
-        makeFileEntry({ name: ".rcon-cli.yaml", path: "/data/.rcon-cli.yaml", size: 128 }),
-        makeFileEntry({ name: "banned-ips.json", path: "/data/banned-ips.json", size: 2 }),
-        makeFileEntry({ name: "eula.txt", path: "/data/eula.txt", size: 68 }),
-        makeFileEntry({ name: "fabric-server-mc.1.21.4-loader.jar", path: "/data/fabric-server-mc.1.21.4-loader.jar", size: 4_500_000 }),
-        makeFileEntry({ name: "ops.json", path: "/data/ops.json", size: 2 }),
-        makeFileEntry({ name: "server.properties", path: "/data/server.properties", size: 1024 }),
-        makeFileEntry({ name: "usercache.json", path: "/data/usercache.json", size: 512 }),
-        makeFileEntry({ name: "whitelist.json", path: "/data/whitelist.json", size: 2 }),
-      ]),
-    ),
-    http.get("/servers/:name/files/read", () => new HttpResponse("# mock file body\n", { status: 200 })),
+    // Root-relative paths mirror the agent. An expanded folder returns only its children.
+    http.get("/servers/:name/files/list", ({ request }) => {
+      const path = new URL(request.url).searchParams.get("path");
+      if (path === "/logs") return HttpResponse.json([makeFileEntry({ name: "latest.log", path: "/logs/latest.log", size: 412 })]);
+      if (path !== "/" && path != null) return HttpResponse.json([]);
+      return HttpResponse.json([
+        ...["libraries", "logs", "mods", "versions", "world"].map((name) =>
+          makeFileEntry({ name, path: "/" + name, size: 0, dir: true })),
+        ...Object.entries({
+          "banned-ips.json": 2, "eula.txt": 68, "fabric-server-mc.1.21.4-loader.jar": 179200,
+          "ops.json": 2, "server.properties": 1434, "usercache.json": 2, "whitelist.json": 2,
+        }).map(([name, size]) => makeFileEntry({ name, path: "/" + name, size })),
+      ]);
+    }),
+    http.get("/servers/:name/files/read", ({ request }) => {
+      const path = new URL(request.url).searchParams.get("path");
+      if (path === "/server.properties") return HttpResponse.text("#Minecraft server properties\nmotd=Survival server\ndifficulty=normal\ngamemode=survival\nmax-players=20\nwhite-list=true");
+      if (path === "/eula.txt") return HttpResponse.text("eula=true");
+      return HttpResponse.text("# mock file body\n");
+    }),
     http.post("/servers/:name/files/write", () => new HttpResponse(null, { status: 204 })),
     http.post("/servers/:name/files/mkdir", () => new HttpResponse(null, { status: 204 })),
     http.delete("/servers/:name/files/delete", () => new HttpResponse(null, { status: 204 })),

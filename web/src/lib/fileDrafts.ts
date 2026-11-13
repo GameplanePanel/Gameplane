@@ -1,0 +1,152 @@
+interface Draft {
+  text: string;
+  saved: string;
+  error?: string;
+  deleting?: boolean;
+  pending?: Promise<boolean>;
+  timer?: ReturnType<typeof setTimeout>;
+}
+
+// Each workspace belongs to one authorized server incarnation and query client.
+// Draft contents stay in this browser session and never enter persistent storage.
+export class FileDrafts {
+  private readonly files = new Map<string, Draft>();
+  private readonly listeners = new Set<() => void>();
+  private readonly reads = new Map<AbortController, string>();
+  private readonly removals = new Map<string, { root: string; pending: Promise<void> }>();
+  private revision = 0;
+  private enabled = true;
+
+  constructor(private readonly write: (path: string, text: string) => Promise<void>) {}
+
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  };
+  snapshot = () => this.revision;
+  private changed() {
+    this.revision++;
+    this.listeners.forEach((listener) => listener());
+  }
+
+  paths() { return Array.from(this.files.keys()); }
+  get(path: string) { return this.files.get(path); }
+  private isRemoving(path: string) {
+    return [...this.removals.values()].some(({ root }) => path === root || path.startsWith(root + "/"));
+  }
+
+  open(path: string, text: string) {
+    if (!this.files.has(path)) {
+      this.files.set(path, { text, saved: text, deleting: this.isRemoving(path) });
+      this.changed();
+    }
+  }
+
+  trackRead(path: string, controller: AbortController) {
+    this.reads.set(controller, path);
+    return () => { this.reads.delete(controller); };
+  }
+
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled;
+    for (const [path, draft] of this.files) {
+      clearTimeout(draft.timer);
+      if (enabled && !draft.error && draft.text !== draft.saved) this.schedule(path, draft);
+    }
+  }
+
+  private schedule(path: string, draft: Draft) {
+    clearTimeout(draft.timer);
+    draft.timer = setTimeout(() => { void this.save(path); }, 1200);
+  }
+
+  edit(path: string, text: string) {
+    const draft = this.get(path);
+    if (!draft || draft.deleting || !this.enabled || draft.text === text) return;
+    draft.text = text;
+    draft.error = undefined;
+    this.schedule(path, draft);
+    this.changed();
+  }
+
+  save(path: string): Promise<boolean> {
+    const draft = this.get(path);
+    if (!draft || draft.deleting || !this.enabled) return Promise.resolve(false);
+    clearTimeout(draft.timer);
+    if (!draft.pending) {
+      draft.pending = this.flush(path, draft).finally(() => {
+        draft.pending = undefined;
+        this.changed();
+      });
+      this.changed();
+    }
+    return draft.pending;
+  }
+
+  private async flush(path: string, draft: Draft) {
+    draft.error = undefined;
+    try {
+      while (this.enabled && !draft.deleting && draft.saved !== draft.text) {
+        const body = draft.text;
+        await this.write(path, body);
+        draft.saved = body;
+      }
+      return draft.text === draft.saved;
+    } catch (err) {
+      clearTimeout(draft.timer);
+      draft.error = (err as Error).message;
+      return false;
+    }
+  }
+
+  async close(path: string) {
+    const draft = this.get(path);
+    if (!draft || draft.deleting) return false;
+    if ((draft.pending || draft.text !== draft.saved) && !await this.save(path)) return false;
+    return draft.text === draft.saved && this.discard(path);
+  }
+
+  discard(path: string) {
+    const draft = this.get(path);
+    if (!draft || draft.pending || draft.deleting) return false;
+    clearTimeout(draft.timer);
+    this.files.delete(path);
+    this.changed();
+    return true;
+  }
+
+  remove(path: string, recursive: boolean, operation: () => Promise<void>): Promise<void> {
+    const requestKey = JSON.stringify([path, recursive]);
+    const existing = this.removals.get(requestKey);
+    if (existing) return existing.pending;
+
+    const matches = (key: string) => key === path || key.startsWith(path + "/");
+    const affected = [...this.files].filter(([key]) => matches(key));
+    for (const [, draft] of affected) {
+      draft.deleting = true;
+      clearTimeout(draft.timer);
+    }
+    const pending = Promise.all(affected.map(([, draft]) => draft.pending)).then(async () => {
+      await operation();
+      for (const [controller, key] of this.reads) {
+        if (matches(key)) controller.abort();
+      }
+      for (const key of this.files.keys()) {
+        if (matches(key)) this.files.delete(key);
+      }
+    }).finally(() => {
+      this.removals.delete(requestKey);
+      for (const [key, draft] of this.files) {
+        if (!matches(key)) continue;
+        draft.deleting = this.isRemoving(key);
+        if (!draft.deleting && this.enabled && !draft.error && draft.saved !== draft.text) this.schedule(key, draft);
+      }
+      this.changed();
+    });
+    // A remounted browser must join the original DELETE even if the server
+    // already removed the file and its response is still on the wire.
+    this.removals.set(requestKey, { root: path, pending });
+    this.changed();
+    return pending;
+  }
+}

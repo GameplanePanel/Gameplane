@@ -1,3 +1,4 @@
+{{- $rbac := include "gameplane.nativeRBAC" . | fromJson -}}
 {{- if not (eq (include "gameplane.apiEnabled" .) "true") }}
 {{- $livePVC := lookup "v1" "PersistentVolumeClaim" .Release.Namespace "gameplane-api-data" }}
 {{- if and $livePVC (ne (index ($livePVC.metadata.annotations | default dict) "helm.sh/resource-policy") "keep") }}
@@ -13,10 +14,8 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 {{- if not .Values.api.standalone }}
 ---
-# Cluster-wide READ access: templates (cluster-scoped), nodes, storage
-# classes, and read-only watches on Gameplane CRDs for the /events stream.
-# Note the absence of any write verb here — mutation permissions are
-# bound per-namespace via Role + RoleBinding below.
+# Cluster-wide discovery and dashboard reads. The optional catalog and remote
+# registration writers have separate Roles and bindings.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -26,18 +25,11 @@ rules:
   - apiGroups: ["gameplane.local"]
     resources: [gameservers, gametemplates, backups, backupschedules, restores, modules, modulesources, networkcaptures]
     verbs: [get, list, watch]
-  - apiGroups: ["gameplane.local"]
-    resources: [gametemplates]
-    verbs: [create, update, patch, delete]      # templates are cluster-scoped; admin UI edits them
-  - apiGroups: ["gameplane.local"]
-    resources: [modules]
-    verbs: [create, update, patch, delete]      # modules are cluster-scoped; install/upgrade/uninstall from the dashboard
-  - apiGroups: ["gameplane.local"]
-    resources: [modulesources]
-    verbs: [create, update, patch, delete]      # source management (add/edit/remove sources) from the dashboard
+  {{- if $rbac.remoteClusters }}
   - apiGroups: ["gameplane.local"]
     resources: [clusters]
-    verbs: [get, list, watch, create, update, delete]   # registration and gateway configuration from the dashboard
+    verbs: [get, list, watch]
+  {{- end }}
   - apiGroups: [""]
     resources: [nodes, events]
     verbs: [get, list, watch]
@@ -76,16 +68,13 @@ subjects:
     name: gameplane-api
     namespace: {{ .Release.Namespace }}
 ---
-# Namespace-scoped WRITE access: limited to the games namespace(s) the
-# API is allowed to mutate. Expanding this to additional namespaces
-# requires a new RoleBinding here AND adding them to
-# GAMEPLANE_EXTRA_NAMESPACES on the API Deployment.
+{{- range $ns := uniq (concat (list .Values.gamesNamespace) $rbac.additionalAPIGameNamespaces) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ .Release.Name }}-api-games
-  namespace: {{ .Values.gamesNamespace }}
-  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  name: {{ $.Release.Name }}-api-games
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
 rules:
   - apiGroups: ["gameplane.local"]
     resources: [gameservers, backups, backupschedules, restores, networkcaptures]
@@ -112,9 +101,11 @@ rules:
   - apiGroups: [""]
     resources: [pods]
     verbs: [get]
+  {{- if $rbac.podAttach }}
   - apiGroups: [""]
     resources: [pods/attach]
     verbs: [get, create]
+  {{- end }}
   # The startup-log stream (api/internal/ws/podlogs.go) follows the game
   # container's stdout via the pod-log subresource so download/config
   # output is visible before the game's own log file exists.
@@ -123,22 +114,25 @@ rules:
     verbs: [get]
   # Backup destinations are Secrets in the games namespace
   # (api/internal/handlers/destinations.go).
+  {{- if $rbac.gameSecretManagement }}
   - apiGroups: [""]
     resources: [secrets]
     verbs: [get, list, create, update, patch, delete]
+  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Release.Name }}-api-games
-  namespace: {{ .Values.gamesNamespace }}
-  labels: {{- include "gameplane.labels" . | nindent 4 }}
-roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-games }
+  name: {{ $.Release.Name }}-api-games
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ $.Release.Name }}-api-games }
 subjects:
   - kind: ServiceAccount
     name: gameplane-api
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ $.Release.Namespace }}
 ---
+{{- end }}
 # System logs are the only namespaced release resources the native API needs.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -191,6 +185,9 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
   annotations:
     helm.sh/resource-policy: keep
+    {{- if (.Values.argoCD | default dict).enabled }}
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    {{- end }}
 spec:
   accessModes: [ReadWriteOnce]
   resources:
@@ -259,6 +256,9 @@ spec:
           image: {{ include "gameplane.apiImage" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            {{- if and (not .Values.api.standalone) (not $rbac.remoteClusters) }}
+            - --remote-clusters=false
+            {{- end }}
             {{- if .Values.api.standalone }}
             - --standalone
             - {{ printf "--panel-key-file=/keys/%s" ((.Values.api.panelKey | default dict).fileName | default "panel.key") | quote }}

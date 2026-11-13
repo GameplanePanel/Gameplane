@@ -21,7 +21,7 @@ import { test, expect, type Page } from "@playwright/test";
 // added by this task — additively — because no existing fixture covered
 // idle-armed, never-sleeps, or PVC-provisioning-failed.
 
-import { capture } from "./capture";
+import { capture, captureLocator } from "./capture";
 
 // Selects the enriched screenshot dataset before the app's first fetch.
 async function useScreenshotDataset(page: Page): Promise<void> {
@@ -196,9 +196,31 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
   test("Burtr: Server Detail — Files", async ({ page }) => {
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Files");
-    await expect(page.getByText("server.properties")).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(200);
+    await page.getByRole("button", { name: "Expand /logs" }).click();
+    await expect(page.getByRole("button", { name: "latest.log", exact: true })).toBeVisible();
+    for (const name of ["eula.txt", "server.properties"]) {
+      await page.getByRole("checkbox", { name: "Select /" + name, exact: true }).check();
+      await page.getByRole("button", { name, exact: true }).click();
+      await expect(page.getByRole("button", { name: "Close /" + name, exact: true })).toBeVisible();
+    }
+    await expect(page.getByText("2 selected", { exact: true })).toBeVisible();
+    await expect(page.locator(".monaco-editor .view-line").first()).toContainText("#Minecraft server properties");
     await capture(page, "Burtr");
+  });
+
+  test("o1uEP: Create ZIP dialog", async ({ page }) => {
+    await page.addInitScript(() => { localStorage.setItem("gameplane-theme", "light"); });
+    await page.goto("/servers/mc-survival");
+    await clickTab(page, "Files");
+    await page.getByRole("checkbox", { name: "Select /eula.txt", exact: true }).check();
+    await page.getByRole("button", { name: "Create ZIP", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create ZIP", exact: true });
+    const filename = dialog.getByRole("textbox", { name: "Archive filename (.zip)", exact: true });
+    await expect(dialog.getByRole("button", { name: "Create", exact: true })).toBeDisabled();
+    await filename.click();
+    await captureLocator(page, "o1uEP", dialog);
+    await filename.fill("selected.zip");
+    await expect(dialog.getByRole("button", { name: "Create", exact: true })).toBeEnabled();
   });
 
   test("dPP50: Server Detail — Players", async ({ page }) => {

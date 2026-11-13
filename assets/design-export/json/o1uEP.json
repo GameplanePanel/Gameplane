@@ -1,0 +1,85 @@
+{
+  "id": "o1uEP",
+  "type": "ref",
+  "reusable": true,
+  "ref": "x3beP",
+  "name": "Gameplane/Dialog/Create ZIP",
+  "width": 448,
+  "x": 4240,
+  "y": 6274,
+  "descendants": {
+    "E7Whx": {
+      "content": "Create ZIP"
+    },
+    "ABbjS": {
+      "enabled": false,
+      "width": 1,
+      "height": 0
+    },
+    "qzcst": {
+      "enabled": false,
+      "width": 1
+    },
+    "Nht52": {
+      "type": "frame",
+      "id": "USuhP",
+      "name": "Archive name",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 8,
+      "padding": [
+        16,
+        0,
+        0,
+        0
+      ],
+      "children": [
+        {
+          "type": "text",
+          "id": "KcxUD",
+          "fill": "$muted",
+          "content": "Archive filename (.zip)",
+          "fontFamily": "$typography/font-sans",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "id": "M5ATf5",
+          "type": "ref",
+          "ref": "D0cDM",
+          "name": "Archive filename",
+          "width": "fill_container",
+          "stroke": "$accent/accent",
+          "strokeWidth": 2,
+          "effect": [],
+          "descendants": {
+            "PJERm": {
+              "content": ""
+            }
+          }
+        }
+      ]
+    },
+    "SBdeH": {
+      "height": 36,
+      "padding": [
+        0,
+        16
+      ]
+    },
+    "REcmP": {
+      "fontSize": 14
+    },
+    "V7HYp": {
+      "height": 36,
+      "padding": [
+        0,
+        16
+      ]
+    },
+    "TZ7Ef": {
+      "content": "Create",
+      "fontSize": 14
+    }
+  }
+}

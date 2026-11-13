@@ -1136,6 +1136,14 @@ spec:
                       items:
                         type: string
                       type: array
+                    envName:
+                      description: |-
+                        EnvName, when set, is the env var name the value is exported as
+                        instead of Name (Target "env" only). It lets a module keep a stable
+                        config key while pointing it at the variable the game image reads.
+                      maxLength: 253
+                      pattern: ^[A-Za-z_][A-Za-z0-9_]*$
+                      type: string
                     max:
                       description: |-
                         Max is the maximum numeric value for int-typed fields. Bounds are
@@ -1162,8 +1170,9 @@ spec:
                       type: integer
                     name:
                       description: |-
-                        Name is the field identifier (also used as an env var when
-                        Target is "env").
+                        Name is the field identifier and the key in GameServer.spec.config.
+                        It is also the env var name when Target is "env" and EnvName is
+                        empty.
                       minLength: 1
                       type: string
                     required:
@@ -1198,6 +1207,9 @@ spec:
                   - type
                   type: object
                   x-kubernetes-validations:
+                  - message: envName applies only to target env fields
+                    rule: '!has(self.envName) || !has(self.target) || self.target
+                      == ''env'''
                   - message: applyOnRestart requires an environment field
                     rule: '!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target)
                       || self.target == ''env'''

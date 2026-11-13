@@ -18,7 +18,7 @@ func TestFileRouteTimeouts(t *testing.T) {
 		t.Run(method+route, func(t *testing.T) {
 			handler := chi.Chain(middlewares...).Handler(http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 				deadline, bounded := req.Context().Deadline()
-				transfer := route == "/files/download" || route == "/files/upload"
+				transfer := route == "/files/download" || route == "/files/upload" || route == "/files/archive"
 				if bounded == transfer {
 					t.Fatalf("bounded=%t, transfer=%t", bounded, transfer)
 				}

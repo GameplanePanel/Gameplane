@@ -1,0 +1,15 @@
+{{- $rbac := include "gameplane.nativeRBAC" . | fromJson -}}
+{{- $managed := include "gameplane.operatorGameNamespaces" . | fromJsonArray -}}
+{{- range $ns := $rbac.additionalAPIGameNamespaces -}}
+{{- if not (has (include "gameplane.namespace" $ns) $managed) -}}
+{{- fail "nativeRBAC.additionalAPIGameNamespaces must be a subset of the managed game namespaces" -}}
+{{- end -}}
+{{- end -}}
+{{- if and $rbac.remoteClusters $rbac.runtimeSecretNames -}}
+{{- fail "nativeRBAC.runtimeSecretNames only restricts credential reads when remoteClusters=false" -}}
+{{- end -}}
+{{- range $name := $rbac.runtimeSecretNames -}}
+{{- if or (not (kindIs "string" $name)) (gt (len (toString $name)) 253) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" (toString $name))) -}}
+{{- fail "nativeRBAC.runtimeSecretNames requires explicit Kubernetes Secret names" -}}
+{{- end -}}
+{{- end -}}

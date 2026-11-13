@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"testing"
 
@@ -43,7 +45,7 @@ func int32Ptr(v int32) *int32 {
 
 func TestDeferredConfigEditsAndClearsKeepPodInputs(t *testing.T) {
 	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
-		{Name: "FLAGS", Type: "string", ApplyOnRestart: true}, {Name: "LIVE", Type: "string", Default: "one"},
+		{Name: "FLAGS", EnvName: "JAVA_FLAGS", Type: "string", ApplyOnRestart: true}, {Name: "LIVE", Type: "string", Default: "one"},
 	}, nil)
 	tmpl.Spec.ConfigFiles = []gameplanev1alpha1.ConfigFile{{Path: "options", Template: "{{ .Values.FLAGS }}"}}
 	baseline, err := materializeConfig(gs, tmpl)
@@ -57,7 +59,7 @@ func TestDeferredConfigEditsAndClearsKeepPodInputs(t *testing.T) {
 			t.Fatal(err)
 		}
 		ref := mc.env[0].ValueFrom
-		if ref == nil || ref.SecretKeyRef == nil || ref.SecretKeyRef.Optional == nil || !*ref.SecretKeyRef.Optional || ref.SecretKeyRef.Key != "FLAGS" {
+		if mc.env[0].Name != "JAVA_FLAGS" || ref == nil || ref.SecretKeyRef == nil || ref.SecretKeyRef.Optional == nil || !*ref.SecretKeyRef.Optional || ref.SecretKeyRef.Key != "FLAGS" {
 			t.Fatalf("missing stable optional Secret reference: %+v", mc.env)
 		}
 		stored, exists := mc.secretData["FLAGS"]
@@ -723,5 +725,95 @@ func TestMaterializeConfig_AutoFromMemoryLimit_HashTracksLimit(t *testing.T) {
 	}
 	if mcA.hash == mcB.hash {
 		t.Errorf("a memory-limit change must change the config hash so the pod rolls")
+	}
+}
+
+func TestMaterializeConfig_EnvNameRenamesEnvVar(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "WHITELIST_ENABLED", Type: "bool", Default: "false", EnvName: "ENABLE_WHITELIST"},
+		{Name: "MOTD", Type: "string", Default: "hi"},
+	}, map[string]string{"WHITELIST_ENABLED": "true"})
+
+	mc, err := materializeConfig(gs, tmpl)
+	if err != nil {
+		t.Fatalf("materializeConfig: %v", err)
+	}
+	got := envMap(mc.env)
+	if got["ENABLE_WHITELIST"] != "true" {
+		t.Errorf("ENABLE_WHITELIST = %q, want true", got["ENABLE_WHITELIST"])
+	}
+	if _, ok := got["WHITELIST_ENABLED"]; ok {
+		t.Errorf("renamed field must not also export its config key as an env var")
+	}
+	if got["MOTD"] != "hi" {
+		t.Errorf("MOTD = %q, want hi", got["MOTD"])
+	}
+}
+
+func TestMaterializeConfig_EnvNamePasswordKeepsSecretKey(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "SERVER_PASS", Type: "password", EnvName: "GAME_PASSWORD"},
+	}, map[string]string{"SERVER_PASS": "hunter22"})
+
+	mc, err := materializeConfig(gs, tmpl)
+	if err != nil {
+		t.Fatalf("materializeConfig: %v", err)
+	}
+	if len(mc.env) != 1 {
+		t.Fatalf("got %d env vars, want 1", len(mc.env))
+	}
+	e := mc.env[0]
+	if e.Name != "GAME_PASSWORD" {
+		t.Errorf("env name = %q, want GAME_PASSWORD", e.Name)
+	}
+	if e.ValueFrom == nil || e.ValueFrom.SecretKeyRef == nil || e.ValueFrom.SecretKeyRef.Key != "SERVER_PASS" {
+		t.Errorf("password must still come from Secret key SERVER_PASS, got %+v", e)
+	}
+	if string(mc.secretData["SERVER_PASS"]) != "hunter22" {
+		t.Errorf("secretData[SERVER_PASS] = %q, want the password", mc.secretData["SERVER_PASS"])
+	}
+}
+
+func TestMaterializeConfig_EnvNameChangesHash(t *testing.T) {
+	plain := []gameplanev1alpha1.ConfigField{{Name: "WHITELIST_ENABLED", Type: "bool", Default: "true"}}
+	renamed := []gameplanev1alpha1.ConfigField{{Name: "WHITELIST_ENABLED", Type: "bool", Default: "true", EnvName: "ENABLE_WHITELIST"}}
+	gsA, tmplA := configFixtures(plain, nil)
+	gsB, tmplB := configFixtures(renamed, nil)
+	a, err := materializeConfig(gsA, tmplA)
+	if err != nil {
+		t.Fatalf("materializeConfig plain: %v", err)
+	}
+	b, err := materializeConfig(gsB, tmplB)
+	if err != nil {
+		t.Fatalf("materializeConfig renamed: %v", err)
+	}
+	if a.hash == b.hash {
+		t.Errorf("adding envName must change the config hash so the pod rolls")
+	}
+}
+
+func TestMaterializeConfig_EnvNameCollision(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "ENABLE_WHITELIST", Type: "bool", Default: "false"},
+		{Name: "WHITELIST_ENABLED", Type: "bool", Default: "true", EnvName: "ENABLE_WHITELIST"},
+	}, nil)
+	_, err := materializeConfig(gs, tmpl)
+	if err == nil || !strings.Contains(err.Error(), "both export env var") {
+		t.Fatalf("want env var collision error, got %v", err)
+	}
+}
+
+func TestMaterializeConfig_NoEnvNameKeepsHash(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "MOTD", Type: "string", Default: "hi"},
+	}, nil)
+	mc, err := materializeConfig(gs, tmpl)
+	if err != nil {
+		t.Fatalf("materializeConfig: %v", err)
+	}
+	// Same formula as before envName existed: sha256 of "MOTD=hi".
+	sum := sha256.Sum256([]byte("MOTD=hi"))
+	if want := hex.EncodeToString(sum[:]); mc.hash != want {
+		t.Errorf("hash = %s, want %s (templates without envName must keep their hash)", mc.hash, want)
 	}
 }

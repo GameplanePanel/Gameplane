@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 50250f3922cf0622d0e9c91b6daf1aa64059225526392ce32dcb3edeba84f87c
+    gameplane.local/crd-bundle-sha256: 7836d4e331edfd1a7bcf51ea263f597cfcfc3c695201ca8be235c66b8eb5087e
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -1137,6 +1137,14 @@ spec:
                       items:
                         type: string
                       type: array
+                    envName:
+                      description: |-
+                        EnvName, when set, is the env var name the value is exported as
+                        instead of Name (Target "env" only). It lets a module keep a stable
+                        config key while pointing it at the variable the game image reads.
+                      maxLength: 253
+                      pattern: ^[A-Za-z_][A-Za-z0-9_]*$
+                      type: string
                     max:
                       description: |-
                         Max is the maximum numeric value for int-typed fields. Bounds are
@@ -1163,8 +1171,9 @@ spec:
                       type: integer
                     name:
                       description: |-
-                        Name is the field identifier (also used as an env var when
-                        Target is "env").
+                        Name is the field identifier and the key in GameServer.spec.config.
+                        It is also the env var name when Target is "env" and EnvName is
+                        empty.
                       minLength: 1
                       type: string
                     required:
@@ -1199,6 +1208,9 @@ spec:
                   - type
                   type: object
                   x-kubernetes-validations:
+                  - message: envName applies only to target env fields
+                    rule: '!has(self.envName) || !has(self.target) || self.target
+                      == ''env'''
                   - message: applyOnRestart requires an environment field
                     rule: '!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target)
                       || self.target == ''env'''
