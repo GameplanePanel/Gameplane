@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -178,6 +179,7 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 		"metadata": map[string]any{"namespace": ns, "name": name},
 		"spec":     map[string]any{"serverRef": map[string]any{"name": gs}, "repoRef": map[string]any{"name": "e2e-restic-creds", "key": "repo"}, "quiesce": true},
 	}}
+	releaseWorker := holdMinecraftBackupWorker(t, b)
 	backups := envInstance.Dyn.Resource(backupGVR).Namespace(ns)
 	if _, err := backups.Create(t.Context(), b, metav1.CreateOptions{}); err != nil {
 		t.Fatal(err)
@@ -206,9 +208,15 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 	run("data modify storage gpaudit:backup checkpoint set value during_copy", "Modified storage")
 	run("scoreboard players set gameplane-bot gp_restore 23", "23")
 	observed, err := backups.Get(t.Context(), name, metav1.GetOptions{})
-	if err != nil || observed.GetAnnotations()["backup.gameplane.local/unquiesced-at"] != "" {
-		t.Fatalf("live writes did not complete during the freeze: %v", err)
+	if err != nil {
+		t.Fatal(err)
 	}
+	a := observed.GetAnnotations()
+	if a["backup.gameplane.local/quiesced-at"] == "" || a["backup.gameplane.local/unquiesced-at"] != "" || a["backup.gameplane.local/authorized-worker"] != "" {
+		t.Fatalf("live writes did not complete during the freeze: quiesced=%q unquiesced=%q authorized-worker=%q",
+			a["backup.gameplane.local/quiesced-at"], a["backup.gameplane.local/unquiesced-at"], a["backup.gameplane.local/authorized-worker"])
+	}
+	releaseWorker()
 	waitBackupSucceeded(t, ns, name, 8*time.Minute)
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})
@@ -252,4 +260,61 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 	run("scoreboard players get gameplane-bot gp_restore", "17")
 	run("scoreboard players set gameplane-bot gp_restore 18", "18")
 	run("save-all flush", "Saved the game")
+}
+
+// The worker prepares its repository before save-off. The controller records
+// the freeze, then persists the authorized worker UID before it issues the
+// start token. Hold that one metadata update until the live writes finish.
+func holdMinecraftBackupWorker(t *testing.T, backup *unstructured.Unstructured) func() {
+	t.Helper()
+	name := fmt.Sprintf("e2e-live-copy-%d", time.Now().UnixNano())
+	const denial = "waiting for the Minecraft live writes"
+	policy := fmt.Sprintf(`apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: %[1]s
+spec:
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["gameplane.local"]
+      apiVersions: ["v1alpha1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["backups"]
+      resourceNames: [%[2]q]
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: %[3]q
+  validations:
+  - expression: "!has(object.metadata.annotations) || !('backup.gameplane.local/authorized-worker' in object.metadata.annotations)"
+    message: %[4]q
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: %[1]s
+spec:
+  policyName: %[1]s
+  validationActions: [Deny]
+`, name, backup.GetName(), backup.GetNamespace(), denial)
+	release := func() {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(t.Context()), 30*time.Second)
+		defer cancel()
+		if out, err := envInstance.KubectlWithStdin(ctx, policy, "delete", "--ignore-not-found", "-f", "-"); err != nil {
+			t.Fatalf("remove live-write barrier: %s (%v)", out, err)
+		}
+	}
+	t.Cleanup(release)
+	if out, err := envInstance.KubectlWithStdin(t.Context(), policy, "create", "-f", "-"); err != nil {
+		t.Fatalf("create live-write barrier: %s (%v)", out, err)
+	}
+	// Admission configuration propagates asynchronously. Prove that the
+	// barrier is active before the real Backup can start on a fast cluster.
+	probe := backup.DeepCopy()
+	probe.SetAnnotations(map[string]string{"backup.gameplane.local/authorized-worker": "dry-run"})
+	envInstance.Eventually(t, time.Minute, func() (bool, string) {
+		_, err := envInstance.Dyn.Resource(backupGVR).Namespace(backup.GetNamespace()).Create(t.Context(), probe, metav1.CreateOptions{DryRun: []string{metav1.DryRunAll}})
+		return err != nil && strings.Contains(err.Error(), denial), fmt.Sprint(err)
+	})
+	return release
 }

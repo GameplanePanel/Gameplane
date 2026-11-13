@@ -2570,9 +2570,10 @@ spec:
               rule: '!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders)
                 || size(self.capabilities.mods.loaders) == 0 || (has(self.versions)
                 && size(self.versions) > 0)'
-            - message: backupFlush requires the Minecraft Java adapter
+            - message: backupFlush requires Minecraft Java with RCON enabled
               rule: '!has(self.capabilities) || !has(self.capabilities.backupFlush)
-                || self.game == ''minecraft-java'''
+                || (self.game == ''minecraft-java'' && has(self.rcon) && (!has(self.rcon.protocol)
+                || self.rcon.protocol != ''none''))'
           status:
             description: |-
               GameTemplateStatus is intentionally minimal — templates are mostly

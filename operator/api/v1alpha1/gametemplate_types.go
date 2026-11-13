@@ -11,7 +11,7 @@ import (
 // references it.
 // +kubebuilder:validation:XValidation:rule="!has(self.consoleMode) || self.consoleMode != 'rcon' || (has(self.rcon) && (!has(self.rcon.protocol) || self.rcon.protocol != 'none'))",message="consoleMode 'rcon' requires spec.rcon with a protocol other than 'none'"
 // +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders) || size(self.capabilities.mods.loaders) == 0 || (has(self.versions) && size(self.versions) > 0)",message="capabilities.mods.loaders requires a non-empty spec.versions catalog (a mod loader is selected by versions[].loader)"
-// +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.backupFlush) || self.game == 'minecraft-java'",message="backupFlush requires the Minecraft Java adapter"
+// +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.backupFlush) || (self.game == 'minecraft-java' && has(self.rcon) && (!has(self.rcon.protocol) || self.rcon.protocol != 'none'))",message="backupFlush requires Minecraft Java with RCON enabled"
 type GameTemplateSpec struct {
 	// DisplayName is a human-friendly label shown in the dashboard.
 	// +kubebuilder:validation:MinLength=1

@@ -35,6 +35,11 @@ func TestCommandsExcludeOtherCallersFromSequence(t *testing.T) {
 			}
 		}()
 		ctx, cancel := context.WithCancel(t.Context())
+		done := make(chan error, 1)
+		go func() {
+			_, err := WithContext(ctx, c).Exec("canceled command")
+			done <- err
+		}()
 		go func() {
 			if err := c.Sequence(ctx, func(Executor) error { t.Error("ran canceled sequence"); return nil }); !errors.Is(err, context.Canceled) {
 				t.Errorf("canceled sequence: %v", err)
@@ -43,6 +48,14 @@ func TestCommandsExcludeOtherCallersFromSequence(t *testing.T) {
 		synctest.Wait()
 		cancel()
 		synctest.Wait()
+		select {
+		case err := <-done:
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("queued command: %v", err)
+			}
+		default:
+			t.Fatal("canceled command still waiting for admission")
+		}
 		if !slices.Equal(calls, []string{"first"}) {
 			t.Fatalf("sequence interleaved: %v", calls)
 		}
