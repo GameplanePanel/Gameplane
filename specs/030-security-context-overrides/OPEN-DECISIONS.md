@@ -17,7 +17,7 @@ admin by default and to no other built-in role.
 
 **Ruling (valgul, 2026-11-07):** C, root overrides are refused until an admin turns on
 a cluster-wide setting, which is off by default. Like every override, setting 0 also
-needs `servers:security` (OD-1).
+needs `servers:security` (OD-1). Clarified 2026-11-13 (valgul): filesystem group 0 counts as root too.
 
 - A. Never: overrides must be 1 or more; a module that needs root simply sets no
   run-as user.

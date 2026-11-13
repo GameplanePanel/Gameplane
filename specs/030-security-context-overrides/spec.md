@@ -32,6 +32,10 @@ to every file on each start, or only when the volume's top folder has the wrong 
 - Q: Can a module lock its security values so servers can't override them? → A: No lock. A module can mark any of its security values as risky to override; overriding a risky value stays allowed but needs an extra confirmation.
 - Q: Should the Advanced view also control how the volume's group is fixed on start? → A: Yes, as a fourth setting (volume ownership check: "every start" or "only when wrong"), defaulting to the faster "only when wrong".
 
+### Session 2026-11-13
+
+- Q: Does the root rule also block a filesystem group override of 0? → A: Yes. Filesystem group 0 counts as root, like run-as user and run-as group 0.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Server uses the module's security defaults (Priority: P1)
@@ -137,7 +141,8 @@ carrying overrides is refused; as a user with it, confirm both work.
    open Advanced, **Then** they see the applied values but cannot edit them.
 2. **Given** such a user sends an override directly to the API, **When** the request
    is processed, **Then** it is refused with a permission error and nothing changes.
-3. **Given** a request that sets run-as user 0, **When** it is processed, **Then** it is
+3. **Given** a request that sets run-as user, run-as group or filesystem group to 0,
+   **When** it is processed, **Then** it is
    refused unless an admin has turned on the cluster-wide "allow root overrides"
    setting (OD-2).
 
@@ -188,7 +193,7 @@ carrying overrides is refused; as a user with it, confirm both work.
   desired and applied settings; the API only stores and validates the override.
 - **FR-005**: Override values MUST be validated as whole numbers from 0 to
   4294967295, matching the module's own limits, with the root rule from OD-2: an
-  override of 0 for run-as user or run-as group MUST be refused unless an admin has
+  override of 0 for run-as user, run-as group or filesystem group MUST be refused unless an admin has
   turned on a cluster-wide "allow root overrides" setting, which is off by default.
   The setting lives in global settings (`config:manage`) and turning it on or off is
   audited.
