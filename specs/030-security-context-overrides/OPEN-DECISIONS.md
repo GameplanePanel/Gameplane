@@ -68,7 +68,11 @@ a saved root override when an admin later turns the setting off.
 Plan impact: A and B need the operator to read the setting (research.md R11 currently
 assumes only the API reads it); C adds a cluster-wide scan in the config handler.
 
-## OD-5: How do overrides interact with restricted workload mode? (OPEN, asked 2026-11-13)
+## OD-5: How do overrides interact with restricted workload mode? (SETTLED: A)
+
+**Ruling (valgul, 2026-11-13):** A, the reconciler checks the effective values with the
+restricted-mode rule and reports the server as failed with the reason until the override
+is fixed; a pod that is already running keeps running.
 
 The operator's restricted workload mode (`--restricted-workloads`,
 `operator/internal/controller/workload_security.go:15`) requires every template to
@@ -87,7 +91,11 @@ that mode.
 - C. The API also refuses such overrides at write time, which needs the API to be told
   the operator mode (a chart value passed to both).
 
-## OD-6: Is the extra confirmation for a risky value enforced by the API or only by the dashboard? (OPEN, asked 2026-11-13)
+## OD-6: Is the extra confirmation for a risky value enforced by the API or only by the dashboard? (SETTLED: C)
+
+**Ruling (valgul, 2026-11-13):** C, the dashboard asks for the confirmation and the audit
+entry records that the value was marked risky at the time of the change; the API refuses
+nothing on that basis.
 
 FR-006a says overriding a value a module marked as risky "MUST need an extra
 confirmation that shows the module's reason". The dashboard can show a confirmation,
