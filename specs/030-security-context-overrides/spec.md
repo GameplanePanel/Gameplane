@@ -203,6 +203,11 @@ carrying overrides is refused; as a user with it, confirm both work.
   override too and is refused the same way, because most game images run as root by
   default. The setting lives in global settings (`config:manage`) and turning it on or
   off is audited.
+- **FR-005a**: When the cluster "allow root overrides" setting is off, a server that
+  holds a saved root override (any value FR-005 counts as root) MUST NOT be started by
+  the reconciler; its status MUST say why. A server already running keeps running, and
+  turning the setting off MUST NOT restart or stop any server. The server starts again
+  once the override is cleared or the setting is turned back on (OD-4).
 - **FR-006**: The create-server wizard MUST offer a collapsed "Advanced" section that
   shows, per setting, the module default and an optional override.
 - **FR-006a**: A module MUST be able to mark each of its security values as risky to

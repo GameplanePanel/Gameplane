@@ -43,7 +43,11 @@ The decisions below were raised while planning (2026-11-13). They are **OPEN**: 
 plan builds on the recommended option and says so, but nothing is settled until
 valgul rules. Each is isolated, so a different ruling changes one task, not the design.
 
-## OD-4: What happens to saved root overrides when an admin turns the root setting off? (OPEN, asked 2026-11-13)
+## OD-4: What happens to saved root overrides when an admin turns the root setting off? (SETTLED: A)
+
+**Ruling (valgul, 2026-11-13):** A, refuse to start them. Running servers keep running;
+a server holding a root override does not start while the setting is off, and its status
+says why, until the override is cleared or the setting is turned back on.
 
 Raised by CodeRabbit on PR #956. The spec says root values (run-as user, run-as group or
 filesystem group 0, or "use image default" for run-as user or group) are refused unless
