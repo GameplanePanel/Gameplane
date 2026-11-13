@@ -1,0 +1,21 @@
+{{- if (.Values.argoCD | default dict).enabled }}
+{{- if or .Values.api.standalone (ne (include "gameplane.operatorEnabled" .) "true") }}
+{{- fail "argoCD.enabled is the native operator delivery profile" }}
+{{- end }}
+{{- if .Values.crds.autoApply.enabled }}
+{{- fail "argoCD.enabled requires crds.autoApply.enabled=false and one external CRD owner" }}
+{{- end }}
+{{- $mtls := .Values.api.agentMTLS }}
+{{- $ca := $mtls.caSecretRef.name | default "" }}
+{{- $client := $mtls.clientCertRef.name | default "" }}
+{{- $generated := list "" "gameplane-agent-ca" "gameplane-agent-client" }}
+{{- if or (has $ca $generated) (has $client $generated) (eq $ca $client) }}
+{{- fail "argoCD.enabled requires distinct external CA and client Secret names in api.agentMTLS" }}
+{{- end }}
+{{- range $kind := list "ValidatingAdmissionPolicy" "ValidatingAdmissionPolicyBinding" }}
+{{- $api := printf "admissionregistration.k8s.io/v1/%s" $kind }}
+{{- if not ($.Capabilities.APIVersions.Has $api) }}
+{{- fail (printf "argoCD.enabled requires target API capability %s for waker enforcement" $api) }}
+{{- end }}
+{{- end }}
+{{- end }}

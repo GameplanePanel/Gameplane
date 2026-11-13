@@ -74,16 +74,50 @@ def check_api_availability():
     render({"api": {"enabled": False, "replicas": 0}})
 
 
+def check_native_permissions():
+    restricted = {"operator": {"gameNamespaces": ["tenant-b", "tenant-c"]},
+                  "nativeRBAC": {"catalogAdmin": False, "remoteClusters": False, "podAttach": False,
+                                 "gameSecretManagement": False, "snapshotContentReclamation": False,
+                                 "additionalAPIGameNamespaces": ["tenant-b"], "runtimeSecretNames": ["idp-a"]}}
+    objects = render(restricted, upgrade=True)
+    roles = {o["metadata"]["name"] for o in objects if o.get("kind") in ("ClusterRole", "ClusterRoleBinding")}
+    assert "gameplane-api-read" in roles
+    assert not roles.intersection({"gameplane-api-catalog-admin", "gameplane-api-cluster-registration",
+                                   "gameplane-operator-snapshot-reclaim"})
+    games = [o for o in objects if o.get("kind") == "Role" and o["metadata"]["name"] == "gameplane-api-games"]
+    assert {o["metadata"]["namespace"] for o in games} == {"gameplane-games", "tenant-b"}
+    assert all(not set(rule["resources"]).intersection({"secrets", "pods/attach"}) for o in games for rule in o["rules"])
+    # The API's PTY toggle leaves the operator's graceful-stop capability available.
+    operator = [o for o in objects if o.get("kind") == "Role" and o["metadata"]["name"] == "gameplane-operator-manage"]
+    assert all(any("pods/attach" in rule["resources"] for rule in o["rules"]) for o in operator)
+    credentials = one(objects, "Role", "gameplane-api-credentials")["rules"]
+    assert credentials == [
+        {"apiGroups": [""], "resources": ["secrets"], "verbs": ["get"], "resourceNames": ["idp-a"]},
+        {"apiGroups": [""], "resources": ["configmaps"], "verbs": ["get", "list"]},
+    ]
+    assert all(o["metadata"]["namespace"] != "gameplane-system-credentials" for o in objects
+               if o.get("kind") == "Role" and o["metadata"]["name"] == "gameplane-operator-secrets")
+    render({"nativeRBAC": {"additionalAPIGameNamespaces": ["kube-system"]}}, failure="managed game namespaces")
+    render({"nativeRBAC": {"remoteClusters": "false"}}, failure="must be a boolean")
+    render({"nativeRBAC": {"catalogadmin": False}}, failure="unknown nativeRBAC capability")
+    render({"nativeRBAC": {"remoteClusters": False, "runtimeSecretNames": ["*"]}}, failure="explicit Kubernetes Secret names")
+    render({"nativeRBAC": {"runtimeSecretNames": ["idp-a"]}}, failure="only restricts credential reads")
+
+
 def main():
     """Check deployment roles, standalone key custody, and source/archive CRDs."""
     check_api_availability()
+    check_native_permissions()
     defaults = render(include_crds=True)
     assert_crds(defaults, EXPECTED_CRDS)
     one(defaults, "Deployment", "gameplane-operator")
     one(defaults, "Deployment", "gameplane-api")
     one(defaults, "ModuleSource", "default")
     api_rules = one(defaults, "ClusterRole", "gameplane-api-read")["rules"]
-    assert any(rule.get("resources") == ["clusters"] and "update" in rule["verbs"] for rule in api_rules)
+    assert all(set(rule["verbs"]) <= {"get", "list", "watch"} for rule in api_rules)
+    registration = one(defaults, "ClusterRole", "gameplane-api-cluster-registration")
+    assert registration["rules"] == [{"apiGroups": ["gameplane.local"], "resources": ["clusters"],
+                                      "verbs": ["create", "update", "delete"]}]
     assert not any("configmaps" in rule.get("resources", []) for rule in api_rules)
     games_role = one(defaults, "Role", "gameplane-api-games")
     assert games_role["metadata"]["namespace"] == "gameplane-games"
