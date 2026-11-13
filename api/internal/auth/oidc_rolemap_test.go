@@ -1263,7 +1263,7 @@ func TestHandleCallback_HelmOverrideMappingsReEvaluateWithoutHelmMappings(t *tes
 	}
 
 	// Login 2: the group is gone at the IdP, but the user is the install's
-	// only user-manager, so the demotion is skipped and not audited.
+	// only user-manager, so the demotion is skipped and audited as guard_last_manager.
 	idp.groups = []string{"unmapped"}
 	idp.nonce = "nonce-ovr-2"
 	if rr := callbackViaIDP(t, o, sessions, "nonce-ovr-2"); rr.Code != http.StatusFound {
