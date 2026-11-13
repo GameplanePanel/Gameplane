@@ -20,7 +20,6 @@ import (
 
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 	"github.com/GameplanePanel/gameplane/agent/internal/httpjson"
-	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 // Rcon is the subset of *rcon.Client we use, as an interface so tests can
@@ -54,12 +53,14 @@ type response struct {
 // Mount registers POST /lifecycle/stop on r.
 func Mount(r chi.Router, rc Rcon, _ string, spec *caps.Lifecycle) {
 	s := Pick(spec)
-	r.Post("/lifecycle/stop", func(w http.ResponseWriter, req *http.Request) {
+	r.Post("/lifecycle/stop", func(w http.ResponseWriter, _ *http.Request) {
 		if !s.Supported() {
 			httpjson.Write(w, http.StatusOK, response{Stopped: false, Reason: "game declares no stop sequence"})
 			return
 		}
-		s.Stop(rcon.WithContext(req.Context(), rc))
+		// Finish the game's shutdown sequence even if the operator disconnects
+		// while waiting for a backup to release RCON.
+		s.Stop(rc)
 		httpjson.Write(w, http.StatusOK, response{Stopped: true})
 	})
 }
