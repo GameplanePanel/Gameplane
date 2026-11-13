@@ -1122,6 +1122,7 @@ type AgentSpec struct {
 }
 
 // ConfigField is a single user-tunable setting surfaced in the wizard.
+// +kubebuilder:validation:XValidation:rule="!has(self.envName) || !has(self.target) || self.target == 'env'",message="envName applies only to target env fields"
 type ConfigField struct {
 	// Name is the field identifier and the key in GameServer.spec.config.
 	// It is also the env var name when Target is "env" and EnvName is

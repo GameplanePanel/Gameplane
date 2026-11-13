@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"testing"
 
@@ -763,5 +765,20 @@ func TestMaterializeConfig_EnvNameCollision(t *testing.T) {
 	_, err := materializeConfig(gs, tmpl)
 	if err == nil || !strings.Contains(err.Error(), "both export env var") {
 		t.Fatalf("want env var collision error, got %v", err)
+	}
+}
+
+func TestMaterializeConfig_NoEnvNameKeepsHash(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "MOTD", Type: "string", Default: "hi"},
+	}, nil)
+	mc, err := materializeConfig(gs, tmpl)
+	if err != nil {
+		t.Fatalf("materializeConfig: %v", err)
+	}
+	// Same formula as before envName existed: sha256 of "MOTD=hi".
+	sum := sha256.Sum256([]byte("MOTD=hi"))
+	if want := hex.EncodeToString(sum[:]); mc.hash != want {
+		t.Errorf("hash = %s, want %s (templates without envName must keep their hash)", mc.hash, want)
 	}
 }

@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 57c5559296bd196e2c065107f66b585f37e34dd82e263245522bffb92323b130
+    gameplane.local/crd-bundle-sha256: 0f12a0d07eb5b4e6917b52da401eac7001c6946d13b567e81fb05146cd0caf5e
     controller-gen.kubebuilder.io/version: v0.22.0
   name: backupschedules.gameplane.local
 spec:

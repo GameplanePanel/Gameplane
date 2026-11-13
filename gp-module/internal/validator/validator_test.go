@@ -896,3 +896,71 @@ gameplaneMinVersion: 1.0.0
 		}
 	})
 }
+
+func TestValidate_ConfigEnvName(t *testing.T) {
+	t.Parallel()
+	files := map[string][]byte{
+		"module.yaml": []byte(`apiVersion: gameplane.local/module/v1
+name: test-mod
+displayName: Test Mod
+version: 1.0.0
+game: test
+summary: Test
+`),
+		"template.yaml": []byte(`apiVersion: gameplane.io/v1alpha1
+kind: GameTemplate
+metadata:
+  name: test-mod
+spec:
+  image: "example.com/img@sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  configSchema:
+    - name: ENABLE_WHITELIST
+      type: bool
+    - name: WHITELIST_ENABLED
+      type: bool
+      envName: ENABLE_WHITELIST
+    - name: BAD_ENV
+      type: string
+      envName: 1-bad
+    - name: FILE_FIELD
+      type: string
+      target: file
+      envName: FILE_ENV
+    - name: GOOD
+      type: string
+      envName: GOOD_ENV
+`),
+		"README.md": []byte("# Test\n"),
+	}
+
+	report, err := ValidateFiles("test-mod", files, ValidateOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var msgs []string
+	for _, f := range report.Findings {
+		if f.RuleID == RuleTemplateSchemaViolation && strings.Contains(f.Field, "envName") {
+			msgs = append(msgs, f.Message)
+		}
+	}
+	want := []string{
+		`both export env var "ENABLE_WHITELIST"`,
+		`envName "1-bad" on field "BAD_ENV" is not a valid env var name`,
+		`envName on field "FILE_FIELD" has no effect because its target is file`,
+	}
+	for _, w := range want {
+		found := false
+		for _, m := range msgs {
+			if strings.Contains(m, w) {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("missing envName finding %q in %v", w, msgs)
+		}
+	}
+	if len(msgs) != len(want) {
+		t.Errorf("got %d envName findings, want %d: %v", len(msgs), len(want), msgs)
+	}
+}

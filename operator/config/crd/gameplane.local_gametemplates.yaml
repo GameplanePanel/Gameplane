@@ -1199,6 +1199,10 @@ spec:
                   - name
                   - type
                   type: object
+                  x-kubernetes-validations:
+                  - message: envName applies only to target env fields
+                    rule: '!has(self.envName) || !has(self.target) || self.target
+                      == ''env'''
                 type: array
               consoleMode:
                 description: |-
