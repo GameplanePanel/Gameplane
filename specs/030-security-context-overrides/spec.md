@@ -35,6 +35,7 @@ to every file on each start, or only when the volume's top folder has the wrong 
 ### Session 2026-11-13
 
 - Q: Does the root rule also block a filesystem group override of 0? → A: Yes. Filesystem group 0 counts as root, like run-as user and run-as group 0.
+- Q: Should "use image default" for the run-as user also need the root setting? → A: Yes. A "use image default" override of run-as user or run-as group always needs the cluster "allow root overrides" setting, because most images default to root.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -145,6 +146,9 @@ carrying overrides is refused; as a user with it, confirm both work.
    **When** it is processed, **Then** it is
    refused unless an admin has turned on the cluster-wide "allow root overrides"
    setting (OD-2).
+4. **Given** a module that sets run-as user 1000 and the root setting is off, **When**
+   a request sets run-as user to "use image default", **Then** it is refused like a
+   root override.
 
 ---
 
@@ -195,8 +199,10 @@ carrying overrides is refused; as a user with it, confirm both work.
   4294967295, matching the module's own limits, with the root rule from OD-2: an
   override of 0 for run-as user, run-as group or filesystem group MUST be refused unless an admin has
   turned on a cluster-wide "allow root overrides" setting, which is off by default.
-  The setting lives in global settings (`config:manage`) and turning it on or off is
-  audited.
+  A "use image default" override of run-as user or run-as group counts as a root
+  override too and is refused the same way, because most game images run as root by
+  default. The setting lives in global settings (`config:manage`) and turning it on or
+  off is audited.
 - **FR-006**: The create-server wizard MUST offer a collapsed "Advanced" section that
   shows, per setting, the module default and an optional override.
 - **FR-006a**: A module MUST be able to mark each of its security values as risky to
