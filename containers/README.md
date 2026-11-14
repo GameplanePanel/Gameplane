@@ -226,11 +226,13 @@ docker run -it \
 
 ## Platform support
 
-- **Common bases** — built for `linux/amd64,linux/arm64` (Ubuntu 26.04 LTS, portable).
-- **Game images** — built for `linux/amd64` only by default.
-  - Game server binaries (especially Unity-based, like Nuclear Option) are x86_64-only.
-  - ARM64 support requires a native ARM64 binary from the game publisher, which most do not officially provide.
-  - To add ARM64 support: obtain the ARM64 binary, update the Dockerfile and workflow matrix to build `linux/amd64,linux/arm64`.
+The SteamCMD base requires `linux/amd64`. Bash and dpkg are x86-64 executables, and SteamCMD is a 32-bit Intel executable. Workers must support both x86 ABIs. The published game images in this workflow also target `linux/amd64`.
+
+Squad, The Isle, Mount & Blade II Bannerlord and Nuclear Option inherit this base. ARK Survival Evolved moved to `hermsi/ark-server`; its catalog pin also requires amd64. On mixed clusters these games need an eligible amd64 worker with access to their volume. Check the installed GameTemplate for `spec.requiredNodeArchitecture: amd64`. Until both the operator and the installed template enforce that requirement, set `spec.nodeSelector["kubernetes.io/arch"]` to `amd64` on each affected GameServer before starting it.
+
+Publishing a corrected base changes future builds. Previously published indices and digest-pinned game images retain their original contents. In particular, the old common-base index `sha256:7cc7c2a9f45a6f0f69654517666de75db944e08ff110028a2586eaca77287801` advertises an ARM64 child containing Intel executables. Rebuild downstream images from the corrected signed base, record their signed digests, and update the module pins and any local overrides. Install the compatible operator and CRDs before adopting the updated module bundles.
+
+For release qualification, start each game from its published digest and official template on a real amd64 worker with a fresh volume. Record the worker architecture, kernel, active `binfmt_misc` handlers, module version, image digest, and a successful game query or connection after first install. Include ARK's pinned vendor digest in the placement check. On a cluster with only ARM64 workers eligible, verify that Kubernetes leaves the game Pending. Attach the results to [issue #921](https://github.com/GameplanePanel/Gameplane/issues/921). An ARM64 release would also need a supported runtime for the installer and game, a successful start on that worker, and performance evidence for any emulation it requires.
 
 ## Image signing
 

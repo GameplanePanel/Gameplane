@@ -2108,6 +2108,14 @@ spec:
                   rule: '!has(self.authentication) || self.authentication || (!has(self.passwordSecretRef)
                     && (!has(self.passwordEnv) || size(self.passwordEnv) == 0) &&
                     (!has(self.passwordFile) || size(self.passwordFile) == 0))'
+              requiredNodeArchitecture:
+                description: |-
+                  RequiredNodeArchitecture is the kubernetes.io/arch label required by
+                  the game executable (for example, amd64). Omit for portable templates.
+                  The requirement also applies to version selections and image overrides.
+                maxLength: 63
+                pattern: ^[a-z0-9]+$
+                type: string
               resources:
                 description: Resources are the default compute resources for the game
                   container.

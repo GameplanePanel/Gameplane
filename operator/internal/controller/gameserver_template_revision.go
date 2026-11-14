@@ -184,7 +184,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			return effective, true, err
 		}
 		if op.Baseline {
-			if r.GameWorkloadPolicy != nil {
+			if r.baselineNeedsDrain(op) {
 				drained, err := r.templateWorkloadDrained(ctx, gs)
 				if !drained || err != nil {
 					// Continue to desiredReplicas with the durable owner held. The
@@ -250,7 +250,8 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 	// An earlier operator may have recorded a first pin while preserving the
 	// original, unversioned Pod. Migrate that baseline under the same fence
 	// when the worker policy is enabled later, even with OnRequest updates.
-	migrateBaseline := r.GameWorkloadPolicy != nil && pin != "" && gs.Annotations[baselineTemplateAnnotation] == pin
+	migrateBaseline := (r.GameWorkloadPolicy != nil || effective.Spec.RequiredNodeArchitecture != "") &&
+		pin != "" && gs.Annotations[baselineTemplateAnnotation] == pin
 	if (desired != "" && desired != pin) || migrateBaseline {
 		target, revision := &installed, desired
 		if migrateBaseline {
@@ -289,11 +290,16 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 				return nil, false, err
 			}
 			want := lifecycleIdentity{Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Generation: gs.Generation, Token: revision, Baseline: pin == "" || migrateBaseline}
+			want.ArchitectureDrain = want.Baseline && target.Spec.RequiredNodeArchitecture != ""
 			claimed, err := claimLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, want, r.OperationQuiescer)
 			return effective, claimed, err
 		}
 	}
 	return effective, false, r.pruneTemplateSnapshots(ctx, gs)
+}
+
+func (r *GameServerReconciler) baselineNeedsDrain(op lifecycleOperation) bool {
+	return op.Baseline && (r.GameWorkloadPolicy != nil || op.ArchitectureDrain)
 }
 
 // baselineStopTemplate uses only an owned running Pod and its verified snapshot.
@@ -362,7 +368,7 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 		}
 		// A real spec edit after admission must render normally. Recording
 		// its new inputs against the old workload would silently swallow it.
-		if r.GameWorkloadPolicy == nil && gs.Generation == op.Generation {
+		if !r.baselineNeedsDrain(op) && gs.Generation == op.Generation {
 			inputs, err := r.baselineRenderInputs(gs, op.Token)
 			if err != nil {
 				return err
@@ -372,7 +378,7 @@ func (r *GameServerReconciler) initializeTemplateBaseline(ctx context.Context, g
 			gs.Annotations[baselineInputsAnnotation] = inputs
 		}
 	}
-	if r.GameWorkloadPolicy != nil {
+	if r.baselineNeedsDrain(op) {
 		delete(gs.Annotations, baselineTemplateAnnotation)
 		delete(gs.Annotations, baselineWorkloadAnnotation)
 		delete(gs.Annotations, baselineInputsAnnotation)
@@ -515,12 +521,12 @@ func observedTemplateRevision(ctx context.Context, reader client.Reader, gs *gam
 func (r *GameServerReconciler) templateWorkloadDrained(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
 	var ss appsv1.StatefulSet
 	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
-		if apierrors.IsNotFound(err) && r.GameWorkloadPolicy != nil {
+		if apierrors.IsNotFound(err) {
 			op, held, err := lifecycleOwner(gs)
 			if err != nil {
 				return false, err
 			}
-			if held && op.Kind == "Rollout" && op.Baseline {
+			if held && op.Kind == "Rollout" && r.baselineNeedsDrain(op) {
 				// A new server has no workload to fence. A deleted StatefulSet
 				// can leave a terminating Pod that still holds the world.
 				return r.templateWritersGone(ctx, gs, nil)

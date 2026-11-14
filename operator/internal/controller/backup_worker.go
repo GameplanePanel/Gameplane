@@ -305,6 +305,16 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		job = batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace, Annotations: map[string]string{backupWorkerProtocolAnnotation: "v1"}}, Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline,
 			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, bound.UID, preparation)}}}
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
+		if source.NodeName == "" {
+			// A scheduled game Pod has already bound its mounted claims.
+			if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.backupAPIReader(), bound, tmpl, &job.Spec.Template.Spec); err != nil {
+				var rejected workloadPolicyRejection
+				if errors.As(err, &rejected) {
+					return r.abortResticCopy(ctx, b, rejected.Error())
+				}
+				return ctrl.Result{}, err
+			}
+		}
 		if err := controllerutil.SetControllerReference(b, &job, r.Scheme); err != nil {
 			return ctrl.Result{}, err
 		}

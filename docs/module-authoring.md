@@ -684,9 +684,16 @@ make module-pin        # rewrites every modules/*/template.yaml in place
 It resolves each tag through the registry's standard bearer-token flow (any
 OCI registry, not just Docker Hub), preserves the templates' comments, and
 leaves any ref it cannot resolve untouched rather than guessing. The digest it
-writes is the **tag manifest's** digest — for a multi-arch image that is the
-index digest covering every published platform, so a pinned module still runs
-on both amd64 and arm64.
+writes is the **tag manifest's** digest. For a multi-arch image, this is the
+index digest covering the platforms the publisher advertises.
+
+If every supported game version requires one worker architecture, set
+`spec.requiredNodeArchitecture` on the GameTemplate. For example, use `amd64`
+for a game that needs the Gameplane SteamCMD base. Verify the actual installer
+and server on that architecture. Kubernetes intersects the resulting
+`kubernetes.io/arch` requirement with the server's placement and the operator's
+worker policy. Set the module's `gameplaneMinVersion` to a release that enforces
+the field so older operators reject the bundle.
 
 Because pinning stops upstream releases from arriving on their own, the
 `GameplanePanel/module` repo runs `refresh-pins.yml` monthly to re-resolve every
