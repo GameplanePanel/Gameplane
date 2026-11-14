@@ -195,9 +195,12 @@ func TestRejectedWipeUsesBoundVolumeTopologyAfterDrain(t *testing.T) {
 				r.APIReader = interceptor.NewClient(c, interceptor.Funcs{
 					Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 						if _, ok := obj.(*corev1.PersistentVolumeClaim); ok {
-							current := wipeCurrent(t, c, gs)
+							var current gameplanev1alpha1.GameServer
+							if err := c.Get(ctx, client.ObjectKeyFromObject(gs), &current); err != nil {
+								return err
+							}
 							delete(current.Annotations, WipeRequestedAnnotation)
-							if err := c.Update(ctx, current); err != nil {
+							if err := c.Update(ctx, &current); err != nil {
 								return err
 							}
 						}

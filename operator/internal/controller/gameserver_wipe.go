@@ -143,7 +143,8 @@ func (r *GameServerReconciler) advanceWipe(ctx context.Context, gs *gameplanev1a
 	if state.busy {
 		return nil
 	}
-	_, placementOnly := rejection.(gamePlacementRejection)
+	var placement gamePlacementRejection
+	placementOnly := errors.As(rejection, &placement)
 	if rejection != nil && !placementOnly && r.GameWorkloadPolicy.validatePlacement(gs, tmpl) == nil {
 		// No effective first-consumer conflict to settle. Resource limits and
 		// other admission errors cannot authorize a worker.
@@ -169,11 +170,14 @@ func (r *GameServerReconciler) advanceWipe(ctx context.Context, gs *gameplanev1a
 	if err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &live); err != nil {
 		return client.IgnoreNotFound(err)
 	}
-	if live.ResourceVersion != gs.ResourceVersion || !live.Spec.Suspend || live.UID != gs.UID || live.Annotations[wipeGuardAnnotation] != guard || live.Annotations[WipeRequestedAnnotation] != guard || !pendingWipe(&live) || live.Annotations[restoreGuardAnnotation] != "" || live.Annotations[backupGuardAnnotation] != "" {
+	if live.UID != gs.UID || live.Annotations[wipeGuardAnnotation] != guard || live.Annotations[WipeRequestedAnnotation] != guard || !pendingWipe(&live) || live.Annotations[restoreGuardAnnotation] != "" || live.Annotations[backupGuardAnnotation] != "" {
 		return nil
 	}
 	if ready, err := wipeLifecycleReady(&live, guard); err != nil || !ready {
 		return err
+	}
+	if live.ResourceVersion != gs.ResourceVersion || !live.Spec.Suspend {
+		return nil
 	}
 	if err := r.Create(ctx, job); err != nil && !apierrors.IsAlreadyExists(err) {
 		return err

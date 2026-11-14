@@ -35,7 +35,7 @@ type GameWorkloadPolicy struct {
 // can safely stop the effective workload or release a failed worker's guard.
 type workloadPolicyRejection struct{ error }
 
-// Only a placement rejection of the effective workload permits a wipe to
+// A placement rejection with valid game resources permits a wipe to
 // recover data on an already-bound volume independently of game scheduling.
 type gamePlacementRejection struct{ error }
 
@@ -149,13 +149,15 @@ func ParseGameWorkloadPolicy(raw string) (*GameWorkloadPolicy, error) {
 
 // validate checks the merged game resources and placement before the controller can create or change a workload.
 func (p *GameWorkloadPolicy) validate(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
-	if err := p.validateResources(gs, tmpl); err != nil {
-		return err
+	resourceErr := p.validateResources(gs, tmpl)
+	if placementErr := p.validatePlacement(gs, tmpl); placementErr != nil {
+		if resourceErr != nil {
+			// Report placement first, even when resource limits also block recovery.
+			return placementErr
+		}
+		return gamePlacementRejection{placementErr}
 	}
-	if err := p.validatePlacement(gs, tmpl); err != nil {
-		return gamePlacementRejection{err}
-	}
-	return nil
+	return resourceErr
 }
 
 func (p *GameWorkloadPolicy) validateResources(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
