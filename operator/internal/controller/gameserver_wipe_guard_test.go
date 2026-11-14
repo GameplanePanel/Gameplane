@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -51,7 +52,7 @@ func wipeCurrent(t *testing.T, c client.Client, gs *gameplanev1alpha1.GameServer
 }
 
 func TestWipePlacementRejectionSettlesUnstartedRequest(t *testing.T) {
-	for _, scenario := range []string{"pending", "canceled", "failed job", "orphan pod"} {
+	for _, scenario := range []string{"pending", "placement and resource rejection", "canceled", "failed job", "orphan pod"} {
 		t.Run(scenario, func(t *testing.T) {
 			gs := wipeGameServer(true, "current")
 			gs.Spec.NodeSelector = map[string]string{corev1.LabelArchStable: "arm64"}
@@ -62,6 +63,11 @@ func TestWipePlacementRejectionSettlesUnstartedRequest(t *testing.T) {
 			objects := []client.Object{gs, tmpl, wipeStoppedSet(gs)}
 			s := wipeScheme(t)
 			switch scenario {
+			case "placement and resource rejection":
+				gs.Spec.Resources = &corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
+					Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("1")},
+				}
 			case "canceled":
 				delete(gs.Annotations, WipeRequestedAnnotation)
 			case "failed job":
@@ -119,13 +125,132 @@ func TestWipePlacementRejectionSettlesUnstartedRequest(t *testing.T) {
 			if live.Annotations[wipeGuardAnnotation] != "" || live.Annotations[lifecycleOperationAnnotation] != "" || pendingWipe(live) {
 				t.Fatalf("unstarted wipe still holds the server: %v", live.Annotations)
 			}
-			if scenario == "pending" {
+			if scenario == "pending" || scenario == "placement and resource rejection" {
 				condition := meta.FindStatusCondition(live.Status.Conditions, gameplanev1alpha1.GameServerConditionDataWipe)
 				if condition == nil || condition.Reason != "PlacementRejected" || condition.Status != metav1.ConditionFalse {
 					t.Fatalf("wipe rejection not reported: %+v", condition)
 				}
 			}
 		})
+	}
+}
+
+func TestRejectedWipeUsesBoundVolumeTopologyAfterDrain(t *testing.T) {
+	for _, scenario := range []string{"bound", "replaced by unbound claim", "deleting claim", "resource rejection", "request canceled at launch"} {
+		t.Run(scenario, func(t *testing.T) {
+			s := wipeScheme(t)
+			gs := wipeGameServer(true, "current")
+			gs.Annotations[wipeGuardAnnotation] = "current"
+			gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(lifecycleOperation{lifecycleIdentity: wipeLifecycleIdentity(gs, "current")})
+			gs.Spec.NodeSelector = map[string]string{corev1.LabelArchStable: "arm64"}
+			tmpl := &gameplanev1alpha1.GameTemplate{ObjectMeta: metav1.ObjectMeta{Name: gs.Spec.TemplateRef.Name}}
+			tmpl.Spec.RequiredNodeArchitecture = "amd64"
+			if scenario == "resource rejection" {
+				gs.Spec.Resources = &corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
+					Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("1")},
+				}
+			}
+			pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-data"},
+				Spec: corev1.PersistentVolumeClaimSpec{VolumeName: "legacy-volume"}}
+			pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Namespace: gs.Namespace, Name: gs.Name + "-0"}, Status: corev1.PodStatus{Phase: corev1.PodRunning}}
+			c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, tmpl, wipeStoppedSet(gs), pvc, pod).WithStatusSubresource(gs).Build()
+			r := &GameServerReconciler{Client: c, APIReader: c, Scheme: s}
+			req := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(gs)}
+			jobKey := client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name + "-wipe"}
+			var job batchv1.Job
+			if _, err := r.Reconcile(t.Context(), req); err != nil {
+				t.Fatal(err)
+			}
+			if err := c.Get(t.Context(), jobKey, &job); !apierrors.IsNotFound(err) {
+				t.Fatalf("worker launched before game drained: %v", err)
+			}
+			live := wipeCurrent(t, c, gs)
+			if !live.Spec.Suspend || live.Annotations[wipeGuardAnnotation] != "current" || !pendingWipe(live) {
+				t.Fatalf("bound volume lost its pending wipe during drain: %v", live.Annotations)
+			}
+			if err := c.Delete(t.Context(), pod); err != nil {
+				t.Fatal(err)
+			}
+			switch scenario {
+			case "replaced by unbound claim":
+				if err := c.Delete(t.Context(), pvc); err != nil {
+					t.Fatal(err)
+				}
+				if err := c.Create(t.Context(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Namespace: pvc.Namespace, Name: pvc.Name}}); err != nil {
+					t.Fatal(err)
+				}
+			case "deleting claim":
+				if err := c.Get(t.Context(), client.ObjectKeyFromObject(pvc), pvc); err != nil {
+					t.Fatal(err)
+				}
+				pvc.Finalizers = []string{"test/drain"}
+				if err := c.Update(t.Context(), pvc); err != nil {
+					t.Fatal(err)
+				}
+				if err := c.Delete(t.Context(), pvc); err != nil {
+					t.Fatal(err)
+				}
+			case "request canceled at launch":
+				r.APIReader = interceptor.NewClient(c, interceptor.Funcs{
+					Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+						if _, ok := obj.(*corev1.PersistentVolumeClaim); ok {
+							current := wipeCurrent(t, c, gs)
+							delete(current.Annotations, WipeRequestedAnnotation)
+							if err := c.Update(ctx, current); err != nil {
+								return err
+							}
+						}
+						return c.Get(ctx, key, obj, opts...)
+					},
+				})
+			}
+			_, err := r.Reconcile(t.Context(), req)
+			if (scenario == "deleting claim") != (err != nil) {
+				t.Fatalf("expected retry only for a deleting claim: %v", err)
+			}
+			err = c.Get(t.Context(), jobKey, &job)
+			live = wipeCurrent(t, c, gs)
+			if scenario == "bound" {
+				if err != nil || !metav1.IsControlledBy(&job, gs) || job.Labels[wipeTokenLabel] != "current" {
+					t.Fatalf("missing owned wipe for the bound volume: %v", err)
+				}
+				podSpec := job.Spec.Template.Spec
+				if len(podSpec.NodeSelector) != 0 || len(podSpec.Tolerations) != 0 || podSpec.Affinity != nil || podSpec.Volumes[0].PersistentVolumeClaim.ClaimName != pvc.Name {
+					t.Fatalf("wipe did not retain the bound volume's topology: %+v", podSpec)
+				}
+			} else if !apierrors.IsNotFound(err) {
+				t.Fatalf("ineligible worker launched: %v", err)
+			}
+			if !live.Spec.Suspend || live.Annotations[WipeCompletedAnnotation] != "" {
+				t.Fatal("unfinished wipe acknowledged or game resumed")
+			}
+			if scenario == "replaced by unbound claim" {
+				condition := meta.FindStatusCondition(live.Status.Conditions, gameplanev1alpha1.GameServerConditionDataWipe)
+				if condition == nil || condition.Reason != "PlacementRejected" || live.Annotations[wipeGuardAnnotation] != "" || pendingWipe(live) {
+					t.Fatalf("replacement claim was not rejected before the first consumer: %v", live.Annotations)
+				}
+			}
+		})
+	}
+}
+
+func TestWipeFenceWaitsForGracefulScaleDown(t *testing.T) {
+	s := wipeScheme(t)
+	gs := wipeGameServer(true, "current")
+	ss := wipeStoppedSet(gs)
+	gs.Annotations[wipeGuardAnnotation] = "current"
+	*ss.Spec.Replicas = 1
+	c := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss).Build()
+	r := &GameServerReconciler{Client: c, APIReader: c, Scheme: s}
+	if stopped, err := r.wipeTargetStopped(t.Context(), gs); err != nil || stopped {
+		t.Fatalf("running game accepted for wipe: stopped=%v err=%v", stopped, err)
+	}
+	if err := c.Get(t.Context(), client.ObjectKeyFromObject(ss), ss); err != nil {
+		t.Fatal(err)
+	}
+	if *ss.Spec.Replicas != 1 || ss.Annotations[wipeGuardAnnotation] != "" {
+		t.Fatal("wipe fence bypassed graceful scale-down")
 	}
 }
 

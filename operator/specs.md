@@ -568,11 +568,14 @@ failed/canceled restores remain suspended. Generation changes to active Backup
 or Restore specs fail the operation and enter cleanup rather than authorizing a
 different copy under the old owner. See [operator operation recovery](../docs/operator-operations.md).
 
-If placement rejects a wipe before launch, the operator checks that the current
-request owns the wipe and that no wipe Job or live worker remains. It records
+If placement rejects a wipe that would first bind the data volume, the operator
+checks that the current request owns the wipe and that no wipe Job or live
+worker remains. It records
 `DataWipe=False` with reason `PlacementRejected`, consumes the rejected request,
 and releases its guard. A canceled request can also finish cleanup while the
-server's placement is invalid. A failed wipe Job retains its guard and logs
+server's placement is invalid. A suspended server with an already-bound data
+volume can complete its wipe on the existing volume topology once the game
+and other writers have stopped. A failed wipe Job retains its guard and logs
 until cancellation or replacement because it may have partially cleared data.
 
 ### ModuleSourceReconciler

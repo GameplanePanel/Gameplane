@@ -35,6 +35,10 @@ type GameWorkloadPolicy struct {
 // can safely stop the effective workload or release a failed worker's guard.
 type workloadPolicyRejection struct{ error }
 
+// Only a placement rejection of the effective workload permits a wipe to
+// recover data on an already-bound volume independently of game scheduling.
+type gamePlacementRejection struct{ error }
+
 // reconcileRejectedGameWorkload permits a suspended, owned server to drain while its requested configuration is invalid.
 func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	effective *gameplanev1alpha1.GameTemplate, rejection error,
@@ -43,9 +47,9 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 	var wipeState wipeWorkerState
 	if gs.Annotations[wipeGuardAnnotation] != "" {
 		// Validation normally returns before the wipe controller gets a turn.
-		// Settle cancellation or failure under the existing owner without launching a Job.
+		// Continue under the existing owner, including maintenance on a bound volume.
 		version := gs.ResourceVersion
-		if err := r.advanceWipe(ctx, gs, effective, &wipeState, false); err != nil {
+		if err := r.advanceWipe(ctx, gs, effective, &wipeState, rejection); err != nil {
 			return requeueOnConflict(result, err)
 		}
 		if gs.ResourceVersion != version {
@@ -145,9 +149,16 @@ func ParseGameWorkloadPolicy(raw string) (*GameWorkloadPolicy, error) {
 
 // validate checks the merged game resources and placement before the controller can create or change a workload.
 func (p *GameWorkloadPolicy) validate(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
-	if err := p.validatePlacement(gs, tmpl); err != nil {
+	if err := p.validateResources(gs, tmpl); err != nil {
 		return err
 	}
+	if err := p.validatePlacement(gs, tmpl); err != nil {
+		return gamePlacementRejection{err}
+	}
+	return nil
+}
+
+func (p *GameWorkloadPolicy) validateResources(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
 	res := effectiveResources(gs, tmpl)
 	for name, request := range res.Requests {
 		if limit, ok := res.Limits[name]; ok && request.Cmp(limit) > 0 {
@@ -225,6 +236,9 @@ func (p *GameWorkloadPolicy) placeFirstVolumeConsumer(ctx context.Context, reade
 		// so the worker can wait for it within the ordinary Job deadline.
 		if err := reader.Get(ctx, key, &pvc); err != nil && !apierrors.IsNotFound(err) {
 			return fmt.Errorf("read game volume %s before scheduling worker: %w", key, err)
+		}
+		if !pvc.DeletionTimestamp.IsZero() {
+			return fmt.Errorf("game volume %s is being deleted", key)
 		}
 		if pvc.Spec.VolumeName == "" {
 			if err := p.validatePlacement(gs, tmpl); err != nil {
