@@ -274,12 +274,28 @@ const (
 // +kubebuilder:rbac:groups=metallb.io,resources=ipaddresspools,verbs=get;list;watch
 // +kubebuilder:rbac:groups=storage.k8s.io,resources=storageclasses,verbs=get;list;watch
 
-func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, reconcileErr error) {
 	logger := log.FromContext(ctx)
 
 	var gs gameplanev1alpha1.GameServer
 	if err := r.Get(ctx, req.NamespacedName, &gs); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	// Recover the durable eviction decision before any validation that can
+	// return early (including a missing template or newly requested wipe).
+	if op, held, err := lifecycleOwner(&gs); held && err == nil && op.Kind == podRecoveryKind {
+		delay, err := r.resumeFailedPodEviction(ctx, &gs, op.lifecycleIdentity)
+		if err != nil {
+			return requeueOnConflict(ctrl.Result{RequeueAfter: delay}, err)
+		}
+		// Keep ordinary resources and status current during termination. The
+		// live refresh below observes any release; a retained owner freezes
+		// the workload. Validation failures must still poll pending cleanup.
+		defer func() {
+			if reconcileErr == nil && delay > 0 && (result.RequeueAfter == 0 || delay < result.RequeueAfter) {
+				result.RequeueAfter = delay
+			}
+		}()
 	}
 	// Refresh and recover wipe ownership before deriving config or idle state.
 	// A later refresh would mix an older idle calculation with a newer status
@@ -487,6 +503,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile StatefulSet")
 		return ctrl.Result{}, err
 	}
+	var recoveryRetry time.Duration
+	if replicas == 1 && stopRequeue == 0 {
+		recoveryRetry, err = r.recoverObsoleteFailedPod(ctx, &gs)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 	// Node placement is a cosmetic annotation for the dashboard; a transient
 	// pod-get hiccup shouldn't stall the rest of reconciliation, so log and go.
 	if err := r.reconcileNodePlacement(ctx, &gs); err != nil {
@@ -545,7 +568,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue}
+	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
@@ -1332,7 +1355,7 @@ func (r *GameServerReconciler) desiredReplicas(
 		return 1, 5 * time.Second, nil
 	} else if held && lifecycleRecoveryNeedsStop(op) {
 		return 0, 5 * time.Second, nil
-	} else if held && (op.Kind == "Backup" || op.Baseline || len(op.Recovery) != 0) {
+	} else if held && (op.Kind == "Backup" || op.Kind == podRecoveryKind || op.Baseline || len(op.Recovery) != 0) {
 		var ss appsv1.StatefulSet
 		err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss)
 		if apierrors.IsNotFound(err) {
@@ -1690,7 +1713,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				actualReplicas = replicas
 				delete(ss.Annotations, restoreGuardAnnotation)
 			}
-			if op.Kind == "Backup" || len(op.Recovery) != 0 {
+			if op.Kind == "Backup" || op.Kind == podRecoveryKind || len(op.Recovery) != 0 {
 				if !ss.CreationTimestamp.IsZero() || ss.ResourceVersion != "" {
 					// Orphaned restores may leave a running initial workload.
 					// Stop it while preserving its complete pod template. Other

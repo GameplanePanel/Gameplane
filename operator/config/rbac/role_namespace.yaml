@@ -66,6 +66,11 @@ rules:
   - apiGroups: [""]
     resources: ["pods/attach"]
     verbs: ["create"]
+  # Respect disruption budgets when replacing an obsolete failed game pod.
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+
   # Network capture sidecar injection (reconcileCapture); mirrors the
   # chart's manage Role. Namespace-scoped only: a cluster-wide grant would
   # let the operator inject a container into any pod in any namespace.

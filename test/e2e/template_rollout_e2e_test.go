@@ -119,3 +119,54 @@ func TestGameServer_TemplateOnRequestRetainsData(t *testing.T) {
 		t.Fatalf("persisted contents after adoption: %s %v", out, err)
 	}
 }
+
+// Start from a healthy server, deploy a broken image, then restore the
+// original spec. OrderedReady must replace the failed ordinal after rollback.
+func TestGameServer_CorrectedImageRecoversFailedOrdinal(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	const ns, name = "gameplane-games", "e2e-corrected-image"
+	applyBusyboxTemplate(t, name)
+	applyBusyboxGameServer(t, ns, name, name)
+	pods := envInstance.K8s.CoreV1().Pods(ns)
+	servers := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns)
+	patch := func(body string) {
+		t.Helper()
+		if _, err := servers.Patch(ctx, name, types.MergePatchType, []byte(body), metav1.PatchOptions{}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	waitPodReady := func(exclude types.UID) {
+		t.Helper()
+		envInstance.Eventually(t, 4*time.Minute, func() (bool, string) {
+			pod, err := pods.Get(ctx, name+"-0", metav1.GetOptions{})
+			if err != nil {
+				return false, err.Error()
+			}
+			for _, condition := range pod.Status.Conditions {
+				if condition.Type == "Ready" && condition.Status == "True" && pod.UID != exclude {
+					return true, ""
+				}
+			}
+			return false, "waiting for ready ordinal"
+		})
+	}
+	waitPodReady("")
+	patch(`{"spec":{"image":"127.0.0.1:1/gameplane/unavailable:missing"}}`)
+	var broken types.UID
+	envInstance.Eventually(t, 4*time.Minute, func() (bool, string) {
+		pod, err := pods.Get(ctx, name+"-0", metav1.GetOptions{})
+		if err != nil {
+			return false, err.Error()
+		}
+		for _, c := range pod.Status.ContainerStatuses {
+			if c.Name == "game" && c.State.Waiting != nil && c.State.Waiting.Reason == "ImagePullBackOff" {
+				broken = pod.UID
+				return true, ""
+			}
+		}
+		return false, "waiting for image pull backoff"
+	})
+	patch(`{"spec":{"image":null}}`)
+	waitPodReady(broken)
+}
