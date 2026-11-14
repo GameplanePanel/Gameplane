@@ -6,9 +6,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -71,12 +73,20 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	envInstance.BootstrapAdmin(t, adminUser, adminPass)
 
 	applyBusyboxTemplate(t, tmpl)
+	if out, err := envInstance.Kubectl(ctx, "patch", "gametemplate", tmpl, "--type=merge", "-p",
+		`{"spec":{"configSchema":[{"name":"STARTUP_OPTION","type":"string","default":"legacy"}]}}`); err != nil {
+		t.Fatalf("seed previous-release startup option: %v: %s", err, out)
+	}
 	applyBusyboxGameServer(t, ns, gs, tmpl)
 	waitPVCBound(t, ns, gs+"-data", 90*time.Second)
 	seedPod := waitGameContainerReady(t, ns, gs+"-0", 2*time.Minute)
 	beforeIdentity := readUpgradeIdentity(ctx, t, "gameplane-agent-ca")
 	legacyReadBinding := nativeReadBinding(t)
 	checkNativeCatalogAccess(t, tmpl, true)
+
+	if out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0", "printenv", "STARTUP_OPTION"); err != nil || !strings.HasSuffix(strings.TrimSpace(out), "legacy") {
+		t.Fatalf("previous-release game did not receive its inline environment: %v: %s", err, out)
+	}
 
 	// `sync` so the bytes are on the PVC's backing store before the pod is
 	// restarted by the upgrade, not sitting in the page cache.
@@ -199,6 +209,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 	}
 
 	client := verifyPopulatedUpgrade(t, ns, gs, marker, adminUser, adminPass, claim.UID, seedPod)
+	verifyDeferredStartupUpgrade(t, ns, gs, tmpl)
 
 	// ---- 6b. telemetry stays off for an install that never opted in ------
 	//
@@ -324,7 +335,7 @@ func TestUpgrade_FromPreviousRelease(t *testing.T) {
 		t.Fatalf("write %s: %v", oldCRDFile, err)
 	}
 	if out, err := envInstance.Kubectl(ctx, "apply", "--server-side", "--force-conflicts",
-		"--field-manager=helm", "-f", oldCRDFile); err != nil {
+		"--field-manager=helm", "-f", filepath.ToSlash(oldCRDFile)); err != nil {
 		t.Fatalf("re-apply the %s release's CRDs: %v\n%s", fromVersion, err, out)
 	}
 
@@ -646,6 +657,110 @@ func keySet(m map[string]any) map[string]struct{} {
 // compares the live CRD's value with the chart's to decide whether a
 // `helm install` lands on stale, leftover CRDs (F-218).
 const crdBundleStampAnnotation = "gameplane.local/crd-bundle-sha256"
+
+// Check the adoption rollout once, then stage both an edit and a clear on the
+// upgraded workload. Wait for reconciliation before comparing the template and
+// process environment so a delayed automatic rollout cannot look like success.
+func verifyDeferredStartupUpgrade(t *testing.T, ns, gs, tmpl string) {
+	t.Helper()
+	ctx := t.Context()
+	name := gs + "-0"
+	k := envInstance.K8s
+	run := func(args ...string) {
+		t.Helper()
+		if out, err := envInstance.Kubectl(ctx, args...); err != nil {
+			t.Fatalf("kubectl %v: %v: %s", args, err, out)
+		}
+	}
+	readStartupOption := func() (string, error) {
+		return envInstance.Kubectl(ctx, "exec", "-n", ns, "pod/"+name, "--", "printenv", "STARTUP_OPTION")
+	}
+	// Finish recording the old template before installing its new revision.
+	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {
+		server, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gs, metav1.GetOptions{})
+		if err != nil {
+			return false, err.Error()
+		}
+		return server.GetAnnotations()["gameplane.local/effective-template-revision"] != "", "waiting for the original template snapshot"
+	})
+	run("patch", "gametemplate", tmpl, "--type=merge", "-p", `{"spec":{"configSchema":[{"name":"STARTUP_OPTION","type":"string","default":"legacy","applyOnRestart":true}]}}`)
+	envInstance.Eventually(t, 4*time.Minute, func() (bool, string) {
+		pod, err := k.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			return false, err.Error()
+		}
+		for _, c := range pod.Spec.Containers {
+			if c.Name != "game" {
+				continue
+			}
+			for _, v := range c.Env {
+				if v.Name == "STARTUP_OPTION" && v.ValueFrom != nil && v.ValueFrom.SecretKeyRef != nil {
+					return true, ""
+				}
+			}
+		}
+		return false, "waiting for the template adoption rollout"
+	})
+	waitGameContainerReady(t, ns, name, 3*time.Minute)
+	for _, step := range []struct{ patch, before, after string }{
+		{`{"spec":{"config":{"STARTUP_OPTION":"staged"}}}`, "legacy", "staged"},
+		{`{"spec":{"config":{"STARTUP_OPTION":null}}}`, "staged", "legacy"},
+	} {
+		pod, err := k.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		sts, err := k.AppsV1().StatefulSets(ns).Get(ctx, gs, metav1.GetOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		run("-n", ns, "patch", "gameserver", gs, "--type=merge", "-p", step.patch)
+		envInstance.Eventually(t, 2*time.Minute, func() (bool, string) {
+			secret, err := k.CoreV1().Secrets(ns).Get(ctx, gs+"-config", metav1.GetOptions{})
+			if err != nil {
+				return false, err.Error()
+			}
+			server, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gs, metav1.GetOptions{})
+			if err != nil {
+				return false, err.Error()
+			}
+			conditions, _, _ := unstructured.NestedSlice(server.Object, "status", "conditions")
+			for _, condition := range conditions {
+				c, _ := condition.(map[string]any)
+				if c["type"] == "Ready" && c["observedGeneration"] == server.GetGeneration() && string(secret.Data["STARTUP_OPTION"]) == step.after {
+					return true, ""
+				}
+			}
+			return false, "waiting for the saved setting to reconcile"
+		})
+		live, err := k.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		current, err := k.AppsV1().StatefulSets(ns).Get(ctx, gs, metav1.GetOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if live.UID != pod.UID || live.DeletionTimestamp != nil || !reflect.DeepEqual(sts.Spec.Template, current.Spec.Template) {
+			t.Fatalf("saving %q replaced the Pod or changed its template", step.after)
+		}
+		if out, err := readStartupOption(); err != nil || !strings.HasSuffix(strings.TrimSpace(out), step.before) {
+			t.Fatalf("running game lost %q: %v: %s", step.before, err, out)
+		}
+		run("-n", ns, "annotate", "gameserver", gs, "gameplane.local/restart-requested="+step.after, "--overwrite")
+		envInstance.Eventually(t, 4*time.Minute, func() (bool, string) {
+			fresh, err := k.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+			if err != nil {
+				return false, err.Error()
+			}
+			if fresh.UID == pod.UID {
+				return false, "waiting for a new Pod"
+			}
+			out, err := readStartupOption()
+			return err == nil && strings.HasSuffix(strings.TrimSpace(out), step.after), fmt.Sprintf("new process: %v: %s", err, out)
+		})
+	}
+}
 
 // upgradeFromChartRef and defaultUpgradeFromVersion mirror CHART_REF and
 // FROM_VERSION in deploy/kind/upgrade.sh: the published chart the upgrade

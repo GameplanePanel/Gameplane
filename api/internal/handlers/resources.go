@@ -59,9 +59,41 @@ func mountOne(r chi.Router, reg *kube.Registry, store *db.Store, path string, gv
 		r.Get("/", listHandler(reg, gvr))
 		r.Post("/", createHandler(reg, gvr))
 		r.Get("/{name}", getHandler(reg, gvr))
+		if path == "servers" {
+			r.Get("/{name}/template", effectiveTemplateHandler(reg))
+		}
 		r.Put("/{name}", updateHandler(reg, gvr))
 		r.Delete("/{name}", deleteHandler(reg, store, gvr))
 	})
+}
+
+// Effective templates can differ from the catalog while a server's rollout
+// is pending. Resolve the snapshot through its authorized server identity.
+func effectiveTemplateHandler(reg *kube.Registry) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		if !auth.UserFromContext(req.Context()).Can("templates:read", false, scope.RequestedCluster(req), "") {
+			httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+			return
+		}
+		k, ok := resolveCluster(w, req, reg)
+		if !ok {
+			return
+		}
+		ns, ok := resolveNS(w, req)
+		if !ok {
+			return
+		}
+		server, ok := authorizedServer(w, req, k, ns, chi.URLParam(req, "name"))
+		if !ok {
+			return
+		}
+		tmpl, err := k.EffectiveGameTemplate(req.Context(), server)
+		if err != nil {
+			httperr.Write(w, req, err)
+			return
+		}
+		writeJSON(w, tmpl.Object)
+	}
 }
 
 // resolveNS validates the namespace query parameter and writes a 403

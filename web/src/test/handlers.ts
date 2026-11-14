@@ -27,6 +27,7 @@ import {
 import {
   getScreenshotData,
   screenshotConsoleOutput,
+  screenshotJvmTemplate,
   screenshotSystemLogLines,
   screenshotConfigWithOidc,
   screenshotConfigOidcDesign,
@@ -947,6 +948,12 @@ export function buildScreenshotHandlers() {
       return HttpResponse.json(template ?? makeTemplate({ metadata: { name } }));
     }),
 
+    http.get("/servers/mc-survival/template", ({ cookies }) => {
+      if (cookies.e2e_server_variant === "jvm-adopting" || cookies.e2e_server_variant === "jvm-adopted") {
+        return HttpResponse.json(screenshotJvmTemplate);
+      }
+    }),
+
     // Servers: all 5 screenshot servers
     http.get("/servers", () =>
       HttpResponse.json({
@@ -962,6 +969,21 @@ export function buildScreenshotHandlers() {
       }
       if (name === "mc-survival" && cookies.e2e_server_variant) {
         const variant = cookies.e2e_server_variant;
+        if (variant === "jvm-adopted" || variant === "jvm-adopting") {
+          return HttpResponse.json({
+            ...server,
+            metadata: {
+              ...server.metadata,
+              annotations: { ...server.metadata.annotations, "gameplane.local/effective-template-revision": "startup" },
+            },
+            spec: {
+              ...server.spec,
+              resources: { limits: { memory: "4Gi" } },
+              config: { JVM_OPTS: "-Dexample=true", MAX_MEMORY: "2G" },
+            },
+            status: { ...server.status, templateRevision: { running: variant === "jvm-adopted" ? "startup" : "previous" } },
+          });
+        }
         if (variant === "shared-storage") {
           return HttpResponse.json({
             ...server,

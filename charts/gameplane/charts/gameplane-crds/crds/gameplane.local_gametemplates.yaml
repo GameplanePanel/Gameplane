@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 3cfb12539ba83c3386c61b485a8069d635b9ed9121a4f316ed3a7232c145360a
+    gameplane.local/crd-bundle-sha256: bda4b96197f4f3f27d023592a02f778b653967f520cbcabb439d864890bceed7
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -1097,9 +1097,26 @@ spec:
                   Fields with target=file are consumed by ConfigFiles templates
                   instead of becoming env vars.
                 items:
+                  anyOf:
+                  - properties:
+                      applyOnRestart:
+                        enum:
+                        - false
+                  - properties:
+                      name:
+                        pattern: ^[-._a-zA-Z0-9]+$
                   description: ConfigField is a single user-tunable setting surfaced
                     in the wizard.
                   properties:
+                    applyOnRestart:
+                      description: |-
+                        ApplyOnRestart stages this environment value for the next container start.
+                        Edits and clears update the config Secret without rolling the game Pod.
+                        Config files that reference the field are refreshed by their init container
+                        on the next Pod start. Other fields keep their usual rollout behavior.
+                        Name must be a valid Kubernetes Secret key. Admission enforces this rule,
+                        and the reconciler checks keys from previously admitted template revisions.
+                      type: boolean
                     autoFromMemoryLimit:
                       description: |-
                         AutoFromMemoryLimit, when set, computes this field's value from the
@@ -1213,6 +1230,13 @@ spec:
                   - message: envName applies only to target env fields
                     rule: '!has(self.envName) || !has(self.target) || self.target
                       == ''env'''
+                  - message: applyOnRestart requires an environment field
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target)
+                      || self.target == ''env'''
+                  - message: applyOnRestart requires a Secret key name of at most
+                      253 characters that is not '.' and does not start with '..'
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || (size(self.name)
+                      <= 253 && self.name != ''.'' && !self.name.startsWith(''..''))'
                 type: array
               consoleMode:
                 description: |-

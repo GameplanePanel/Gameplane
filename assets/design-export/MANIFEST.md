@@ -2885,3 +2885,10 @@ The Files screen (`Burtr`) shows selection checkboxes, folder expansion, open ed
 ## Server volume measurements
 
 The running Overview (`EZFW0`) shows measured data usage alongside the requested PVC capacity when a filesystem total is unavailable. The sleeping Overview (`TE2jI`) shows the request and a dash while usage is unknown.
+
+## Minecraft JVM startup settings
+
+| Screen ID | State |
+| --- | --- |
+| `KJdxg` | Saved JVM options apply on the next start. Both heap arguments appear below the fields. |
+| `ZUAq1` | A 4 GiB limit and a 2G maximum make the automatic 3072M initial heap invalid. The adoption notice and disabled Save button are visible. |

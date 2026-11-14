@@ -17,6 +17,15 @@ conditions. Historical unqualified hook success remains readable with
 unknown consistency. A drained source can establish stopped-copy consistency
 for the included claims.
 
+### Configuration at container startup
+
+`GameTemplate.spec.configSchema[].applyOnRestart` opts an environment field
+into an optional Secret key reference that exists in the Pod template for
+every value, including an unset field. The reconciler stages the resolved
+values in the GameServer's owned config Secret. The restart hash still covers
+ordinary config values and the paths and source of rendered files. Files that
+interpolate staged values are copied to the data volume at the next Pod start.
+
 ### Restricted workloads and node capture (#714)
 
 `--restricted-workloads` applies nonroot, no escalation, drop ALL and

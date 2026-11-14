@@ -669,6 +669,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
   const withCluster = (path: string, cluster?: string) => request.url(cluster ? withClusterParam(path, cluster) : path);
   const fetch = request.raw;
   const Servers = {
+    effectiveTemplate: (name: string, ns?: string) => api<GameTemplate>(withNS(`/servers/${name}/template`, ns)),
     // A bare list() call defaults to the server's default namespace scope
     // (scope.DefaultNamespace) exactly as before (F-263); pass ns to target
     // one of the namespaces from Namespaces.list() explicitly.

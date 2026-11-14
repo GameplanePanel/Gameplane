@@ -4351,6 +4351,14 @@
     "defaultMessage": "User menu",
     "description": "Top bar: screen-reader name of the user avatar dropdown menu; not visible on screen"
   },
+  "web.jvm.heap_format": {
+    "defaultMessage": "Enter a JVM heap size such as 512M or 2G, or a percentage from 0% to 100%.",
+    "description": "Settings: invalid Minecraft Java heap value"
+  },
+  "web.jvm.heap_order": {
+    "defaultMessage": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
+    "description": "Settings: the independently resolved initial Java heap is larger than the maximum heap"
+  },
   "web.lib.errors.request_failed": {
     "defaultMessage": "request failed",
     "description": "Fallback error text when a failed request has no usable message"
@@ -11178,6 +11186,30 @@
   "web.settings.compact_language_trigger": {
     "defaultMessage": "Language",
     "description": "Accessible name of the compact language menu button in the corner of the sign-in and shared-link cards."
+  },
+  "web.settings.config_adoption": {
+    "defaultMessage": "The server may restart once when it adopts these startup settings.",
+    "description": "Settings: startup notice before the server has adopted the effective template"
+  },
+  "web.settings.config_mixed": {
+    "defaultMessage": "Some settings apply at the next container start. Changing other settings restarts the server.",
+    "description": "Settings: initial notice for a template with both immediate and deferred settings"
+  },
+  "web.settings.config_next_start": {
+    "defaultMessage": "These configuration changes apply at the next container start.",
+    "description": "Settings: notice when all edited configuration fields defer application until startup"
+  },
+  "web.settings.config_schema_source": {
+    "defaultMessage": "Settings from this server's game template.",
+    "description": "Settings: source of the configuration fields for a server"
+  },
+  "web.settings.jvm_heap_options": {
+    "defaultMessage": "Heap options before additional JVM arguments: {options}",
+    "description": "Settings: JVM arguments computed from the initial and maximum heap settings"
+  },
+  "web.settings.jvm_startup": {
+    "defaultMessage": "JVM startup",
+    "description": "Settings: heading for Minecraft Java startup options"
   },
   "web.settings.language.automatic": {
     "defaultMessage": "Automatic (browser language)",

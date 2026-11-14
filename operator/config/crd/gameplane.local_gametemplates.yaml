@@ -1096,9 +1096,26 @@ spec:
                   Fields with target=file are consumed by ConfigFiles templates
                   instead of becoming env vars.
                 items:
+                  anyOf:
+                  - properties:
+                      applyOnRestart:
+                        enum:
+                        - false
+                  - properties:
+                      name:
+                        pattern: ^[-._a-zA-Z0-9]+$
                   description: ConfigField is a single user-tunable setting surfaced
                     in the wizard.
                   properties:
+                    applyOnRestart:
+                      description: |-
+                        ApplyOnRestart stages this environment value for the next container start.
+                        Edits and clears update the config Secret without rolling the game Pod.
+                        Config files that reference the field are refreshed by their init container
+                        on the next Pod start. Other fields keep their usual rollout behavior.
+                        Name must be a valid Kubernetes Secret key. Admission enforces this rule,
+                        and the reconciler checks keys from previously admitted template revisions.
+                      type: boolean
                     autoFromMemoryLimit:
                       description: |-
                         AutoFromMemoryLimit, when set, computes this field's value from the
@@ -1212,6 +1229,13 @@ spec:
                   - message: envName applies only to target env fields
                     rule: '!has(self.envName) || !has(self.target) || self.target
                       == ''env'''
+                  - message: applyOnRestart requires an environment field
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target)
+                      || self.target == ''env'''
+                  - message: applyOnRestart requires a Secret key name of at most
+                      253 characters that is not '.' and does not start with '..'
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || (size(self.name)
+                      <= 253 && self.name != ''.'' && !self.name.startsWith(''..''))'
                 type: array
               consoleMode:
                 description: |-

@@ -19,18 +19,150 @@ const SCHEMA: Schema = [
   { name: "MOTD", displayName: "MOTD", type: "string", target: "file" },
 ];
 
+const heaps: Schema = [
+  { name: "INIT_MEMORY", type: "string", autoFromMemoryLimit: { percent: 75 }, applyOnRestart: true },
+  { name: "MAX_MEMORY", type: "string", autoFromMemoryLimit: { percent: 75 }, applyOnRestart: true },
+];
+
+it("previews the two heap fields independently and rejects an initial heap above the maximum", () => {
+  const gs = server({ MAX_MEMORY: "2G" });
+  const template = tmpl(heaps);
+  template.spec.resources = { limits: { memory: "4Gi" } };
+  renderWithQuery(<Harness initial={gs} template={template} />);
+  expect(screen.getByText(/3072M/)).toBeInTheDocument();
+  expect(screen.getByText(/initial heap exceeds the maximum heap/i)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("INIT_MEMORY"), { target: { value: "37.5%" } });
+  expect(screen.queryByText(/initial heap exceeds the maximum heap/i)).not.toBeInTheDocument();
+  expect(screen.getByText(/InitialRAMPercentage=37.5/)).toBeInTheDocument();
+  expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/next container start/i);
+});
+
+it("resolves an aliased maximum heap instead of rejecting a valid default pair", () => {
+  const onValidity = vi.fn();
+  const template = tmpl([
+    { name: "INIT_MEMORY", type: "string", default: "2G" },
+    { name: "heap_max", envName: "MAX_MEMORY", type: "string", default: "4G" },
+  ]);
+  renderWithQuery(<Harness initial={server()} template={template} onValidity={onValidity} />);
+  expect(screen.getByRole("group", { name: "JVM startup" })).toHaveTextContent("heap_max");
+  expect(screen.getByText(/-Xms2G -Xmx4G/)).toBeInTheDocument();
+  expect(screen.queryByText(/initial heap exceeds the maximum heap/i)).not.toBeInTheDocument();
+  expect(onValidity).toHaveBeenLastCalledWith(true);
+});
+
+it("uses alias config keys for auto heaps, edits, and inline validation errors", () => {
+  const onValidity = vi.fn();
+  const template = tmpl([
+    { name: "heap_initial", envName: "INIT_MEMORY", type: "string", autoFromMemoryLimit: { percent: 75 } },
+    { name: "heap_max", envName: "MAX_MEMORY", type: "string", default: "4G" },
+    { name: "java_options", envName: "JVM_OPTS", type: "string" },
+    { name: "aikar_flags", envName: "USE_AIKAR_FLAGS", type: "bool", default: "false" },
+  ]);
+  template.spec.resources = { limits: { memory: "4Gi" } };
+  renderWithQuery(<Harness initial={server({ heap_max: "2G" })} template={template} onValidity={onValidity} />);
+  const startup = screen.getByRole("group", { name: "JVM startup" });
+  expect(startup).toHaveTextContent("java_options");
+  expect(startup).toHaveTextContent("aikar_flags");
+  expect(screen.getByText(/-Xms3072M -Xmx2G/)).toBeInTheDocument();
+  expect(screen.getByLabelText("heap_initial")).toHaveAttribute("aria-invalid", "true");
+  expect(onValidity).toHaveBeenLastCalledWith(false);
+  fireEvent.change(screen.getByLabelText("heap_initial"), { target: { value: "512M" } });
+  expect(screen.getByText(/-Xms512M -Xmx2G/)).toBeInTheDocument();
+  expect(onValidity).toHaveBeenLastCalledWith(true);
+  fireEvent.change(screen.getByLabelText("heap_max"), { target: { value: "invalid" } });
+  expect(screen.getByLabelText("heap_max")).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByRole("alert")).toHaveTextContent("Enter a JVM heap size");
+  expect(onValidity).toHaveBeenLastCalledWith(false);
+});
+
+it("preserves environment override precedence over aliased heap settings", () => {
+  const gs = server({ heap_initial: "2G", heap_max: "4G" });
+  gs.spec.env = [{ name: "MAX_MEMORY", value: "3G" }];
+  const template = tmpl([
+    { name: "heap_initial", envName: "INIT_MEMORY", type: "string", default: "1G" },
+    { name: "heap_max", envName: "MAX_MEMORY", type: "string", default: "1G" },
+  ]);
+  template.spec.env = [{ name: "INIT_MEMORY", value: "4G" }, { name: "MAX_MEMORY", value: "1G" }];
+  renderWithQuery(<Harness initial={gs} template={template} />);
+  expect(screen.getByText(/-Xms2G -Xmx3G/)).toBeInTheDocument();
+  expect(screen.queryByText(/initial heap exceeds the maximum heap/i)).not.toBeInTheDocument();
+});
+
+it("ignores canonical heap names remapped away and resolves an aliased MEMORY fallback", () => {
+  const template = tmpl([
+    { name: "INIT_MEMORY", envName: "OTHER_SETTING", type: "string", default: "not-a-heap" },
+    { name: "memory_fallback", envName: "MEMORY", type: "string", default: "2G" },
+    { name: "MAX_MEMORY", type: "string", default: "4G" },
+  ]);
+  renderWithQuery(<Harness initial={server()} template={template} />);
+  expect(screen.getByRole("group", { name: "JVM startup" })).not.toHaveTextContent("INIT_MEMORY");
+  expect(screen.getByText(/-Xms2G -Xmx4G/)).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("reports immediate fields when a custom template mixes startup and ordinary configuration", () => {
+  const template = tmpl([...heaps, { name: "MOTD", type: "string" }]);
+  renderWithQuery(<Harness initial={server()} template={template} />);
+  fireEvent.change(screen.getByLabelText("MOTD"), { target: { value: "changed" } });
+  expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/restarts the server/i);
+});
+
+it("uses only declared environment options and keeps a custom launcher editable without guessing heap arguments", () => {
+  const gs = server({ MAX_MEMORY: "512M" });
+  gs.spec.image = "example/custom-launcher";
+  const template = tmpl([heaps[1], { name: "JVM_OPTS", type: "string", target: "file" }]);
+  renderWithQuery(<Harness initial={gs} template={template} canWrite={false} />);
+  const startup = screen.getByRole("group", { name: "JVM startup" });
+  expect(startup).toHaveTextContent("MAX_MEMORY");
+  expect(startup).not.toHaveTextContent("JVM_OPTS");
+  expect(screen.queryByText(/Heap options/)).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("INIT_MEMORY")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("MAX_MEMORY")).toBeDisabled();
+  expect(screen.queryByTestId("config-restart-note")).not.toBeInTheDocument();
+});
+
+it("uses the launcher's MEMORY fallback with a partial schema and no memory limit", () => {
+  const gs = server({ MAX_MEMORY: "512M" });
+  const template = tmpl([heaps[1]]);
+  template.spec.env = [{ name: "MEMORY", value: "2G" }];
+  renderWithQuery(<Harness initial={gs} template={template} />);
+  expect(screen.getByText(/-Xms2G -Xmx512M/)).toBeInTheDocument();
+  expect(screen.getByText(/initial heap exceeds the maximum heap/i)).toBeInTheDocument();
+  expect(screen.queryByLabelText("INIT_MEMORY")).not.toBeInTheDocument();
+});
+
+it("omits the image-specific preview for a template that replaces its entrypoint", () => {
+  const template = tmpl(heaps);
+  template.spec.command = ["/custom/launch"];
+  renderWithQuery(<Harness initial={server({ INIT_MEMORY: "2G", MAX_MEMORY: "1G" })} template={template} />);
+  expect(screen.queryByText(/Heap options before/)).not.toBeInTheDocument();
+});
+
+it("keeps the adoption warning until the running pod reports the selected revision", () => {
+  const gs = server({ MAX_MEMORY: "2G" }, { phase: "Running", templateRevision: { running: "old" } });
+  renderWithQuery(<Harness initial={gs} template={tmpl(heaps)} />);
+  expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/may restart once/i);
+});
+
+it("warns about adoption when the running server still uses its baseline Pod", () => {
+  const gs = server();
+  gs.metadata.annotations = { ...gs.metadata.annotations, "gameplane.local/template-baseline": "admitted" };
+  renderWithQuery(<Harness initial={gs} template={tmpl(heaps)} />);
+  expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/may restart once/i);
+});
+
 function tmpl(configSchema: Schema = SCHEMA): GameTemplate {
   return {
     metadata: { name: "minecraft-java" },
-    spec: { displayName: "Minecraft", game: "minecraft-java", version: "1.0", image: "x", configSchema },
+    spec: { displayName: "Minecraft", game: "minecraft-java", version: "1.0", image: "itzg/minecraft-server:java21", configSchema },
   };
 }
 
 function server(config?: Record<string, string>, status?: GameServer["status"]): GameServer {
   return {
-    metadata: { name: "mc-survival", namespace: "gameplane-games", resourceVersion: "1" },
+    metadata: { name: "mc-survival", namespace: "gameplane-games", resourceVersion: "1", annotations: { "gameplane.local/effective-template-revision": "admitted" } },
     spec: { templateRef: { name: "minecraft-java" }, config },
-    status,
+    status: status ?? { phase: "Running", templateRevision: { running: "admitted" } },
   };
 }
 
@@ -56,6 +188,7 @@ function Harness({
       <GameConfigSection
         draft={draft}
         template={template}
+        storedConfig={initial.spec.config}
         onValidityChange={onValidity}
         onChange={(next) => {
           spy?.(next);

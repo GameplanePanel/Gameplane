@@ -22,7 +22,7 @@ import type { GameServer } from "@/types";
 import { APIError } from "@/lib/api";
 import { errorTextIntl } from "@/lib/errors";
 import { mergeDraftOntoLatest, SettingsConflictError } from "@/lib/settingsMerge";
-import { validateConfig } from "@/lib/validation";
+import { settingsConfigErrors } from "@/lib/jvmStartup";
 
 
 import { GeneralSection } from "./settings/General";
@@ -160,9 +160,12 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
     onDirtyChange?.(dirty);
   }, [dirty, onDirtyChange]);
 
+  const revision = draft?.metadata.annotations?.["gameplane.local/effective-template-revision"];
   const { data: template } = useQuery({
-    queryKey: resourceKey(resourceTarget, "template", draft?.spec.templateRef.name),
-    queryFn: ({ signal }) => resourceClient.withSignal(signal).Templates.get(draft!.spec.templateRef.name),
+    queryKey: resourceKey(resourceTarget, "template", draft?.spec.templateRef.name, revision),
+    queryFn: ({ signal }) => revision
+      ? resourceClient.withSignal(signal).Servers.effectiveTemplate(name, ns)
+      : resourceClient.withSignal(signal).Templates.get(draft!.spec.templateRef.name),
     enabled: !!draft?.spec.templateRef.name,
   });
   const moduleText = useModuleText(draft?.spec.templateRef.name, resourceTarget.cluster);
@@ -170,15 +173,15 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   // Validate config from the shared draft even when its section is unmounted.
   // Other sections retain their reported validity across navigation, including
   // invalid editor text that has not yet been committed into the draft.
-  const draftValid = !!template &&
-    validateConfig(template.spec.configSchema ?? [], draft?.spec.config ?? {}, intl).length === 0 &&
+  const draftValid = !!template && !!draft &&
+    settingsConfigErrors(template, draft, intl).length === 0 &&
     Object.values(sectionValidity).every(Boolean);
 
   const save = useMutation({
     onMutate: () => { savingRef.current = true; },
     onSettled: () => { savingRef.current = false; },
     mutationFn: async (next: GameServer) => {
-      if (!template || validateConfig(template.spec.configSchema ?? [], next.spec.config ?? {}, intl).length > 0 ||
+      if (!template || settingsConfigErrors(template, next, intl).length > 0 ||
         !Object.values(sectionValidity).every(Boolean)) {
         throw new Error(intl.formatMessage({ id: "web.routes.tabs.settings.correct_invalid_before_saving", defaultMessage: "Correct invalid settings before saving.", description: "Settings: error shown when saving is attempted while some settings are invalid" }));
       }
@@ -186,7 +189,11 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
       // keeps fields the UI doesn't model (e.g. operator-managed status,
       // newly-added spec keys) from being clobbered.
       const latest = await Servers.get(name, ns);
+      if (latest.metadata.annotations?.["gameplane.local/effective-template-revision"] !== revision) {
+        throw new SettingsConflictError(intl);
+      }
       const merged = mergeDraftOntoLatest(next, baselineRef.current!, latest, intl);
+      if (settingsConfigErrors(template, merged, intl).length > 0) throw new SettingsConflictError(intl);
       return Servers.update(name, merged, ns);
     },
     onSuccess: (saved) => {

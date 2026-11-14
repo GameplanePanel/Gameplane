@@ -735,9 +735,22 @@ configSchema:
 field stays editable after the server exists. Rules to keep in mind when
 writing or revising a module:
 
-- Saving a change always restarts the server (the operator re-renders the
-  pod's environment and config files); there is no "apply on next restart"
-  mode.
+- By default, changing a config value rolls the game Pod. On an environment
+  field, set `applyOnRestart: true` to stage edits and clears for the next
+  container start. Kubernetes reads the value from the server's config Secret
+  each time it starts the container. An unset optional field has no Secret
+  key. The field's `name` must be a valid Secret key: at most 253 characters,
+  using letters, digits, `-`, `_`, or `.`, excluding `.` and any `..` prefix.
+  `envName` changes the exported variable, not this Secret key.
+  Admission rejects invalid keys. The reconciler also checks keys from
+  previously admitted template revisions before creating resources.
+  A rendered file may interpolate the same field. The config init
+  container copies that file at the next Pod start. A container restart within
+  the same Pod refreshes its environment and keeps its existing files.
+- Update the Gameplane CRDs and operator before installing a template that
+  opts in. Adopting the new environment references on an existing server can
+  roll the Pod once. See [template rollouts](template-rollouts.md) to schedule
+  adoption. Unmarked fields and other Pod template edits can still roll it.
 - Only values that differ from your `default` are stored in the server's
   `spec.config`; an unset key means "use the default" (or the
   `autoFromMemoryLimit` value), so changing a default in a later template
