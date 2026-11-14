@@ -104,6 +104,22 @@ func mount(r chi.Router, rc *rcon.Commands, game string, q Quiescer, verified bo
 	handle("/unquiesce", "resumed", false, q.Unquiesce)
 }
 
+// MountMinecraftFlush cannot pause or resume saving. Even a lost response
+// leaves the game free to write; the caller can repeat the same checkpoint.
+func MountMinecraftFlush(r chi.Router, rc *rcon.Commands) {
+	r.Post("/flush", func(w http.ResponseWriter, req *http.Request) {
+		err := rc.Sequence(req.Context(), func(transport rcon.Executor) error {
+			_, err := (minecraftReplies{transport}).Exec("save-all flush")
+			return err
+		})
+		if err != nil {
+			httpjson.Write(w, http.StatusBadGateway, response{Reason: "checkpoint was not acknowledged"})
+			return
+		}
+		httpjson.Write(w, http.StatusOK, response{Outcome: "flushed"})
+	})
+}
+
 type minecraftReplies struct{ Rcon }
 
 // Vanilla Java 1.21.4 en_us commands.save.* messages. RCON can concatenate

@@ -207,6 +207,14 @@
     "defaultMessage": "The primary CSI snapshot is crash-consistent; application quiesce was not confirmed.",
     "description": "Backup achieved consistency: CrashConsistentSnapshot."
   },
+  "condition.consistency.flushedlivecopy": {
+    "defaultMessage": "The game acknowledged a checkpoint. Subsequent writes could change files during this copy.",
+    "description": "Live copy after a checkpoint with ongoing writes."
+  },
+  "condition.consistency.legacyhookunverified": {
+    "defaultMessage": "The historical hook reported success without proving that writes stayed paused. The snapshot remains available for restore.",
+    "description": "Historical recovery point with no verified write freeze."
+  },
   "condition.consistency.legacymetadataunknown": {
     "defaultMessage": "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template.",
     "description": "Backup achieved consistency: LegacyMetadataUnknown."
@@ -216,7 +224,7 @@
     "description": "Backup achieved consistency: LiveMultiVolumeCopy."
   },
   "condition.consistency.quiesced": {
-    "defaultMessage": "The included volumes were copied after the agent confirmed quiesce. This depends on the module's quiesce commands; consult the manifest for excluded volumes.",
+    "defaultMessage": "The pod-bound agent verified the game write-freeze command sequence before capture. See the manifest for included volumes.",
     "description": "Backup achieved consistency: Quiesced."
   },
   "condition.consistency.rawcopy": {
