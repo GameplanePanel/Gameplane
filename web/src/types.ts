@@ -169,6 +169,7 @@ export interface ModID {
 // players/quiesce are agent-side and left opaque here.
 export interface GameCapabilities {
   players?: unknown;
+  backupFlush?: 'minecraft-save-all';
   quiesce?: unknown;
   actions?: ServerActionDecl[];
   status?: { metrics?: StatusMetricDecl[] };

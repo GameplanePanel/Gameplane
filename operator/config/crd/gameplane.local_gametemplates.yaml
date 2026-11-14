@@ -290,6 +290,12 @@ spec:
                           > 0)
                     maxItems: 32
                     type: array
+                  backupFlush:
+                    description: BackupFlush requests an acknowledged checkpoint without
+                      disabling writes.
+                    enum:
+                    - minecraft-save-all
+                    type: string
                   lifecycle:
                     description: |-
                       Lifecycle configures graceful lifecycle transitions the agent drives
@@ -1015,6 +1021,9 @@ spec:
                         type: array
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: choose a flush-only checkpoint or a write-freeze declaration
+                  rule: '!(has(self.backupFlush) && has(self.quiesce))'
               categories:
                 description: |-
                   Categories group this game in the dashboard's catalog and Create
@@ -2578,6 +2587,10 @@ spec:
               rule: '!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders)
                 || size(self.capabilities.mods.loaders) == 0 || (has(self.versions)
                 && size(self.versions) > 0)'
+            - message: backupFlush requires Minecraft Java with RCON enabled
+              rule: '!has(self.capabilities) || !has(self.capabilities.backupFlush)
+                || (self.game == ''minecraft-java'' && has(self.rcon) && (!has(self.rcon.protocol)
+                || self.rcon.protocol != ''none''))'
           status:
             description: |-
               GameTemplateStatus is intentionally minimal — templates are mostly

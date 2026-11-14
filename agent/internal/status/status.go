@@ -145,16 +145,16 @@ func (s *Source) execute(ctx context.Context, command string) commandResult {
 		return commandResult{err: errUnavailable}
 	}
 	result := make(chan commandResult, 1)
+	queryCtx, cancel := context.WithTimeout(ctx, s.commandTimeout)
+	defer cancel()
 	go func() {
-		raw, err := s.rc.Exec(command)
+		raw, err := rcon.WithContext(queryCtx, s.rc).Exec(command)
 		if len(raw) > maxResponseBytes {
 			raw, err = "", errUnavailable
 		}
 		<-s.execSlot
 		result <- commandResult{raw: raw, err: err, completed: time.Now()}
 	}()
-	queryCtx, cancel := context.WithTimeout(ctx, s.commandTimeout)
-	defer cancel()
 	select {
 	case <-queryCtx.Done():
 		return commandResult{err: queryCtx.Err()}

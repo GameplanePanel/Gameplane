@@ -6,6 +6,17 @@
 
 ## Purpose
 
+The release-operator fleet runner in `hack/rollout/canary.py` uses the existing
+OnRequest API to admit one named server at a time. A separate ConfigMap records
+restore provenance, rollback rehearsal, client join and data checks, without
+taking a server's lifecycle owner. See [the staged rollout procedure](../docs/template-rollouts.md#restored-world-fleet-procedure).
+
+Backup manifests record `verified-freeze` only after a successful pod-bound
+pause. Checkpoint-only and unsupported live copies receive weak consistency
+conditions. Historical unqualified hook success remains readable with
+unknown consistency. A drained source can establish stopped-copy consistency
+for the included claims.
+
 ### Configuration at container startup
 
 `GameTemplate.spec.configSchema[].applyOnRestart` opts an environment field

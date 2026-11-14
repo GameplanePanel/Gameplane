@@ -12,12 +12,13 @@ import (
 
 // Spec is the root capabilities document.
 type Spec struct {
-	Players   *PlayerActions `json:"players,omitempty"`
-	Quiesce   *Quiesce       `json:"quiesce,omitempty"`
-	Lifecycle *Lifecycle     `json:"lifecycle,omitempty"`
-	Actions   []ServerAction `json:"actions,omitempty"`
-	Status    *Status        `json:"status,omitempty"`
-	Mods      *Mods          `json:"mods,omitempty"`
+	BackupFlush string         `json:"backupFlush,omitempty"`
+	Players     *PlayerActions `json:"players,omitempty"`
+	Quiesce     *Quiesce       `json:"quiesce,omitempty"`
+	Lifecycle   *Lifecycle     `json:"lifecycle,omitempty"`
+	Actions     []ServerAction `json:"actions,omitempty"`
+	Status      *Status        `json:"status,omitempty"`
+	Mods        *Mods          `json:"mods,omitempty"`
 }
 
 // Lifecycle declares command sequences the agent runs over RCON to drive

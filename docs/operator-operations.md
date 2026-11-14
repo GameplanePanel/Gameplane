@@ -22,7 +22,13 @@ all-data policies; it remains primary-only and offers no cross-volume atomicity.
 A preserve/all-data Restic copy captures one snapshot but reports
 `Consistency=False/LiveMultiVolumeCopy`, even when primary-game quiesce succeeds.
 Only a stopped, fully drained source supports consistency across included roots.
-Quiesce still depends on the module's commands and cannot prove application state.
+`captureManifest.quiesceOutcome` distinguishes a pod-bound `verified-freeze`
+from `flush-only` (writes continue), `unsupported`, and historical hook
+success without proof of a freeze. An incomplete or negative checkpoint
+reply aborts the capture. Use stopped all-data recovery points for unknown
+engines, SQLite saves and multi-volume worlds. The verified live adapter is
+Minecraft Java's save-off, save-all flush and save-on sequence qualified
+against the 1.21.4 vanilla server in the real-client backup/restore job.
 `Completed`/phase and snapshot ID report copy success separately from consistency.
 
 `stop-copy-restart` acquires shared lifecycle ownership, persists original intent
