@@ -11,6 +11,7 @@
 package players
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -118,14 +119,14 @@ func Mount(r chi.Router, rc Rcon, game string, actions *caps.PlayerActions) {
 
 const cacheTTL = 5 * time.Second
 
-func (h *handler) serve(w http.ResponseWriter, _ *http.Request) {
+func (h *handler) serve(w http.ResponseWriter, req *http.Request) {
 	h.mu.Lock()
 	fresh := time.Since(h.lastFetch) < cacheTTL
 	result, err := h.lastResult, h.lastErr
 	h.mu.Unlock()
 
 	if !fresh {
-		result, err = h.fetch()
+		result, err = h.fetch(req.Context())
 	}
 	if errors.Is(err, rcon.ErrDisabled) {
 		// The game has no RCON: player counts are simply unknown. The
@@ -150,8 +151,11 @@ func (h *handler) serve(w http.ResponseWriter, _ *http.Request) {
 	httpjson.Write(w, http.StatusOK, result)
 }
 
-func (h *handler) fetch() (Snapshot, error) {
-	raw, err := h.rcon.Exec(h.listCmd)
+func (h *handler) fetch(ctx context.Context) (Snapshot, error) {
+	raw, err := rcon.WithContext(ctx, h.rcon).Exec(h.listCmd)
+	if ctx.Err() != nil {
+		return Snapshot{}, ctx.Err()
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.lastFetch = time.Now()
@@ -231,7 +235,7 @@ func (h *handler) runMod(
 		httpjson.Error(w, http.StatusNotImplemented, fmt.Sprintf("not supported by %s", h.game))
 		return
 	}
-	raw, err := h.rcon.Exec(cmd)
+	raw, err := rcon.WithContext(req.Context(), h.rcon).Exec(cmd)
 	if errors.Is(err, rcon.ErrDisabled) {
 		httpjson.Error(w, http.StatusNotImplemented, fmt.Sprintf("not supported by %s (no RCON)", h.game))
 		return
@@ -258,7 +262,7 @@ func (h *handler) whitelistRemove(w http.ResponseWriter, req *http.Request) {
 	}, false)
 }
 
-func (h *handler) whitelistList(w http.ResponseWriter, _ *http.Request) {
+func (h *handler) whitelistList(w http.ResponseWriter, req *http.Request) {
 	cmd, ok := h.cmdr.WhitelistList()
 	if !ok {
 		// Empty list rather than 501 so a Whitelist tab renders uniformly;
@@ -266,7 +270,7 @@ func (h *handler) whitelistList(w http.ResponseWriter, _ *http.Request) {
 		httpjson.Write(w, http.StatusOK, []string{})
 		return
 	}
-	raw, err := h.rcon.Exec(cmd)
+	raw, err := rcon.WithContext(req.Context(), h.rcon).Exec(cmd)
 	if errors.Is(err, rcon.ErrDisabled) {
 		httpjson.Write(w, http.StatusOK, []string{})
 		return
@@ -283,7 +287,7 @@ func (h *handler) whitelistList(w http.ResponseWriter, _ *http.Request) {
 	httpjson.Write(w, http.StatusOK, out)
 }
 
-func (h *handler) banned(w http.ResponseWriter, _ *http.Request) {
+func (h *handler) banned(w http.ResponseWriter, req *http.Request) {
 	cmd, ok := h.cmdr.BanList()
 	if !ok {
 		// Empty list rather than 501: callers can render a Banned tab
@@ -291,7 +295,7 @@ func (h *handler) banned(w http.ResponseWriter, _ *http.Request) {
 		httpjson.Write(w, http.StatusOK, []BannedPlayer{})
 		return
 	}
-	raw, err := h.rcon.Exec(cmd)
+	raw, err := rcon.WithContext(req.Context(), h.rcon).Exec(cmd)
 	if errors.Is(err, rcon.ErrDisabled) {
 		httpjson.Write(w, http.StatusOK, []BannedPlayer{})
 		return

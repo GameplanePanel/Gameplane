@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
 	"github.com/go-chi/chi/v5"
@@ -188,4 +189,49 @@ func TestConsole_ClientCloseEndsLoop(t *testing.T) {
 	// assert beyond "no panic, no goroutine leak"; coverage of the
 	// read-error return path is the goal.
 	time.Sleep(50 * time.Millisecond)
+}
+
+type queuedConsole struct {
+	*rcon.Commands
+	waiting  chan struct{}
+	finished chan error
+}
+
+func (q queuedConsole) ExecContext(ctx context.Context, cmd string) (string, error) {
+	close(q.waiting)
+	out, err := q.Commands.ExecContext(ctx, cmd)
+	q.finished <- err
+	return out, err
+}
+
+func TestConsole_DisconnectCancelsQueuedCommand(t *testing.T) {
+	rc := &fakeRcon{}
+	q := queuedConsole{rcon.NewCommands(rc), make(chan struct{}), make(chan error, 1)}
+	_, wsURL := newServer(t, q)
+	conn, ctx, _ := dial(t, wsURL)
+	err := q.Sequence(ctx, func(rcon.Executor) error {
+		if err := wsjson.Write(ctx, conn, Envelope{Kind: "cmd", Body: "stop"}); err != nil {
+			return err
+		}
+		select {
+		case <-q.waiting:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		if err := conn.CloseNow(); err != nil {
+			return err
+		}
+		select {
+		case err := <-q.finished:
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("disconnected command returned %v", err)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		return nil
+	})
+	if err != nil || rc.gotCmd != "" {
+		t.Fatalf("command after disconnect: %q, %v", rc.gotCmd, err)
+	}
 }
