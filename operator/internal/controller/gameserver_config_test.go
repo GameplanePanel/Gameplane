@@ -43,6 +43,104 @@ func int32Ptr(v int32) *int32 {
 	return &v
 }
 
+func TestDeferredConfigEditsAndClearsKeepPodInputs(t *testing.T) {
+	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+		{Name: "FLAGS", EnvName: "JAVA_FLAGS", Type: "string", ApplyOnRestart: true}, {Name: "LIVE", Type: "string", Default: "one"},
+	}, nil)
+	tmpl.Spec.ConfigFiles = []gameplanev1alpha1.ConfigFile{{Path: "options", Template: "{{ .Values.FLAGS }}"}}
+	baseline, err := materializeConfig(gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []string{"-Xlog:gc", ""} {
+		gs.Spec.Config = map[string]string{"FLAGS": value}
+		mc, err := materializeConfig(gs, tmpl)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ref := mc.env[0].ValueFrom
+		if mc.env[0].Name != "JAVA_FLAGS" || ref == nil || ref.SecretKeyRef == nil || ref.SecretKeyRef.Optional == nil || !*ref.SecretKeyRef.Optional || ref.SecretKeyRef.Key != "FLAGS" {
+			t.Fatalf("missing stable optional Secret reference: %+v", mc.env)
+		}
+		stored, exists := mc.secretData["FLAGS"]
+		if string(stored) != value || exists != (value != "") || string(mc.files[0].content) != value || mc.hash != baseline.hash {
+			t.Fatalf("deferred value %q: secret=%v files=%v hash=%s", value, mc.secretData, mc.files, mc.hash)
+		}
+	}
+	gs.Spec.Config["LIVE"] = "two"
+	immediate, err := materializeConfig(gs, tmpl)
+	if err != nil || immediate.hash == baseline.hash {
+		t.Fatalf("ordinary field did not roll: %v", err)
+	}
+	tmpl.Spec.ConfigSchema[0].Target = "file"
+	if _, err := materializeConfig(gs, tmpl); err == nil {
+		t.Fatal("file-only deferred field accepted")
+	}
+}
+
+func TestDeferredConfigRejectsInvalidSecretKeysEvenWhenUnset(t *testing.T) {
+	for _, name := range []string{"jvm/initialHeap", ".", "..", "..initialHeap", strings.Repeat("a", 254)} {
+		t.Run(name, func(t *testing.T) {
+			for _, value := range []string{"", "2G"} {
+				gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+					{Name: name, EnvName: "INIT_MEMORY", Type: "string", ApplyOnRestart: true},
+				}, map[string]string{name: value})
+				if _, err := materializeConfig(gs, tmpl); err == nil || !strings.Contains(err.Error(), "Secret key") {
+					t.Fatalf("deferred field %q with value %q: expected invalid Secret key, got %v", name, value, err)
+				}
+			}
+		})
+	}
+}
+
+func TestDeferredConfigAcceptsSecretKeysAndPreservesImmediateAliases(t *testing.T) {
+	for _, name := range []string{"jvm.initial-heap_1", ".initialHeap", "-", "_", strings.Repeat("a", 253)} {
+		gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+			{Name: name, EnvName: "INIT_MEMORY", Type: "string", ApplyOnRestart: true},
+		}, map[string]string{name: "2G"})
+		mc, err := materializeConfig(gs, tmpl)
+		if err != nil {
+			t.Fatalf("valid Secret key %q: %v", name, err)
+		}
+		if string(mc.secretData[name]) != "2G" || len(mc.env) != 1 || mc.env[0].ValueFrom == nil || mc.env[0].ValueFrom.SecretKeyRef == nil || mc.env[0].ValueFrom.SecretKeyRef.Key != name {
+			t.Fatalf("deferred field %q did not retain its Secret key: %+v", name, mc)
+		}
+	}
+	for _, name := range []string{"jvm/initialHeap", "..initialHeap", strings.Repeat("a", 254)} {
+		gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
+			{Name: name, EnvName: "INIT_MEMORY", Type: "string"},
+		}, map[string]string{name: "2G"})
+		mc, err := materializeConfig(gs, tmpl)
+		if err != nil {
+			t.Fatalf("immediate alias %q was restricted: %v", name, err)
+		}
+		if got := envMap(mc.env)["INIT_MEMORY"]; got != "2G" || len(mc.secretData) != 0 {
+			t.Fatalf("immediate alias %q: env=%q, secret=%v", name, got, mc.secretData)
+		}
+	}
+}
+
+func TestDeferredConfigRejectsInvalidSecretKeyFromStoredTemplateRevision(t *testing.T) {
+	r, gs, installed := revisionFixture(t)
+	previous := installed.DeepCopy()
+	previous.Spec.ConfigSchema = []gameplanev1alpha1.ConfigField{{
+		Name: "jvm/initialHeap", EnvName: "INIT_MEMORY", Type: "string", Default: "2G", ApplyOnRestart: true,
+	}}
+	// Stored immutable snapshots bypass GameTemplate CRD admission on load.
+	// A valid current catalog must not hide an invalid previously adopted key.
+	revision, err := r.saveTemplateSnapshot(t.Context(), gs, previous)
+	if err != nil {
+		t.Fatal(err)
+	}
+	effective, err := loadTemplateSnapshot(t.Context(), r.Client, gs, revision)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := materializeConfig(gs, effective); err == nil || !strings.Contains(err.Error(), "Secret key") {
+		t.Fatalf("stored template revision emitted an invalid Secret key: %v", err)
+	}
+}
+
 func TestMaterializeConfig_ResolvesValuesAndDefaults(t *testing.T) {
 	gs, tmpl := configFixtures([]gameplanev1alpha1.ConfigField{
 		{Name: "TYPE", Type: "enum", Enum: []string{"VANILLA", "PAPER"}, Default: "VANILLA", Required: true},
