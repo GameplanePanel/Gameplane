@@ -77,13 +77,14 @@ func TestStandaloneNotificationPollPreservesTransitions(t *testing.T) {
 	}
 	failed := gsObj(scope.DefaultNamespace, "game", "Failed", "False", "Failed", "ImagePullFailed", "cannot pull")
 	failed.SetUID("original")
+	failed.SetResourceVersion("rv:edge/37")
 	if _, err := k.Dynamic.Resource(kube.GVRs["servers"]).Namespace(scope.DefaultNamespace).Update(t.Context(), failed, metav1.UpdateOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	n.pollClusterSnapshot(t.Context(), k, "remote", state)
 	select {
 	case e := <-n.ch:
-		if e.Cluster != "remote" || e.Type != EventServerUnhealthy || e.Reason != "ImagePullFailed" {
+		if e.Cluster != "remote" || e.Type != EventServerUnhealthy || e.Reason != "ImagePullFailed" || e.objectVersion != "rv:edge/37" {
 			t.Fatalf("wrong event: %+v", e)
 		}
 	default:

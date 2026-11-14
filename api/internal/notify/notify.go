@@ -49,17 +49,19 @@ const queueSize = 256
 // (language, title, text); they are additive and every field above keeps its
 // name and value.
 type Event struct {
-	Cluster   string    `json:"cluster,omitempty"`
-	Type      EventType `json:"type"`
-	TS        string    `json:"ts"`
-	Kind      string    `json:"kind,omitempty"` // CRD kind: GameServer | Backup | Restore
-	Name      string    `json:"name,omitempty"`
-	Namespace string    `json:"namespace,omitempty"`
-	Reason    string    `json:"reason,omitempty"`
-	Message   string    `json:"message,omitempty"`
-	Instance  string    `json:"instance,omitempty"`
-	Test      bool      `json:"test,omitempty"`
-	lang      string    // BCP 47 rendering language; "" renders English. Never serialized.
+	Cluster       string    `json:"cluster,omitempty"`
+	Type          EventType `json:"type"`
+	TS            string    `json:"ts"`
+	Kind          string    `json:"kind,omitempty"` // CRD kind: GameServer | Backup | Restore
+	Name          string    `json:"name,omitempty"`
+	Namespace     string    `json:"namespace,omitempty"`
+	Reason        string    `json:"reason,omitempty"`
+	Message       string    `json:"message,omitempty"`
+	Instance      string    `json:"instance,omitempty"`
+	Test          bool      `json:"test,omitempty"`
+	lang          string    // BCP 47 rendering language; "" renders English. Never serialized.
+	objectUID     string
+	objectVersion string
 }
 
 // Notifier watches CRD status transitions and delivers matching events to
@@ -153,6 +155,18 @@ func (n *Notifier) fanOut(ctx context.Context, e Event) {
 		}
 		ev := e
 		ev.lang = resolveLanguage(s.Language, def)
+		if n.store.Driver == "postgres" {
+			claimCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			won, err := n.store.ClaimNotification(claimCtx, e.Cluster, e.objectUID, e.objectVersion, string(e.Type), s.Name)
+			cancel()
+			if err != nil {
+				deliveries.WithLabelValues(s.Kind, "failed").Inc()
+				slog.Warn("notification dispatch claim failed", "sink", s.Name, "err", err)
+			}
+			if !won || err != nil {
+				continue
+			}
+		}
 		n.deliverWithRetry(ctx, s, secret, ev)
 	}
 }

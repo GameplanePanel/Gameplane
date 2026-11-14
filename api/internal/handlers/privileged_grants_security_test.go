@@ -85,19 +85,19 @@ func TestPrivGrant_RoleIsPrivileged(t *testing.T) {
 	seedRole(t, store, "pg-role-plain", "servers:read")
 
 	ctx := t.Context()
-	if ok, err := roleIsPrivileged(ctx, store, "pg-role-config"); err != nil || !ok {
+	if ok, err := roleIsPrivileged(ctx, store.DB, "pg-role-config"); err != nil || !ok {
 		t.Fatalf("config:manage role: ok=%v err=%v, want true", ok, err)
 	}
-	if ok, err := roleIsPrivileged(ctx, store, "pg-role-plain"); err != nil || ok {
+	if ok, err := roleIsPrivileged(ctx, store.DB, "pg-role-plain"); err != nil || ok {
 		t.Fatalf("plain role: ok=%v err=%v, want false", ok, err)
 	}
-	if ok, err := roleIsPrivileged(ctx, store, "pg-role-missing"); err != nil || ok {
+	if ok, err := roleIsPrivileged(ctx, store.DB, "pg-role-missing"); err != nil || ok {
 		t.Fatalf("missing role: ok=%v err=%v, want false", ok, err)
 	}
 
 	closed := newTestStore(t)
 	_ = closed.Close()
-	if _, err := roleIsPrivileged(ctx, closed, "pg-role-config"); err == nil {
+	if _, err := roleIsPrivileged(ctx, closed.DB, "pg-role-config"); err == nil {
 		t.Fatal("closed store: want error")
 	}
 }
@@ -113,19 +113,19 @@ func TestPrivGrant_UserIsPrivileged(t *testing.T) {
 	unbound := seedUser(t, store, "pg-unbound", "viewer", "")
 
 	ctx := t.Context()
-	if ok, err := userIsPrivileged(ctx, store, admin); err != nil || !ok {
+	if ok, err := userIsPrivileged(ctx, store.DB, admin); err != nil || !ok {
 		t.Fatalf("bound privileged user: ok=%v err=%v, want true", ok, err)
 	}
-	if ok, err := userIsPrivileged(ctx, store, viewer); err != nil || ok {
+	if ok, err := userIsPrivileged(ctx, store.DB, viewer); err != nil || ok {
 		t.Fatalf("bound plain user: ok=%v err=%v, want false", ok, err)
 	}
-	if ok, err := userIsPrivileged(ctx, store, unbound); err != nil || ok {
+	if ok, err := userIsPrivileged(ctx, store.DB, unbound); err != nil || ok {
 		t.Fatalf("unbound user: ok=%v err=%v, want false", ok, err)
 	}
 
 	closed := newTestStore(t)
 	_ = closed.Close()
-	if _, err := userIsPrivileged(ctx, closed, admin); err == nil {
+	if _, err := userIsPrivileged(ctx, closed.DB, admin); err == nil {
 		t.Fatal("closed store: want error")
 	}
 }
@@ -136,21 +136,21 @@ func TestPrivGrant_AddsPrivileged(t *testing.T) {
 	ctx := t.Context()
 
 	// config:manage is not on the role yet, so it is an addition.
-	if ok, err := addsPrivileged(ctx, store, "pg-add-role", []string{"servers:read", "config:manage"}); err != nil || !ok {
+	if ok, err := addsPrivileged(ctx, store.DB, "pg-add-role", []string{"servers:read", "config:manage"}); err != nil || !ok {
 		t.Fatalf("new privileged perm: ok=%v err=%v, want true", ok, err)
 	}
 	// roles:manage is already granted, so keeping it is not an addition.
-	if ok, err := addsPrivileged(ctx, store, "pg-add-role", []string{"roles:manage"}); err != nil || ok {
+	if ok, err := addsPrivileged(ctx, store.DB, "pg-add-role", []string{"roles:manage"}); err != nil || ok {
 		t.Fatalf("already granted privileged perm: ok=%v err=%v, want false", ok, err)
 	}
 	// Non-privileged permissions never count.
-	if ok, err := addsPrivileged(ctx, store, "pg-add-role", []string{"servers:write"}); err != nil || ok {
+	if ok, err := addsPrivileged(ctx, store.DB, "pg-add-role", []string{"servers:write"}); err != nil || ok {
 		t.Fatalf("non-privileged perm: ok=%v err=%v, want false", ok, err)
 	}
 
 	closed := newTestStore(t)
 	_ = closed.Close()
-	if _, err := addsPrivileged(ctx, closed, "pg-add-role", []string{"users:manage"}); err == nil {
+	if _, err := addsPrivileged(ctx, closed.DB, "pg-add-role", []string{"users:manage"}); err == nil {
 		t.Fatal("closed store with privileged perm: want error")
 	}
 }
@@ -162,19 +162,19 @@ func TestPrivGrant_AllowRoleGrant(t *testing.T) {
 
 	// Full administrator may grant a privileged role.
 	rr := httptest.NewRecorder()
-	if !allowRoleGrant(rr, pgGuardRequest(t, &auth.User{ID: 1, Role: rbac.RoleAdmin}), store, "pg-grant-priv") {
+	if !allowRoleGrant(rr, pgGuardRequest(t, &auth.User{ID: 1, Role: rbac.RoleAdmin}), store.DB, "pg-grant-priv") {
 		t.Fatal("full admin refused a privileged grant")
 	}
 
 	// Delegated manager may grant an unprivileged role.
 	rr = httptest.NewRecorder()
-	if !allowRoleGrant(rr, pgGuardRequest(t, pgUser(2, "users:manage")), store, "pg-grant-plain") {
+	if !allowRoleGrant(rr, pgGuardRequest(t, pgUser(2, "users:manage")), store.DB, "pg-grant-plain") {
 		t.Fatal("delegated manager refused an unprivileged grant")
 	}
 
 	// Delegated manager may not grant a privileged role.
 	rr = httptest.NewRecorder()
-	if allowRoleGrant(rr, pgGuardRequest(t, pgUser(2, "users:manage")), store, "pg-grant-priv") {
+	if allowRoleGrant(rr, pgGuardRequest(t, pgUser(2, "users:manage")), store.DB, "pg-grant-priv") {
 		t.Fatal("delegated manager allowed to grant a privileged role")
 	}
 	if rr.Code != http.StatusForbidden {
@@ -183,7 +183,7 @@ func TestPrivGrant_AllowRoleGrant(t *testing.T) {
 
 	// An anonymous caller is treated as a non-admin.
 	rr = httptest.NewRecorder()
-	if allowRoleGrant(rr, pgGuardRequest(t, nil), store, "pg-grant-priv") {
+	if allowRoleGrant(rr, pgGuardRequest(t, nil), store.DB, "pg-grant-priv") {
 		t.Fatal("anonymous caller allowed to grant a privileged role")
 	}
 	if rr.Code != http.StatusForbidden {
@@ -194,7 +194,7 @@ func TestPrivGrant_AllowRoleGrant(t *testing.T) {
 	closed := newTestStore(t)
 	_ = closed.Close()
 	rr = httptest.NewRecorder()
-	if allowRoleGrant(rr, pgGuardRequest(t, pgUser(3, "users:manage")), closed, "pg-grant-priv") {
+	if allowRoleGrant(rr, pgGuardRequest(t, pgUser(3, "users:manage")), closed.DB, "pg-grant-priv") {
 		t.Fatal("grant allowed although the role check failed")
 	}
 }
@@ -208,7 +208,7 @@ func TestPrivGrant_AllowTargetChange(t *testing.T) {
 
 	// A delegated manager cannot change a privileged account.
 	rr := httptest.NewRecorder()
-	if allowTargetChange(rr, pgGuardRequest(t, pgUser(10, "users:manage")), store, privileged) {
+	if allowTargetChange(rr, pgGuardRequest(t, pgUser(10, "users:manage")), store.DB, privileged) {
 		t.Fatal("delegated manager allowed to change a privileged account")
 	}
 	if rr.Code != http.StatusForbidden {
@@ -217,19 +217,19 @@ func TestPrivGrant_AllowTargetChange(t *testing.T) {
 
 	// A delegated manager may change an ordinary account.
 	rr = httptest.NewRecorder()
-	if !allowTargetChange(rr, pgGuardRequest(t, pgUser(10, "users:manage")), store, plain) {
+	if !allowTargetChange(rr, pgGuardRequest(t, pgUser(10, "users:manage")), store.DB, plain) {
 		t.Fatal("delegated manager refused an ordinary account")
 	}
 
 	// A caller may always change their own account, even a privileged one.
 	rr = httptest.NewRecorder()
-	if !allowTargetChange(rr, pgGuardRequest(t, pgUser(privileged, "users:manage")), store, privileged) {
+	if !allowTargetChange(rr, pgGuardRequest(t, pgUser(privileged, "users:manage")), store.DB, privileged) {
 		t.Fatal("self change refused")
 	}
 
 	// A full administrator may change any account.
 	rr = httptest.NewRecorder()
-	if !allowTargetChange(rr, pgGuardRequest(t, &auth.User{ID: 1, Role: rbac.RoleAdmin}), store, privileged) {
+	if !allowTargetChange(rr, pgGuardRequest(t, &auth.User{ID: 1, Role: rbac.RoleAdmin}), store.DB, privileged) {
 		t.Fatal("full admin refused a privileged account change")
 	}
 
@@ -237,7 +237,7 @@ func TestPrivGrant_AllowTargetChange(t *testing.T) {
 	closed := newTestStore(t)
 	_ = closed.Close()
 	rr = httptest.NewRecorder()
-	if allowTargetChange(rr, pgGuardRequest(t, pgUser(10, "users:manage")), closed, privileged) {
+	if allowTargetChange(rr, pgGuardRequest(t, pgUser(10, "users:manage")), closed.DB, privileged) {
 		t.Fatal("change allowed although the privilege check failed")
 	}
 }

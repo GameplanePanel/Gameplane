@@ -137,7 +137,7 @@ func (h *roleHandler) create(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	tx, err := h.db.DB.BeginTx(req.Context(), nil)
+	tx, err := h.db.BeginUserManagement(req.Context())
 	if err != nil {
 		httperr.Write(w, req, err)
 		return
@@ -169,7 +169,18 @@ type roleUpdateReq struct {
 
 func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 	name := chi.URLParam(req, "name")
-	builtin, found, err := h.roleBuiltin(req, name)
+	var body roleUpdateReq
+	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+		httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
+		return
+	}
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+	builtin, found, err := roleBuiltin(req, tx, name)
 	if err != nil {
 		httperr.Write(w, req, err)
 		return
@@ -185,22 +196,13 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var body roleUpdateReq
-	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-		httperr.WriteMessage(w, req, messages.New("server.bad_request", nil))
-		return
-	}
 	if body.Permissions != nil {
 		if msg, ok := validatePermissions(*body.Permissions); !ok {
 			httperr.WriteCode(w, req, http.StatusBadRequest, errors.New(msg))
 			return
 		}
-		// Lock to serialize with writes so the last-user-manager check can't race,
-		// and so the privileged-permission check reads what the write replaces.
-		unlock := h.db.LockUserManagement()
-		defer unlock()
 		if !isFullAdmin(auth.UserFromContext(req.Context())) {
-			adds, err := addsPrivileged(req.Context(), h.db, name, *body.Permissions)
+			adds, err := addsPrivileged(req.Context(), tx, name, *body.Permissions)
 			if err != nil {
 				httperr.Write(w, req, err)
 				return
@@ -212,7 +214,7 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 		}
 		if !remoteWidePermissionsAllowed(*body.Permissions) {
 			var remoteBindings int
-			if err := h.db.DB.QueryRowContext(req.Context(),
+			if err := tx.QueryRowContext(req.Context(),
 				`SELECT COUNT(*) FROM user_role_bindings WHERE role_name = ? AND namespace = '*' AND cluster <> ?`,
 				name, scope.DefaultCluster).Scan(&remoteBindings); err != nil {
 				httperr.Write(w, req, err)
@@ -223,7 +225,7 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
-		if msg, err := h.userManagementGuard(req, name, *body.Permissions); err != nil {
+		if msg, err := userManagementGuard(req, db.Roles{Reader: tx}, name, *body.Permissions); err != nil {
 			httperr.Write(w, req, err)
 			return
 		} else if msg != "" {
@@ -231,13 +233,6 @@ func (h *roleHandler) update(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-
-	tx, err := h.db.DB.BeginTx(req.Context(), nil)
-	if err != nil {
-		httperr.Write(w, req, err)
-		return
-	}
-	defer func() { _ = tx.Rollback() }()
 
 	if body.Description != nil {
 		if _, err := tx.ExecContext(req.Context(),
@@ -286,9 +281,13 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 	name := chi.URLParam(req, "name")
 	// Keep the in-use check and deletion atomic with supplemental grants.
 	// Otherwise deleting/recreating a role could widen an orphaned binding.
-	unlock := h.db.LockUserManagement()
-	defer unlock()
-	builtin, found, err := h.roleBuiltin(req, name)
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+	builtin, found, err := roleBuiltin(req, tx, name)
 	if err != nil {
 		httperr.Write(w, req, err)
 		return
@@ -302,7 +301,7 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var inUse int
-	if err := h.db.DB.QueryRowContext(req.Context(),
+	if err := tx.QueryRowContext(req.Context(),
 		`SELECT COUNT(*) FROM user_role_bindings WHERE role_name = ?`, name).Scan(&inUse); err != nil {
 		httperr.Write(w, req, err)
 		return
@@ -312,12 +311,6 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	tx, err := h.db.DB.BeginTx(req.Context(), nil)
-	if err != nil {
-		httperr.Write(w, req, err)
-		return
-	}
-	defer func() { _ = tx.Rollback() }()
 	// sqlite has no FK cascade, so drop the permission rows explicitly.
 	if _, err := tx.ExecContext(req.Context(), `DELETE FROM role_permissions WHERE role_name = ?`, name); err != nil {
 		httperr.Write(w, req, err)
@@ -334,9 +327,9 @@ func (h *roleHandler) del(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *roleHandler) roleBuiltin(req *http.Request, name string) (builtin, found bool, err error) {
+func roleBuiltin(req *http.Request, q db.Reader, name string) (builtin, found bool, err error) {
 	var b int
-	err = h.db.DB.QueryRowContext(req.Context(), `SELECT builtin FROM roles WHERE name = ?`, name).Scan(&b)
+	err = q.QueryRowContext(req.Context(), `SELECT builtin FROM roles WHERE name = ?`, name).Scan(&b)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, false, nil
 	}
@@ -367,11 +360,11 @@ func validatePermissions(perms []string) (string, bool) {
 // either the role is the caller's own primary role, or every user who can
 // manage users holds that role. An empty message means the change may
 // proceed.
-func (h *roleHandler) userManagementGuard(req *http.Request, role string, perms []string) (string, error) {
+func userManagementGuard(req *http.Request, roles db.Roles, role string, perms []string) (string, error) {
 	if permsGrantUserManagement(perms) {
 		return "", nil
 	}
-	grantsNow, err := h.db.RoleGrantsUserManagement(req.Context(), role)
+	grantsNow, err := roles.RoleGrantsUserManagement(req.Context(), role)
 	if err != nil {
 		return "", err
 	}
@@ -381,11 +374,11 @@ func (h *roleHandler) userManagementGuard(req *http.Request, role string, perms 
 	if caller := auth.UserFromContext(req.Context()); caller != nil && caller.Role == role {
 		return "cannot remove your own user-management access", nil
 	}
-	total, err := h.db.UserManagerCount(req.Context())
+	total, err := roles.UserManagerCount(req.Context())
 	if err != nil {
 		return "", err
 	}
-	others, err := h.db.UserManagerCountExcludingRole(req.Context(), role)
+	others, err := roles.UserManagerCountExcludingRole(req.Context(), role)
 	if err != nil {
 		return "", err
 	}

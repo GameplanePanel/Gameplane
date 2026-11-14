@@ -10,7 +10,7 @@ import (
 // same account only.
 func TestLoginDevice_CookieRoundTrip(t *testing.T) {
 	rr := httptest.NewRecorder()
-	setLoginDeviceCookie(rr, "dev-alice")
+	setLoginDeviceCookie(rr, httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/auth/login", nil), "dev-alice")
 
 	var issued *http.Cookie
 	for _, c := range rr.Result().Cookies() {

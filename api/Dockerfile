@@ -23,8 +23,8 @@ ARG VERSION=dev
 # QEMU emulation: multi-arch release builds of the arm64 image were slow
 # enough to hit the release job timeout.
 ARG TARGETARCH
-# Build tags: "postgres" for the e2e-postgres image; empty by default so the release build is unchanged.
-ARG GO_TAGS=""
+# Both drivers ship in the multi-architecture API image. SQLite remains the runtime default.
+ARG GO_TAGS="postgres"
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
     -tags "${GO_TAGS}" \
     -trimpath \

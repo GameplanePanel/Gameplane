@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -33,6 +35,7 @@ func openPostgres(ctx context.Context, dsn string) (*Store, error) {
 // them (context-aware exec/query, transactions with options, named-value
 // checking, session reset) on the wrapper.
 type pgxConn interface {
+	Conn() *pgx.Conn
 	driver.Conn
 	driver.ConnBeginTx
 	driver.ConnPrepareContext
@@ -77,15 +80,36 @@ func (c rebindConnector) Connect(ctx context.Context) (driver.Conn, error) {
 		_ = conn.Close()
 		return nil, fmt.Errorf("pgx connection %T lacks a required database/sql driver interface", conn)
 	}
+	if err := pgconn.ValidateConnectTargetSessionAttrsReadWrite(ctx, pc.Conn().PgConn()); err != nil {
+		_ = conn.Close()
+		return nil, fmt.Errorf("check writable PostgreSQL connection: %w", err)
+	}
 	return rebindConn{pgxConn: pc}, nil
 }
 
 func (c rebindConnector) Driver() driver.Driver { return c.base.Driver() }
 
-// rebindConn forwards everything to the pgx connection except the four
-// entry points that take a query string, which it rebinds first.
+// rebindConn translates query placeholders and checks the database role
+// when database/sql lends an idle connection to a new caller.
 type rebindConn struct {
 	pgxConn
+}
+
+// An existing connection can remain reachable after the database has been
+// fenced read-only. Stale sessions and permissions must not authorize direct
+// requests or streams while Kubernetes withdraws an unready API endpoint.
+func (c rebindConn) ResetSession(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	if err := c.pgxConn.ResetSession(ctx); err != nil {
+		return err
+	}
+	if err := pgconn.ValidateConnectTargetSessionAttrsReadWrite(ctx, c.Conn().PgConn()); err != nil {
+		// database/sql only discards a borrowed connection for ErrBadConn.
+		// A replacement must pass the same check in Connect.
+		return errors.Join(driver.ErrBadConn, err)
+	}
+	return nil
 }
 
 func (c rebindConn) Prepare(query string) (driver.Stmt, error) {

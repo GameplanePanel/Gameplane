@@ -6,6 +6,7 @@
 {{- end }}
 {{- end }}
 {{- if (eq (include "gameplane.apiEnabled" .) "true") }}
+{{- $ha := (.Values.api.postgresHA | default dict).enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -205,13 +206,16 @@ metadata:
   labels: {{- include "gameplane.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.api.replicas }}
+  {{- if $ha }}
+  minReadySeconds: 5
+  {{- end }}
   selector:
     matchLabels: { app.kubernetes.io/name: gameplane-api }
-  # Every mode and database driver requires one API process: audit-chain and
-  # user-management locks are per-process. Recreate accepts a short outage to
-  # stop the old writer before starting its replacement. It is not fencing
-  # against forced Pod deletion or a partitioned node.
   strategy:
+    {{- if $ha }}
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 1, maxSurge: 0 }
+    {{- else }}
     type: Recreate
     # Explicit null, not omission: it states that this Deployment has no
     # rolling-update config, so nothing can merge one back in.
@@ -227,6 +231,7 @@ spec:
     # runs pre-upgrade. Both halves are load-bearing; the e2e upgrade
     # test covers them.
     rollingUpdate: null
+    {{- end }}
   template:
     metadata:
       labels:
@@ -235,9 +240,21 @@ spec:
       {{- if not .Values.api.standalone }}
       annotations:
         checksum/mtls: {{ include "gameplane.mtlsChecksum" . }}
+        {{- if eq .Values.api.db.driver "postgres" }}
+        gameplane.local/postgres-ha-protocol: "1"
+        {{- end }}
       {{- end }}
     spec:
-      {{- include "gameplane.placement" .Values.api | nindent 6 }}
+      {{- $placement := deepCopy .Values.api }}
+      {{- if $ha }}
+      {{- $affinity := $placement.affinity | default dict }}
+      {{- $anti := $affinity.podAntiAffinity | default dict }}
+      {{- $term := dict "topologyKey" "kubernetes.io/hostname" "labelSelector" (dict "matchLabels" (dict "app.kubernetes.io/name" "gameplane-api" "app.kubernetes.io/instance" .Release.Name)) }}
+      {{- $_ := set $anti "requiredDuringSchedulingIgnoredDuringExecution" (append ($anti.requiredDuringSchedulingIgnoredDuringExecution | default list) $term) }}
+      {{- $_ := set $affinity "podAntiAffinity" $anti }}
+      {{- $_ := set $placement "affinity" $affinity }}
+      {{- end }}
+      {{- include "gameplane.placement" $placement | nindent 6 }}
       serviceAccountName: gameplane-api
       {{- if .Values.api.standalone }}
       automountServiceAccountToken: false
@@ -256,6 +273,11 @@ spec:
           image: {{ include "gameplane.apiImage" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            {{- if $ha }}
+            # An old image must exit during flag parsing, before opening the
+            # shared database or starting workers, even when its Pod is unready.
+            - --postgres-ha-protocol=1
+            {{- end }}
             {{- if and (not .Values.api.standalone) (not $rbac.remoteClusters) }}
             - --remote-clusters=false
             {{- end }}
@@ -495,9 +517,15 @@ spec:
             - { name: http,    containerPort: 8000 }
             - { name: metrics, containerPort: {{ .Values.api.metricsPort | default 9090 }} }
           livenessProbe:  { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 15 }
+          {{- if $ha }}
+          # Leave time for the terminating endpoint to leave kube-proxy's
+          # backend set before SIGTERM starts the HTTP server's shutdown.
+          lifecycle:
+            preStop: { sleep: { seconds: 5 } }
+          {{- end }}
           # The DB ping has a 2s deadline. Tolerate brief contention on SQLite's
           # single connection before removing the only API endpoint.
-          readinessProbe: { httpGet: { path: /readyz, port: http }, initialDelaySeconds: 5, timeoutSeconds: 3, periodSeconds: 5, failureThreshold: 3 }
+          readinessProbe: { httpGet: { path: {{ ternary "/readyz/postgres-ha" "/readyz" (and (not .Values.api.standalone) (eq .Values.api.db.driver "postgres")) }}, port: http }, initialDelaySeconds: 5, timeoutSeconds: 3, periodSeconds: 5, failureThreshold: 3 }
           resources: {{ toYaml .Values.api.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false

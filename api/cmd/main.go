@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -109,6 +110,10 @@ func main() {
 	}
 	logger = newLogger(cfg.logLevel)
 	slog.SetDefault(logger)
+	if err := cfg.validatePostgresHA(); err != nil {
+		logger.Error("invalid active-active deployment", "err", err)
+		os.Exit(2)
+	}
 
 	// Validate OIDC configuration flags.
 	if cfg.oidcDefaultRole != "" {
@@ -196,7 +201,6 @@ func main() {
 	}
 
 	sessions := auth.NewSessionStore(store)
-	sessions.StartGC(ctx, time.Hour)
 	localAuth := auth.NewLocal(store)
 	// The Helm-flag OIDC provider (if any) is built once at startup; the
 	// registry lists it as the read-only "helm" provider next to the
@@ -279,7 +283,6 @@ func main() {
 	// configured in Admin Settings. Best-effort mirror — never gates
 	// reconciliation or requests.
 	notifier := notify.New(store, k8s, credentialsNS)
-	go notifier.RunWithRegistry(ctx, reg)
 
 	// Cluster registry: watch Cluster CRDs and populate the client registry
 	// with remote cluster connections. Single-cluster installs only have the
@@ -307,6 +310,14 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer)
+	if store.Driver == "postgres" {
+		shared, err := auth.PostgresRuntime(ctx, store)
+		if err != nil {
+			logger.Error("initialize shared authentication state", "err", err)
+			os.Exit(1)
+		}
+		r.Use(shared)
+	}
 	// Client IP middleware runs before rate limiting and audit so the determined
 	// IP is used for rate-limit buckets and audit records. X-Forwarded-For is
 	// read only when the TCP peer is inside the trusted proxy networks, which
@@ -378,6 +389,9 @@ func main() {
 		// bottleneck there is the dashboard's own polling).
 		p.Use(mutationRateLimit)
 		p.Use(rbac.Middleware(reg))
+		if store.Driver == "postgres" {
+			p.Use(sessions.RevalidateStreams(isStreamingRequest, 5*time.Second, rbac.StreamGrantValidator(reg)))
+		}
 
 		handlers.MountResources(p, reg, store)
 		handlers.MountFleet(p, reg, store)
@@ -445,18 +459,30 @@ func main() {
 	// disabled or none. Otherwise it sends nothing while the admin's basic
 	// toggle is off or, on a fresh install, until an admin was shown the
 	// notice (spec 022 FR-004); each report slot is claimed in the database.
-	go telemetry.New(telemetry.Config{
+	reporter := telemetry.New(telemetry.Config{
 		Dest:     telemetryDest,
 		Interval: cfg.telemetryInterval,
 		Auth:     cfg.telemetryAuth,
 		Deps:     telemetryDeps,
-	}).Run(ctx)
+	})
 
 	// Opt-in audit-event retention. Off by default (0 days = keep forever);
 	// when set, a daily sweep prunes events past the window so the table
 	// doesn't grow unbounded on long-lived installs.
-	go auditor.RunRetention(ctx,
-		time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
+	workersDone := make(chan struct{})
+	go func() {
+		defer close(workersDone)
+		runPanelWorkers(ctx, store, 2*time.Second, logger, func(leaderCtx context.Context) {
+			var jobs sync.WaitGroup
+			jobs.Go(func() { sessions.RunGC(leaderCtx, time.Hour) })
+			jobs.Go(func() { notify.New(store, k8s, credentialsNS).RunWithRegistry(leaderCtx, reg) })
+			jobs.Go(func() { reporter.Run(leaderCtx) })
+			jobs.Go(func() {
+				auditor.RunRetention(leaderCtx, time.Duration(cfg.auditRetentionDays)*24*time.Hour, 24*time.Hour, logger)
+			})
+			jobs.Wait()
+		})
+	}()
 
 	srv := &http.Server{
 		Addr:              cfg.addr,
@@ -498,6 +524,11 @@ func main() {
 	shutCtx, shutCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutCancel()
 	_ = srv.Shutdown(shutCtx)
+	select {
+	case <-workersDone:
+	case <-shutCtx.Done():
+		logger.Warn("panel workers did not stop before shutdown deadline")
+	}
 	if metricsSrv != nil {
 		_ = metricsSrv.Shutdown(shutCtx)
 	}
@@ -530,6 +561,7 @@ type config struct {
 	addr                string
 	metricsAddr         string
 	dbDriver            string
+	postgresHA          bool
 	dbDSN               string
 	logLevel            string
 
@@ -608,6 +640,13 @@ func (c *config) bindFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.logLevel, "log-level", envOr("GAMEPLANE_LOG_LEVEL", "info"),
 		"log verbosity: debug, info, warn, or error")
 	fs.StringVar(&c.dbDriver, "db-driver", envOr("GAMEPLANE_DB_DRIVER", "sqlite"), "sqlite or postgres")
+	fs.Func("postgres-ha-protocol", "require the named native PostgreSQL active-active protocol", func(v string) error {
+		if v != "1" {
+			return fmt.Errorf("unsupported PostgreSQL HA protocol %q (supported: 1)", v)
+		}
+		c.postgresHA = true
+		return nil
+	})
 	fs.StringVar(&c.dbDSN, "db-dsn", envOr("GAMEPLANE_DB_DSN", "file:/data/gameplane.db?_pragma=journal_mode(WAL)"), "DSN")
 	fs.StringVar(&c.oidcIssuer, "oidc-issuer", envOr("GAMEPLANE_OIDC_ISSUER", ""), "OIDC issuer URL")
 	fs.StringVar(&c.oidcClientID, "oidc-client-id", envOr("GAMEPLANE_OIDC_CLIENT_ID", ""), "OIDC client id")

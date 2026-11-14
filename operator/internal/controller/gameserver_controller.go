@@ -49,7 +49,10 @@ const lifecycleConflictRetry = time.Second
 type GameServerReconciler struct {
 	client.Client
 	APIReader client.Reader
-	Scheme    *runtime.Scheme
+	// WakeStartLimit caps simultaneous idle cold starts across managed namespaces.
+	WakeStartLimit     int
+	WakeStartNamespace string
+	Scheme             *runtime.Scheme
 
 	// AgentImage is the container image used for the sidecar agent
 	// injected into every game pod. Set from an operator flag so the

@@ -1,9 +1,9 @@
 name: build e2e images
 description: >
   Build the operator/api/agent/sentinel/capture-sidecar/telemetry-receiver/fakeoidc/mcp-server/audit-syslog-bridge/tunnel-frp
-  (+ gameprobe and the postgres-tagged api) images the kind e2e suites load into the cluster, tagged
+  (+ gameprobe) images the kind e2e suites load into the cluster, tagged
   gameplane-test/<component>:e2e exactly like make e2e-images, via buildx bake
-  — then `docker save` all twelve into a single tar uploaded as an artifact
+  — then `docker save` all eleven into a single tar uploaded as an artifact
   (e2e-images-<arch>). The heavy e2e jobs load that tar instead of each
   recompiling the same binaries. This is the ONLY builder, so it always writes
   the layer cache back (the old single-writer export dance is gone).
@@ -52,15 +52,6 @@ runs:
         set: |
           e2e-gameprobe.cache-from=type=gha,scope=e2e-gameprobe-${{ inputs.arch }}
           e2e-gameprobe.cache-to=type=gha,mode=max,scope=e2e-gameprobe-${{ inputs.arch }}
-    - name: bake postgres-tagged api image
-      uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
-      with:
-        files: containers/docker-bake.hcl
-        targets: e2e-api-postgres
-        load: true
-        set: |
-          e2e-api-postgres.cache-from=type=gha,scope=e2e-api-postgres-${{ inputs.arch }}
-          e2e-api-postgres.cache-to=type=gha,mode=max,scope=e2e-api-postgres-${{ inputs.arch }}
     - name: save images to a single tar
       shell: bash
       run: |
@@ -76,7 +67,6 @@ runs:
           gameplane-test/audit-syslog-bridge:e2e \
           gameplane-test/tunnel-frp:e2e \
           gameplane-test/gameprobe:e2e \
-          gameplane-test/api:e2e-postgres \
           -o "$RUNNER_TEMP/e2e-images.tar"
     - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:

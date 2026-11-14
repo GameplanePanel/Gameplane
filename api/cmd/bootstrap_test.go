@@ -476,3 +476,24 @@ func TestBootstrap_ForceResetIsAllOrNothing(t *testing.T) {
 		t.Fatalf("session count=%d want 1 (unchanged)", sessionCount)
 	}
 }
+
+func TestBootstrap_NewAdminAndRoleBindingCommitTogether(t *testing.T) {
+	dsn := dsnIn(t)
+	auth.SetFastHashParams(t)
+	s := mustOpen(t, dsn)
+	ctx := t.Context()
+	if err := s.Migrate(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.DB.ExecContext(ctx, `CREATE TRIGGER fail_admin_grant BEFORE INSERT ON user_role_bindings BEGIN SELECT RAISE(ABORT, 'blocked'); END`); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GAMEPLANE_ADMIN_PASSWORD", "")
+	if _, err := runBootstrap(t, dsn, "", "--username=recovery-admin", "--password=new-password"); err == nil {
+		t.Fatal("bootstrap accepted a failed administrator role binding")
+	}
+	var count int
+	if err := s.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM users WHERE username='recovery-admin'").Scan(&count); err != nil || count != 0 {
+		t.Fatalf("partial bootstrap left %d admin accounts: %v", count, err)
+	}
+}

@@ -559,3 +559,79 @@ func TestPostgres_MigrateFromFrozenBaseline(t *testing.T) {
 			ts, actor, method, path, target, status, ip, prevHash, rowHash, reason)
 	}
 }
+
+// postgresPeer opens an independent pool on the same schema as the first API.
+func postgresPeer(t *testing.T, original *Store) *Store {
+	t.Helper()
+	var schema string
+	if err := original.DB.QueryRowContext(t.Context(), "SELECT current_schema()").Scan(&schema); err != nil {
+		t.Fatal(err)
+	}
+	peer, err := Open(t.Context(), "postgres", dsnWithSearchPath(os.Getenv(postgresDSNEnv), schema))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = peer.Close() })
+	return peer
+}
+
+func TestPostgres_ConcurrentMigrationAndManagement(t *testing.T) {
+	ctx := t.Context()
+	first := openPostgresSchema(t)
+	second := postgresPeer(t, first)
+	for _, s := range []*Store{first, second} {
+		s.DB.SetMaxOpenConns(1)
+		if _, err := s.DB.ExecContext(ctx, "SET default_transaction_isolation = 'repeatable read'"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	start := make(chan struct{})
+	results := make(chan error, 2)
+	for _, s := range []*Store{first, second} {
+		go func() { <-start; results <- s.Migrate(ctx) }()
+	}
+	close(start)
+	for range 2 {
+		if err := <-results; err != nil {
+			t.Fatal(err)
+		}
+	}
+	st, err := first.GetTelemetryState(ctx)
+	if err != nil || st.ConsentSource != TelemetryConsentDefault {
+		t.Fatalf("fresh concurrent migrations seeded %+v, %v", st, err)
+	}
+	a := pgInsertUser(t, first, "manager-a", "admin")
+	b := pgInsertUser(t, second, "manager-b", "admin")
+	tx, err := first.BeginUserManagement(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := first.DeleteUserTx(ctx, tx, a); err != nil {
+		t.Fatal(err)
+	}
+	// The peer must not read an old count before the first deletion commits.
+	short, cancel := context.WithTimeout(ctx, 150*time.Millisecond)
+	defer cancel()
+	if peerTx, err := second.BeginUserManagement(short); err == nil {
+		_ = peerTx.Rollback()
+		t.Fatal("peer entered user management during an uncommitted deletion")
+	} else if short.Err() == nil {
+		t.Fatalf("lock returned before deadline: %v", err)
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+	peerTx, err := second.BeginUserManagement(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = peerTx.Rollback() }()
+	roles := Roles{Reader: peerTx}
+	if managed, err := roles.UserManagesUsers(ctx, b); err != nil || !managed {
+		t.Fatalf("remaining manager=%t, err=%v", managed, err)
+	}
+	if count, err := roles.UserManagerCount(ctx); err != nil || count != 1 {
+		t.Fatalf("peer saw %d managers after acquiring lock: %v", count, err)
+	}
+}
