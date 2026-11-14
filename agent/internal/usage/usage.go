@@ -15,7 +15,7 @@
 //     pod's cgroup v2 files. Inside a per-container cgroup namespace this
 //     reflects only the agent container, so it's a fallback.
 //
-// Disk is a statfs of the game data volume in both modes. Each value carries
+// Disk is sampled asynchronously within the game data directory. Each value carries
 // a "known" flag so callers can patch null ("unknown") rather than a
 // misleading zero when a source is unreadable.
 package usage
@@ -28,8 +28,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/sys/unix"
 )
 
 // defaultCgroupRoot is the cgroup v2 unified-hierarchy mount present in
@@ -49,7 +47,7 @@ const userHZ = 100
 type Config struct {
 	// Root is the cgroup v2 mount point. Empty means defaultCgroupRoot.
 	Root string
-	// DataDir is the game data volume to statfs for disk usage. Empty
+	// DataDir is the game data volume to measure. Empty
 	// disables the disk reading.
 	DataDir string
 
@@ -65,11 +63,10 @@ type Config struct {
 
 	// ProcRoot is the procfs mount; empty means defaultProcRoot.
 	ProcRoot string
-	// selfPID, clkTck, now and statfs are injected only by tests.
+	// selfPID, clkTck and now are injected only by tests.
 	selfPID int
 	clkTck  int64
 	now     func() time.Time
-	statfs  func(string, *unix.Statfs_t) error
 }
 
 // Sample is one point-in-time reading. Each *Known flag reports whether
@@ -88,6 +85,7 @@ type Sample struct {
 
 	DiskUsedBytes  int64
 	DiskTotalBytes int64
+	DiskTotalKnown bool
 	DiskKnown      bool
 }
 
@@ -98,10 +96,13 @@ type Sample struct {
 type Reader struct {
 	cfg Config
 
-	mu            sync.Mutex
-	prevUsageUsec uint64
-	prevAt        time.Time
-	havePrev      bool
+	mu             sync.Mutex
+	prevUsageUsec  uint64
+	prevAt         time.Time
+	havePrev       bool
+	diskBytes      int64
+	diskCapacity   int64
+	diskMeasuredAt time.Time
 }
 
 // New builds a Reader, applying defaults for any unset Config field.
@@ -122,9 +123,6 @@ func New(cfg Config) *Reader {
 	}
 	if cfg.now == nil {
 		cfg.now = time.Now
-	}
-	if cfg.statfs == nil {
-		cfg.statfs = unix.Statfs
 	}
 	return &Reader{cfg: cfg}
 }
@@ -390,35 +388,6 @@ func readProcStatmRSS(path string, procRoot string) int64 {
 		return 0
 	}
 	return rss
-}
-
-func (r *Reader) readDisk(s *Sample) {
-	if r.cfg.DataDir == "" {
-		return
-	}
-	var st unix.Statfs_t
-	if err := r.cfg.statfs(r.cfg.DataDir, &st); err != nil {
-		return
-	}
-	// Bsize's Go type varies by arch (int64 on amd64/arm64); convert via
-	// uint64 so the arithmetic is correct everywhere and no conversion is
-	// redundant.
-	if st.Bsize <= 0 {
-		return
-	}
-	bsize := uint64(st.Bsize)
-	// Safe: block counts and sizes are always positive and bounded by filesystem limits.
-	total := st.Blocks * bsize
-	if total > uint64(math.MaxInt64) {
-		return
-	}
-	s.DiskTotalBytes = int64(total)
-	used := (st.Blocks - st.Bfree) * bsize
-	if used > uint64(math.MaxInt64) {
-		return
-	}
-	s.DiskUsedBytes = int64(used)
-	s.DiskKnown = true
 }
 
 // readUintFile parses a cgroup file holding a single unsigned integer.

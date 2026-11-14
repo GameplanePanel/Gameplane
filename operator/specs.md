@@ -870,3 +870,16 @@ and [operator operations](../docs/operator-operations.md) for defaults and failu
 ### Restic parent selection and accounting
 
 New workers use the bound GameServer UID as their Restic host. The first backup after upgrading may have no matching parent. Historical snapshots remain restorable by ID. `status.size` records the logical bytes processed. `status.bytesAdded` records the packed bytes added by that run, including a measured zero. Retention and pruning operate on shared repository data independently.
+
+### Failed StatefulSet rollout recovery
+
+When a corrected rolling update stalls on a failed older ordinal, the GameServer controller requests a pod eviction with UID and resource-version preconditions. It checks live workload ownership, desired replicas, revision and lifecycle fences. The StatefulSet recreates the pod. Disruption budgets can delay recovery.
+
+Recovery first claims the GameServer's shared lifecycle owner for the exact
+failed pod UID and GameServer generation. Backups, restores, wipes and template
+rollouts wait through eviction and termination of that UID. On restart the
+controller resumes the claim before validating new render inputs. A disruption
+budget refusal releases the claim so other operations can proceed during the retry delay.
+While an accepted eviction drains, ordinary resources and status keep reconciling;
+the shared owner preserves the workload's replica count and complete Pod template
+and defers new power operations until the old UID disappears.

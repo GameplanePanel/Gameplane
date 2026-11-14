@@ -168,6 +168,10 @@ rules:
     resources: [pods/attach]
     verbs: [create]
   {{- end }}
+  # Respect disruption budgets when replacing an obsolete failed game pod.
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
   # Network capture sidecar injection via ephemeral containers (reconcileCapture
   # in gameserver_controller.go). Namespace-scoped to this managed namespace.
   - apiGroups: [""]
@@ -386,6 +390,9 @@ spec:
             - --agent-client-key=/etc/gameplane/agent-client/tls.key
             - --agent-ca-secret-name={{ .Values.api.agentMTLS.caSecretRef.name }}
             - --game-namespaces={{ join "," $gameNamespaces }}
+            {{- with .Values.operator.wakeStartLimit }}
+            - {{ printf "--wake-start-limit=%v" . | quote }}
+            {{- end }}
             - --control-plane-namespace={{ include "gameplane.operatorClusterCredentialsNamespace" . }}
             {{- if not $rbac.remoteClusters }}
             - --remote-clusters=false

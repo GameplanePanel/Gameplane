@@ -984,6 +984,16 @@ export function buildScreenshotHandlers() {
             status: { ...server.status, templateRevision: { running: variant === "jvm-adopted" ? "startup" : "previous" } },
           });
         }
+        if (variant === "shared-storage") {
+          return HttpResponse.json({
+            ...server,
+            spec: { ...server.spec, storage: { ...server.spec.storage, size: "30Gi" } },
+            status: {
+              ...server.status,
+              agent: { ...server.status?.agent, diskUsedBytes: 3_972_844_749, diskTotalBytes: null },
+            },
+          });
+        }
         if (variant === "idle") {
           return HttpResponse.json({
             ...server,
@@ -1006,6 +1016,7 @@ export function buildScreenshotHandlers() {
             spec: {
               ...server.spec,
               suspend: true,
+              storage: { ...server.spec.storage, size: "30Gi" },
             },
             status: {
               ...server.status,
@@ -1018,6 +1029,8 @@ export function buildScreenshotHandlers() {
                 ...server.status?.agent,
                 playersOnline: null,
                 playersMax: 0,
+                diskUsedBytes: null,
+                diskTotalBytes: null,
               },
               startedAt: undefined,
             },

@@ -2,7 +2,9 @@ package notify
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -90,8 +92,7 @@ func (n *Notifier) pollClusterSnapshot(ctx context.Context, k *kube.Client, clus
 				events = phaseEvents(resourceKind, old, obj)
 			}
 			for _, e := range events {
-				e.Cluster = cluster
-				n.Enqueue(stampTS(e))
+				n.enqueueObserved(e, cluster, obj)
 			}
 		}
 		if kind == "servers" {
@@ -142,6 +143,15 @@ func notificationProjection(obj *unstructured.Unstructured) *unstructured.Unstru
 	out.SetName(boundedNotificationText(obj.GetName(), 253))
 	out.SetNamespace(boundedNotificationText(obj.GetNamespace(), 63))
 	out.SetUID(obj.GetUID())
+	// Resource versions are opaque dispatch identities. Keep short versions
+	// verbatim; hashing longer ones bounds the snapshot without conflating
+	// distinct updates that share a prefix. The tagged digest is longer than
+	// any verbatim key, so the two representations cannot collide.
+	version := obj.GetResourceVersion()
+	if len(version) > sha256.Size*2 {
+		version = fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(version)))
+	}
+	out.SetResourceVersion(version)
 	phase, _, _ := unstructured.NestedString(obj.Object, "status", "phase")
 	message, _, _ := unstructured.NestedString(obj.Object, "status", "message")
 	conditions := []any{}

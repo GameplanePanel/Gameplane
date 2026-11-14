@@ -30,6 +30,7 @@ func TestHealthRoutesDatabaseUnavailable(t *testing.T) {
 		}
 	}
 	check("/readyz", http.StatusOK, "ok")
+	check("/readyz/postgres-ha", http.StatusNotFound, "404 page not found\n")
 	if err := store.Close(); err != nil {
 		t.Fatal(err)
 	}

@@ -56,6 +56,15 @@ describe("OverviewTab recent events", () => {
 });
 
 describe("OverviewTab metric tiles", () => {
+  it("shows measured bytes and the requested claim size when capacity is unknown", async () => {
+    fetchMock.mockImplementation(() => Promise.resolve(jsonRes([])));
+    const server = gs({ phase: "Starting", agent: { lastHeartbeat: "now", diskUsedBytes: 0, diskTotalBytes: null } });
+    server.spec.storage = { size: "10Gi" };
+    renderWithQuery(<OverviewTab name="s1" gs={server} />);
+    expect(await screen.findByText("10Gi requested")).toBeInTheDocument();
+    expect(screen.getByText("0 B")).toBeInTheDocument();
+  });
+
   it("renders real CPU, memory and disk usage from the heartbeat", async () => {
     fetchMock.mockImplementation(() =>
       Promise.resolve(jsonRes({ online: 0, max: 20, players: [], asOf: "now" })));
@@ -105,7 +114,7 @@ describe("OverviewTab metric tiles", () => {
         lastHeartbeat: "now",
         cpuMillicores: 1500,                          // no limit → "1.50 cores", no bar
         memoryBytes: 536870912,                       // no limit → "512 MB" primary + "512 MB / —"
-        diskUsedBytes: 1073741824, diskTotalBytes: 0, // no total → "1.0 GB" primary + "1.0 GB / —"
+        diskUsedBytes: 1073741824, diskTotalBytes: null, // A directory scan observes usage only.
         playersOnline: 3,                             // exercises the players fallback branch
       },
     })} />);
@@ -113,7 +122,7 @@ describe("OverviewTab metric tiles", () => {
     expect(screen.getByText("512 MB")).toBeInTheDocument();
     expect(screen.getByText("512 MB / —")).toBeInTheDocument();
     expect(screen.getByText("1.0 GB")).toBeInTheDocument();
-    expect(screen.getByText("1.0 GB / —")).toBeInTheDocument();
+    expect(screen.queryByText("1.0 GB / —")).not.toBeInTheDocument();
     // Players fallback (phase != Running) feeds the sidebar card.
     expect(screen.getByText(/names not yet available/)).toBeInTheDocument();
   });

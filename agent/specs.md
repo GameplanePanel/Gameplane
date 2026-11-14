@@ -75,7 +75,7 @@ agent/
 │   ├── quiesce/             # Pause auto-saves and flush state before snapshots
 │   ├── rcon/                # RCON wire protocols (source, telnet, websocket, battleye, satisfactory, palworld, nuclearoption, rest, cli)
 │   ├── status/              # Live metrics extraction via RCON + regex
-│   └── usage/               # Resource usage reader (/proc or cgroups; disk via statfs)
+│   └── usage/               # Resource usage reader (/proc or cgroups; asynchronous per-directory disk usage)
 ├── openapi.yaml             # Partial machine-readable HTTP contract (subset of routes)
 └── .testcoverage.yml        # Coverage gate (90% total, unit-only)
 ```
@@ -110,7 +110,7 @@ Per-package roles:
 - **`quiesce`**: Runs module-declared sequences (e.g., Minecraft's `save-off` + `save-all flush`) over RCON; responds `quiesced: false` + reason when unsupported (not an error).
 - **`rcon`**: Factory pattern for wire-protocol clients (`Valve/Source`, `Telnet`, `WebSocket`, `BattlEye`, `Satisfactory`, `Palworld`, `NuclearOption`, `REST`, `CLI`, `Disabled`); `Exec(cmd) (string, error)` interface. RCON reply packets are accepted up to 16394 bytes (a 4096-character Minecraft chunk at its worst-case UTF-8 byte length, plus the 10-byte packet header) and rejected as malformed outside `[10, 16394]` (F-104). Source RCON also caps aggregate response text at 8 MiB and enforces an absolute 30-second command exchange deadline after connection/authentication; each 400-ms fragment idle window is clamped to that deadline. Exceeding the aggregate cap or hard deadline drops the connection and returns an error without partial output. The status collector separately accepts at most 64 KiB.
 - **`status`**: Runs module-declared metrics queries over RCON; each metric specifies a command and a regex with named group `"value"` for extraction.
-- **`usage`**: Reads CPU/memory from `/proc` (proc mode, default) or cgroup v2; disk via `statfs`; exposes `Sample` with `Known` flags so callers distinguish "unknown" from "zero".
+- **`usage`**: Reads CPU/memory from `/proc` (proc mode, default) or cgroup v2; disk from kernel CephFS recursive logical byte counts and the local directory quota, or a bounded asynchronous allocated-block scan on Linux 5.6+; exposes `Sample` with `Known` flags so callers distinguish "unknown" from "zero".
 
 ## External interface / contracts
 
@@ -316,3 +316,5 @@ actual server incarnation even if the name-based agent Service changes between
 the gateway's Kubernetes lookup and connection. Existing operator-owned game
 Pod templates gain the UID environment variable on reconciliation, which can
 roll existing game workloads during an operator upgrade.
+
+Disk scans run every five minutes, with a one-minute budget, a two-million-entry ceiling, and at most 128 nested directories. A failed or incomplete scan clears the reading. A blocked filesystem call can delay cancellation of the single reader. The heartbeat continues and expires stale usage. On shared filesystems a scan counts allocated blocks, so sparse files can use less space than their logical length.

@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 5b87059c437ad0fa45509e1d10f8a3e18c70a38d42df3baf93265127d2aeb4ba
+    gameplane.local/crd-bundle-sha256: e196a960fee10cacd08006e684b71690f80286f63aa18021bf2b62e94a4e362f
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
@@ -2434,13 +2434,16 @@ spec:
                     type: integer
                   diskTotalBytes:
                     description: |-
-                      DiskTotalBytes is the total size of the game data volume (statfs).
+                      DiskTotalBytes is the observed capacity scoped to the game data volume.
+                      Older agents report the capacity of the entire filesystem.
                       nil means "unknown".
                     format: int64
                     type: integer
                   diskUsedBytes:
                     description: |-
-                      DiskUsedBytes is the used space on the game data volume (statfs).
+                      DiskUsedBytes is observed usage scoped to the game data directory.
+                      Older agents report usage across the entire filesystem. Templates that
+                      pin spec.agent.image must adopt an updated agent for directory-scoped readings.
                       nil means "unknown".
                     format: int64
                     type: integer

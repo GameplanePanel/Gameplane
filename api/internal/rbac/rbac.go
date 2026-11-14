@@ -133,18 +133,9 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 							httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 							return
 						}
-						obj, err := fetch.GetServer(req.Context(), cl, ns, name)
-						if err == nil && obj != nil {
-							role := ownershipRole(obj, u.ID)
-							if role != roleNone {
-								// Grant to owner, or to collaborator if not owner-only.
-								if role == roleOwner || !ownerOnlyOperation(req.Method, verb, isExact) {
-									identity := ServerIdentity{Cluster: cl, Namespace: ns, Name: name, UID: string(obj.GetUID())}
-									req = req.WithContext(context.WithValue(req.Context(), serverIdentityKey{}, identity))
-									next.ServeHTTP(w, req)
-									return
-								}
-							}
+						if ctx, granted := bindServerGrant(req.Context(), fetch, cl, ns, name, u.ID, ownerOnlyOperation(req.Method, verb, isExact)); granted {
+							next.ServeHTTP(w, req.WithContext(ctx))
+							return
 						}
 					}
 				}
@@ -156,19 +147,14 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 			// the caller holds the route's namespace permission.
 			if Namespaced(r.perm) && !u.Can("*", true, cl, ns) {
 				if name, verb, isExact, ok := parseServerPath(req.URL.Path); ok && ownerOnlyOperation(req.Method, verb, isExact) {
-					if fetch == nil {
-						httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
-						return
-					}
-					obj, err := fetch.GetServer(req.Context(), cl, ns, name)
-					if err != nil || obj == nil || ownershipRole(obj, u.ID) != roleOwner {
+					ctx, granted := bindServerGrant(req.Context(), fetch, cl, ns, name, u.ID, true)
+					if !granted {
 						httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 						return
 					}
 					// This grant still depends on owning this exact object, even
 					// though the namespace permission check already passed.
-					identity := ServerIdentity{Cluster: cl, Namespace: ns, Name: name, UID: string(obj.GetUID())}
-					req = req.WithContext(context.WithValue(req.Context(), serverIdentityKey{}, identity))
+					req = req.WithContext(ctx)
 				}
 			}
 			next.ServeHTTP(w, req)

@@ -95,8 +95,29 @@
 {{- if not (regexMatch "^v1\\.[0-9]+$" (.Values.podSecurity.version | default "v1.34")) }}
 {{- fail "podSecurity.version must pin a Kubernetes minor such as v1.34" }}
 {{- end }}
-{{- if and (eq (include "gameplane.apiEnabled" .) "true") (ne (toString .Values.api.replicas) "1") }}
-{{- fail "api requires api.replicas=1; multiple API processes are not supported" }}
+{{- $ha := .Values.api.postgresHA | default dict }}
+{{- if and (hasKey $ha "enabled") (not (kindIs "bool" $ha.enabled)) }}
+{{- fail "api.postgresHA.enabled must be a boolean" }}
+{{- end }}
+{{- if $ha.enabled }}
+{{- if not (and $nativeAPI (eq .Values.api.db.driver "postgres") .Values.api.db.existingSecret) }}
+{{- fail "api.postgresHA.enabled requires native API mode, api.db.driver=postgres and api.db.existingSecret" }}
+{{- end }}
+{{- if not (and (regexMatch "^[1-9][0-9]*$" (toString .Values.api.replicas)) (ge (int64 .Values.api.replicas) 2)) }}
+{{- fail "api.postgresHA.enabled requires at least two integer api.replicas" }}
+{{- end }}
+{{- $live := lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-api" }}
+{{- if and $live (ne (index ($live.spec.template.metadata.annotations | default dict) "gameplane.local/postgres-ha-protocol") "1") }}
+{{- fail "First upgrade at api.replicas=1 with api.postgresHA.enabled=false and the new PostgreSQL API image, then wait for the singleton rollout before enabling HA" }}
+{{- end }}
+{{- if and $live (eq (int $live.spec.replicas) 1) }}
+{{- $status := $live.status | default dict }}
+{{- if or (ne (int64 $status.observedGeneration) (int64 $live.metadata.generation)) (ne (int $status.updatedReplicas) 1) (ne (int $status.availableReplicas) 1) (ne (int $status.replicas) 1) (gt (int $status.terminatingReplicas) 0) }}
+{{- fail "Wait for the HA-capable PostgreSQL singleton rollout and its database readiness check before enabling additional writers" }}
+{{- end }}
+{{- end }}
+{{- else if and (eq (include "gameplane.apiEnabled" .) "true") (ne (toString .Values.api.replicas) "1") }}
+{{- fail "api requires api.replicas=1 unless native PostgreSQL HA is enabled" }}
 {{- end }}
 {{- if .Values.api.standalone }}
 {{- if ne (include "gameplane.apiEnabled" .) "true" }}

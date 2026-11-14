@@ -101,6 +101,9 @@ manage Gameplane with `kubectl apply` — the operator is authoritative.
 
 ### Sleep an idle server
 
+For real-game retry budgets, concurrent cold joins and operator-restart
+evidence, see [qualifying simultaneous cold joins](wake-qualification.md).
+
 Opt-in per server via `spec.idle`. Every reconcile the operator decides, from
 the object alone, whether idle time is accruing:
 

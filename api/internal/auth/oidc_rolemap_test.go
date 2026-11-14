@@ -1119,8 +1119,8 @@ func TestHandleCallback_HelmOverride_LiveRead_SC007(t *testing.T) {
 
 	// Mutable override source: held in a closure so we can mutate it between logins.
 	var helmOverride *RoleMappings
-	getOverride := func(_ context.Context) *RoleMappings {
-		return helmOverride
+	getOverride := func(_ context.Context) (*RoleMappings, error) {
+		return helmOverride, nil
 	}
 
 	o, err := NewOIDCWithPolicy(context.Background(), idp.issuer(), "client-1", "secret",
@@ -1216,7 +1216,7 @@ func TestHandleCallback_HelmOverrideMappingsReEvaluateWithoutHelmMappings(t *tes
 		t.Fatalf("NewOIDCWithPolicy: %v", err)
 	}
 	o.SetProviderName(HelmProviderName)
-	o.AttachHelmRoleOverridesFunc(func(context.Context) *RoleMappings { return override })
+	o.AttachHelmRoleOverridesFunc(func(context.Context) (*RoleMappings, error) { return override, nil })
 	rec := &auditWriteRecorder{}
 	o.AttachAuditWriteSyncFunc(rec.write)
 

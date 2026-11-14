@@ -16,6 +16,7 @@
     "test/e2e/suite-components.json"
   ],
   "suites": [
+    { "tests": "^TestColdWakeFleet_ConcurrentJoins$", "components": ["operator", "sentinel", "gameproto", "agent"], "paths": ["test/e2e/wake_burst.py", "test/e2e/cmd/join-once/", "test/e2e/testdata/wake-burst/"] },
     { "tests": "^TestGameServer_RestoredRolloutRehearsal$", "components": ["operator", "agent"], "paths": ["hack/rollout/", "test/e2e/rollout_rehearsal.py", "test/e2e/cmd/join-once/"] },
     { "tests": "^TestGameServer_HostportWakeStableEndpoint$", "components": ["operator", "api", "agent", "sentinel", "gameproto"] },
     { "tests": "^(TestPanel_OfflineRecovery|TestAPIClient_DoContextResponseBody|TestAPIClient_ExtractIntField)$", "components": ["operator", "api", "agent"],
@@ -59,6 +60,7 @@
       "paths": ["test/e2e/internal/minecraft-java/", "test/e2e/internal/probe/", "test/e2e/gameprobe_job.go"] },
     { "tests": "^TestMultiCluster_", "components": ["operator", "api", "agent", "capture-sidecar"] },
     { "tests": "^TestUpgrade_", "components": ["operator", "api", "agent"] },
+    { "tests": "^TestPanel_Postgres(ActiveActiveFailover|PointInTimeRecovery)$", "components": ["api", "operator", "agent"] },
     { "tests": "^TestTelemetry", "components": ["operator", "api", "telemetry-receiver", "telemetryschema"],
       "paths": ["test/e2e/telemetry_e2e_helpers_test.go", "test/e2e/telemetry_client_test.go", "test/e2e/telemetry_pow_e2e_test.go"] },
     { "tests": "^TestOptionalComponents_",
