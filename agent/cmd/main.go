@@ -253,6 +253,13 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+	usageReader := usage.New(usage.Config{
+		DataDir:            dataRoot,
+		ProcMode:           envOr("GAMEPLANE_USAGE_PROC", "") == "1",
+		CPULimitMillicores: envInt("GAMEPLANE_CPU_LIMIT_MILLICORES"),
+		MemLimitBytes:      envInt("GAMEPLANE_MEM_LIMIT_BYTES"),
+	})
+	go usageReader.MonitorDisk(ctx)
 
 	// Prometheus metrics for per-server resource usage and player counts.
 	// Registered with the default registry so promhttp.Handler() picks it up.
@@ -277,12 +284,7 @@ func main() {
 			}
 			return nil
 		}(),
-		Usage: usage.New(usage.Config{
-			DataDir:            dataRoot,
-			ProcMode:           envOr("GAMEPLANE_USAGE_PROC", "") == "1",
-			CPULimitMillicores: envInt("GAMEPLANE_CPU_LIMIT_MILLICORES"),
-			MemLimitBytes:      envInt("GAMEPLANE_MEM_LIMIT_BYTES"),
-		}),
+		Usage:   usageReader,
 		Metrics: m,
 	})
 

@@ -62,7 +62,10 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await capture(page, "F9pUrx");
   });
 
-  test("EZFW0: Server Detail — Overview (running)", async ({ page }) => {
+  test("EZFW0: Server Detail — Overview (running)", async ({ context, page }) => {
+    await context.addCookies([
+      { name: "e2e_server_variant", value: "shared-storage", domain: "localhost", path: "/" },
+    ]);
     await page.goto("/servers/mc-survival");
     await expect(page.getByRole("heading", { name: "mc-survival" })).toBeVisible({
       timeout: 10_000,
@@ -70,6 +73,8 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await expect(page.getByText("Connection")).toBeVisible();
     await expect(page.getByText("Recent events")).toBeVisible();
     await page.waitForTimeout(200);
+    await expect(page.getByText("3.7 GB", { exact: true })).toBeVisible();
+    await expect(page.getByText("30Gi requested", { exact: true })).toBeVisible();
     await capture(page, "EZFW0");
   });
 
@@ -99,6 +104,7 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await expect(page.getByText("Asleep", { exact: true }).first()).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText("Asleep since")).toBeVisible();
     await page.waitForTimeout(200);
+    await expect(page.getByText("30Gi requested", { exact: true })).toBeVisible();
     await capture(page, "TE2jI");
   });
 

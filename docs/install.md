@@ -1025,6 +1025,15 @@ value, re-run it with `--reset-then-reuse-values`, or pass your values file
 explicitly with `-f`. Keeping a values file under version control and using
 `-f` is the sturdier habit.
 
+### Upgrading agents for per-server disk usage
+
+Older agents report usage and capacity for the whole filesystem, even in a
+fresh heartbeat. When multiple servers share a filesystem, each can show the
+same disk usage. If a GameTemplate pins `spec.agent.image`, update the pin to
+an agent release with per-server disk measurement or remove it to inherit the
+operator's updated `--agent-image`. Let each affected server adopt the template
+and roll out the new agent before relying on per-server readings.
+
 ### What upgrades are tested
 
 CI runs an end-to-end upgrade on every PR (`e2e upgrade`, on both amd64 and

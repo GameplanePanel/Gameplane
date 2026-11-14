@@ -1466,6 +1466,7 @@
                               "width": "fill_container",
                               "gap": 0,
                               "padding": 0,
+                              "height": "fill_container",
                               "children": [
                                 {
                                   "type": "frame",
@@ -1507,8 +1508,9 @@
                                     {
                                       "type": "text",
                                       "id": "QLkWj",
+                                      "name": "Measured disk usage",
                                       "fill": "$foreground/foreground",
-                                      "content": "13%",
+                                      "content": "3.7 GB",
                                       "fontFamily": "$typography/font-mono",
                                       "fontSize": 24,
                                       "fontWeight": "700"
@@ -1516,6 +1518,9 @@
                                     {
                                       "type": "path",
                                       "id": "vdDJJ",
+                                      "x": 16,
+                                      "y": 80,
+                                      "enabled": false,
                                       "geometry": "M0 21l12-1 13 1 12-2 13 1 12-1 13 2 12-1 13 0",
                                       "viewBox": [
                                         0,
@@ -1524,7 +1529,7 @@
                                         24
                                       ],
                                       "fill": "#00000000",
-                                      "width": "fill_container",
+                                      "width": "fill_container(201.33333333333334)",
                                       "height": 24,
                                       "stroke": "$success/soft-foreground",
                                       "strokeWidth": 1.5
@@ -1532,8 +1537,11 @@
                                     {
                                       "type": "frame",
                                       "id": "JpkaE",
+                                      "x": 16,
+                                      "y": 112,
+                                      "enabled": false,
                                       "clip": true,
-                                      "width": "fill_container",
+                                      "width": "fill_container(201.33333333333334)",
                                       "height": 6,
                                       "fill": "$default/default",
                                       "cornerRadius": 999,
@@ -1551,8 +1559,9 @@
                                     {
                                       "type": "text",
                                       "id": "gijqx",
+                                      "name": "Requested PVC capacity",
                                       "fill": "$muted",
-                                      "content": "3.7 GB / 29 GB",
+                                      "content": "30Gi requested",
                                       "fontFamily": "$typography/font-sans",
                                       "fontSize": 12,
                                       "fontWeight": "normal"
@@ -37680,6 +37689,7 @@
                               "id": "Mcf1C",
                               "name": "Metric CPU",
                               "width": "fill_container",
+                              "height": "fill_container",
                               "fill": "$surface/surface",
                               "stroke": "$border/border",
                               "strokeWidth": 1,
@@ -37807,6 +37817,7 @@
                               "id": "QGBuR",
                               "name": "Metric Memory",
                               "width": "fill_container",
+                              "height": "fill_container",
                               "fill": "$surface/surface",
                               "stroke": "$border/border",
                               "strokeWidth": 1,
@@ -38043,11 +38054,9 @@
                                     {
                                       "type": "text",
                                       "id": "bsk1A",
-                                      "x": 16,
-                                      "y": 126,
-                                      "enabled": false,
+                                      "name": "Requested PVC capacity",
                                       "fill": "$muted",
-                                      "content": "3.7 GB / 29 GB",
+                                      "content": "30Gi requested",
                                       "fontFamily": "$typography/font-sans",
                                       "fontSize": 12,
                                       "fontWeight": "normal"

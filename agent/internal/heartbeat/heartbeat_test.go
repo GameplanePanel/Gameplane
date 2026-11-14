@@ -155,7 +155,7 @@ func TestSendOnce_EmitsKnownUsage(t *testing.T) {
 			CPULimitMillicores: 2000, CPULimitKnown: true,
 			MemoryBytes: 1024, MemoryKnown: true,
 			MemoryLimitBytes: 4096, MemoryLimitKnown: true,
-			DiskUsedBytes: 10, DiskTotalBytes: 100, DiskKnown: true,
+			DiskUsedBytes: 10, DiskKnown: true, DiskTotalBytes: 100, DiskTotalKnown: true,
 		}},
 	})
 	if err != nil {
@@ -452,8 +452,8 @@ func TestSendOnce_PopulatesMetricsSnapshot_PlayersAndUsage(t *testing.T) {
 			MemoryLimitBytes:   4096,
 			MemoryLimitKnown:   true,
 			DiskUsedBytes:      100,
-			DiskTotalBytes:     1000,
-			DiskKnown:          true,
+			DiskTotalBytes:     1000, DiskTotalKnown: true,
+			DiskKnown: true,
 		}},
 		Metrics: metricsObj,
 	}

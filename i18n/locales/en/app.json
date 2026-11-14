@@ -8943,6 +8943,10 @@
     "defaultMessage": "Recent events",
     "description": "Overview tab: small uppercase heading of the recent events card"
   },
+  "web.routes.tabs.overview.storage_requested": {
+    "defaultMessage": "{size} requested",
+    "description": "Requested size of the server data volume when measured capacity is unavailable"
+  },
   "web.routes.tabs.overview.tailnet_only": {
     "defaultMessage": "Tailnet only",
     "description": "Overview tab: warning badge beside a tunnel address meaning it is reachable only inside the tailnet; keep it short"
