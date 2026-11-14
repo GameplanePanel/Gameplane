@@ -129,6 +129,44 @@ func TestRestoreUsesGamePlacementOnlyForFirstVolumeConsumer(t *testing.T) {
 	}
 }
 
+func TestLegacyTemplateRestoreUsesGamePlacementOnUnboundVolume(t *testing.T) {
+	policy, _, tmpl := gamePolicyFixture(t)
+	tmpl.Name = "legacy-template"
+	for _, tc := range []struct {
+		name     string
+		policy   *GameWorkloadPolicy
+		selector map[string]string
+		wantKey  string
+		want     string
+	}{
+		{"server architecture selector", nil, map[string]string{corev1.LabelArchStable: "amd64"}, corev1.LabelArchStable, "amd64"},
+		{"administrator pool", policy, nil, policy.PoolLabel, policy.PoolValue},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "server-data"}}
+			r, gs, _ := restoreLifecycleFixture(t, tmpl.DeepCopy(), pvc)
+			r.GameWorkloadPolicy = tc.policy
+			gs.Spec.TemplateRef.Name = tmpl.Name
+			gs.Spec.NodeSelector = tc.selector
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			lifecyclePasses(t, r, "first", 10)
+			jobs := lifecycleJobs(t, r)
+			if len(jobs) != 1 {
+				t.Fatalf("got %d restore jobs, want one", len(jobs))
+			}
+			pod := jobs[0].Spec.Template.Spec
+			if pod.NodeSelector[tc.wantKey] != tc.want {
+				t.Fatalf("restore worker selector %v, want %s=%s", pod.NodeSelector, tc.wantKey, tc.want)
+			}
+			if tc.policy != nil && (len(pod.Tolerations) != 1 || pod.Tolerations[0].Key != tc.wantKey || pod.Tolerations[0].Value != tc.want) {
+				t.Fatalf("restore worker missing pool toleration: %v", pod.Tolerations)
+			}
+		})
+	}
+}
+
 func TestPendingRestoreTemplateBindsBeforeCopyFailure(t *testing.T) {
 	r, gs, rs := restoreLifecycleFixture(t)
 	gs.Annotations = map[string]string{restoreGuardAnnotation: restoreIdentityJSON(rs.Name, rs.UID), restoreTemplateAnnotation: "missing-plan"}

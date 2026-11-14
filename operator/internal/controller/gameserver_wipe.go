@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -43,13 +44,23 @@ func (r *GameServerReconciler) reconcileWipe(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	inventory ...*wipeWorkerState,
 ) error {
-	state := wipeInventory(inventory)
+	return r.advanceWipe(ctx, gs, tmpl, wipeInventory(inventory), true)
+}
+
+func (r *GameServerReconciler) advanceWipe(ctx context.Context, gs *gameplanev1alpha1.GameServer,
+	tmpl *gameplanev1alpha1.GameTemplate, state *wipeWorkerState, allowLaunch bool,
+) error {
+	version := gs.ResourceVersion
 	changed, err := r.ensureWipeGuard(ctx, gs, state)
 	if apierrors.IsNotFound(err) {
 		return nil
 	}
 	if err != nil {
 		return err
+	}
+	if !allowLaunch && gs.ResourceVersion != version {
+		// A fresh pass must validate the changed server before rejecting its wipe.
+		return nil
 	}
 	if gs.Annotations[restoreGuardAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
 		return nil
@@ -132,6 +143,12 @@ func (r *GameServerReconciler) reconcileWipe(
 	if state.busy {
 		return nil
 	}
+	if !allowLaunch {
+		if err := r.GameWorkloadPolicy.validatePlacement(gs, tmpl); err != nil {
+			return r.rejectUnstartedWipe(ctx, gs, guard, err)
+		}
+		return nil
+	}
 	stopped, err := r.wipeTargetStopped(ctx, gs)
 	if err != nil || !stopped {
 		return err
@@ -148,7 +165,32 @@ func (r *GameServerReconciler) reconcileWipe(
 	if ready, err := wipeLifecycleReady(&live, guard); err != nil || !ready {
 		return err
 	}
-	return r.createWipeJob(ctx, &live, tmpl, jobName, guard)
+	err = r.createWipeJob(ctx, &live, tmpl, jobName, guard)
+	var rejected workloadPolicyRejection
+	if errors.As(err, &rejected) {
+		err = r.rejectUnstartedWipe(ctx, &live, guard, rejected)
+		*gs = live
+	}
+	return err
+}
+
+// The current owner is ready, and inventory found no Job or live wipe worker.
+// Record rejection before consuming the request. A crash after the checked
+// Update resumes ordinary cancellation, never success or another wipe launch.
+func (r *GameServerReconciler) rejectUnstartedWipe(ctx context.Context, gs *gameplanev1alpha1.GameServer, token string, reason error) error {
+	base := gs.DeepCopy()
+	meta.SetStatusCondition(&gs.Status.Conditions, metav1.Condition{
+		Type: gameplanev1alpha1.GameServerConditionDataWipe, Status: metav1.ConditionFalse,
+		Reason: "PlacementRejected", Message: reason.Error(), ObservedGeneration: gs.Generation,
+	})
+	if err := r.Status().Patch(ctx, gs, client.MergeFromWithOptions(base, client.MergeFromWithOptimisticLock{})); err != nil {
+		return err
+	}
+	delete(gs.Annotations, WipeRequestedAnnotation)
+	if err := r.Update(ctx, gs); err != nil {
+		return err
+	}
+	return r.releaseWipeGuard(ctx, gs, token, false)
 }
 
 func (r *GameServerReconciler) createWipeJob(

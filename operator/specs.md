@@ -155,6 +155,11 @@ rolling the template or raising replicas while the node is NotReady. Pending or
 terminating Pods do not authorize a wake or a new sleep listener.
 
 After restoring node capacity/readiness, reconciliation resumes automatically.
+Before a template rollout drains a Hostport game, the operator reads the
+recorded endpoint Node and compares its `kubernetes.io/arch` label with the
+target template's `requiredNodeArchitecture`. A missing or different label on
+that Node rejects adoption and reports the required migration. The game keeps
+its current revision and endpoint. A resumed rollout rechecks the same constraint.
 For intentional migration, suspend the server, wait for both game and sentinel
 Pods to disappear, clear both durable endpoint annotations, update scheduling,
 storage placement and the client-facing node address, then resume the game before
@@ -190,11 +195,15 @@ worker, and established TCP sessions use the longer session/drain context.
 
 - `GameServer.spec.templateRollout.policy` defaults to Automatic; OnRequest
   admits only `requestedRevision == status.templateRevision.desired`. Initial
-  provisioning/baseline always adopts the installed content. No fleet scheduler,
+  provisioning/baseline uses the installed content once admission succeeds. No fleet scheduler,
   canary or maintenance-window controller is implied.
-- First-pin initialization uses shared ownership and a checked metadata update
-  without stopping an existing workload. Its StatefulSet UID and render-input
-  fingerprint preserve the existing Pod template byte-for-byte, including API
+- First-pin initialization uses shared ownership and a checked metadata update.
+  A configured game worker policy or a template with `requiredNodeArchitecture`
+  requires the existing workload to drain before the first pin takes effect.
+  For an architecture requirement, the rollout owner records `architectureDrain`
+  at admission so a controller restart continues the same operation. Other
+  baselines can keep running. Their StatefulSet UID and render-input fingerprint
+  preserve the existing Pod template byte-for-byte, including API
   defaults/admission fields, while those inputs are unchanged. A real workload
   input change, replaced StatefulSet or observed stopped drain allows revision
   stamping. An existing unannotated Pod never receives inferred provenance.
@@ -363,10 +372,25 @@ direct and stored GameServers and before template revision adoption. An
 explicit suspend on a rejected configuration gracefully drains an existing
 owned StatefulSet using its pinned template, subject to lifecycle ownership.
 A legacy workload without a pin uses its Kubernetes termination grace.
-Only its replica count can change. Correct the reported policy violation
-before starting or rolling out the game.
-When the worker policy takes over a legacy StatefulSet, a Rollout owner
-keeps its Pod template intact until the StatefulSet observes zero replicas
+Only the StatefulSet replica count can change. For a suspended Hostport server,
+the operator also removes its owned wake listener to release the endpoint.
+Correct the reported policy violation before starting or rolling out the game.
+
+`GameTemplate.spec.requiredNodeArchitecture` adds a `kubernetes.io/arch`
+selector to the game Pod and its Hostport wake sentinel. The requirement covers
+every version and GameServer image override. Server selectors and affinity
+still apply. An explicit architecture selector or worker pool that contradicts
+the template fails placement validation before the operator adopts it.
+
+Restic restore, wipe, and stopped-server backup Jobs can be the first Pods to
+mount a game volume. For a missing or unbound claim they inherit the game's
+placement, including server selectors, tolerations, worker pool and affinity.
+This also applies to older templates that rely on a GameServer selector to
+choose amd64 workers. Once all mounted claims are bound, recovery can use the
+existing volume topology. A backup of a running game uses its source node.
+
+When a worker policy or architecture requirement takes over a legacy StatefulSet,
+a Rollout owner keeps its Pod template intact until the StatefulSet observes zero replicas
 and the old Pod and world-volume writers have gone. A running game with
 a verified Pod revision uses its own saved stop sequence. An unversioned
 Pod uses its existing Kubernetes termination grace. The operator then
@@ -543,6 +567,13 @@ state and existing cleanup intent are preserved before releasing the owner;
 failed/canceled restores remain suspended. Generation changes to active Backup
 or Restore specs fail the operation and enter cleanup rather than authorizing a
 different copy under the old owner. See [operator operation recovery](../docs/operator-operations.md).
+
+If placement rejects a wipe before launch, the operator checks that the current
+request owns the wipe and that no wipe Job or live worker remains. It records
+`DataWipe=False` with reason `PlacementRejected`, consumes the rejected request,
+and releases its guard. A canceled request can also finish cleanup while the
+server's placement is invalid. A failed wipe Job retains its guard and logs
+until cancellation or replacement because it may have partially cleared data.
 
 ### ModuleSourceReconciler
 - **Responsibility:** Index module sources and surface available modules into status.

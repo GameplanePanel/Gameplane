@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -13,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -857,5 +859,78 @@ func TestTemplateRevisionRejectsRestrictedIncompatibleTargetBeforeAdmission(t *t
 	}
 	if _, held, _ := lifecycleOwner(gs); held || gs.Annotations[effectiveTemplateAnnotation] != old {
 		t.Fatal("invalid security profile changed the pin or admitted a drain")
+	}
+}
+
+func TestHostportTemplateArchitectureRejectsRolloutBeforeDrain(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		baseline bool
+		admitted bool
+	}{
+		{name: "initial baseline", baseline: true},
+		{name: "revision upgrade"},
+		{name: "resumed baseline", baseline: true, admitted: true},
+		{name: "resumed revision upgrade", admitted: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := t.Context()
+			r, gs, tmpl := revisionFixture(t)
+			if err := r.reconcileStatefulSet(ctx, gs, tmpl, nil, &materializedConfig{}, 1); err != nil {
+				t.Fatal(err)
+			}
+			if tc.baseline {
+				delete(gs.Annotations, effectiveTemplateAnnotation)
+			}
+			pin := gs.Annotations[effectiveTemplateAnnotation]
+			node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "worker", UID: "original", Labels: map[string]string{corev1.LabelArchStable: "amd64"}}}
+			if err := r.Create(ctx, node); err != nil {
+				t.Fatal(err)
+			}
+			gs.Spec.Networking.Expose = "Hostport"
+			gs.Spec.TemplateRollout.Policy = "Automatic"
+			gs.Annotations[hostportNodeAnnotation] = node.Name
+			gs.Annotations[hostportNodeUIDAnnotation] = string(node.UID)
+			if err := r.Update(ctx, gs); err != nil {
+				t.Fatal(err)
+			}
+			tmpl.Spec.RequiredNodeArchitecture = "amd64"
+			if err := r.Update(ctx, tmpl); err != nil {
+				t.Fatal(err)
+			}
+			if tc.admitted {
+				if _, changed, err := r.reconcileTemplateRevision(ctx, gs); err != nil || !changed || gs.Annotations[lifecycleOperationAnnotation] == "" {
+					t.Fatalf("matching endpoint was not admitted: %v", err)
+				}
+			}
+			owner := gs.Annotations[lifecycleOperationAnnotation]
+			node.Labels[corev1.LabelArchStable] = "arm64"
+			if err := r.Update(ctx, node); err != nil {
+				t.Fatal(err)
+			}
+			key := client.ObjectKeyFromObject(gs)
+			if _, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key}); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Get(ctx, key, gs); err != nil {
+				t.Fatal(err)
+			}
+			ready := meta.FindStatusCondition(gs.Status.Conditions, "Ready")
+			if ready == nil || ready.Status != metav1.ConditionFalse || !strings.Contains(ready.Message, "arm64") ||
+				!strings.Contains(ready.Message, "amd64") || !strings.Contains(ready.Message, "migrate") {
+				t.Fatalf("missing endpoint migration instructions: %+v", ready)
+			}
+			if gs.Annotations[effectiveTemplateAnnotation] != pin || gs.Annotations[lifecycleOperationAnnotation] != owner ||
+				gs.Annotations[hostportNodeAnnotation] != node.Name || gs.Annotations[hostportNodeUIDAnnotation] != string(node.UID) {
+				t.Fatalf("incompatible revision changed the pin, rollout owner or endpoint: %+v", gs.Annotations)
+			}
+			var ss appsv1.StatefulSet
+			if err := r.Get(ctx, key, &ss); err != nil {
+				t.Fatal(err)
+			}
+			if ss.Spec.Replicas == nil || *ss.Spec.Replicas != 1 || ss.Spec.Template.Spec.NodeSelector[corev1.LabelArchStable] != "" {
+				t.Fatalf("incompatible rollout changed the existing StatefulSet: %+v", ss.Spec)
+			}
+		})
 	}
 }

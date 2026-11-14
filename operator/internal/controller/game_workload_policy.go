@@ -40,6 +40,18 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 	effective *gameplanev1alpha1.GameTemplate, rejection error,
 ) (ctrl.Result, error) {
 	var result ctrl.Result
+	var wipeState wipeWorkerState
+	if gs.Annotations[wipeGuardAnnotation] != "" {
+		// Validation normally returns before the wipe controller gets a turn.
+		// Settle cancellation or failure under the existing owner without launching a Job.
+		version := gs.ResourceVersion
+		if err := r.advanceWipe(ctx, gs, effective, &wipeState, false); err != nil {
+			return requeueOnConflict(result, err)
+		}
+		if gs.ResourceVersion != version {
+			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
+		}
+	}
 	if gs.Spec.Suspend {
 		key := client.ObjectKeyFromObject(gs)
 		var live gameplanev1alpha1.GameServer
@@ -49,6 +61,14 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 		if !live.Spec.Suspend || live.UID != gs.UID || live.Generation != gs.Generation ||
 			live.Annotations[effectiveTemplateAnnotation] != gs.Annotations[effectiveTemplateAnnotation] {
 			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
+		}
+		if live.Spec.Networking.Expose == "Hostport" {
+			// Explicit endpoint migration must be able to release a sleeping
+			// server's host ports even while its template is inadmissible.
+			waker := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: live.Namespace, Name: live.Name + "-waker"}}
+			if err := r.deleteIfControlledBy(ctx, &live, waker, client.PropagationPolicy(metav1.DeletePropagationForeground)); err != nil {
+				return requeueOnConflict(result, err)
+			}
 		}
 		var ss appsv1.StatefulSet
 		err := r.wipeReader().Get(ctx, key, &ss)
@@ -72,7 +92,7 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 				// stop can still drain it while the new baseline is inadmissible.
 				replicas, result.RequeueAfter, err = r.softStop(ctx, &live, effective)
 			} else {
-				replicas, result.RequeueAfter, err = r.desiredReplicas(ctx, &live, effective, idleAwake)
+				replicas, result.RequeueAfter, err = r.desiredReplicas(ctx, &live, effective, idleAwake, &wipeState)
 			}
 			if err != nil {
 				return requeueOnConflict(result, err)
@@ -87,6 +107,12 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 				}
 			}
 		}
+	}
+	// Orphan wipe Pods do not enqueue this server after their Job is gone.
+	// Continue polling their drain even after the StatefulSet has scaled to zero.
+	if gs.Annotations[wipeGuardAnnotation] != "" && (result.RequeueAfter == 0 || result.RequeueAfter > wipeDrainPoll) &&
+		!r.settledWipeFailure(ctx, gs, &wipeState) {
+		result.RequeueAfter = wipeDrainPoll
 	}
 	return result, r.setPhase(ctx, gs, rejection.Error())
 }
@@ -184,7 +210,9 @@ func (p *GameWorkloadPolicy) placement(gs *gameplanev1alpha1.GameServer, tmpl *g
 // A worker can be the first consumer of a suspended game's local storage.
 // Already-bound claims retain their volume topology so legacy data can be recovered.
 func (p *GameWorkloadPolicy) placeFirstVolumeConsumer(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate, pod *corev1.PodSpec) error {
-	if tmpl.Spec.RequiredNodeArchitecture == "" {
+	selector, tolerations := p.placement(gs, tmpl)
+	affinity := hostportAffinity(gs)
+	if len(selector) == 0 && len(tolerations) == 0 && affinity == nil {
 		return nil
 	}
 	for _, volume := range pod.Volumes {
@@ -202,8 +230,7 @@ func (p *GameWorkloadPolicy) placeFirstVolumeConsumer(ctx context.Context, reade
 			if err := p.validatePlacement(gs, tmpl); err != nil {
 				return workloadPolicyRejection{err}
 			}
-			pod.NodeSelector, pod.Tolerations = p.placement(gs, tmpl)
-			pod.Affinity = hostportAffinity(gs)
+			pod.NodeSelector, pod.Tolerations, pod.Affinity = selector, tolerations, affinity
 			break
 		}
 	}

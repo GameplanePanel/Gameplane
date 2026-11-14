@@ -164,6 +164,7 @@ var rows = []row{
 	{types: []string{"TunnelAddressInvalid"}, reason: "ValidationFailed", english: "Some tunnel endpoints were rejected: {details}", description: "Condition when endpoints reported by the playit tunnel pod fail validation. details is the English validation text."},
 	{types: []string{"IdleScheduleInvalid"}, reason: "WakeWindowUnparseable", english: "A wake window in the idle schedule cannot be parsed: {details}", description: "Condition when spec.idle has an invalid wake window. details is the English parse error."},
 	{types: []string{"DataWipe"}, reason: "JobFailed", english: "The data wipe job did not complete. The volume may not be fully cleared.", description: "DataWipe condition when the wipe job fails."},
+	{types: []string{"DataWipe"}, reason: "PlacementRejected", english: "The data wipe could not start. Correct the worker placement settings before requesting another wipe.", description: "DataWipe condition when worker placement prevents the wipe from starting."},
 
 	// Backup, Restore, Unquiesced, SnapshotForgotten (Type Completed is shared)
 	{types: []string{"Completed"}, reason: "Succeeded", english: "The backup or restore completed successfully.", description: "Completed condition on a Backup or Restore that finished."},

@@ -183,6 +183,17 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 		if err != nil || !ready {
 			return effective, true, err
 		}
+		target := effective
+		if !op.Baseline && op.Token != pin {
+			// The admitted target survives a subsequent catalog update.
+			target, err = loadTemplateSnapshot(ctx, r.wipeReader(), gs, op.Token)
+			if err != nil {
+				return nil, false, err
+			}
+		}
+		if err := r.validateHostportArchitecture(ctx, gs, target); err != nil {
+			return effective, false, err
+		}
 		if op.Baseline {
 			if r.baselineNeedsDrain(op) {
 				drained, err := r.templateWorkloadDrained(ctx, gs)
@@ -195,11 +206,6 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			return effective, true, r.initializeTemplateBaseline(ctx, gs, op)
 		}
 		if op.Token != pin {
-			// The admitted target survives a subsequent catalog update.
-			target, err := loadTemplateSnapshot(ctx, r.wipeReader(), gs, op.Token)
-			if err != nil {
-				return nil, false, err
-			}
 			if err := validateTemplateTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}
@@ -263,6 +269,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			admit = false
 		}
 		if admit {
+			if err := r.validateHostportArchitecture(ctx, gs, target); err != nil {
+				return effective, false, err
+			}
 			if err := validateTemplateTransition(gs, effective, target); err != nil {
 				return nil, false, err
 			}
@@ -294,6 +303,9 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 			claimed, err := claimLifecycleOperation(ctx, r.Client, r.wipeReader(), gs, want, r.OperationQuiescer)
 			return effective, claimed, err
 		}
+	}
+	if err := r.validateHostportArchitecture(ctx, gs, effective); err != nil {
+		return effective, false, err
 	}
 	return effective, false, r.pruneTemplateSnapshots(ctx, gs)
 }
