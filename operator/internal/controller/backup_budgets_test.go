@@ -79,7 +79,7 @@ func TestBackupWorkerPreparesBeforeQuiesceAndPinsAuthorization(t *testing.T) {
 	worker := budgetReadyWorker(t, r, b.Name, "prepared-worker-uid")
 	budgetPass(t, r, b.Name)
 	b = guardGetBackup(t, r, b.Name)
-	if q.quiesced != 1 || b.Status.CaptureManifest == nil || b.Status.CaptureManifest.State != "Recorded" || b.Status.CaptureManifest.QuiesceOutcome != "confirmed" {
+	if q.quiesced != 1 || b.Status.CaptureManifest == nil || b.Status.CaptureManifest.State != "Recorded" || b.Status.CaptureManifest.QuiesceOutcome != "verified-freeze" {
 		t.Fatalf("prepared copy not quiesced/recorded: %+v, %+v", q, b.Status)
 	}
 	if volumes := b.Status.CaptureManifest.Volumes; len(volumes) != 1 || volumes[0].ClaimName != "server-data" || !volumes[0].Included || volumes[0].Classification != "data" {

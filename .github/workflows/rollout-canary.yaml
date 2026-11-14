@@ -1,0 +1,21 @@
+name: Rollout canary qualification
+on:
+  pull_request:
+    paths:
+      - "hack/rollout/**"
+      - ".github/workflows/rollout-canary.yaml"
+      - "test/e2e/cmd/join-once/**"
+      - "operator/internal/controller/restore_recovery.go"
+      - "operator/internal/controller/gameserver_template_revision.go"
+permissions:
+  contents: read
+jobs:
+  admission-and-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exercise fleet halt, claim identity and rollback decisions
+        run: python3 -m unittest discover -s hack/rollout -p 'test_*.py' -v

@@ -421,6 +421,21 @@ func validateTemplateSchema(node *yaml.Node) []Finding {
 			})
 		}
 		specVerNode := common.FindNode(node, "spec.version")
+		if flush := common.FindNode(node, "spec.capabilities.backupFlush"); flush != nil {
+			rcon := common.FindNode(node, "spec.rcon")
+			protocol := common.FindNode(node, "spec.rcon.protocol")
+			// The CRD defaults an omitted protocol in an RCON block to source.
+			rconEnabled := rcon != nil && rcon.Kind == yaml.MappingNode && (protocol == nil || protocol.Value != "none")
+			if flush.Value != "minecraft-save-all" || gameNode == nil || gameNode.Value != "minecraft-java" ||
+				!rconEnabled || common.FindNode(node, "spec.capabilities.quiesce") != nil {
+				findings = append(findings, Finding{
+					Level: SeverityError, RuleID: RuleTemplateSchemaViolation, File: "template.yaml",
+					Field: "spec.capabilities.backupFlush", Line: flush.Line, Column: flush.Column,
+					Message:     "backupFlush requires minecraft-java, the minecraft-save-all adapter, enabled RCON and no quiesce declaration",
+					Remediation: "Configure spec.rcon for the Minecraft Java checkpoint or choose a stopped copy.",
+				})
+			}
+		}
 		if specVerNode == nil || specVerNode.Value == "" {
 			findings = append(findings, Finding{
 				Level:       SeverityError,

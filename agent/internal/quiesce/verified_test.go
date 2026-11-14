@@ -42,6 +42,27 @@ func TestMinecraftPositiveCommandResponses(t *testing.T) {
 	}
 }
 
+func TestMinecraftCheckpointLeavesSavingEnabled(t *testing.T) {
+	for _, tc := range []struct {
+		reply   string
+		code    int
+		outcome string
+	}{
+		{"Saved the game", http.StatusOK, "flushed"},
+		{"Saving the game (this may take a moment!)", http.StatusBadGateway, ""},
+	} {
+		rc := &fakeRcon{respond: func(string) (string, error) { return tc.reply, nil }}
+		router := chi.NewRouter()
+		MountMinecraftFlush(router, rcon.NewCommands(rc))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/flush", nil))
+		got := decodeResponse(t, w.Body.Bytes())
+		if w.Code != tc.code || got.Quiesced || got.Outcome != tc.outcome || !reflect.DeepEqual(rc.calls(), []string{"save-all flush"}) {
+			t.Fatalf("checkpoint reply %q: HTTP %d, %+v, commands %v", tc.reply, w.Code, got, rc.calls())
+		}
+	}
+}
+
 func TestVerifiedSequenceBlocksCleanupUntilRollbackFinishes(t *testing.T) {
 	reached, release := make(chan struct{}), make(chan struct{})
 	var once sync.Once

@@ -58,6 +58,8 @@ func Mount(r chi.Router, rc Rcon, _ string, spec *caps.Lifecycle) {
 			httpjson.Write(w, http.StatusOK, response{Stopped: false, Reason: "game declares no stop sequence"})
 			return
 		}
+		// Finish the game's shutdown sequence even if the operator disconnects
+		// while waiting for a backup to release RCON.
 		s.Stop(rc)
 		httpjson.Write(w, http.StatusOK, response{Stopped: true})
 	})
