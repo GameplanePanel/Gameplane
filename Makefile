@@ -375,6 +375,8 @@ manifests: ## Regenerate CRDs + RBAC manifests (and sync chart CRD copies)
 		paths=./... \
 		output:crd:artifacts:config=config/crd \
 		output:rbac:artifacts:config=config/rbac
+	# controller-gen has no marker for a name pattern conditional on applyOnRestart.
+	git apply operator/config/patches/deferred-config-secret-key.patch
 	# Copy the CRDs into the conditional CRD subchart and crd-manifests/ (the same CRDs
 	# where Helm's .Files can read them -- it can't read the special crds/
 	# dir -- so the crds.autoApply hook can apply them), stamping each copy

@@ -1130,6 +1130,8 @@ type AgentSpec struct {
 
 // ConfigField is a single user-tunable setting surfaced in the wizard.
 // +kubebuilder:validation:XValidation:rule="!has(self.envName) || !has(self.target) || self.target == 'env'",message="envName applies only to target env fields"
+// +kubebuilder:validation:XValidation:rule="!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target) || self.target == 'env'",message="applyOnRestart requires an environment field"
+// +kubebuilder:validation:XValidation:rule="!has(self.applyOnRestart) || !self.applyOnRestart || (size(self.name) <= 253 && self.name != '.' && !self.name.startsWith('..'))",message="applyOnRestart requires a Secret key name of at most 253 characters that is not '.' and does not start with '..'"
 type ConfigField struct {
 	// Name is the field identifier and the key in GameServer.spec.config.
 	// It is also the env var name when Target is "env" and EnvName is
@@ -1179,6 +1181,15 @@ type ConfigField struct {
 	// +kubebuilder:validation:MaxLength=253
 	// +optional
 	EnvName string `json:"envName,omitempty"`
+
+	// ApplyOnRestart stages this environment value for the next container start.
+	// Edits and clears update the config Secret without rolling the game Pod.
+	// Config files that reference the field are refreshed by their init container
+	// on the next Pod start. Other fields keep their usual rollout behavior.
+	// Name must be a valid Kubernetes Secret key. Admission enforces this rule,
+	// and the reconciler checks keys from previously admitted template revisions.
+	// +optional
+	ApplyOnRestart bool `json:"applyOnRestart,omitempty"`
 
 	// AutoFromMemoryLimit, when set, computes this field's value from the
 	// game container's effective memory limit whenever neither
