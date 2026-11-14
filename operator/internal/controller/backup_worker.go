@@ -308,6 +308,10 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		if source.NodeName == "" {
 			// A scheduled game Pod has already bound its mounted claims.
 			if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.backupAPIReader(), bound, tmpl, &job.Spec.Template.Spec); err != nil {
+				var rejected workloadPolicyRejection
+				if errors.As(err, &rejected) {
+					return r.abortResticCopy(ctx, b, rejected.Error())
+				}
 				return ctrl.Result{}, err
 			}
 		}

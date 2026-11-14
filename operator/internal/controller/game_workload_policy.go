@@ -31,8 +31,8 @@ type GameWorkloadPolicy struct {
 	MaxMemoryLimit   resource.Quantity `json:"maxMemoryLimit"`
 }
 
-// A rejected rollout must retain the effective template for the running
-// game's stop sequence. The rejected target is never rendered or executed.
+// A workload policy rejection is a permanent configuration error. Callers
+// can safely stop the effective workload or release a failed worker's guard.
 type workloadPolicyRejection struct{ error }
 
 // reconcileRejectedGameWorkload permits a suspended, owned server to drain while its requested configuration is invalid.
@@ -193,12 +193,14 @@ func (p *GameWorkloadPolicy) placeFirstVolumeConsumer(ctx context.Context, reade
 		}
 		var pvc corev1.PersistentVolumeClaim
 		key := client.ObjectKey{Namespace: gs.Namespace, Name: volume.PersistentVolumeClaim.ClaimName}
-		if err := reader.Get(ctx, key, &pvc); err != nil {
+		// A claim can be created after the Job. Treat absence as unbound
+		// so the worker can wait for it within the ordinary Job deadline.
+		if err := reader.Get(ctx, key, &pvc); err != nil && !apierrors.IsNotFound(err) {
 			return fmt.Errorf("read game volume %s before scheduling worker: %w", key, err)
 		}
 		if pvc.Spec.VolumeName == "" {
 			if err := p.validatePlacement(gs, tmpl); err != nil {
-				return err
+				return workloadPolicyRejection{err}
 			}
 			pod.NodeSelector, pod.Tolerations = p.placement(gs, tmpl)
 			pod.Affinity = hostportAffinity(gs)

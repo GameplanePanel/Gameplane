@@ -327,6 +327,29 @@ func TestStoppedBackupFirstConsumerUsesGameArchitecture(t *testing.T) {
 	}
 }
 
+func TestStoppedBackupReleasesGuardOnFirstConsumerConflict(t *testing.T) {
+	r, _ := stoppedBackupFixture(t, true)
+	tmpl := &gameplanev1alpha1.GameTemplate{ObjectMeta: metav1.ObjectMeta{Name: "template"},
+		Spec: gameplanev1alpha1.GameTemplateSpec{RequiredNodeArchitecture: "amd64"}}
+	if err := r.Create(t.Context(), tmpl); err != nil {
+		t.Fatal(err)
+	}
+	policy, _, _ := gamePolicyFixture(t)
+	policy.PoolLabel, policy.PoolValue = corev1.LabelArchStable, "arm64"
+	r.GameWorkloadPolicy = policy
+	budgetPass(t, r, "first")
+	budgetPass(t, r, "first")
+	b := guardGetBackup(t, r, "first")
+	var gs gameplanev1alpha1.GameServer
+	if err := r.Get(t.Context(), client.ObjectKey{Namespace: "ns", Name: "server"}, &gs); err != nil {
+		t.Fatal(err)
+	}
+	if b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed || !strings.Contains(b.Status.Message, "amd64") ||
+		gs.Annotations[lifecycleOperationAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
+		t.Fatalf("placement conflict failed to release backup: %+v, %v", b.Status, gs.Annotations)
+	}
+}
+
 func TestBackupPreparedWorkerFailurePreservesJobMessage(t *testing.T) {
 	r, _ := guardFixtureWorkers(t, false, guardBackup("failed-worker"))
 	budgetPass(t, r, "failed-worker")

@@ -276,6 +276,10 @@ func (r *RestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		job.Spec.Template.Labels = map[string]string{backupRestoreJobLabel: backupRestoreJobValue, restoreUIDLabel: string(rs.UID)}
 		job.Spec.Template.Spec = r.buildRestorePodSpec(&rs, &src, &tmpl)
 		if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.apiReader(), &gs, &tmpl, &job.Spec.Template.Spec); err != nil {
+			var rejected workloadPolicyRejection
+			if errors.As(err, &rejected) {
+				return r.fail(ctx, &rs, rejected.Error())
+			}
 			return ctrl.Result{}, err
 		}
 		if err := r.prepareRecoveryRestorePod(ctx, &rs, &job.Spec.Template.Spec); err != nil {
