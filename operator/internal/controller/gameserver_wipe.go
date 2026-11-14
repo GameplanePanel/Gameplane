@@ -226,6 +226,9 @@ func (r *GameServerReconciler) createWipeJob(
 			},
 		},
 	}
+	if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.wipeReader(), gs, tmpl, &job.Spec.Template.Spec); err != nil {
+		return err
+	}
 	if err := controllerutil.SetControllerReference(gs, job, r.Scheme); err != nil {
 		return err
 	}

@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 3cfb12539ba83c3386c61b485a8069d635b9ed9121a4f316ed3a7232c145360a
+    gameplane.local/crd-bundle-sha256: 7eb90b2b8ead95f3060e33c210d41167f4aa52d4fb6766967638a0d3b457659e
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gametemplates.gameplane.local
 spec:
@@ -2109,6 +2109,14 @@ spec:
                   rule: '!has(self.authentication) || self.authentication || (!has(self.passwordSecretRef)
                     && (!has(self.passwordEnv) || size(self.passwordEnv) == 0) &&
                     (!has(self.passwordFile) || size(self.passwordFile) == 0))'
+              requiredNodeArchitecture:
+                description: |-
+                  RequiredNodeArchitecture is the kubernetes.io/arch label required by
+                  the game executable (for example, amd64). Omit for portable templates.
+                  The requirement also applies to version selections and image overrides.
+                maxLength: 63
+                pattern: ^[a-z0-9]+$
+                type: string
               resources:
                 description: Resources are the default compute resources for the game
                   container.

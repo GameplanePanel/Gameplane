@@ -72,6 +72,43 @@ func lifecycleRestore(name string, uid types.UID) *gameplanev1alpha1.Restore {
 	}
 }
 
+func TestRestoreUsesGamePlacementOnlyForFirstVolumeConsumer(t *testing.T) {
+	for _, volume := range []string{"", "legacy-arm64-volume"} {
+		t.Run("volume="+volume, func(t *testing.T) {
+			policy, _, tmpl := gamePolicyFixture(t)
+			tmpl.Name = "game-template"
+			tmpl.Spec.RequiredNodeArchitecture = "amd64"
+			pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "server-data"},
+				Spec: corev1.PersistentVolumeClaimSpec{VolumeName: volume}}
+			r, gs, _ := restoreLifecycleFixture(t, tmpl, pvc)
+			r.GameWorkloadPolicy = policy
+			gs.Spec.TemplateRef.Name = tmpl.Name
+			gs.Spec.NodeSelector = map[string]string{"rack": "west"}
+			gs.Spec.Affinity = &corev1.Affinity{PodAntiAffinity: &corev1.PodAntiAffinity{}}
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			lifecyclePasses(t, r, "first", 10)
+			jobs := lifecycleJobs(t, r)
+			if len(jobs) != 1 {
+				t.Fatalf("restore jobs: %v", jobs)
+			}
+			pod := jobs[0].Spec.Template.Spec
+			if volume != "" {
+				if len(pod.NodeSelector) != 0 || pod.Affinity != nil {
+					t.Fatalf("bound volume recovery acquired game node constraints: %+v", pod)
+				}
+				return
+			}
+			if pod.NodeSelector[corev1.LabelArchStable] != "amd64" || pod.NodeSelector["rack"] != "west" ||
+				pod.NodeSelector[policy.PoolLabel] != policy.PoolValue || len(pod.Tolerations) != 1 ||
+				pod.Affinity == nil || pod.Affinity.PodAntiAffinity == nil {
+				t.Fatalf("first consumer can bind outside game placement: %+v", pod)
+			}
+		})
+	}
+}
+
 func TestPendingRestoreTemplateBindsBeforeCopyFailure(t *testing.T) {
 	r, gs, rs := restoreLifecycleFixture(t)
 	gs.Annotations = map[string]string{restoreGuardAnnotation: restoreIdentityJSON(rs.Name, rs.UID), restoreTemplateAnnotation: "missing-plan"}

@@ -123,7 +123,8 @@ type BackupReconciler struct {
 	ResticImage string
 	// BackupResources replaces resources for backup/init and repository cleanup
 	// workers. Nil uses defaults; an explicit empty object clears them.
-	BackupResources *corev1.ResourceRequirements
+	BackupResources    *corev1.ResourceRequirements
+	GameWorkloadPolicy *GameWorkloadPolicy
 	// JobBackoffLimit / JobActiveDeadlineSeconds bound the restic backup Job.
 	// Set from operator flags; nil / zero fall back to
 	// DefaultBackupJobBackoffLimit / DefaultBackupJobActiveDeadlineSeconds.

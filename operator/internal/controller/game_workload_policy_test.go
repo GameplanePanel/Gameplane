@@ -71,13 +71,13 @@ func TestGamePartialResourceOverrideAndPlacement(t *testing.T) {
 	if tmpl.Spec.Resources.Requests.Cpu().String() != "250m" || gs.Spec.Resources.Limits != nil {
 		t.Fatal("merge mutated its inputs")
 	}
-	selector, tolerations := p.placement(gs)
+	selector, tolerations := p.placement(gs, tmpl)
 	if selector["rack"] != "west" || selector[p.PoolLabel] != p.PoolValue || len(gs.Spec.NodeSelector) != 1 ||
 		len(tolerations) != 1 || tolerations[0].Operator != corev1.TolerationOpEqual {
 		t.Fatalf("worker placement: %v %v", selector, tolerations)
 	}
 	var disabled *GameWorkloadPolicy
-	sel, tol := disabled.placement(gs)
+	sel, tol := disabled.placement(gs, tmpl)
 	if len(sel) != 1 || sel["rack"] != "west" || len(tol) != 1 || tol[0] != gs.Spec.Tolerations[0] {
 		t.Fatalf("legacy placement changed: %v %v", sel, tol)
 	}
@@ -119,6 +119,8 @@ func TestGameWorkloadPolicyRendersMergedResourcesAndWorkerPlacement(t *testing.T
 	p, _, tmpl := gamePolicyFixture(t)
 	r.GameWorkloadPolicy = p
 	effective.Spec.Resources = tmpl.Spec.Resources
+	effective.Spec.RequiredNodeArchitecture = "amd64"
+	gs.Spec.NodeSelector = map[string]string{"rack": "west"}
 	gs.Spec.Resources = &corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceMemory: resource.MustParse("2Gi")}}
 	if err := r.Update(t.Context(), gs); err != nil {
 		t.Fatal(err)
@@ -134,8 +136,49 @@ func TestGameWorkloadPolicyRendersMergedResourcesAndWorkerPlacement(t *testing.T
 	game := pod.Containers[0]
 	if game.Name != gameContainerName || game.Resources.Requests.Cpu().String() != "250m" ||
 		game.Resources.Limits.Memory().String() != "2Gi" || !game.Resources.Limits.Cpu().IsZero() ||
-		pod.NodeSelector[p.PoolLabel] != p.PoolValue || len(pod.Tolerations) != 1 || pod.Tolerations[0].Key != p.PoolLabel {
+		pod.NodeSelector[p.PoolLabel] != p.PoolValue || pod.NodeSelector[corev1.LabelArchStable] != "amd64" ||
+		pod.NodeSelector["rack"] != "west" || len(gs.Spec.NodeSelector) != 1 ||
+		len(pod.Tolerations) != 1 || pod.Tolerations[0].Key != p.PoolLabel {
 		t.Fatalf("wrong game resources or placement: %+v / %+v / %+v", game.Resources, pod.NodeSelector, pod.Tolerations)
+	}
+}
+
+func TestTemplateArchitectureRejectsConflictingPlacement(t *testing.T) {
+	for _, conflict := range []string{"server", "worker pool"} {
+		t.Run(conflict, func(t *testing.T) {
+			r, gs, tmpl := revisionFixture(t)
+			tmpl.Spec.RequiredNodeArchitecture = "amd64"
+			if conflict == "worker pool" {
+				p, _, valid := gamePolicyFixture(t)
+				p.PoolLabel, p.PoolValue = corev1.LabelArchStable, "arm64"
+				r.GameWorkloadPolicy, tmpl.Spec.Resources = p, valid.Spec.Resources
+			} else {
+				gs.Spec.NodeSelector = map[string]string{corev1.LabelArchStable: "arm64"}
+			}
+			delete(gs.Annotations, effectiveTemplateAnnotation)
+			ctx := t.Context()
+			if err := r.Update(ctx, tmpl); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Update(ctx, gs); err != nil {
+				t.Fatal(err)
+			}
+			key := client.ObjectKeyFromObject(gs)
+			if _, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key}); err != nil {
+				t.Fatal(err)
+			}
+			if err := r.Get(ctx, key, gs); err != nil {
+				t.Fatal(err)
+			}
+			ready := meta.FindStatusCondition(gs.Status.Conditions, "Ready")
+			if ready == nil || ready.Status != metav1.ConditionFalse || !strings.Contains(ready.Message, "amd64") ||
+				gs.Annotations[lifecycleOperationAnnotation] != "" {
+				t.Fatalf("conflicting placement was admitted or not explained: %+v", gs)
+			}
+			if err := r.Get(ctx, key, &appsv1.StatefulSet{}); !apierrors.IsNotFound(err) {
+				t.Fatalf("conflicting placement produced a workload: %v", err)
+			}
+		})
 	}
 }
 
@@ -287,13 +330,17 @@ func TestWorkerPolicyRefusesUnsafeProbeInHistoricalBaseline(t *testing.T) {
 
 // A catalog snapshot saved during migration is not proof of the legacy Pod's stop contract.
 func TestWorkerPolicyDrainsLegacyPodBeforeFirstPin(t *testing.T) {
-	for _, contract := range []string{"unversioned", "verified", "previously pinned baseline"} {
+	for _, contract := range []string{"unversioned", "verified", "previously pinned baseline", "template architecture only"} {
 		t.Run(contract, func(t *testing.T) {
 			ctx := t.Context()
 			r, gs, catalog := revisionFixture(t)
 			policy, _, valid := gamePolicyFixture(t)
 			r.GameWorkloadPolicy = policy
 			catalog.Spec.Resources = valid.Spec.Resources
+			if contract == "template architecture only" {
+				r.GameWorkloadPolicy = nil
+				catalog.Spec.RequiredNodeArchitecture = "amd64"
+			}
 			catalog.Spec.RCON = &gameplanev1alpha1.RCONSpec{Protocol: "source"}
 			catalog.Spec.Capabilities = &gameplanev1alpha1.CapabilitiesSpec{Lifecycle: &gameplanev1alpha1.LifecycleSpec{Stop: []string{"save", "stop"}}}
 			oldRevision, err := r.saveTemplateSnapshot(ctx, gs, catalog)
@@ -418,7 +465,11 @@ func TestWorkerPolicyDrainsLegacyPodBeforeFirstPin(t *testing.T) {
 			for range 5 {
 				step()
 			}
-			if *ss.Spec.Replicas != 1 || ss.Spec.Template.Spec.NodeSelector[r.GameWorkloadPolicy.PoolLabel] != r.GameWorkloadPolicy.PoolValue ||
+			selector := ss.Spec.Template.Spec.NodeSelector
+			if contract == "template architecture only" && selector[corev1.LabelArchStable] != "amd64" {
+				t.Fatalf("replacement lacks the required architecture: %v", selector)
+			}
+			if *ss.Spec.Replicas != 1 || (r.GameWorkloadPolicy != nil && selector[policy.PoolLabel] != policy.PoolValue) ||
 				!validTemplateRevision(ss.Spec.Template.Annotations[templateRevisionAnnotation]) || ss.Spec.Template.Spec.Containers[0].Image != catalog.Spec.Image {
 				t.Fatal("drained workload did not resume on its policy-compliant revision")
 			}
