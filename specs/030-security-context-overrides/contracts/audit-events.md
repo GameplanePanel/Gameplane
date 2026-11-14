@@ -1,0 +1,67 @@
+# Contract: audit events for security overrides
+
+**Requirements**: FR-005, FR-010, SC-005. **Research**: R11, R12.
+
+No schema change. Rows use the existing `audit_events` columns (`api/internal/audit/audit.go:820-830`): `ts`, `actor`, `method`, `path`, `target`, `status`, `ip`, `reason`. They are hash-chained, forwarded to the stdout, webhook and S3 sinks, shown on the audit page and in the CSV and JSON exports like every other row. The structured detail rides in `reason`, which the chain includes whenever it is non-empty (`audit.go:318-340`).
+
+Each handler writes its row with `Auditor.WriteSync` and then calls `audit.MarkRecorded`, so the request has exactly one row (the capture precedent, `api/internal/handlers/capture.go:1252-1258`).
+
+## Write order
+
+The override lives on the CRD and the audit row in the API database, so no single transaction covers both. The order makes sure no saved change ever lacks its before and after values (FR-010):
+
+1. **Change (create, update, clone, setting flip):** the handler builds the row and calls `WriteSync` *before* the Kubernetes write (for the setting flip, before the ConfigMap and config row writes). If `WriteSync` fails, the request fails with 500 `audit write failed` (as the capture handler does) and nothing is saved. The generic middleware row then records the failed request.
+2. If the Kubernetes write (or the ConfigMap or config row write) then fails, the handler writes a second row for the same request, `status` the error status and `reason` `security_save_failed`, so a reader sees the change was attempted and not stored. If that second write fails too, the error is logged; the first row stays and is the known, accepted gap: the trail can show an intent that was not stored, never a stored change without its record.
+3. **Refusals (403, 422):** nothing is saved, so the order does not matter. If `WriteSync` fails, `MarkRecorded` is not called and the middleware's generic row is the fallback (`audit.go:594-611`); the response is still the refusal.
+
+## Events
+
+| Event | `method` `path` | `target` | `status` | `reason` |
+|---|---|---|---|---|
+| Override set, changed or removed (create, update, clone) | the request's own, for example `PUT /servers/survival` | server name | the response status (200 or 201) | `security:{"before":{...},"after":{...}}` |
+| Refused: permission | the request's own | server name | 403 | `security_forbidden` |
+| Refused: root rule | the request's own | server name | 403 | `security_root_disabled:runAsUser` (the first offending setting) |
+| Refused: invalid shape | the request's own | server name | 422 | `security_invalid:fsGroup` |
+| Save failed after the row was written | the request's own | server name or `security` | the error status | `security_save_failed` |
+| Cluster setting flipped | `PUT /admin/config/security` | `security` | 200 | `allowRootOverrides:false->true` |
+
+A request that changes other fields but leaves `spec.security` unchanged writes no security row; the generic middleware row stands.
+
+## `reason` for a change
+
+`security:` followed by compact JSON with only the settings that changed. Values use the spec's notation:
+
+| Stored override | JSON value |
+|---|---|
+| not set | `null` |
+| a number | the number |
+| use image default | `"image"` |
+| ownership check | `"EveryStart"` or `"OnlyWhenWrong"` |
+
+```text
+security:{"before":{"runAsUser":null},"after":{"runAsUser":2000}}
+security:{"before":{"runAsGroup":1000},"after":{"runAsGroup":"image"}}
+security:{"before":{"volumeOwnershipCheck":null},"after":{"volumeOwnershipCheck":"EveryStart"}}
+```
+
+On a create `before` is `{}` and `after` lists every setting the request set. The string is at most a few hundred bytes (four small settings). It never contains the module's risky reason or any credential.
+
+**Risky marker (OD-6, settled C).** The API refuses nothing because a value is risky; the dashboard asks for the confirmation. The change row records whether a changed value was marked risky by the template at the time of the change: the JSON gains `"risky":[...]` after `after`, listing the changed settings (`runAsUser`, `runAsGroup`, `fsGroup`, `volumeOwnershipCheck`) whose `risky` member the pinned template carried. The module's reason text is never copied into the row. The key is omitted when no changed setting was risky.
+
+```text
+security:{"before":{"runAsUser":null},"after":{"runAsUser":0},"risky":["runAsUser"]}
+```
+
+The marker is a fact about the template at that moment (a later template change does not rewrite old rows), and it is computed on the server from the template, not trusted from the request.
+
+## Who, when, before, after (SC-005)
+
+- who: `actor`; when: `ts`; before and after: `reason`; where: `path` and `target`; from where: `ip`.
+- The audit page and exports show `reason` today; a table rendering of the JSON is optional follow-up and not required by the spec.
+
+The reconciler's refusal to start a server (`RootOverrideDisallowed`) is a status condition and an event, not an audit row.
+
+## Tests
+
+- Unit: a function builds `reason` from two security blocks (all four settings, not set, number, image default) and the template's risky set (a risky changed setting appears, a non-risky one and an unchanged risky one do not, an absent `risky` map adds no key).
+- Handler envtest: each event above produces exactly one row with the expected fields, and the hash chain still verifies (`GET /admin/audit/verify`).
