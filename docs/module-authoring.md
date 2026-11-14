@@ -742,8 +742,8 @@ writing or revising a module:
   key. The field's `name` must be a valid Secret key: at most 253 characters,
   using letters, digits, `-`, `_`, or `.`, excluding `.` and any `..` prefix.
   `envName` changes the exported variable, not this Secret key.
-  Admission checks length and reserved names; the reconciler checks the full
-  key before creating resources, including for older template revisions.
+  Admission rejects invalid keys. The reconciler also checks keys from
+  previously admitted template revisions before creating resources.
   A rendered file may interpolate the same field. The config init
   container copies that file at the next Pod start. A container restart within
   the same Pod refreshes its environment and keeps its existing files.

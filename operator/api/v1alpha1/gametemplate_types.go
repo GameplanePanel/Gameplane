@@ -1186,9 +1186,8 @@ type ConfigField struct {
 	// Edits and clears update the config Secret without rolling the game Pod.
 	// Config files that reference the field are refreshed by their init container
 	// on the next Pod start. Other fields keep their usual rollout behavior.
-	// Name must be a valid Kubernetes Secret key. Admission checks its length
-	// and reserved names; the reconciler also validates the allowed characters,
-	// including for previously admitted template revisions.
+	// Name must be a valid Kubernetes Secret key. Admission enforces this rule,
+	// and the reconciler checks keys from previously admitted template revisions.
 	// +optional
 	ApplyOnRestart bool `json:"applyOnRestart,omitempty"`
 

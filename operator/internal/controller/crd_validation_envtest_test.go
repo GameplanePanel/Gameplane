@@ -9,6 +9,7 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -256,9 +257,6 @@ func TestCRDValidation_DeferredConfigSecretKeys(t *testing.T) {
 		deferred bool
 		valid    bool
 	}{
-		// Character validation is performed by materializeConfig, including
-		// for immutable template revisions admitted before this schema rule.
-		{"jvm/initialHeap", true, true},
 		{".", true, false},
 		{"..", true, false},
 		{"..initialHeap", true, false},
@@ -287,6 +285,32 @@ func TestCRDValidation_DeferredConfigSecretKeys(t *testing.T) {
 		}
 		deleteCleanup(t, tmpl)
 	}
+
+	// A valid environment alias does not make the original name a Secret key.
+	// Exercise updates as well as creation on clusters with existing templates.
+	tmpl := buildGameTemplate(uniqueName("deferred-config-alias"))
+	tmpl.Spec.ConfigSchema = []gameplanev1alpha1.ConfigField{{
+		Name: "jvm/initialHeap", EnvName: "INIT_MEMORY", Type: "string", ApplyOnRestart: true,
+	}}
+	checkInvalidKey := func(err error) {
+		t.Helper()
+		if !apierrors.IsInvalid(err) || !strings.Contains(err.Error(), "spec.configSchema[0]") {
+			t.Fatalf("expected invalid deferred config field, got %v", err)
+		}
+	}
+	checkInvalidKey(k8sClient.Create(t.Context(), tmpl))
+	tmpl.Spec.ConfigSchema[0].ApplyOnRestart = false
+	if err := k8sClient.Create(t.Context(), tmpl); err != nil {
+		t.Fatalf("create with immediate alias: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+	// The typed client omits false on create. Exercise explicit false on the wire too.
+	explicitFalse := client.RawPatch(types.JSONPatchType, []byte(`[{"op":"add","path":"/spec/configSchema/0/applyOnRestart","value":false}]`))
+	if err := k8sClient.Patch(t.Context(), tmpl, explicitFalse); err != nil {
+		t.Fatalf("set applyOnRestart to false on an immediate alias: %v", err)
+	}
+	tmpl.Spec.ConfigSchema[0].ApplyOnRestart = true
+	checkInvalidKey(k8sClient.Update(t.Context(), tmpl))
 }
 
 func TestCRDValidation_ModuleSourceUnion(t *testing.T) {
