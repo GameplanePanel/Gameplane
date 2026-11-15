@@ -33,6 +33,9 @@ cd "$(dirname "$0")"
 # non-parallel tests first — inside the main bucket it would starve
 # everyone else's logins).
 
+# Login tally (operator bucket): TestGameServer_SecurityOverrideAppliesOnRestart
+# does zero logins. TestAPI_SecurityOverride_PermissionAndRootRule adds one
+# e2e-admin login and one login as its own custom-role user (two logins).
 bucket_operator() { cat <<'EOF'
 TestHelmInstall_AllPodsReady
 TestHelmInstall_OperatorSecretNamespaceBoundary
@@ -68,6 +71,7 @@ TestGameServer_CorrectedImageRecoversFailedOrdinal
 TestGameServer_RestoredRolloutRehearsal
 TestGameServer_WipeReportsFailureOnPermissionDenied
 TestGameServer_CascadingDelete
+TestGameServer_SecurityOverrideAppliesOnRestart
 TestGameServer_TunnelCredentialRefusalSurfaced
 TestGameServer_IngressNetworkPolicyShapeAndCascade
 TestGameServer_NetworkCaptureStartStopDownload
@@ -115,6 +119,7 @@ TestAPI_I18n_LanguagePref
 TestAPI_I18n_NotifyLanguage
 TestAPI_I18n_NotifyTestSendRateLimit
 TestAPI_I18n_InstanceDefault
+TestAPI_SecurityOverride_PermissionAndRootRule
 TestE2E_ResticRepoReady
 TestCISelection_AgentOnlyChange
 TestCISelection_SentinelOnlyChange
