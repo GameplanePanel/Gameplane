@@ -126,8 +126,8 @@ func (r *BackupReconciler) prepareBackupWorkerSource(ctx context.Context, b *gam
 	return &source, r.Update(ctx, b)
 }
 
-func (r *BackupReconciler) buildPreparedBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, source *backupWorkerSource, serverUID types.UID, deadline time.Time) corev1.PodSpec {
-	spec := r.buildBackupPodSpec(b, tmpl)
+func (r *BackupReconciler) buildPreparedBackupPodSpec(b *gameplanev1alpha1.Backup, tmpl *gameplanev1alpha1.GameTemplate, source *backupWorkerSource, serverUID types.UID, deadline time.Time, appliedFSGroup ...*int64) corev1.PodSpec {
+	spec := r.buildBackupPodSpec(b, tmpl, appliedFSGroup...)
 	automount := false
 	spec.AutomountServiceAccountToken = &automount
 	spec.Tolerations = source.Tolerations
@@ -301,9 +301,14 @@ func (r *BackupReconciler) reconcilePreparedRestic(ctx context.Context, b *gamep
 		if err != nil && (bound.Annotations[effectiveTemplateAnnotation] != "" || !apierrors.IsNotFound(err)) {
 			return r.abortResticCopy(ctx, b, "cannot resolve capture template: "+err.Error())
 		}
+		// The backup mounts the data volume as the server last set it up (spec 030, FR-011).
+		appliedFSGroup, err := appliedBackupFSGroup(ctx, r.backupAPIReader(), bound, tmpl)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 		backoff, deadline := resolveJobLimits(r.JobBackoffLimit, r.JobActiveDeadlineSeconds)
 		job = batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: b.Name, Namespace: b.Namespace, Annotations: map[string]string{backupWorkerProtocolAnnotation: "v1"}}, Spec: batchv1.JobSpec{BackoffLimit: &backoff, ActiveDeadlineSeconds: &deadline,
-			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, bound.UID, preparation)}}}
+			Template: corev1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{backupRestoreJobLabel: backupRestoreJobValue, backupUIDLabel: string(b.UID)}}, Spec: r.buildPreparedBackupPodSpec(b, tmpl, source, bound.UID, preparation, appliedFSGroup)}}}
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
 		if source.NodeName == "" {
 			// A scheduled game Pod has already bound its mounted claims.

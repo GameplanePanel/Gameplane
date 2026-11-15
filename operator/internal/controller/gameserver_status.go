@@ -312,6 +312,11 @@ func (r *GameServerReconciler) reconcileStatus(
 		idleSchedErr: idleScheduleErr,
 	})
 
+	// SecurityAllowed (spec 030, OD-4): a saved root override the cluster does
+	// not allow is reported, for a stopped server and a running one.
+	securityRunning := ssExists && ss.Spec.Replicas != nil && *ss.Spec.Replicas > 0
+	gs.Status.Conditions = r.applySecurityAllowedCondition(ctx, gs.Status.Conditions, gs, securityRunning)
+
 	// status.security (T021): desired is what the next start uses, from the
 	// effective template (the pin, D16) and this server's overrides. applied is
 	// what the data volume was last set up with, read from the observed record

@@ -391,3 +391,32 @@ func podContainerNamed(spec *corev1.PodSpec, name string) *corev1.Container {
 	}
 	return nil
 }
+
+// backupDefaultFSGroup is the filesystem group a backup or restore pod uses
+// when no group applies (buildBackupPodSecurityContext).
+const backupDefaultFSGroup int64 = 65532
+
+// appliedBackupFSGroup returns the filesystem group a backup or restore pod for
+// gs runs with (spec 030, FR-011). It is the group the data volume was last set
+// up with, read by readAppliedSecurity from the same StatefulSet and pod state
+// as status.security.applied. A server that has never started has no applied
+// record, so the desired group applies: the resolved override or template
+// default. An applied record with no group means the image default, which the
+// backup pod gives as 65532. The result is never nil.
+func appliedBackupFSGroup(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) (*int64, error) {
+	applied, err := readAppliedSecurity(ctx, reader, gs)
+	if err != nil {
+		return nil, fmt.Errorf("read applied filesystem group: %w", err)
+	}
+	var group *int64
+	if applied != nil {
+		group = applied.FSGroup.Value
+	} else {
+		group = resolveGameSecurity(tmpl, gs).FSGroup.Value
+	}
+	if group == nil {
+		def := backupDefaultFSGroup
+		return &def, nil
+	}
+	return copyInt64(*group), nil
+}

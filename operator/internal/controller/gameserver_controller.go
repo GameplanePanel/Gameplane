@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/recorder"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -53,6 +54,15 @@ type GameServerReconciler struct {
 	WakeStartLimit     int
 	WakeStartNamespace string
 	Scheme             *runtime.Scheme
+
+	// ControlPlaneNamespace holds the cluster's security settings ConfigMap
+	// (gameplane-security-settings, spec 030 OD-7). Empty means root overrides
+	// are disallowed (fail closed).
+	ControlPlaneNamespace string
+	// EventRecorder emits a Warning event on a GameServer held back from
+	// starting by the root-override rule. Nil-safe: unit and envtest setups
+	// may leave it unset.
+	EventRecorder recorder.EventRecorder
 
 	// AgentImage is the container image used for the sidecar agent
 	// injected into every game pod. Set from an operator flag so the
@@ -609,6 +619,7 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&corev1.Pod{}, handler.EnqueueRequestsFromMapFunc(r.mapPodToGameServer)).
 		Watches(&gameplanev1alpha1.GameTemplate{}, handler.EnqueueRequestsFromMapFunc(r.mapTemplateToGameServers),
 			builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.mapSecuritySettingsToGameServers)).
 		Complete(r)
 }
 
@@ -1793,6 +1804,18 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		preserveBaseline, err := r.preserveBaselinePodTemplate(ctx, &live, ss)
 		if err != nil {
 			return err
+		}
+		// Root-override hold (spec 030, OD-4, R9): while the cluster does not
+		// allow root overrides, a stopped server that saves one is not scaled
+		// up. This runs before the replica assignment and the security refresh,
+		// so the StatefulSet is left exactly as it was. A running server (replicas
+		// above zero) is never touched. A new StatefulSet is created at zero.
+		if actualReplicas > 0 && (ss.Spec.Replicas == nil || *ss.Spec.Replicas == 0) && r.rootOverrideHeld(ctx, &live) {
+			r.recordRootOverrideHold(&live)
+			if ss.ResourceVersion != "" {
+				return nil
+			}
+			actualReplicas = 0
 		}
 		// Security-derived template parts are written only when the workload is
 		// new or starts from zero replicas (brief D3, R5). A running workload
