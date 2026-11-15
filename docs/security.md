@@ -561,6 +561,70 @@ that pod, including other players' packets. This access is admin-only and fully
 audited (every capture operation is logged). Default capture retention is 24 hours,
 reducing the exposure window for captured data.
 
+### Server security overrides
+
+A module sets default run-as ids, the filesystem group and the ownership check in
+`spec.security` of its `GameTemplate` (see [`module-authoring.md`](module-authoring.md#security-context)).
+A server owner can override these per server in `GameServer.spec.security`. An
+override never changes a running pod: the new values apply at the server's next
+start, and the dashboard shows the value as pending until then.
+
+**Who may override.** Writing `spec.security` needs the `servers:security`
+permission, which the admin role holds by default. A user without it gets 403 on
+create and update.
+
+**The root rule.** A root value is `runAsUser` or `runAsGroup` set to `0` or to
+the image default, or `fsGroup` set to `0`. Root values are refused unless the
+cluster allows them. The setting is `allowRootOverrides`, and it is separate for
+each cluster and off by default. An administrator sets it under Clusters, the
+cluster, Configuration, with `PUT /security-settings?cluster=<id>` and body
+`{"allowRootOverrides": true}`. `GET /security-settings?cluster=<id>` reads it and
+needs `config:read`; the PUT needs `config:manage`.
+
+The value is stored in one ConfigMap per cluster, `gameplane-security-settings`,
+in that cluster's operator control-plane namespace. Its key `allowRootOverrides`
+is `"true"` or `"false"`. Any other value, a missing key or a missing ConfigMap
+reads as off. The operator's Helm chart creates the ConfigMap with `"false"` and
+the annotation `helm.sh/resource-policy: keep`, so an uninstall keeps it. On
+upgrade the chart reads the current value back, so an upgrade never flips the
+setting. The API never creates the ConfigMap. If it is deleted, the setting reads
+as off until the next `helm upgrade`. For a remote cluster, the API uses the
+namespace recorded on its registration, `Cluster.spec.controlPlaneNamespace`
+(default `gameplane`). A wrong namespace cannot turn the setting on. The ConfigMap
+is then not found, GET reports `present: false`, and PUT returns 409
+`cluster.security_settings_missing`.
+
+Two layers enforce the rule, and both fail closed:
+
+- The API refuses a create or update that saves a new or changed root value
+  while the setting is off, with 403 `server.security.root_disabled`.
+- The operator does not start a stopped server that holds a saved root override
+  while the setting is off. Its replicas stay at zero, and the condition
+  `SecurityAllowed` is `False` with reason `RootOverrideDisallowed`. A server
+  that is already running keeps running.
+
+**Applied filesystem group for backups.** Backup and restore jobs use the
+filesystem group the server last started with, not the value it will start with
+next. A pending change to `fsGroup` therefore does not change how a backup reads
+the data volume.
+
+**Ownership check trade-off.** `EveryStart` re-applies the group to every file on
+each start, which is always correct and slow on large volumes. `OnlyWhenWrong`
+starts faster but leaves files deeper in the volume with their current owner.
+See the module authoring guide for the built-in default.
+
+**Audit trail.** Create, update, clone and refusal of an override write an audit
+row, and so does each flip of `allowRootOverrides` (target `security/<cluster id>`,
+reason `allowRootOverrides:false->true` or `true->false`). If the flip is recorded
+but the ConfigMap update fails, a second row with reason `security_save_failed`
+is written and the API returns 502. The audit schema is unchanged.
+
+**Writers that bypass the API.** Anyone with Kubernetes write access to a
+`GameServer` or to the `gameplane-security-settings` ConfigMap can set these values
+without the API checks or audit rows. The operator still applies the root hold to
+every server it reconciles, so write access to the ConfigMap is equivalent to the
+setting itself. Restrict it with Kubernetes RBAC.
+
 ## Module supply chain
 
 A `GameTemplate` materialized from a module chooses the container image,
