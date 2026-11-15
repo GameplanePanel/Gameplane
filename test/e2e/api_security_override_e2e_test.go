@@ -193,7 +193,7 @@ func TestAPI_SecurityOverride_PermissionAndRootRule(t *testing.T) {
 	})
 
 	// Admin turns the switch off again. The ConfigMap follows.
-	fb = expect("admin switch off", http.StatusOK, func() (*http.Response, []byte, error) {
+	expect("admin switch off", http.StatusOK, func() (*http.Response, []byte, error) {
 		return admin.Do(http.MethodPut, "/security-settings?cluster=local", map[string]any{"allowRootOverrides": false})
 	})
 	cm, err = envInstance.K8s.CoreV1().ConfigMaps(cpNS).Get(context.Background(), securitySwitchConfigMap, metav1.GetOptions{})
