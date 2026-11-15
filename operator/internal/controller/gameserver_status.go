@@ -312,6 +312,21 @@ func (r *GameServerReconciler) reconcileStatus(
 		idleSchedErr: idleScheduleErr,
 	})
 
+	// status.security (T021): desired is what the next start uses, from the
+	// effective template (the pin, D16) and this server's overrides. applied is
+	// what the data volume was last set up with, read from the observed record
+	// (nil before the first start). Both live in this one merge patch.
+	appliedSecurity, err := readAppliedSecurity(ctx, r.wipeReader(), gs)
+	if err != nil {
+		return 0, fmt.Errorf("read applied security: %w", err)
+	}
+	desiredSecurity := resolveGameSecurity(tmpl, gs).settings()
+	gs.Status.Security = &gameplanev1alpha1.GameServerSecurityStatus{
+		Desired: &desiredSecurity,
+		Applied: appliedSecurity,
+		Pending: securityPending(desiredSecurity, appliedSecurity),
+	}
+
 	if !reflect.DeepEqual(orig, &gs.Status) {
 		if err := r.Status().Patch(ctx, gs, client.MergeFrom(base)); err != nil {
 			return 0, err
