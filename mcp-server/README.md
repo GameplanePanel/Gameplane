@@ -69,6 +69,8 @@ the threat model.
 | `get_pod_logs` | A bounded tail (default 200 lines, capped at 5000) of a container's logs; retains the newest 256 KiB from the complete response, with a notice when truncated |
 | `propose_fix` | Given a resource reference + a free-text symptom, returns suggested YAML/kubectl text, grounded in a best-effort read of the resource's current status. Never applies anything itself. |
 
+Example: `get_gameplane_resource` with `{"kind": "GameServer", "namespace": "games", "name": "my-server"}` returns the object as stored, including `spec.security` (the per-server uid/gid overrides) and `status.security` (the desired and applied security read model). Only `metadata.managedFields` is removed; no security field is redacted.
+
 ## Transport: stdio only, no network port
 
 This server speaks MCP (JSON-RPC 2.0) over stdio — it never opens an HTTP
