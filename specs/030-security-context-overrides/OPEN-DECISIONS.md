@@ -1,6 +1,6 @@
 # Open decisions: spec 030 security context overrides
 
-OD-1..OD-3 were answered by valgul on 2026-11-07, OD-4..OD-6 on 2026-11-13. All are settled.
+OD-1..OD-3 were answered by valgul on 2026-11-07, OD-4..OD-6 on 2026-11-13. OD-7..OD-9 were raised by the implementation scout on 2026-11-15 and are OPEN; implementation is paused until they are answered.
 
 ## OD-1: Who may set security overrides? (SETTLED: B)
 
@@ -111,3 +111,37 @@ but a direct API call has no dialog.
 
 Plan impact if the ruling differs: B adds a template read to the create and update
 handlers and one error code; C adds one word to the audit reason.
+
+---
+
+The decisions below were raised by the implementation scout (T001, briefs in `briefs/`) on 2026-11-15. They are OPEN.
+
+## OD-7: How does the root setting reach remote clusters? (OPEN)
+
+The operator on each cluster must know `allowRootOverrides` (FR-005a), through the ConfigMap `gameplane-security-settings` (R9). The home cluster is covered. For a remote cluster (operator plus gateway install, registered by kubeconfig), nothing defines the namespace or the RBAC the central API would need to write the ConfigMap there (`briefs/03-api.md` D16).
+
+- A. The central API writes the ConfigMap into every registered cluster. The remote chart grants the API's remote identity `get`/`update`/`patch` on that one ConfigMap in its control-plane namespace. A cluster the API cannot write to stays off (fail closed). (Recommended: one panel-wide setting, the same everywhere; fail closed keeps it safe while a remote cluster lags.)
+- B. Home cluster only for now: remote clusters always read the setting as off, so root overrides never start there; a later spec adds remote propagation.
+- C. A separate setting per cluster, set under Clusters, cluster, Configuration (like backup destinations since v0.4.0), stored and mirrored per cluster.
+
+## OD-8: Who creates the settings ConfigMap? (OPEN)
+
+Kubernetes RBAC cannot limit `create` to one object name (`resourceNames` does not apply to `create`). The contract has the API create the ConfigMap, which would need `create` on every ConfigMap in the credentials namespace. Today the API has that only when the catalog admin option is on (`charts/gameplane/templates/api-credentials.yaml`; `briefs/04-chart-e2e-gpmodule-docs.md` discrepancy 2).
+
+- A. Helm creates the ConfigMap with `"false"`, keeps it on uninstall, and keeps its current value on upgrade. The API only reads and updates it by name. If someone deletes it, the setting reads as off until the next `helm upgrade` recreates it. (Recommended: the narrowest grant, and deletion still fails closed.)
+- B. The API creates it, and the chart grants the API `create` on all ConfigMaps in the credentials namespace.
+
+## OD-9: Accept the scout's spec corrections? (OPEN)
+
+The scout found places where the spec text does not match the code. The behavior changes only in item 1. The other items align the tasks with the contracts and the code.
+
+1. An empty `PUT /admin/config/security` body returns 400 `server.empty_body`, like every other config section (`config.go:126-129`). The contract says 422.
+2. New tests go in new files, and existing call sites keep compiling through optional parameters, so no existing test file is edited. Examples: `gameserver_security_test.go` already exists with unrelated tests, and about 20 test call sites use the builder signatures.
+3. Clone writes the security audit row too, as `contracts/audit-events.md` says (T059 named only create and update).
+4. A sleeping server held back by the root rule does not take a wake-start slot (the hold is checked before `reserveWakeStart`).
+5. T044: a template rollout on a suspended or sleeping server refreshes the security values at its next start, not at the rollout. This matches FR-008.
+6. The template baseline hash (`baselineRenderInputs`) excludes `spec.security`, so saving an override never rewrites a running pod (FR-008).
+7. The stale `file:line` citations in the spec are superseded by the briefs.
+
+- A. Accept all seven.
+- B. Discuss some items first.
