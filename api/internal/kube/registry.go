@@ -21,8 +21,11 @@ type Registry struct {
 	uids       map[string]types.UID
 	defaultID  string
 	management *Client
-	operations map[string]*registrationSequence
-	identities map[string]credentialIdentity
+	// controlPlaneNamespace is the namespace of the default cluster's
+	// security settings ConfigMap (set by SetControlPlaneNamespace).
+	controlPlaneNamespace string
+	operations            map[string]*registrationSequence
+	identities            map[string]credentialIdentity
 }
 
 // Sequence credential loads per name, while the global lock protects only

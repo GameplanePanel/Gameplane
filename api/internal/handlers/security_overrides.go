@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
@@ -73,7 +74,8 @@ func normalizeJSONValue(v any) (any, error) {
 //  4. A changed or new block with an invalid shape: 422 server.security.invalid
 //     (validateSecurityShape).
 //
-// The root rule (case 5) is not implemented here yet.
+// Case 5, the root rule, is validateSecurityRootRule. The handlers call it
+// after this function, because it needs the registry.
 func validateSecurityOverride(ctx context.Context, cl, ns string, desired, live *unstructured.Unstructured) error {
 	desiredVal, hasDesired := securityOverrideValue(desired)
 	liveVal, hasLive := securityOverrideValue(live)
@@ -209,6 +211,73 @@ func securityNumber(v any) (float64, bool) {
 // invalidSecurity builds the 422 server.security.invalid refusal.
 func invalidSecurity(setting, detail string) error {
 	return messages.New("server.security.invalid", map[string]any{"setting": setting, "detail": detail})
+}
+
+// securityRootMembers are the settings that can hold a root value, in the
+// order a refusal names them.
+var securityRootMembers = []string{"runAsUser", "runAsGroup", "fsGroup"}
+
+// isRootSecuritySetting reports whether one spec.security member carries a root
+// value (contracts/api-server-security.md, "A root value"). The member has
+// already passed the shape check. fsGroup counts only value 0: an image default
+// for the filesystem group is not root.
+func isRootSecuritySetting(name string, v any) bool {
+	block, ok := v.(map[string]any)
+	if !ok {
+		return false
+	}
+	if val, present := block["value"]; present && val != nil {
+		n, isNumber := securityNumber(val)
+		return isNumber && n == 0
+	}
+	if name == "fsGroup" {
+		return false
+	}
+	useDefault, _ := block["useImageDefault"].(bool)
+	return useDefault
+}
+
+// validateSecurityRootRule is case 5 of contracts/api-server-security.md. It runs
+// after validateAndProtectGameServer on create, update and clone. A new or
+// changed root value is refused with 403 server.security.root_disabled unless
+// the request's cluster allows root overrides (exactly "true" in its settings
+// ConfigMap). Any read error counts as off. The ConfigMap is read only when
+// such a value is present. The reported setting is the first offending one.
+func validateSecurityRootRule(ctx context.Context, reg *kube.Registry, cl string, desired, live *unstructured.Unstructured) error {
+	desiredVal, hasDesired := securityOverrideValue(desired)
+	if !hasDesired {
+		return nil
+	}
+	block, ok := desiredVal.(map[string]any)
+	if !ok {
+		return nil
+	}
+	var liveBlock map[string]any
+	if liveVal, hasLive := securityOverrideValue(live); hasLive {
+		liveBlock, _ = liveVal.(map[string]any)
+	}
+
+	offending := ""
+	for _, name := range securityRootMembers {
+		v, present := block[name]
+		if !present || !isRootSecuritySetting(name, v) {
+			continue
+		}
+		if lv, stored := liveBlock[name]; stored && securityValuesEqual(v, lv) {
+			// A stored root value that is unchanged does not count.
+			continue
+		}
+		offending = name
+		break
+	}
+	if offending == "" {
+		return nil
+	}
+	allowed, err := securityRootAllowed(ctx, reg, cl)
+	if err == nil && allowed {
+		return nil
+	}
+	return messages.New("server.security.root_disabled", map[string]any{"setting": offending})
 }
 
 // sortedKeys returns the keys of m in order, so the first refusal is stable.
