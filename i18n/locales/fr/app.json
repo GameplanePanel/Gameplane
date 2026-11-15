@@ -119,10 +119,6 @@
         "defaultMessage": "Données effacées sur",
         "description": "Audit log: action verb for wiping a game server's world data"
     },
-    "cluster.security_settings_missing": {
-        "defaultMessage": "le ConfigMap des paramètres de sécurité est absent de ce cluster ; exécutez helm upgrade pour le recréer",
-        "description": "API error from the cluster security settings API (security_settings.go) when the gameplane-security-settings ConfigMap is not found on the cluster. Nothing is written."
-    },
     "condition.addressassignment.addressinuse": {
         "defaultMessage": "L'adresse demandée ''{address}'' est déjà utilisée par le GameServer ''{server}''.",
         "description": "AddressAssignment condition when another game server holds the requested address."
@@ -686,6 +682,10 @@
     "server.bad_request": {
         "defaultMessage": "requête incorrecte",
         "description": "API error for a malformed request that does not fit a more specific message."
+    },
+    "server.cluster.security_settings_missing": {
+        "defaultMessage": "le ConfigMap des paramètres de sécurité est absent de ce cluster ; exécutez helm upgrade pour le recréer",
+        "description": "API error from the cluster security settings API (security_settings.go) when the gameplane-security-settings ConfigMap is not found on the cluster. Nothing is written."
     },
     "server.cluster_forbidden": {
         "defaultMessage": "cluster non autorisé",

@@ -226,8 +226,8 @@ func TestSecuritySettingsPUT_MissingConfigMap409AndNeverCreates(t *testing.T) {
 	if rr.Code != http.StatusConflict {
 		t.Fatalf("PUT missing = %d, want 409; body=%s", rr.Code, rr.Body.String())
 	}
-	if id := secSetMessageID(t, rr); id != "cluster.security_settings_missing" {
-		t.Errorf("messageId = %q, want cluster.security_settings_missing", id)
+	if id := secSetMessageID(t, rr); id != "server.cluster.security_settings_missing" {
+		t.Errorf("messageId = %q, want server.cluster.security_settings_missing", id)
 	}
 	if secSetWrites(cs) {
 		t.Error("PUT with a missing ConfigMap wrote to the cluster; it must never create one")

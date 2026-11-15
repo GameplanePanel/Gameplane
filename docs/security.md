@@ -592,7 +592,7 @@ as off until the next `helm upgrade`. For a remote cluster, the API uses the
 namespace recorded on its registration, `Cluster.spec.controlPlaneNamespace`
 (default `gameplane`). A wrong namespace cannot turn the setting on. The ConfigMap
 is then not found, GET reports `present: false`, and PUT returns 409
-`cluster.security_settings_missing`.
+`server.cluster.security_settings_missing`.
 
 Two layers enforce the rule, and both fail closed:
 

@@ -218,7 +218,7 @@ func (h securitySettingsHandler) put(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if cm == nil {
-		httperr.WriteMessage(w, req, messages.New("cluster.security_settings_missing", nil))
+		httperr.WriteMessage(w, req, messages.New("server.cluster.security_settings_missing", nil))
 		return
 	}
 	current := cm.Data[securitySettingsKey] == "true"
