@@ -18,6 +18,16 @@ type ClusterSpec struct {
 	// Kubernetes configuration and pod streams still use KubeconfigSecret.
 	// +optional
 	AgentGateway *AgentGatewaySpec `json:"agentGateway,omitempty"`
+
+	// ControlPlaneNamespace is the namespace of this cluster's operator
+	// control plane. The API reads the cluster's security settings ConfigMap
+	// (gameplane-security-settings) in this namespace. Empty or absent means
+	// "gameplane". Must match the namespace of the remote install.
+	// +kubebuilder:default=gameplane
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
+	// +optional
+	ControlPlaneNamespace string `json:"controlPlaneNamespace,omitempty"`
 }
 
 // AgentGatewaySpec configures the optional remote agent gateway.
