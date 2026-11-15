@@ -226,16 +226,19 @@ func (r *GameServerReconciler) wipeTargetStopped(ctx context.Context, gs *gamepl
 	if !metav1.IsControlledBy(&ss, gs) {
 		return false, fmt.Errorf("wipe target StatefulSet is not controlled by this GameServer")
 	}
+	// The workload reconciler owns graceful scale-down, including while game
+	// placement is rejected. Fencing the stopped workload must not bypass it.
+	if ss.Spec.Replicas == nil || *ss.Spec.Replicas != 0 {
+		return false, nil
+	}
 	if ss.Annotations[wipeGuardAnnotation] != gs.Annotations[wipeGuardAnnotation] {
 		if ss.Annotations == nil {
 			ss.Annotations = make(map[string]string)
 		}
 		ss.Annotations[wipeGuardAnnotation] = gs.Annotations[wipeGuardAnnotation]
-		zero := int32(0)
-		ss.Spec.Replicas = &zero
 		return false, r.Update(ctx, &ss)
 	}
-	if ss.Spec.Replicas == nil || *ss.Spec.Replicas != 0 || ss.Status.Replicas != 0 || ss.Status.ObservedGeneration < ss.Generation {
+	if ss.Status.Replicas != 0 || ss.Status.ObservedGeneration < ss.Generation {
 		return false, nil
 	}
 	var pods corev1.PodList

@@ -243,6 +243,10 @@
     "defaultMessage": "The data wipe job did not complete. The volume may not be fully cleared.",
     "description": "DataWipe condition when the wipe job fails."
   },
+  "condition.datawipe.placementrejected": {
+    "defaultMessage": "The data wipe could not start. Correct the worker placement settings before requesting another wipe.",
+    "description": "DataWipe condition when worker placement prevents the wipe from starting."
+  },
   "condition.failed.capture_already_in_progress": {
     "defaultMessage": "Another capture is already running on this server.",
     "description": "Failed condition when two captures target one server."

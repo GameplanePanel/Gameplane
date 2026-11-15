@@ -49,6 +49,7 @@
   "condition.consistency.quiesced": "7bf8d77f8a05",
   "condition.consistency.stoppedsource": "f1233d8fcfd7",
   "condition.datawipe.jobfailed": "f1c100d69216",
+  "condition.datawipe.placementrejected": "de596cdac055",
   "condition.failed.capture_already_in_progress": "8c6c3fb2a7bb",
   "condition.failed.failed": "a2f668070978",
   "condition.failed.podrestarted": "3db5afb8b7de",

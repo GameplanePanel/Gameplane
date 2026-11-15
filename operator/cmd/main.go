@@ -575,6 +575,7 @@ func main() {
 		AgentClient:              agentClient,
 		ResticImage:              resticImage,
 		BackupResources:          backupResources,
+		GameWorkloadPolicy:       gameWorkloadPolicy,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 		EventRecorder:            mgr.GetEventRecorder("backup-controller"),
@@ -600,6 +601,7 @@ func main() {
 		OperationQuiescer:        agentClient,
 		ResticImage:              resticImage,
 		BackupResources:          backupResources,
+		GameWorkloadPolicy:       gameWorkloadPolicy,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 	}).SetupWithManager(mgr); err != nil {

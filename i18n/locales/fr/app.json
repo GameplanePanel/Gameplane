@@ -183,6 +183,10 @@
         "defaultMessage": "La tâche d'effacement des données ne s'est pas terminée. Le volume n'est peut-être pas entièrement vidé.",
         "description": "DataWipe condition when the wipe job fails."
     },
+    "condition.datawipe.placementrejected": {
+        "defaultMessage": "L’effacement des données n’a pas pu démarrer. Corrigez les paramètres de placement sur les nœuds avant de demander un nouvel effacement.",
+        "description": "DataWipe condition when worker placement prevents the wipe from starting."
+    },
     "condition.failed.capture_already_in_progress": {
         "defaultMessage": "Une autre capture est déjà en cours sur ce serveur.",
         "description": "Failed condition when two captures target one server."

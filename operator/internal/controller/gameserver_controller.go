@@ -1335,7 +1335,7 @@ func (r *GameServerReconciler) desiredReplicas(
 	if op, held, err := lifecycleOwner(&live); err != nil {
 		return 0, 0, err
 	} else if held && op.Kind == "Rollout" && len(op.Recovery) == 0 &&
-		((op.Baseline && r.GameWorkloadPolicy != nil) || (!op.Baseline && op.Token != live.Annotations[effectiveTemplateAnnotation])) {
+		(r.baselineNeedsDrain(op) || (!op.Baseline && op.Token != live.Annotations[effectiveTemplateAnnotation])) {
 		if op.Baseline && live.Annotations[lifecycleOperationAnnotation] != gs.Annotations[lifecycleOperationAnnotation] {
 			return 1, restartDrainPoll, nil
 		}
@@ -1493,12 +1493,12 @@ func selectStopTransport(tmpl *gameplanev1alpha1.GameTemplate) stopTransport {
 func (r *GameServerReconciler) softStop(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) (int32, time.Duration, error) {
-	if r.GameWorkloadPolicy != nil && gs.Annotations[lifecycleOperationAnnotation] != "" {
+	if gs.Annotations[lifecycleOperationAnnotation] != "" {
 		op, _, err := lifecycleOwner(gs)
 		if err != nil {
 			return 0, 0, err
 		}
-		if op.Kind == "Rollout" && op.Baseline {
+		if op.Kind == "Rollout" && r.baselineNeedsDrain(op) {
 			// This also applies when a Hostport node disappears during migration.
 			tmpl, err = r.baselineStopTemplate(ctx, gs)
 			if err != nil {
@@ -1704,7 +1704,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				ss.Annotations = map[string]string{}
 			}
 			ss.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(op)
-			if op.Kind == "Rollout" && op.Baseline && r.GameWorkloadPolicy != nil && ss.ResourceVersion == "" {
+			if op.Kind == "Rollout" && r.baselineNeedsDrain(op) && ss.ResourceVersion == "" {
 				// A stale scale-up can race recreation while the old world
 				// writer is terminating. Create the fenced replacement stopped.
 				actualReplicas, replicas = 0, 0
@@ -1780,7 +1780,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 				}
 			}
 		}
-		if held && op.Baseline && r.GameWorkloadPolicy != nil && ss.ResourceVersion != "" {
+		if held && r.baselineNeedsDrain(op) && ss.ResourceVersion != "" {
 			// A stale pre-admission decision may stamp the owner but cannot
 			// change replicas. During the drain, never raise replicas or roll
 			// the live Pod's template, including on previously pinned baselines.
@@ -1913,7 +1913,7 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// Assign unconditionally so clearing spec.nodeSelector also clears the
 		// pod template's selector (nil resets it); the previous nil-guard left
 		// a removed scheduling pin active on the StatefulSet.
-		ss.Spec.Template.Spec.NodeSelector, ss.Spec.Template.Spec.Tolerations = r.GameWorkloadPolicy.placement(gs)
+		ss.Spec.Template.Spec.NodeSelector, ss.Spec.Template.Spec.Tolerations = r.GameWorkloadPolicy.placement(gs, tmpl)
 		// Do not change a live Pod's template merely because its node was
 		// recorded while a graceful stop is still saving the game. Apply the
 		// endpoint pin at zero replicas, then retain it on every future wake.

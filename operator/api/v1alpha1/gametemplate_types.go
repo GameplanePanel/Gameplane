@@ -66,6 +66,14 @@ type GameTemplateSpec struct {
 	// +kubebuilder:validation:MinLength=1
 	Image string `json:"image"`
 
+	// RequiredNodeArchitecture is the kubernetes.io/arch label required by
+	// the game executable (for example, amd64). Omit for portable templates.
+	// The requirement also applies to version selections and image overrides.
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]+$`
+	// +kubebuilder:validation:MaxLength=63
+	// +optional
+	RequiredNodeArchitecture string `json:"requiredNodeArchitecture,omitempty"`
+
 	// Versions is an optional catalog of selectable game versions surfaced
 	// in the Create Server wizard. Each entry maps a user choice to a
 	// concrete image (and optional per-version env / mod loader). When empty

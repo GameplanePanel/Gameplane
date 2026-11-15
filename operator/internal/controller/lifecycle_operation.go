@@ -45,6 +45,10 @@ type lifecycleIdentity struct {
 	// Baseline establishes a first template pin without replacing an existing
 	// workload. Durable intent prevents a leader restart turning it into a drain.
 	Baseline bool `json:"baseline,omitempty"`
+	// ArchitectureDrain fences an existing unversioned Pod before first
+	// applying its template's architecture requirement. Keep this with the
+	// owner so stale renders and a new leader see the same decision.
+	ArchitectureDrain bool `json:"architectureDrain,omitempty"`
 }
 
 type lifecycleOperation struct {
