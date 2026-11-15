@@ -1,0 +1,58 @@
+{{- /*
+Root-override switch for server security overrides (brief 00, sections 1 and 4).
+One ConfigMap per cluster, in that cluster's operator control-plane namespace
+(the operator's --control-plane-namespace). Written here, read and updated by
+the API under a resourceNames-scoped grant, and read by the operator through
+its cache. The value is the string "true" or "false"; anything else is off.
+
+Upgrades keep the value already on the cluster: lookup returns the live object,
+and an existing "true" is re-rendered as "true". A first install, or a deleted
+object, renders "false". Offline renders (helm template) have no live object,
+so they also render "false". The keep annotation stops uninstall from removing
+the switch.
+*/}}
+{{- if or (eq (include "gameplane.operatorEnabled" .) "true") (and (eq (include "gameplane.apiEnabled" .) "true") .Values.api.standalone) }}
+{{- $ns := include "gameplane.operatorClusterCredentialsNamespace" . }}
+{{- $existing := lookup "v1" "ConfigMap" $ns "gameplane-security-settings" }}
+{{- $allow := dig "data" "allowRootOverrides" "false" $existing | toString }}
+{{- if ne $allow "true" }}{{ $allow = "false" }}{{ end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gameplane-security-settings
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+data:
+  allowRootOverrides: {{ $allow | quote }}
+{{- with .Values.operator.securitySettingsSubjects }}
+{{- if eq (include "gameplane.operatorEnabled" $) "true" }}
+---
+# Remote operator-only installs: grants the central panel's identity on this
+# cluster (operator.securitySettingsSubjects) get, update and patch on this one
+# ConfigMap. The rule has no create verb. The subjects are not created here.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-security-settings-api
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [gameplane-security-settings]
+    verbs: [get, update, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-security-settings-api
+  namespace: {{ $ns }}
+  labels: {{- include "gameplane.labels" $ | nindent 4 }}
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ $.Release.Name }}-security-settings-api }
+subjects:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -163,6 +163,35 @@ subjects:
     name: gameplane-api
     namespace: {{ .Release.Namespace }}
 {{- end }}
+{{- if .Values.api.standalone }}
+---
+# Standalone panels have no operator. This grant covers only the root-override
+# switch ConfigMap that security-settings.yaml renders in the release namespace
+# (the home install gets the same rule in api-credentials.yaml).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-api-security-settings
+  namespace: {{ include "gameplane.operatorClusterCredentialsNamespace" . }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [gameplane-security-settings]
+    verbs: [get, update, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-api-security-settings
+  namespace: {{ include "gameplane.operatorClusterCredentialsNamespace" . }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ .Release.Name }}-api-security-settings }
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-api
+    namespace: {{ .Release.Namespace }}
+{{- end }}
 {{- /*
   Safety guard: If switching an existing install to existingClaim, ensure the
   live gameplane-api-data PVC won't be pruned and destroyed by Helm.
