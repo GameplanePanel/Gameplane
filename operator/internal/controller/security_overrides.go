@@ -402,11 +402,20 @@ const backupDefaultFSGroup int64 = 65532
 // as status.security.applied. A server that has never started has no applied
 // record, so the desired group applies: the resolved override or template
 // default. An applied record with no group means the image default, which the
-// backup pod gives as 65532. The result is never nil.
+// backup pod gives as 65532. A StatefulSet from before spec 030 (no security
+// annotations) also has no applied record here, so its backups keep using the
+// template group as before. The result is never nil.
 func appliedBackupFSGroup(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) (*int64, error) {
-	applied, err := readAppliedSecurity(ctx, reader, gs)
+	recorded, err := securityAppliedRecorded(ctx, reader, gs)
 	if err != nil {
 		return nil, fmt.Errorf("read applied filesystem group: %w", err)
+	}
+	var applied *gameplanev1alpha1.SecuritySettings
+	if recorded {
+		applied, err = readAppliedSecurity(ctx, reader, gs)
+		if err != nil {
+			return nil, fmt.Errorf("read applied filesystem group: %w", err)
+		}
 	}
 	var group *int64
 	if applied != nil {
@@ -419,4 +428,21 @@ func appliedBackupFSGroup(ctx context.Context, reader client.Reader, gs *gamepla
 		return &def, nil
 	}
 	return copyInt64(*group), nil
+}
+
+// securityAppliedRecorded reports whether gs's own StatefulSet carries the
+// spec 030 security annotations (observed, or on its pod template). A missing
+// or foreign StatefulSet, or one from before the feature, reports false.
+func securityAppliedRecorded(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer) (bool, error) {
+	var ss appsv1.StatefulSet
+	if err := reader.Get(ctx, client.ObjectKeyFromObject(gs), &ss); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("read statefulset for applied security: %w", err)
+	}
+	if !metav1.IsControlledBy(&ss, gs) {
+		return false, nil
+	}
+	return ss.Annotations[securityAppliedObservedAnnotation] != "" || ss.Spec.Template.Annotations[securityAppliedAnnotation] != "", nil
 }
