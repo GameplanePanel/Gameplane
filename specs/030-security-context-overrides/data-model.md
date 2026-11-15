@@ -6,7 +6,7 @@ Five places hold data. No database table or column is added (research R12).
 
 - **GameTemplate** (CRD, cluster-scoped): the module's defaults and the risky flags. YAML in [contracts/crd-gametemplate-security.md](contracts/crd-gametemplate-security.md).
 - **GameServer** (CRD, namespaced): the per-server override in `spec`, the read model in `status`. YAML in [contracts/crd-gameserver-security.md](contracts/crd-gameserver-security.md).
-- **API config store**: one new section, `security`, in the existing `config` table, mirrored by the API into one ConfigMap per cluster that the operator reads (OD-4). See [contracts/cluster-setting.md](contracts/cluster-setting.md).
+- **Cluster ConfigMap**: one per cluster, `gameplane-security-settings`, created by Helm, read by the operator and updated by the API through `PUT /security-settings` (OD-7, OD-8). See [contracts/cluster-setting.md](contracts/cluster-setting.md).
 - **Audit log**: one structured `reason` string per change. See [contracts/audit-events.md](contracts/audit-events.md).
 
 The four settings are named `runAsUser`, `runAsGroup`, `fsGroup` (numeric ids) and `volumeOwnershipCheck` (an enum). "Setting" below means any of the four.
@@ -82,7 +82,7 @@ Order of checks in `validateAndProtectGameServer` (research R10); the first fail
 | 1 | The block is unchanged from the stored one | accepted, no permission needed |
 | 2 | The caller holds `servers:security` on this cluster and namespace (or `*`) for any other change | else 403 `server.security.forbidden` |
 | 3 | Shape: ids are whole numbers 0 to 4294967295; exactly one of `value`/`useImageDefault`; enum values valid; no unknown members | else 422 `server.security.invalid` |
-| 4 | Root rule: a **new or changed** `runAsUser` or `runAsGroup` that is `value: 0` or `useImageDefault: true`, or a new or changed `fsGroup` that is `value: 0`, needs `allowRootOverrides` to be true | else 403 `server.security.root_disabled` |
+| 4 | Root rule: a **new or changed** `runAsUser` or `runAsGroup` that is `value: 0` or `useImageDefault: true`, or a new or changed `fsGroup` that is `value: 0`, needs the request's cluster setting to be on (its ConfigMap, R9) | else 403 `server.security.root_disabled` |
 
 Root rule table (FR-005, clarifications 2026-11-13):
 
@@ -202,25 +202,21 @@ A save never changes the pod template while a pod runs (research R5). The pod te
 
 ---
 
-## Cluster setting (API config section `security`)
-
-| Field | Type | Default | Rule |
-|---|---|---|---|
-| `allowRootOverrides` | bool | false | Absent row means false. Unknown members are dropped by the validator, like every section. |
-
-Stored as the JSON blob `{"allowRootOverrides":false}` in `config` under key `security`; written only through `PUT /admin/config/security` (`config:manage`).
-
-### Operator mirror (ConfigMap)
+## Cluster setting (ConfigMap per cluster)
 
 | Property | Value |
 |---|---|
-| Name and namespace | `gameplane-security-settings` in the gameplane (control-plane) namespace of each cluster |
-| Data | `allowRootOverrides`: `"true"` or `"false"` |
-| Writer | the API only (on each flip, and a sync on API start); readers: the operator (watch) |
-| Missing or malformed | read as off (fail closed) |
-| Labels | `app.kubernetes.io/managed-by: gameplane-api` |
+| Name | `gameplane-security-settings` |
+| Namespace | the operator's control-plane namespace of that cluster (`--control-plane-namespace`; the credentials namespace `<release>-credentials` on a default install with the API enabled, the release namespace in standalone or no-API mode) |
+| Data | `allowRootOverrides`: `"true"` or `"false"`. A missing ConfigMap, a missing key or any other value is off (fail closed). |
+| Default | `"false"`, written by Helm. An upgrade keeps the current value (`lookup`). |
+| Created by | the operator chart only (OD-8). The API never creates it. |
+| Updated by | the API, through `PUT /security-settings?cluster=<id>` (`config:manage`), by name only |
+| Read by | the operator (its own cluster, through a watch) and the API (case 5, for the request's own cluster) |
+| Deleted | reads as off until the next `helm upgrade` renders it again as `"false"` |
+| Annotation | `helm.sh/resource-policy: keep` |
 
-The config row is the source of truth; the ConfigMap is a derived copy (research R9).
+The setting has no config-table row (OD-7). Details are in [contracts/cluster-setting.md](contracts/cluster-setting.md).
 
 ## Permission
 

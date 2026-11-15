@@ -20,7 +20,7 @@ cd web && npx tsc --noEmit && cd ..
 | What | Where |
 |---|---|
 | Resolver table tests, StatefulSet gate, backup/restore group, status, root-override start refusal, restricted-mode effective values | `go test` and envtest for `operator` (gate 72) |
-| Create, update, clone, permission, root rule, config section and its ConfigMap mirror, audit rows (with the risky marker) | `make test-integration` (envtest, `api` gate 80) |
+| Create, update, clone, permission, root rule, the cluster setting routes and its ConfigMap, audit rows (with the risky marker) | `make test-integration` (envtest, `api` gate 80) |
 | Template checks | `gp-module` unit tests (gate 80); the module repo's validator tests (`test-validate-py.sh`) |
 | Dashboard section, wizard, settings, admin switch | vitest (`web` gates) |
 | i18n key coverage | `i18n-check` in `make lint` |
@@ -34,7 +34,7 @@ cd web && npx tsc --noEmit && cd ..
 - `git submodule update --init modules` and `make dev-up`, then `make images && make dev-load && make dev-install` with this branch's operator and API.
 - A game template with a security block. The E2E busybox fixture (`test/e2e/test_helpers_e2e_test.go:42`) is enough: add `security: {runAsUser: 1000, runAsGroup: 1000, fsGroup: 1000}` to it and apply it.
 - Two sign-ins: the bootstrap admin, and a user bound to the built-in `operator` role (holds `servers:write`, not `servers:security`).
-- `GET /admin/config` shows no `security` section (setting off).
+- `GET /security-settings?cluster=<id>` shows `allowRootOverrides: false`, `present: true` (the chart created the ConfigMap as `"false"`, OD-8).
 
 ### S1: no override means no change (US1; FR-001, SC-001)
 
@@ -81,19 +81,23 @@ cd web && npx tsc --noEmit && cd ..
 6. Open the server's Advanced section as the `operator`-role user.
    - **Expect** the values, sources and pending marker are visible and read-only.
 
-### S5: the root setting (FR-005, FR-005a; OD-2, OD-4)
+### S5: the root setting (FR-005, FR-005a; OD-2, OD-4, OD-7)
 
-1. As admin, `PUT /admin/config/security {"allowRootOverrides": true}` ([cluster-setting.md](contracts/cluster-setting.md)).
+1. As admin, `PUT /security-settings?cluster=<id> {"allowRootOverrides": true}` ([cluster-setting.md](contracts/cluster-setting.md)).
+   - **Expect** 200, and `GET` shows `allowRootOverrides: true`.
 2. Create a server with `fsGroup { value: 0 }`, then one with `runAsUser { useImageDefault: true }`.
    - **Expect** both accepted.
-3. Turn the setting off (`PUT /admin/config/security {"allowRootOverrides": false}`) and save an unrelated change to the first server.
+3. Turn the setting off (`PUT /security-settings?cluster=<id> {"allowRootOverrides": false}`) and save an unrelated change to the first server.
    - **Expect** 200 and the override remains; a new server with a root value is refused again. `kubectl get configmap gameplane-security-settings -n <control-plane namespace> -o yaml` shows `allowRootOverrides: "false"`.
+
+4. Per cluster: on a second registered cluster, the setting is still off until its own switch is turned on, and that cluster's ConfigMap is not changed by the first cluster's switch.
+   - **Expect** a root value on the second cluster is refused (403 `server.security.root_disabled`) until its own switch is on (OD-7).
 
 ### S5a: turning the setting off with root-override servers (FR-005a; OD-4)
 
 Prerequisite: S5 step 2 left two servers holding root overrides (`fsGroup { value: 0 }` and `runAsUser { useImageDefault: true }`) and the setting is on. Stop the first one (Suspend), keep the second running, then turn the setting off.
 
-1. Note the second server's pod UID and restart count, then `PUT /admin/config/security {"allowRootOverrides": false}`.
+1. Note the second server's pod UID and restart count, then `PUT /security-settings?cluster=<id> {"allowRootOverrides": false}`.
    - **Expect** the running server's pod UID and restart count do not change; no server restarts or stops. Its `SecurityAllowed` condition is `False` with reason `RootOverrideDisallowed` and a message that it will not start again until the override is cleared or the setting is on.
 2. Start the stopped first server (Resume or Start).
    - **Expect** it stays at zero replicas; its status shows `SecurityAllowed=False`, reason `RootOverrideDisallowed`, naming `fsGroup`; the dashboard shows the reason and what clears it.
@@ -102,7 +106,7 @@ Prerequisite: S5 step 2 left two servers holding root overrides (`fsGroup { valu
 4. Suspend the second server, then turn the setting back on, and start it.
    - **Expect** it starts with its override; `SecurityAllowed` is `True`. Repeat step 2 with the setting on first: **expect** a stopped server holding a root override starts as soon as the setting is flipped on (no other action).
 5. Delete the ConfigMap `gameplane-security-settings` while a stopped server holds a root override.
-   - **Expect** the setting reads as off (fail closed): the server does not start; restarting the API recreates the ConfigMap from the stored setting.
+   - **Expect** the setting reads as off (fail closed): the server does not start, `GET /security-settings` reports `present: false`, and `PUT /security-settings` returns 409 `cluster.security_settings_missing`. The next `helm upgrade` recreates the ConfigMap as `"false"`, because nothing is left to keep (OD-8).
 
 ### S5b: restricted workload mode (OD-5)
 

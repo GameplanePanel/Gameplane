@@ -53,7 +53,7 @@ Note on the tree: `modules/` in `/home/user/Gameplane` is an empty, uninitialise
 - Admin: `envInstance.BootstrapAdmin` then `envInstance.APIClient(t, adminUsername, adminPassword)` (`env.go:301, 503`; pattern `api_auth_e2e_test.go:119-127`).
 - Non-admin: `envInstance.CreateUser(t, admin, "operator", "e2e-sec")` (`env.go:713`), then `envInstance.APIClient(t, u, pw)`.
 - Refused 403 on create and update without `servers:security`; accepted after granting it (a role with the key; admin can create a custom role or grant it via the role endpoint, to be confirmed in `api/internal/rbac`).
-- Root value refused 403 while `PUT /admin/config/security` is off; accepted after admin sets `{"allowRootOverrides":true}` (`contracts/cluster-setting.md`).
+- Root value refused 403 while the cluster's `allowRootOverrides` is off; accepted after an admin sets `{"allowRootOverrides":true}` with `PUT /security-settings?cluster=<id>` (`contracts/cluster-setting.md`).
 - ConfigMap mirror checked with `kubectl get configmap` after each flip.
 - Audit log rows checked through the existing audit endpoint used in other `api_*_e2e_test.go` files (not verified which).
 

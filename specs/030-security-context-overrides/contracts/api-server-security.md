@@ -13,7 +13,7 @@ No new route. The override travels in the GameServer object through the existing
 
 (All `/servers` paths take the usual `?cluster=` and namespace parameters.)
 
-The `security` config section is also mirrored by this API into the ConfigMap the operator reads ([cluster-setting.md](cluster-setting.md)). The enforcement lives in `validateAndProtectGameServer` (`api/internal/handlers/resources.go:538`), called from `resources.go:218` (create), `:290` (update) and `lifecycle.go:243` (clone). `MountResources` (`resources.go:51`) gains the audit writer (`*audit.Auditor`) and reads the `security` config section through the `*db.Store` it already receives.
+The root rule reads the setting from the ConfigMap of the request's own cluster ([cluster-setting.md](cluster-setting.md)). The enforcement lives in `validateAndProtectGameServer` (`api/internal/handlers/resources.go:570`), called from `resources.go:250` (create), `:322` (update) and `lifecycle.go:243` (clone). `MountResources` (`resources.go:51`) gains the audit writer (`*audit.Auditor`), and `MountLifecycle` takes it as an optional variadic parameter so that clone writes its row (OD-9 item 3).
 
 ## Request
 
@@ -34,7 +34,7 @@ Semantics, in the order the handler applies them (the first failure decides):
 | 2 | Absent in the request, present in the stored object, caller lacks `servers:security` | The stored value is copied back into the request (a client that drops the field cannot wipe it by accident); then continues as case 1. |
 | 3 | Any other difference, caller lacks `servers:security` on that cluster and namespace | **403** `server.security.forbidden`. Nothing is written. |
 | 4 | Shape invalid (id not a whole number, outside 0 to 4294967295, both or neither of `value`/`useImageDefault`, `useImageDefault: false`, unknown member, bad enum) | **422** `server.security.invalid`. |
-| 5 | A new or changed root value (see below) and `allowRootOverrides` is false | **403** `server.security.root_disabled`. |
+| 5 | A new or changed root value (see below) and the request's cluster setting is not on (its ConfigMap, [cluster-setting.md](cluster-setting.md)) | **403** `server.security.root_disabled`. |
 | 6 | Otherwise | Accepted and stored; the response is the stored object. |
 
 A **root value** is `runAsUser` or `runAsGroup` with `value: 0` or `useImageDefault: true`, or `fsGroup` with `value: 0` (FR-005 and the 2026-11-13 clarifications). A root value that is already stored and unchanged does not trigger case 5; removing or replacing one is always allowed. A stored root override is enforced later, by the reconciler, which refuses to start the server while the setting is off (OD-4 settled A, FR-005a; [cluster-setting.md](cluster-setting.md)). The API does not stop the save.
@@ -48,10 +48,10 @@ Both bodies follow the existing `httperr` rules (`api/internal/httperr/httperr.g
 | Status | `messageId` | English text | `args` |
 |---|---|---|---|
 | 403 | `server.security.forbidden` | `changing security settings requires the servers:security permission` | none |
-| 403 | `server.security.root_disabled` | `root values (user 0, group 0, filesystem group 0, or the image default for user or group) are not allowed until an administrator enables root overrides` | `{"setting":"runAsUser"}` (the first offending setting) |
+| 403 | `server.security.root_disabled` | `root values (user 0, group 0, filesystem group 0, or the image default for user or group) are not allowed on this cluster until an administrator allows root overrides in that cluster's Configuration` | `{"setting":"runAsUser"}` (the first offending setting) |
 | 422 | `server.security.invalid` | `invalid security override: {detail}` | `{"setting":"fsGroup","detail":"must be between 0 and 4294967295"}` |
 
-The three messages are added to `api/internal/messages/entries_server.go` and to `i18n/locales/en/app.json` (FR-014), next to `server.forbidden`.
+The three messages, and `cluster.security_settings_missing` (409, [cluster-setting.md](cluster-setting.md)), are added to `api/internal/messages/entries_server.go` and to `i18n/locales/en/app.json` (FR-014), next to `server.forbidden`.
 
 Existing generic mapping: `writeServerValidationError` (`api/internal/handlers/resources_snapshot.go:24`) maps a plain error to 403; the new errors carry their own status, so it passes them through.
 
@@ -62,12 +62,12 @@ Existing generic mapping: `writeServerValidationError` (`api/internal/handlers/r
 ## Dashboard behavior tied to the contract
 
 - Without `servers:security` (the user's permission set is already known to the dashboard) the Advanced section shows `desired`, `applied`, sources and `pending` read-only (US4 scenario 1) and never sends `spec.security` changes.
-- The server refusals above are shown inline; a refused root value says an administrator can allow it in Settings.
+- The server refusals above are shown inline; a refused root value says an administrator can allow it in that cluster's Configuration.
 - Risky-value confirmation is dashboard-only (OD-6, settled C): the API accepts a risky value from any `servers:security` holder and refuses nothing on that basis; the audit row records that the value was marked risky ([audit-events.md](audit-events.md)).
-- A server held back by the reconciler (`SecurityAllowed=False`, `RootOverrideDisallowed`) shows the reason from its status condition, with the text that an administrator can allow root overrides in Settings, or the override can be cleared.
+- A server held back by the reconciler (`SecurityAllowed=False`, `RootOverrideDisallowed`) shows the reason from its status condition, with the text that an administrator can allow root overrides in that cluster's Configuration, or the override can be cleared.
 
 ## Tests
 
-- Handler envtest `api/internal/handlers/resources_security_envtest_test.go` (create, update, clone, permission, root rule, invalid shapes, field restore, audit row).
-- Unit tests for the validator function and for the three message IDs (`messages_test.go`, `usage_test.go` verify every ID is used and has an English entry).
+- Handler envtest `api/internal/handlers/security_overrides_envtest_test.go` (create, update, clone, permission, root rule, invalid shapes, field restore, audit row).
+- Unit tests for the validator function and for the three message IDs (`messages_test.go`, `usage_test.go` check registration and descriptions, not use (brief 03 D2); the new IDs are used by the code).
 - E2E: `TestAPI_SecurityOverride_PermissionAndRootRule` (research R16).
