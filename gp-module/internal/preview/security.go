@@ -2,6 +2,7 @@ package preview
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -48,6 +49,9 @@ func toInt64Ptr(v any) *int64 {
 	case int64:
 		out = n
 	case uint64:
+		if n > math.MaxInt64 {
+			return nil
+		}
 		out = int64(n)
 	case float64:
 		if n != float64(int64(n)) {

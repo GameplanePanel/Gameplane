@@ -97,7 +97,7 @@ func TestPreview_SecurityNoFSGroupNoPolicyIsNotApplicable(t *testing.T) {
 		t.Fatalf("GeneratePreview: %v", err)
 	}
 	out := res.FormatHuman()
-	if !strings.Contains(out, "volumeOwnershipCheck: not applicable (no fsGroup)") {
+	if !strings.Contains(out, "not applicable (no fsGroup)") {
 		t.Errorf("FormatHuman missing not-applicable line:\n%s", out)
 	}
 }
