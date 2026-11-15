@@ -11,7 +11,7 @@ object, renders "false". Offline renders (helm template) have no live object,
 so they also render "false". The keep annotation stops uninstall from removing
 the switch.
 */}}
-{{- if or (eq (include "gameplane.operatorEnabled" .) "true") (and (eq (include "gameplane.apiEnabled" .) "true") .Values.api.standalone) }}
+{{- if eq (include "gameplane.operatorEnabled" .) "true" }}
 {{- $ns := include "gameplane.operatorClusterCredentialsNamespace" . }}
 {{- $existing := lookup "v1" "ConfigMap" $ns "gameplane-security-settings" }}
 {{- $allow := dig "data" "allowRootOverrides" "false" $existing | toString }}
