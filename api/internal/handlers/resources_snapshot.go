@@ -22,6 +22,14 @@ var volumeSnapshotGVR = schema.GroupVersionResource{Group: "snapshot.storage.k8s
 var errSnapshotSourceUnavailable = errors.New("snapshot data source verification unavailable")
 
 func writeServerValidationError(w http.ResponseWriter, req *http.Request, err error) {
+	// A localizable message carries its own status (for example 403 for
+	// server.security.forbidden or 422 for server.security.invalid), so it is
+	// written as is. Plain errors keep the code chosen below.
+	var m *httperr.Message
+	if errors.As(err, &m) {
+		httperr.WriteMessage(w, req, m)
+		return
+	}
 	code := http.StatusForbidden
 	if errors.Is(err, errTemplateRefImmutable) {
 		code = http.StatusConflict

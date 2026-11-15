@@ -613,6 +613,11 @@ func validateAndProtectGameServer(
 		}
 	}
 
+	// 1b. Validate spec.security field by field (see security_overrides.go).
+	if err := validateSecurityOverride(ctx, cl, ns, desired, live); err != nil {
+		return err
+	}
+
 	// 2. Validate spec.serviceAccountName
 	// A host-capable diagnostic exception must be a separate, synchronously
 	// audited administrator action. Generic edits may preserve an existing
