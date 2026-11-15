@@ -54,7 +54,7 @@ func secSetRouter(reg *kube.Registry) http.Handler {
 
 // secSetDo sends method with body to /security-settings and returns the response.
 func secSetDo(h http.Handler, method, body string) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(method, "/security-settings", strings.NewReader(body))
+	req := httptest.NewRequestWithContext(context.Background(), method, "/security-settings", strings.NewReader(body))
 	req.Header.Set("Accept", "application/problem+json")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
