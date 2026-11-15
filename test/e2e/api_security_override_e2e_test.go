@@ -120,8 +120,11 @@ func TestAPI_SecurityOverride_PermissionAndRootRule(t *testing.T) {
 			Delete(context.Background(), gsDenied, metav1.DeleteOptions{})
 	})
 
-	expectStatus := func(what string, r *http.Response, b []byte, err error, want int) {
+	// expect runs one API call, closes its response, checks the status and
+	// returns the body.
+	expect := func(what string, want int, do func() (*http.Response, []byte, error)) []byte {
 		t.Helper()
+		r, b, err := do()
 		if err != nil {
 			t.Fatalf("%s: %v", what, err)
 		}
@@ -129,15 +132,17 @@ func TestAPI_SecurityOverride_PermissionAndRootRule(t *testing.T) {
 		if r.StatusCode != want {
 			t.Fatalf("%s: status=%d want=%d body=%s", what, r.StatusCode, want, b)
 		}
+		return b
 	}
 
 	// Permission gate, without servers:security. Create and update that set a
 	// run-as override are refused; a plain create is accepted.
 	runAs := map[string]any{"runAsUser": map[string]any{"value": int64(1001)}}
-	r, b, err := user.Post("/servers", securityServerBody(ns, gsDenied, tmpl, runAs))
-	expectStatus("user create with override", r, b, err, http.StatusForbidden)
+	expect("user create with override", http.StatusForbidden, func() (*http.Response, []byte, error) {
+		return user.Post("/servers", securityServerBody(ns, gsDenied, tmpl, runAs))
+	})
 
-	r, b, err = user.Post("/servers", securityServerBody(ns, gs, tmpl, nil))
+	r, b, err := user.Post("/servers", securityServerBody(ns, gs, tmpl, nil))
 	if err != nil {
 		t.Fatalf("user create plain server: %v", err)
 	}
@@ -146,26 +151,31 @@ func TestAPI_SecurityOverride_PermissionAndRootRule(t *testing.T) {
 		t.Fatalf("user create plain server: status=%d body=%s", r.StatusCode, b)
 	}
 
-	r, b, err = user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, runAs))
-	expectStatus("user update with override", r, b, err, http.StatusForbidden)
+	expect("user update with override", http.StatusForbidden, func() (*http.Response, []byte, error) {
+		return user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, runAs))
+	})
 
 	// Grant servers:security to the role. The same user can now set an override.
-	pr, pb, err := admin.Patch("/roles/"+roleName, map[string]any{
-		"permissions": []string{"servers:read", "servers:write", "servers:security"},
+	expect("grant servers:security", http.StatusOK, func() (*http.Response, []byte, error) {
+		return admin.Patch("/roles/"+roleName, map[string]any{
+			"permissions": []string{"servers:read", "servers:write", "servers:security"},
+		})
 	})
-	expectStatus("grant servers:security", pr, pb, err, http.StatusOK)
 
-	r, b, err = user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, runAs))
-	expectStatus("granted user update with override", r, b, err, http.StatusOK)
+	expect("granted user update with override", http.StatusOK, func() (*http.Response, []byte, error) {
+		return user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, runAs))
+	})
 
 	// Root rule: a root value is refused while the cluster switch is off.
 	root := map[string]any{"fsGroup": map[string]any{"value": int64(0)}}
-	r, b, err = user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, root))
-	expectStatus("root value with switch off", r, b, err, http.StatusForbidden)
+	expect("root value with switch off", http.StatusForbidden, func() (*http.Response, []byte, error) {
+		return user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, root))
+	})
 
 	// Admin turns the switch on for this cluster. The ConfigMap follows.
-	fr, fb, err := admin.Do(http.MethodPut, "/security-settings?cluster=local", map[string]any{"allowRootOverrides": true})
-	expectStatus("admin switch on", fr, fb, err, http.StatusOK)
+	fb := expect("admin switch on", http.StatusOK, func() (*http.Response, []byte, error) {
+		return admin.Do(http.MethodPut, "/security-settings?cluster=local", map[string]any{"allowRootOverrides": true})
+	})
 	var on securitySettingsResponse
 	if err := json.Unmarshal(fb, &on); err != nil || !on.AllowRootOverrides || !on.Present {
 		t.Fatalf("PUT /security-settings on: body=%s err=%v", fb, err)
@@ -178,12 +188,14 @@ func TestAPI_SecurityOverride_PermissionAndRootRule(t *testing.T) {
 		t.Fatalf("switch ConfigMap allowRootOverrides=%q after PUT true, want \"true\"", got)
 	}
 
-	r, b, err = user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, root))
-	expectStatus("root value with switch on", r, b, err, http.StatusOK)
+	expect("root value with switch on", http.StatusOK, func() (*http.Response, []byte, error) {
+		return user.Do(http.MethodPut, "/servers/"+gs+"?namespace="+ns, securityServerBody(ns, gs, tmpl, root))
+	})
 
 	// Admin turns the switch off again. The ConfigMap follows.
-	fr, fb, err = admin.Do(http.MethodPut, "/security-settings?cluster=local", map[string]any{"allowRootOverrides": false})
-	expectStatus("admin switch off", fr, fb, err, http.StatusOK)
+	fb = expect("admin switch off", http.StatusOK, func() (*http.Response, []byte, error) {
+		return admin.Do(http.MethodPut, "/security-settings?cluster=local", map[string]any{"allowRootOverrides": false})
+	})
 	cm, err = envInstance.K8s.CoreV1().ConfigMaps(cpNS).Get(context.Background(), securitySwitchConfigMap, metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("get switch ConfigMap: %v", err)
