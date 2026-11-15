@@ -256,7 +256,7 @@ func cloneHandler(reg *kube.Registry, auditor *audit.Auditor) http.HandlerFunc {
 		}
 		// A clone reads as a create: its security row has an empty before.
 		changeReason := securityChangeReason(req.Context(), k, clone, nil)
-		if !writeSecurityChange(w, req, auditor, body.NewName, changeReason, http.StatusCreated) {
+		if !writeSecurityChange(w, req, auditor, body.NewName, changeReason, http.StatusOK) {
 			return
 		}
 

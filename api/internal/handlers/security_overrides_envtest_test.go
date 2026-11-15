@@ -149,6 +149,11 @@ func secOvPutBody(name string, security map[string]any, labels map[string]any) m
 		spec["security"] = security
 	}
 	meta := map[string]any{"name": name, "namespace": scope.DefaultNamespace}
+	// PUT is an optimistic update, so the body carries the stored version.
+	if live, err := kubeC.Dynamic.Resource(gvrServers()).Namespace(scope.DefaultNamespace).
+		Get(context.Background(), name, metav1.GetOptions{}); err == nil {
+		meta["resourceVersion"] = live.GetResourceVersion()
+	}
 	if labels != nil {
 		meta["labels"] = labels
 	}
