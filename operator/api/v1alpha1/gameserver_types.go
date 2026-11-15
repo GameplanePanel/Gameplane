@@ -57,20 +57,20 @@ const (
 type SecuritySource string
 
 const (
-	// SecuritySourceModuleDefault: the value is the GameTemplate's spec.security default.
+	// SecuritySourceModuleDefault means the value is the GameTemplate's spec.security default.
 	SecuritySourceModuleDefault SecuritySource = "ModuleDefault"
 
-	// SecuritySourceOverride: the value is the GameServer's spec.security override.
+	// SecuritySourceOverride means the value is the GameServer's spec.security override.
 	SecuritySourceOverride SecuritySource = "Override"
 
-	// SecuritySourceImageDefaultOverride: the server overrides the setting with
+	// SecuritySourceImageDefaultOverride means the server overrides the setting with
 	// "use image default", so no value is applied even if the module sets one.
 	SecuritySourceImageDefaultOverride SecuritySource = "ImageDefaultOverride"
 
-	// SecuritySourceImageDefault: nothing is applied and the image's own default is used.
+	// SecuritySourceImageDefault means nothing is applied and the image's own default is used.
 	SecuritySourceImageDefault SecuritySource = "ImageDefault"
 
-	// SecuritySourceBuiltInDefault: the value is the operator's built-in default
+	// SecuritySourceBuiltInDefault means the value is the operator's built-in default
 	// (used only for the volume ownership check).
 	SecuritySourceBuiltInDefault SecuritySource = "BuiltInDefault"
 )

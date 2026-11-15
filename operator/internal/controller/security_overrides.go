@@ -357,7 +357,7 @@ func (r *GameServerReconciler) recordObservedSecurity(ctx context.Context, gs *g
 	if !setObservedSecurityAnnotation(ss, value) {
 		return nil
 	}
-	if err := r.Client.Patch(ctx, ss, client.MergeFrom(base)); err != nil {
+	if err := r.Patch(ctx, ss, client.MergeFrom(base)); err != nil {
 		return fmt.Errorf("record observed security on statefulset: %w", err)
 	}
 	return nil
