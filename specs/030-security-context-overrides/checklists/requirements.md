@@ -31,8 +31,8 @@
 
 ## Notes
 
-- Open questions are tracked as OD-1..OD-3 in `OPEN-DECISIONS.md` instead of inline
-  markers (project rule: unsettled values go in OPEN-DECISIONS.md). All three were
-  settled by valgul on 2026-11-07.
+- Open questions are tracked as OD-1..OD-6 in `OPEN-DECISIONS.md` instead of inline
+  markers (project rule: unsettled values go in OPEN-DECISIONS.md). OD-1..OD-3 were
+  settled by valgul on 2026-11-07, OD-4..OD-6 on 2026-11-13.
 - Names such as "reconciler", "API" and "audit log" refer to existing Gameplane
   components the stakeholders already know; no new technology is prescribed.
