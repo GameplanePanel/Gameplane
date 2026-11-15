@@ -22,6 +22,14 @@ data:
 - The namespace is the operator's `--control-plane-namespace` on that cluster. On a default install with the API enabled it is the credentials namespace `<release>-credentials`. In standalone or no-API mode it is the release namespace.
 - There is no config-table row, no `security` config section, and no API start-up sync (OD-7).
 
+## Namespace the API uses (OD-10 A)
+
+- Home cluster: the cluster's own control-plane namespace, the same `moduleConfigMapNS` as today (`api/cmd/main.go:231`). On a default install that is the credentials namespace.
+- Remote cluster: the namespace recorded on that cluster's registration, `Cluster.spec.controlPlaneNamespace`. The default is `gameplane`. It is set in the register-cluster form and shown on the cluster page (tasks T078 and T079).
+- The API reads and updates the ConfigMap in that namespace through the cluster's registry client, by name only.
+- A ConfigMap not found in the resolved namespace reads as off. GET returns `present: false`, and PUT returns 409 `cluster.security_settings_missing` with no audit row.
+- A wrong namespace cannot turn the setting on; it only shows the setting as missing. The namespace must be the operator control-plane namespace of that remote install.
+
 ## Creation: Helm (OD-8 A)
 
 - The operator chart creates the ConfigMap wherever it renders: the home install and every remote operator install.
@@ -36,7 +44,7 @@ data:
 | Operator (on its own cluster) | `get;list;watch` on ConfigMaps (already held, `operator/internal/controller/gameserver_controller.go:261`, chart `operator.yaml:66`) | cluster |
 | API, home cluster | `get`, `update`, `patch` by `resourceNames: [gameplane-security-settings]` in the credentials namespace (`charts/gameplane/templates/api-credentials.yaml`) | one object |
 | API, standalone home | the same three verbs, Role and RoleBinding in the release namespace (`charts/gameplane/templates/api.yaml`, inside the `apiEnabled` guard) | one object |
-| API, remote cluster | the same three verbs granted by the remote chart to the identity the API uses for that cluster (task T076) | one object |
+| API, remote cluster | the same three verbs granted by the remote chart to the identity the API uses for that cluster (task T076), in the namespace on its registration (OD-10 A) | one object |
 
 No `create` verb is granted anywhere: Kubernetes does not limit `create` by name (OD-8).
 
@@ -80,13 +88,13 @@ Handler: `api/internal/handlers/security_settings.go`, mounted by `MountSecurity
 
 ## API reading (case 5)
 
-- A request that carries a new or changed root value (run-as user or group set to 0 or "use image default", or filesystem group set to 0) reads the ConfigMap of the request's own cluster through that cluster's registry client. The setting is on only for exact `"true"`. Missing, unreadable or any other value refuses the request with 403 `server.security.root_disabled`.
+- A request that carries a new or changed root value (run-as user or group set to 0 or "use image default", or filesystem group set to 0) reads the ConfigMap of the request's own cluster through that cluster's registry client, in the namespace resolved for that cluster (see "Namespace the API uses"). The setting is on only for exact `"true"`. Missing, unreadable or any other value refuses the request with 403 `server.security.root_disabled`.
 - A request that does not change a root value does not read the ConfigMap.
 
 ## Multi-cluster
 
 - The setting belongs to one cluster. A flip touches only that cluster's ConfigMap. Other clusters keep their own value, and a new cluster starts off.
-- The API's access to a remote cluster's control-plane namespace is open (briefs/00 section 7). Do not guess it.
+- The API reads a remote cluster's ConfigMap in the namespace on its registration, `Cluster.spec.controlPlaneNamespace` (OD-10 A; briefs/00 section 12). The remote chart grants the API identity access in that namespace (T076).
 
 ## Audit
 

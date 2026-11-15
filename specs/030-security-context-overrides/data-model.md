@@ -218,6 +218,19 @@ A save never changes the pod template while a pod runs (research R5). The pod te
 
 The setting has no config-table row (OD-7). Details are in [contracts/cluster-setting.md](contracts/cluster-setting.md).
 
+## Cluster registration field (OD-10 A)
+
+| Property | Value |
+|---|---|
+| Object | `Cluster` (`operator/api/v1alpha1/cluster_types.go`), field `spec.controlPlaneNamespace` |
+| Type | string, optional, JSON name `controlPlaneNamespace` |
+| Rule | a DNS label: lowercase letters, digits and hyphens, starting and ending with a letter or digit, at most 63 characters (`MaxLength=63`, DNS label pattern) |
+| Default | `gameplane` (`+kubebuilder:default`); an absent value means `gameplane` |
+| Set by | the register-cluster form (web), through the cluster registration API (`api/internal/handlers/clusters.go` accepts and returns it) |
+| Shown by | the cluster page |
+| Read by | the API, to find the settings ConfigMap on that remote cluster (`contracts/cluster-setting.md`, "Namespace the API uses"). The home cluster does not use it. |
+| Generated | with T007 (`make generate && make manifests`) |
+
 ## Permission
 
 | Key | Namespaced | Held by default |

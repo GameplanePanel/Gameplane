@@ -2,7 +2,7 @@
 
 **Feature**: [spec.md](spec.md) | **Plan**: [plan.md](plan.md) | **Date**: 2026-11-13
 
-Each entry records a decision, why it was made, and what else was considered. Facts about current code cite `file:line` as of the `spec-030/plan-and-tasks` branch. Questions that need a product ruling are in [OPEN-DECISIONS.md](OPEN-DECISIONS.md) (OD-1 to OD-9, all settled by valgul, 2026-11-07, 2026-11-13 and 2026-11-15; `briefs/00-rulings.md` is binding where it differs); each entry that a ruling shaped says which one.
+Each entry records a decision, why it was made, and what else was considered. Facts about current code cite `file:line` as of the `spec-030/plan-and-tasks` branch. Questions that need a product ruling are in [OPEN-DECISIONS.md](OPEN-DECISIONS.md) (OD-1 to OD-10, all settled by valgul, 2026-11-07, 2026-11-13 and 2026-11-15; `briefs/00-rulings.md` is binding where it differs); each entry that a ruling shaped says which one.
 
 ## Baseline facts
 
@@ -162,7 +162,7 @@ The config-init container already makes copied files group-writable itself (`gam
 **Decision** (OD-7 C, OD-8 A, settled 2026-11-15): the setting is separate for each cluster and off by default. Its only store is one ConfigMap per cluster, `gameplane-security-settings`, in the operator's control-plane namespace on that cluster (the credentials namespace `<release>-credentials` on a default install with the API enabled; the release namespace in standalone or no-API mode). It has one key, `allowRootOverrides`, with the value `"true"` or `"false"`. A missing ConfigMap, a missing key, or any value other than exact `"true"` is off. There is no config-table row and no API start-up sync (OD-7).
 
 - **Creation.** Helm creates the ConfigMap wherever the operator chart renders, with `"false"` and the annotation `helm.sh/resource-policy: keep`. On upgrade the template reads the current object with `lookup` and re-renders its value, so an upgrade never flips it. A deleted ConfigMap reads as off until the next `helm upgrade`.
-- **API access.** The API reads the ConfigMap of the request's own cluster for case 5 of the root rule (R10), through that cluster's registry client. It writes only through `PUT /security-settings?cluster=<id>` (`config:manage`), by name, and never creates the object. The grant is `get`, `update` and `patch` with `resourceNames: [gameplane-security-settings]`: on the home cluster in `charts/gameplane/templates/api-credentials.yaml`, in standalone in `charts/gameplane/templates/api.yaml`, and on each remote cluster from the remote chart (task T076; the identity and the namespace must be found in the chart, see briefs/00 section 7).
+- **API access.** The API reads the ConfigMap of the request's own cluster for case 5 of the root rule (R10), through that cluster's registry client. It writes only through `PUT /security-settings?cluster=<id>` (`config:manage`), by name, and never creates the object. The grant is `get`, `update` and `patch` with `resourceNames: [gameplane-security-settings]`: on the home cluster in `charts/gameplane/templates/api-credentials.yaml`, in standalone in `charts/gameplane/templates/api.yaml`, and on each remote cluster from the remote chart (task T076), in the control-plane namespace recorded on that cluster's registration (`Cluster.spec.controlPlaneNamespace`, default `gameplane`, OD-10 A; see the paragraph below R10). The identity the API uses on a remote cluster must be found in the chart (briefs/00 section 7).
 - **Operator access.** The operator reads its own cluster's ConfigMap from its informer cache, in the namespace given by `ControlPlaneNamespace` (set from the `--control-plane-namespace` flag). The ConfigMap informer is cluster-wide (only Secrets are scoped, briefs/02 D5), so no new informer is needed. Any error or a missing object means off (fail closed).
 - **Watch.** `Watches(&corev1.ConfigMap{}, ...)` sits next to the Pod and GameTemplate watches. Its map function filters to that name and namespace, and enqueues every GameServer that holds a root override, in any namespace. Unrelated servers are not enqueued.
 
@@ -182,6 +182,8 @@ The check runs before the R5 refresh, so a refused start leaves the StatefulSet 
 - *A Helm value or operator flag.* Needs a rollout to change, and cannot be changed or audited as an admin action.
 - *A field on a cluster-scoped CRD.* A new CRD and schema for one boolean.
 - *Copying the flag onto each GameServer from the API.* Fans out writes to every server on each flip.
+
+**Remote namespace (OD-10 A, settled 2026-11-15).** The API learns a remote cluster's control-plane namespace from its registration: an optional `Cluster.spec.controlPlaneNamespace`, default `gameplane`, set in the register-cluster form and shown on the cluster page. It needs no extra permission on the remote cluster, and a wrong value only shows the setting as missing (the ConfigMap is not found, so it reads as off). Rejected: a fixed namespace name on every install (OD-10 B), which fixes the release layout, and a label lookup across all namespaces (OD-10 C), which needs cluster-wide ConfigMap list permission.
 
 ## R10. Where each permission and validation check runs
 
@@ -270,4 +272,4 @@ A root refusal and a permission refusal also write a row (`status` 403, `reason`
 | MCP exposure | R15 |
 | E2E | R16 |
 
-Product rulings (not unknowns about the code): OD-1 to OD-9, all settled in [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
+Product rulings (not unknowns about the code): OD-1 to OD-10, all settled in [OPEN-DECISIONS.md](OPEN-DECISIONS.md).

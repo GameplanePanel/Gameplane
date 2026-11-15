@@ -1,6 +1,6 @@
 # Open decisions: spec 030 security context overrides
 
-OD-1..OD-3 were answered by valgul on 2026-11-07, OD-4..OD-6 on 2026-11-13. OD-7..OD-9 were raised by the implementation scout on 2026-11-15 and were all answered by valgul the same day. OD-10 is OPEN; the remote-cluster part of T057 and T076 waits for it.
+OD-1..OD-3 were answered by valgul on 2026-11-07, OD-4..OD-6 on 2026-11-13. OD-7..OD-9 were raised by the implementation scout on 2026-11-15 and were all answered by valgul the same day. OD-10 was raised the same day and answered by valgul on 2026-11-15 (A). OD-1 to OD-10 are all answered; none is open.
 
 ## OD-1: Who may set security overrides? (SETTLED: B)
 
@@ -154,7 +154,9 @@ The scout found places where the spec text does not match the code. The behavior
 
 ---
 
-## OD-10: How does the API find the settings ConfigMap on a remote cluster? (OPEN)
+## OD-10: How does the API find the settings ConfigMap on a remote cluster? (SETTLED: A)
+
+**Ruling (valgul, 2026-11-15):** A, the cluster registration records it: a new optional field on the Cluster object, `spec.controlPlaneNamespace`, defaulting to `gameplane`, set in the register-cluster form and shown on the cluster page.
 
 Raised 2026-11-15 while applying OD-7. On a remote operator install the ConfigMap lives in that install's control-plane namespace, which defaults to the remote release namespace (`charts/gameplane/templates/_helpers.tpl:220-225`) and can differ per cluster. The Cluster registration (`operator/api/v1alpha1/cluster_types.go`) holds only the kubeconfig Secret and the agent gateway, so the API cannot know that namespace today. The home cluster is not affected.
 

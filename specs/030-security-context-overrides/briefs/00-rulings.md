@@ -1,6 +1,6 @@
 # Brief 00: binding rulings (read this first)
 
-**Status**: binding for every fix agent. Written 2026-11-15, after valgul settled OD-7 (C), OD-8 (A) and OD-9 (A, all seven items) in [OPEN-DECISIONS.md](../OPEN-DECISIONS.md).
+**Status**: binding for every fix agent. Written 2026-11-15, after valgul settled OD-7 (C), OD-8 (A), OD-9 (A, all seven items) and OD-10 (A) in [OPEN-DECISIONS.md](../OPEN-DECISIONS.md).
 
 Read this file before briefs 01 to 04. Where this file and an earlier brief disagree, this file wins. Briefs 01 to 04 stay valid for their facts (exact `file:line` after the corrections in their own discrepancy lists). Their design statements listed in section 10 are superseded. Do not edit the briefs; do not edit any existing test file.
 
@@ -60,7 +60,7 @@ Read this file before briefs 01 to 04. Where this file and an earlier brief disa
 
   No `create` verb. Kubernetes does not apply `resourceNames` to `create`, so the old `create` placeholder in brief 04 T058 is dropped.
 - Standalone: an equivalent Role and RoleBinding (subject `gameplane-api`, release namespace), inside the `apiEnabled` guard of `charts/gameplane/templates/api.yaml`, placed after the logs RoleBinding and before the closing `{{- end }}` (brief 04 discrepancy 1).
-- Remote clusters: the remote chart grants the identity the API uses for that cluster the same three verbs on the same ConfigMap (task T076). The identity and namespace must be found in the chart. Do not guess (section 7).
+- Remote clusters: the remote chart grants the identity the API uses for that cluster the same three verbs on the same ConfigMap, in the control-plane namespace recorded on that cluster's registration (`Cluster.spec.controlPlaneNamespace`, section 12) (task T076). The identity must be found in the chart. Do not guess (section 7).
 - A deleted ConfigMap reads as off until the next `helm upgrade` renders it again as `"false"`.
 
 ## 5. Audit (contracts/audit-events.md)
@@ -82,7 +82,7 @@ Read this file before briefs 01 to 04. Where this file and an earlier brief disa
 
 ## 7. Open items: stop and ask, do not guess
 
-- **Remote cluster namespace (blocks T057 and T076 for remote clusters).** The API must know the control-plane namespace of each registered remote cluster to read and update that cluster's ConfigMap. First check whether the cluster registration already carries it. If it does not, stop and ask. Do not hard-code `<release>-credentials` for remote clusters. The home cluster uses `moduleConfigMapNS` (brief 03 D12).
+- **Remote cluster namespace: settled by OD-10 (A, 2026-11-15), see section 12.** The API reads a remote cluster's ConfigMap in the namespace on its registration. The identity the API uses on a remote cluster must still be found in the chart (T076); if it cannot be found, stop and ask. Do not hard-code `<release>-credentials` for remote clusters. The home cluster uses `moduleConfigMapNS` (brief 03 D12).
 - Helm chart tests: none exist for RBAC or `lookup` (brief 04 Q3). Adding one needs sign-off.
 - The web and module test file names in section 8 are proposals. OD-9 does not name them. The maintainer accepts or renames them.
 - Palworld `risky` and `volumeOwnershipCheck` (brief 04 Q4) is still open. T037 does not change Palworld until the module review decides.
@@ -151,3 +151,12 @@ Never edit these existing files: `operator/internal/controller/gameserver_securi
   - `reconcileStatus` already takes variadic conditions: add the `SecurityAllowed` condition through that variadic.
   - `MountLifecycle` and `MountConfig`: optional variadic parameters only.
 - Verify each call site with `grep` before you change a signature. CI is the compile verifier for tests, and nobody may edit the tests to make them compile.
+
+## 12. Remote cluster control-plane namespace (OD-10 A, 2026-11-15)
+
+- The cluster registration records the namespace: an optional field `spec.controlPlaneNamespace` on the Cluster object, default `gameplane`, set in the register-cluster form and shown on the cluster page (tasks T078 and T079).
+- The API reads a remote cluster's settings ConfigMap in that value. The home cluster keeps `moduleConfigMapNS` (section 2). A remote cluster with no value uses `gameplane`.
+- The value must be the operator control-plane namespace of that remote install. A remote install that does not use `gameplane` must be registered with its real namespace. The remote chart's grant (T076) and the ConfigMap Helm creates there (T077) use the same namespace.
+- A wrong value cannot turn the setting on. The ConfigMap is not found there, so it reads as off: GET reports `present: false`, and PUT returns 409 `cluster.security_settings_missing`.
+- The API needs no extra permission on the remote cluster to learn the namespace; it comes from the registration.
+- Rejected: a fixed namespace name on every install (OD-10 B), and a label lookup across all namespaces (OD-10 C), which needs cluster-wide ConfigMap list permission.

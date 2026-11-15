@@ -24,7 +24,7 @@ A game template already declares the uid, gid and filesystem group its game cont
 
 **Modules.** The template schema, the module repo's `validate.py`, the `gp-module` validator and preview, `docs/module-authoring.md` and the Palworld template change. The module repo changes ship as a **separate PR to `GameplanePanel/module`**, and the main repo takes them only through a **submodule pointer bump after that PR merges** (`submodule-bump` skill, CLAUDE.md "Game module" workflow). The main-repo changes work without them.
 
-**Settled rulings (OD-1 to OD-9).** [OD-1](OPEN-DECISIONS.md) B: a new `servers:security` permission, admin only by default. [OD-2](OPEN-DECISIONS.md) C: root values need the cluster's setting on. [OD-3](OPEN-DECISIONS.md) A: changes apply on the next restart. [OD-4](OPEN-DECISIONS.md) A: when the setting is off, the reconciler refuses to start a server that holds a saved root override (status says why, `RootOverrideDisallowed`), and never restarts or stops a running one. [OD-5](OPEN-DECISIONS.md) A: the reconciler validates the effective values with the restricted-workload rule and fails the server with the existing message until fixed; a running pod is untouched (R4). [OD-6](OPEN-DECISIONS.md) C: the dashboard asks for the risky confirmation, the audit row records that the value was risky, and the API refuses nothing on that basis (R11, R13). [OD-7](OPEN-DECISIONS.md) C (2026-11-15): the root setting is separate per cluster, set under Clusters, cluster, Configuration, stored in that cluster's ConfigMap. [OD-8](OPEN-DECISIONS.md) A (2026-11-15): Helm creates the ConfigMap with `"false"`, keeps it on uninstall and keeps its value on upgrade; the API only reads and updates it by name. [OD-9](OPEN-DECISIONS.md) A (2026-11-15): the seven spec corrections are accepted (see briefs/00 section 6).
+**Settled rulings (OD-1 to OD-10).** [OD-1](OPEN-DECISIONS.md) B: a new `servers:security` permission, admin only by default. [OD-2](OPEN-DECISIONS.md) C: root values need the cluster's setting on. [OD-3](OPEN-DECISIONS.md) A: changes apply on the next restart. [OD-4](OPEN-DECISIONS.md) A: when the setting is off, the reconciler refuses to start a server that holds a saved root override (status says why, `RootOverrideDisallowed`), and never restarts or stops a running one. [OD-5](OPEN-DECISIONS.md) A: the reconciler validates the effective values with the restricted-workload rule and fails the server with the existing message until fixed; a running pod is untouched (R4). [OD-6](OPEN-DECISIONS.md) C: the dashboard asks for the risky confirmation, the audit row records that the value was risky, and the API refuses nothing on that basis (R11, R13). [OD-7](OPEN-DECISIONS.md) C (2026-11-15): the root setting is separate per cluster, set under Clusters, cluster, Configuration, stored in that cluster's ConfigMap. [OD-8](OPEN-DECISIONS.md) A (2026-11-15): Helm creates the ConfigMap with `"false"`, keeps it on uninstall and keeps its value on upgrade; the API only reads and updates it by name. [OD-9](OPEN-DECISIONS.md) A (2026-11-15): the seven spec corrections are accepted (see briefs/00 section 6). [OD-10](OPEN-DECISIONS.md) A (2026-11-15): the cluster registration records the control-plane namespace of a remote cluster, `spec.controlPlaneNamespace` (default `gameplane`), set in the register-cluster form and shown on the cluster page (briefs/00 section 12).
 
 ## Technical Context
 
@@ -32,7 +32,7 @@ A game template already declares the uid, gid and filesystem group its game cont
 
 **Primary Dependencies**: existing ones only. Operator: controller-runtime, `k8s.io/api` (`PodSecurityContext.FSGroupChangePolicy` is a core field). API: chi, client-go (typed client for the ConfigMap), dynamic client, `database/sql` over SQLite or PostgreSQL. Web: React 19, TanStack Router and Query, HeroUI v3, Tailwind. No new module and no new dependency.
 
-**Storage**: CRD fields (`GameServer.spec.security`, `GameServer.status.security`, `GameServer` condition `SecurityAllowed`, `GameTemplate.spec.security` additions); one ConfigMap per cluster, `gameplane-security-settings`, created by the chart (R9, OD-8); the existing `audit_events.reason` column. **No database migration** (R12); the next free portable number, `020`, is not used, and the `config` table is not used for this setting.
+**Storage**: CRD fields (`GameServer.spec.security`, `GameServer.status.security`, `GameServer` condition `SecurityAllowed`, `GameTemplate.spec.security` additions); one ConfigMap per cluster, `gameplane-security-settings`, created by the chart (R9, OD-8); the Cluster field `spec.controlPlaneNamespace` (OD-10, T078); the existing `audit_events.reason` column. **No database migration** (R12); the next free portable number, `020`, is not used, and the `config` table is not used for this setting.
 
 **Testing** (CI only, constitution VI; local work is compile checks). New test files only; no existing test file is edited (OD-9 item 2, briefs/00 section 8):
 - `go test` with coverage gates: `operator` 72, `api` 80, `gp-module` 80, `mcp-server` 70.
@@ -59,14 +59,14 @@ A game template already declares the uid, gid and filesystem group its game cont
 - Existing function names and positional signatures that tests call stay as they are (briefs/00 section 11).
 
 **Scale/Scope**:
-- 2 CRDs changed (additive), 4 generated locations.
+- 3 CRDs changed (additive): GameServer, GameTemplate, and the Cluster field `spec.controlPlaneNamespace` (OD-10, T078). Each generated copy is committed in the same change (`make generate && make manifests`).
 - 1 new permission, 2 new routes (`GET` and `PUT /security-settings`), 1 ConfigMap per cluster created by Helm, 1 new operator watch, chart RBAC for the API on the home cluster, standalone and each remote cluster (R9).
 - 4 new messages: 3 `server.security.*` and `cluster.security_settings_missing`.
 - 1 shared dashboard section used on 2 screens, 1 cluster Security panel, about 4 new design frames.
 - About 20 module templates carry a `security` block; Palworld is the one known risky value.
 - 2 new E2E tests (the first also covers the OD-4 refusal).
 
-No NEEDS CLARIFICATION remains in the spec. The one open point in the design is the control-plane namespace the API uses for a remote cluster (briefs/00 section 7), which is stated as an open item, not guessed. Every other technical unknown is resolved in [research.md](research.md) (R1 to R16). OD-1 to OD-9 are all settled (valgul, 2026-11-07, 2026-11-13 and 2026-11-15); the plan builds on the rulings.
+No NEEDS CLARIFICATION remains in the spec. The control-plane namespace the API uses for a remote cluster is settled by OD-10: the cluster registration records it (briefs/00 section 12). Every technical unknown is resolved in [research.md](research.md) (R1 to R16). OD-1 to OD-10 are all settled (valgul, 2026-11-07, 2026-11-13 and 2026-11-15); the plan builds on the rulings.
 
 ## Constitution Check
 
@@ -83,7 +83,7 @@ No NEEDS CLARIFICATION remains in the spec. The one open point in the design is 
 | CLAUDE.md core rule 3 (login privacy) | Unauthenticated views reveal nothing. | n/a | **PASS**: all new UI is behind sign-in; refusal messages name no cluster data beyond the cluster id the caller chose. |
 | CLAUDE.md core rules 9 and 10 | Kubernetes primitives first; the operator owns business logic. | Required. | **PASS**: the override is a field on an existing CRD; the ownership check is the kubelet's `fsGroupChangePolicy`; the cluster setting is a ConfigMap, a Kubernetes primitive that Helm creates and the operator watches; the operator computes and applies, and the API only validates, stores and audits. |
 | CLAUDE.md core rules 9 and 10, re-checked for OD-4 and OD-7 | The operator owns business logic; Kubernetes primitives first. | The operator must learn the cluster setting. | **PASS**: the setting travels in a ConfigMap that the operator reads and the API reads and updates by name; the refusal to start is reconciler logic, and the API still never bypasses reconciliation. |
-| CLAUDE.md system override 10 (unsettled values) | Unsettled values go in `OPEN-DECISIONS.md`. | Required. | **PASS**: OD-1 to OD-9 are settled. The one unresolved item (the control-plane namespace of a remote cluster, briefs/00 section 7) is recorded as an open item and blocks only the remote-cluster tasks. |
+| CLAUDE.md system override 10 (unsettled values) | Unsettled values go in `OPEN-DECISIONS.md`. | Required. | **PASS**: OD-1 to OD-10 are settled. The remote cluster's control-plane namespace is settled by OD-10 (briefs/00 section 12); the identity for the remote grant still has to be found in the chart (briefs/00 section 7). |
 
 **Result**: no violations, and no principle is bent. The costs worth stating are a hard dependency, the design gate under principle II, which is a sequencing constraint, and the open remote-namespace item.
 
@@ -100,7 +100,7 @@ No NEEDS CLARIFICATION remains in the spec. The one open point in the design is 
 ```text
 specs/030-security-context-overrides/
 ├── spec.md
-├── OPEN-DECISIONS.md          # OD-1..OD-9 settled
+├── OPEN-DECISIONS.md          # OD-1..OD-10 settled
 ├── plan.md                    # this file
 ├── research.md                # R1 to R16
 ├── data-model.md
@@ -125,6 +125,7 @@ specs/030-security-context-overrides/
 operator/
 ├── api/v1alpha1/
 │   ├── gametemplate_types.go          GameSecuritySpec (+ volumeOwnershipCheck, risky; new SecurityRiskSpec, SecurityRiskNote)   :177, :185
+│   ├── cluster_types.go               ClusterSpec.ControlPlaneNamespace (OD-10, T078; optional, default gameplane)
 │   ├── gameserver_types.go            GameServerSpec.Security (after Capture :161); GameServerStatus.Security (:558); new GameServerSecuritySpec,
 │   │                                  SecurityIDOverride, GameServerSecurityStatus, SecuritySettings, SecurityIDStatus, SecurityCheckStatus
 │   └── zz_generated.deepcopy.go       GENERATED
@@ -226,7 +227,7 @@ Independent slices, fanned out per constitution V; each slice ends in compile ch
 
 | Slice | Content | Depends on |
 |---|---|---|
-| A. CRD | Go types, `make generate && make manifests`, CEL tests | none |
+| A. CRD | Go types (GameServer, GameTemplate, Cluster `controlPlaneNamespace`, T078), `make generate && make manifests`, CEL tests | none |
 | B. Operator | resolver, encoding, gate, status, backup/restore group, restricted mode (OD-5), setting reader and root-override start refusal (OD-4), wake hold (OD-9 item 4), baseline exclusion (T075) | A |
 | C. API | permission, validator, the `/security-settings` routes and rules, the root rule, audit (incl. risky marker, OD-6, and the flip row), messages | A (types only for tests) |
 | D. Chart | the Helm-created ConfigMap with lookup (T077), the API Role rules (T058), the remote grant (T076) | none |
