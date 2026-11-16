@@ -129,7 +129,7 @@ After cloning: `git submodule update --init modules mcp-server` (both required f
 - **Dashboard screen:** design in `design.pen` + export to `assets/design-export/` → `web/src/routes/<name>.tsx`, register in `web/src/router/tree.tsx` → data via `web/src/lib/api.ts` + TanStack Query → `web/src/routes/<name>.test.tsx`.
 - **Game module:** edit `modules/<name>/` (`module.yaml`, `template.yaml`, `README.md`) → `make modules-push` → commit in `GameplanePanel/module` → `git add modules` + commit pointer bump in root.
 - **Website:** design in `website/website.pen` + export to `website/website-export/` → change `website/` per its own CLAUDE.md and AGENTS.md → commit/push/PR in `GameplanePanel/website` (default branch `main`) → `git add website` + commit pointer bump in root.
-- **MCP server:** change `mcp-server/` per the mcp repo's own docs → commit/push/PR in `GameplanePanel/mcp` (default branch `main`) → `git add mcp-server` + commit pointer bump in root.
+- **MCP server:** change `mcp-server/` per the mcp repo's own docs → commit/push/PR in `GameplanePanel/mcp` (default branch `main`) → after it merges, `git -C mcp-server fetch origin main && git -C mcp-server checkout <merged sha on main>` → `git add mcp-server` + commit pointer bump in root.
 - **DB migration:** new sequential `api/internal/db/migrations/common/<NNN>_<name>.sql` (013 onward) — portable SQL both SQLite and PostgreSQL run unchanged (no `datetime('now')`/`strftime`, `AUTOINCREMENT`, `INSERT OR …`, `COLLATE NOCASE`; bind timestamps from Go). `migrations/sqlite/` and `migrations/postgres/` hold the frozen per-dialect 001–012 sets; see `api/internal/db/migrations/README.md`. Append-only, applied on API startup.
 
 ## Reference docs

@@ -39,6 +39,7 @@ Argument: `modules`, `website` or `mcp-server`. From `.gitmodules`: `modules` is
    ```sh
    git add <sub>
    ```
+   If the included submodule PRs bring a change users, operators or module authors will notice, also add `changelog/unreleased/<PR number>-<slug>.md` to the bump PR once it is open (CLAUDE.md rule 19).
 
 ## Commit, push, open the PR
 

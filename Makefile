@@ -344,6 +344,7 @@ images: $(addprefix image-,$(IMAGES)) image-audit-syslog image-tunnel-frp image-
 # Pattern rule for standard-shaped images
 image-%: ## Build container image
 	@hack/need.sh docker
+	@if [ "$*" = mcp-server ] && [ ! -f mcp-server/Dockerfile ]; then git submodule update --init mcp-server; fi
 	docker build -t $(REGISTRY)/$*:$(TAG) -f $*/Dockerfile .
 
 # Non-standard images (target name ≠ dir, or special Dockerfile paths)
