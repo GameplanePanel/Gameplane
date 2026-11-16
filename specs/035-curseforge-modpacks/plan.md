@@ -118,11 +118,10 @@ files, a handful of new web components. Module change ships as its own PR in
 Per project rules this is one branch and one PR in Gameplane (plus the module PR and its
 pointer bump), unless valgul asks for stacked PRs.
 
-## Open decision raised by planning
+## Decision raised by planning
 
-- **OD-7** (OPEN, see OPEN-DECISIONS.md): when installing a different pack over an active
-  one, is the mods folder emptied first, like Remove? Planned default until answered:
-  yes (`wipeMods: true` on a change of provider or project, never on a version change).
+- **OD-7** (SETTLED B, valgul 2026-11-16): only Remove empties the mods folder. Installing a
+  different pack over an active one does not; leftovers are the operator's to delete.
 
 ## Complexity Tracking
 

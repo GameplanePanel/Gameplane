@@ -122,6 +122,7 @@ The operator switches the Modpacks registry to FTB, searches FTB's own pack list
 - A server installed a Modrinth pack before this feature (no pinned version). After the panel upgrade it is pinned to the version it already has installed, so its next restart does not upgrade the pack. If the installed version cannot be read, the Active modpack card shows "Not pinned" and asks the operator to pick a version.
 - The operator ticks "Back up first" and the backup fails. The pack change does not happen; the panel shows the backup error and the server keeps its current pack.
 - A pack's newer versions target a newer Minecraft version than the server runs. They are not listed in the picker; the operator changes the server version first, then picks the pack version.
+- An operator installs a different pack over an active one. The mods folder is not emptied (OD-7 B), so the old pack's mods stay and may load alongside the new pack; the operator deletes them in the Mods tab or uses Remove first.
 - A pack needs more memory than the server has. Out of scope here; the operator raises memory in the server settings (itzg recommends at least 4 GB).
 
 ## Requirements *(mandatory)*

@@ -60,7 +60,7 @@ implementation task re-checks every itzg fact below against the image digests th
 ## R3: Where the active pack lives (FR-004, FR-006, FR-007)
 
 - **Decision**: new optional `GameServer.spec.modpack` (provider, project, version, display
-  labels, `backupFirst`, `wipeMods`) plus `status.modpack` (applied snapshot, phase, backup
+  labels, `backupFirst`) plus `status.modpack` (applied snapshot, phase, backup
   name, missing files). The operator renders the env: it removes every env name declared in
   any provider's `modpacks` block (reference, pin and fixed env) from the merged env, then
   adds the active provider's set. That one rule enforces "one pack per server" (FR-004)
@@ -87,8 +87,7 @@ implementation task re-checks every itzg fact below against the image digests th
 
 ## R5: Emptying the mods folder (Clarification Q1)
 
-- **Decision**: when a change has `wipeMods: true` (always for Remove; see OD-7 for switching
-  packs), the operator adds a one-shot init container step that empties the active loader's
+- **Decision**: on Remove only (switching packs does not wipe, OD-7 B), the operator adds a one-shot init container step that empties the active loader's
   mods directory (the per-version+loader mods PVC mounted at `<mountPath>/<loader path>`)
   before the game container starts. The step writes a marker file
   `.gameplane-mods-wiped-<generation>` and skips when the marker exists, so restarts do not

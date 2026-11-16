@@ -28,7 +28,6 @@ No database tables change. All state lives on Kubernetes objects.
 | `title` | string | 0–128, display only |
 | `versionName` | string | 0–128, display only |
 | `backupFirst` | bool | honoured only when a backup destination exists |
-| `wipeMods` | bool | empty the active loader's mods folder before the next start |
 
 Absent `spec.modpack` = no pack. Remove deletes `spec.modpack` and sets the annotation
 `gameplane.local/modpack-remove` (below), which tells the operator whether to back up first.
@@ -45,7 +44,7 @@ Annotations:
 |---|---|---|
 | `observedGeneration` | int64 | generation of the last change handled |
 | `phase` | enum `Pending`, `BackingUp`, `Applying`, `Applied`, `BackupFailed` | progress of the current change |
-| `applied` | object (same shape as `spec.modpack` without `backupFirst`/`wipeMods`) or null | what the pod renders now |
+| `applied` | object (same shape as `spec.modpack` without `backupFirst`) or null | what the pod renders now |
 | `backupName` | string | Backup CR created for this change |
 | `message` | string, max 512 | human-readable reason for `BackupFailed` |
 | `keyShared` | bool | the pod currently mounts a shared CurseForge key |

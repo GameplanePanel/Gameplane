@@ -57,8 +57,8 @@ Request:
 ```
 
 - `version` required (400 `server.modpack.version_required`).
-- Same provider + project as the active pack = version change; else install (sets
-  `wipeMods` per OD-7).
+- Same provider + project as the active pack = version change; else install. Neither
+  empties the mods folder (OD-7 B); only DELETE does.
 - 409 `server.modpack.key_required` when the provider is blocked for this server (see
   `modpacksBlockedReason`).
 - 400 `server.modpack.backup_unavailable` when `backupFirst` and no destination.

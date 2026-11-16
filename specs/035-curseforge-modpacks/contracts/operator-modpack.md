@@ -12,7 +12,7 @@ Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
    annotation, and render rule 1, at the next pod start the operator drives.
 3. **Change state machine** (R4): see data-model.md. Backup CRs created here are owned by
    the GameServer and named `<gs>-modpack-<generation>`.
-4. **Mods wipe** (R5): when the change has `wipeMods` or is a removal, add the one-shot
+4. **Mods wipe** (R5): on a removal only (OD-7 B), add the one-shot
    init step for the active loader's mods mount, guarded by the marker file.
 5. **Key sharing** (R2): watch the managed key Secret (control namespace); maintain
    `<gs>-curseforge-key` and the read-only mount + `apiKeyFileEnv` only while sharing is on
