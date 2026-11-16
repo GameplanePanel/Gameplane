@@ -327,6 +327,38 @@ configured address manager; a Service of another class is outside that
 manager's control, so leave them unset with a class of another
 implementation.
 
+## Port Pools
+
+Some installs reach every game server through one public address, a relay
+or an edge that forwards ports to the cluster. Games whose clients send the
+hostname they connect to (Minecraft Java) can share a port behind a router
+that picks the server by name, but most games send no hostname, so behind
+one address each server needs ports of its own. A port pool hands them out.
+
+Give a template a pool with the Helm value `operator.portPools`
+(`--port-pool=<template>=<first>-<last>`):
+
+```yaml
+operator:
+  portPools:
+    valheim: "2456-2467"
+```
+
+Each server of that template then gets a block of the range, one port per
+advertised port, in template order: the first Valheim server 2456-2458, the
+next 2459-2461. The lowest free block goes to each new server, and a deleted
+server's block is free again. The operator records a server's first port in
+its `gameplane.local/pool-port` annotation and keeps it for the server's
+life, so players' saved addresses keep working. The Service publishes those
+ports and forwards them to the game's own, and `status.endpoints` and the
+dashboard show them. Start the range at the game's default port, so the
+first server keeps it.
+
+A server's explicit `spec.networking.portOverrides` still win. When every
+block is taken, a new server keeps its template's ports, and the operator
+logs that the pool is exhausted. Forward the whole range at the relay or
+edge, to the cluster's load balancer.
+
 ## Related
 
 - [`install.md`](install.md) — Helm chart values for `operator.addressManager` and cluster prerequisites.

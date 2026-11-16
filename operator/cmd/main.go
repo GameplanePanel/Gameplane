@@ -151,6 +151,7 @@ func main() {
 		gameIngressFromCIDR              cidrListFlag
 		probeIngressPolicy               bool
 		probeIngressFromCIDR             cidrListFlag
+		portPoolFlags                    cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
 		restrictedWorkloads              bool
@@ -304,6 +305,10 @@ func main() {
 	flag.BoolVar(&probeIngressPolicy, "probe-ingress-policy", false,
 		"Reconcile a per-GameServer NetworkPolicy admitting kubelet probes to the game container's "+
 			"probe ports only. When false, the operator ensures the policy is absent.")
+	flag.Var(&portPoolFlags, "port-pool",
+		"A template's port pool, <template>=<first>-<last>: each of its servers gets Service ports of "+
+			"its own from the range, a block per server, one port per advertised port. Repeatable, one "+
+			"per template. For servers reached through a relay or edge that routes by port alone.")
 	flag.Var(&probeIngressFromCIDR, "probe-ingress-from-cidr",
 		"Kubelet source CIDR admitted by the probe NetworkPolicy. Repeatable. Defaults to "+
 			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 and 169.254.0.0/16 when not supplied.")
@@ -441,6 +446,11 @@ func main() {
 		setupLog.Error(err, "invalid --address-manager value")
 		os.Exit(1)
 	}
+	portPools, err := controller.ParsePortPools(portPoolFlags)
+	if err != nil {
+		setupLog.Error(err, "invalid --port-pool value")
+		os.Exit(1)
+	}
 
 	// Games are meant to be publicly reachable, so an unset
 	// --game-ingress-from-cidr defaults to wide-open rather than an empty
@@ -543,6 +553,7 @@ func main() {
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		},
 		AddressManager:              addressManager,
+		PortPools:                   portPools,
 		MetalLBNamespace:            metalLBNamespace,
 		GameIngressPolicyEnabled:    gameIngressPolicy,
 		GameIngressFromCIDRs:        gameIngressFromCIDR,

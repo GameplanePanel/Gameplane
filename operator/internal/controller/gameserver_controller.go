@@ -138,6 +138,10 @@ type GameServerReconciler struct {
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
 
+	// PortPools gives each listed template's servers Service ports of their
+	// own, from a range (--port-pool); see gameserver_portpool.go.
+	PortPools map[string]PortPool
+
 	// MetalLBNamespace is the namespace MetalLB's IPAddressPool custom
 	// resources (metallb.io/v1beta1, namespaced) live in. Used only when
 	// AddressManager == "metallb" and a pool was requested: reconcileStatus
@@ -477,6 +481,10 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileTunnel(ctx, &gs, &tmpl, tunnelPlan.wantTunnel); err != nil {
 		logger.Error(err, "reconcile tunnel")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcilePoolPort(ctx, &gs, &tmpl); err != nil {
+		logger.Error(err, "reconcile pool port")
 		return ctrl.Result{}, err
 	}
 	// A Service being replaced for a loadBalancerClass change is a pending
@@ -1352,11 +1360,18 @@ func svcPortsFromTemplate(
 		overrides[o.Name] = o
 	}
 	out := make([]corev1.ServicePort, 0, len(tmpl.Spec.Ports))
+	var advertised int32
 	for _, p := range tmpl.Spec.Ports {
 		if !p.Advertise {
 			continue
 		}
 		port := p.ContainerPort
+		// A port from the template's pool (gameserver_portpool.go) replaces
+		// the default; an explicit override still wins.
+		if pooled := poolServicePort(gs, advertised); pooled != 0 {
+			port = pooled
+		}
+		advertised++
 		nodePort := int32(0)
 		if o, ok := overrides[p.Name]; ok {
 			if o.ServicePort != 0 {
