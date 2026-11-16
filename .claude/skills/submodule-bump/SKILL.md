@@ -1,9 +1,9 @@
 ---
 name: submodule-bump
-description: "Use after a modules or website submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules or website."
+description: "Use after a modules or website submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules, website or mcp-server."
 ---
 
-Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md).
+Argument: `modules`, `website` or `mcp-server`. From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md), `mcp-server` is GameplanePanel/mcp (branch `main`).
 
 ## Preconditions
 
@@ -11,7 +11,7 @@ Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePane
    ```sh
    gh pr view <pr-number> --repo GameplanePanel/module --json state,mergeCommit
    ```
-   For website, use `--repo GameplanePanel/website`. Stop unless `state` is `MERGED`.
+   For website, use `--repo GameplanePanel/website`; for mcp-server use `--repo GameplanePanel/mcp`. Stop unless `state` is `MERGED`.
 2. Check for a pending bump owned by another thread:
    ```sh
    gh pr list --repo GameplanePanel/Gameplane --state open --search "bump <sub> submodule"
@@ -59,6 +59,7 @@ Argument: `modules` or `website`. From `.gitmodules`: `modules` is GameplanePane
 9. Open the PR with a short Summary (the submodule PRs included) and a Test plan. Labels:
    - `modules`: `type: chore` + `area: modules`
    - `website`: `type: docs` + `area: shared`
+   - `mcp-server`: `type: chore` + `area: optional-components`
 
    Add them via REST, as in `ship-branch` step 7:
    ```sh
