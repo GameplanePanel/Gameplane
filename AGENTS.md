@@ -98,6 +98,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 16. **Archival:** once every task is complete/withdrawn and the PR is merged into `master`, `git mv specs/<NNN>-<slug> specs/done_<NNN>-<slug>` and update in-repo references in the same commit.
 17. **Mechanical design waves** (token re-skins): scripted, blind updates at `haiku`. Precompute change lists with `grep`/`jq` on `assets/design-export/json/<id>.json`; `haiku` applies `Update(id, {prop: value})`. Verify by screenshot comparison (`export_nodes` vs snapshot PNG), not JSON dumps; avoid `Get(id, {depth: 10+})`.
 18. **Scout once, brief many:** one scout reads code/docs/failures and writes a factual brief (exact `file:line`, before/after code, justification). Fix agents get only the brief and edit blind at `haiku` — never tell them to re-read files, test suites, or `CLAUDE.md` and `AGENTS.md`. Reviewers check git diffs against the brief.
+19. **Changelog entries:** every PR with a change users, operators or module authors will notice (feature, setting/Helm value/CRD field/API route, behaviour change, upgrade step, user-visible or security fix, module changes in a `modules` pointer bump) adds one file `changelog/unreleased/<PR number>-<slug>.md` in the same PR, per `changelog/unreleased/README.md`. Never edit `CHANGELOG.md` directly (one file per PR avoids merge conflicts); the maintainer folds the folder into `CHANGELOG.md` at release. Breaking changes start the title with `Breaking:`. Skip refactors, tests, CI-only, specs and no-behaviour docs.
 
 ## Architecture
 
