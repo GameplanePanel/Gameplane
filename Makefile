@@ -40,7 +40,7 @@ KUBECONFIG_ENV :=
 KUBE_CONTEXT   := kind-$(KIND_CLUSTER)
 endif
 
-GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel mcp-server capture-sidecar svcutil tunnel
+GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel capture-sidecar svcutil tunnel
 GO_INTEGRATION_MODULES := operator api
 
 # test/e2e is a separate module (its own go.mod, excluded from the coverage

@@ -43,6 +43,9 @@ jobs:
             dockerfile: tunnel/Dockerfile.playit
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init mcp-server submodule
+        if: matrix.component == 'mcp-server'
+        run: git submodule update --init mcp-server
       # Signing is mandatory for an official release: fail before anything is
       # pushed rather than publish unsigned images. Mirrors publish-edge.yaml.
       - name: require signing key

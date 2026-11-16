@@ -9,7 +9,6 @@ use (
 	./gameproto
 	./gp-module
 	./i18n
-	./mcp-server
 	./netguard
 	./operator
 	./sentinel

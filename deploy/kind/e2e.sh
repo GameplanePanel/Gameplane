@@ -238,6 +238,10 @@ EOF
             if [ "${img}" = tunnel-frp ]; then
                 dockerfile="${REPO}/tunnel/Dockerfile.frp"
             fi
+            if [ "${img}" = mcp-server ] && [ ! -f "${dockerfile}" ]; then
+                echo "  mcp-server submodule not initialised — running git submodule update --init mcp-server"
+                git -C "${REPO}" submodule update --init mcp-server
+            fi
             docker build -t "gameplane-test/${img}:${TAG}" -f "${dockerfile}" "${REPO}"
         fi
         kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
