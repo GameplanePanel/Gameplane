@@ -60,8 +60,8 @@ A game template already declares the uid, gid and filesystem group its game cont
 
 **Scale/Scope**:
 - 3 CRDs changed (additive): GameServer, GameTemplate, and the Cluster field `spec.controlPlaneNamespace` (OD-10, T078). Each generated copy is committed in the same change (`make generate && make manifests`).
-- 1 new permission, 2 new routes (`GET` and `PUT /security-settings`), 1 ConfigMap per cluster created by Helm, 1 new operator watch, chart RBAC for the API on the home cluster, standalone and each remote cluster (R9).
-- 4 new messages: 3 `server.security.*` and `cluster.security_settings_missing`.
+- 1 new permission, 2 new routes (`GET` and `PUT /security-settings`), 1 ConfigMap per cluster created by Helm, 1 new operator watch, chart RBAC for the API on the home cluster and each remote cluster, none on a standalone panel (R9; corrected 2026-11-16).
+- 4 new messages: 3 `server.security.*` and `server.cluster.security_settings_missing`.
 - 1 shared dashboard section used on 2 screens, 1 cluster Security panel, about 4 new design frames.
 - About 20 module templates carry a `security` block; Palworld is the one known risky value.
 - 2 new E2E tests (the first also covers the OD-4 refusal).
@@ -153,7 +153,6 @@ operator/
 
 charts/gameplane/
 ├── templates/api-credentials.yaml     Role rule in the credentials namespace: configmaps `gameplane-security-settings` get/update/patch by resourceNames (no create) (R9, OD-8)
-├── templates/api.yaml                 standalone equivalent Role and RoleBinding in the release namespace, inside the apiEnabled guard
 ├── templates/operator*.yaml           the ConfigMap `gameplane-security-settings` created by Helm with "false", keep annotation, lookup on upgrade (OD-8)
 ├── templates/                         remote-chart grant for the identity the API uses for a remote cluster (T076; identity to be found in the chart)
 ├── charts/gameplane-crds/crds/*.yaml  GENERATED (gameservers, gametemplates)
@@ -173,10 +172,10 @@ api/
 │   ├── security_overrides_envtest_test.go    NEW envtest (dedicated router)
 │   ├── security_settings_test.go             NEW unit tests (validator, GET and PUT shape)
 │   └── security_settings_envtest_test.go     NEW envtest (dedicated router, flip, 409, 502, rows)
-├── internal/messages/                 server.security.forbidden, .root_disabled, .invalid; cluster.security_settings_missing
+├── internal/messages/                 server.security.forbidden, .root_disabled, .invalid; server.cluster.security_settings_missing
 └── specs.md
 
-i18n/locales/en/app.json, fr/app.json  server.security.* and cluster.security_settings_missing, web.routes.* and web.clusters.* keys
+i18n/locales/en/app.json, fr/app.json  server.security.* and server.cluster.security_settings_missing, web.routes.* and web.clusters.* keys
 
 web/src/                                       BLOCKED until the design export lands
 ├── types.ts                                   GameServer.spec.security, GameServer.status.security (:557), GameTemplate.spec.security (:303)

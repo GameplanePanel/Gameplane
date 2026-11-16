@@ -207,7 +207,7 @@ A save never changes the pod template while a pod runs (research R5). The pod te
 | Property | Value |
 |---|---|
 | Name | `gameplane-security-settings` |
-| Namespace | the operator's control-plane namespace of that cluster (`--control-plane-namespace`; the credentials namespace `<release>-credentials` on a default install with the API enabled, the release namespace in standalone or no-API mode) |
+| Namespace | the operator's control-plane namespace of that cluster (`--control-plane-namespace`; the credentials namespace `<release>-credentials` on a default install with the API enabled, the release namespace in no-API mode; a standalone panel has none) |
 | Data | `allowRootOverrides`: `"true"` or `"false"`. A missing ConfigMap, a missing key or any other value is off (fail closed). |
 | Default | `"false"`, written by Helm. An upgrade keeps the current value (`lookup`). |
 | Created by | the operator chart only (OD-8). The API never creates it. |

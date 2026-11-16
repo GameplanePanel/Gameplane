@@ -26,12 +26,12 @@ Read this file before briefs 01 to 04. Where this file and an earlier brief disa
   - Any other read error: 502.
 - PUT 200 body: the GET body, with `present` true.
 - PUT order:
-  1. Read the ConfigMap. NotFound: 409 `cluster.security_settings_missing`, no audit row (nothing was attempted).
+  1. Read the ConfigMap. NotFound: 409 `server.cluster.security_settings_missing`, no audit row (nothing was attempted).
   2. Value unchanged: 200, nothing written, no audit row.
   3. Value changes: write the flip audit row first (section 5), then update the ConfigMap. Never create it.
   4. Update fails: 502, and a `security_save_failed` row (section 5).
 - Messages (`api/internal/messages/`, cluster entries, with en and fr keys per FR-014):
-  - `cluster.security_settings_missing`, 409, English: "the security settings ConfigMap is missing on this cluster; run helm upgrade to recreate it".
+  - `server.cluster.security_settings_missing`, 409, English: "the security settings ConfigMap is missing on this cluster; run helm upgrade to recreate it".
   - `server.security.root_disabled` text now says the administrator allows root overrides "in that cluster's Configuration" (see `contracts/api-server-security.md`).
 - Files: new production file `api/internal/handlers/security_settings.go` with `MountSecuritySettings(r chi.Router, reg *kube.Registry, auditor *audit.Auditor)`, mounted from `api/cmd/main.go`. Route rules and envtests use dedicated routers, never `mountedR`.
 - The server root rule (case 5) lives in `api/internal/handlers/security_overrides.go` (renamed from `resources_security.go`). It reads the ConfigMap of the request's own cluster through that cluster's registry client (`resolveCluster`), and only for a request that carries a new or changed root value. Any read error or any value other than exact `"true"` is off, so the request is refused. The rule no longer reads the config store, so `MountResources` needs no `*db.Store` for it. It still takes the auditor.
@@ -59,7 +59,7 @@ Read this file before briefs 01 to 04. Where this file and an earlier brief disa
   ```
 
   No `create` verb. Kubernetes does not apply `resourceNames` to `create`, so the old `create` placeholder in brief 04 T058 is dropped.
-- Standalone: an equivalent Role and RoleBinding (subject `gameplane-api`, release namespace), inside the `apiEnabled` guard of `charts/gameplane/templates/api.yaml`, placed after the logs RoleBinding and before the closing `{{- end }}` (brief 04 discrepancy 1).
+- Standalone: no Role and no ConfigMap (corrected 2026-11-16, valgul approved: a standalone panel has no local operator and mounts no service account token, so it renders neither the ConfigMap nor an API Role for it; `charts/tests/check_standalone.py` asserts it renders no Roles).
 - Remote clusters: the remote chart grants the identity the API uses for that cluster the same three verbs on the same ConfigMap, in the control-plane namespace recorded on that cluster's registration (`Cluster.spec.controlPlaneNamespace`, section 12) (task T076). The identity must be found in the chart. Do not guess (section 7).
 - A deleted ConfigMap reads as off until the next `helm upgrade` renders it again as `"false"`.
 
@@ -157,6 +157,6 @@ Never edit these existing files: `operator/internal/controller/gameserver_securi
 - The cluster registration records the namespace: an optional field `spec.controlPlaneNamespace` on the Cluster object, default `gameplane`, set in the register-cluster form and shown on the cluster page (tasks T078 and T079).
 - The API reads a remote cluster's settings ConfigMap in that value. The home cluster keeps `moduleConfigMapNS` (section 2). A remote cluster with no value uses `gameplane`.
 - The value must be the operator control-plane namespace of that remote install. A remote install that does not use `gameplane` must be registered with its real namespace. The remote chart's grant (T076) and the ConfigMap Helm creates there (T077) use the same namespace.
-- A wrong value cannot turn the setting on. The ConfigMap is not found there, so it reads as off: GET reports `present: false`, and PUT returns 409 `cluster.security_settings_missing`.
+- A wrong value cannot turn the setting on. The ConfigMap is not found there, so it reads as off: GET reports `present: false`, and PUT returns 409 `server.cluster.security_settings_missing`.
 - The API needs no extra permission on the remote cluster to learn the namespace; it comes from the registration.
 - Rejected: a fixed namespace name on every install (OD-10 B), and a label lookup across all namespaces (OD-10 C), which needs cluster-wide ConfigMap list permission.

@@ -51,7 +51,7 @@ Both bodies follow the existing `httperr` rules (`api/internal/httperr/httperr.g
 | 403 | `server.security.root_disabled` | `root values (user 0, group 0, filesystem group 0, or the image default for user or group) are not allowed on this cluster until an administrator allows root overrides in that cluster's Configuration` | `{"setting":"runAsUser"}` (the first offending setting) |
 | 422 | `server.security.invalid` | `invalid security override: {detail}` | `{"setting":"fsGroup","detail":"must be between 0 and 4294967295"}` |
 
-The three messages, and `cluster.security_settings_missing` (409, [cluster-setting.md](cluster-setting.md)), are added to `api/internal/messages/entries_server.go` and to `i18n/locales/en/app.json` (FR-014), next to `server.forbidden`.
+The three messages, and `server.cluster.security_settings_missing` (409, [cluster-setting.md](cluster-setting.md)), are added to `api/internal/messages/entries_server.go` and to `i18n/locales/en/app.json` (FR-014), next to `server.forbidden`.
 
 Existing generic mapping: `writeServerValidationError` (`api/internal/handlers/resources_snapshot.go:24`) maps a plain error to 403; the new errors carry their own status, so it passes them through.
 

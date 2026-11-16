@@ -106,7 +106,7 @@ Prerequisite: S5 step 2 left two servers holding root overrides (`fsGroup { valu
 4. Suspend the second server, then turn the setting back on, and start it.
    - **Expect** it starts with its override; `SecurityAllowed` is `True`. Repeat step 2 with the setting on first: **expect** a stopped server holding a root override starts as soon as the setting is flipped on (no other action).
 5. Delete the ConfigMap `gameplane-security-settings` while a stopped server holds a root override.
-   - **Expect** the setting reads as off (fail closed): the server does not start, `GET /security-settings` reports `present: false`, and `PUT /security-settings` returns 409 `cluster.security_settings_missing`. The next `helm upgrade` recreates the ConfigMap as `"false"`, because nothing is left to keep (OD-8).
+   - **Expect** the setting reads as off (fail closed): the server does not start, `GET /security-settings` reports `present: false`, and `PUT /security-settings` returns 409 `server.cluster.security_settings_missing`. The next `helm upgrade` recreates the ConfigMap as `"false"`, because nothing is left to keep (OD-8).
 
 ### S5b: restricted workload mode (OD-5)
 

@@ -19,7 +19,7 @@ data:
   allowRootOverrides: "false"   # "true" or "false"; nothing else is on
 ```
 
-- The namespace is the operator's `--control-plane-namespace` on that cluster. On a default install with the API enabled it is the credentials namespace `<release>-credentials`. In standalone or no-API mode it is the release namespace.
+- The namespace is the operator's `--control-plane-namespace` on that cluster. On a default install with the API enabled it is the credentials namespace `<release>-credentials`. In no-API mode it is the release namespace. A standalone panel has no local operator and no ConfigMap.
 - There is no config-table row, no `security` config section, and no API start-up sync (OD-7).
 
 ## Namespace the API uses (OD-10 A)
@@ -27,7 +27,7 @@ data:
 - Home cluster: the cluster's own control-plane namespace, the same `moduleConfigMapNS` as today (`api/cmd/main.go:231`). On a default install that is the credentials namespace.
 - Remote cluster: the namespace recorded on that cluster's registration, `Cluster.spec.controlPlaneNamespace`. The default is `gameplane`. It is set in the register-cluster form and shown on the cluster page (tasks T078 and T079).
 - The API reads and updates the ConfigMap in that namespace through the cluster's registry client, by name only.
-- A ConfigMap not found in the resolved namespace reads as off. GET returns `present: false`, and PUT returns 409 `cluster.security_settings_missing` with no audit row.
+- A ConfigMap not found in the resolved namespace reads as off. GET returns `present: false`, and PUT returns 409 `server.cluster.security_settings_missing` with no audit row.
 - A wrong namespace cannot turn the setting on; it only shows the setting as missing. The namespace must be the operator control-plane namespace of that remote install.
 
 ## Creation: Helm (OD-8 A)
@@ -43,7 +43,7 @@ data:
 |---|---|---|
 | Operator (on its own cluster) | `get;list;watch` on ConfigMaps (already held, `operator/internal/controller/gameserver_controller.go:261`, chart `operator.yaml:66`) | cluster |
 | API, home cluster | `get`, `update`, `patch` by `resourceNames: [gameplane-security-settings]` in the credentials namespace (`charts/gameplane/templates/api-credentials.yaml`) | one object |
-| API, standalone home | the same three verbs, Role and RoleBinding in the release namespace (`charts/gameplane/templates/api.yaml`, inside the `apiEnabled` guard) | one object |
+| API, standalone panel | none: no local operator and no service account token, so the chart renders neither the ConfigMap nor a Role for it (corrected 2026-11-16) | none |
 | API, remote cluster | the same three verbs granted by the remote chart to the identity the API uses for that cluster (task T076), in the namespace on its registration (OD-10 A) | one object |
 
 No `create` verb is granted anywhere: Kubernetes does not limit `create` by name (OD-8).
@@ -68,7 +68,7 @@ PUT /security-settings?cluster=<id>
 |---|---|
 | Body empty | 400 `server.empty_body` (OD-9 item 1) |
 | Body is not JSON, or `allowRootOverrides` is missing or not a boolean | 422 |
-| ConfigMap NotFound | 409 `cluster.security_settings_missing`, no audit row |
+| ConfigMap NotFound | 409 `server.cluster.security_settings_missing`, no audit row |
 | Value unchanged | 200, nothing written, no audit row |
 | Value changes, audit row written, update succeeds | 200 |
 | Audit write fails | 500, nothing changes |
@@ -76,7 +76,7 @@ PUT /security-settings?cluster=<id>
 
 GET body: `{"cluster": "<id>", "allowRootOverrides": bool, "present": bool}`. A NotFound ConfigMap reads as `allowRootOverrides: false, present: false`. Any other read error returns 502. PUT returns the same body with `present: true`.
 
-Message `cluster.security_settings_missing`: 409, English "the security settings ConfigMap is missing on this cluster; run helm upgrade to recreate it". Registered in `api/internal/messages/` (cluster entries), with en and fr keys (FR-014).
+Message `server.cluster.security_settings_missing`: 409, English "the security settings ConfigMap is missing on this cluster; run helm upgrade to recreate it". Registered in `api/internal/messages/` (cluster entries), with en and fr keys (FR-014).
 
 Handler: `api/internal/handlers/security_settings.go`, mounted by `MountSecuritySettings(r chi.Router, reg *kube.Registry, auditor *audit.Auditor)` from `api/cmd/main.go`.
 
