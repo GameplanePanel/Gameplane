@@ -31,7 +31,7 @@ of them change behaviour or need steps before the upgrade.
   annotation. Fresh installs enforce Restricted Pod Security on game
   namespaces; releases upgraded with `--reuse-values` can keep
   `podSecurity.enforceRestricted=false`. Follow the
-  [native credential upgrade instructions](docs/install.md#upgrading-native-api-credentials)
+  [native credential upgrade instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/install.md#upgrading-native-api-credentials)
   (PR #886).
 - **Breaking: game probes are pod-local:** GameServer and GameTemplate HTTP
   and TCP probes now reject an explicit host. Remove the host from existing
@@ -55,12 +55,12 @@ of them change behaviour or need steps before the upgrade.
   II: Bannerlord, Nuclear Option, Squad and The Isle now require amd64
   workers. On mixed clusters, set the `kubernetes.io/arch: amd64` node
   selector on affected GameServers that still use older templates. See
-  [affected games and upgrade steps](containers/README.md#platform-support)
+  [affected games and upgrade steps](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/containers/README.md#platform-support)
   (PRs #958, #959; module PR #68).
 - **Live Minecraft Java backups:** before upgrading agents that only support
   the v1 backup endpoint, let active live backups finish and check their
   `Unquiesced` condition. See the
-  [operator upgrade guidance](docs/operator-operations.md#shared-operation-ownership)
+  [operator upgrade guidance](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/operator-operations.md#shared-operation-ownership)
   (PR #899).
 - **Game worker policy takes over legacy games:** when the new placement and
   resource policy takes over an existing game, the operator drains its Pod
@@ -72,7 +72,7 @@ of them change behaviour or need steps before the upgrade.
   After the singleton is ready, enable `api.postgresHA.enabled` and set
   `api.replicas` to at least `2`. SQLite and standalone installations keep
   one API replica. See the
-  [Helm upgrade instructions](docs/install.md#api-rollout-and-postgresql-availability)
+  [Helm upgrade instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/install.md#api-rollout-and-postgresql-availability)
   (PR #911).
 - **SSO usernames are refreshed on login:** each OIDC login now refreshes an
   existing user's email and display name. SSO users whose username is still
@@ -113,7 +113,7 @@ of them change behaviour or need steps before the upgrade.
   backup and archived WAL on storage separate from the database volume. The
   recovery drill fences the old writer, restores to a named WAL point and
   reapplies authorization revocations before the API serves requests again.
-  See the [panel recovery procedure](docs/panel-recovery.md) (PR #911).
+  See the [panel recovery procedure](https://github.com/GameplanePanel/Gameplane/blob/v0.4.1/docs/panel-recovery.md) (PR #911).
 - **PostgreSQL connection secrets:** the API and `bootstrap-admin` can read the
   database connection string from an existing Secret. Set
   `api.db.existingSecret` and `api.db.secretKey` to keep the DSN out of Helm

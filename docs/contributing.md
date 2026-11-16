@@ -381,7 +381,10 @@ transparency log.
 Before tagging, fold the files in `changelog/unreleased/` into a
 `## [x.y.z]` section of `CHANGELOG.md` and delete them (keep the folder's
 `README.md`). The release workflow publishes that section as the GitHub
-release notes and falls back to generated notes when it is missing.
+release notes and falls back to generated notes when it is missing. Write its
+links as absolute URLs to the new tag
+(`https://github.com/GameplanePanel/Gameplane/blob/vX.Y.Z/docs/...`), because
+relative links do not resolve on the release page.
 
 Signing is **mandatory and fail-closed**: if `COSIGN_PRIVATE_KEY` is not
 configured, the release job fails before anything is pushed. A one-time key
