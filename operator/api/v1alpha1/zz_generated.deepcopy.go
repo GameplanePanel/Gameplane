@@ -983,6 +983,11 @@ func (in *GameServerNetworking) DeepCopyInto(out *GameServerNetworking) {
 		*out = make([]PortOverride, len(*in))
 		copy(*out, *in)
 	}
+	if in.LoadBalancerClass != nil {
+		in, out := &in.LoadBalancerClass, &out.LoadBalancerClass
+		*out = new(string)
+		**out = **in
+	}
 	if in.SourceRanges != nil {
 		in, out := &in.SourceRanges, &out.SourceRanges
 		*out = make([]string, len(*in))

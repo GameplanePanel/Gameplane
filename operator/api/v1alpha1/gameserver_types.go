@@ -328,6 +328,18 @@ type GameServerNetworking struct {
 	// +optional
 	PortOverrides []PortOverride `json:"portOverrides,omitempty"`
 
+	// LoadBalancerClass selects the load-balancer implementation for the
+	// fronting Service (service.spec.loadBalancerClass), for a cluster that
+	// runs more than one, or a custom one for game traffic. It only takes
+	// effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
+	// Service's class, so when this changes the operator replaces the
+	// Service, which gets a new cluster IP and, usually, a new external
+	// address. Unset leaves the Service's class as it is.
+	// +kubebuilder:validation:MaxLength=253
+	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$`
+	// +optional
+	LoadBalancerClass *string `json:"loadBalancerClass,omitempty"`
+
 	// SourceRanges is an IP allow-list (CIDRs) for the fronting Service. It
 	// maps to service.spec.loadBalancerSourceRanges and therefore only takes
 	// effect when Expose=LoadBalancer (cloud LBs that honor it); it is

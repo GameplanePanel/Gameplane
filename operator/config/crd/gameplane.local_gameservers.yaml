@@ -1404,6 +1404,18 @@ spec:
                     maxLength: 253
                     pattern: ^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$
                     type: string
+                  loadBalancerClass:
+                    description: |-
+                      LoadBalancerClass selects the load-balancer implementation for the
+                      fronting Service (service.spec.loadBalancerClass), for a cluster that
+                      runs more than one, or a custom one for game traffic. It only takes
+                      effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
+                      Service's class, so when this changes the operator replaces the
+                      Service, which gets a new cluster IP and, usually, a new external
+                      address. Unset leaves the Service's class as it is.
+                    maxLength: 253
+                    pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$
+                    type: string
                   portOverrides:
                     description: |-
                       PortOverrides lets the user pin a specific NodePort or override

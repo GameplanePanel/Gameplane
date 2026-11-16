@@ -718,6 +718,9 @@ func (r *GameServerReconciler) reconcileService(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	routeToSentinel bool,
 ) error {
+	if err := r.replaceServiceForClassChange(ctx, gs); err != nil {
+		return err
+	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace},
 	}
@@ -728,6 +731,14 @@ func (r *GameServerReconciler) reconcileService(
 			svc.Spec.Type = corev1.ServiceTypeNodePort
 		case "LoadBalancer":
 			svc.Spec.Type = corev1.ServiceTypeLoadBalancer
+		}
+		// The class can only be set as the Service becomes a LoadBalancer
+		// (Kubernetes clears it when it stops being one), so it is set only
+		// when the Service has none; a different one is handled above.
+		if svc.Spec.Type == corev1.ServiceTypeLoadBalancer &&
+			gs.Spec.Networking.LoadBalancerClass != nil && svc.Spec.LoadBalancerClass == nil {
+			class := *gs.Spec.Networking.LoadBalancerClass
+			svc.Spec.LoadBalancerClass = &class
 		}
 		// loadBalancerSourceRanges is only valid on LoadBalancer Services;
 		// clear it otherwise so a later Expose change doesn't leave a stale
@@ -769,6 +780,47 @@ func (r *GameServerReconciler) reconcileService(
 		return controllerutil.SetControllerReference(gs, svc, r.Scheme)
 	})
 	return err
+}
+
+// errServiceReplaced asks for a requeue while a Service is replaced for a
+// loadBalancerClass change: the old one may linger while its load balancer
+// cleans up, and a new one can only be created once it is gone.
+var errServiceReplaced = errors.New("replacing the Service for a loadBalancerClass change")
+
+// replaceServiceForClassChange deletes the game Service when the GameServer
+// asks for a different loadBalancerClass than the Service has, since
+// Kubernetes doesn't allow changing a Service's class. The next reconcile
+// creates the Service again, with the new class. An unset class never
+// replaces a Service, so a class set by something else (an admission
+// policy, an older operator) is kept.
+func (r *GameServerReconciler) replaceServiceForClassChange(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer,
+) error {
+	want := gs.Spec.Networking.LoadBalancerClass
+	if want == nil || gs.Spec.Networking.Expose != "LoadBalancer" {
+		return nil
+	}
+	var svc corev1.Service
+	if err := r.Get(ctx, types.NamespacedName{Namespace: gs.Namespace, Name: gs.Name}, &svc); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("get Service: %w", err)
+	}
+	if !svc.DeletionTimestamp.IsZero() {
+		return errServiceReplaced
+	}
+	if svc.Spec.Type != corev1.ServiceTypeLoadBalancer || svc.Spec.LoadBalancerClass == nil ||
+		*svc.Spec.LoadBalancerClass == *want {
+		return nil
+	}
+	if !metav1.IsControlledBy(&svc, gs) {
+		return nil
+	}
+	if err := r.Delete(ctx, &svc); err != nil && !apierrors.IsNotFound(err) {
+		return fmt.Errorf("delete Service for a loadBalancerClass change: %w", err)
+	}
+	return errServiceReplaced
 }
 
 // managedServiceAnnotationsKey records which annotation keys the operator

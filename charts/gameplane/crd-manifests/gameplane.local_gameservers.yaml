@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: b409bc125837ec9256cb4968d3f98a162c9a145dee35b16c22f39498a9892e64
+    gameplane.local/crd-bundle-sha256: 74c293b49c82a1d7b412d0d0bf4b60d00ef03128dd7d9ac34e1d4600ce04a87f
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
@@ -1404,6 +1404,18 @@ spec:
                       report, since it is the name players use.
                     maxLength: 253
                     pattern: ^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$
+                    type: string
+                  loadBalancerClass:
+                    description: |-
+                      LoadBalancerClass selects the load-balancer implementation for the
+                      fronting Service (service.spec.loadBalancerClass), for a cluster that
+                      runs more than one, or a custom one for game traffic. It only takes
+                      effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
+                      Service's class, so when this changes the operator replaces the
+                      Service, which gets a new cluster IP and, usually, a new external
+                      address. Unset leaves the Service's class as it is.
+                    maxLength: 253
+                    pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$
                     type: string
                   portOverrides:
                     description: |-
