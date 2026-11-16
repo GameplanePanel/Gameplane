@@ -6,7 +6,7 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it
 reaches `1.0.0`. Pre-1.0 minor versions may contain breaking changes.
 
 Changes that are not released yet live in
-[`changelog/unreleased/`](changelog/unreleased/), one file per pull request.
+[`changelog/unreleased/`](changelog/unreleased/README.md), one file per pull request.
 They are folded into this file when a version is released; see
 [`docs/contributing.md`](docs/contributing.md#changelog-entries).
 

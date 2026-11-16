@@ -335,7 +335,7 @@ work on your own fork of a submodule, repoint it locally:
 ## Changelog entries
 
 A PR whose change users, operators or module authors will notice adds one
-Markdown file to [`changelog/unreleased/`](../changelog/unreleased/), named
+Markdown file to [`changelog/unreleased/`](../changelog/unreleased/README.md), named
 `<PR number>-<short-slug>.md`. Do not edit `CHANGELOG.md` directly: one file
 per PR means two PRs never touch the same lines, so entries never conflict.
 The maintainer folds the files into `CHANGELOG.md` when a version is
