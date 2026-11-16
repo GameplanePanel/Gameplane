@@ -1,6 +1,6 @@
 # Open decisions: spec 035 CurseForge modpacks
 
-All decisions below were answered by valgul on 2026-11-11 (decision cards). None are open.
+OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning on 2026-11-16 and is open.
 
 ## OD-1: How do game servers get a CurseForge key? (SETTLED: C, valgul 2026-11-11)
 
@@ -52,3 +52,14 @@ built-in key; `java8` tags (Minecraft ≤1.16.5) do not.
 - A. No, separate spec later. Most large FTB packs are also published on CurseForge, and
   FTB needs a new registry engine for its own API. (Recommended.)
 - B. Yes, add an FTB registry to the Modpacks tab in this spec.
+
+## OD-7: Installing a different pack over an active one: empty the mods folder first? (OPEN, raised by planning 2026-11-16)
+
+Pack mods land in the same mods folder. The image cleans up files from older versions of
+the same pack, but not files from a different pack, so leftovers from the old pack would
+load alongside the new one.
+
+- A. Yes: switching to another pack (other registry or other project) empties the mods
+  folder first, like Remove; changing the version of the same pack does not.
+  (Recommended: a clean switch, consistent with your Remove answer.)
+- B. No: only Remove empties the folder; the operator cleans up by hand when switching.
