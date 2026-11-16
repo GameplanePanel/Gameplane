@@ -699,7 +699,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: codegen-drift
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: regenerate deepcopy, CRDs, RBAC and chart CRD copies
         run: make generate manifests
       - name: go mod tidy across modules
@@ -1226,7 +1226,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - run: helm lint charts/gameplane
       - name: evaluate monitoring rules
         run: bash charts/gameplane/tests/monitoring-rules.sh
@@ -1287,7 +1287,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
       - name: deterministic offline native chart and upgrade renders
         run: python3 charts/tests/check_argocd.py
@@ -1953,7 +1953,7 @@ jobs:
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
       - name: install kind
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
@@ -2107,7 +2107,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2204,7 +2204,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2282,7 +2282,7 @@ jobs:
           key-suffix: e2e
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2391,7 +2391,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2475,7 +2475,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2536,7 +2536,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:

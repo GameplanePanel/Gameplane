@@ -318,6 +318,9 @@ and test gates below.
 3. For UI work, include the Pencil node id(s) touched in the PR description
 4. Sign commits (`git commit -s`)
 5. **PR labels**: every PR must carry at least one `type:` and one `area:` label. CodeRabbit (see Code review below) applies them automatically, and the `auto-label` workflow (`hack/auto_label.py`, every 15 minutes) fills in a missing `type:` from the conventional-commit title prefix and a missing `area:` from the changed paths; `type: security` is never derived. You are responsible for verifying they are correct. The `type:` taxonomy is `feature` / `fix` / `refactor` / `test` / `ci` / `chore` / `docs` / `security`. The `area:` taxonomy is `operator` / `api` / `agent` / `web` / `modules` / `chart` / `e2e` / `specs` / `shared` / `optional-components`. A breaking CRD, API, or chart-value change also takes `breaking`. The `status:` labels (`blocked`, `needs-maintainer`, `in-progress`) are optional. A PR spanning several components takes several `area:` labels rather than being left unlabelled.
+6. **Changelog entry**: if the change matters to people who run Gameplane, add
+   a file to `changelog/unreleased/` in the same PR (see
+   [Changelog entries](#changelog-entries)).
 
 Game-module changes (`modules/`) belong in the separate **`GameplanePanel/module`**
 repo, which this repo vendors as a submodule. Open the module PR there; once it
@@ -328,6 +331,31 @@ GitHub URLs, so a fork of this repo clones them without forking them too. To
 work on your own fork of a submodule, repoint it locally:
 `git submodule set-url modules https://github.com/<you>/module.git`
 (don't commit that change).
+
+## Changelog entries
+
+A PR whose change users, operators or module authors will notice adds one
+Markdown file to [`changelog/unreleased/`](../changelog/unreleased/README.md), named
+`<PR number>-<short-slug>.md`. Do not edit `CHANGELOG.md` directly: one file
+per PR means two PRs never touch the same lines, so entries never conflict.
+The maintainer folds the files into `CHANGELOG.md` when a version is
+released, and the release workflow publishes that section as the GitHub
+release notes.
+
+Add an entry for:
+
+- new features, settings, Helm values, CRD fields, API routes and dashboard
+  screens;
+- behaviour changes, including anything that needs a step before or after
+  upgrading (start the title with `Breaking:` when it does);
+- user-visible bug fixes and security fixes;
+- game-module changes that reach installs through a `modules` pointer bump
+  (add the entry in the bump PR here and name the module PRs).
+
+Skip it for refactors, tests, CI-only changes, specs and docs fixes that
+change no behaviour. Write the entry for the person running Gameplane: what
+changed, what they must do, and a link to the docs. The template is in
+[`changelog/unreleased/README.md`](../changelog/unreleased/README.md).
 
 ## Translating
 
@@ -349,6 +377,14 @@ component images, pushes the Helm chart to the `gameplane` OCI registry, and
 keyed-cosign-signs all images (component and chart) and official `modules/*`
 bundles by digest, recording all signatures in the public Sigstore Rekor
 transparency log.
+
+Before tagging, fold the files in `changelog/unreleased/` into a
+`## [x.y.z]` section of `CHANGELOG.md` and delete them (keep the folder's
+`README.md`). The release workflow publishes that section as the GitHub
+release notes and falls back to generated notes when it is missing. Write its
+links as absolute URLs to the new tag
+(`https://github.com/GameplanePanel/Gameplane/blob/vX.Y.Z/docs/...`), because
+relative links do not resolve on the release page.
 
 Signing is **mandatory and fail-closed**: if `COSIGN_PRIVATE_KEY` is not
 configured, the release job fails before anything is pushed. A one-time key
