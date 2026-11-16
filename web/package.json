@@ -50,7 +50,7 @@
     "react-dom": "^19.3.1",
     "react-intl": "^12.1.7",
     "tailwind-merge": "^3.7.0",
-    "vscode-languageserver-protocol": "3.17.5"
+    "vscode-languageserver-protocol": "3.18.5"
   },
   "devDependencies": {
     "@babel/core": "^8.1.2",

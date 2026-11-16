@@ -11,11 +11,23 @@ export default defineConfig({
     alias: {
       "@": path.resolve(here, "./src"),
       "@i18n": path.resolve(here, "../i18n/locales"),
+      // vscode-languageserver-protocol 3.18 and vscode-jsonrpc 10 export
+      // "./browser" only under the "browser" condition, which Vitest's
+      // Node-side resolution never uses. Point both entries at their files
+      // and pre-bundle them (deps.optimizer below), so the nested
+      // require("vscode-jsonrpc/browser") is bundled instead of reaching Node.
+      "vscode-languageserver-protocol/browser": path.resolve(here, "node_modules/vscode-languageserver-protocol/lib/browser/main.js"),
+      "vscode-jsonrpc/browser": path.resolve(here, "node_modules/vscode-jsonrpc/lib/browser/main.js"),
     },
   },
   test: {
     environment: "jsdom",
     globals: true,
+    deps: {
+      optimizer: {
+        client: { enabled: true, include: ["vscode-languageserver-protocol/browser"] },
+      },
+    },
     setupFiles: ["./src/test/setup.ts"],
     // Playwright specs live under e2e/ and use @playwright/test, not
     // vitest. Exclude them so `npx vitest run` doesn't try to load

@@ -44,7 +44,9 @@ export async function startTypeScriptClient(model: monaco.editor.ITextModel, sig
     lastDiagnostics = diagnostics;
     monaco.editor.setModelMarkers(model, owner, diagnostics.map(diagnostic => ({
       ...range(diagnostic.range),
-      message: diagnostic.message,
+      // LSP 3.18 allows MarkupContent messages only with markupMessageSupport,
+      // which this client never advertises; keep the text if one arrives.
+      message: typeof diagnostic.message === "string" ? diagnostic.message : diagnostic.message.value,
       severity: diagnostic.severity === lsp.DiagnosticSeverity.Warning ? monaco.MarkerSeverity.Warning
         : diagnostic.severity === lsp.DiagnosticSeverity.Hint ? monaco.MarkerSeverity.Hint
         : diagnostic.severity === lsp.DiagnosticSeverity.Information ? monaco.MarkerSeverity.Info

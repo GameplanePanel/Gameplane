@@ -33,7 +33,11 @@ export function registerTypeScriptFeatures(
     for (const change of edit.documentChanges ?? []) {
       if (!("textDocument" in change) || change.textDocument.uri !== textDocument.uri) return;
       if (change.textDocument.version != null && change.textDocument.version !== model.getVersionId()) return;
-      changes.push(...change.edits);
+      // LSP 3.18 snippet edits need the client's snippetEditSupport, which
+      // this client never advertises; refuse the whole edit if one arrives.
+      const edits = change.edits.filter((e): e is lsp.TextEdit => !lsp.SnippetTextEdit.is(e));
+      if (edits.length !== change.edits.length) return;
+      changes.push(...edits);
     }
     return changes;
   }
