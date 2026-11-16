@@ -284,8 +284,15 @@ func main() {
 			}
 			return nil
 		}(),
-		Usage:   usageReader,
-		Metrics: m,
+		PlayerQuery: func() *caps.PlayerQuery {
+			if playerActions != nil {
+				return playerActions.Query
+			}
+			return nil
+		}(),
+		QueryHost: rconHost,
+		Usage:     usageReader,
+		Metrics:   m,
 	})
 
 	go func() {

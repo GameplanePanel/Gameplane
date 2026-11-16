@@ -109,6 +109,18 @@ type PlayerActions struct {
 	BanList   *BanList    `json:"banList,omitempty"`
 	Whitelist *Whitelist  `json:"whitelist,omitempty"`
 	List      *PlayerList `json:"list,omitempty"`
+	// Query reads the online player count over a server query protocol
+	// instead of the console. The heartbeat prefers it when set.
+	Query *PlayerQuery `json:"query,omitempty"`
+}
+
+// PlayerQuery mirrors spec.capabilities.players.query: a server query
+// protocol, answered inside the pod, that reports the player count.
+type PlayerQuery struct {
+	// Protocol is the query protocol; "a2s" (Valve's A2S_INFO) is the only one.
+	Protocol string `json:"protocol"`
+	// Port is the UDP port that answers the query.
+	Port int `json:"port"`
 }
 
 // BanList reads and parses the game's ban list.

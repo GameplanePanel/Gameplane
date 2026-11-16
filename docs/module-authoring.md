@@ -1281,6 +1281,26 @@ capabilities:
   From `modules/palworld/template.yaml` (note: Palworld uses the REST
   admin API `protocol: palworld`, not RCON, so the players list is
   fetched via the REST endpoint, not a console command).
+- `query` reads the online player count from a server query protocol
+  instead of the console, for games whose console can't list players, or
+  that have none. `protocol: a2s` is Valve's Steam server query (A2S_INFO),
+  which most Steam dedicated servers answer; `port` is the UDP query port,
+  which must be declared in `spec.ports`. The agent sends the query inside
+  the pod, so the port needn't be advertised. The count drives the
+  dashboard's player count and [idle sleep](architecture.md#sleep-an-idle-server):
+  a server with no player count never sleeps. Bots aren't counted. The
+  Players tab's list and moderation still use the console.
+
+  From `modules/valheim/template.yaml` (Valheim has no RCON; it answers
+  A2S on the game port plus one):
+
+  ```yaml
+  capabilities:
+    players:
+      query:
+        protocol: a2s
+        port: 2457
+  ```
 - The operator uses the verified agent endpoint for live backups. For
   `minecraft-java`, declare the sequence above. The agent checks the English
   vanilla response to each command, including the already-on and already-off

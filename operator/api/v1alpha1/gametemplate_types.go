@@ -810,6 +810,29 @@ type PlayerActionsSpec struct {
 	// List configures how the online player list is read.
 	// +optional
 	List *PlayerListSpec `json:"list,omitempty"`
+
+	// Query reads the online player count from a server query protocol
+	// instead of the console, for games with no console that lists players
+	// (Valheim has no RCON at all). When set, the heartbeat's player count,
+	// which idle sleep relies on, comes from this query. The Players tab's
+	// list and moderation still use the console.
+	// +optional
+	Query *PlayerQuerySpec `json:"query,omitempty"`
+}
+
+// PlayerQuerySpec reads the player count over a game server query protocol.
+type PlayerQuerySpec struct {
+	// Protocol is the query protocol. "a2s" is Valve's Steam server query
+	// (A2S_INFO over UDP), which most Steam dedicated servers answer on
+	// their query port.
+	// +kubebuilder:validation:Enum=a2s
+	Protocol string `json:"protocol"`
+
+	// Port is the UDP port, inside the pod, that answers the query: for
+	// Valheim, 2457 (the game port plus one).
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	Port int32 `json:"port"`
 }
 
 // WhitelistSpec declares how to manage the game's whitelist (allow list).
