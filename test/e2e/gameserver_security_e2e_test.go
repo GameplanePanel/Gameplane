@@ -182,10 +182,12 @@ func gameServerConditionState(obj *unstructured.Unstructured, condType string) (
 	return "", "", false
 }
 
-// execID runs `id <flag>` in the server's pod and returns the trimmed output.
+// execID runs `id <flag>` in the server pod's game container and returns the
+// trimmed output. The container is named so kubectl prints no
+// "Defaulted container" notice into the output.
 func execID(t *testing.T, ns, pod, flag string) string {
 	t.Helper()
-	out, err := envInstance.KubectlExec(t, ns, "pod/"+pod, "id", flag)
+	out, err := envInstance.Kubectl(t.Context(), "exec", "-n", ns, "pod/"+pod, "-c", "game", "--", "id", flag)
 	if err != nil {
 		t.Fatalf("exec id %s in %s: %v: %s", flag, pod, err, out)
 	}

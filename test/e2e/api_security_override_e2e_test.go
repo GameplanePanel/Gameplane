@@ -20,10 +20,17 @@ func securityServerBody(ns, gs, tmpl string, security map[string]any) map[string
 	if security != nil {
 		spec["security"] = security
 	}
+	meta := map[string]any{"name": gs, "namespace": ns}
+	// A PUT is an optimistic update, so it carries the stored version. A POST
+	// of a new server finds nothing and sends none.
+	if live, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
+		Get(context.Background(), gs, metav1.GetOptions{}); err == nil {
+		meta["resourceVersion"] = live.GetResourceVersion()
+	}
 	return map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1",
 		"kind":       "GameServer",
-		"metadata":   map[string]any{"name": gs, "namespace": ns},
+		"metadata":   meta,
 		"spec":       spec,
 	}
 }
