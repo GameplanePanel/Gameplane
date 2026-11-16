@@ -34,6 +34,15 @@ test "$(yq -r '.version' "$GAMEPLANE_PUBLISHED_CHART/Chart.yaml")" = "$version"
 test "$(yq -r '.appVersion' "$GAMEPLANE_PUBLISHED_CHART/Chart.yaml")" = "$version"
 printf 'Verified chart `%s@%s`\n' "$chart" "$digest" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
+# The standalone CRD chart must carry exactly the CRDs bundled in the parent.
+crds_chart="$registry/charts/gameplane-crds"
+crds_digest="$(oras resolve "$crds_chart:$version")"
+verify_release_signature "$crds_chart" "$crds_digest"
+helm pull "oci://$crds_chart@$crds_digest" --untar --untardir "$scratch/standalone"
+test "$(yq -r '.version' "$scratch/standalone/gameplane-crds/Chart.yaml")" = "$version"
+diff -r "$GAMEPLANE_PUBLISHED_CHART/charts/gameplane-crds/crds" "$scratch/standalone/gameplane-crds/crds"
+printf 'Verified chart `%s@%s`\n' "$crds_chart" "$crds_digest" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
 # Read the publisher's complete matrix, including optional images. Keep the
 # signed index and its amd64 manifest/config IDs for containerd comparisons.
 git fetch --quiet --no-tags --depth=1 origin "refs/tags/$tag"
