@@ -306,7 +306,10 @@ type GameServerNetworking struct {
 	// ingress / external-dns annotations on the Service. Must be an
 	// RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
 	// or hyphens, no leading/trailing hyphen, at most 253 characters
-	// total. The operator does not create the DNS record itself.
+	// total. The operator does not create the DNS record itself. On a
+	// LoadBalancer server, once the load balancer has an address, the
+	// hostname is also the address status.endpoints and the dashboard
+	// report, since it is the name players use.
 	// +kubebuilder:validation:MaxLength=253
 	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$`
 	// +optional
