@@ -7,6 +7,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -363,17 +364,45 @@ func (r *GameServerReconciler) recordObservedSecurity(ctx context.Context, gs *g
 	return nil
 }
 
-// restoreContainerSecurityContext sets the named container's SecurityContext in
-// pod to the value it has in prior. A container missing from either spec is
-// left as built.
+// restoreContainerSecurityContext keeps the named container's run-as user and
+// group at the values it has in prior, so a running workload keeps the
+// identity it was started with. Every other SecurityContext field stays as
+// built, so a change of workload profile (restricted mode on or off) still
+// applies. A container missing from either spec is left as built.
 func restoreContainerSecurityContext(pod, prior *corev1.PodSpec, name string) {
 	before := podContainerNamed(prior, name)
 	if before == nil {
 		return
 	}
-	if current := podContainerNamed(pod, name); current != nil {
-		current.SecurityContext = before.SecurityContext.DeepCopy()
+	current := podContainerNamed(pod, name)
+	if current == nil {
+		return
 	}
+	var user, group *int64
+	if before.SecurityContext != nil {
+		user, group = before.SecurityContext.RunAsUser, before.SecurityContext.RunAsGroup
+	}
+	if current.SecurityContext == nil {
+		if user == nil && group == nil {
+			return
+		}
+		current.SecurityContext = &corev1.SecurityContext{}
+	}
+	current.SecurityContext.RunAsUser = copyInt64Ptr(user)
+	current.SecurityContext.RunAsGroup = copyInt64Ptr(group)
+	if equality.Semantic.DeepEqual(*current.SecurityContext, corev1.SecurityContext{}) {
+		// Keep a pod spec byte-identical to one that never set a context.
+		current.SecurityContext = nil
+	}
+}
+
+// copyInt64Ptr returns a copy of p, or nil.
+func copyInt64Ptr(p *int64) *int64 {
+	if p == nil {
+		return nil
+	}
+	v := *p
+	return &v
 }
 
 // podContainerNamed returns a pointer to the regular or init container with the
