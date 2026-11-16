@@ -1822,7 +1822,11 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		// keeps the parts it was started with, so saving an override never
 		// restarts a pod. The live replica count is read before the assignment
 		// below overwrites it.
-		securityRefresh := ss.ResourceVersion == "" ||
+		// A change of workload profile (restricted mode on or off) replaces the
+		// pods anyway, so it also takes the desired security values.
+		profileChange := ss.ResourceVersion != "" &&
+			r.RestrictedWorkloads != (ss.Spec.Template.Annotations[workloadSecurityLabel] == "restricted")
+		securityRefresh := ss.ResourceVersion == "" || profileChange ||
 			(ss.Spec.Replicas != nil && *ss.Spec.Replicas == 0 && actualReplicas > 0)
 		priorTemplate := ss.Spec.Template.Spec.DeepCopy()
 		priorSecurityApplied := ss.Spec.Template.Annotations[securityAppliedAnnotation]
