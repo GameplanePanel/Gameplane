@@ -7,6 +7,7 @@
 #       uses: GameplanePanel/Gameplane/.github/workflows/go-component.yaml@<sha> # master
 #       with:
 #         dockerfiles: Dockerfile
+#         # path: mcp-server   # only when the repo name differs from its folder here (mcp)
 #
 # Lint uses this repository's root .golangci.yml and .hadolint.yaml, fetched
 # from master, so every component is linted by the same ruleset as Gameplane
