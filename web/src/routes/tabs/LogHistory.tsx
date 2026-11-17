@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@heroui/react";
 import { defineMessages } from "react-intl";
 
@@ -37,13 +37,30 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
   const [error, setError] = useState<"changed" | "failed">();
   const [loading, setLoading] = useState(consoleView);
   const output = useRef<HTMLPreElement>(null);
+  const pendingScroll = useRef<{ top: number; height: number } | "initial" | undefined>(undefined);
+  useLayoutEffect(() => {
+    const element = output.current;
+    const position = pendingScroll.current;
+    if (!element || !position) return;
+    element.scrollTop = position === "initial"
+      ? (consoleView ? element.scrollHeight : 0)
+      : position.top + element.scrollHeight - position.height;
+    pendingScroll.current = undefined;
+  }, [page, consoleView]);
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
     void client.withSignal(controller.signal).Logs.history(name, source, before, ns).then((result) => {
       if (controller.signal.aborted) return;
-      setPage(result);
-      if (output.current) output.current.scrollTop = 0;
+      const element = output.current;
+      pendingScroll.current = before && element
+        ? { top: element.scrollTop, height: element.scrollHeight }
+        : "initial";
+      setPage((previous) => {
+        if (!before || !previous?.text) return result;
+        const separator = result.text && !result.text.endsWith("\n") ? "\n" : "";
+        return { ...result, text: result.text + separator + previous.text };
+      });
     }).catch((cause: unknown) => {
       if (!controller.signal.aborted) setError(cause instanceof APIError && cause.status === 409 ? "changed" : "failed");
     }).finally(() => {
@@ -53,6 +70,7 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
   }, [open, before, name, ns, source, client]);
 
   const toggle = () => {
+    pendingScroll.current = undefined;
     setPage(undefined);
     setError(undefined);
     setBefore("");
