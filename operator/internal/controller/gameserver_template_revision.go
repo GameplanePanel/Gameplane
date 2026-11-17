@@ -219,7 +219,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 				return effective, false, workloadPolicyRejection{err}
 			}
 			if r.RestrictedWorkloads {
-				if err := validateRestrictedTemplate(target); err != nil {
+				if err := validateRestrictedSecurity(resolveGameSecurity(target, gs)); err != nil {
 					return nil, false, err
 				}
 			}
@@ -285,7 +285,7 @@ func (r *GameServerReconciler) reconcileTemplateRevision(ctx context.Context, gs
 				return effective, false, workloadPolicyRejection{err}
 			}
 			if r.RestrictedWorkloads {
-				if err := validateRestrictedTemplate(target); err != nil {
+				if err := validateRestrictedSecurity(resolveGameSecurity(target, gs)); err != nil {
 					return nil, false, err
 				}
 			}
@@ -337,7 +337,10 @@ func (r *GameServerReconciler) baselineStopTemplate(ctx context.Context, gs *gam
 func (r *GameServerReconciler) baselineRenderInputs(gs *gameplanev1alpha1.GameServer, revision string) (string, error) {
 	spec := gs.Spec.DeepCopy()
 	spec.Suspend = false
-	spec.StopGracePeriodSeconds, spec.TemplateRollout, spec.BackupPolicy, spec.Idle, spec.Capture = nil, nil, nil, nil, nil
+	// Security overrides are applied only at a start from zero replicas (see
+	// reconcileStatefulSet), so saving one must not change the baseline hash
+	// and rewrite a running pod (spec 030, FR-008, T075).
+	spec.StopGracePeriodSeconds, spec.TemplateRollout, spec.BackupPolicy, spec.Idle, spec.Capture, spec.Security = nil, nil, nil, nil, nil, nil
 	if spec.Networking.Expose == "Hostport" {
 		spec.Networking = gameplanev1alpha1.GameServerNetworking{Expose: "Hostport"}
 	} else {

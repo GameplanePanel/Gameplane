@@ -153,6 +153,7 @@ From `go.mod` (verified):
 2. **No listening port**: No network surface to expose; reachable only via `kubectl exec`.
 3. **Deployment model**: Opt-in via `mcpServer.enabled=true` in the Helm chart. Admin responsibility to decide if this is acceptable for their cluster.
 4. **See `docs/security.md`** for the full threat model and per-cluster decisions (especially if cohabiting with unrelated sensitive workloads).
+5. **GameServer security fields**: The generic get and list tools return `spec.security` and `status.security` unredacted, because the only transform is `metadata.managedFields` stripping; `security_roundtrip_test.go` asserts this.
 
 ## Testing & coverage
 

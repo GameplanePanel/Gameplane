@@ -37,6 +37,12 @@ to every file on each start, or only when the volume's top folder has the wrong 
 - Q: Does the root rule also block a filesystem group override of 0? → A: Yes. Filesystem group 0 counts as root, like run-as user and run-as group 0.
 - Q: Should "use image default" for the run-as user also need the root setting? → A: Yes. A "use image default" override of run-as user or run-as group always needs the cluster "allow root overrides" setting, because most images default to root.
 
+### Session 2026-11-15
+
+- Q: Where does the root setting live, and does it cover every cluster? A: It is separate for each cluster and off by default (OD-7 C). It is set under Clusters, cluster, Configuration, and stored in that cluster's operator control-plane ConfigMap `gameplane-security-settings`.
+- Q: Who creates that ConfigMap? A: The Helm chart, with `"false"`. It keeps its value on upgrade and is kept on uninstall. The API only reads and updates it by name, and a deleted ConfigMap reads as off until the next `helm upgrade` (OD-8 A).
+- Q: Are the scout's spec corrections accepted? A: Yes, all seven (OD-9 A): an empty settings body returns 400; new tests go in new files; clone is audited; a root hold takes no wake slot; a rollout on a suspended or sleeping server applies its security values at the next start; `spec.security` is excluded from the template baseline; stale citations defer to the briefs.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Server uses the module's security defaults (Priority: P1)
@@ -144,7 +150,7 @@ carrying overrides is refused; as a user with it, confirm both work.
    is processed, **Then** it is refused with a permission error and nothing changes.
 3. **Given** a request that sets run-as user, run-as group or filesystem group to 0,
    **When** it is processed, **Then** it is
-   refused unless an admin has turned on the cluster-wide "allow root overrides"
+   refused unless an admin has turned on that cluster's "allow root overrides"
    setting (OD-2).
 4. **Given** a module that sets run-as user 1000 and the root setting is off, **When**
    a request sets run-as user to "use image default", **Then** it is refused like a
@@ -198,12 +204,13 @@ carrying overrides is refused; as a user with it, confirm both work.
 - **FR-005**: Override values MUST be validated as whole numbers from 0 to
   4294967295, matching the module's own limits, with the root rule from OD-2: an
   override of 0 for run-as user, run-as group or filesystem group MUST be refused unless an admin has
-  turned on a cluster-wide "allow root overrides" setting, which is off by default.
+  turned on a per-cluster "allow root overrides" setting, which is off by default.
   A "use image default" override of run-as user or run-as group counts as a root
   override too and is refused the same way, because most game images run as root by
-  default. The setting lives in global settings (`config:manage`) and turning it on or
-  off is audited.
-- **FR-005a**: When the cluster "allow root overrides" setting is off, a server that
+  default. The setting is per cluster, off by default, set under Clusters, cluster,
+  Configuration (`config:manage`), stored in that cluster's ConfigMap, and turning it on
+  or off is audited (OD-7).
+- **FR-005a**: When the server's cluster "allow root overrides" setting is off, a server that
   holds a saved root override (any value FR-005 counts as root) MUST NOT be started by
   the reconciler; its status MUST say why. A server already running keeps running, and
   turning the setting off MUST NOT restart or stop any server. The server starts again
@@ -296,9 +303,9 @@ carrying overrides is refused; as a user with it, confirm both work.
 ## Decisions
 
 All open decisions are settled in [`OPEN-DECISIONS.md`](OPEN-DECISIONS.md)
-(valgul, 2026-11-07 and 2026-11-13): OD-1 new `servers:security` permission (admin
-only by default), OD-2 root overrides only when a cluster-wide setting allows them (off
+(valgul, 2026-11-07, 2026-11-13 and 2026-11-15): OD-1 new `servers:security` permission (admin
+only by default), OD-2 root overrides only when a per-cluster setting allows them (off
 by default), OD-3 changes apply on the next restart, OD-4 a saved root override is not
 started while the setting is off, OD-5 an override that breaks restricted workload mode
 fails the server with the reason, OD-6 the risky confirmation is in the dashboard and
-the audit entry records it.
+the audit entry records it. OD-7 (2026-11-15): the root setting is separate per cluster, set under Clusters, cluster, Configuration, and stored in that cluster's ConfigMap. OD-8 (2026-11-15): Helm creates that ConfigMap with "false" and keeps its value on upgrade; the API only reads and updates it by name. OD-9 (2026-11-15): the seven spec corrections are accepted (see briefs/00-rulings.md section 6).

@@ -26,6 +26,7 @@ var Catalog = []PermGroup{
 		{Key: "servers:read", Label: "View servers, logs, players, and files", Namespaced: true},
 		{Key: "servers:write", Label: "Create, edit, and control servers (owner-only actions need the server's owner or an admin)", Namespaced: true},
 		{Key: "servers:console", Label: "Use the live console (RCON / PTY)", Namespaced: true},
+		{Key: "servers:security", Label: "Set or change a server's security overrides (run-as user and group, filesystem group, volume ownership check)", Namespaced: true},
 	}},
 	{Resource: "backups", Label: "Backups", Permissions: []Permission{
 		{Key: "backups:read", Label: "View backups and restores", Namespaced: true},

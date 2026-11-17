@@ -585,3 +585,97 @@ func validateAssetSizes(iconSize int64, totalSize int64) []Finding {
 
 	return findings
 }
+
+// securityRiskSettings lists the template security settings that a
+// spec.security.risky member may name (contracts/crd-gametemplate-security.md).
+var securityRiskSettings = []string{"runAsUser", "runAsGroup", "fsGroup", "volumeOwnershipCheck"}
+
+// maxSecurityRiskReasonLength mirrors the GameTemplate CRD bound on SecurityRiskNote.reason.
+const maxSecurityRiskReasonLength = 200
+
+// isSecurityRiskSetting reports whether name is one of the settings a risky member may mark.
+func isSecurityRiskSetting(name string) bool {
+	for _, s := range securityRiskSettings {
+		if s == name {
+			return true
+		}
+	}
+	return false
+}
+
+// hasYAMLValue reports whether a mapping value is present and not an explicit null.
+func hasYAMLValue(n *yaml.Node) bool {
+	return n != nil && n.Tag != "!!null"
+}
+
+// validateSecurityRisky checks spec.security.risky: every member must name one
+// of the four security settings, and every reason must fit the 200-character
+// CRD bound.
+func validateSecurityRisky(node *yaml.Node) []Finding {
+	riskyNode := common.FindNode(node, "spec.security.risky")
+	if riskyNode == nil || riskyNode.Kind != yaml.MappingNode {
+		return nil
+	}
+
+	var findings []Finding
+	for i := 0; i+1 < len(riskyNode.Content); i += 2 {
+		keyNode := riskyNode.Content[i]
+		valNode := riskyNode.Content[i+1]
+		name := keyNode.Value
+
+		if !isSecurityRiskSetting(name) {
+			findings = append(findings, Finding{
+				Level:       SeverityError,
+				RuleID:      RuleTemplateSchemaViolation,
+				File:        "template.yaml",
+				Line:        keyNode.Line,
+				Column:      keyNode.Column,
+				Field:       "spec.security.risky." + name,
+				Message:     fmt.Sprintf("risky marks %q, which is not a security setting", name),
+				Remediation: "Name one of runAsUser, runAsGroup, fsGroup or volumeOwnershipCheck under spec.security.risky.",
+			})
+		}
+
+		reasonNode := common.FindNode(valNode, "reason")
+		if reasonNode != nil && reasonNode.Kind == yaml.ScalarNode {
+			if n := len([]rune(reasonNode.Value)); n > maxSecurityRiskReasonLength {
+				findings = append(findings, Finding{
+					Level:       SeverityError,
+					RuleID:      RuleTemplateSchemaViolation,
+					File:        "template.yaml",
+					Line:        reasonNode.Line,
+					Column:      reasonNode.Column,
+					Field:       "spec.security.risky." + name + ".reason",
+					Message:     fmt.Sprintf("risky reason for %q is %d characters; the limit is %d", name, n, maxSecurityRiskReasonLength),
+					Remediation: "Shorten the reason to one sentence that says what breaks when the value is changed.",
+				})
+			}
+		}
+	}
+
+	return findings
+}
+
+// validateSecurityOwnershipCheck warns when spec.security.volumeOwnershipCheck
+// is set without spec.security.fsGroup: the ownership check only acts on a
+// filesystem group, so the setting has no effect.
+func validateSecurityOwnershipCheck(node *yaml.Node) []Finding {
+	ownNode := common.FindNode(node, "spec.security.volumeOwnershipCheck")
+	if !hasYAMLValue(ownNode) {
+		return nil
+	}
+	if hasYAMLValue(common.FindNode(node, "spec.security.fsGroup")) {
+		return nil
+	}
+
+	return []Finding{{
+		Level:       SeverityWarn,
+		RuleID:      RuleTemplateSchemaViolation,
+		File:        "template.yaml",
+		Line:        ownNode.Line,
+		Column:      ownNode.Column,
+		Field:       "spec.security.volumeOwnershipCheck",
+		Message:     "volumeOwnershipCheck has no effect because spec.security.fsGroup is not set",
+		Remediation: "Set spec.security.fsGroup, or remove spec.security.volumeOwnershipCheck.",
+	}}
+}

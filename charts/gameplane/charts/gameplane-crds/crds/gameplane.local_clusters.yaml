@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 2baa2e6e380e574531191108c18a893841f7b89399fc8216fd13bc22d1a6caf8
+    gameplane.local/crd-bundle-sha256: 11f8390727384db235cc3fbb410b52d2f118902acb57a9cf28904dc729d70988
     controller-gen.kubebuilder.io/version: v0.22.0
   name: clusters.gameplane.local
 spec:
@@ -81,6 +81,16 @@ spec:
                 - tlsSecretRef
                 - url
                 type: object
+              controlPlaneNamespace:
+                default: gameplane
+                description: |-
+                  ControlPlaneNamespace is the namespace of this cluster's operator
+                  control plane. The API reads the cluster's security settings ConfigMap
+                  (gameplane-security-settings) in this namespace. Empty or absent means
+                  "gameplane". Must match the namespace of the remote install.
+                maxLength: 63
+                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                type: string
               displayName:
                 description: DisplayName is an optional human-readable name for the
                   cluster.

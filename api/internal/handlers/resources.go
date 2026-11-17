@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/db"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
@@ -48,21 +49,25 @@ const heartbeatStaleTTL = 60 * time.Second
 // handler resolves its target cluster per request from reg via the
 // `?cluster=` selector (resolveCluster) — a request with no selector
 // resolves to scope.DefaultCluster, preserving single-cluster behavior.
-func MountResources(r chi.Router, reg *kube.Registry, store *db.Store) {
+//
+// auditor is optional: when set, saves that change spec.security write their
+// security rows (contracts/audit-events.md). A nil or absent auditor writes none.
+func MountResources(r chi.Router, reg *kube.Registry, store *db.Store, auditor ...*audit.Auditor) {
+	a := firstAuditor(auditor)
 	for path, gvr := range kube.GVRs {
-		mountOne(r, reg, store, path, gvr)
+		mountOne(r, reg, store, a, path, gvr)
 	}
 }
 
-func mountOne(r chi.Router, reg *kube.Registry, store *db.Store, path string, gvr schema.GroupVersionResource) {
+func mountOne(r chi.Router, reg *kube.Registry, store *db.Store, auditor *audit.Auditor, path string, gvr schema.GroupVersionResource) {
 	r.Route("/"+path, func(r chi.Router) {
 		r.Get("/", listHandler(reg, gvr))
-		r.Post("/", createHandler(reg, gvr))
+		r.Post("/", createHandler(reg, gvr, auditor))
 		r.Get("/{name}", getHandler(reg, gvr))
 		if path == "servers" {
 			r.Get("/{name}/template", effectiveTemplateHandler(reg))
 		}
-		r.Put("/{name}", updateHandler(reg, gvr))
+		r.Put("/{name}", updateHandler(reg, gvr, auditor))
 		r.Delete("/{name}", deleteHandler(reg, store, gvr))
 	})
 }
@@ -219,7 +224,7 @@ func getHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Handle
 	}
 }
 
-func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.HandlerFunc {
+func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource, auditor *audit.Auditor) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		k, ok := resolveCluster(w, req, reg)
 		if !ok {
@@ -245,9 +250,16 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 				return
 			}
 			obj.SetNamespace(ns)
+			var changeReason string
 			if gvr.Resource == "gameservers" {
 				cl := scope.RequestedCluster(req)
 				if err := validateAndProtectGameServer(req.Context(), k, cl, ns, obj.GetName(), obj, nil); err != nil {
+					writeSecurityRefusal(req, auditor, obj.GetName(), err)
+					writeServerValidationError(w, req, err)
+					return
+				}
+				if err := validateSecurityRootRule(req.Context(), reg, cl, obj, nil); err != nil {
+					writeSecurityRefusal(req, auditor, obj.GetName(), err)
 					writeServerValidationError(w, req, err)
 					return
 				}
@@ -255,8 +267,15 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 					writeServerValidationError(w, req, err)
 					return
 				}
+				changeReason = securityChangeReason(req.Context(), k, obj, nil)
+			}
+			if !writeSecurityChange(w, req, auditor, obj.GetName(), changeReason, http.StatusCreated) {
+				return
 			}
 			created, err = k.Dynamic.Resource(gvr).Namespace(ns).Create(req.Context(), obj, metav1.CreateOptions{})
+			if err != nil && changeReason != "" {
+				writeSecuritySaveFailed(req, auditor, obj.GetName(), err)
+			}
 		}
 		if err != nil {
 			httperr.Write(w, req, err)
@@ -272,7 +291,7 @@ func createHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 	}
 }
 
-func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.HandlerFunc {
+func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource, auditor *audit.Auditor) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		k, ok := resolveCluster(w, req, reg)
 		if !ok {
@@ -301,6 +320,7 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 		// provider's credential — so it is declared outside this block.
 		var live *unstructured.Unstructured
 		var cfgRules *configRuleCache
+		var changeReason string
 		if gvr.Resource == "gameservers" {
 			ns, ok := resolveNS(w, req)
 			if !ok {
@@ -320,6 +340,12 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 			writeRules := restoreRedactedConfig(req.Context(), cfgRules, obj, live)
 			cl := scope.RequestedCluster(req)
 			if err := validateAndProtectGameServer(req.Context(), k, cl, ns, name, obj, live); err != nil {
+				writeSecurityRefusal(req, auditor, name, err)
+				writeServerValidationError(w, req, err)
+				return
+			}
+			if err := validateSecurityRootRule(req.Context(), reg, cl, obj, live); err != nil {
+				writeSecurityRefusal(req, auditor, name, err)
 				writeServerValidationError(w, req, err)
 				return
 			}
@@ -327,6 +353,7 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 				writeServerValidationError(w, req, err)
 				return
 			}
+			changeReason = securityChangeReason(req.Context(), k, obj, live)
 		}
 		var updated *unstructured.Unstructured
 		if cluster(gvr) {
@@ -337,7 +364,13 @@ func updateHandler(reg *kube.Registry, gvr schema.GroupVersionResource) http.Han
 				return
 			}
 			obj.SetNamespace(ns)
+			if !writeSecurityChange(w, req, auditor, name, changeReason, http.StatusOK) {
+				return
+			}
 			updated, err = k.Dynamic.Resource(gvr).Namespace(ns).Update(req.Context(), obj, metav1.UpdateOptions{})
+			if err != nil && changeReason != "" {
+				writeSecuritySaveFailed(req, auditor, name, err)
+			}
 			if err == nil && gvr.Resource == "gameservers" {
 				pruneTunnelProviderOnSpecChange(req.Context(), k, ns, name, live, updated)
 				updated = updated.DeepCopy()
@@ -611,6 +644,11 @@ func validateAndProtectGameServer(
 				_ = unstructured.SetNestedField(desired.Object, liveCaptureRaw, "spec", "capture")
 			}
 		}
+	}
+
+	// 1b. Validate spec.security field by field (see security_overrides.go).
+	if err := validateSecurityOverride(ctx, cl, ns, desired, live); err != nil {
+		return err
 	}
 
 	// 2. Validate spec.serviceAccountName

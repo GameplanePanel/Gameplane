@@ -10,8 +10,8 @@ Each handler writes its row with `Auditor.WriteSync` and then calls `audit.MarkR
 
 The override lives on the CRD and the audit row in the API database, so no single transaction covers both. The order makes sure no saved change ever lacks its before and after values (FR-010):
 
-1. **Change (create, update, clone, setting flip):** the handler builds the row and calls `WriteSync` *before* the Kubernetes write (for the setting flip, before the ConfigMap and config row writes). If `WriteSync` fails, the request fails with 500 `audit write failed` (as the capture handler does) and nothing is saved. The generic middleware row then records the failed request.
-2. If the Kubernetes write (or the ConfigMap or config row write) then fails, the handler writes a second row for the same request, `status` the error status and `reason` `security_save_failed`, so a reader sees the change was attempted and not stored. If that second write fails too, the error is logged; the first row stays and is the known, accepted gap: the trail can show an intent that was not stored, never a stored change without its record.
+1. **Change (create, update, clone, setting flip):** the handler builds the row and calls `WriteSync` *before* the Kubernetes write (for the setting flip, before the ConfigMap update). If `WriteSync` fails, the request fails with 500 `audit write failed` (as the capture handler does) and nothing is saved. The generic middleware row then records the failed request.
+2. If the Kubernetes write (or the ConfigMap update) then fails, the handler writes a second row for the same request, `status` the error status and `reason` `security_save_failed`, so a reader sees the change was attempted and not stored. If that second write fails too, the error is logged; the first row stays and is the known, accepted gap: the trail can show an intent that was not stored, never a stored change without its record.
 3. **Refusals (403, 422):** nothing is saved, so the order does not matter. If `WriteSync` fails, `MarkRecorded` is not called and the middleware's generic row is the fallback (`audit.go:594-611`); the response is still the refusal.
 
 ## Events
@@ -23,7 +23,7 @@ The override lives on the CRD and the audit row in the API database, so no singl
 | Refused: root rule | the request's own | server name | 403 | `security_root_disabled:runAsUser` (the first offending setting) |
 | Refused: invalid shape | the request's own | server name | 422 | `security_invalid:fsGroup` |
 | Save failed after the row was written | the request's own | server name or `security` | the error status | `security_save_failed` |
-| Cluster setting flipped | `PUT /admin/config/security` | `security` | 200 | `allowRootOverrides:false->true` |
+| Cluster setting flipped | `PUT /security-settings?cluster=<id>` | `security/<cluster id>` | 200 | `allowRootOverrides:false->true` |
 
 A request that changes other fields but leaves `spec.security` unchanged writes no security row; the generic middleware row stands.
 

@@ -700,6 +700,12 @@ until cancellation or replacement because it may have partially cleared data.
 - **gameserver_condition_args.go:** `deriveConditionArgs` rebuilds `status.conditionArgs` from the final GameServer conditions on every `reconcileStatus` pass (the values each reason's English message interpolates); `setConditionArgs` maintains the entries written out of band; `provisioningArgs` reads the pod's container states for CrashLoopBackOff and ContainerExited.
 - **hack/condition-ids (generator):** `go run ./hack/condition-ids -app ../i18n/locales/en/app.json` writes every `condition.<type>.<reason>` id from its table into the English reference (`make i18n-sync`); `-check` (run by `make check-i18n`) reports drift and exits 1. Its coverage guard parses the non-test controller sources with `go/parser` and fails when a reason literal they set has no table entry, or when a non-dynamic table reason is set nowhere; it reports the mismatch rather than editing the table. Rows marked dynamic (Backup `Pending`/`Running`, which come from the phase string) are exempt from the second check.
 
+### Security overrides and the root hold
+
+`security_overrides.go` resolves `GameServer.spec.security` over the template's `spec.security` into the desired values (`status.security.desired`) and encodes them on the pod: game container `runAsUser`/`runAsGroup`, pod `fsGroup`, and pod `fsGroupChangePolicy` (`Always` for `EveryStart`, `OnRootMismatch` for `OnlyWhenWrong`) only when `fsGroup` applies. The applied values are read back from the annotation `gameplane.local/security-applied-observed`, which the reconciler copies from the pod template once the pod's volumes are set up. `status.security.pending` is true when applied and desired differ. Overrides take effect at the next start: `baselineRenderInputs` (`gameserver_template_revision.go`) excludes `spec.security`, so saving an override never rewrites a running pod, and a template rollout on a suspended or sleeping server refreshes the values at its next start.
+
+The root hold is decided in `security_settings.go`. The operator reads the ConfigMap `gameplane-security-settings` (key `allowRootOverrides`) in `GameServerReconciler.ControlPlaneNamespace`, set from `--control-plane-namespace`. The read is from the informer cache and fails closed: an empty namespace, a missing ConfigMap or key, or any value other than `"true"` means off. A map function on the ConfigMap watch re-reconciles the servers that hold root overrides when the value changes. While the setting is off, a stopped server holding a root override keeps zero replicas and gets condition `SecurityAllowed=False` with reason `RootOverrideDisallowed`. The hold is checked before `reserveWakeStart` in `gameserver_idle.go`, so a held server takes no wake slot. A running server is not touched. The operator only reads the ConfigMap. Helm creates it and the API updates it.
+
 ## External interface / contracts
 
 ### Entry point: `cmd/main.go`
@@ -856,6 +862,8 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 6. **Network policies:** Per-GameServer ingress NetworkPolicy admits only the advertised game ports from declared CIDR(s) (default 0.0.0.0/0, customizable via `--game-ingress-from-cidr`).
 
 7. **Finalizers:** Controllers use ownership and finalizers to ensure cleanup (e.g., Module deletion cascades to GameTemplate; a quiesced Backup's `gameplane.local/backup-finalizer` blocks deletion until the matching unquiesce is sent, so `kubectl delete` can't drop it and leave the game with auto-save off; associated Jobs are reclaimed via ownerReference GC, not a finalizer).
+
+8. **Root hold and security overrides:** A root value (`runAsUser` or `runAsGroup` of 0 or the image default, `fsGroup` of 0) does not start while the cluster's `allowRootOverrides` is off, and the reconciler fails closed on any unreadable or unexpected value. Under `--restricted-workloads`, the effective (desired) values are validated, not the template alone. Backup and restore Jobs take their pod `fsGroup` from the applied value, never from desired.
 
 ## Testing & coverage
 

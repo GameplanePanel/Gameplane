@@ -23,6 +23,8 @@
   $$\text{mib} = \lfloor \text{bytes} \times \text{percent} / 100 / (1024 \times 1024) \rfloor \implies \text{"<mib>M"}$$
 - Export valid OCI artifact bundles matching Gameplane's canonical media types and annotations.
 - Provide Go library functions under `pkg/` (backed by `internal/`) reusable by `api/` for web dashboard integration.
+- Check the template's `spec.security` offline (`validateTemplateSchema` path in `internal/validator/rules.go`, wired from `validator.go`): a `risky` member must be one of `runAsUser`, `runAsGroup`, `fsGroup` or `volumeOwnershipCheck`, a `risky` reason may be at most 200 characters, and `volumeOwnershipCheck` without `fsGroup` is a warning.
+- Show the resolved security defaults, the ownership check and the risky settings with their reasons in `preview` output (`internal/preview/preview.go`).
 
 ## Non-goals / boundaries
 

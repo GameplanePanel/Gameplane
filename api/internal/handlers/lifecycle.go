@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/messages"
@@ -37,12 +38,15 @@ const idleWakeRequestedAnnotation = "gameplane.local/idle-wake-requested"
 // reconciles the rest). Restart and wake are single stamped annotations the
 // operator acks: it owns the whole transition, so the request can't be
 // lost the way a client-issued suspend/resume patch pair can (rule 10).
-func MountLifecycle(r chi.Router, reg *kube.Registry) {
+//
+// auditor is optional: clone writes the security row of a copied spec.security
+// when it is set (contracts/audit-events.md).
+func MountLifecycle(r chi.Router, reg *kube.Registry, auditor ...*audit.Auditor) {
 	r.Post("/servers/{name}:start", patchSuspend(reg, false))
 	r.Post("/servers/{name}:stop", patchSuspend(reg, true))
 	r.Post("/servers/{name}:restart", restartHandler(reg))
 	r.Post("/servers/{name}:wake", wakeHandler(reg))
-	r.Post("/servers/{name}:clone", cloneHandler(reg))
+	r.Post("/servers/{name}:clone", cloneHandler(reg, firstAuditor(auditor)))
 	r.Post("/servers/{name}:wipe-data", wipeDataHandler(reg))
 }
 
@@ -193,7 +197,7 @@ type cloneReq struct {
 	NewName string `json:"newName"`
 }
 
-func cloneHandler(reg *kube.Registry) http.HandlerFunc {
+func cloneHandler(reg *kube.Registry, auditor *audit.Auditor) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		k, ok := resolveCluster(w, req, reg)
 		if !ok {
@@ -241,7 +245,18 @@ func cloneHandler(reg *kube.Registry) http.HandlerFunc {
 
 		cl := scope.RequestedCluster(req)
 		if err := validateAndProtectGameServer(req.Context(), k, cl, ns, body.NewName, clone, nil); err != nil {
+			writeSecurityRefusal(req, auditor, body.NewName, err)
 			writeServerValidationError(w, req, err)
+			return
+		}
+		if err := validateSecurityRootRule(req.Context(), reg, cl, clone, nil); err != nil {
+			writeSecurityRefusal(req, auditor, body.NewName, err)
+			writeServerValidationError(w, req, err)
+			return
+		}
+		// A clone reads as a create: its security row has an empty before.
+		changeReason := securityChangeReason(req.Context(), k, clone, nil)
+		if !writeSecurityChange(w, req, auditor, body.NewName, changeReason, http.StatusOK) {
 			return
 		}
 
@@ -249,6 +264,9 @@ func cloneHandler(reg *kube.Registry) http.HandlerFunc {
 			Namespace(ns).
 			Create(req.Context(), clone, metav1.CreateOptions{})
 		if err != nil {
+			if changeReason != "" {
+				writeSecuritySaveFailed(req, auditor, body.NewName, err)
+			}
 			httperr.Write(w, req, err)
 			return
 		}
