@@ -18,7 +18,7 @@ Both paths run the same `execute` language (`Get`, `Insert`, `Update`, `Export`,
 | Screenshot | `mcp__pencil__export_nodes` (2x) | `Export(["<id>"], "png", "<dir>")` inside `execute` (2x by default) |
 | Saving | Pencil does not autosave: ask the maintainer to save in the Pencil UI | `save()` writes the `-o` file; nothing else touches the file |
 
-The pen.dev plan counts every day the CLI runs against a monthly cap of active days, so batch CLI work into one session and one day where you can. With the CLI, edit a copy first when you are unsure (`-o /tmp/out.pen`), check it, then rerun against the real file. `-o` must equal `-i` to change the committed file in place. Check with `pen status` that the key is active.
+The pen.dev free plan caps agent design at 5 active days a month, shared by the local MCP and the CLI on the same account (any number of calls in one day counts once), so batch design work into as few days as you can. With the CLI, edit a copy first when you are unsure (`-o /tmp/out.pen`), check it, then rerun against the real file. `-o` must equal `-i` to change the committed file in place. Check with `pen status` that the key is active.
 
 For exports from the CLI, use the helper next to this file. It writes the JSON and the 2x PNG for each node and never writes the `.pen` file. Its JSON is byte-identical to the MCP export:
 
