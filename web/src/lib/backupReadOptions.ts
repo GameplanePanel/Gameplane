@@ -12,7 +12,6 @@ export function backupReadOptions(allowed: boolean, interval: number | false) {
   return {
     enabled: (query: { state: { error: Error | null } }) => allowed && !isAuthorizationError(query.state.error),
     retry: (failureCount: number, error: Error) => !isAuthorizationError(error) && failureCount < 3,
-    retryOnMount: false,
     refetchInterval: (query: { state: { error: Error | null } }) =>
       allowed && !isAuthorizationError(query.state.error) ? interval : false,
   };

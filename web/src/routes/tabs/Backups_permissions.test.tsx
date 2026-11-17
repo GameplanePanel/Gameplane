@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, screen, waitFor } from "@testing-library/react";
-import { focusManager, onlineManager } from "@tanstack/react-query";
+import { focusManager, onlineManager, QueryClient } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { renderWithQuery } from "@/test/render";
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
-import { makeBackup } from "@/test/factories";
+import userEvent from "@testing-library/user-event";
+import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
+import { makeBackup, makeDestination } from "@/test/factories";
 import { BackupsTab } from "./Backups";
 
 const readPermissions = ["backups:read", "schedules:read", "destinations:read"];
@@ -64,7 +66,7 @@ describe("BackupsTab scoped read access", () => {
       requests++;
       return denied ? HttpResponse.text("Forbidden", { status }) : HttpResponse.json({ items: [] });
     }));
-    const rendered = renderWithQuery(view(readPermissions));
+    const rendered = renderWithQuery(view(readPermissions), { client: new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 300000 } } }) });
     const message = `You do not have permission to view ${kind} in this cluster and namespace.`;
     expect(await screen.findByText(message)).toBeInTheDocument();
     expect(requests).toBe(1);
@@ -81,10 +83,68 @@ describe("BackupsTab scoped read access", () => {
     vi.useRealTimers();
     rendered.rerender(view([...readPermissions]));
     expect(requests).toBe(1);
+    rendered.rerender(view([]));
+    expect(requests).toBe(1);
     denied = false;
-    rendered.rerender(view([...readPermissions, "servers:write"]));
+    rendered.rerender(view([...readPermissions]));
     await waitFor(() => expect(requests).toBe(2));
     await waitFor(() => expect(screen.queryByText(message)).not.toBeInTheDocument());
+  });
+
+  it("hides a previously available destination after its authorization fails", async () => {
+    let denied = false;
+    let requests = 0;
+    server.use(http.get("/backup-destinations", () => {
+      requests++;
+      return denied ? HttpResponse.text("Forbidden", { status: 403 }) : HttpResponse.json({ items: [makeDestination()] });
+    }));
+    const { client } = renderWithQuery(view([...readPermissions, "backups:write"]));
+    const button = screen.getByRole("button", { name: /Back up now/i });
+    await waitFor(() => expect(button).toBeEnabled());
+    denied = true;
+    await act(() => client.invalidateQueries({ queryKey: ["resource", "east", "games", "collection", "backup-destinations"] }));
+    await waitFor(() => expect(button).toBeDisabled());
+    expect(requests).toBe(2);
+    await act(() => client.invalidateQueries({ queryKey: ["resource", "east", "games", "collection", "backup-destinations"] }));
+    expect(requests).toBe(2);
+  });
+
+  it("closes an open details drawer when backup access is revoked", async () => {
+    let detailRequests = 0;
+    server.use(http.get("/backups/alpha-2026-05-07", () => {
+      detailRequests++;
+      return HttpResponse.json(makeBackup());
+    }));
+    const rendered = renderWithQuery(view(readPermissions));
+    await userEvent.click(await screen.findByText("alpha-2026-05-07"));
+    expect(await screen.findByText("Snapshot ID")).toBeInTheDocument();
+    expect(detailRequests).toBe(1);
+    rendered.rerender(view([]));
+    await waitFor(() => expect(screen.queryByText("Snapshot ID")).not.toBeInTheDocument());
+    vi.useFakeTimers();
+    await act(async () => { await vi.advanceTimersByTimeAsync(12000); });
+    expect(detailRequests).toBe(1);
+  });
+
+  it("stops a details drawer's own denied polling and hides its cached data", async () => {
+    let denied = false;
+    let requests = 0;
+    server.use(http.get("/backups/private", () => {
+      requests++;
+      return denied ? HttpResponse.text("Forbidden", { status: 403 }) : HttpResponse.json(makeBackup({ status: { phase: "Succeeded", snapshotID: "private-snapshot-value" } }));
+    }));
+    const { client } = renderWithQuery(<BackupDetailDrawer name="private" permissions={["*"]} onClose={() => {}} onRestore={() => {}} />);
+    expect(await screen.findByText("private-snapshot-value")).toBeInTheDocument();
+    denied = true;
+    await act(() => client.invalidateQueries());
+    expect(await screen.findByText("Forbidden")).toBeInTheDocument();
+    expect(screen.queryByText("private-snapshot-value")).not.toBeInTheDocument();
+    vi.useFakeTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12000);
+      await client.invalidateQueries();
+    });
+    expect(requests).toBe(2);
   });
 
   it("hides cached backup rows when access is revoked", async () => {
