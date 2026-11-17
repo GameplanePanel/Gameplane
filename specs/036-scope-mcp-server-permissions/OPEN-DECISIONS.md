@@ -1,6 +1,6 @@
 # Open decisions: spec 036 Scope MCP server permissions
 
-Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled. OD-1 is settled; OD-2 and OD-3 are open.
+Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled. OD-1 and OD-2 are settled; OD-3 is open.
 
 ## OD-1: How does an MCP session prove which Gameplane user it acts for? (SETTLED: A, valgul 2026-11-17)
 
@@ -10,7 +10,7 @@ Today a session has no Gameplane user: it reads with the pod's Kubernetes identi
 - B. Sign in from the MCP client with the user's normal login (password or SSO in a browser window, like `kubectl` OIDC plugins). No new token screen, but each client must handle a browser login and SSO-only installs need a device-login flow.
 - C. Map the Kubernetes identity that opens `kubectl exec` to a Gameplane user. No Gameplane login at all, but only works for users who already have Kubernetes access, which most Gameplane users do not.
 
-## OD-2: Where do MCP reads go, and how are remote clusters reached? (OPEN)
+## OD-2: Where do MCP reads go, and how are remote clusters reached? (SETTLED: A, valgul 2026-11-17)
 
 - A. Through the Gameplane API: the MCP server sends every read to the API as the user, and the API applies roles, namespace grants and per-cluster grants exactly as for the dashboard. Remote clusters work through the existing cluster registration. The MCP server needs no Kubernetes permissions of its own in this mode and can run on the user's own machine. The API gains read routes it lacks today (pod list, raw events, pod logs by pod). (Recommended: one place enforces permissions, multicluster comes for free, no rule copied into the MCP server.)
 - B. MCP server keeps reading Kubernetes directly with the namespace-scoped role from Story 1, asks the API only for the user's permissions, and filters results itself. Each remote cluster needs its own MCP install that can reach the central panel. Permission rules are duplicated in the MCP server and must be kept in sync.

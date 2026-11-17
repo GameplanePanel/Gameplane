@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-17
 
-**Status**: Draft (open decisions OD-2 and OD-3 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (open decision OD-3 pending, see `OPEN-DECISIONS.md`)
 
 **Input**: User description: "Scope the MCP server's permissions down from every namespace (`*`) to the Gameplane main namespace and all Gameplane game namespaces. Also include checks on multicluster user permissions, so an MCP client only sees what the calling Gameplane user is allowed to see on each cluster."
 
@@ -65,7 +65,7 @@ A user works on a Gameplane install with several registered clusters. Their MCP 
 1. **Given** a user with a supplemental grant on remote cluster R for namespace B, **When** their session lists GameServers on R, **Then** only objects in namespace B on R are returned.
 2. **Given** a user with no grant on cluster S, **When** their session names S, **Then** the answer is the same "cluster not found or not permitted" answer used for an unknown cluster ID.
 3. **Given** a session that does not name a cluster, **When** it lists objects, **Then** results cover every cluster the user may see, each item labelled with its cluster, and unreachable clusters are reported as unavailable instead of failing the whole call.
-4. **Given** a user whose node inventory access on R comes only from namespace-scoped server grants, **When** their session asks for cluster-level data on R, **Then** it is denied, matching the dashboard rule that namespace-only server grants do not grant inventory. [NEEDS CLARIFICATION: where reads for remote clusters go, see OD-2]
+4. **Given** a user whose node inventory access on R comes only from namespace-scoped server grants, **When** their session asks for cluster-level data on R, **Then** it is denied, matching the dashboard rule that namespace-only server grants do not grant inventory.
 
 ---
 
@@ -119,7 +119,9 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 
 **Multicluster**
 
-- **FR-020**: A session MUST be able to read every registered cluster the user has a grant for, with that grant's role and namespaces, as decided in OD-2.
+- **FR-020**: Per-user MCP reads MUST go through the Gameplane API as the token's user (OD-2), so the API applies roles, namespace grants, server ownership checks and per-cluster grants exactly as for the dashboard. A session MUST be able to read every registered cluster the user has a grant for, through the existing cluster registration, with that grant's role and namespaces.
+- **FR-024**: The API MUST offer the read-only data every MCP tool needs that it does not offer today (at least: pods of a namespace or server, raw events, and a bounded tail of a pod's logs), behind the same permission keys as FR-011. These reads follow the same size bounds as today's tools (100 newest events, log tail capped at 5000 lines and 256 KiB).
+- **FR-025**: In per-user mode the MCP server MUST need no Kubernetes permissions of its own and MUST be able to run outside the cluster (for example on the user's own machine), reaching only the Gameplane API.
 - **FR-021**: A session MUST NOT read a cluster the user has no grant for, and the answer MUST match the one for an unknown cluster.
 - **FR-022**: Tools MUST accept an optional cluster argument; without it they cover all permitted clusters and label each item with its cluster. A cluster that cannot be reached is reported as unavailable without failing the call.
 - **FR-023**: The remote-cluster rules in `docs/multicluster-ui.md` MUST hold for MCP reads as well (namespace-only server grants do not grant cluster-level data).
@@ -135,7 +137,7 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 - **MCP session**: one connection from an MCP client. Acts for one Gameplane user and ends when the client disconnects.
 - **Personal MCP token** (OD-1): what a session presents to prove its Gameplane user. Belongs to one user, has a name, creation time, expiry and last-used time, can be revoked, and never grants more than that user's current permissions.
 - **Scope**: per cluster, the set of namespaces the server's own identity can read (main namespace plus managed game namespaces).
-- **Effective user permissions**: per cluster, the user's primary role (local cluster) or supplemental grants (remote clusters), with their namespaces. Same source of truth as the dashboard.
+- **Effective user permissions**: applied by the Gameplane API (OD-2), per cluster, the user's primary role (local cluster) or supplemental grants (remote clusters), with their namespaces. Same source of truth as the dashboard.
 
 ## Success Criteria *(mandatory)*
 
