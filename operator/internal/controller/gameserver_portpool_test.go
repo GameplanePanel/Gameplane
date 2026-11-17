@@ -1,12 +1,17 @@
 package controller
 
 import (
+	"context"
+	"errors"
 	"strconv"
 	"testing"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -41,7 +46,7 @@ func TestParsePortPools(t *testing.T) {
 	if pools["valheim"] != valheimPool || pools["factorio"] != (PortPool{34197, 34197}) {
 		t.Fatalf("got %+v", pools)
 	}
-	for _, bad := range []string{"valheim", "valheim=2456", "=1-2", "v=0-10", "v=10-9", "v=1-70000", "v=a-b"} {
+	for _, bad := range []string{"valheim", "valheim=2456", "=1-2", "v=0-10", "v=10-9", "v=1-70000", "v=a-b", "v=1-b"} {
 		if _, err := ParsePortPools([]string{bad}); err == nil {
 			t.Errorf("%q: want an error", bad)
 		}
@@ -133,5 +138,138 @@ func TestSvcPortsFromTemplate_NoPoolPortIsUnchanged(t *testing.T) {
 	ports := svcPortsFromTemplate(poolTemplate(), &gs)
 	if ports[0].Port != 2456 || ports[2].Port != 2458 {
 		t.Errorf("got %d, %d; want the template's 2456, 2458", ports[0].Port, ports[2].Port)
+	}
+}
+
+func TestAssignPoolPort_SameAgeOrdersByNamespaceThenName(t *testing.T) {
+	a, b, c := pooledServer("b", 1, 0), pooledServer("a", 1, 0), pooledServer("a", 1, 0)
+	c.Namespace = "aaa"
+	servers := []gameplanev1alpha1.GameServer{a, b, c}
+	for i, want := range []int32{2462, 2459, 2456} {
+		if got, _ := assignPoolPort(&servers[i], servers, valheimPool, 3); got != want {
+			t.Errorf("%s/%s: got %d, want %d", servers[i].Namespace, servers[i].Name, got, want)
+		}
+	}
+}
+
+func TestAssignPoolPort_UnparsableRecordIsReassigned(t *testing.T) {
+	gs := pooledServer("a", 1, 0)
+	gs.Annotations = map[string]string{PoolPortAnnotation: "not-a-port"}
+	if got, _ := assignPoolPort(&gs, []gameplanev1alpha1.GameServer{gs}, valheimPool, 3); got != 2456 {
+		t.Errorf("got %d, want 2456", got)
+	}
+}
+
+func TestAssignPoolPort_NoAdvertisedPorts(t *testing.T) {
+	gs := pooledServer("a", 1, 2456)
+	if _, ok := assignPoolPort(&gs, []gameplanev1alpha1.GameServer{gs}, valheimPool, 0); ok {
+		t.Error("a template with no advertised ports: want no block")
+	}
+}
+
+func TestPoolServicePort_InvalidRecord(t *testing.T) {
+	for _, raw := range []string{"not-a-port", "0", "65535"} {
+		gs := pooledServer("a", 1, 0)
+		gs.Annotations = map[string]string{PoolPortAnnotation: raw}
+		if got := poolServicePort(&gs, 1); got != 0 {
+			t.Errorf("%q: got %d, want 0", raw, got)
+		}
+	}
+}
+
+// poolReconciler runs reconcilePoolPort against a fake client holding the
+// given servers, all on the named template.
+func poolReconciler(t *testing.T, pools map[string]PortPool, funcs *interceptor.Funcs, servers ...*gameplanev1alpha1.GameServer) (*GameServerReconciler, client.Client) {
+	t.Helper()
+	s := wipeScheme(t)
+	builder := fake.NewClientBuilder().WithScheme(s)
+	for _, gs := range servers {
+		gs.Spec.TemplateRef.Name = "valheim"
+		builder = builder.WithObjects(gs)
+	}
+	if funcs != nil {
+		builder = builder.WithInterceptorFuncs(*funcs)
+	}
+	c := builder.Build()
+	return &GameServerReconciler{Client: c, Scheme: s, PortPools: pools}, c
+}
+
+func storedPoolPort(t *testing.T, c client.Client, gs *gameplanev1alpha1.GameServer) (string, bool) {
+	t.Helper()
+	var got gameplanev1alpha1.GameServer
+	if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), &got); err != nil {
+		t.Fatal(err)
+	}
+	v, ok := got.Annotations[PoolPortAnnotation]
+	return v, ok
+}
+
+func TestReconcilePoolPort_RecordsTheBlock(t *testing.T) {
+	older, gs := pooledServer("a", 1, 2456), pooledServer("b", 2, 0)
+	r, c := poolReconciler(t, map[string]PortPool{"valheim": valheimPool}, nil, &older, &gs)
+	tmpl := poolTemplate()
+	tmpl.Name = "valheim"
+	if err := r.reconcilePoolPort(t.Context(), &gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+	if gs.Annotations[PoolPortAnnotation] != "2459" {
+		t.Errorf("in memory: got %q, want 2459", gs.Annotations[PoolPortAnnotation])
+	}
+	if v, _ := storedPoolPort(t, c, &gs); v != "2459" {
+		t.Errorf("stored: got %q, want 2459", v)
+	}
+	// A second pass finds the record current and leaves it alone.
+	if err := r.reconcilePoolPort(t.Context(), &gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReconcilePoolPort_RemovedWithThePool(t *testing.T) {
+	gs := pooledServer("a", 1, 2456)
+	r, c := poolReconciler(t, nil, nil, &gs)
+	tmpl := poolTemplate()
+	tmpl.Name = "valheim"
+	if err := r.reconcilePoolPort(t.Context(), &gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+	if v, ok := storedPoolPort(t, c, &gs); ok {
+		t.Errorf("stored: got %q, want no record", v)
+	}
+	// Without a pool or a record there is nothing to write.
+	if err := r.reconcilePoolPort(t.Context(), &gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReconcilePoolPort_ExhaustedKeepsTemplatePorts(t *testing.T) {
+	full, gs := pooledServer("a", 1, 2456), pooledServer("b", 2, 0)
+	r, c := poolReconciler(t, map[string]PortPool{"valheim": {First: 2456, Last: 2458}}, nil, &full, &gs)
+	tmpl := poolTemplate()
+	tmpl.Name = "valheim"
+	if err := r.reconcilePoolPort(t.Context(), &gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+	if v, ok := storedPoolPort(t, c, &gs); ok {
+		t.Errorf("stored: got %q, want no record", v)
+	}
+}
+
+func TestReconcilePoolPort_APIErrors(t *testing.T) {
+	boom := errors.New("apiserver down")
+	for name, funcs := range map[string]interceptor.Funcs{
+		"list": {List: func(context.Context, client.WithWatch, client.ObjectList, ...client.ListOption) error { return boom }},
+		"patch": {Patch: func(context.Context, client.WithWatch, client.Object, client.Patch, ...client.PatchOption) error {
+			return boom
+		}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			gs := pooledServer("a", 1, 0)
+			r, _ := poolReconciler(t, map[string]PortPool{"valheim": valheimPool}, &funcs, &gs)
+			tmpl := poolTemplate()
+			tmpl.Name = "valheim"
+			if err := r.reconcilePoolPort(t.Context(), &gs, tmpl); !errors.Is(err, boom) {
+				t.Fatalf("got %v, want the API error", err)
+			}
+		})
 	}
 }
