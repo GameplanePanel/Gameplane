@@ -876,10 +876,14 @@ export interface List<T> {
   items: T[];
 }
 
+export type StorageCapacitySource = "node-ephemeral" | "openebs-lvm";
+
 export interface ClusterStats {
   nodes?: number;
   totalStorageBytes?: number;
   usedStorageBytes?: number;
+  /** Omitted by older API responses, which report node ephemeral capacity. */
+  storageCapacitySource?: StorageCapacitySource;
 }
 
 export interface ClusterNode {

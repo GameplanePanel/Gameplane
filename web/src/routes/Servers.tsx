@@ -92,7 +92,7 @@ export function ServersPage() {
   const vcpus = (clusterView?.nodes ?? []).reduce((s, n) => s + (n.cpu?.capacity ?? 0), 0);
   const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
   const inventoryUnavailable = intl.formatMessage({ id: "web.routes.servers.inventory_unavailable", defaultMessage: "inventory unavailable", description: "Servers: sub-label on the storage and inventory-nodes cards when inventory cannot be read" });
-  const storage = cluster.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(cluster.usedStorageBytes, cluster.totalStorageBytes, intl);
+  const storage = cluster.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(cluster.usedStorageBytes, cluster.totalStorageBytes, intl, cluster.storageCapacitySource);
 
   // Derive distinct games and namespaces from servers
   const distinctGames = useMemo(() => {

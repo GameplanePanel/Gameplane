@@ -103,7 +103,7 @@ export function DashboardPage() {
   const vcpus = nodes.reduce((sum, n) => sum + (n.cpu?.capacity ?? 0), 0);
   const emptyValue = intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
   const inventoryUnavailable = intl.formatMessage({ id: "web.routes.dashboard.inventory_unavailable", defaultMessage: "inventory unavailable", description: "Dashboard: sub-label on the storage and nodes cards when inventory cannot be read" });
-  const storage = clusterView.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(clusterView.usedStorageBytes, clusterView.totalStorageBytes, intl);
+  const storage = clusterView.usedStorageBytes === undefined ? { valueText: emptyValue, subText: inventoryUnavailable, overcommitted: false } : describeStorageProvisioned(clusterView.usedStorageBytes, clusterView.totalStorageBytes, intl, clusterView.storageCapacitySource);
   const runningSubLabel: MessageDescriptor = fleet?.partial ? COUNT_LABELS.ofReturned : COUNT_LABELS.ofTotal;
   const storageKnown = clusterView.usedStorageBytes !== undefined;
   const storagePct = clusterView.totalStorageBytes ? ((clusterView.usedStorageBytes ?? 0) / clusterView.totalStorageBytes) * 100 : 0;

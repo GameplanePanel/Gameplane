@@ -82,6 +82,21 @@ describe("ServersPage", () => {
     expect(within(stoppedTab).getByText("1")).toBeInTheDocument();
   });
 
+  it("labels game-data pool capacity in GiB while retaining provisioned storage", async () => {
+    server.use(
+      http.get("/cluster/stats", () => HttpResponse.json({
+        ...makeClusterStats({ usedStorageBytes: 20 * 1024 ** 3, totalStorageBytes: 320 * 1024 ** 3 }),
+        storageCapacitySource: "openebs-lvm",
+      })),
+    );
+    renderWithQuery(<ServersPage />);
+    const card = (await screen.findByText("Storage provisioned")).parentElement?.parentElement;
+    expect(card).toBeInstanceOf(HTMLElement);
+    const storageCard = within(card as HTMLElement);
+    expect(await storageCard.findByText("20 GiB")).toBeInTheDocument();
+    expect(storageCard.getByText("of 320 GiB game-data capacity")).toBeInTheDocument();
+  });
+
   // Regression: usedStorageBytes/totalStorageBytes are provisioned-vs-physical,
   // not used-vs-total, so networked storage can legitimately read >100% — that
   // must present as an explicit overcommit state, not a silently broken meter.

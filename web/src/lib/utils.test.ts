@@ -138,10 +138,17 @@ describe("formatCores", () => {
 });
 
 describe("describeStorageProvisioned", () => {
-  it("reports provisioned-of-physical when under capacity", () => {
+  it("uses IEC units for provisioned storage and its capacity without changing other byte displays", () => {
+    const r = describeStorageProvisioned(20 * 1024 ** 3, 320 * 1024 ** 3);
+    expect(r.valueText).toBe("20 GiB");
+    expect(r.subText).toBe("of 320 GiB system storage");
+    expect(formatBytes(20 * 1024 ** 3)).toBe("20 GB");
+  });
+
+  it("reports provisioned-of-system-storage for legacy capacity", () => {
     const r = describeStorageProvisioned(250_000_000_000, 1_000_000_000_000);
     expect(r.overcommitted).toBe(false);
-    expect(r.subText).toContain("physical");
+    expect(r.subText).toContain("system storage");
     expect(r.subText).not.toContain("overcommitted");
   });
   it("flags overcommit when provisioned exceeds physical capacity", () => {
