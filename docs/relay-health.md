@@ -180,6 +180,8 @@ upstream FRP 0.71.0 Linux/amd64 archive (SHA-256
 `84f27e39f11169f7adcef8e8b70c9329de17747b1f14dad9fb95eef5682ea716`).
 On a Linux host with Python 3.11+, `taskset` and three available CPUs:
 
+Run these from a Gameplane checkout with the tunnel submodule initialised (`hack/submodules.sh init`).
+
 ```sh
 (cd tunnel/frpc && CGO_ENABLED=0 GOWORK=off go build -trimpath -mod=readonly -tags frpc,noweb -o /tmp/frpc github.com/fatedier/frp/cmd/frpc)
 python3 tunnel/bench/frp_udp.py --relay-load /tmp/relay-load --frpc /tmp/frpc --frps /tmp/frps --clients 8 32 64 128 --seconds 10
@@ -191,8 +193,8 @@ payload byte counters. Columns give the worst measurement across four trials
 per route and rate. CPU is the largest combined frpc + frps CPU-seconds delta
 per ten-second trial, including the driver's final one-second receive window.
 
-The [first series](../tunnel/bench/results/frp-loopback-series-1.jsonl) and
-[counter-instrumented series](../tunnel/bench/results/frp-loopback-series-2.jsonl)
+The [first series](https://github.com/GameplanePanel/tunnel/blob/main/bench/results/frp-loopback-series-1.jsonl) and
+[counter-instrumented series](https://github.com/GameplanePanel/tunnel/blob/main/bench/results/frp-loopback-series-2.jsonl)
 contain all 32 direct and relayed trial records, the runner kernel and the
 SHA-256 digest of each executable.
 

@@ -22,12 +22,12 @@ change, the one compile check to run, and how long CI takes.
 | Docs only | `docs/`, `README.md`, any `*.md` | none | 1.8 min (run 2507) |
 | Spec only | `specs/NNN-<slug>/` | none | 5.3 min (run 2525) |
 | Web only | `web/` | `cd web && npx tsc --noEmit` | 18.3 min (run 2524) |
-| One small Go service | `<module>/` (e.g. `sentinel/`, `tunnel/`) | `go build ./...` in that module | same as any Go change: 29–75 min, median 37.5 min |
+| One small Go service | `<module>/` (e.g. `sentinel/`, `telemetry-receiver/`) | `go build ./...` in that module | same as any Go change: 29–75 min, median 37.5 min |
 | Operator / CRD | `operator/` (types in `operator/api/v1alpha1/`) | `make generate && make manifests`, then `go build ./...` in `operator/` | same as any Go change |
 | API route | `api/` (handlers in `api/internal/handlers/`) | `go build ./...` in `api/` | same as any Go change |
 | Game module | `modules/<game>/`: PR in `GameplanePanel/module`, then a pointer bump here | `make module-validate MODULE=<game>` | 2.7 min in `GameplanePanel/module` (run 79, 2026-10-20); the bump PR here runs the docs gates |
 | Website | `website/`: PR in `GameplanePanel/website`, then a pointer bump here | `npm run build` in `website/` | 0.6 min in `GameplanePanel/website` (PR 25, 2026-10-22); the bump PR here runs the docs gates |
-| MCP server | `mcp-server/`: PR in `GameplanePanel/mcp`, then a pointer bump here | follow that repo's docs | the bump PR here runs the build and optional-components e2e |
+| Split component | `mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`: PR in its own repo (`GameplanePanel/mcp`, `GameplanePanel/audit-syslog-bridge`, `GameplanePanel/tunnel`, `GameplanePanel/capture-sidecar`), then a pointer bump here | follow that repo's docs | the bump PR here runs the build and optional-components e2e |
 
 Times are GitHub Actions wall clock for one PR run, measured 2026-10-20: runs
 2507, 2525 and 2524, and 11 Go PR runs for the median. Change-based test
@@ -42,7 +42,8 @@ Gates a first PR trips on:
 - UI without design: dashboard changes start in `design.pen` (Pencil), see
   [Design first for UI changes](#design-first-for-ui-changes). Never hand-edit
   `.pen` files.
-- Submodule work in the wrong repo: `modules/`, `website/` and `mcp-server/` changes go to
+- Submodule work in the wrong repo: `modules/`, `website/` and the component submodules
+  (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) changes go to
   their own repos first, then a pointer bump PR here.
 
 ## Dev loop
@@ -59,14 +60,14 @@ The repo ships one dev container per area, so you only install what your change 
 | Profile | Size | Scope | What it installs | Setup time in CI (amd64 / arm64) | Use it for |
 | --- | --- | --- | --- | --- | --- |
 | `web` | component | `web/` | Node, `npm ci` in `web/` | 3.1 / 2.7 min | Dashboard code with mocked data |
-| `api` | component | `api/`, `svcutil/` and their Go libraries | Go, golangci-lint, envtest | 5.1 / 4.7 min | API handlers, auth, DB |
+| `api` | component | `api/` and its Go libraries | Go, golangci-lint, envtest | 5.1 / 4.7 min | API handlers, auth, DB |
 | `operator` | component | `operator/` and its Go libraries | Go, golangci-lint, envtest | 6.9 / 4.4 min | Reconcilers and CRD types |
 | `agent` | component | `agent/` and its Go libraries | Go, golangci-lint | 5.4 / 3.8 min | The in-pod sidecar |
-| `go-services` | component | sentinel, tunnel, gp-module, mcp-server (submodule), telemetry-receiver, audit-syslog-bridge, capture-sidecar, gameproto and their Go libraries | Go, golangci-lint | 7.3 / 5.0 min | The smaller Go services |
+| `go-services` | component | sentinel, tunnel (submodule), gp-module, mcp-server (submodule), telemetry-receiver, audit-syslog-bridge (submodule), capture-sidecar (submodule), gameproto and their Go libraries | Go, golangci-lint | 7.3 / 5.0 min | The smaller Go services |
 | `website` | component | `website/` submodule | Node, `npm ci` in `website/` | 2.4 / 2.3 min | Docs and marketing site |
 | `modules` | component | `modules/` submodule | Go, Python with PyYAML, oras | 3.0 / 2.7 min | Game module templates |
-| `dashboard-api` | part | web + api + operator + agent, kind, chart, `modules` and `mcp-server` submodules | Docker, kind, kubectl, Helm, Go, Node, Python with PyYAML, oras | 9.1 / 7.4 min | Dashboard work against a live local cluster |
-| `control-plane` | part | operator + api + agent, kind, chart, e2e, `modules` and `mcp-server` submodules | Docker, kind, kubectl, Helm, Go, Python with PyYAML, oras | 7.1 / 5.9 min | Backend work with a live cluster, e2e code |
+| `dashboard-api` | part | web + api + operator + agent, kind, chart, `modules` and component submodules | Docker, kind, kubectl, Helm, Go, Node, Python with PyYAML, oras | 9.1 / 7.4 min | Dashboard work against a live local cluster |
+| `control-plane` | part | operator + api + agent, kind, chart, e2e, `modules` and component submodules | Docker, kind, kubectl, Helm, Go, Python with PyYAML, oras | 7.1 / 5.9 min | Backend work with a live cluster, e2e code |
 | `modules-gp` | part | modules + `gp-module/` | Go, Python with PyYAML, oras | 5.0 / 4.2 min | Module work with the `gp-module` CLI |
 | `full` | full | everything | everything above | 11.1 / 8.4 min | Cross-cutting changes; the default. Leaves out the website's Astro port 4321 and extension (open `website` for those) |
 
@@ -158,7 +159,7 @@ These jobs block merging. Each gate with a fixture has a `hack/*_test.sh` self-t
 - **`workflow lint`** also runs hadolint over every tracked Dockerfile, failing on any warning (`.hadolint.yaml`). Fix the Dockerfile: pin `apk`/`apt` package versions, and set a `SHELL` with `-o pipefail` before any piped `RUN` step.
 - **`dependency review`** runs on pull requests only. It fails when the PR adds a dependency with a HIGH or CRITICAL advisory. Pick a version without the advisory, or drop the dependency.
 - **`codegen drift`** runs `make generate manifests` and `make tidy`, then fails if `git diff` is not empty. Run the same commands locally and commit what they change (CLAUDE.md rule 7).
-- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when the `modules`, `website` or `mcp-server` pointer names a commit that is not on that repo's `main`, when a gitlink is missing, or when the script cannot fetch that repo's `main`. For a pointer that is not on `main`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run.
+- **`submodule freshness`** runs `hack/check-submodule-freshness.sh`. It fails when any submodule pointer (`modules`, `website` or a component submodule listed in `.gitmodules`) names a commit that is not on that repo's `main`, when a gitlink is missing, or when the script cannot fetch that repo's `main`. For a pointer that is not on `main`, merge the submodule PR first, then bump the pointer to the merged commit. Otherwise restore the gitlink, or fix the fetch error, and re-run. It also runs `hack/submodules.sh check`, which fails when a component submodule is missing from a workflow path filter it must be in.
 
 ### How CI picks tests
 
@@ -221,20 +222,16 @@ Per-component:
 cd netguard && go test ./...
 cd gameaction && go test ./...
 cd gameproto && go test ./...
-cd svcutil  && go test ./...
 cd operator && go test ./...
 cd api      && go test ./...
 cd agent    && go test ./...
-cd audit-syslog-bridge && go test ./...
 cd telemetry-receiver && go test ./...
 cd sentinel && go test ./...
-cd capture-sidecar && go test ./...
-cd tunnel   && go test ./...
 cd gp-module && go test ./...
 cd web      && npm test
 ```
 
-The `mcp-server/` module is the `GameplanePanel/mcp` submodule; its tests and lint run in that repo's CI. To compile it here use `cd mcp-server && GOWORK=off go build ./...`.
+The component submodules (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) run their tests and lint in their own repos' CI (shared `.github/workflows/go-component.yaml`). To compile one here use `cd <path> && GOWORK=off go build ./...`.
 
 ## E2E testing
 
@@ -327,9 +324,9 @@ and test gates below.
 Game-module changes (`modules/`) belong in the separate **`GameplanePanel/module`**
 repo, which this repo vendors as a submodule. Open the module PR there; once it
 merges, bump the submodule pointer here (`git add modules`) in a follow-up PR.
-MCP server changes (`mcp-server/`) belong in **`GameplanePanel/mcp`** the same way (`git add mcp-server`).
+Component submodule changes (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) belong in their own repos the same way (`git add <path>`).
 
-`.gitmodules` points all three submodules (`modules/`, `website/`, `mcp-server/`) at the upstream
+`.gitmodules` points all submodules (`modules/`, `website/` and the component submodules) at the upstream
 GitHub URLs, so a fork of this repo clones them without forking them too. To
 work on your own fork of a submodule, repoint it locally:
 `git submodule set-url modules https://github.com/<you>/module.git`

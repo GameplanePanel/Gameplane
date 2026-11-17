@@ -1,13 +1,12 @@
 # Dependency report
 
 This is a component-by-component inventory of Gameplane's third-party
-dependencies and why each one is there. It covers all 15 Go modules that
+dependencies and why each one is there. It covers all 12 Go modules that
 share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`,
-`svcutil`, `operator`, `api`, `agent`, `audit-syslog-bridge` [optional],
-`telemetry-receiver` [optional], `sentinel` [optional],
-`capture-sidecar` [optional], `tunnel` [optional], `gp-module`,
-`test/e2e`), the `mcp-server` [optional] module (the `GameplanePanel/mcp`
-submodule, which keeps its own `go.mod` outside `go.work`), the
+`i18n`, `operator`, `api`, `agent`, `telemetry-receiver` [optional], `sentinel` [optional],
+`gp-module`, `test/e2e`), the split component submodules `mcp-server` [optional],
+`audit-syslog-bridge` [optional], `tunnel` [optional] and `capture-sidecar` [optional]
+(each the `GameplanePanel/<repo>` submodule, which keeps its own `go.mod` outside `go.work`), the
 `web/` npm package, and the build/CI toolchain that isn't a code dependency
 but is invoked by `make`/GitHub Actions.
 
@@ -28,7 +27,7 @@ Toolchain versions come from `Makefile`, `.github/workflows/*.yaml`, and
 `.devcontainer/versions.toml` (dev container pins; `.devcontainer/setup.sh` installs them).
 
 Accurate as of **2026-09-02**, repo state `v0.3.0`; the `gameproto`, <!-- doc-versions: historical -->
-`svcutil`, `sentinel`, `capture-sidecar`, `tunnel`, and `gp-module` sections
+`sentinel`, and `gp-module` sections
 were added and verified on **2026-09-26**.
 
 > **Note:** The dependency versions listed in the table below reflect the state at v0.3.0. For the most current versions, refer to [CHANGELOG.md](../CHANGELOG.md). <!-- doc-versions: historical -->
@@ -41,15 +40,14 @@ were added and verified on **2026-09-26**.
 | `gameaction/` | Go | 0 (stdlib only) | Shared console-injection guard + command-template renderer used by the agent and API |
 | `gameproto/` | Go | 0 (stdlib only) | Shared Minecraft/Terraria handshake classifier used by sentinel |
 | `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
-| `svcutil/` | Go | 0 (stdlib only) | Shared env-parsing + graceful-shutdown helpers (no active importers yet) |
 | `operator/` | Go | 19 | controller-runtime reconciler for the 8 CRDs; module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
 | `api/` | Go | 17 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
-| `audit-syslog-bridge/` | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
+| `audit-syslog-bridge/` (submodule) | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
 | `telemetry-receiver/` | Go | 1 | Standalone collector for the API's usage telemetry (daily counts; extended reports add a random install ID and its public key; on by default for new installs; `api.telemetry.enabled=false` turns it off) |
 | `sentinel/` | Go | 2 | Wake-on-connect listener holding ports for sleeping pods |
-| `capture-sidecar/` | Go | 3 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
-| `tunnel/` | Go | 0 (stdlib only) | Relay client supervisor for frp/Tailscale/playit |
+| `capture-sidecar/` (submodule) | Go | 3 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
+| `tunnel/` (submodule) | Go | 0 (stdlib only) | Relay client supervisor for frp/Tailscale/playit |
 | `gp-module/` | Go | 2 | Module authoring CLI: scaffold, offline validate, dry-run preview, OCI package |
 | `mcp-server/` (submodule) | Go | 5 | Standalone, strictly read-only MCP server for AI-assisted cluster diagnostics |
 | `test/e2e/` | Go | 4 | kind + Helm + real-component end-to-end suite |
@@ -120,19 +118,6 @@ Imported by (spec 022):
 - `api/` — to build, encode and sign the reporter's payload and the admin preview.
 
 Both importers use a local `replace` module (`replace github.com/GameplanePanel/gameplane/telemetryschema => ../telemetryschema`); the same Dockerfile `COPY` requirement as netguard applies.
-
-### svcutil
-
-`svcutil/go.mod` has **no `require` block at all** — stdlib only
-(`log/slog`, `os`, `net/http`, `context`, `errors`, `time`). It provides
-shared environment-variable parsing (`Or`, `OrInt`, `ParseLogLevel`) and a
-graceful HTTP shutdown helper (`RunHTTP`), meant to cut down on
-copy-pasted startup/shutdown boilerplate across the repo's standalone Go
-binaries.
-
-It has **no active importers yet** (see `svcutil/specs.md` for adoption
-status) — it ships as an available shared module ahead of the other
-services being migrated onto it.
 
 ## Services
 
@@ -230,6 +215,8 @@ drift between modules as Dependabot bumps them one module at a time.
 
 ### audit-syslog-bridge
 
+Lives in the `GameplanePanel/audit-syslog-bridge` submodule; Dependabot runs there.
+
 `audit-syslog-bridge/go.mod` has **no `require` block** — stdlib only
 (`crypto/subtle`, `crypto/tls`, `log/slog`, `net`, `net/http`, etc.). It's
 a small, schema-agnostic HTTP-JSON → syslog (RFC 5424) relay: it accepts
@@ -289,6 +276,8 @@ handshake. Direct deps from `sentinel/go.mod` (excluding the local
 
 ### capture-sidecar
 
+Lives in the `GameplanePanel/capture-sidecar` submodule; Dependabot runs there.
+
 Ephemeral, on-demand AF_PACKET packet capture container that runs
 alongside a `GameServer` pod with `CAP_NET_RAW` (see
 [`docs/security.md`](security.md) for the capability/PodSecurity
@@ -301,6 +290,8 @@ trade-off). Direct deps from `capture-sidecar/go.mod`:
 | `golang.org/x/net` | v0.59.0 | `internal/capture/filter.go`/`afpacket.go` — `x/net/bpf`: assembling the classic-BPF program attached to the AF_PACKET socket | <!-- doc-versions: dependency -->
 
 ### tunnel
+
+Lives in the `GameplanePanel/tunnel` submodule; Dependabot runs there.
 
 `tunnel/go.mod` has **no `require` block at all** — stdlib only
 (`os/exec`, `encoding/json`, `net/http`, `context`, etc.). It's the relay

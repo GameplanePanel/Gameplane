@@ -448,7 +448,7 @@ the target. See [registration and permissions](install.md#rbac-and-permissions).
   matching a BPF filter to PCAPNG output, exposed via mTLS on port `:9091`.
   Opt-in per GameServer via `spec.capture.enabled` and admin-only (`captures:manage`
   permission). Disabled by default; enabled cluster-wide via `capture.enabled`
-  Helm value. See `capture-sidecar/`.
+  Helm value. See the [`GameplanePanel/capture-sidecar`](https://github.com/GameplanePanel/capture-sidecar) repo (the `capture-sidecar/` submodule).
 - **mcp-server [optional]**: a standalone, strictly read-only MCP server (submodule `GameplanePanel/mcp`) —
   its tool handlers only ever hold a `*kube.Client` (`mcp-server/internal/kube`),
   whose sole exported methods are List/Get-shaped; the underlying typed/
