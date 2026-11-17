@@ -6,7 +6,8 @@ import { Button, Chip, Table } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 
-import { useBackupDestinations } from "@/lib/destinations";
+import { APIError } from "@/lib/api";
+import { backupReadOptions, isAuthorizationError } from "./backupReadOptions";
 import { formatBytes, formatRelative, formatRelativeFuture, parseQuantityToBytes } from "@/lib/utils";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
@@ -23,25 +24,50 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
   const { Backups } = resourceClient;
   const qc = useQueryClient();
   const permissions = useResourcePermissions();
+  // The access snapshot belongs to the selected cluster and namespace. Keep
+  // denied results isolated from later grants and from other resource scopes.
+  const accessKey = [...permissions].sort().join(",");
+  const canReadBackups = resourceCan(permissions, "backups:read");
+  const canReadSchedules = resourceCan(permissions, "schedules:read");
+  const canReadDestinations = resourceCan(permissions, "destinations:read");
   const [creatingSchedule, setCreatingSchedule] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState<Backup | null>(null);
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
 
-  const { data: backups, error: backupsError } = useQuery({
-    queryKey: resourceKey(resourceTarget, "backups", ns),
+  const { data: backupsData, error: backupRequestError } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "backups"), "access", accessKey],
+    ...backupReadOptions(canReadBackups, 5000),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Backups.list(ns),
-    refetchInterval: 5000,
   });
-  const { data: schedules, error: schedulesError } = useQuery({
-    queryKey: resourceKey(resourceTarget, "schedules", ns),
+  const { data: schedulesData, error: scheduleRequestError } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "schedules"), "access", accessKey],
+    ...backupReadOptions(canReadSchedules, false),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Schedules.list(ns),
   });
-  const { data: restores, error: restoresError } = useQuery({
-    queryKey: resourceKey(resourceTarget, "restores", ns),
+  const { data: restoresData, error: restoreRequestError } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "restores"), "access", accessKey],
+    ...backupReadOptions(canReadBackups, 5000),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Restores.list(ns),
-    refetchInterval: 5000,
   });
-  const { data: destinations = [] } = useBackupDestinations();
+  const { data: destinationData } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "backup-destinations"), "access", accessKey],
+    ...backupReadOptions(canReadDestinations, false),
+    queryFn: ({ signal }) => resourceClient.withSignal(signal).BackupDestinations.list(),
+  });
+  const destinations = canReadDestinations ? destinationData?.items ?? [] : [];
+  const backupsDenied = !canReadBackups || isAuthorizationError(backupRequestError);
+  const schedulesDenied = !canReadSchedules || isAuthorizationError(scheduleRequestError);
+  const restoresDenied = !canReadBackups || isAuthorizationError(restoreRequestError);
+  const backupDenied = intl.formatMessage({ id: "web.routes.tabs.backups.backups_access_denied", defaultMessage: "You do not have permission to view backups in this cluster and namespace.", description: "Backups tab: access denied message for the selected server's backups" });
+  const scheduleDenied = intl.formatMessage({ id: "web.routes.tabs.backups.schedules_access_denied", defaultMessage: "You do not have permission to view schedules in this cluster and namespace.", description: "Backups tab: access denied message for the selected server's schedules" });
+  const restoreDenied = intl.formatMessage({ id: "web.routes.tabs.backups.restores_access_denied", defaultMessage: "You do not have permission to view restores in this cluster and namespace.", description: "Backups tab: access denied message for the selected server's restores" });
+  const backupsError = backupsDenied ? new APIError(403, backupDenied) : backupRequestError;
+  const schedulesError = schedulesDenied ? new APIError(403, scheduleDenied) : scheduleRequestError;
+  const restoresError = restoresDenied ? new APIError(403, restoreDenied) : restoreRequestError;
+  // A denied refetch must not keep displaying a previous successful response.
+  const backups = backupsDenied ? undefined : backupsData;
+  const schedules = schedulesDenied ? undefined : schedulesData;
+  const restores = restoresDenied ? undefined : restoresData;
 
   // Multi-destination picking is handled on the dashboard's Backups page;
   // here we only act when there's exactly one configured destination.
