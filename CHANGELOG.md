@@ -10,7 +10,7 @@ Changes that are not released yet live in
 They are folded into this file when a version is released; see
 [`docs/contributing.md`](docs/contributing.md#changelog-entries).
 
-## [0.4.1]
+## [0.4.1] — 2026-11-17
 
 A pre-v1 patch release with every change merged since v0.4.0: the security
 and production-readiness follow-ups tracked in #867, a server file manager,
