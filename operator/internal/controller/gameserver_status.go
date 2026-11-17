@@ -1319,7 +1319,9 @@ func loadBalancerAddress(svc *corev1.Service) string {
 // should use, and a name survives the load balancer handing out a new IP.
 // It applies only once the load balancer has published an address, since
 // until then the name has nothing to point at, and never to ClusterIP or
-// NodePort Services, whose endpoints are not the name's target.
+// NodePort Services, whose endpoints are not the name's target. Only Host
+// changes: ServiceAddress keeps the load balancer's address, which address
+// conflict detection compares against (candidateHoldsAddress).
 func withAdvertisedHostname(
 	eps []gameplanev1alpha1.GameServerEndpoint, svc *corev1.Service, hostname string,
 ) []gameplanev1alpha1.GameServerEndpoint {
@@ -1363,11 +1365,12 @@ func endpointsFromService(
 	}
 	for _, p := range svc.Spec.Ports {
 		ep := gameplanev1alpha1.GameServerEndpoint{
-			Name:     p.Name,
-			Host:     host,
-			Port:     p.Port,
-			Protocol: p.Protocol,
-			Pool:     pool,
+			Name:           p.Name,
+			Host:           host,
+			ServiceAddress: host,
+			Port:           p.Port,
+			Protocol:       p.Protocol,
+			Pool:           pool,
 		}
 		if svc.Spec.Type == corev1.ServiceTypeNodePort && p.NodePort != 0 {
 			ep.Port = p.NodePort

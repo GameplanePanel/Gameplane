@@ -548,7 +548,10 @@ export interface InlineBackupPolicy {
 
 export interface GameServerEndpoint {
   name: string;
+  // The address players connect to: the Service's, or the server's hostname.
   host: string;
+  // The address the Service was assigned, when host is an advertised hostname.
+  serviceAddress?: string;
   port: number;
   protocol?: string;
   // Tailscale endpoints are tailnet-private only, not reachable from the internet.

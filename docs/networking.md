@@ -293,6 +293,15 @@ if it hands out a new IP. A record you keep yourself must be updated by hand
 when that happens, or players reach the old address. A ClusterIP or NodePort
 server keeps reporting its own address.
 
+The load balancer's address stays in `status.endpoints[].serviceAddress`, and
+address-conflict checks for `spec.networking.address` compare against it, so
+a server advertising a hostname still holds its IP.
+
+This applies to every LoadBalancer server with a hostname, including ones
+created before the upgrade that introduced it. A hostname that doesn't
+resolve to its server would now be shown to players, so before upgrading,
+check each such hostname, or clear it where it isn't the name players use.
+
 ## Related
 
 - [`install.md`](install.md) — Helm chart values for `operator.addressManager` and cluster prerequisites.

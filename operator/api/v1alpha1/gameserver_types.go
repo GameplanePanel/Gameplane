@@ -692,8 +692,18 @@ type CaptureStatus struct {
 // associated with a named template port.
 type GameServerEndpoint struct {
 	Name string `json:"name"`
+	// Host is the address players connect to: the Service's address, or on
+	// a LoadBalancer server with spec.networking.hostname, that hostname.
 	Host string `json:"host"`
 	Port int32  `json:"port"`
+
+	// ServiceAddress is the address the backing Service was assigned (its
+	// load-balancer IP or hostname, or its cluster IP while none is
+	// published), kept apart from Host so an advertised hostname doesn't
+	// hide which address a server holds. Reconciler-owned; empty on tunnel
+	// endpoints and on status written by an operator that predates it.
+	// +optional
+	ServiceAddress string `json:"serviceAddress,omitempty"`
 	// +optional
 	Protocol corev1.Protocol `json:"protocol,omitempty"`
 

@@ -2603,6 +2603,9 @@ spec:
                     associated with a named template port.
                   properties:
                     host:
+                      description: |-
+                        Host is the address players connect to: the Service's address, or on
+                        a LoadBalancer server with spec.networking.hostname, that hostname.
                       type: string
                     name:
                       type: string
@@ -2625,6 +2628,14 @@ spec:
                     protocol:
                       description: Protocol defines network protocols supported for
                         things like container ports.
+                      type: string
+                    serviceAddress:
+                      description: |-
+                        ServiceAddress is the address the backing Service was assigned (its
+                        load-balancer IP or hostname, or its cluster IP while none is
+                        published), kept apart from Host so an advertised hostname doesn't
+                        hide which address a server holds. Reconciler-owned; empty on tunnel
+                        endpoints and on status written by an operator that predates it.
                       type: string
                     tunnelProvider:
                       description: |-
@@ -2731,6 +2742,9 @@ spec:
                     associated with a named template port.
                   properties:
                     host:
+                      description: |-
+                        Host is the address players connect to: the Service's address, or on
+                        a LoadBalancer server with spec.networking.hostname, that hostname.
                       type: string
                     name:
                       type: string
@@ -2753,6 +2767,14 @@ spec:
                     protocol:
                       description: Protocol defines network protocols supported for
                         things like container ports.
+                      type: string
+                    serviceAddress:
+                      description: |-
+                        ServiceAddress is the address the backing Service was assigned (its
+                        load-balancer IP or hostname, or its cluster IP while none is
+                        published), kept apart from Host so an advertised hostname doesn't
+                        hide which address a server holds. Reconciler-owned; empty on tunnel
+                        endpoints and on status written by an operator that predates it.
                       type: string
                     tunnelProvider:
                       description: |-
