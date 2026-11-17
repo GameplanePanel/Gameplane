@@ -1301,6 +1301,22 @@ capabilities:
         protocol: a2s
         port: 2457
   ```
+
+  When `query` is set, it is the only source of the count: the console's
+  `list` isn't used for it, even as a fallback. The agent needs a reply
+  in Valve's single-packet A2S_INFO format: the `FF FF FF FF` header, `I`
+  (0x49), the protocol byte, the server name, map, folder and game as
+  NUL-terminated strings, the two-byte app ID, then one byte each for
+  players, max players and bots. Anything after the bots byte is ignored.
+  A server that first answers with a challenge (`FF FF FF FF`, `A`, four
+  bytes) is asked again with the challenge, up to twice. Split replies
+  (`FE FF FF FF`, sent when a reply doesn't fit one UDP packet) aren't
+  supported; A2S_INFO replies fit in one packet for the games that use
+  this, but a server whose reply is split reports no count. So does one
+  that doesn't answer within two seconds, or answers in another format:
+  its count is unknown, not 0, and it doesn't sleep. Check a new module
+  by watching `status.agent.playersOnline` while a player joins and
+  leaves.
 - The operator uses the verified agent endpoint for live backups. For
   `minecraft-java`, declare the sequence above. The agent checks the English
   vanilla response to each command, including the already-on and already-off
