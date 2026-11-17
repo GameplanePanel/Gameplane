@@ -15,7 +15,7 @@ description: "Task list for 028 split big packages and files"
 ## Status (2026-11-17, master `93f9897`)
 
 - **Done:** T001–T007 (parity tooling, PR #796, merged 2026-10-25). T057 withdrawn (OD-10).
-- **Not started:** every move PR (T008–T056, T058–T061). The build thread paused moves on 2026-10-22 (valgul's card) until Baylem's audit PRs were in. That condition is now met: audit issues #712–#731 are all closed, including the tunnel and sentinel gates #721, #722, #723 and #729.
+- **Not started:** every move PR (T008–T056, T058–T061). The build thread paused moves on 2026-10-22 (valgul's card) until Baylem's audit PRs #756–#772 were in. That condition is now met: all of them are closed, and audit issues #712–#731 are all closed too, including the tunnel and sentinel gates #721, #722, #723 and #729.
 - **Files grew since T003:** for example `web/src/types.ts` 1,194 lines, `CreateServer.tsx` 1,448, `api/cmd/main.go` 974, `operator/internal/controller/gameserver_controller.go` 3,125. Re-measure (repeat T003) before T008 starts.
 - **`web/src/pages/` already exists:** spec 031 (PR #859) added `pages/ClusterDetail.tsx` and `pages/Nodes.tsx`. T009 creates nothing new there; it moves the remaining screens.
 - **Components leaving this repo:** `mcp-server/` moves to GameplanePanel/mcp (PR #993, open, not merged), and `audit-syslog-bridge/`, `tunnel/` and `capture-sidecar/` are being split into their own repos with full history (stacked on #993, not merged), with `svcutil/` deleted as unused. That affects T044, T050, T051 and T053. Settled as OD-12 (valgul, 2026-11-17): these tasks are carried into the new repos. The same layout and 500-line work happens as PRs in each component's own repo, tracked from this spec.
