@@ -2,4 +2,4 @@
 
 The Backups, Schedules, and Restores tables give empty-state messages consistent padding, centered alignment, and viewport-width wrapping instead of crowding the table edges.
 
-[Issue #1011](https://github.com/GameplanePanel/Gameplane/issues/1011)
+[PR #1025](https://github.com/GameplanePanel/Gameplane/pull/1025)
