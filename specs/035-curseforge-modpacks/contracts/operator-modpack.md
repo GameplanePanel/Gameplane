@@ -11,7 +11,10 @@ Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
    any provider's `refEnv` and `spec.modpack` is absent (not yet swept), or adopted when
    annotation `gameplane.local/modpack-adopted` is set. For both, while the pod is running,
    render the env exactly as the pre-035 operator did, so the operator's first reconcile
-   after upgrade never rolls the pod, whatever the order of operator and API sweep. Remove the
+   after upgrade never rolls the pod, whatever the order of operator and API sweep.
+   For an adopted server with a known version, the operator applies the pin (rule 1) with
+   one restart as soon as `status.agent.playersOnline` is 0, or right away when the server
+   is stopped or asleep (OD-8 B); never while players are online. Remove the
    annotation, and render rule 1, at the next pod start the operator drives.
 3. **Change state machine** (R4): see data-model.md. A removal whose backup fails keeps
    `status.modpack.applied` and the remove annotation, so the API can accept a retry. Backup CRs created here are owned by

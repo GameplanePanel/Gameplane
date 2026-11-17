@@ -86,7 +86,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Tests for US2
 
 - [ ] T028 [P] [US2] envtest: `backupFirst` → Backup CR `<gs>-modpack-<generation>` owned by the GameServer, env unchanged until it succeeds; failed backup → `BackupFailed`, message set, env unchanged; a new change after `BackupFailed` restarts the flow, in operator/internal/controller/gameserver_modpack_envtest_test.go
-- [ ] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [ ] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll) while players are online; an adopted server with a version gets the pin with one restart once `status.agent.playersOnline` is 0, or right away when stopped or asleep (OD-8 B); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
 - [ ] T030 [P] [US2] envtest: legacy sweep reads `versionId` through the agent and writes `spec.modpack` + adopted annotation; unreadable → no `version` and `pinned: false`; 400 `server.modpack.backup_unavailable`; 409 `server.modpack.change_in_progress`, in api/internal/handlers/modpack_adopt_envtest_test.go
 - [ ] T031 [US2] E2E: pinned version survives 3 restarts (read `.curseforge-manifest.json` `fileId` through the agent) in test/e2e/modpack_e2e_test.go
 
@@ -99,7 +99,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [ ] T036 [US2] Build version change, older-version marking, downgrade warning and the "Back up first" checkbox from the approved design in web/src/components/modpack-version-picker.tsx and web/src/components/modpack-confirm-dialog.tsx
 - [ ] T037 [P] [US2] vitest for downgrade warning and backup checkbox states (destination / no destination) in web/src/components/modpack-confirm-dialog.test.tsx
 
-**Checkpoint**: versions are pinned for every registry; legacy servers are adopted without a restart.
+**Checkpoint**: versions are pinned for every registry; legacy servers are adopted without restarting while players are online (OD-8 B).
 
 ---
 

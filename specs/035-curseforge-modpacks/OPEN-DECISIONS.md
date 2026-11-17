@@ -1,6 +1,6 @@
 # Open decisions: spec 035 CurseForge modpacks
 
-OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review on 2026-11-17 and is open.
+OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. None are open.
 
 ## OD-1: How do game servers get a CurseForge key? (SETTLED: C, valgul 2026-11-11)
 
@@ -78,7 +78,9 @@ load alongside the new one.
   (Recommended: a clean switch, consistent with your Remove answer.)
 - B. No: only Remove empties the folder; the operator cleans up by hand when switching.
 
-## OD-8: How do adopted Modrinth servers get their pin without a restart gap? (OPEN, raised by PR #1014 review 2026-11-17)
+## OD-8: How do adopted Modrinth servers get their pin without a restart gap? (SETTLED: B, valgul 2026-11-17)
+
+**Ruling: option B** (valgul, 2026-11-17). Where an option below says "Recommended", that was the recommendation before the ruling, not the ruling.
 
 Servers that already run an unpinned Modrinth pack are pinned on panel upgrade, but the pin
 env only reaches the pod at its next start. If the game container crashes and restarts in

@@ -112,8 +112,10 @@ implementation task re-checks every itzg fact below against the image digests th
   drives anyway (restart, stop/start, sleep/wake, or any other spec change), and the
   annotation is then removed. Servers the sweep has not reached yet (legacy `refEnv` value
   in `spec.env`, no `spec.modpack`) get the same legacy rendering, so the order of operator
-  reconcile and API sweep cannot roll a pod. An in-place container crash restart inside
-  that window still boots with the old env; how to close that window is OD-8.
+  reconcile and API sweep cannot roll a pod. To close the crash-restart window (OD-8 B),
+  the operator applies the pin to an adopted server with a version as soon as
+  `status.agent.playersOnline` is 0 (one operator-driven restart), or immediately when the
+  server is stopped or asleep; it never restarts an adopted server with players online.
 - **Alternatives**: pin immediately (restarts every such server once on panel upgrade).
 
 ## R7: Files that need a manual download (FR-008, OD-5 A)
