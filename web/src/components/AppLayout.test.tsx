@@ -73,10 +73,10 @@ describe("AppLayout", () => {
       await userEvent.click(await screen.findByRole("button", { name: /open navigation/i }));
       await screen.findByRole("button", { name: /close navigation/i });
       expect(screen.getAllByText("Baylem's 世界")).toHaveLength(2);
-      act(() => view.client.setQueryData(["installation"], { standalone: false, localCluster: true, instanceName: "Updated instance" }));
+      await act(() => view.client.setQueryData(["installation"], { standalone: false, localCluster: true, instanceName: "Updated instance" }));
       await waitFor(() => expect(screen.getAllByText("Updated instance")).toHaveLength(2));
       expect(screen.queryByText("Baylem's 世界")).not.toBeInTheDocument();
-      act(() => view.client.setQueryData(["installation"], { standalone: false, localCluster: true, instanceName: "   " }));
+      await act(() => view.client.setQueryData(["installation"], { standalone: false, localCluster: true, instanceName: "   " }));
       await waitFor(() => expect(screen.getAllByTitle("gameplane")).toHaveLength(2));
     } finally {
       view.unmount();
