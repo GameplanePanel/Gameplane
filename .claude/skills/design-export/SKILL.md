@@ -5,7 +5,27 @@ description: "After ANY edit to design.pen or website/website.pen — re-exports
 
 ## Rule 1 & 2 compliance: design exports
 
-Every edit to `design.pen` (dashboard) or `website/website.pen` (public site) must be followed by incremental export of only the touched nodes. Never hand-edit `.pen` files; all access via the `pencil` MCP server.
+Every edit to `design.pen` (dashboard) or `website/website.pen` (public site) must be followed by incremental export of only the touched nodes. Never hand-edit `.pen` files; all access goes through Pencil, by either of the two paths below.
+
+### Two ways to reach Pencil
+
+Both paths run the same `execute` language (`Get`, `Insert`, `Update`, `Export`, …) and produce identical exports, so use whichever the session has:
+
+| | Pencil MCP (local) | Pen CLI (cloud or local) |
+|---|---|---|
+| Available when | `mcp__pencil__*` tools exist (the maintainer's machine with the Pencil app) | `pen` on PATH (`npm install -g @pen.dev/cli`) and `PEN_CLI_KEY` set (cloud project setting). Never print the key. |
+| Run code | `mcp__pencil__execute` with `filePath` | `printf '%s\n' 'execute({ input: "…" })' 'save()' 'exit()' \| pen interactive -i <file.pen> -o <file.pen>` (headless; no AI calls) |
+| Screenshot | `mcp__pencil__export_nodes` (2x) | `Export(["<id>"], "png", "<dir>")` inside `execute` (2x by default) |
+| Saving | Pencil does not autosave: ask the maintainer to save in the Pencil UI | `save()` writes the `-o` file; nothing else touches the file |
+
+The pen.dev plan counts every day the CLI runs against a monthly cap of active days, so batch CLI work into one session and one day where you can. With the CLI, edit a copy first when you are unsure (`-o /tmp/out.pen`), check it, then rerun against the real file. `-o` must equal `-i` to change the committed file in place. Check with `pen status` that the key is active.
+
+For exports from the CLI, use the helper next to this file. It writes the JSON and the 2x PNG for each node and never writes the `.pen` file. Its JSON is byte-identical to the MCP export:
+
+```sh
+.claude/skills/design-export/pen-cli-export.sh design.pen assets/design-export/json assets/design-export/screenshots <id> [<id>…] [--depth N]
+# website: website/website.pen website/website-export/json website/website-export/screenshots
+```
 
 ### When to run this skill
 
@@ -15,7 +35,7 @@ Every edit to `design.pen` (dashboard) or `website/website.pen` (public site) mu
 
 ### Pre-export checklist
 
-1. **Pencil does not auto-save.** After MCP edits (or any editor work), ask the user to save the design file via the GUI before proceeding with export.
+1. **Make sure the file on disk is saved.** Pencil MCP: Pencil does not autosave, so ask the user to save the design file in the GUI before exporting. Pen CLI: the edit run must have ended with `save()`.
 2. **Collect touched node IDs.** Identify which screens and components were added or modified. Node IDs are visible in Pencil's node inspector or in the Get() output.
 3. **Verify against MANIFEST.md.** Check `assets/design-export/MANIFEST.md` to see whether any existing node needs its export refreshed (e.g., a re-exported variant of a screen).
 
@@ -23,12 +43,12 @@ Every edit to `design.pen` (dashboard) or `website/website.pen` (public site) mu
 
 For each touched node ID:
 
-1. **JSON export** — via `mcp__pencil__execute` running `Get("<id>", {depth: N})`:
+1. **JSON export** — via `mcp__pencil__execute` running `Get("<id>", {depth: N})` (MCP), or `pen-cli-export.sh` (CLI):
    - Choose depth high enough that the node's complete structure comes through with zero `"..."` elision markers.
    - Pipe output to `assets/design-export/json/<id>.json` (website screens → `website/website-export/json/<id>.json`).
    - Validation: `python3 -m json.tool assets/design-export/json/<id>.json > /dev/null` (or `website/website-export/json/<id>.json` for website screens) must pass.
 
-2. **Screenshot export** — via `mcp__pencil__export_nodes`:
+2. **Screenshot export** — via `mcp__pencil__export_nodes` (MCP), or `pen-cli-export.sh` / `Export(["<id>"], "png", dir)` (CLI):
    - Export the node ID at 2x scale.
    - Write to `assets/design-export/screenshots/<id>.png` (website → `website/website-export/screenshots/<id>.png`).
    - Validation: file must be non-empty with real pixel dimensions.
