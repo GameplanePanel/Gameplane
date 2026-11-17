@@ -295,6 +295,7 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - Interactive RCON/PTY terminal (xterm.js, lazy-loaded, NOT rebuilt — uses existing engine)
    - LoadingCard during template resolution (line 28); ErrorCard if no console available (line 35)
    - Uses ui/ LoadingCard, ErrorCard only (lines 4–5); console I/O engine unchanged
+   - RCON text replies normalize LF and CRLF to terminal CRLF, preserving indentation and content so each line starts in column zero. PTY output retains its raw terminal line endings and control sequences.
    - Command bar under the terminal (`ConsoleShell.tsx`): Send or Enter submits; ArrowUp/ArrowDown recall the last 100 commands sent from this tab (consecutive repeats collapsed), and ArrowDown past the newest restores the unsent line. History lives per mount and is not persisted
 
 4. **Logs** (`web/src/routes/tabs/Logs.tsx`, 299 lines)
