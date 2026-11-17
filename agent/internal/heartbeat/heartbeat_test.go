@@ -334,7 +334,7 @@ func TestQueryPlayerCounts(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := Config{RCON: fakeRcon{out: tc.out, err: tc.err}}
-			n, maxN, err := queryPlayerCounts(cfg)
+			n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 			if (err == nil) != tc.ok {
 				t.Fatalf("err=%v ok=%v", err, tc.ok)
 			}
@@ -355,7 +355,7 @@ func TestQueryPlayerCounts_CustomCommand(t *testing.T) {
 			Command: "mylist",
 		},
 	}
-	n, maxN, err := queryPlayerCounts(cfg)
+	n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 	if err != nil {
 		t.Fatalf("queryPlayerCounts: %v", err)
 	}
@@ -380,7 +380,7 @@ func TestQueryPlayerCounts_WithRegex(t *testing.T) {
 		},
 		PlayerListRE: re,
 	}
-	n, maxN, err := queryPlayerCounts(cfg)
+	n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 	if err != nil {
 		t.Fatalf("queryPlayerCounts: %v", err)
 	}
@@ -422,7 +422,7 @@ func TestQueryPlayerCounts_A2S(t *testing.T) {
 		RCON:        fakeRcon{out: "There are 9 of a max of 99 players online:"},
 		PlayerQuery: &caps.PlayerQuery{Protocol: "a2s", Port: a2sServer(t, 3, 10, 1)},
 	}
-	n, maxN, err := queryPlayerCounts(cfg)
+	n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 	if err != nil {
 		t.Fatalf("queryPlayerCounts: %v", err)
 	}
@@ -448,7 +448,7 @@ func TestQueryPlayerCounts_A2SErrors(t *testing.T) {
 		"unknown protocol": {Protocol: "gamespy", Port: closedPort},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if _, _, err := queryPlayerCounts(Config{PlayerQuery: q}); err == nil {
+			if _, _, err := queryPlayerCounts(t.Context(), Config{PlayerQuery: q}); err == nil {
 				t.Fatal("want an error")
 			}
 		})

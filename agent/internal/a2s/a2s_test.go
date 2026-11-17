@@ -47,7 +47,7 @@ func TestQueryInfo(t *testing.T) {
 		}
 		return infoReply(3, 10, 1)
 	})
-	info, err := QueryInfo(addr, time.Second)
+	info, err := QueryInfo(t.Context(), addr, time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestQueryInfoChallenge(t *testing.T) {
 		}
 		return append(append(append([]byte{}, singlePacket...), headerChallenge), challenge...)
 	})
-	info, err := QueryInfo(addr, time.Second)
+	info, err := QueryInfo(t.Context(), addr, time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,27 +80,27 @@ func TestQueryInfoEndlessChallenge(t *testing.T) {
 	addr := serve(t, func([]byte) []byte {
 		return append(append([]byte{}, singlePacket...), headerChallenge, 1, 2, 3, 4)
 	})
-	if _, err := QueryInfo(addr, time.Second); err == nil || !strings.Contains(err.Error(), "challenge") {
+	if _, err := QueryInfo(t.Context(), addr, time.Second); err == nil || !strings.Contains(err.Error(), "challenge") {
 		t.Errorf("err = %v, want a challenge error", err)
 	}
 }
 
 func TestQueryInfoTimeout(t *testing.T) {
 	addr := serve(t, func([]byte) []byte { return nil })
-	if _, err := QueryInfo(addr, 100*time.Millisecond); err == nil {
+	if _, err := QueryInfo(t.Context(), addr, 100*time.Millisecond); err == nil {
 		t.Error("want a timeout error")
 	}
 }
 
 func TestQueryInfoBadAddress(t *testing.T) {
-	if _, err := QueryInfo("no-port", time.Second); err == nil || !strings.Contains(err.Error(), "dial") {
+	if _, err := QueryInfo(t.Context(), "no-port", time.Second); err == nil || !strings.Contains(err.Error(), "dial") {
 		t.Errorf("err = %v, want a dial error", err)
 	}
 }
 
 func TestQueryInfoMalformedReply(t *testing.T) {
 	addr := serve(t, func([]byte) []byte { return []byte{0xFF, 0xFF, 0xFF, 0xFF, 0x6D} })
-	if _, err := QueryInfo(addr, time.Second); err == nil || !strings.Contains(err.Error(), "header") {
+	if _, err := QueryInfo(t.Context(), addr, time.Second); err == nil || !strings.Contains(err.Error(), "header") {
 		t.Errorf("err = %v, want an unexpected-header error", err)
 	}
 }

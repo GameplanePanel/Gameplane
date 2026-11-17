@@ -164,7 +164,7 @@ func sendOnce(ctx context.Context, dyn dynamic.Interface, cfg Config) error {
 	// with null clears any prior value. playersMax stays null when the game
 	// reports an online count but no maximum, so the dashboard shows "—"
 	// rather than a bogus cap of 0.
-	if online, maxN, err := queryPlayerCounts(cfg); err == nil {
+	if online, maxN, err := queryPlayerCounts(ctx, cfg); err == nil {
 		agent["playersOnline"] = online
 		// Status patch: playersMax is only emitted when maxN > 0 (a real
 		// finite limit). Unknown (maxN=0) and unlimited (maxN=-1) both patch
@@ -247,9 +247,9 @@ func nullable(v int64, known bool) any {
 // When EntryRegex is configured, the online count is the number of regex
 // matches. err is non-nil only when RCON fails or no online count can be
 // parsed at all.
-func queryPlayerCounts(cfg Config) (online, maxPlayers int, err error) {
+func queryPlayerCounts(ctx context.Context, cfg Config) (online, maxPlayers int, err error) {
 	if cfg.PlayerQuery != nil {
-		return queryPlayerCountsA2S(cfg)
+		return queryPlayerCountsA2S(ctx, cfg)
 	}
 	cmd := "list"
 	if cfg.PlayerList != nil && cfg.PlayerList.Command != "" {
@@ -292,7 +292,7 @@ const a2sTimeout = 2 * time.Second
 // queryPlayerCountsA2S reads the player count over the declared query
 // protocol. Bots don't count as players, so a server with only bots on it
 // reports 0 and can sleep. A server limit of 0 is reported as unknown.
-func queryPlayerCountsA2S(cfg Config) (online, maxPlayers int, err error) {
+func queryPlayerCountsA2S(ctx context.Context, cfg Config) (online, maxPlayers int, err error) {
 	if cfg.PlayerQuery.Protocol != "a2s" {
 		return 0, 0, fmt.Errorf("unsupported player query protocol %q", cfg.PlayerQuery.Protocol)
 	}
@@ -300,7 +300,7 @@ func queryPlayerCountsA2S(cfg Config) (online, maxPlayers int, err error) {
 	if host == "" {
 		host = "127.0.0.1"
 	}
-	info, err := a2s.QueryInfo(net.JoinHostPort(host, strconv.Itoa(cfg.PlayerQuery.Port)), a2sTimeout)
+	info, err := a2s.QueryInfo(ctx, net.JoinHostPort(host, strconv.Itoa(cfg.PlayerQuery.Port)), a2sTimeout)
 	if err != nil {
 		return 0, 0, fmt.Errorf("player query: %w", err)
 	}

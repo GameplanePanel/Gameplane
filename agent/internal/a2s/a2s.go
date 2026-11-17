@@ -61,10 +61,11 @@ func (i Info) Humans() int {
 }
 
 // QueryInfo sends A2S_INFO to addr (host:port) and parses the reply. The
-// timeout bounds the whole exchange, challenge round trips included.
-func QueryInfo(addr string, timeout time.Duration) (Info, error) {
+// timeout bounds the whole exchange, challenge round trips included; ctx
+// bounds the dial.
+func QueryInfo(ctx context.Context, addr string, timeout time.Duration) (Info, error) {
 	dialer := net.Dialer{Timeout: timeout}
-	conn, err := dialer.DialContext(context.Background(), "udp", addr)
+	conn, err := dialer.DialContext(ctx, "udp", addr)
 	if err != nil {
 		return Info{}, fmt.Errorf("a2s dial %s: %w", addr, err)
 	}
