@@ -949,6 +949,7 @@ export interface PlayerCapabilities {
   ban: boolean;
   unban: boolean;
   whitelist?: boolean;
+  operators?: boolean;
 }
 
 export interface PlayerEntry {
@@ -967,6 +968,11 @@ export interface PlayersResp {
   entries?: PlayerEntry[];
   asOf: string;
   capabilities: PlayerCapabilities;
+}
+
+export interface ServerOperator {
+  name: string;
+  uuid?: string;
 }
 
 export interface BannedPlayer {
