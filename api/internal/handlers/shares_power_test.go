@@ -25,7 +25,7 @@ func TestSharePowerPolicy(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			store := newTestStore(t)
-			ownerID := insertShareTestUser(t, store, "owner-power")
+			ownerID := insertShareTestUser(t, store, "owner-power-"+tc.name)
 			server := newShareTestServer("srv-power", ownerID)
 			server.Object["spec"] = map[string]any{"suspend": tc.suspended}
 			server.Object["status"] = map[string]any{"phase": "Stopped"}
