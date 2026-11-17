@@ -71,8 +71,8 @@ Configured lookup/parse failures are unavailable: cluster stats returns the exis
 - [x] Validate `<volumeGroup>_thinpool` before backend lookup; run only compile checks locally.
 - [x] Add independent pool/PV whole-byte quantity route regressions and observe their expected red CI checkpoint.
 - [x] Accept both parsed quantity representations with exact integer/range checks and preserve raw BinarySI overflow/fraction rejection; run the API compile check.
-- [ ] Review the combined upstream diff and require CI test/lint success, including legacy, authorization, selected-cluster and failure semantics.
-- [ ] Open the upstream PR with its matching changelog entry and verify signed commits and final CI.
+- [x] Review the combined upstream diff, resolve all actionable findings, and verify both API architectures, API lint, PostgreSQL and web unit checks in CI.
+- [x] Open [upstream PR #1002](https://github.com/GameplanePanel/Gameplane/pull/1002) with its matching changelog entry and signed commits.
 
 Red checkpoint: fork PR #15, [CI run 44039836145, amd64 job
 133891614335](https://github.com/Baylem/Gameplane/actions/runs/44039836145/job/133891614335)
@@ -80,7 +80,7 @@ confirmed only `TestStoragePoolInventory_NonconventionalExistingPoolRejected`
 failed: both routes returned HTTP 200 with known 320 GiB capacity and 7 GiB
 provisioned instead of unavailable coverage. Both API architectures failed;
 lint passed. The conventional-name guard is now implemented and the API
-`go build ./...` compile check passed; final CI and upstream review remain pending.
+`go build ./...` compile check passed. Both API architectures subsequently passed in CI.
 
 Quantity review checkpoint: at `05ed48841eca507b1fab0bca93ea300c7d746168`,
 [CI run 44041788567, amd64 job
@@ -91,9 +91,16 @@ pool/PV subcases across both routes failed, including `1.5Gi`, `320.0Gi`,
 The shared conversion now checks sign/range before `Value()` and confirms exact
 integer bytes with `CmpInt64`; raw BinarySI values at the parser's saturation
 boundary are checked with exact rational arithmetic. Pool sizes remain positive;
-PV sizes remain nonnegative. The API compile check passed; scoped re-review and
-final CI remain pending.
+PV sizes remain nonnegative. The API compile check passed; scoped re-review found
+the issue addressed with no additional actionable findings.
 
-Publication, deployment, pool mutation and runtime permission changes are outside
+[CI run 44042859060](https://github.com/Baylem/Gameplane/actions/runs/44042859060)
+at `67b7ec3c42e77529ce50b881f22bb83faa05a31e` passed both API architectures,
+API lint, PostgreSQL checks and web unit tests. Added API statement-line coverage
+was 98.3%. The local TypeScript compile check also passed. Before marking the
+upstream PR ready for review, require successful final CI, including end-to-end
+and visual checks; their current status is tracked in the PR checks.
+
+Image publication, deployment, pool mutation and runtime permission changes are outside
 this upstream change. Test and lint results come from GitHub Actions; local
 verification remains compile-only.
