@@ -539,6 +539,17 @@ paths:
       responses:
         '200':
           description: OK
+  '/servers/{name}/players/operators':
+    get:
+      summary: Read configured Minecraft Java operator identities
+      description: Requires servers:read for the target server; proxies the fixed-path agent reader.
+      responses:
+        '200':
+          description: Names and optional UUIDs; empty when ops.json is absent
+        '501':
+          description: Operator list unsupported by the configured game or data root
+        '502':
+          description: Operator list unavailable
   '/servers/{name}/players/whitelist':
     get:
       responses:

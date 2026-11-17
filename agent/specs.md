@@ -51,9 +51,9 @@ for a configured Minecraft Java checkpoint adapter. Its pod-bound
 
 - The agent does **not** expose a PTY or attach the game container directly. Games with consoleMode "pty" (e.g., Unity servers) are handled by the Gameplane API bridging the browser WebSocket to Kubernetes pod-attach; the agent is uninvolved.
 - The agent does **not** manage game processes or containers — all process/container control is the operator's job (scaling, restarts, resource limits).
-- The agent does **not** validate RCON responses for correctness. It forwards raw game output to the UI, so game-specific parsing happens on the dashboard (e.g., player-list regex rendering).
+- The agent parses supported player-list responses and configured metric formats; it does not otherwise validate arbitrary RCON output for correctness.
 - The agent does **not** require a cluster metrics pipeline for its own resource-usage reporting (no metrics-server dependency); usage is sourced in-pod from `/proc` or cgroups. A Prometheus scrape of `/metrics` (via the chart's optional `serviceMonitors.enabled` PodMonitor) is supported but not required.
-- The agent does **not** implement game-specific business logic. All protocol handlers are per-game and declared in the module's template (`spec.capabilities`); new games require no agent code change.
+- The agent does **not** implement game-specific business logic. Commands are declared in the module's template (`spec.capabilities`); built-in protocol adapters include player-list parsers and the read-only Minecraft Java operator-file reader. New games using supported command protocols require no agent code change.
 
 ## Directory & package layout
 
