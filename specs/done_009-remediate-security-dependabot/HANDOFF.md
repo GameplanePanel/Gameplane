@@ -1,6 +1,6 @@
 # Feature 009 — session handoff (updated 2026-08-29, session 2)
 
-Read this file, then `specs/009-remediate-security-dependabot/tasks.md`. Everything below is
+Read this file, then `specs/done_009-remediate-security-dependabot/tasks.md`. Everything below is
 verified against the live repo and GitHub unless explicitly marked as a *claim* or
 *provisional*.
 
