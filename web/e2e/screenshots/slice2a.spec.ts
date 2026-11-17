@@ -166,7 +166,9 @@ test.describe("Slice 2a: Servers + core tabs (Desktop — 1440x900) @screenshots
     await expect(older).toBeEnabled();
     await capture(page, "Xn5ns");
     await older.click();
-    await expect(page.getByText("[Server thread/INFO] Loading properties", { exact: true })).toBeVisible();
+    const history = page.locator("pre").filter({ hasText: "[Server thread/INFO] Loading properties" });
+    await expect(history).toHaveText("[Server thread/INFO] Loading properties\n[Server thread/INFO] Preparing level world");
+    await expect(history).toBeVisible();
     await expect(older).toHaveCount(0);
     await expect(page.getByText("— connected —").first()).toBeVisible();
   });
