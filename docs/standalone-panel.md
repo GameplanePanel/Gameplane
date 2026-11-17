@@ -9,6 +9,19 @@ Standalone mode is an explicit choice for a fresh central panel; this guide
 does not migrate an existing installation's Kubernetes Secrets or Cluster CRs
 into SQL storage.
 
+In standalone mode the API is the only process that talks to remote clusters.
+The Compose profile stores its database and encryption key in separate volumes.
+
+```mermaid
+flowchart LR
+    browser["Browser over HTTPS reverse proxy"] --> web["web (nginx, 127.0.0.1:8080)"]
+    web -- "API_UPSTREAM :8000" --> api["gameplane-api (one replica)"]
+    api --> db[("panel-data: /data/gameplane.db")]
+    api --> key[("panel-keys: /keys/panel.key")]
+    api -- "Direct Kubernetes API" --> k8s["Registered cluster Kubernetes API"]
+    api -- "mTLS gateway" --> gw["Registered cluster gateway"]
+```
+
 ## Docker Compose
 
 Install Git and Docker with the Compose plugin. Use a release or commit that
@@ -425,8 +438,9 @@ restart; a remote operator upgrade may roll game pods.
 For a panel-only Helm release, repeat the installation command with the updated
 chart, matching images, and your standalone values file. Keep
 `api.replicas=1` and the existing key storage, including when using PostgreSQL.
-All Helm API deployments use Recreate and accept a brief panel outage during
-rollout. This does not fence a process on a partitioned node after force
+Helm API deployments use Recreate by default, which accepts a brief panel outage
+during rollout. With `api.postgresHA.enabled` the Deployment instead uses
+RollingUpdate with `maxUnavailable: 1` and `maxSurge: 0`. Neither mode fences a process on a partitioned node after force
 deletion. See [API upgrades and readiness](install.md#api-upgrades-brief-downtime)
 for the singleton boundary and the separate database readiness probe.
 

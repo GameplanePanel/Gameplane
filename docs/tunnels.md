@@ -29,6 +29,18 @@ add an extra pod and outbound dependency.
 
 ## Choosing a provider
 
+Each provider runs a relay client in a separate tunnel pod. That pod dials out to the relay, and forwards player traffic to the game's backing Service:
+
+```mermaid
+flowchart LR
+    P["Players"] -->|"public address or tailnet name"| R["Relay: frps, Tailscale tailnet or playit.gg"]
+    T["Tunnel pod: gameplane-tunnel"] -->|"outbound session"| R
+    T -->|"dials server.namespace.svc"| S["Backing Service"]
+    S -->|"running"| G["Game pod"]
+    S -->|"asleep: routed to sentinel"| W["Wake sentinel"]
+    W -->|"wakes, then dials game-direct Service"| G
+```
+
 | Feature | frp | Tailscale | playit.gg |
 |---|---|---|---|
 | **Public/Private** | Public | Private (tailnet only) | Public |
@@ -372,15 +384,39 @@ Service, not to traffic arriving through the tunnel:
 
 ## Interaction with idle auto-sleep and wake-on-connect
 
-Idle auto-sleep and tunnels compose; a few things to know:
+Idle auto-sleep and tunnels compose; a few things to know. The sequence below shows a join while the game is asleep:
+
+```mermaid
+sequenceDiagram
+    participant Player
+    participant Relay
+    participant Tunnel as Tunnel pod
+    participant GS as Backing Service
+    participant Sentinel as Wake sentinel
+    participant API as Kubernetes API
+    participant Op as Operator
+    participant Game as Game pod
+
+    Player->>Relay: connect to public address
+    Relay->>Tunnel: forward over outbound session
+    Tunnel->>GS: dial backing Service
+    GS->>Sentinel: route (server asleep)
+    Sentinel->>API: patch wake-requested token
+    API->>Op: GameServer change
+    Op->>API: clear sleep marker, ack token
+    Op->>Game: scale game StatefulSet up
+    Sentinel->>Game: poll game-direct Service until it accepts
+    Sentinel-->>Player: hold connection, then proxy after handoff
+```
 
 - **The tunnel pod stays awake.** Only the game pod sleeps. When the game enters
   idle sleep, the tunnel pod continues to hold the relay connection and the
   public address remains advertised.
 - **Wake-on-connect still works.** If a player connects to the public address
-  while the game is asleep, the relay wakes the game pod (assuming
-  `spec.idle.wakeOnConnect` is enabled). The player's connection is handed off
-  to the newly-started game pod.
+  while the game is asleep, the relay forwards the connection to the backing
+  Service, which routes to the wake sentinel (assuming `spec.idle.wakeOnConnect`
+  is enabled). The tunnel pod does not request the wake; the sentinel does. The
+  sentinel holds the connection and hands it off once the game pod accepts it.
 - **Potential reconnect.** Depending on the relay provider and your expose mode,
   a player may need to reconnect once after the game wakes — the relay may drop
   the dormant connection and require a new dial to the newly-running pod.

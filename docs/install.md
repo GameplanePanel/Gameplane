@@ -38,6 +38,26 @@ belong to is enabled (and, for `sentinel` and `capture-sidecar`, only for
 GameServers that opt in). See each component's values block for its enable
 flag.
 
+The chart's default install renders the following objects, and each optional
+branch depends on the values shown:
+
+```mermaid
+flowchart TD
+  release["helm install or upgrade gameplane"] --> opq{"operator.enabled"}
+  release --> apiq{"api.enabled"}
+  release --> monq{"serviceMonitors, prometheusRules or grafanaDashboards"}
+  opq -- "true (default)" --> crds["gameplane-crds subchart (Helm crds/ phase)"]
+  opq -- "true (default)" --> op["Operator Deployment, RBAC and NetworkPolicies"]
+  opq -- "true (default)" --> vap["Admission policies and default ModuleSource"]
+  apiq -- "true (default)" --> api["API Deployment, Service and data PVC"]
+  apiq -- "web.enabled (default)" --> web["Web dashboard"]
+  apiq -- "ingress.enabled" --> ing["Ingress"]
+  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job"]
+  apiq -- "api.telemetry.receiver.enabled and empty endpoint" --> tr["Telemetry receiver"]
+  apiq -- "syslogBridge.enabled and empty webhook URL" --> asb["Audit syslog bridge"]
+  monq -- "opt-in" --> mon["ServiceMonitor, PodMonitor, PrometheusRule and dashboard ConfigMap"]
+```
+
 ### Edge channel (latest edge build)
 
 Every push to `master` publishes rolling `:edge` images. To track them, install
@@ -969,6 +989,17 @@ not run. A fresh install therefore never depends on pulling the hook's
 `crds.autoApply.image` if you reinstall on an air-gapped cluster. CRDs are
 never owned or deleted by Helm here, so `helm uninstall` leaves your
 GameServers intact.
+
+With Helm 3, the hook's events on `helm install` depend on the live CRD stamp:
+
+```mermaid
+flowchart TD
+  start["helm install or helm upgrade"] --> up{"Release.IsUpgrade?"}
+  up -- yes --> pre["pre-upgrade hook: kubectl apply --server-side"]
+  up -- no --> live{"gameservers CRD present with a different stamp?"}
+  live -- "no: fresh cluster, stamps match" --> none["No hook Job; crds/ created the CRDs"]
+  live -- "yes: leftover CRDs" --> pi["pre-install and pre-upgrade hook applies crd-manifests/"]
+```
 
 **Helm 4** installs `crds/` with a server-side apply under the field manager
 `helm` instead of skipping existing CRDs, so a `helm install` over leftover

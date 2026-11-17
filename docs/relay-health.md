@@ -14,7 +14,16 @@ observations expire after ten seconds, and child exit immediately clears them.
 The operator also requires the current Deployment generation, updated replicas
 and the expected readiness probe; an old Pod without the probe cannot satisfy
 the new readiness contract. Configured addresses remain visible while the
-connection is unconfirmed, but `TunnelReady` is not true.
+connection is unconfirmed, but `TunnelReady` is not true. The flow below shows how the probes depend on the provider's evidence:
+
+```mermaid
+flowchart TD
+    C["Provider check every 2 s, 2 s deadline (frp: frpc status API on 127.0.0.1:7400)"] --> O["Local observation, expires after 10 s"]
+    O --> Q{"Connection and every forward confirmed?"}
+    Q -- yes --> OK["/readyz 200: Pod Ready, TunnelReady can be True"]
+    Q -- no --> NR["/readyz 503: Pod NotReady, TunnelReady not True"]
+    O -. "Playit only" .-> PH["Pod readiness via /healthz; TunnelReady is AwaitingAddress until an address<br/>is assigned, then RelayConnectionUnknown"]
+```
 
 ## frp
 
@@ -87,6 +96,20 @@ end-to-end probe. The relevant upstream definitions are
 and [the daemon's cached lifecycle publisher](https://github.com/playit-cloud/playit-agent/blob/v1.0.10/packages/playitd/src/daemon.rs).
 
 ## Retry and resource policy
+
+The restart delay grows after each unexpected exit and resets only after a healthy minute:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Running
+    Running --> Backoff: child exits, clean or not
+    Backoff --> Running: wait 1, 2, 4, 8 s ... capped at 300 s
+    Running --> Healthy: readiness confirmed
+    Healthy --> Running: failed or stale observation
+    Healthy --> Backoff: child exits
+    Healthy --> Reset: one uninterrupted minute
+    Reset --> Running: delay reset
+```
 
 Unexpected child exits, including clean exits, wait 1, 2, 4, 8 seconds and so on,
 up to 300 seconds, before another attempt. Cancellation interrupts the wait.

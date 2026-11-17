@@ -95,6 +95,16 @@ devices if the hostname has acquired a suffix; that state must remain not ready.
 
 ## Exercise the datapath
 
+The fixture's datapath admits only the approved client, and only to advertised ports:
+
+```mermaid
+flowchart LR
+    A["Approved client: grant to tag:gameplane-test"] -->|"tcp:25565, udp:19132"| N["Tunnel node gameplane-forward-test"]
+    D["Denied client: no grant"] -. "must fail" .-> N
+    N -->|"advertised ports only"| S["Backing Service tailnet-echo"]
+    S --> E["Echo backend"]
+```
+
 On the approved tailnet client, run this with the fixture's MagicDNS name:
 
 ```python

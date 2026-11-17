@@ -10,6 +10,20 @@ registry by creating a `ModuleSource` resource; users install a module by
 creating (or clicking Install on) a `Module` resource, which the operator
 materializes into an in-cluster `GameTemplate`.
 
+A module travels from authoring to a running server through these stages:
+
+```mermaid
+flowchart LR
+    A["Author module.yaml, template.yaml, README.md"] --> B["gp-module validate and preview"]
+    B --> C["gp-module package or modules/build.sh (oras push)"]
+    C --> D["OCI registry"]
+    D --> E["ModuleSource catalog (status.modules)"]
+    E --> F["Module CR (spec.source, spec.name, spec.version)"]
+    F --> G["Operator pulls, verifies signature, checks digest pin and operator version"]
+    G --> H["GameTemplate owned by the Module"]
+    H --> I["GameServer (spec.templateRef)"]
+```
+
 ## Quickstart: Authoring with `gp-module` CLI & Web Builder
 
 For a validated wake proxy, add `sentinelIsolation: true` under the template's
@@ -75,7 +89,7 @@ bin/gp-module preview modules/minecraft-java \
 
 ### 4. Packaging and Distribution (`package`)
 
-Enforce asset size limits (icon $\le$ 512 KiB, bundle $\le$ 1 MiB) and export to `.tar.gz` or push directly to an OCI registry:
+Check asset sizes (icon $\le$ 512 KiB, uncompressed bundle $\le$ 1 MiB; larger files produce a warning, not an error) and export to `.tar.gz` or push directly to an OCI registry:
 
 ```sh
 # Package into a local tar.gz bundle
@@ -402,7 +416,19 @@ this as a clear "still in use by N servers" message.
 If a `Module` fails to upgrade (pull error, bad signature, incompatible
 operator), the previously-installed `GameTemplate` keeps running unchanged;
 `status.previousVersion` records the last-known-good to roll back to by
-re-pinning `spec.version`.
+re-pinning `spec.version`. A `Module` moves between these phases:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: WaitingForCatalog or NoVersionAvailable
+    Pending --> Pulling: catalog entry and version found
+    Pulling --> Ready: bundle verified and GameTemplate applied
+    Pending --> Failed: SourceNotFound, SourceConfig, VerifyConfig, VersionUnavailable
+    Ready --> Failed: SourceNotFound, SourceConfig, VerifyConfig, VersionUnavailable
+    Pulling --> Failed: PullFailed, SignatureInvalid, DigestMismatch, IncompatibleOperator, ApplyTemplate
+    Failed --> Pulling: spec change (retries at the same generation stay Failed)
+    Ready --> Pulling: spec.version or spec.digest changed
+```
 
 ### Verifying and pinning bundles
 
