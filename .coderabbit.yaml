@@ -262,9 +262,9 @@ reviews:
     - label: "area: specs"
       instructions: Apply when changes touch specs/ or spec.md files (specs/done_008-hardened-github-actions/, design contracts, decision records).
     - label: "area: shared"
-      instructions: Apply when changes touch shared Go packages (netguard/, gameaction/, gameproto/, svcutil/, telemetryschema/) used by operator, api, agent, and telemetry-receiver.
+      instructions: Apply when changes touch shared Go packages (netguard/, gameaction/, gameproto/, telemetryschema/) used by operator, api, agent, and telemetry-receiver.
     - label: "area: optional-components"
-      instructions: Apply when changes touch optional or sidecar components (sentinel/, capture-sidecar/, mcp-server/ (submodule, pointer bumps only), tunnel/, audit-syslog-bridge/, telemetry-receiver/).
+      instructions: Apply when changes touch optional or sidecar components (sentinel/, telemetry-receiver/, and the submodules capture-sidecar/, mcp-server/, tunnel/, audit-syslog-bridge/ (pointer bumps only)).
     - label: "breaking"
       instructions: Apply when the PR introduces a breaking change (CRD schema incompatibility, REST API contract change, Helm chart value renamed/removed, database migration backward-incompatible).
 

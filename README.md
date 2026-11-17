@@ -156,8 +156,8 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `api/cmd/gateway.go` | Go | Optional private per-cluster gateway (`gateway` subcommand in the API image); proxies authorized agent and capture operations over mTLS. |
 | `operator/` | Go | Kubernetes controller reconciling Gameplane CRDs into K8s workloads and resources. |
 | `sentinel/` | Go | Waker daemon listening on game ports while a server is sleeping to trigger wake-on-connect [optional]. |
-| `capture-sidecar/` | Go | Network packet capture sidecar [optional], opt-in per server, admin-only. |
-| `tunnel/` | Go | Relay supervisor pod managing third-party tunnels (`frp`, `Tailscale`, `playit`) [optional]. |
+| `capture-sidecar/` | Go | Submodule (`GameplanePanel/capture-sidecar`): network packet capture sidecar [optional], opt-in per server, admin-only. |
+| `tunnel/` | Go | Submodule (`GameplanePanel/tunnel`): relay supervisor pod managing third-party tunnels (`frp`, `Tailscale`, `playit`) [optional]. |
 | `web/` | TS + React | Modern dashboard UI built with Vite, TanStack Query, xterm.js, and Monaco Editor. |
 | `modules/` | YAML | 29 pre-packaged game templates (Minecraft, Valheim, Terraria, Rust, etc.) as OCI bundles. |
 | `charts/` | Helm | Official Helm deployment chart for operator, API gateway, ingress, and helper services. |
@@ -166,9 +166,8 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `i18n/` | Go | Shared language packs, ICU message formatter and pack checker used by the API, dashboard, operator and `gp-module`. |
 | `gp-module/` | Go | Module authoring CLI: scaffold, offline validate, dry-run preview and OCI package. |
 | `netguard/` | Go | SSRF protection layer for outgoing mod downloads and OCI module fetches. |
-| `svcutil/` | Go | Shared HTTP server lifecycle and environment configuration utilities. |
 | `telemetryschema/` | Go | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API and `telemetry-receiver`. |
-| `audit-syslog-bridge/` | Go | HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
+| `audit-syslog-bridge/` | Go | Submodule (`GameplanePanel/audit-syslog-bridge`): HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
 | `telemetry-receiver/` | Go | Collector [optional] for anonymous daily usage reports. |
 | `mcp-server/` | Go | Submodule (`GameplanePanel/mcp`): strictly read-only Model Context Protocol server [optional] for AI tools. |
 
@@ -197,7 +196,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 │   ├── internal/controller/
 │   └── config/           # CRD manifests and RBAC rules
 ├── sentinel/             # Wake-on-connect daemon (Go)
-├── tunnel/               # Relay client supervisor for frp/Tailscale/playit (Go)
+├── tunnel/               # Submodule: relay client supervisor for frp/Tailscale/playit (Go)
 ├── web/                  # Dashboard frontend (React, Vite, Monaco, xterm.js)
 ├── modules/              # Submodule: Game templates (29 games shipped)
 ├── website/              # Submodule: Public documentation site
@@ -207,9 +206,8 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── gp-module/            # Module authoring CLI (init, validate, preview, package)
 ├── capture-sidecar/      # Optional packet capture sidecar
 ├── netguard/             # SSRF dial-guard library
-├── svcutil/              # Shared HTTP server & env utilities
 ├── telemetryschema/      # Shared telemetry report contract (types, decoder, signing)
-├── audit-syslog-bridge/  # Optional syslog relay for audit logs
+├── audit-syslog-bridge/  # Submodule: optional syslog relay for audit logs
 ├── telemetry-receiver/   # Optional anonymous usage telemetry receiver
 ├── mcp-server/           # Submodule: optional read-only MCP server (GameplanePanel/mcp)
 ├── charts/gameplane/     # Helm deployment chart
@@ -275,13 +273,13 @@ Ed25519 key and do not have transparency log entries — verify them with
 Requires: Go 1.27+, Node 20+, Docker, kind, kubectl, helm,
 [oras](https://oras.land/docs/installation) (>= 1.2.0).
 
-The game modules and the MCP server live in the separate `GameplanePanel/module` and `GameplanePanel/mcp` repos, wired in here
-as the `modules/` and `mcp-server/` submodules — clone with submodules (or initialize them after):
+The game modules and the split components live in separate `GameplanePanel/*` repos, wired in here as submodules: `modules/` (`GameplanePanel/module`) and the component submodules `mcp-server/`, `audit-syslog-bridge/`, `tunnel/` and `capture-sidecar/` (`GameplanePanel/mcp`, `/audit-syslog-bridge`, `/tunnel`, `/capture-sidecar`). Clone with submodules (or initialize them after):
 
 ```sh
 git clone --recurse-submodules <repo-url>
 # already cloned? populate the submodules:
-git submodule update --init
+git submodule update --init modules
+hack/submodules.sh init   # component submodules listed in .gitmodules (component = true); make images/dev-up also init them on demand
 ```
 
 ```sh

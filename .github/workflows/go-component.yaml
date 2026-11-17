@@ -1,0 +1,170 @@
+# Shared CI for the Go components split out of this repository (mcp,
+# audit-syslog-bridge, tunnel, capture-sidecar; see hack/submodules.sh). Each
+# component repo calls this workflow from a short ci.yaml, pinned by SHA:
+#
+#   jobs:
+#     ci:
+#       uses: GameplanePanel/Gameplane/.github/workflows/go-component.yaml@<sha> # master
+#       with:
+#         dockerfiles: Dockerfile
+#         # path: mcp-server   # only when the repo name differs from its folder here (mcp)
+#
+# Lint uses this repository's root .golangci.yml and .hadolint.yaml, fetched
+# from master, so every component is linted by the same ruleset as Gameplane
+# itself (the single-config rule R-010) and no component carries a copy.
+name: go component
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: >-
+          Folder name the component has inside Gameplane. The Dockerfiles copy
+          `<path>/...` from the Gameplane repo root, so the image build checks
+          the component out under this name. Defaults to the repository name.
+        type: string
+        default: ""
+      dockerfiles:
+        description: Space-separated Dockerfiles (relative to the component root) to lint and build.
+        type: string
+        default: Dockerfile
+      amd64-extra:
+        description: Optional extra shell step run in the component root after the amd64 tests.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: "1.27"
+  GOLANGCI_LINT_VERSION: v2.14.0
+  GOVULNCHECK_VERSION: v1.9.0
+  GO_TEST_COVERAGE_VERSION: v2.18.9
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: shared lint config from Gameplane
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: GameplanePanel/Gameplane
+          ref: master
+          path: .gameplane
+          persist-credentials: false
+          sparse-checkout: |
+            .golangci.yml
+            .hadolint.yaml
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l . | grep -v '^\.gameplane/' || true)
+          if [ -n "$unformatted" ]; then
+            echo "gofmt needed on:"; echo "$unformatted"; exit 1
+          fi
+      - name: go vet
+        run: go vet ./...
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: --config=.gameplane/.golangci.yml
+      # Same pinned release and checksum as ci.yaml's workflow-lint job. Inline
+      # because the caller's checkout can't run an action from this repo by path.
+      - name: hadolint (download and verify)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hadolint"
+          cd "$RUNNER_TEMP/hadolint"
+          curl -fsSL -o hadolint \
+            https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-x86_64
+          echo "6bf226944684f56c84dd014e8b979d27425c0148f61b3bd99bcc6f39e9dc5a47  hadolint" | sha256sum -c -
+          chmod +x hadolint
+          echo "$RUNNER_TEMP/hadolint" >> "$GITHUB_PATH"
+      - name: hadolint
+        env:
+          DOCKERFILES: ${{ inputs.dockerfiles }}
+        run: |
+          read -r -a files <<<"$DOCKERFILES"
+          hadolint --config .gameplane/.hadolint.yaml "${files[@]}"
+
+  test:
+    name: test (${{ matrix.arch }})
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+      - name: unit test + coverage
+        run: |
+          mkdir -p coverage
+          go test -race -covermode=atomic -coverpkg=./... -coverprofile=coverage/unit.out ./...
+      - name: coverage threshold gate (.testcoverage.yml)
+        run: go run "github.com/vladopajic/go-test-coverage/v2@${GO_TEST_COVERAGE_VERSION}" --config=.testcoverage.yml
+      - name: extra amd64 step
+        if: matrix.arch == 'amd64' && inputs.amd64-extra != ''
+        env:
+          EXTRA: ${{ inputs.amd64-extra }}
+        run: bash -euo pipefail -c "$EXTRA"
+
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+      - name: govulncheck
+        run: go run "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}" ./...
+
+  image:
+    name: image build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # The Dockerfiles take the Gameplane repo root as build context and copy
+      # <path>/..., so check the component out under that folder name.
+      - name: folder name
+        id: dir
+        env:
+          INPUT_PATH: ${{ inputs.path }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: echo "dir=${INPUT_PATH:-$REPO_NAME}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ${{ steps.dir.outputs.dir }}
+          persist-credentials: false
+      - name: docker build
+        env:
+          DIR: ${{ steps.dir.outputs.dir }}
+          DOCKERFILES: ${{ inputs.dockerfiles }}
+        run: |
+          read -r -a files <<<"$DOCKERFILES"
+          for f in "${files[@]}"; do
+            echo "::group::docker build $DIR/$f"
+            docker build -f "$DIR/$f" -t "component-ci:$(basename "$f" | tr '[:upper:].' '[:lower:]-')" .
+            echo "::endgroup::"
+          done

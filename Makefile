@@ -40,7 +40,7 @@ KUBECONFIG_ENV :=
 KUBE_CONTEXT   := kind-$(KIND_CLUSTER)
 endif
 
-GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel capture-sidecar svcutil tunnel
+GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent telemetry-receiver sentinel
 GO_INTEGRATION_MODULES := operator api
 
 # test/e2e is a separate module (its own go.mod, excluded from the coverage
@@ -344,24 +344,28 @@ images: $(addprefix image-,$(IMAGES)) image-audit-syslog image-tunnel-frp image-
 # Pattern rule for standard-shaped images
 image-%: ## Build container image
 	@hack/need.sh docker
-	@if [ "$*" = mcp-server ] && [ ! -f mcp-server/Dockerfile ]; then git submodule update --init mcp-server; fi
+	@hack/submodules.sh ensure $*
 	docker build -t $(REGISTRY)/$*:$(TAG) -f $*/Dockerfile .
 
 # Non-standard images (target name ≠ dir, or special Dockerfile paths)
 image-audit-syslog: ## Build audit-syslog-bridge image
 	@hack/need.sh docker
+	@hack/submodules.sh ensure audit-syslog-bridge
 	docker build -t $(REGISTRY)/audit-syslog-bridge:$(TAG) -f audit-syslog-bridge/Dockerfile .
 
 image-tunnel-frp: ## Build tunnel-frp image
 	@hack/need.sh docker
+	@hack/submodules.sh ensure tunnel
 	docker build -t $(REGISTRY)/tunnel-frp:$(TAG) -f tunnel/Dockerfile.frp .
 
 image-tunnel-tailscale: ## Build tunnel-tailscale image
 	@hack/need.sh docker
+	@hack/submodules.sh ensure tunnel
 	docker build -t $(REGISTRY)/tunnel-tailscale:$(TAG) -f tunnel/Dockerfile.tailscale .
 
 image-tunnel-playit: ## Build tunnel-playit image
 	@hack/need.sh docker
+	@hack/submodules.sh ensure tunnel
 	docker build -t $(REGISTRY)/tunnel-playit:$(TAG) -f tunnel/Dockerfile.playit .
 
 # -------- codegen --------

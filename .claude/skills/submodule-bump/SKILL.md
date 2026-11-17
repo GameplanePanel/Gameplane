@@ -1,9 +1,9 @@
 ---
 name: submodule-bump
-description: "Use after a modules or website submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules, website or mcp-server."
+description: "Use after a modules, website or component submodule PR has merged to its main branch, to bump the submodule pointer in the main Gameplane repo. Takes one argument: modules, website, mcp-server, audit-syslog-bridge, tunnel or capture-sidecar."
 ---
 
-Argument: `modules`, `website` or `mcp-server`. From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md), `mcp-server` is GameplanePanel/mcp (branch `main`).
+Argument: `modules`, `website`, or a component submodule from `.gitmodules` (`mcp-server`, `audit-syslog-bridge`, `tunnel`, `capture-sidecar`). From `.gitmodules`: `modules` is GameplanePanel/module (branch `main`), `website` is GameplanePanel/website (branch `main`, has its own CLAUDE.md and AGENTS.md). Repo mapping: `mcp-server` -> GameplanePanel/mcp; every other component -> GameplanePanel/<same name> (branch `main`).
 
 ## Preconditions
 
@@ -11,7 +11,7 @@ Argument: `modules`, `website` or `mcp-server`. From `.gitmodules`: `modules` is
    ```sh
    gh pr view <pr-number> --repo GameplanePanel/module --json state,mergeCommit
    ```
-   For website, use `--repo GameplanePanel/website`; for mcp-server use `--repo GameplanePanel/mcp`. Stop unless `state` is `MERGED`.
+   For website, use `--repo GameplanePanel/website`; for mcp-server use `--repo GameplanePanel/mcp`; for other components use `--repo GameplanePanel/<sub>`. Stop unless `state` is `MERGED`.
 2. Check for a pending bump owned by another thread:
    ```sh
    gh pr list --repo GameplanePanel/Gameplane --state open --search "bump <sub> submodule"
@@ -60,7 +60,7 @@ Argument: `modules`, `website` or `mcp-server`. From `.gitmodules`: `modules` is
 9. Open the PR with a short Summary (the submodule PRs included) and a Test plan. Labels:
    - `modules`: `type: chore` + `area: modules`
    - `website`: `type: docs` + `area: shared`
-   - `mcp-server`: `type: chore` + `area: optional-components`
+   - `mcp-server`, `audit-syslog-bridge`, `tunnel`, `capture-sidecar`: `type: chore` + `area: optional-components`
 
    Add them via REST, as in `ship-branch` step 7:
    ```sh
