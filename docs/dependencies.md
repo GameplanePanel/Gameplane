@@ -41,20 +41,43 @@ were added and verified on **2026-09-26**.
 | `gameproto/` | Go | 0 (stdlib only) | Shared Minecraft/Terraria handshake classifier used by sentinel |
 | `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
 | `svcutil/` | Go | 0 (stdlib only) | Shared env-parsing + graceful-shutdown helpers (no active importers yet) |
-| `operator/` | Go | 19 | controller-runtime reconciler for the 8 CRDs; module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
+| `operator/` | Go | 19 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
 | `api/` | Go | 17 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
 | `audit-syslog-bridge/` | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
-| `telemetry-receiver/` | Go | 1 | Standalone collector for the API's usage telemetry (daily counts; extended reports add a random install ID and its public key; on by default for new installs; `api.telemetry.enabled=false` turns it off) |
+| `telemetry-receiver/` | Go | 3 | Standalone collector for the API's usage telemetry (daily counts; extended reports add a random install ID and its public key; on by default for new installs; `api.telemetry.enabled=false` turns it off) |
 | `sentinel/` | Go | 2 | Wake-on-connect listener holding ports for sleeping pods |
 | `capture-sidecar/` | Go | 3 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
-| `tunnel/` | Go | 0 (stdlib only) | Relay client supervisor for frp/Tailscale/playit |
+| `tunnel/` | Go | 1 (`tailscale.com`) | Relay client supervisor for frp/Tailscale/playit |
 | `gp-module/` | Go | 2 | Module authoring CLI: scaffold, offline validate, dry-run preview, OCI package |
 | `mcp-server/` | Go | 5 | Standalone, strictly read-only MCP server for AI-assisted cluster diagnostics |
 | `test/e2e/` | Go | 4 | kind + Helm + real-component end-to-end suite |
 | `web/` | TypeScript/React | 18 runtime + 26 dev | Dashboard: routing, data fetching, UI primitives, console/file editors, tests |
 
 ## Shared Go modules
+
+Each arrow is a direct Go `require` between `go.work` modules, which resolve to
+sibling directories through a local `replace`. Modules with no arrow import no
+sibling module. Nothing requires `svcutil` yet.
+
+```mermaid
+flowchart LR
+    API["api"] --> GA["gameaction"]
+    API --> GPM["gp-module"]
+    API --> I18N["i18n"]
+    API --> NG["netguard"]
+    API --> TS["telemetryschema"]
+    AG["agent"] --> GA
+    AG --> NG
+    OP["operator"] --> I18N
+    OP --> NG
+    GPM --> I18N
+    SE["sentinel"] --> GP["gameproto"]
+    TR["telemetry-receiver"] --> TS
+    E2E["test/e2e"] --> GP
+    E2E --> GPM
+    E2E --> TS
+```
 
 ### netguard
 
@@ -240,18 +263,21 @@ because the entire job is HTTP-in, hand-formatted-string-out.
 
 ### telemetry-receiver
 
-`telemetry-receiver/go.mod` has exactly one direct dependency:
+`telemetry-receiver/go.mod` has three external direct dependencies, and the
+table lists the first one. The other two are `modernc.org/sqlite` (the store
+in `store.go`) and `golang.org/x/mod` (version ordering in `versionorder.go`).
+The in-repo `telemetryschema` module is the shared report contract (see above).
 
 | Dependency | Version | Why |
 |---|---|---|
 | `github.com/prometheus/client_golang` | v1.24.1 | `main.go` — `prometheus.NewRegistry()` + `CounterVec`/`Histogram` for `gameplane_telemetry_reports_total`/`_servers`/`_templates`, exposed via `promhttp.HandlerFor` at `/metrics` |
 
-Deliberately kept to "stdlib + client_golang only" (per the package doc
-comment) so it can be deployed standalone on a public host collecting
-reports from many installs, independent of Gameplane's release cadence.
-It validates the API's daily `{version, servers, templates}` telemetry
-POST, logs it structurally, and aggregates it into the metrics above —
-never storing raw per-install reports.
+Kept to a small dependency set so it can be deployed standalone on a public
+host collecting reports from many installs, independent of Gameplane's release
+cadence. It decodes and verifies each report with `telemetryschema`
+(`ingest.go`, `ingest_ext.go`), counts it into daily aggregates in SQLite
+(`store.go`), and serves the metrics above and the public summary. Extended
+reports also keep per-install activity records under a transformed install ID.
 
 ### mcp-server
 
@@ -301,8 +327,8 @@ trade-off). Direct deps from `capture-sidecar/go.mod`:
 
 ### tunnel
 
-`tunnel/go.mod` has **no `require` block at all** — stdlib only
-(`os/exec`, `encoding/json`, `net/http`, `context`, etc.). It's the relay
+`tunnel/go.mod` has one direct dependency, `tailscale.com` (used by `tunnel/tailscale.go`
+and `tunnel/tailscale_forward.go`); the rest is stdlib (`os/exec`, `encoding/json`, `net/http`, `context`, etc.). It's the relay
 client supervisor: it launches and monitors the `frp`, `tailscaled`, or
 `playitd` client binary as a subprocess, configured by env vars
 (`GAMESERVER_NAME`, `TUNNEL_TYPE`, etc.) that the operator renders from
