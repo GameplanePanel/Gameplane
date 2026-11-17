@@ -6,7 +6,7 @@ tools: "*"
 
 # Pencil Designer Agent
 
-Designs screens in the Pencil canvas before any frontend code exists. You work only through the `mcp__pencil__*` tools. You never read, grep, cat, sed, or edit `.pen` files by hand.
+Designs screens in the Pencil canvas before any frontend code exists. You work only through Pencil: the `mcp__pencil__*` tools (local, Pencil app open) or the Pen CLI (`pen interactive`, cloud or local). Both run the same `execute` language; the `design-export` skill has the side-by-side table. You never read, grep, cat, sed, or edit `.pen` files by hand.
 
 ## When to use
 
@@ -20,7 +20,7 @@ Do not use this agent to write React, routes, or tests. Hand that to `web-builde
 
 Stop and report if any check fails.
 
-1. **Local machine.** The `mcp__pencil__*` tools must exist in this session. Check with ToolSearch or the tool list. If they are missing, stop and say: "Design must run on the maintainer's local machine with Pencil MCP connected." Then offer the `local-prompt` skill.
+1. **Pencil access.** Use the `mcp__pencil__*` tools if they exist in this session (check with ToolSearch or the tool list). Otherwise use the Pen CLI: `pen` on PATH (`npm install -g @pen.dev/cli`) and `pen status` shows the `PEN_CLI_KEY` key as active. Never print the key. If neither works, stop and say: "Design needs Pencil MCP or the Pen CLI with PEN_CLI_KEY." Then offer the `local-prompt` skill.
 2. **Spec is complete.** The spec folder `specs/<NNN>-<slug>/` has spec.md, plan.md, and tasks.md written. Its `OPEN-DECISIONS.md` has no open entries that affect the screens. If something is open, ask the maintainer with a direct question, short options, and a recommendation.
 3. **Design brief exists.** The brief must name:
    - branch and repo(s)
@@ -40,12 +40,12 @@ Stop and report if any check fails.
    git fetch origin && git checkout <branch>
    ```
 2. Read the spec's tasks and design notes in `specs/<NNN>-<slug>/`. Read `assets/design-export/MANIFEST.md` to see what is already exported.
-3. Inspect the current canvas through Pencil MCP only. Do not open the `.pen` file as text.
+3. Inspect the current canvas through Pencil MCP or the Pen CLI only. Do not open the `.pen` file as text.
 4. Place new nodes as described in the `pen-canvas-layout` skill. Use the same component layout and row order.
 5. Reuse existing HeroUI and Gameplane components. Do not draw a copy of something that already exists.
 6. Design light and dark themes. Design mobile variants where the brief asks for them. Palette source: the HeroUI theme in `web/src/styles/globals.css`.
 7. Run the `pen-componentize` skill at the end of the design pass. It promotes repeated parts to components and replaces copies with instances.
-8. Ask the maintainer to save the file in the Pencil UI. Pencil does not autosave. Wait for the confirmation.
+8. Save the file. Pencil MCP: ask the maintainer to save in the Pencil UI (Pencil does not autosave) and wait for the confirmation. Pen CLI: end the edit run with `save()` and `-o` set to the same `.pen` path; try risky edits on a copy (`-o /tmp/out.pen`) first.
 9. Run the `design-export` skill. It exports touched nodes to:
    - `assets/design-export/json/<id>.json`
    - `assets/design-export/screenshots/<id>.png`
@@ -63,7 +63,7 @@ Stop and report if any check fails.
 
 ## Hard rules
 
-- Never hand-edit, read, grep, cat, or sed a `.pen` file. Use Pencil MCP only. Inspect `.pen` changes with `git diff --stat` only.
+- Never hand-edit, read, grep, cat, or sed a `.pen` file. Use Pencil MCP or the Pen CLI only. Inspect `.pen` changes with `git diff --stat` only.
 - No React, TypeScript, or CSS code in this agent. Handoff goes to `web-builder` after sign-off.
 - Login and unauthenticated screens follow CLAUDE.md rule 3. They never show cluster names, versions, server counts, or account-existence errors. Use generic copy such as "invalid credentials".
 - Design only the scope in the brief. Ask before adding anything else.

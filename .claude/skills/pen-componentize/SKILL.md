@@ -17,7 +17,7 @@ description: "Run when a design pass in design.pen (or website/website.pen) is f
 
 ### Step 1 — Audit (read-only)
 
-- Pass the full content of `audit.js` (next to this file) as the `input` of `mcp__pencil__execute`, with `filePath` set to the `.pen` file. It reads every screen with `Get(id, {depth: 80})` (the non-visitor form; the visitor form crashes on some subtrees, see `docs/design/pencil-visitor-crash-report.md`) and prints six sections:
+- Pass the full content of `audit.js` (next to this file) as the `input` of `mcp__pencil__execute` with `filePath` set to the `.pen` file (Pen CLI: as the `input` of `execute` in `pen interactive -i <file.pen> -o /tmp/audit.pen`, no `save()`). It reads every screen with `Get(id, {depth: 80})` (the non-visitor form; the visitor form crashes on some subtrees, see `docs/design/pencil-visitor-crash-report.md`) and prints six sections:
   1. **Detached copies of existing components** — a plain frame whose texts cover at least 75% of a component's texts (and at least half of the frame's texts come from that component). Components with fewer than 3 texts are not text-matchable.
   2. **Frames named like a Gameplane component but not instances** — e.g. a frame called `App Sidebar`.
   3. **Instances whose content is replaced wholesale** — a `ref` carrying a literal `children` array although its component is not a slot. Slot components (`slot: []` on the root, e.g. `Table`, `Card/Default`, `Tabs`) and empty containers are filled exactly this way, so refs to them are not reported. The audit still lists `Table Cell` and `Card Content` instances that hold placed content; that is normal use, so triage them as intentional. The visitor form of `Get` crashes on both shapes.
@@ -50,7 +50,7 @@ description: "Run when a design pass in design.pen (or website/website.pen) is f
 
 ### Step 4 — Keep visuals identical
 
-- Before changing anything, `Export` every screen you will touch to a scratch folder (`{scale: 1}`). `mcp__pencil__execute` always works on the document open in Pencil, so a copy of the committed `.pen` file cannot be rendered as a baseline. If the pre-change renders are lost, compare with `assets/design-export/screenshots/<id>.png` (2x). Those exports can be older than the current shell components (sidebar, top bar, server header), so ignore differences in the shell.
+- Before changing anything, `Export` every screen you will touch to a scratch folder (`{scale: 1}`). `mcp__pencil__execute` always works on the document open in Pencil, so a copy of the committed `.pen` file cannot be rendered as a baseline there. The Pen CLI can: run `Export` against a copy (`pen interactive -i <copy.pen> -o /tmp/base.pen`). If the pre-change renders are lost, compare with `assets/design-export/screenshots/<id>.png` (2x). Those exports can be older than the current shell components (sidebar, top bar, server header), so ignore differences in the shell.
 - After the change, export again and compare each pair. They must match, except for intended corrections, which are listed in the report:
   - an outdated copy now shows the component's current items;
   - control chrome now follows the design-system component;
@@ -63,7 +63,7 @@ description: "Run when a design pass in design.pen (or website/website.pen) is f
 - Re-run `audit.js` until every remaining finding is triaged as intentional.
 - Check that no instance still shows its component's default content. Read each screen with `Get(id, {depth: 80, resolveInstances: true})` and list visible texts that read exactly `Button`, `Label` or `Placeholder`. Replace each one with the label or placeholder the app uses (`web/src/`).
 - Run `check-layout.js` from the `pen-canvas-layout` skill (new components must sit on the board).
-- Ask the user to save in the Pencil UI, then run the `design-export` skill for every touched screen and component (JSON + PNG + MANIFEST entry) in the same commit as the `.pen` change.
+- Save (MCP: ask the user to save in the Pencil UI; CLI: `save()`), then run the `design-export` skill for every touched screen and component (JSON + PNG + MANIFEST entry) in the same commit as the `.pen` change.
 
 ### Delegation (CLAUDE.md core rules 13, 17, 18)
 
