@@ -60,7 +60,6 @@ jobs:
           sparse-checkout: |
             .golangci.yml
             .hadolint.yaml
-            .github/actions/install-hadolint/
           sparse-checkout-cone-mode: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -78,8 +77,18 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           args: --config=.gameplane/.golangci.yml
-      - name: install hadolint
-        uses: ./.gameplane/.github/actions/install-hadolint
+      # Same pinned release and checksum as ci.yaml's workflow-lint job. Inline
+      # because the caller's checkout can't run an action from this repo by path.
+      - name: hadolint (download and verify)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hadolint"
+          cd "$RUNNER_TEMP/hadolint"
+          curl -fsSL -o hadolint \
+            https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-x86_64
+          echo "6bf226944684f56c84dd014e8b979d27425c0148f61b3bd99bcc6f39e9dc5a47  hadolint" | sha256sum -c -
+          chmod +x hadolint
+          echo "$RUNNER_TEMP/hadolint" >> "$GITHUB_PATH"
       - name: hadolint
         env:
           DOCKERFILES: ${{ inputs.dockerfiles }}
