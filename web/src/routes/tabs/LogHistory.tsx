@@ -33,7 +33,7 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
   const client = useResourceClient(target);
   const [open, setOpen] = useState(consoleView);
   const [before, setBefore] = useState("");
-  const [page, setPage] = useState<LogHistoryPage>();
+  const [page, setPage] = useState<LogHistoryPage & { sources: string[] }>();
   const [error, setError] = useState<"changed" | "failed">();
   const [loading, setLoading] = useState(consoleView);
   const output = useRef<HTMLPreElement>(null);
@@ -57,9 +57,15 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
         ? { top: element.scrollTop, height: element.scrollHeight }
         : "initial";
       setPage((previous) => {
-        if (!before || !previous?.text) return result;
-        const separator = result.text && !result.text.endsWith("\n") ? "\n" : "";
-        return { ...result, text: result.text + separator + previous.text };
+        const sources = result.source ? [result.source] : [];
+        if (!before || !previous) return { ...result, sources };
+        const separator = result.text && previous.text && !result.text.endsWith("\n") ? "\n" : "";
+        return {
+          ...result,
+          text: result.text + separator + previous.text,
+          limited: result.limited || previous.limited,
+          sources: [...new Set([...sources, ...previous.sources])],
+        };
       });
     }).catch((cause: unknown) => {
       if (!controller.signal.aborted) setError(cause instanceof APIError && cause.status === 409 ? "changed" : "failed");
@@ -89,7 +95,7 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
       }}>
         {intl.formatMessage(labels.older)}
       </Button>}
-      {open && page?.source && <span className="font-mono text-xs text-muted">{page.source}</span>}
+      {open && !!page?.sources.length && <span className="font-mono text-xs text-muted">{page.sources.join(", ")}</span>}
     </div>
     {open && <div className="space-y-1 text-xs">
       {consoleView && <p className="text-muted">{intl.formatMessage(labels.boundary)}</p>}
