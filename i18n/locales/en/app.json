@@ -379,6 +379,14 @@
     "defaultMessage": "Module translations could not be stored.",
     "description": "LocalesValid condition on a GameTemplate when the translations ConfigMap could not be written. The message holds the English error."
   },
+  "condition.portallocation.allocated": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''.",
+    "description": "PortAllocation condition once a server has Service ports from its port pool. ports lists them as port/protocol."
+  },
+  "condition.portallocation.poolexhausted": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for this server, so it has no Service until a block frees up.",
+    "description": "PortAllocation condition when the server's port pool is full. count is how many ports the server needs."
+  },
   "condition.progressing.containercreating": {
     "defaultMessage": "Creating the container.",
     "description": "Progressing detail while the kubelet creates the container."

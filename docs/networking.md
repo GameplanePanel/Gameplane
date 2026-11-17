@@ -330,34 +330,50 @@ implementation.
 ## Port Pools
 
 Some installs reach every game server through one public address, a relay
-or an edge that forwards ports to the cluster. Games whose clients send the
-hostname they connect to (Minecraft Java) can share a port behind a router
-that picks the server by name, but most games send no hostname, so behind
-one address each server needs ports of its own. A port pool hands them out.
+or an edge that forwards a range of ports to the cluster's load balancer.
+Games whose clients send the hostname they connect to (Minecraft Java) can
+share a port behind a router that picks the server by name, but most games
+send no hostname, so behind one address each server needs ports of its own.
+A port pool hands them out.
 
-Give a template a pool with the Helm value `operator.portPools`
-(`--port-pool=<template>=<first>-<last>`):
+A pool is a range of ports on one shared endpoint. Name it for the endpoint,
+and list the templates whose servers draw from it, with the Helm value
+`operator.portPools`:
 
 ```yaml
 operator:
   portPools:
-    valheim: "2456-2467"
+    - name: edge
+      ports: "2456-2499"
+      templates: [valheim, factorio]
 ```
 
-Each server of that template then gets a block of the range, one port per
-advertised port, in template order: the first Valheim server 2456-2458, the
-next 2459-2461. The lowest free block goes to each new server, and a deleted
-server's block is free again. The operator records a server's first port in
-its `gameplane.local/pool-port` annotation and keeps it for the server's
-life, so players' saved addresses keep working. The Service publishes those
-ports and forwards them to the game's own, and `status.endpoints` and the
-dashboard show them. Start the range at the game's default port, so the
-first server keeps it.
+Every server of those templates then gets a contiguous block of the pool, one
+port per advertised port, in template order: the first Valheim server
+2456-2457, a Factorio server next 2458, the next Valheim server 2459-2460.
+The pool decides who shares: a port goes to one server whatever its
+template, and ports are reserved per protocol, so TCP 2456 and UDP 2456 are
+two ports. A template draws from at most one pool.
 
-A server's explicit `spec.networking.portOverrides` still win. When every
-block is taken, a new server keeps its template's ports, and the operator
-logs that the pool is exhausted. Forward the whole range at the relay or
-edge, to the cluster's load balancer.
+The operator records each server's ports in its `gameplane.local/pool-ports`
+annotation and keeps them for the server's life, so players' saved addresses
+keep working. The Service publishes those ports and forwards them to the
+game's own, and `status.endpoints` and the dashboard show them. Relays (frp,
+Tailscale, Playit) forward to those ports too. The `PortAllocation`
+condition lists them.
+
+A server's explicit `spec.networking.portOverrides[].servicePort` still wins,
+and is reserved, so the pool never hands it to another server. When no block
+is free, the server reports `PortAllocation` `PoolExhausted` and gets no
+Service until a block frees up, for example when a server is deleted; it
+checks again every 30 seconds. Its game keeps running.
+
+Forward the whole range at the relay or edge, to the cluster's load
+balancer. Grow a pool rather than shrink it: servers with ports outside a new
+range are moved, and players have to use their new ports. Removing a template
+from its pool returns its servers to the template's ports. The full rules,
+including template revisions and recovery, are in
+[spec 036](../specs/036-port-pools/spec.md).
 
 ## Related
 

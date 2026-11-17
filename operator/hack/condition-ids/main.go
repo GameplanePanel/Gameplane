@@ -128,6 +128,9 @@ var rows = []row{
 	{types: []string{"Healthy"}, reason: "Failed", english: "The server failed.", description: "Healthy condition when the server has failed."},
 	{types: []string{"Healthy"}, reason: "Unknown", english: "The state of the server is not known yet.", description: "Healthy condition before the operator has observed the server."},
 
+	// GameServer: PortAllocation (port pools, spec 036)
+	{types: []string{"PortAllocation"}, reason: "Allocated", english: "Ports {ports} assigned from port pool ''{pool}''.", description: "PortAllocation condition once a server has Service ports from its port pool. ports lists them as port/protocol."},
+	{types: []string{"PortAllocation"}, reason: "PoolExhausted", english: "Port pool ''{pool}'' has no free block of {count} ports for this server, so it has no Service until a block frees up.", description: "PortAllocation condition when the server's port pool is full. count is how many ports the server needs."},
 	// GameServer: AddressAssignment ($REQ is the request phrase, see reqExpr)
 	{types: []string{"AddressAssignment"}, reason: "IgnoredForExposureMode", english: "Requested $REQ is ignored: it applies only to the LoadBalancer expose mode, and this server is exposed as ''{expose}''.", description: "AddressAssignment condition when an address or pool is requested for a server that is not exposed as a LoadBalancer. expose is the current expose mode."},
 	{types: []string{"AddressAssignment"}, reason: "InvalidAddress", english: "The requested address ''{address}'' is not a valid IP address.", description: "AddressAssignment condition when the requested address does not parse."},

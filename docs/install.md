@@ -409,14 +409,12 @@ Top-level knobs (see `values.yaml` for the full list):
 
   Any other value fails the operator at startup. The operator never writes the
   deprecated `service.spec.loadBalancerIP`.
-- `operator.portPools` — port pools, keyed by template name
-  (`valheim: "2456-2467"`). Each server of a listed template gets Service
-  ports of its own from the range: a block per server, one port per
-  advertised port, kept for the server's life. Use it when servers are
-  reached through a relay or an edge that routes by port alone, as games
-  whose clients send no hostname must be. A server's explicit
-  `spec.networking.portOverrides` still win. See
-  [Networking](networking.md#port-pools).
+- `operator.portPools` — port pools: ranges of ports on one shared public
+  endpoint, each with the templates whose servers draw from it
+  (`[{name: edge, ports: "2456-2499", templates: [valheim, factorio]}]`).
+  Each server gets a contiguous block, kept for its life. Use it when servers
+  are reached through a relay or an edge that forwards ports, as games whose
+  clients send no hostname must be. See [Networking](networking.md#port-pools).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures

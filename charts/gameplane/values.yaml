@@ -156,16 +156,20 @@ operator:
   # MetalLB event. "metallb-system" is MetalLB's own install convention, not
   # a contract, hence configurable.
   metalLBNamespace: metallb-system
-  # Port pools, keyed by template name: "<first>-<last>". Each server of a
-  # listed template gets Service ports of its own from the range, a block per
-  # server with one port per advertised port, recorded in its
-  # gameplane.local/pool-port annotation and kept for the server's life. For
-  # servers reached through a relay or an edge that routes by port alone, as
-  # games whose clients send no hostname must be. A server's explicit
-  # spec.networking.portOverrides still win. Example:
+  # Port pools: ranges of Service ports on one shared public endpoint, such
+  # as a relay or an edge that forwards ports to the cluster, for games whose
+  # clients send no hostname and so need ports of their own behind one
+  # address. Every server of a listed template gets a contiguous block of the
+  # pool, one port per advertised port, recorded in its
+  # gameplane.local/pool-ports annotation and kept for the server's life. A
+  # (protocol, port) pair goes to one server, whatever its template. Servers'
+  # explicit servicePort overrides win and are reserved too. A template draws
+  # from at most one pool. See docs/networking.md#port-pools. Example:
   #   portPools:
-  #     valheim: "2456-2467"
-  portPools: {}
+  #     - name: edge
+  #       ports: "2456-2499"
+  #       templates: [valheim, factorio]
+  portPools: []
   # Tunnel provider images: relay binaries wrapped in OCI images for reaching
   # players through relay services when the cluster has no public IP or port-
   # forwarding. Each wraps a third-party relay binary (frpc, tailscaled, playit)

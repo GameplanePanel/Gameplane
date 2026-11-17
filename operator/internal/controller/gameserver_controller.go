@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -138,9 +139,11 @@ type GameServerReconciler struct {
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
 
-	// PortPools gives each listed template's servers Service ports of their
-	// own, from a range (--port-pool); see gameserver_portpool.go.
-	PortPools map[string]PortPool
+	// PortPools gives the servers of each pooled template Service ports of
+	// their own on a shared endpoint (--port-pool, --port-pool-template); see
+	// gameserver_portpool.go. portPoolMu serializes allocations.
+	PortPools  PortPools
+	portPoolMu sync.Mutex
 
 	// MetalLBNamespace is the namespace MetalLB's IPAddressPool custom
 	// resources (metallb.io/v1beta1, namespaced) live in. Used only when
@@ -471,6 +474,17 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
+	// Pool ports come before the tunnel and the Service, which both use the
+	// server's Service ports.
+	portAlloc, err := r.reconcilePoolPorts(ctx, &gs, &tmpl)
+	if err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile pool ports")
+		return ctrl.Result{}, err
+	}
+
 	// planTunnel decides whether the tunnel pod should exist and what endpoints
 	// it will advertise. Like planSentinel, this is computed once per pass so
 	// there is a single source of truth (see planTunnel's doc comment).
@@ -483,20 +497,22 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcilePoolPort(ctx, &gs, &tmpl); err != nil {
-		logger.Error(err, "reconcile pool port")
-		return ctrl.Result{}, err
-	}
+	// A server waiting for pool capacity gets no Service, rather than one on
+	// its template's ports, which another server in the pool may hold. One it
+	// already has is left as it is.
+	//
 	// A Service being replaced for a loadBalancerClass change is a pending
 	// networking change, not a failure: lifecycle and status keep reconciling
 	// (so Stop works while the old load balancer cleans up), and the pass
 	// requeues until the new Service exists.
 	serviceReplacing := false
-	if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
-		serviceReplacing = true
-	} else if err != nil {
-		logger.Error(err, "reconcile Service")
-		return ctrl.Result{}, err
+	if !portAlloc.exhausted {
+		if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
+			serviceReplacing = true
+		} else if err != nil {
+			logger.Error(err, "reconcile Service")
+			return ctrl.Result{}, err
+		}
 	}
 
 	var replicas int32
@@ -574,7 +590,8 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer, plan.hostportCondition)
+	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer,
+		statusExtras{hostport: plan.hostportCondition, portAllocation: portAlloc})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -599,6 +616,11 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// NOT a substitute for the early-return-and-skip-everything this
 		// replaced — every step above still ran this pass regardless.
 		hints = append(hints, sentinelBackstopRequeue)
+	}
+	if portAlloc.exhausted {
+		// A deleted server frees its block without notifying the servers
+		// waiting for one.
+		hints = append(hints, portPoolExhaustedRetry)
 	}
 	for _, hint := range hints {
 		if hint > 0 && (requeue == 0 || hint < requeue) {
@@ -1360,18 +1382,16 @@ func svcPortsFromTemplate(
 		overrides[o.Name] = o
 	}
 	out := make([]corev1.ServicePort, 0, len(tmpl.Spec.Ports))
-	var advertised int32
 	for _, p := range tmpl.Spec.Ports {
 		if !p.Advertise {
 			continue
 		}
 		port := p.ContainerPort
-		// A port from the template's pool (gameserver_portpool.go) replaces
+		// A port from the server's pool (gameserver_portpool.go) replaces
 		// the default; an explicit override still wins.
-		if pooled := poolServicePort(gs, advertised); pooled != 0 {
+		if pooled := poolServicePort(gs, p.Name); pooled != 0 {
 			port = pooled
 		}
-		advertised++
 		nodePort := int32(0)
 		if o, ok := overrides[p.Name]; ok {
 			if o.ServicePort != 0 {

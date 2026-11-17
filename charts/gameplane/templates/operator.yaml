@@ -424,8 +424,12 @@ spec:
             {{- end }}
             - --address-manager={{ .Values.operator.addressManager }}
             - --metallb-namespace={{ .Values.operator.metalLBNamespace | default "metallb-system" }}
-            {{- range $template, $range := .Values.operator.portPools }}
-            - --port-pool={{ $template }}={{ $range }}
+            {{- range .Values.operator.portPools }}
+            - --port-pool={{ .name }}={{ .ports }}
+            {{- $pool := .name }}
+            {{- range .templates }}
+            - --port-pool-template={{ . }}={{ $pool }}
+            {{- end }}
             {{- end }}
             - --zap-log-level={{ .Values.operator.logLevel }}
             {{- if .Values.operator.localModules.enabled }}

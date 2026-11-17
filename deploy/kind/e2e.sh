@@ -416,6 +416,7 @@ EOF
     # CI or dev installs reach the project provider (spec 022 R17).
     # The legacy fixtures exercise Hostport, in-pod capture and root init.
     # The restricted-workloads bucket upgrades this same installation to PSA.
+    # The port pool serves TestGameServer_PortPool* (port_pool_e2e_test.go).
     helm upgrade --install gameplane "${CHART_DIR}" \
         --namespace gameplane-system --create-namespace \
         --set "image.registry=gameplane-test" \
@@ -435,6 +436,10 @@ EOF
         --set "api.oidc.roleMappings.admin[0]=gameplane-e2e-oidc-admins" \
         --set "operator.leaderElect=false" \
         --set "operator.addressManager=metallb" \
+        --set "operator.portPools[0].name=e2e-pool" \
+        --set "operator.portPools[0].ports=31000-31005" \
+        --set "operator.portPools[0].templates[0]=e2e-portpool-a" \
+        --set "operator.portPools[0].templates[1]=e2e-portpool-b" \
         --set "operator.gameDataStorage.storageClassName=gameplane-e2e-install-default" \
         --set "defaultModuleSource.enabled=false" \
         --set "api.telemetry.receiver.enabled=true" \
