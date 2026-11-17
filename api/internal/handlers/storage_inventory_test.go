@@ -681,6 +681,9 @@ func TestStoragePoolInventory_InvalidVolumeMetadataUnavailable(t *testing.T) {
 			{name: "node field In multiple values", modify: field(corev1.NodeSelectorOpIn, "pool-node", "second-node")},
 			{name: "node field NotIn multiple values", modify: field(corev1.NodeSelectorOpNotIn, "other-node", "second-node")},
 			{name: "node field NotIn missing value", modify: field(corev1.NodeSelectorOpNotIn)},
+			{name: "node field invalid DNS name", modify: field(corev1.NodeSelectorOpIn, "bad/name")},
+			{name: "node field name exceeds DNS limit", modify: field(corev1.NodeSelectorOpIn, strings.Repeat("a.", 127)+"a")},
+			{name: "node field empty name", modify: field(corev1.NodeSelectorOpNotIn, "")},
 			{name: "negative PV capacity", modify: func(p *corev1.PersistentVolume) { p.Spec.Capacity[corev1.ResourceStorage] = resource.MustParse("-1Gi") }},
 			{name: "fractional PV bytes", modify: func(p *corev1.PersistentVolume) { p.Spec.Capacity[corev1.ResourceStorage] = resource.MustParse("500m") }},
 			{name: "unrepresentable PV capacity", modify: func(p *corev1.PersistentVolume) {

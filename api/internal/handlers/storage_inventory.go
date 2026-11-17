@@ -92,6 +92,7 @@ func resolveStorageInventory(ctx context.Context, client *kube.Client, nodes []c
 			continue
 		}
 		matches := 0
+		matchedNode := ""
 		for _, pool := range pools {
 			if !storageClassSelected(pool.reference.StorageClasses, pv.Spec.StorageClassName) || pv.Spec.CSI.VolumeAttributes["openebs.io/volgroup"] != pool.reference.VolumeGroup {
 				continue
@@ -102,12 +103,27 @@ func resolveStorageInventory(ctx context.Context, client *kube.Client, nodes []c
 			}
 			if matched {
 				matches++
+				matchedNode = pool.node.Name
 			}
 		}
 		if matches > 1 {
 			return clusterStats{}, errors.New("ambiguous configured storage volume affinity")
 		}
 		if matches == 1 {
+			// A selected local volume must not also match another listed node,
+			// including nodes without a configured pool. No provider reads needed.
+			for i := range nodes {
+				if nodes[i].Name == matchedNode {
+					continue
+				}
+				matched, err := storagePVMatchesNode(pv, &nodes[i])
+				if err != nil {
+					return clusterStats{}, err
+				}
+				if matched {
+					return clusterStats{}, errors.New("ambiguous configured storage volume affinity")
+				}
+			}
 			quantity := pv.Spec.Capacity[corev1.ResourceStorage]
 			value, exact := storageQuantityBytes(quantity)
 			if !exact || value < 0 {
@@ -293,14 +309,18 @@ func storagePVMatchesNode(pv *corev1.PersistentVolume, node *corev1.Node) (bool,
 			termMatches = termMatches && ok
 		}
 		for _, expression := range term.MatchFields {
-			if expression.Key != "metadata.name" {
+			if expression.Key != "metadata.name" || len(expression.Values) != 1 || len(validation.IsDNS1123Subdomain(expression.Values[0])) != 0 {
 				return false, errors.New("invalid configured storage node affinity field")
 			}
-			ok, err := storageNodeRequirement(expression, labels.Set{"metadata.name": node.Name})
-			if err != nil {
-				return false, err
+			// Field selectors compare node names directly, without label limits.
+			switch expression.Operator {
+			case corev1.NodeSelectorOpIn:
+				termMatches = termMatches && node.Name == expression.Values[0]
+			case corev1.NodeSelectorOpNotIn:
+				termMatches = termMatches && node.Name != expression.Values[0]
+			default:
+				return false, errors.New("invalid configured storage node affinity field operator")
 			}
-			termMatches = termMatches && ok
 		}
 		matched = matched || termMatches
 	}
