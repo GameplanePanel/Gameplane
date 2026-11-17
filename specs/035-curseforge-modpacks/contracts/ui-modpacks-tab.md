@@ -13,9 +13,11 @@ prompt lists these surfaces:
    version is picked; Remove variant states that every mod in the mods folder is deleted,
    including ones added by hand.
 4. **Active modpack card** at the top: title, registry, version name or "Not pinned",
-   phase (Backing up / Applying / Backup failed + message), Change version, Remove.
+   phase (Backing up / Applying / Backup failed + message), Change version, Remove. A pending
+   removal shows "Removing"; after a failed removal backup, Remove becomes "Retry remove".
 5. **Missing files notice** (CurseForge): table of mod, file name, download link; text
-   telling the operator to upload to `downloads/` in the Files tab and restart.
+   telling the operator to upload to `downloads/` in the Files tab and restart. When the server is
+   stopped (`missingFilesUnknown`), a one-line note says to start it to check for missing files.
 6. **Admin → Mod registries → CurseForge**: "Share the CurseForge key with game servers"
    switch with a one-line risk note; disabled with a reason when the key comes only from the
    startup flag.

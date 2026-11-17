@@ -7,10 +7,14 @@ Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
    (`refEnv`, `versionEnv`, `apiKeyFileEnv`, each `env[].name`). Then, if
    `status.modpack.applied` is set, append that provider's fixed `env`, `refEnv=project`
    and, when `version` is set, `versionEnv=version`.
-2. **Adopted legacy packs** (R6): while annotation `gameplane.local/modpack-adopted` is set
-   and the pod is running, render the env exactly as the pre-035 operator did. Remove the
+2. **Legacy and adopted packs** (R6): a server is legacy when `spec.env` holds a value for
+   any provider's `refEnv` and `spec.modpack` is absent (not yet swept), or adopted when
+   annotation `gameplane.local/modpack-adopted` is set. For both, while the pod is running,
+   render the env exactly as the pre-035 operator did, so the operator's first reconcile
+   after upgrade never rolls the pod, whatever the order of operator and API sweep. Remove the
    annotation, and render rule 1, at the next pod start the operator drives.
-3. **Change state machine** (R4): see data-model.md. Backup CRs created here are owned by
+3. **Change state machine** (R4): see data-model.md. A removal whose backup fails keeps
+   `status.modpack.applied` and the remove annotation, so the API can accept a retry. Backup CRs created here are owned by
    the GameServer and named `<gs>-modpack-<generation>`.
 4. **Mods wipe** (R5): on a removal only (OD-7 B), add the one-shot
    init step for the active loader's mods mount, guarded by the marker file.

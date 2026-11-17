@@ -110,8 +110,10 @@ implementation task re-checks every itzg fact below against the image digests th
   renders exactly the legacy env (same names, values and order as before), so the pod
   template hash does not change. The pin env is rendered at the next pod start the operator
   drives anyway (restart, stop/start, sleep/wake, or any other spec change), and the
-  annotation is then removed. An in-place container crash restart inside that window still
-  boots with the old env; accepted and documented.
+  annotation is then removed. Servers the sweep has not reached yet (legacy `refEnv` value
+  in `spec.env`, no `spec.modpack`) get the same legacy rendering, so the order of operator
+  reconcile and API sweep cannot roll a pod. An in-place container crash restart inside
+  that window still boots with the old env; how to close that window is OD-8.
 - **Alternatives**: pin immediately (restarts every such server once on panel upgrade).
 
 ## R7: Files that need a manual download (FR-008, OD-5 A)
@@ -124,7 +126,10 @@ implementation task re-checks every itzg fact below against the image digests th
   `GET /servers/{name}/modpack` reads `MODS_NEED_DOWNLOAD.txt` through the agent files API
   when the active pack is CurseForge, parses rows (columns split on 2+ spaces, URL taken as
   the last field and validated as `https://www.curseforge.com/...`), and returns them as
-  `missingFiles`. Only CurseForge packs have this case.
+  `missingFiles`. The agent is a sidecar with its own copy of the data mount, so it can
+  read the file while the game container exits or crash-loops on the blocked download.
+  With no pod at all (stopped or asleep) the API returns `missingFilesUnknown: true`.
+  Only CurseForge packs have this case.
 - **Alternatives**: parse the container log (lines scroll away, harder to bound).
 
 ## R8: FTB registry engine (OD-6 B, FR-012)
@@ -136,9 +141,12 @@ implementation task re-checks every itzg fact below against the image digests th
   `modloader` = `neoforge`/`forge`/`fabric`/`quilt` + version, `runtime` = Java) and
   `type` (release/beta/alpha).
 - **Decision**: new keyless engine `api/internal/registry/ftb.go` on the shared
-  `netguard.IsPublic` client. Search resolves up to 20 ids with bounded concurrency (4),
-  caches pack details for 10 minutes, and keeps only packs with at least one version whose
-  targets match the server's Minecraft version and loader. Versions lists only matching
+  `netguard.IsPublic` client. Search asks FTB for up to 100 candidate ids, then resolves
+  details in batches of 20 with bounded concurrency (4) and a 10-minute detail cache,
+  keeping only packs with at least one version whose targets match the server's Minecraft
+  version and loader. It stops when the filtered page (20 packs) is full, the candidates are
+  exhausted, or 100 details have been resolved, so filtering happens before the page limit
+  and latency stays bounded. Versions lists only matching
   versions (Q5), newest first. Empty search term uses FTB's popular list. `ftb` joins the
   `ModProvider.provider` enum and is modpack-only: the providers listing gains
   `modsBrowse: false` so the Mods tab skips it.

@@ -36,14 +36,21 @@ server's selected Minecraft version and loader are returned, newest first (Clari
     { "mod": "Some Mod", "versionName": "1.2.3", "filename": "somemod-1.2.3.jar",
       "downloadPage": "https://www.curseforge.com/minecraft/mc-mods/some-mod/download/123" }
   ],
+  "missingFilesUnknown": false,
   "downloadsPath": "downloads/",
   "backupAvailable": true
 }
 ```
 
 - `active` null when no pack. `pinned` false = "Not pinned" (adopted legacy pack).
-- `missingFiles` read live from `missingFilesPath` via the agent; empty when the file is
-  absent, the server is not running, or the provider has no `missingFilesPath`.
+  While a removal is pending (remove annotation set, `status.modpack.applied` still set),
+  `active` is the applied pack with `"pendingRemoval": true`.
+- `missingFiles` read live from `missingFilesPath` through the agent sidecar. The agent runs
+  beside the game container and mounts the data volume, so the list stays readable while
+  the game container exits or crash-loops on the blocked download. Empty when the file is
+  absent or the provider has no `missingFilesPath`.
+- `missingFilesUnknown` true when no pod exists (server stopped or asleep), so the file
+  cannot be read; the tab then says to start the server to check for missing files.
 - `backupAvailable` true when the server has a backup destination.
 - Triggers the lazy legacy adoption (research R6) when needed.
 
@@ -67,8 +74,12 @@ Request:
 
 ## DELETE /servers/{name}/modpack?backupFirst=true|false (new)
 
-Removes the pack: deletes `spec.modpack`, sets the `gameplane.local/modpack-remove`
-annotation. 404 when no pack; same 400/409 rules as POST. 202 with the GET body.
+Removes the pack: deletes `spec.modpack` and sets the `gameplane.local/modpack-remove`
+annotation with a new request id. Allowed when `spec.modpack` is set, or when a removal
+failed (`status.modpack.applied` set, remove annotation present, `phase=BackupFailed`):
+that retry replaces the annotation, so the operator runs the removal again. 404 only when
+neither `spec.modpack` nor `status.modpack.applied` is set; same 400/409 rules as POST.
+202 with the GET body.
 
 ## PUT /admin/registries/curseforge/share (new, admin only)
 

@@ -36,7 +36,7 @@ The operator always empties the mods folder on removal (Clarification Q1).
 Annotations:
 
 - `gameplane.local/modpack-adopted: "true"`: set by the legacy sweep (research R6); the operator renders the legacy env until the next pod start it drives, then removes it.
-- `gameplane.local/modpack-remove`: JSON `{"backupFirst": bool}`; set by Remove, cleared by the operator once applied.
+- `gameplane.local/modpack-remove`: JSON `{"requestId": string, "backupFirst": bool}`; set by Remove, cleared by the operator once applied. Kept with `status.modpack.applied` when the removal's backup fails, so a retry (new `requestId`) runs it again.
 
 ## GameServer `status.modpack` (new)
 

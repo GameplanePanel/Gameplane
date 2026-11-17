@@ -86,7 +86,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Tests for US2
 
 - [ ] T028 [P] [US2] envtest: `backupFirst` → Backup CR `<gs>-modpack-<generation>` owned by the GameServer, env unchanged until it succeeds; failed backup → `BackupFailed`, message set, env unchanged; a new change after `BackupFailed` restarts the flow, in operator/internal/controller/gameserver_modpack_envtest_test.go
-- [ ] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) keeps an identical pod template (no roll); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [ ] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
 - [ ] T030 [P] [US2] envtest: legacy sweep reads `versionId` through the agent and writes `spec.modpack` + adopted annotation; unreadable → no `version` and `pinned: false`; 400 `server.modpack.backup_unavailable`; 409 `server.modpack.change_in_progress`, in api/internal/handlers/modpack_adopt_envtest_test.go
 - [ ] T031 [US2] E2E: pinned version survives 3 restarts (read `.curseforge-manifest.json` `fileId` through the agent) in test/e2e/modpack_e2e_test.go
 
@@ -111,7 +111,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US3
 
-- [ ] T038 [P] [US3] envtest: DELETE removes `spec.modpack`, sets the remove annotation, returns 404 without a pack, writes an audit entry, in api/internal/handlers/registry_modpack_envtest_test.go
+- [ ] T038 [P] [US3] envtest: DELETE removes `spec.modpack`, sets the remove annotation with a request id, accepts a retry after a removal's backup failed, returns 404 only when neither `spec.modpack` nor `status.modpack.applied` is set, GET shows `pendingRemoval`, writes an audit entry, in api/internal/handlers/registry_modpack_envtest_test.go
 - [ ] T039 [P] [US3] envtest: removal adds the one-shot wipe init step for the active loader's mods mount only, guarded by `.gameplane-mods-wiped-<generation>`; install of a different pack adds no wipe step, in operator/internal/controller/gameserver_modpack_envtest_test.go
 - [ ] T040 [US3] E2E: remove the pack; mods folder empty, world folder unchanged, server Running as plain loader, in test/e2e/modpack_e2e_test.go
 
@@ -134,7 +134,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US4
 
-- [ ] T045 [P] [US4] Unit test the `MODS_NEED_DOWNLOAD.txt` parser (rows, 2+ space columns, URL last, non-CurseForge URLs dropped, size cap) with a captured sample in api/internal/handlers/modpack_missing_test.go
+- [ ] T045 [P] [US4] Unit test the `MODS_NEED_DOWNLOAD.txt` parser (rows, 2+ space columns, URL last, non-CurseForge URLs dropped, size cap) with a captured sample, and `missingFilesUnknown` when no pod exists, in api/internal/handlers/modpack_missing_test.go
 - [ ] T046 [US4] E2E (written, excluded from every CI bucket with a comment: needs a manual browser download) for a pack with a blocked mod in test/e2e/modpack_blocked_e2e_test.go and test/e2e/buckets.sh
 
 ### Implementation for US4
@@ -155,7 +155,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US5
 
-- [ ] T050 [P] [US5] Unit test the FTB engine with the T002 fixtures (search resolves ids, filters by Minecraft version + loader, cache, bounded concurrency, upstream error) in api/internal/registry/ftb_test.go
+- [ ] T050 [P] [US5] Unit test the FTB engine with the T002 fixtures (search resolves ids in batches, filters before the page limit so a match after the first 20 candidates is found, stops at 100 details, cache, bounded concurrency, upstream error) in api/internal/registry/ftb_test.go
 - [ ] T051 [P] [US5] Add an FTB case to the dial-guard test in api/internal/registry/registry_dialguard_test.go
 - [ ] T052 [US5] E2E (written, excluded from every CI bucket with a comment: FTB packs exceed CI runner budget) installing a small FTB pack in test/e2e/modpack_ftb_e2e_test.go and test/e2e/buckets.sh
 
