@@ -79,6 +79,7 @@ func MountWithPlayerNames(r chi.Router, reg *kube.Registry, caBundle, clientCert
 		// every other case is the agent's bytes verbatim (players_hydrate.go).
 		r.Get("/", p.agentRoute(func(selected *proxy) http.HandlerFunc { return selected.hydratedPlayers("/players") }))
 		r.Get("/banned", p.agentHTTP("/players/banned"))
+		r.Get("/operators", p.agentHTTP("/players/operators"))
 		r.Post("/kick", p.agentHTTP("/players/kick"))
 		r.Post("/ban", p.agentHTTP("/players/ban"))
 		r.Post("/unban", p.agentHTTP("/players/unban"))

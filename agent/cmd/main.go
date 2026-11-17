@@ -200,7 +200,7 @@ func main() {
 
 		protected.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))
-			players.Mount(bounded, rconClient, gameName, playerActions)
+			players.Mount(bounded, rconClient, gameName, playerActions, dataRoot)
 			quiesce.Mount(bounded, commands, gameName, quiesceSpec)
 			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
 			actions.Mount(bounded, rconClient, gameName, actionSpecs)
