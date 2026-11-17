@@ -389,7 +389,8 @@ PRs receive an automated advisory review from the CodeRabbit GitHub App, configu
 ## Release process
 
 Tags matching `v*` trigger the `release.yaml` workflow, which builds the
-component images, pushes the Helm chart to the `gameplane` OCI registry, and
+component images, pushes the `gameplane` and `gameplane-crds` Helm charts to
+the OCI registry, and
 keyed-cosign-signs all images (component and chart) and official `modules/*`
 bundles by digest, recording all signatures in the public Sigstore Rekor
 transparency log. The jobs run in this order:
@@ -431,6 +432,14 @@ matrix does not cancel sibling legs when one fails. A leg that fails before tag
 attachment leaves at most an untagged digest behind. A leg whose `oras tag`
 succeeded but whose later `oras resolve` check failed may leave published tags,
 so inspect the image's tags before re-running the failed jobs.
+
+GHCR creates a new package as private, and the release's consumer
+qualification pulls anonymously. Before the first release that publishes a new
+package (most recently `charts/gameplane-crds`), or right after it if the
+qualification stops there, make the package public under GHCR → package →
+*Package settings* → *Change visibility*, then re-run the failed jobs. The
+`github-release` job handles re-runs, so the tag doesn't need to be moved. The
+full list of packages is in [`install.md`](install.md).
 
 ## Community Visibility & Outreach
 
