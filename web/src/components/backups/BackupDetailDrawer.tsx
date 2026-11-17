@@ -10,7 +10,7 @@ import type { Backup } from "@/types";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "./ErrorBanner";
 import { useOptionalIntl } from "@/lib/i18n/format";
-import { backupReadOptions, isAuthorizationError } from "@/lib/backupReadOptions";
+import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "@/lib/backupReadOptions";
 import { useConditionMessage } from "@/lib/i18n/conditionMessage";
 
 interface Props {
@@ -29,9 +29,10 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
   const { Backups } = resourceClient;
   const permissions = useResourcePermissions(explicitPermissions);
   const qc = useQueryClient();
+  const accessKey = useBackupAccessKey(resourceTarget, permissions);
   const open = name !== null && resourceCan(permissions, "backups:read");
   const { data: backupData, error } = useQuery({
-    queryKey: resourceKey(resourceTarget, "backup", name, ns),
+    queryKey: [...resourceKey(resourceTarget, "backup", name, ns), "access", accessKey],
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Backups.get(name!, ns),
     ...backupReadOptions(open && resourceCan(permissions, "backups:read"), 5000),
   });

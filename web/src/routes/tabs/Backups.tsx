@@ -1,5 +1,5 @@
 import { useResourceClient, useResourceTarget, resourceKey, useResourcePermissions, resourceCan } from "@/lib/resourceTarget";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, CalendarClock, Clock, HardDrive } from "lucide-react";
 import { Button, Chip, Table } from "@heroui/react";
@@ -7,7 +7,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 
 import { APIError } from "@/lib/api";
-import { backupReadOptions, isAuthorizationError } from "@/lib/backupReadOptions";
+import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "@/lib/backupReadOptions";
 import { formatBytes, formatRelative, formatRelativeFuture, parseQuantityToBytes } from "@/lib/utils";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
@@ -26,18 +26,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
   const permissions = useResourcePermissions();
   // The access snapshot belongs to the selected cluster and namespace. Keep
   // denied results isolated from later grants and from other resource scopes.
-  const accessKey = [...permissions].sort().join(",");
-  const previousAccess = useRef(accessKey);
-  useEffect(() => {
-    if (previousAccess.current === accessKey) return;
-    previousAccess.current = accessKey;
-    // A -> B -> A can revisit a retained denied cache entry. Reset denials
-    // only when permissions change, never for an ordinary access refetch.
-    void qc.resetQueries({
-      queryKey: ["resource", resourceTarget.cluster, resourceTarget.namespace ?? ""],
-      predicate: (query) => isAuthorizationError(query.state.error),
-    });
-  }, [accessKey, qc, resourceTarget.cluster, resourceTarget.namespace]);
+  const accessKey = useBackupAccessKey(resourceTarget, permissions);
   const canReadBackups = resourceCan(permissions, "backups:read");
   const canReadSchedules = resourceCan(permissions, "schedules:read");
   const canReadDestinations = resourceCan(permissions, "destinations:read");

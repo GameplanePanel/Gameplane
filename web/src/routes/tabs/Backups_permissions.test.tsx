@@ -133,7 +133,8 @@ describe("BackupsTab scoped read access", () => {
       requests++;
       return denied ? HttpResponse.text("Forbidden", { status: 403 }) : HttpResponse.json(makeBackup({ status: { phase: "Succeeded", snapshotID: "private-snapshot-value" } }));
     }));
-    const { client } = renderWithQuery(<BackupDetailDrawer name="private" permissions={["*"]} onClose={() => {}} onRestore={() => {}} />);
+    const drawer = (permissions: string[]) => <BackupDetailDrawer name="private" permissions={permissions} onClose={() => {}} onRestore={() => {}} />;
+    const { client, rerender } = renderWithQuery(drawer(["*"]), { client: new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 300000 } } }) });
     expect(await screen.findByText("private-snapshot-value")).toBeInTheDocument();
     denied = true;
     await act(() => client.invalidateQueries());
@@ -145,6 +146,12 @@ describe("BackupsTab scoped read access", () => {
       await client.invalidateQueries();
     });
     expect(requests).toBe(2);
+    vi.useRealTimers();
+    rerender(drawer([]));
+    denied = false;
+    rerender(drawer(["*"]));
+    expect(await screen.findByText("private-snapshot-value")).toBeInTheDocument();
+    expect(requests).toBe(3);
   });
 
   it("hides cached backup rows when access is revoked", async () => {

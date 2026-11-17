@@ -1,3 +1,6 @@
+import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import type { ResourceScope } from "./resourceTarget";
 import { APIError } from "@/lib/api";
 
 export function isAuthorizationError(error: unknown): boolean {
@@ -15,4 +18,22 @@ export function backupReadOptions(allowed: boolean, interval: number | false) {
     refetchInterval: (query: { state: { error: Error | null } }) =>
       allowed && !isAuthorizationError(query.state.error) ? interval : false,
   };
+}
+
+// Shared with standalone backup drawers: permission restoration must also work
+// when the server Backups tab is not mounted and the cache retains an old denial.
+export function useBackupAccessKey(target: ResourceScope, permissions: readonly string[]): string {
+  const qc = useQueryClient();
+  const accessKey = [...permissions].sort().join(",");
+  const scopeKey = JSON.stringify([target.cluster, target.namespace, accessKey]);
+  const previousAccess = useRef(scopeKey);
+  useEffect(() => {
+    if (previousAccess.current === scopeKey) return;
+    previousAccess.current = scopeKey;
+    void qc.resetQueries({
+      queryKey: ["resource", target.cluster, target.namespace ?? ""],
+      predicate: (query) => isAuthorizationError(query.state.error),
+    });
+  }, [scopeKey, qc, target.cluster, target.namespace]);
+  return accessKey;
 }
