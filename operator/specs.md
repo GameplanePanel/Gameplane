@@ -411,7 +411,8 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
     - Empty flag value is a strict no-op — preserves pre-feature behavior (all three sources nil → cluster default).
     - Error handling: `checkPVCProvisioningFailure` detects missing StorageClass and surfaces it as Ready condition False, reason `PVCProvisioningFailed`, with message naming the class — leaves GameServer in phase Pending (not Failed, so it is recoverable once an admin creates the StorageClass).
     - Requires `storage.k8s.io/storageclasses` get/list permission (on each reconcile to verify existence).
-  - Pod spec assembly: inject agent sidecar (image + pull policy + env), mount agent certs + logs volume.
+  - Pod spec assembly: inject agent sidecar (image + pull policy + env), mount agent certs + logs volume. The template's capabilities, `players.query` included, reach the agent unchanged in the `GAMEPLANE_CAPABILITIES` JSON env (`resolveCapabilities`); a change rolls the StatefulSet like any other template change.
+  - **Player counts and idle sleep:** the operator reads only `status.agent.playersOnline`, whatever the agent's source (console list or `players.query`). A count of 0 starts the idle clock; an absent count (a failed or missing query) clears it and keeps the server awake, so a query that stops answering can never sleep a server. E2E: `TestGameServer_A2SPlayerCountDrivesIdle` (template configuration → injection → heartbeat → idle eligibility, with a nonzero count, a real zero and a failed query).
   - Config & credentials: render game startup config (template vars, port mappings, mod credentials).
   - RCON integration: create agent RBAC, mTLS certs; expose RCON port if template declares it.
   - Graceful stop: if template has Lifecycle.Stop sequence, orchestrate via agent before scaling down.
