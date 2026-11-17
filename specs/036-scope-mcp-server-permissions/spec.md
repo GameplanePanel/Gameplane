@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-17
 
-**Status**: Draft (open decision OD-3 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (all open decisions settled, see `OPEN-DECISIONS.md`)
 
 **Input**: User description: "Scope the MCP server's permissions down from every namespace (`*`) to the Gameplane main namespace and all Gameplane game namespaces. Also include checks on multicluster user permissions, so an MCP client only sees what the calling Gameplane user is allowed to see on each cluster."
 
@@ -71,7 +71,7 @@ A user works on a Gameplane install with several registered clusters. Their MCP 
 
 ### User Story 4 - Admins keep a break-glass path when the panel is down (Priority: P3)
 
-When the Gameplane API itself is broken, a cluster admin can still use the MCP server to read Gameplane's namespaces and diagnose the problem, within the namespace scope of Story 1. [NEEDS CLARIFICATION: whether the in-cluster `kubectl exec` mode stays, see OD-3]
+When the Gameplane API itself is broken, a cluster admin can still use the MCP server to read Gameplane's namespaces and diagnose the problem, within the namespace scope of Story 1. The in-cluster `kubectl exec` mode stays as this break-glass mode (OD-3).
 
 **Why this priority**: The MCP server exists for cluster debugging, and the case where the panel is down is when it is needed most. It is lower priority because Story 1 already covers the admin case in today's mode.
 
@@ -106,6 +106,7 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 - **FR-005**: Adding or removing a managed game namespace in the chart values MUST add or remove the MCP server's access to it on the next upgrade, with no other setting to change.
 - **FR-006**: An upgrade from a release with the cluster-wide role MUST remove the old cluster-wide role and binding.
 - **FR-007**: Tools that accept "all namespaces" MUST mean "all namespaces in scope". A call naming an out-of-scope namespace MUST return a clear "namespace not in scope" answer and no data, instead of a raw Kubernetes 403.
+- **FR-008**: The in-cluster `kubectl exec ... serve` mode MUST stay as an admin-only break-glass mode (OD-3) that works when the API is down. It reads Kubernetes directly with the namespace-scoped grants of FR-001 to FR-007, has no Gameplane user check (Kubernetes access to the pod gates it), and its documentation says so. The per-user mode (FR-010 onward) is the documented normal way to use the MCP server.
 
 **Gameplane user permissions**
 

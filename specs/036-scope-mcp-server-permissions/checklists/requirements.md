@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (1 remains, tied to OD-3)
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - Kubernetes namespaces, roles and the chart values are named because the feature is about them; they are the product surface, not implementation choices.
-- Blocked on OD-3 before `/speckit-clarify` or `/speckit-plan`.
+- OD-1 to OD-3 settled by valgul 2026-11-17. Ready for `/speckit-clarify` or `/speckit-plan`.

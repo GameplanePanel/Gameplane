@@ -1,6 +1,6 @@
 # Open decisions: spec 036 Scope MCP server permissions
 
-Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled. OD-1 and OD-2 are settled; OD-3 is open.
+Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled. All three are settled; none are open.
 
 ## OD-1: How does an MCP session prove which Gameplane user it acts for? (SETTLED: A, valgul 2026-11-17)
 
@@ -16,7 +16,7 @@ Today a session has no Gameplane user: it reads with the pod's Kubernetes identi
 - B. MCP server keeps reading Kubernetes directly with the namespace-scoped role from Story 1, asks the API only for the user's permissions, and filters results itself. Each remote cluster needs its own MCP install that can reach the central panel. Permission rules are duplicated in the MCP server and must be kept in sync.
 - C. Direct reads on the local cluster only (as B), and remote clusters are out of scope for now.
 
-## OD-3: Does the in-cluster `kubectl exec` mode stay? (OPEN)
+## OD-3: Does the in-cluster `kubectl exec` mode stay? (SETTLED: A, valgul 2026-11-17)
 
 Today's way to start a session is `kubectl exec -i deploy/gameplane-mcp-server -- /mcp-server serve`, with no Gameplane user.
 
