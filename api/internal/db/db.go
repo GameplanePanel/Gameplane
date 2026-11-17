@@ -56,6 +56,12 @@ func Open(ctx context.Context, driver, dsn string) (*Store, error) {
 		// Add a busy timeout to the DSN if not already present, so concurrent
 		// processes (e.g., API and bootstrap-admin) waiting for locks don't fail immediately.
 		dsn = withSQLiteBusyTimeout(dsn)
+		// Take the write lock when a read-write transaction begins. A deferred
+		// transaction that reads first and writes later cannot wait in WAL mode:
+		// if another process wrote in between, SQLite returns SQLITE_BUSY at once
+		// and skips busy_timeout (seen with bootstrap-admin next to a live API).
+		// Read-only transactions stay deferred.
+		dsn = withSQLiteImmediateTxLock(dsn)
 
 		db, err := sql.Open("sqlite", dsn)
 		if err != nil {
@@ -397,6 +403,20 @@ func withSQLiteBusyTimeout(dsn string) string {
 
 	// busy_timeout not found in pragmas; append it.
 	return dsn + "&_pragma=busy_timeout(5000)"
+}
+
+// withSQLiteImmediateTxLock appends _txlock=immediate to the DSN unless it
+// already sets _txlock, so the driver opens read-write transactions with
+// BEGIN IMMEDIATE and they wait on busy_timeout instead of failing.
+func withSQLiteImmediateTxLock(dsn string) string {
+	idx := strings.IndexByte(dsn, '?')
+	if idx == -1 {
+		return dsn + "?_txlock=immediate"
+	}
+	if params, err := url.ParseQuery(dsn[idx+1:]); err == nil && params.Has("_txlock") {
+		return dsn
+	}
+	return dsn + "&_txlock=immediate"
 }
 
 // adoptLegacySQLite renames kestrel.db to the target DSN path if the target
