@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Draft
+**Status**: In progress. Setup and parity tooling (T001–T007) merged in PR #796 on 2026-10-25; no move PR has started. See the status note at the top of [tasks.md](./tasks.md).
 
 **Input**: User description: "Write a speckit spec (spec, plan, tasks) for the Gameplane v1 cleanup 'split big packages and files'. Behaviour-preserving moves and splits only, following the target layout from spec 027, keeping spec 023's path mapping valid."
 
