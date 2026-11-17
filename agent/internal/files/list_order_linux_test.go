@@ -17,7 +17,7 @@ func TestListDirectoriesFirst(t *testing.T) {
 	srvURL, root := newServer(t)
 	for _, dir := range []string{"", "beta"} {
 		base := filepath.Join(root, dir)
-		for _, name := range []string{"zeta", "beta"} {
+		for _, name := range []string{"zeta", "beta", "aardvark"} {
 			if err := os.Mkdir(filepath.Join(base, name), 0o755); err != nil {
 				t.Fatal(err)
 			}
@@ -43,11 +43,11 @@ func TestListDirectoriesFirst(t *testing.T) {
 		names := make([]string, len(entries))
 		for i, entry := range entries {
 			names[i] = entry.Name
-			if entry.Dir != (i < 2) {
+			if entry.Dir != (i < 3) {
 				t.Errorf("list %s: entry %s has dir=%v", path, entry.Name, entry.Dir)
 			}
 		}
-		want := []string{"beta", "zeta", "aardvark-link", "alpha.txt", "gamma.txt"}
+		want := []string{"aardvark", "beta", "zeta", "aardvark-link", "alpha.txt", "gamma.txt"}
 		if !slices.Equal(names, want) {
 			t.Errorf("list %s: got %v, want %v", path, names, want)
 		}
