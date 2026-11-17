@@ -1,5 +1,5 @@
 # Save API registry keys immediately
 
-API registry key actions will persist the key and its configuration together, retain concurrent changes to other providers, and report save failures. This draft contains the persistence helper and regression coverage; the Settings form wiring and removal of its redundant Save changes button await the required Pencil update.
+Setting, replacing, and removing a mod registry API key now saves immediately without a second Save changes button. Failed saves keep the entered key available for retry, pending saves prevent duplicate actions, and configured status reflects the saved setting after reopening the page.
 
 [PR #1023](https://github.com/GameplanePanel/Gameplane/pull/1023)
