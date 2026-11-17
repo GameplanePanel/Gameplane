@@ -1,3 +1,4 @@
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { screen, waitFor } from "@testing-library/react";
@@ -118,12 +119,13 @@ describe("BackupDetailDrawer", () => {
   });
 
   it("renders an error banner on fetch failure", async () => {
-    server.use(
-      http.get("/backups/x", () => HttpResponse.text("not found", { status: 404 })),
-    );
-    renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="x" onClose={() => {}} onRestore={() => {}} />);
+    const handler = vi.fn(() => HttpResponse.text("not found", { status: 404 }));
+    server.use(http.get("/backups/x", handler));
+    const client = new QueryClient({ defaultOptions: { queries: { retryDelay: 0, gcTime: 0 } } });
+    renderWithQuery(<BackupDetailDrawer permissions={["*"]} name="x" onClose={() => {}} onRestore={() => {}} />, { client });
     await screen.findByText(/Backup details/i);
     await waitFor(() => expect(screen.getByText(/not found/)).toBeInTheDocument());
+    expect(handler).toHaveBeenCalledTimes(4);
   });
 
   it("calls onRestore when Restore button clicked", async () => {

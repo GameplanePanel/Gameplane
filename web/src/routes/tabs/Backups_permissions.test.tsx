@@ -1,14 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, screen, waitFor } from "@testing-library/react";
-import { focusManager, onlineManager, QueryClient } from "@tanstack/react-query";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { focusManager, onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
-import { renderWithQuery } from "@/test/render";
+import { makeClient } from "@/test/render";
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import userEvent from "@testing-library/user-event";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
 import { makeBackup, makeDestination } from "@/test/factories";
 import { BackupsTab } from "./Backups";
+
+import type { PropsWithChildren, ReactElement } from "react";
+
+// Keep the same QueryClient mounted when permissions change via rerender.
+function renderWithQuery(ui: ReactElement, { client = makeClient() }: { client?: QueryClient } = {}) {
+  const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return { client, ...render(ui, { wrapper }) };
+}
 
 const readPermissions = ["backups:read", "schedules:read", "destinations:read"];
 
