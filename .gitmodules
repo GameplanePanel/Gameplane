@@ -10,3 +10,19 @@
 	path = mcp-server
 	url = https://github.com/GameplanePanel/mcp.git
 	branch = main
+	component = true
+[submodule "audit-syslog-bridge"]
+	path = audit-syslog-bridge
+	url = https://github.com/GameplanePanel/audit-syslog-bridge.git
+	branch = main
+	component = true
+[submodule "tunnel"]
+	path = tunnel
+	url = https://github.com/GameplanePanel/tunnel.git
+	branch = main
+	component = true
+[submodule "capture-sidecar"]
+	path = capture-sidecar
+	url = https://github.com/GameplanePanel/capture-sidecar.git
+	branch = main
+	component = true

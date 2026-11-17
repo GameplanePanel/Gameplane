@@ -26,7 +26,6 @@ on:
       - "**/specs.md"
       - "README.md"
       - "docs/**"
-      - "audit-syslog-bridge/README.md"
       - "telemetry-receiver/README.md"
       - "CHANGELOG.md"
       - "AGENTS.md"
@@ -188,15 +187,13 @@ jobs:
               - 'operator/**'
               - 'api/**'
               - 'agent/**'
-              - 'audit-syslog-bridge/**'
               - 'telemetry-receiver/**'
               - 'telemetryschema/**'
               - 'i18n/**'
               - 'sentinel/**'
-              - 'capture-sidecar/**'
-              - 'svcutil/**'
-              - 'tunnel/**'
               - 'gp-module/**'
+              # The capture-sidecar submodule (its pointer) gates capture-sidecar-setcap-proof.
+              - 'capture-sidecar'
               - 'test/e2e/**'
               - 'go.work'
               - 'go.work.sum'
@@ -235,10 +232,12 @@ jobs:
               - 'test/e2e/**'
               - 'deploy/kind/**'
               - 'containers/docker-bake.hcl'
-              # mcp-server is a submodule: a pointer bump changes the image the
-              # optional-components e2e loads. 'mcp-server/**' covers any future in-tree files.
+              # Component submodules (hack/submodules.sh, enforced by its
+              # `check` in submodule-freshness): a pointer bump changes an image the e2e loads.
               - 'mcp-server'
-              - 'mcp-server/**'
+              - 'audit-syslog-bridge'
+              - 'tunnel'
+              - 'capture-sidecar'
               - 'hack/trivy-scan-images.sh'
               - 'hack/check-image-scan_test.sh'
             # Narrower than e2etree on purpose: this backs a job that only
@@ -258,7 +257,7 @@ jobs:
             # specs/done_007-capture-overhead-guard/OPEN-DECISIONS.md). Master pushes
             # run it through the e2e gate instead.
             capture_overhead:
-              - 'capture-sidecar/**'
+              - 'capture-sidecar'
               - 'operator/internal/controller/networkcapture*'
               - 'api/internal/handlers/capture*'
               - 'test/e2e/internal/minecraft-java/**'
@@ -269,6 +268,11 @@ jobs:
               - 'modules'
               - 'website'
               - 'mcp-server'
+              - 'audit-syslog-bridge'
+              - 'tunnel'
+              - 'capture-sidecar'
+              - '.gitmodules'
+              - 'hack/submodules.sh'
               - 'hack/check-submodule-freshness.sh'
               - 'hack/check-submodule-freshness_test.sh'
             # Gate scope for codegen drift (spec 013 T007).
@@ -313,6 +317,9 @@ jobs:
               - 'hack/testdata/check-publish-edge-paths/**'
               - '**/Dockerfile*'
               - 'mcp-server'
+              - 'audit-syslog-bridge'
+              - 'tunnel'
+              - 'capture-sidecar'
               - '.hadolint.yaml'
               - 'hack/check-hadolint_test.sh'
               - 'hack/testdata/hadolint/**'
@@ -344,7 +351,6 @@ jobs:
               - 'docs/roadmap.md'
               - 'docs/security.md'
               - 'docs/tunnels.md'
-              - 'audit-syslog-bridge/README.md'
               - 'telemetry-receiver/README.md'
               - 'docs/comparison-sources.md'
               - 'FEATURES.md'
@@ -523,6 +529,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init component submodules
+        run: ./hack/submodules.sh init
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: install libcap2-bin (getcap)
         run: |
@@ -712,8 +720,8 @@ jobs:
       - name: prove the gate fails on a stale types edit
         run: ./hack/check-codegen-drift_test.sh
 
-  # Spec 013 G6 (OD-1): the modules/, website/ and mcp-server/ gitlinks must point at
-  # commits already on each submodule's main branch, so a pointer bump never
+  # Spec 013 G6 (OD-1): every submodule gitlink (modules/, website/ and the
+  # component submodules in .gitmodules) must point at commits already on its main branch, so a pointer bump never
   # lands before its submodule PR merges.
   submodule-freshness:
     name: submodule freshness
@@ -733,6 +741,8 @@ jobs:
         run: ./hack/check-submodule-freshness_test.sh
       - name: submodule pointers are on upstream main
         run: ./hack/check-submodule-freshness.sh
+      - name: component submodules are in the workflow path filters
+        run: ./hack/submodules.sh check
 
   # Spec 028: a PR that adds a move brief under specs/028-split-big-packages/briefs/ must
   # keep every test name and change test files only in the OD-6/OD-9 mechanical ways.
@@ -811,7 +821,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, audit-syslog-bridge, telemetry-receiver, capture-sidecar, svcutil, tunnel, gp-module, test/e2e]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, telemetry-receiver, gp-module, test/e2e]
         exclude: ${{ fromJSON(needs.changes.outputs.lint-exclude) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -897,7 +907,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, audit-syslog-bridge, telemetry-receiver, sentinel, capture-sidecar, svcutil, tunnel, gp-module]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, telemetry-receiver, sentinel, gp-module]
         exclude: ${{ fromJSON(needs.changes.outputs.go-exclude) }}
         arch: [amd64, arm64]
     steps:
@@ -945,13 +955,6 @@ jobs:
           read -r -a packages <<<"$GO_PACKAGES"
           go test -covermode=atomic -coverpkg=./... \
             -coverprofile=coverage/unit.out "${packages[@]}"
-      - name: profile local UDP forwarding against direct echo
-        if: matrix.module == 'tunnel' && matrix.arch == 'amd64' && env.GO_PACKAGES != ''
-        working-directory: tunnel
-        run: |
-          go test -count=1 -v -run '^TestRelayLoadForwardingProfile$' -cpuprofile="$RUNNER_TEMP/relay.cpu" -memprofile="$RUNNER_TEMP/relay.mem" -o "$RUNNER_TEMP/relay.test" .
-          go tool pprof -top -cum -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.cpu"
-          go tool pprof -top -alloc_space -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.mem"
       - name: sentinel mixed-load regression measurements
         if: matrix.module == 'sentinel' && env.GO_PACKAGES != ''
         working-directory: sentinel
@@ -1670,9 +1673,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: init mcp-server submodule
-        # check-publish-edge-paths.sh and its test read mcp-server/Dockerfile.
-        run: git submodule update --init mcp-server
+      - name: init component submodules
+        # check-publish-edge-paths.sh and its test read the component Dockerfiles.
+        run: ./hack/submodules.sh init
       - name: actionlint (download and verify)
         run: |
           set -euo pipefail
@@ -1691,16 +1694,8 @@ jobs:
           "$tmp/actionlint"
       # Spec 013 G3: hadolint over every tracked Dockerfile, at warning and
       # above (.hadolint.yaml). Same pinned-download pattern as actionlint.
-      - name: hadolint (download and verify)
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/hadolint"
-          cd "$RUNNER_TEMP/hadolint"
-          curl -fsSL -o hadolint \
-            https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-x86_64
-          echo "6bf226944684f56c84dd014e8b979d27425c0148f61b3bd99bcc6f39e9dc5a47  hadolint" | sha256sum -c -
-          chmod +x hadolint
-          echo "$RUNNER_TEMP/hadolint" >> "$GITHUB_PATH"
+      - name: install hadolint
+        uses: ./.github/actions/install-hadolint
       - name: prove the Dockerfile lint gate can fail
         run: ./hack/check-hadolint_test.sh
       - name: hadolint

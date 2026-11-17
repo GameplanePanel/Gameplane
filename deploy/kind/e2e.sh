@@ -238,16 +238,8 @@ EOF
             if [ "${img}" = tunnel-frp ]; then
                 dockerfile="${REPO}/tunnel/Dockerfile.frp"
             fi
-            if [ "${img}" = mcp-server ] && [ ! -f "${dockerfile}" ]; then
-                echo "  mcp-server submodule not initialised — running git submodule update --init mcp-server"
-                git -C "${REPO}" submodule update --init mcp-server
-            elif [ "${img}" = mcp-server ]; then
-                expected=$(git -C "${REPO}" rev-parse "HEAD:mcp-server")
-                actual=$(git -C "${REPO}/mcp-server" rev-parse HEAD)
-                if [ "${expected}" != "${actual}" ]; then
-                    echo "  warning: mcp-server checkout ${actual} differs from the recorded gitlink ${expected}; run git submodule update mcp-server" >&2
-                fi
-            fi
+            # Component images build from a submodule (hack/submodules.sh).
+            "${REPO}/hack/submodules.sh" ensure "$(basename "$(dirname "${dockerfile}")")"
             docker build -t "gameplane-test/${img}:${TAG}" -f "${dockerfile}" "${REPO}"
         fi
         kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
