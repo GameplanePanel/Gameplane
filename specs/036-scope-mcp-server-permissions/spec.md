@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-17
 
-**Status**: Draft (open decisions OD-1 to OD-3 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (open decisions OD-2 and OD-3 pending, see `OPEN-DECISIONS.md`)
 
 **Input**: User description: "Scope the MCP server's permissions down from every namespace (`*`) to the Gameplane main namespace and all Gameplane game namespaces. Also include checks on multicluster user permissions, so an MCP client only sees what the calling Gameplane user is allowed to see on each cluster."
 
@@ -48,7 +48,7 @@ A Gameplane user with a namespace-scoped role (for example `servers:read` in `ga
 3. **Given** a user without `templates:read` or `modules:read`, **When** their session lists the cluster-wide GameTemplates, Modules or ModuleSources, **Then** the answer is "permission denied".
 4. **Given** a session for a user who is not a full admin, **When** it asks for pods or logs of Gameplane's own components (API, operator) in the main namespace, **Then** it is denied, in the same way the dashboard's system logs are admin-only.
 5. **Given** a session with no valid Gameplane identity (missing, expired, revoked, or for a deleted or disabled user), **When** any tool is called, **Then** it is refused with a generic "not authenticated" answer that does not reveal whether the account exists.
-6. **Given** an admin changes or removes a user's role while the user has an MCP session open, **When** the session makes its next call, **Then** the new permissions apply. [NEEDS CLARIFICATION: how a session proves which Gameplane user it acts for, see OD-1]
+6. **Given** an admin changes or removes a user's role while the user has an MCP session open, **When** the session makes its next call, **Then** the new permissions apply.
 
 ---
 
@@ -109,7 +109,8 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 
 **Gameplane user permissions**
 
-- **FR-010**: Every MCP session MUST act for exactly one Gameplane user, identified as decided in OD-1, and refuse every tool call without a valid identity.
+- **FR-010**: Every MCP session MUST act for exactly one Gameplane user, identified by a personal MCP token (OD-1), and refuse every tool call without a valid token.
+- **FR-016**: Users MUST be able to create, list and revoke their own personal MCP tokens in the dashboard. A token is read-only, has an expiry, is shown in full only once at creation, and never grants more than its user's current permissions. Admins MUST be able to revoke any user's tokens, and removing a user revokes all of theirs.
 - **FR-011**: Each tool MUST return only data the same user can see in the dashboard, using the same permission keys: GameServers, their pods, events and logs need `servers:read` in the namespace (and pass the server-level ownership checks the dashboard applies); Backups and Restores need `backups:read`; BackupSchedules need `schedules:read`; GameTemplates need `templates:read`; Modules and ModuleSources need `modules:read`.
 - **FR-012**: Pods, events and logs in the main namespace (Gameplane's own components) MUST be readable only by users who can read system logs in the dashboard (full admins).
 - **FR-013**: Permission changes, user removal and session revocation MUST apply to the next tool call of an open MCP session.
@@ -132,7 +133,7 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 ### Key Entities
 
 - **MCP session**: one connection from an MCP client. Acts for one Gameplane user and ends when the client disconnects.
-- **MCP credential**: what a session presents to prove its Gameplane user (shape set by OD-1). Belongs to one user, can be revoked, and never grants more than that user's current permissions.
+- **Personal MCP token** (OD-1): what a session presents to prove its Gameplane user. Belongs to one user, has a name, creation time, expiry and last-used time, can be revoked, and never grants more than that user's current permissions.
 - **Scope**: per cluster, the set of namespaces the server's own identity can read (main namespace plus managed game namespaces).
 - **Effective user permissions**: per cluster, the user's primary role (local cluster) or supplemental grants (remote clusters), with their namespaces. Same source of truth as the dashboard.
 
@@ -151,6 +152,6 @@ When the Gameplane API itself is broken, a cluster admin can still use the MCP s
 - "Gameplane main namespace" means the Helm release namespace (`gameplane-system` by default), where the API and operator run. "All gameplane-games namespaces" means `gamesNamespace` (default `gameplane-games`) plus every entry in `operator.gameNamespaces`.
 - Cluster-scoped Gameplane kinds (GameTemplate, Module, ModuleSource) have no namespace, so they stay readable cluster-wide by kind. They hold no pod logs or Secrets.
 - The Cluster and NetworkCapture kinds stay out of the MCP server's tools, as today.
-- The dashboard's existing permission keys and per-cluster grants are the only source of user permissions. This spec adds no new permission key unless OD-1 needs one for creating MCP credentials.
+- The dashboard's existing permission keys and per-cluster grants are the only source of user permissions. This spec adds no new permission key for managing personal MCP tokens beyond what is needed for users to manage their own (decided in planning).
 - Code changes span the `GameplanePanel/mcp` repo (server) and `GameplanePanel/Gameplane` (chart, API, docs, and the `mcp-server` submodule pointer after mcp PRs merge). Gameplane PR #993, which makes `mcp-server/` a submodule, merges first.
-- Any dashboard screen this needs (for example, creating an MCP credential) is designed in `design.pen` before code, per the design-first rule.
+- Any dashboard screen this needs (the personal MCP token screen) is designed in `design.pen` before code, per the design-first rule.

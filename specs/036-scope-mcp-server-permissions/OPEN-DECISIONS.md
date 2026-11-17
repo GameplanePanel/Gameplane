@@ -1,8 +1,8 @@
 # Open decisions: spec 036 Scope MCP server permissions
 
-All three are OPEN. Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled.
+Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled. OD-1 is settled; OD-2 and OD-3 are open.
 
-## OD-1: How does an MCP session prove which Gameplane user it acts for? (OPEN)
+## OD-1: How does an MCP session prove which Gameplane user it acts for? (SETTLED: A, valgul 2026-11-17)
 
 Today a session has no Gameplane user: it reads with the pod's Kubernetes identity.
 
