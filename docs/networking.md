@@ -285,12 +285,13 @@ adds it to the Service as an external-dns hint
 (`external-dns.alpha.kubernetes.io/hostname`), and on a LoadBalancer server,
 once the load balancer has published an address, `status.endpoints` and the
 dashboard report the hostname in place of that address, with the Service's
-ports. Players then see the name, which keeps working if the load balancer
-hands out a new IP.
+ports. Players then see the name instead of an IP.
 
-The operator doesn't create the DNS record: external-dns does, from the
-hint, or you keep one yourself. A ClusterIP or NodePort server keeps
-reporting its own address.
+The operator doesn't create the DNS record. With external-dns watching
+Services, the record is created from the hint and follows the load balancer
+if it hands out a new IP. A record you keep yourself must be updated by hand
+when that happens, or players reach the old address. A ClusterIP or NodePort
+server keeps reporting its own address.
 
 ## Related
 
