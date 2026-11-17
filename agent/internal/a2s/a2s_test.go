@@ -20,7 +20,7 @@ func infoReply(players, maxPlayers, bots byte) []byte {
 // serve answers each request on a loopback UDP socket with reply(request).
 func serve(t *testing.T, reply func(req []byte) []byte) string {
 	t.Helper()
-	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	pc, err := (&net.ListenConfig{}).ListenPacket(t.Context(), "udp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,6 +89,19 @@ func TestQueryInfoTimeout(t *testing.T) {
 	addr := serve(t, func([]byte) []byte { return nil })
 	if _, err := QueryInfo(addr, 100*time.Millisecond); err == nil {
 		t.Error("want a timeout error")
+	}
+}
+
+func TestQueryInfoBadAddress(t *testing.T) {
+	if _, err := QueryInfo("no-port", time.Second); err == nil || !strings.Contains(err.Error(), "dial") {
+		t.Errorf("err = %v, want a dial error", err)
+	}
+}
+
+func TestQueryInfoMalformedReply(t *testing.T) {
+	addr := serve(t, func([]byte) []byte { return []byte{0xFF, 0xFF, 0xFF, 0xFF, 0x6D} })
+	if _, err := QueryInfo(addr, time.Second); err == nil || !strings.Contains(err.Error(), "header") {
+		t.Errorf("err = %v, want an unexpected-header error", err)
 	}
 }
 

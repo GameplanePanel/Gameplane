@@ -396,7 +396,7 @@ func TestQueryPlayerCounts_WithRegex(t *testing.T) {
 // and returns that port.
 func a2sServer(t *testing.T, playersN, maxN, bots byte) int {
 	t.Helper()
-	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	pc, err := (&net.ListenConfig{}).ListenPacket(t.Context(), "udp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -437,7 +437,7 @@ func TestQueryPlayerCounts_A2S(t *testing.T) {
 func TestQueryPlayerCounts_A2SErrors(t *testing.T) {
 	// Nothing listens on a closed socket's port, so the query fails rather
 	// than reporting 0: an unreachable server is unknown, not empty.
-	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	pc, err := (&net.ListenConfig{}).ListenPacket(t.Context(), "udp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}

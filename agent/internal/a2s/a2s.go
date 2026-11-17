@@ -19,6 +19,7 @@ package a2s
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -62,7 +63,8 @@ func (i Info) Humans() int {
 // QueryInfo sends A2S_INFO to addr (host:port) and parses the reply. The
 // timeout bounds the whole exchange, challenge round trips included.
 func QueryInfo(addr string, timeout time.Duration) (Info, error) {
-	conn, err := net.DialTimeout("udp", addr, timeout)
+	dialer := net.Dialer{Timeout: timeout}
+	conn, err := dialer.DialContext(context.Background(), "udp", addr)
 	if err != nil {
 		return Info{}, fmt.Errorf("a2s dial %s: %w", addr, err)
 	}
