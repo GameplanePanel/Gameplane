@@ -187,6 +187,48 @@ func TestStoragePoolInventory_SelectedPoolAndPVScope(t *testing.T) {
 	}
 }
 
+func TestStoragePoolInventory_WholeByteQuantities(t *testing.T) {
+	const annotation = `{"provider":"openebs-lvm","namespace":"openebs","volumeGroup":"game-vg","thinPool":"game-vg_thinpool","storageClasses":["games"]}`
+	for _, route := range []string{"/cluster/stats", "/fleet/inventory"} {
+		for _, quantity := range []struct {
+			name string
+			size string
+			want int64
+		}{
+			{"fractional binary unit", "1.5Gi", 1610612736},
+			{"decimal binary mantissa", "320.0Gi", 343597383680},
+			{"large canonical binary unit", "128Ti", 140737488355328},
+			{"integer beyond float precision", "9007199254740993", 9007199254740993},
+			{"maximum integer bytes", "9223372036854775807", 9223372036854775807},
+		} {
+			for _, field := range []string{"pool", "PV"} {
+				t.Run(route+"/"+quantity.name+"/"+field, func(t *testing.T) {
+					// Exercise pool and PV conversion independently: the other input
+					// keeps a known-good quantity so one failure cannot hide the other.
+					poolSize, pvSize := "320Gi", "7Gi"
+					wantCapacity, wantProvisioned := int64(343597383680), int64(7516192768)
+					if field == "pool" {
+						poolSize, wantCapacity = quantity.size, quantity.want
+					} else {
+						pvSize, wantProvisioned = quantity.size, quantity.want
+					}
+					remote := fleetTestClient(inventoryNamedPoolObjectFixture("worker-1", "game-vg", "game-vg_thinpool", poolSize))
+					remote.Typed = kubefake.NewClientset(
+						inventoryPoolNodeFixture("worker-1", annotation),
+						inventoryPoolPVFixture("game-data", pvSize, "games", "game-vg", "worker-1", corev1.VolumeBound),
+					)
+					rr, home := inventoryPoolRequestFixture(t, route, remote, inventoryUser("remote", "*", "cluster:read"))
+					stats := inventoryPoolDecodeFixture(t, route, rr)
+					if stats.TotalStorageBytes != wantCapacity || stats.UsedStorageBytes != wantProvisioned || stats.StorageCapacitySource != "openebs-lvm" {
+						t.Fatalf("whole-byte %s quantity %q: got %+v, want capacity=%d provisioned=%d", field, quantity.size, stats, wantCapacity, wantProvisioned)
+					}
+					inventoryPoolNoHomeReadFixture(t, home)
+				})
+			}
+		}
+	}
+}
+
 func inventoryNamedPoolObjectFixture(node, volumeGroup, thinPool, size string) *unstructured.Unstructured {
 	return &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "local.openebs.io/v1alpha1", "kind": "LVMNode",
@@ -312,6 +354,10 @@ func TestStoragePoolInventory_ConfiguredFailuresDoNotFallback(t *testing.T) {
 			{name: "invalid size field type", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, true) }},
 			{name: "invalid quantity", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "not-a-quantity") }},
 			{name: "zero capacity", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "0") }},
+			{name: "negative pool capacity", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "-1Gi") }},
+			{name: "fractional pool bytes", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "500m") }},
+			{name: "fractional binary pool bytes", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "0.1Ki") }},
+			{name: "raw binary pool overflow", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "8Ei") }},
 			{name: "quantity overflow", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "9223372036854775808") }},
 			{name: "missing thin pool", modify: func(p *unstructured.Unstructured) { p.Object["volumeGroups"] = []any{} }},
 			{name: "duplicate matching VG", modify: func(p *unstructured.Unstructured) {
