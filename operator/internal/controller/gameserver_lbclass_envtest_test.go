@@ -123,3 +123,67 @@ func TestGameServer_LoadBalancerClassUnsetKeepsTheService(t *testing.T) {
 		return true, ""
 	})
 }
+
+// TestGameServer_LoadBalancerClassAddedToAnExistingService — a server that
+// was already a LoadBalancer without a class gets a new Service with the
+// class once one is requested, since Kubernetes rejects adding a class to an
+// existing LoadBalancer Service.
+func TestGameServer_LoadBalancerClassAddedToAnExistingService(t *testing.T) {
+	ns := newNamespace(t)
+	startMgr(t, ns, withGameServerReconciler(t, ns))
+
+	tmpl := buildGameTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "smp", tmpl.Name)
+	gs.Spec.Networking = gameplanev1alpha1.GameServerNetworking{Expose: "LoadBalancer"}
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+
+	key := types.NamespacedName{Namespace: ns, Name: "smp"}
+	var firstUID types.UID
+	eventually(t, func() (bool, string) {
+		var svc corev1.Service
+		if err := k8sClient.Get(context.Background(), key, &svc); err != nil {
+			return false, err.Error()
+		}
+		if svc.Spec.Type != corev1.ServiceTypeLoadBalancer {
+			return false, "not a LoadBalancer yet"
+		}
+		if svc.Spec.LoadBalancerClass != nil {
+			return false, "unexpected class"
+		}
+		firstUID = svc.UID
+		return true, ""
+	})
+
+	class := "example.com/added"
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var cur gameplanev1alpha1.GameServer
+		if err := k8sClient.Get(context.Background(), key, &cur); err != nil {
+			return err
+		}
+		cur.Spec.Networking.LoadBalancerClass = &class
+		return k8sClient.Update(context.Background(), &cur)
+	}); err != nil {
+		t.Fatalf("update class: %v", err)
+	}
+
+	eventually(t, func() (bool, string) {
+		var svc corev1.Service
+		if err := k8sClient.Get(context.Background(), key, &svc); err != nil {
+			return false, err.Error()
+		}
+		if svc.UID == firstUID {
+			return false, "Service not replaced yet"
+		}
+		if svc.Spec.LoadBalancerClass == nil || *svc.Spec.LoadBalancerClass != class {
+			return false, "new Service lacks the class"
+		}
+		return true, ""
+	})
+}

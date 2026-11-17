@@ -725,6 +725,7 @@ func (r *GameServerReconciler) reconcileService(
 		ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace},
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, svc, func() error {
+		wasLoadBalancer := svc.ResourceVersion != "" && svc.Spec.Type == corev1.ServiceTypeLoadBalancer
 		svc.Spec.Type = corev1.ServiceTypeClusterIP
 		switch gs.Spec.Networking.Expose {
 		case "NodePort":
@@ -733,10 +734,12 @@ func (r *GameServerReconciler) reconcileService(
 			svc.Spec.Type = corev1.ServiceTypeLoadBalancer
 		}
 		// The class can only be set as the Service becomes a LoadBalancer
-		// (Kubernetes clears it when it stops being one), so it is set only
-		// when the Service has none; a different one is handled above.
-		if svc.Spec.Type == corev1.ServiceTypeLoadBalancer &&
-			gs.Spec.Networking.LoadBalancerClass != nil && svc.Spec.LoadBalancerClass == nil {
+		// (Kubernetes clears it when it stops being one, and rejects any
+		// change after that), so it is set only on that transition. An
+		// existing LoadBalancer with another class, or none, is replaced
+		// above.
+		if svc.Spec.Type == corev1.ServiceTypeLoadBalancer && !wasLoadBalancer &&
+			gs.Spec.Networking.LoadBalancerClass != nil {
 			class := *gs.Spec.Networking.LoadBalancerClass
 			svc.Spec.LoadBalancerClass = &class
 		}
@@ -788,8 +791,9 @@ func (r *GameServerReconciler) reconcileService(
 var errServiceReplaced = errors.New("replacing the Service for a loadBalancerClass change")
 
 // replaceServiceForClassChange deletes the game Service when the GameServer
-// asks for a different loadBalancerClass than the Service has, since
-// Kubernetes doesn't allow changing a Service's class. The next reconcile
+// asks for a different loadBalancerClass than the Service has, including a
+// LoadBalancer Service with no class, since Kubernetes doesn't allow
+// changing or adding a LoadBalancer Service's class. The next reconcile
 // creates the Service again, with the new class. An unset class never
 // replaces a Service, so a class set by something else (an admission
 // policy, an older operator) is kept.
@@ -810,8 +814,8 @@ func (r *GameServerReconciler) replaceServiceForClassChange(
 	if !svc.DeletionTimestamp.IsZero() {
 		return errServiceReplaced
 	}
-	if svc.Spec.Type != corev1.ServiceTypeLoadBalancer || svc.Spec.LoadBalancerClass == nil ||
-		*svc.Spec.LoadBalancerClass == *want {
+	if svc.Spec.Type != corev1.ServiceTypeLoadBalancer ||
+		(svc.Spec.LoadBalancerClass != nil && *svc.Spec.LoadBalancerClass == *want) {
 		return nil
 	}
 	if !metav1.IsControlledBy(&svc, gs) {

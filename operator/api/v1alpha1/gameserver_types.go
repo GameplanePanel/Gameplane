@@ -334,9 +334,11 @@ type GameServerNetworking struct {
 	// effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
 	// Service's class, so when this changes the operator replaces the
 	// Service, which gets a new cluster IP and, usually, a new external
-	// address. Unset leaves the Service's class as it is.
+	// address. Unset leaves the Service's class as it is. The value is a
+	// Kubernetes qualified name: an optional DNS-subdomain prefix and a
+	// slash, then a name of at most 63 characters.
 	// +kubebuilder:validation:MaxLength=253
-	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$`
+	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?$`
 	// +optional
 	LoadBalancerClass *string `json:"loadBalancerClass,omitempty"`
 

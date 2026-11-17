@@ -311,11 +311,15 @@ LoadBalancer server to pick one; it becomes the Service's
 `spec.loadBalancerClass`. Unset, the Service has no class, and the cluster's
 default implementation handles it.
 
-Kubernetes doesn't allow changing a Service's class, so when the field
-changes, the operator deletes the Service and creates it again with the new
-class. The server keeps running, but its Service gets a new cluster IP and,
+Kubernetes doesn't allow changing a Service's class, or adding one to a
+LoadBalancer Service that has none, so when the field is set or changes, the
+operator deletes the Service and creates it again with the new class. The server keeps running, but its Service gets a new cluster IP and,
 usually, a new external address, so players reconnect. Removing the field
-leaves the Service's class as it is until the Service is next replaced.
+leaves the Service's class as it is until the Service is next replaced. The
+class is a Kubernetes qualified name, such as `example.com/games`: the part
+after the slash is at most 63 characters. The dashboard doesn't edit the
+class, and keeps it when you save other networking settings; set it through
+the API or `kubectl`.
 
 An address pool or address (`addressPool`, `address`) is a request to the
 configured address manager; a Service of another class is outside that

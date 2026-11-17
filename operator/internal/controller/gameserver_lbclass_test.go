@@ -17,8 +17,8 @@ import (
 )
 
 // TestReplaceServiceForClassChange — only a controlled LoadBalancer Service
-// whose class differs from the requested one is deleted; every other case
-// keeps the Service.
+// whose class differs from the requested one, or which has none, is deleted;
+// every other case keeps the Service.
 func TestReplaceServiceForClassChange(t *testing.T) {
 	first, second := "example.com/first", "example.com/second"
 	lbService := func(class *string) *corev1.Service {
@@ -40,7 +40,7 @@ func TestReplaceServiceForClassChange(t *testing.T) {
 		{name: "not a LoadBalancer server", expose: "ClusterIP", want: &second, svc: lbService(&first), controlled: true},
 		{name: "no Service yet", expose: "LoadBalancer", want: &second},
 		{name: "same class", expose: "LoadBalancer", want: &first, svc: lbService(&first), controlled: true},
-		{name: "Service without a class", expose: "LoadBalancer", want: &second, svc: lbService(nil), controlled: true},
+		{name: "Service without a class", expose: "LoadBalancer", want: &second, svc: lbService(nil), controlled: true, wantErr: errServiceReplaced, wantGone: true},
 		{name: "ClusterIP Service", expose: "LoadBalancer", want: &second, svc: &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{Name: "server", Namespace: "games"},
 			Spec:       corev1.ServiceSpec{Type: corev1.ServiceTypeClusterIP},
