@@ -9067,6 +9067,14 @@
     "defaultMessage": "Loading…",
     "description": "Players: shown while the player list is loading"
   },
+  "web.routes.tabs.players.loading_operators": {
+    "defaultMessage": "Loading operators…",
+    "description": "Players: loading state for the configured operator list"
+  },
+  "web.routes.tabs.players.no_operators": {
+    "defaultMessage": "No operators configured.",
+    "description": "Players: empty state for the configured operator list"
+  },
   "web.routes.tabs.players.nobody_is_banned": {
     "defaultMessage": "Nobody is banned.",
     "description": "Players tab: empty-state text in the banned section when no player is banned"
@@ -9090,6 +9098,14 @@
   "web.routes.tabs.players.online_of_max_heading": {
     "defaultMessage": "{online} / {max} online",
     "description": "Players: heading with the online count and the player slot limit; {online} is the number of players online and {max} the slot limit"
+  },
+  "web.routes.tabs.players.operators": {
+    "defaultMessage": "Operators",
+    "description": "Players: stat label and heading for the read-only configured operator list"
+  },
+  "web.routes.tabs.players.operators_unavailable": {
+    "defaultMessage": "Could not load operators. Refresh to try again.",
+    "description": "Players: error when the configured operator list cannot be read"
   },
   "web.routes.tabs.players.player_id_in_parens": {
     "defaultMessage": "({playerId})",
@@ -9126,6 +9142,10 @@
   "web.routes.tabs.players.source_reason_separator": {
     "defaultMessage": "·",
     "description": "Players: separator between the ban source and the ban reason"
+  },
+  "web.routes.tabs.players.unavailable": {
+    "defaultMessage": "Player information is unavailable.",
+    "description": "Players: shown when live player information could not be loaded"
   },
   "web.routes.tabs.players.unban": {
     "defaultMessage": "Unban",

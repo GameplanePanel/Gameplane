@@ -317,8 +317,9 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - Check one or more paths to download a ZIP, create a ZIP in the current directory, or confirm deletion. The file manager identifies failed paths and keeps them selected.
    - New file uses POST `/files/create` with the encoded path, namespace/cluster scope, credentials and CSRF headers. The agent atomically refuses existing entries with 409; a conflict or unsupported older agent/gateway keeps the prompt open, shows the error and does not select a file or invalidate the list. Never fall back to `/files/write`; editor saves and uploads retain overwrite behavior.
 
-6. **Players** (`web/src/routes/tabs/Players.tsx`, 386 lines)
-   - Online player snapshot, ban list, whitelist management
+6. **Players** (`web/src/routes/tabs/Players.tsx`)
+   - Online player snapshot, ban list, whitelist management, and a read-only configured Operators list with its own count. Operators show names and optional UUIDs, including offline entries; loading, empty, and failed reads are distinct. Refresh reloads the snapshot and all supported lists. Failed operator reads hide previously loaded identities until a successful refresh.
+   - Operators require scoped `servers:read`, owner, or collaborator access and the agent's capability. When the initial RCON snapshot fails without an authorization error, the operator endpoint can discover support independently; 404/501 hide unsupported older agents or games until an explicit Refresh probes again. Authorization failures do not trigger discovery, and operator reads do not retry automatically.
    - Rows come from `playerRows()` (`web/src/lib/players.ts`): when the snapshot carries `entries` (Nuclear Option), each row shows the display name, or the raw Steam ID in muted text when none resolved, plus a faction chip; otherwise rows render the flat `players` strings unchanged. The Overview `PlayersCard` uses the same rows (label only, no faction).
    - Kick/ban always send the row's Steam ID, never the rendered display name
    - Player count summary via ui/ StatCard (line 15)
@@ -970,7 +971,7 @@ Visible tab set depends on server template + active version:
 5. **Files** — Browser and editor for server data files (config, save games, logs)
 6. **Mods** — List/install/remove mods; browse by registry provider (Modrinth, CurseForge, etc.) if template declares one
 7. **Modpacks** — Install modpacks (only if template + active version supports loader with modpack capability)
-8. **Players** — Online player snapshot, ban list, whitelist, kick/ban/unban actions
+8. **Players** — Online player snapshot, configured operator identities, ban list, whitelist, kick/ban/unban actions
 9. **Backups** — Per-server backup list, schedule management, restore trigger; reads backup repository URL from Secret `key: "repo"`
 10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:127-175`) and router/tab wiring (`ServerDetail.tsx:278`) are implemented in `web/src`.
 11. **Settings** — Grouped form with sub-sections (below); changes are draft-until-save; conflict detection on reload
