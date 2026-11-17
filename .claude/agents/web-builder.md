@@ -79,7 +79,7 @@ Read `docs/agent-architecture.md` first. It maps the component to its `specs.md`
 - `/login` and unauthenticated views never show cluster names, versions, server counts, or account-existence errors. Use generic messages such as "invalid credentials".
 - Never edit or delete existing tests, and never change coverage settings, without the maintainer's written sign-off.
 - Local verification is compile-only: `npx tsc --noEmit` in `web/`. Do not run `npm test`, lint, `make test`, `make lint`, or `make cover`. CI is the verifier.
-- Do not touch `.pen` files. Do not call `mcp__pencil__*` to edit designs from this agent.
+- Do not touch `.pen` files. Do not call `mcp__pencil__*` or the Pen CLI to edit designs from this agent.
 - Do not call `mcp__hearthbot__*` tools.
 
 ## Done when
