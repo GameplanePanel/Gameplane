@@ -146,6 +146,43 @@ func inventoryPoolNoHomeReadFixture(t *testing.T, home *kube.Client) {
 	}
 }
 
+func inventoryPoolUnavailableFixture(t *testing.T, route string, rr *httptest.ResponseRecorder) {
+	t.Helper()
+	if route == "/cluster/stats" {
+		if rr.Code != http.StatusServiceUnavailable {
+			t.Fatalf("want unavailable stats: status=%d body=%s", rr.Code, rr.Body)
+		}
+	} else {
+		var fleet inventoryPoolFleetWire
+		if rr.Code != http.StatusOK || json.Unmarshal(rr.Body.Bytes(), &fleet) != nil || !fleet.Partial || len(fleet.Items) != 0 || len(fleet.Issues) != 1 || fleet.Issues[0].Cluster != "remote" || fleet.Issues[0].Code != "unavailable" {
+			t.Fatalf("want partial unavailable inventory: status=%d body=%s", rr.Code, rr.Body)
+		}
+	}
+	for _, detail := range []string{"pool-node", "second-node", "openebs-chicago-1"} {
+		if strings.Contains(rr.Body.String(), detail) {
+			t.Fatalf("unavailable response leaked placement details: %s", rr.Body)
+		}
+	}
+}
+
+func inventoryPoolOnlyNamedReadFixture(t *testing.T, client *kube.Client, node string) {
+	t.Helper()
+	lookups := 0
+	for _, action := range client.Dynamic.(*dynamicfake.FakeDynamicClient).Actions() {
+		if action.GetResource().Resource != "lvmnodes" {
+			continue
+		}
+		get, ok := action.(kubetesting.GetAction)
+		if !ok || action.GetVerb() != "get" || action.GetNamespace() != "openebs" || get.GetName() != node {
+			t.Fatalf("pool read exceeded selected named GET: %v", action)
+		}
+		lookups++
+	}
+	if lookups != 1 {
+		t.Fatalf("want one named pool GET, got %d", lookups)
+	}
+}
+
 func TestStoragePoolInventory_SelectedPoolAndPVScope(t *testing.T) {
 	for _, route := range []string{"/cluster/stats", "/fleet/inventory"} {
 		for _, quantity := range []struct {
@@ -530,7 +567,95 @@ func TestStoragePoolInventory_NodeAffinityBooleanScope(t *testing.T) {
 	}
 }
 
+func TestStoragePoolInventory_LongNodeNameFieldAffinity(t *testing.T) {
+	name := strings.Repeat("worker", 10) + ".example"
+	otherName := strings.Repeat("other", 12) + ".example"
+	for _, route := range []string{"/cluster/stats", "/fleet/inventory"} {
+		for _, tc := range []struct {
+			name     string
+			operator corev1.NodeSelectorOperator
+			value    string
+			want     int64
+		}{
+			{"In matches", corev1.NodeSelectorOpIn, name, 7 << 30},
+			{"In excludes", corev1.NodeSelectorOpIn, otherName, 0},
+			{"NotIn matches", corev1.NodeSelectorOpNotIn, otherName, 7 << 30},
+			{"NotIn excludes", corev1.NodeSelectorOpNotIn, name, 0},
+		} {
+			t.Run(route+"/"+tc.name, func(t *testing.T) {
+				node := inventoryPoolNodeFixture(name, inventoryPoolAnnotationFixture)
+				// Node names are DNS subdomains, while label values are limited
+				// to 63 characters. Keep labels valid to isolate field matching.
+				node.Labels = map[string]string{"openebs.io/nodename": "worker", "kubernetes.io/hostname": "worker"}
+				pv := inventoryPoolPVFixture("game-data", "7Gi", "openebs-lvm", "openebs-chicago-1", "worker", corev1.VolumeBound)
+				pv.Spec.NodeAffinity.Required.NodeSelectorTerms = []corev1.NodeSelectorTerm{{
+					MatchFields: []corev1.NodeSelectorRequirement{{Key: "metadata.name", Operator: tc.operator, Values: []string{tc.value}}},
+				}}
+				remote := fleetTestClient(inventoryPoolObjectFixture(name, "320Gi"))
+				remote.Typed = kubefake.NewClientset(node, pv)
+				rr, home := inventoryPoolRequestFixture(t, route, remote, inventoryUser("remote", "*", "cluster:read"))
+				stats := inventoryPoolDecodeFixture(t, route, rr)
+				if stats.TotalStorageBytes != 320<<30 || stats.UsedStorageBytes != tc.want || stats.StorageCapacitySource != "openebs-lvm" {
+					t.Fatalf("long node-name field affinity: got %+v, want provisioned=%d", stats, tc.want)
+				}
+				inventoryPoolOnlyNamedReadFixture(t, remote, name)
+				inventoryPoolNoHomeReadFixture(t, home)
+			})
+		}
+	}
+}
+
+func TestStoragePoolInventory_UnannotatedNodePlacementScope(t *testing.T) {
+	term := func(names ...string) corev1.NodeSelectorTerm {
+		return corev1.NodeSelectorTerm{MatchExpressions: []corev1.NodeSelectorRequirement{{Key: "openebs.io/nodename", Operator: corev1.NodeSelectorOpIn, Values: names}}}
+	}
+	broad := []corev1.NodeSelectorTerm{term("pool-node", "second-node")}
+	for _, route := range []string{"/cluster/stats", "/fleet/inventory"} {
+		for _, tc := range []struct {
+			name        string
+			terms       []corev1.NodeSelectorTerm
+			modify      func(*corev1.PersistentVolume)
+			unavailable bool
+			want        int64
+		}{
+			{name: "label In selected and unannotated nodes", terms: broad, unavailable: true},
+			{name: "OR selected and unannotated nodes", terms: []corev1.NodeSelectorTerm{term("pool-node"), term("second-node")}, unavailable: true},
+			{name: "only unannotated node", terms: []corev1.NodeSelectorTerm{term("second-node")}},
+			{name: "repeated OR selected node", terms: []corev1.NodeSelectorTerm{term("pool-node"), term("pool-node")}, want: 7 << 30},
+			{name: "unrelated class broad affinity", terms: broad, modify: func(p *corev1.PersistentVolume) { p.Spec.StorageClassName = "other-class" }},
+			{name: "unrelated VG broad affinity", terms: broad, modify: func(p *corev1.PersistentVolume) { p.Spec.CSI.VolumeAttributes["openebs.io/volgroup"] = "other-vg" }},
+			{name: "unrelated driver broad affinity", terms: broad, modify: func(p *corev1.PersistentVolume) { p.Spec.CSI.Driver = "unrelated.csi.example" }},
+		} {
+			t.Run(route+"/"+tc.name, func(t *testing.T) {
+				pv := inventoryPoolPVFixture("game-data", "7Gi", "openebs-lvm", "openebs-chicago-1", "pool-node", corev1.VolumeBound)
+				pv.Spec.NodeAffinity.Required.NodeSelectorTerms = tc.terms
+				if tc.modify != nil {
+					tc.modify(pv)
+				}
+				remote := fleetTestClient(inventoryPoolObjectFixture("pool-node", "320Gi"))
+				remote.Typed = kubefake.NewClientset(inventoryPoolNodeFixture("pool-node", inventoryPoolAnnotationFixture), inventoryPoolNodeFixture("second-node", ""), pv)
+				rr, home := inventoryPoolRequestFixture(t, route, remote, inventoryUser("remote", "*", "cluster:read"))
+				if tc.unavailable {
+					inventoryPoolUnavailableFixture(t, route, rr)
+				} else {
+					stats := inventoryPoolDecodeFixture(t, route, rr)
+					if stats.Nodes != 2 || stats.TotalStorageBytes != 320<<30 || stats.UsedStorageBytes != tc.want || stats.StorageCapacitySource != "openebs-lvm" {
+						t.Fatalf("unannotated node placement: got %+v, want provisioned=%d", stats, tc.want)
+					}
+				}
+				inventoryPoolOnlyNamedReadFixture(t, remote, "pool-node")
+				inventoryPoolNoHomeReadFixture(t, home)
+			})
+		}
+	}
+}
+
 func TestStoragePoolInventory_InvalidVolumeMetadataUnavailable(t *testing.T) {
+	field := func(operator corev1.NodeSelectorOperator, values ...string) func(*corev1.PersistentVolume) {
+		return func(p *corev1.PersistentVolume) {
+			p.Spec.NodeAffinity.Required.NodeSelectorTerms = []corev1.NodeSelectorTerm{{MatchFields: []corev1.NodeSelectorRequirement{{Key: "metadata.name", Operator: operator, Values: values}}}}
+		}
+	}
 	for _, route := range []string{"/cluster/stats", "/fleet/inventory"} {
 		for _, tc := range []struct {
 			name    string
@@ -551,6 +676,11 @@ func TestStoragePoolInventory_InvalidVolumeMetadataUnavailable(t *testing.T) {
 			{name: "invalid node field requirement", modify: func(p *corev1.PersistentVolume) {
 				p.Spec.NodeAffinity.Required.NodeSelectorTerms = []corev1.NodeSelectorTerm{{MatchFields: []corev1.NodeSelectorRequirement{{Key: "metadata.name", Operator: corev1.NodeSelectorOpIn}}}}
 			}},
+			{name: "node field Exists operator", modify: field(corev1.NodeSelectorOpExists)},
+			{name: "node field Gt operator", modify: field(corev1.NodeSelectorOpGt, "1")},
+			{name: "node field In multiple values", modify: field(corev1.NodeSelectorOpIn, "pool-node", "second-node")},
+			{name: "node field NotIn multiple values", modify: field(corev1.NodeSelectorOpNotIn, "other-node", "second-node")},
+			{name: "node field NotIn missing value", modify: field(corev1.NodeSelectorOpNotIn)},
 			{name: "negative PV capacity", modify: func(p *corev1.PersistentVolume) { p.Spec.Capacity[corev1.ResourceStorage] = resource.MustParse("-1Gi") }},
 			{name: "fractional PV bytes", modify: func(p *corev1.PersistentVolume) { p.Spec.Capacity[corev1.ResourceStorage] = resource.MustParse("500m") }},
 			{name: "unrepresentable PV capacity", modify: func(p *corev1.PersistentVolume) {
