@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -333,7 +334,7 @@ func TestQueryPlayerCounts(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := Config{RCON: fakeRcon{out: tc.out, err: tc.err}}
-			n, maxN, err := queryPlayerCounts(cfg)
+			n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 			if (err == nil) != tc.ok {
 				t.Fatalf("err=%v ok=%v", err, tc.ok)
 			}
@@ -354,7 +355,7 @@ func TestQueryPlayerCounts_CustomCommand(t *testing.T) {
 			Command: "mylist",
 		},
 	}
-	n, maxN, err := queryPlayerCounts(cfg)
+	n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 	if err != nil {
 		t.Fatalf("queryPlayerCounts: %v", err)
 	}
@@ -379,7 +380,7 @@ func TestQueryPlayerCounts_WithRegex(t *testing.T) {
 		},
 		PlayerListRE: re,
 	}
-	n, maxN, err := queryPlayerCounts(cfg)
+	n, maxN, err := queryPlayerCounts(t.Context(), cfg)
 	if err != nil {
 		t.Fatalf("queryPlayerCounts: %v", err)
 	}
@@ -388,6 +389,69 @@ func TestQueryPlayerCounts_WithRegex(t *testing.T) {
 	}
 	if maxN != -1 {
 		t.Fatalf("max got %d, want -1", maxN)
+	}
+}
+
+// a2sServer answers A2S_INFO on a loopback UDP port with the given counts,
+// and returns that port.
+func a2sServer(t *testing.T, playersN, maxN, bots byte) int {
+	t.Helper()
+	pc, err := (&net.ListenConfig{}).ListenPacket(t.Context(), "udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = pc.Close() })
+	reply := append([]byte{0xFF, 0xFF, 0xFF, 0xFF, 0x49, 17}, "Server\x00Map\x00valheim\x00Valheim\x00\x00\x00"...)
+	reply = append(reply, playersN, maxN, bots)
+	go func() {
+		buf := make([]byte, 1500)
+		for {
+			_, addr, err := pc.ReadFrom(buf)
+			if err != nil {
+				return
+			}
+			_, _ = pc.WriteTo(reply, addr)
+		}
+	}()
+	return pc.LocalAddr().(*net.UDPAddr).Port
+}
+
+func TestQueryPlayerCounts_A2S(t *testing.T) {
+	cfg := Config{
+		// The query replaces the console: a console answer must be ignored.
+		RCON:        fakeRcon{out: "There are 9 of a max of 99 players online:"},
+		PlayerQuery: &caps.PlayerQuery{Protocol: "a2s", Port: a2sServer(t, 3, 10, 1)},
+	}
+	n, maxN, err := queryPlayerCounts(t.Context(), cfg)
+	if err != nil {
+		t.Fatalf("queryPlayerCounts: %v", err)
+	}
+	if n != 2 {
+		t.Fatalf("online got %d, want 2 (bots don't count)", n)
+	}
+	if maxN != 10 {
+		t.Fatalf("max got %d, want 10", maxN)
+	}
+}
+
+func TestQueryPlayerCounts_A2SErrors(t *testing.T) {
+	// Nothing listens on a closed socket's port, so the query fails rather
+	// than reporting 0: an unreachable server is unknown, not empty.
+	pc, err := (&net.ListenConfig{}).ListenPacket(t.Context(), "udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	closedPort := pc.LocalAddr().(*net.UDPAddr).Port
+	_ = pc.Close()
+	for name, q := range map[string]*caps.PlayerQuery{
+		"unreachable":      {Protocol: "a2s", Port: closedPort},
+		"unknown protocol": {Protocol: "gamespy", Port: closedPort},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, _, err := queryPlayerCounts(t.Context(), Config{PlayerQuery: q}); err == nil {
+				t.Fatal("want an error")
+			}
+		})
 	}
 }
 

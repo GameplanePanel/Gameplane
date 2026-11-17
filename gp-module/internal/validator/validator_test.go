@@ -964,3 +964,64 @@ spec:
 		t.Errorf("got %d envName findings, want %d: %v", len(msgs), len(want), msgs)
 	}
 }
+
+func TestValidate_PlayerQueryPort(t *testing.T) {
+	t.Parallel()
+	template := func(queryPort string) []byte {
+		return []byte(`apiVersion: gameplane.io/v1alpha1
+kind: GameTemplate
+metadata:
+  name: test-mod
+spec:
+  image: "example.com/img@sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  ports:
+    - name: game
+      containerPort: 2456
+      protocol: UDP
+    - name: query
+      containerPort: 2457
+      protocol: UDP
+    - name: status
+      containerPort: 80
+      protocol: TCP
+  capabilities:
+    players:
+      query:
+        protocol: a2s
+        port: ` + queryPort + "\n")
+	}
+	cases := map[string]bool{
+		"2457": false, // a declared UDP port
+		"80":   true,  // declared, but TCP
+		"9999": true,  // not declared
+	}
+	for port, wantFinding := range cases {
+		t.Run(port, func(t *testing.T) {
+			t.Parallel()
+			files := map[string][]byte{
+				"module.yaml": []byte(`apiVersion: gameplane.local/module/v1
+name: test-mod
+displayName: Test Mod
+version: 1.0.0
+game: test
+summary: Test
+`),
+				"template.yaml": template(port),
+				"README.md":     []byte("# Test\n"),
+			}
+			report, err := ValidateFiles("test-mod", files, ValidateOptions{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := false
+			for _, f := range report.Findings {
+				if f.Field == "spec.capabilities.players.query.port" {
+					got = true
+				}
+			}
+			if got != wantFinding {
+				t.Errorf("port %s: query finding = %v, want %v (findings: %+v)", port, got, wantFinding, report.Findings)
+			}
+		})
+	}
+}
