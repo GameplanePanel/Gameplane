@@ -28,6 +28,10 @@ for a configured Minecraft Java checkpoint adapter. Its pod-bound
 - **Console & RCON**: Duplex WebSocket forwarding user commands to the game via RCON and echoing responses; supports Valve/Source, Telnet, WebSocket, BattlEye, Satisfactory, and Palworld protocols.
 - **File I/O**: List, read, download, upload, write, mkdir, delete within the `/data` volume; reject path traversal and any symlink traversal; every operation runs through directory descriptors rooted at the data directory, so it cannot be redirected by a concurrent filesystem change.
 
+  GET `/files/list` returns directories before non-directory entries, with each
+  group sorted by name. The same ordering applies to every directory and repeat
+  request; symlinks remain non-directory entries and are never followed.
+
   GET `/files/archive` builds a downloadable ZIP of repeated `path` parameters.
   POST with a `dest` creates a new ZIP atomically. Archive names are relative to
   the common parent and retain directory structure. The agent refuses protected
