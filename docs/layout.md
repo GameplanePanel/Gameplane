@@ -95,7 +95,7 @@ makes.
 | `api` | Service | `cmd/main.go` + `internal/<concern>/` | `cmd/` holds 9 non-test files (bootstrap, gateway, health, main, management, memlimit, metrics, panel_key, workers) → keep wiring in `cmd/`, move behavior to `internal/<concern>/`; second binary `cmd/messages-export/` matches; `internal/handlers/` is one flat package of 159 `.go` files, 51 of them non-test (spec 028 splits it) |
 | `audit-syslog-bridge` | Service | `cmd/main.go` + `internal/<concern>/` | 3 files in root `package main` (`main.go` 460 lines) → `cmd/main.go` + `internal/<concern>/` |
 | `capture-sidecar` | Service | `cmd/main.go` + `internal/<concern>/` | matches |
-| `mcp-server` | Service | `cmd/main.go` + `internal/<concern>/` | root `package main` (`main.go`, `tools.go`, `fixadvice.go`) → `cmd/main.go` + `internal/<concern>/`; `internal/kube/` matches |
+| `mcp-server` | Service | `cmd/main.go` + `internal/<concern>/` | root `package main` (`main.go`, `tools.go`, `fixadvice.go`) → `cmd/main.go` + `internal/<concern>/`; `internal/kube/` matches. Lives in the `GameplanePanel/mcp` submodule; the layout is tracked there. |
 | `operator` | Service | `cmd/main.go` + `internal/<concern>/` | matches; `internal/controller/` is one flat package of 221 `.go` files, 65 of them non-test (spec 028 splits it); `api/v1alpha1/` see §3 |
 | `sentinel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 1,068 lines at root → `cmd/main.go` + `internal/<concern>/` |
 | `telemetry-receiver` | Service | `cmd/main.go` + `internal/<concern>/` | 12 source files in root `package main` → `cmd/main.go` + `internal/<concern>/`; `web/` and `design-export/` assets stay |

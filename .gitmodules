@@ -6,3 +6,7 @@
 	path = website
 	url = https://github.com/GameplanePanel/website.git
 	branch = main
+[submodule "mcp-server"]
+	path = mcp-server
+	url = https://github.com/GameplanePanel/mcp.git
+	branch = main

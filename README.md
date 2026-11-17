@@ -170,7 +170,7 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `telemetryschema/` | Go | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API and `telemetry-receiver`. |
 | `audit-syslog-bridge/` | Go | HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
 | `telemetry-receiver/` | Go | Collector [optional] for anonymous daily usage reports. |
-| `mcp-server/` | Go | Strictly read-only Model Context Protocol server [optional] for AI tools. |
+| `mcp-server/` | Go | Submodule (`GameplanePanel/mcp`): strictly read-only Model Context Protocol server [optional] for AI tools. |
 
 ### Custom Resource Definitions (CRDs)
 
@@ -211,7 +211,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── telemetryschema/      # Shared telemetry report contract (types, decoder, signing)
 ├── audit-syslog-bridge/  # Optional syslog relay for audit logs
 ├── telemetry-receiver/   # Optional anonymous usage telemetry receiver
-├── mcp-server/           # Optional read-only Model Context Protocol server
+├── mcp-server/           # Submodule: optional read-only MCP server (GameplanePanel/mcp)
 ├── charts/gameplane/     # Helm deployment chart
 ├── deploy/kind/          # Local dev environment bootstrap scripts
 ├── deploy/standalone/    # API + dashboard Docker Compose deployment
@@ -275,12 +275,12 @@ Ed25519 key and do not have transparency log entries — verify them with
 Requires: Go 1.27+, Node 20+, Docker, kind, kubectl, helm,
 [oras](https://oras.land/docs/installation) (>= 1.2.0).
 
-The game modules live in the separate `GameplanePanel/module` repo, wired in here
-as the `modules/` submodule — clone with submodules (or initialize them after):
+The game modules and the MCP server live in the separate `GameplanePanel/module` and `GameplanePanel/mcp` repos, wired in here
+as the `modules/` and `mcp-server/` submodules — clone with submodules (or initialize them after):
 
 ```sh
 git clone --recurse-submodules <repo-url>
-# already cloned? populate the submodule:
+# already cloned? populate the submodules:
 git submodule update --init
 ```
 

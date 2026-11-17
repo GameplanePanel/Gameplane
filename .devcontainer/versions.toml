@@ -3,7 +3,7 @@
 # Keep this file the only place a version number is written; profiles.toml refers to keys here.
 
 [tools]
-go = "1.27.3"
+go = "1.27.4"
 node = "24"
 docker = "latest"
 docker_compose = "v2"

@@ -8,8 +8,12 @@
 #   so a fresh clone of the superproject cannot fetch it. Spec 013 G6 / OD-1.
 #
 # Checked submodules (path -> upstream URL, overridable through env):
-#   modules -> ${SUBMODULE_URL_MODULES:-https://github.com/GameplanePanel/module}
-#   website -> ${SUBMODULE_URL_WEBSITE:-https://github.com/GameplanePanel/website}
+#   modules    -> ${SUBMODULE_URL_MODULES:-https://github.com/GameplanePanel/module}
+#   website    -> ${SUBMODULE_URL_WEBSITE:-https://github.com/GameplanePanel/website}
+#   mcp-server -> ${SUBMODULE_URL_MCP:-https://github.com/GameplanePanel/mcp}
+#                 (checked only when .gitmodules declares it, so the fixture
+#                 superproject in check-submodule-freshness_test.sh, which has
+#                 no .gitmodules, still checks just modules and website)
 #   Upstream branch: ${SUBMODULE_BRANCH:-main}
 #
 # Environment:
@@ -30,11 +34,16 @@ fi
 BRANCH="${SUBMODULE_BRANCH:-main}"
 URL_MODULES="${SUBMODULE_URL_MODULES:-https://github.com/GameplanePanel/module}"
 URL_WEBSITE="${SUBMODULE_URL_WEBSITE:-https://github.com/GameplanePanel/website}"
+URL_MCP="${SUBMODULE_URL_MCP:-https://github.com/GameplanePanel/mcp}"
 
 PAIRS=(
   "modules ${URL_MODULES}"
   "website ${URL_WEBSITE}"
 )
+# Declared in .gitmodules means required: a missing gitlink then fails below.
+if git config -f .gitmodules --get submodule.mcp-server.path >/dev/null 2>&1; then
+  PAIRS+=("mcp-server ${URL_MCP}")
+fi
 
 TMP="$(mktemp -d)"
 cleanup() {

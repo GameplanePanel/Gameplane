@@ -1,4 +1,4 @@
-go 1.27.3
+go 1.27.4
 
 use (
 	./agent
@@ -9,7 +9,6 @@ use (
 	./gameproto
 	./gp-module
 	./i18n
-	./mcp-server
 	./netguard
 	./operator
 	./sentinel

@@ -45,9 +45,9 @@ NO_E2E_DIRS = ("docs", "specs", "assets", "website", "hack", ".github", ".claude
 # The dashboard live run drives these components through a real cluster.
 WEB_LIVE_COMPONENTS = {"web", "api", "operator", "agent"}
 # Component ids beside the go.work modules (data-model.md Component).
-EXTRA_COMPONENTS = ("web", "charts", "deploy-kind", "modules", "e2e-harness")
+EXTRA_COMPONENTS = ("web", "charts", "deploy-kind", "modules", "mcp-server", "e2e-harness")
 # Top-level areas a selection rule knows; any other path is unmapped and forces full scope.
-KNOWN_DIRS = ("charts", "containers", "deploy/kind", "signing", "test/e2e", "web", "modules")
+KNOWN_DIRS = ("charts", "containers", "deploy/kind", "signing", "test/e2e", "web", "modules", "mcp-server")
 # A change to one of these files in a module root reruns that whole module (research R4).
 GO_MODULE_WIDE = {"go.mod", "go.sum", ".testcoverage.yml"}
 # Tests that read files outside their package directory. A changed path under a key also
@@ -471,6 +471,8 @@ def select_e2e(root, paths, reason, suites, buckets):
             components.setdefault("web", []).append(path)
         elif under(path, "modules"):
             components.setdefault("modules", []).append(path)
+        elif under(path, "mcp-server"):
+            components.setdefault("mcp-server", []).append(path)
         else:
             unmapped.append(path)
     if unmapped:

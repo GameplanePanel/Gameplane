@@ -120,8 +120,12 @@ dirs = [
 	"telemetry-receiver",
 	"tunnel",
 ]
+submodules = ["mcp-server"]
 extensions = ["golang.go"]
-checks = ["{go_build}"]
+checks = [
+	"{go_build}",
+	"cd mcp-server && GOWORK=off go build ./...",
+]
 
 [profile.website]
 size = "component"
@@ -154,7 +158,7 @@ size = "part"
 title = "Dashboard and API"
 includes = ["web", "api", "operator", "agent"]
 dirs = ["deploy/kind", "charts/gameplane"]
-submodules = ["modules"]
+submodules = ["modules", "mcp-server"]
 extras = [
 	{ name = "docker", kind = "service", version = "docker", reason = "In-container Docker daemon for the kind dev cluster (OD-2; deploy/kind/up.sh:195-199)." },
 ]
@@ -172,7 +176,7 @@ size = "part"
 title = "Control plane"
 includes = ["operator", "api", "agent"]
 dirs = ["charts/gameplane", "deploy/kind", "test/e2e"]
-submodules = ["modules"]
+submodules = ["modules", "mcp-server"]
 extras = [
 	{ name = "docker", kind = "service", version = "docker", reason = "In-container Docker daemon for the kind cluster and E2E images (OD-2; test/e2e/gatewayparity_e2e_test.go:156)." },
 ]

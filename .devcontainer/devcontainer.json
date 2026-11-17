@@ -62,7 +62,7 @@
 		},
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers/features/go:1": {
-			"version": "1.27.3"
+			"version": "1.27.4"
 		},
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
 			"helm": "4.3.1",
