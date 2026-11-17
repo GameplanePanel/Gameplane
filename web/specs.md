@@ -503,6 +503,7 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 
 3. **Backups Management Page** (`web/src/routes/Backups.tsx`, 18,395 bytes)
    - Tabbed interface with three sub-views: Backups (index), Schedules, Restores
+   - All three table empty states use consistent horizontal and vertical padding, centered muted text, and wrapping for longer messages, including filtered and unavailable-data states. Empty messages use the table scroll viewport width and remain visible while wide column headers scroll horizontally.
    - **Backups tab:** List all Backup CRs (manual + scheduled); filter by server/status; view backup metadata (size, created/expires); select row to open detail drawer, or restore — no inline delete action on the row
    - **Schedules tab:** List BackupSchedule CRs; create (per-server, no edit mode) and suspend/delete schedules; plain cron-expression input (no daily/weekly template pickers); retention policy form
    - **Restores tab:** List Restore operations in progress and completed; view status, source backup, destination server; no row actions (no view-details drawer, no cancel-restore)
