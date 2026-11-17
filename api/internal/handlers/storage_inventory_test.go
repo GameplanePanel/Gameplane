@@ -200,6 +200,7 @@ func TestStoragePoolInventory_WholeByteQuantities(t *testing.T) {
 			{"large canonical binary unit", "128Ti", 140737488355328},
 			{"integer beyond float precision", "9007199254740993", 9007199254740993},
 			{"maximum integer bytes", "9223372036854775807", 9223372036854775807},
+			{"maximum binary bytes", "9007199254740991.9990234375Ki", 9223372036854775807},
 		} {
 			for _, field := range []string{"pool", "PV"} {
 				t.Run(route+"/"+quantity.name+"/"+field, func(t *testing.T) {
@@ -358,6 +359,7 @@ func TestStoragePoolInventory_ConfiguredFailuresDoNotFallback(t *testing.T) {
 			{name: "fractional pool bytes", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "500m") }},
 			{name: "fractional binary pool bytes", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "0.1Ki") }},
 			{name: "raw binary pool overflow", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "8Ei") }},
+			{name: "fractional binary pool at maximum", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "9007199254740991.9990234374999Ki") }},
 			{name: "quantity overflow", modify: func(p *unstructured.Unstructured) { inventoryPoolSizeFixture(p, "9223372036854775808") }},
 			{name: "missing thin pool", modify: func(p *unstructured.Unstructured) { p.Object["volumeGroups"] = []any{} }},
 			{name: "duplicate matching VG", modify: func(p *unstructured.Unstructured) {

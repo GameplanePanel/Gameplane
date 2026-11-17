@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
@@ -108,7 +109,7 @@ func resolveStorageInventory(ctx context.Context, client *kube.Client, nodes []c
 		}
 		if matches == 1 {
 			quantity := pv.Spec.Capacity[corev1.ResourceStorage]
-			value, exact := quantity.AsInt64()
+			value, exact := storageQuantityBytes(quantity)
 			if !exact || value < 0 {
 				return clusterStats{}, errors.New("invalid configured storage volume capacity")
 			}
@@ -236,11 +237,35 @@ func storagePoolCapacity(raw any, reference storagePoolReference) (int64, error)
 	if err != nil {
 		return 0, invalid
 	}
-	value, exact := quantity.AsInt64()
+	value, exact := storageQuantityBytes(quantity)
 	if !exact || value <= 0 {
 		return 0, invalid
 	}
+	if quantity.Format == resource.BinarySI && value == math.MaxInt64 {
+		// ParseQuantity caps oversized BinarySI inputs at MaxInt64. Recheck
+		// the raw mantissa and its validated Ki..Ei suffix at this boundary.
+		exponent := 10 * (strings.IndexByte("KMGTPE", text[len(text)-2]) + 1)
+		mantissa, ok := new(big.Rat).SetString(text[:len(text)-2])
+		if !ok || exponent == 0 {
+			return 0, invalid
+		}
+		factor := new(big.Int).Lsh(big.NewInt(1), uint(exponent))
+		rawBytes := mantissa.Mul(mantissa, new(big.Rat).SetInt(factor))
+		if !rawBytes.IsInt() || rawBytes.Cmp(new(big.Rat).SetInt64(math.MaxInt64)) > 0 {
+			return 0, invalid
+		}
+	}
 	return value, nil
+}
+
+func storageQuantityBytes(quantity resource.Quantity) (int64, bool) {
+	// Check range before Value, which can overflow, then verify it did not
+	// round fractional bytes. AsInt64 only supports the fast representation.
+	if quantity.Sign() < 0 || quantity.CmpInt64(math.MaxInt64) > 0 {
+		return 0, false
+	}
+	value := quantity.Value()
+	return value, quantity.CmpInt64(value) == 0
 }
 
 func addStorageCapacity(total, value int64) (int64, error) {

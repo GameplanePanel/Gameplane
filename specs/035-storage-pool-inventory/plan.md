@@ -69,6 +69,8 @@ Configured lookup/parse failures are unavailable: cluster stats returns the exis
 - [x] Add conventional-name rejection and successful multi-node aggregation route regressions, preserving every existing test.
 - [x] Observe the new naming regression fail in GitHub Actions before adding the minimal production validation.
 - [x] Validate `<volumeGroup>_thinpool` before backend lookup; run only compile checks locally.
+- [x] Add independent pool/PV whole-byte quantity route regressions and observe their expected red CI checkpoint.
+- [x] Accept both parsed quantity representations with exact integer/range checks and preserve raw BinarySI overflow/fraction rejection; run the API compile check.
 - [ ] Review the combined upstream diff and require CI test/lint success, including legacy, authorization, selected-cluster and failure semantics.
 - [ ] Open the upstream PR with its matching changelog entry and verify signed commits and final CI.
 
@@ -79,6 +81,18 @@ failed: both routes returned HTTP 200 with known 320 GiB capacity and 7 GiB
 provisioned instead of unavailable coverage. Both API architectures failed;
 lint passed. The conventional-name guard is now implemented and the API
 `go build ./...` compile check passed; final CI and upstream review remain pending.
+
+Quantity review checkpoint: at `05ed48841eca507b1fab0bca93ea300c7d746168`,
+[CI run 44041788567, amd64 job
+133898338197](https://github.com/Baylem/Gameplane/actions/runs/44041788567/job/133898338197)
+failed only the `TestStoragePoolInventory_WholeByteQuantities` group: 16 valid
+pool/PV subcases across both routes failed, including `1.5Gi`, `320.0Gi`,
+`128Ti` and the MaxInt64 integer string. Both API architectures failed.
+The shared conversion now checks sign/range before `Value()` and confirms exact
+integer bytes with `CmpInt64`; raw BinarySI values at the parser's saturation
+boundary are checked with exact rational arithmetic. Pool sizes remain positive;
+PV sizes remain nonnegative. The API compile check passed; scoped re-review and
+final CI remain pending.
 
 Publication, deployment, pool mutation and runtime permission changes are outside
 this upstream change. Test and lint results come from GitHub Actions; local
