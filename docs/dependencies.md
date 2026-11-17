@@ -1,12 +1,13 @@
 # Dependency report
 
 This is a component-by-component inventory of Gameplane's third-party
-dependencies and why each one is there. It covers all 16 Go modules that
+dependencies and why each one is there. It covers all 15 Go modules that
 share `go.work` (`netguard`, `gameaction`, `gameproto`, `telemetryschema`,
 `svcutil`, `operator`, `api`, `agent`, `audit-syslog-bridge` [optional],
 `telemetry-receiver` [optional], `sentinel` [optional],
 `capture-sidecar` [optional], `tunnel` [optional], `gp-module`,
-`mcp-server` [optional], `test/e2e`), the
+`test/e2e`), the `mcp-server` [optional] module (the `GameplanePanel/mcp`
+submodule, which keeps its own `go.mod` outside `go.work`), the
 `web/` npm package, and the build/CI toolchain that isn't a code dependency
 but is invoked by `make`/GitHub Actions.
 
@@ -50,7 +51,7 @@ were added and verified on **2026-09-26**.
 | `capture-sidecar/` | Go | 3 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
 | `tunnel/` | Go | 0 (stdlib only) | Relay client supervisor for frp/Tailscale/playit |
 | `gp-module/` | Go | 2 | Module authoring CLI: scaffold, offline validate, dry-run preview, OCI package |
-| `mcp-server/` | Go | 5 | Standalone, strictly read-only MCP server for AI-assisted cluster diagnostics |
+| `mcp-server/` (submodule) | Go | 5 | Standalone, strictly read-only MCP server for AI-assisted cluster diagnostics |
 | `test/e2e/` | Go | 4 | kind + Helm + real-component end-to-end suite |
 | `web/` | TypeScript/React | 18 runtime + 26 dev | Dashboard: routing, data fetching, UI primitives, console/file editors, tests |
 

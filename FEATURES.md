@@ -237,7 +237,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Capability | Maturity | Default | Description | Docs |
 |---|---|---|---|---|
 | Install and upgrade the panel from the Helm chart | stable | on | One helm upgrade --install installs the operator, API and dashboard, and a pre-upgrade hook applies the Gameplane CRDs so every upgrade keeps the schema current. | [install](docs/install.md#one-shot-install) |
-| Read-only MCP server | beta | off | An optional MCP server lets AI assistants read GameServers, pods, events and logs and propose fixes without writing. | [mcp-server](mcp-server/README.md#tools) |
+| Read-only MCP server | beta | off | An optional MCP server lets AI assistants read GameServers, pods, events and logs and propose fixes without writing. | [mcp-server](https://github.com/GameplanePanel/mcp/blob/main/README.md#tools) |
 | Helper image overrides for air-gapped mirrors | beta | n/a | Helm lets operators retag the config-init and restic helper images to a private registry mirror. | [install](docs/install.md#values-reference) |
 | Rolling edge images | beta | off | Setting image.tag to edge runs the rolling build published on every master push. | [install](docs/install.md#edge-channel-latest-edge-build) |
 | Local Kind development loop | beta | n/a | Make targets create a Kind cluster with a local OCI registry, load images and run the web dev server. | [contributing](docs/contributing.md#dev-loop) |

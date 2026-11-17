@@ -37,6 +37,7 @@ on:
       - "sentinel/**"
       - "capture-sidecar/**"
       - "mcp-server/**"
+      - "mcp-server"
       - "tunnel/**"
       - "go.work"
       - "go.work.sum"
@@ -72,6 +73,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      - name: init mcp-server submodule
+        # select_images reads mcp-server/Dockerfile's COPY inputs.
+        run: git submodule update --init mcp-server
       - name: include changes since the last successful publish
         id: scope
         env:
@@ -99,6 +103,9 @@ jobs:
       matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init mcp-server submodule
+        if: matrix.component == 'mcp-server'
+        run: git submodule update --init mcp-server
       # Signing is mandatory for the official edge channel: fail before anything
       # is pushed if the key is absent, rather than shipping unsigned images.
       # The key has been provisioned since module signing went live, so this
