@@ -17,6 +17,18 @@ and destinations. Templates without the field retain the existing broad
 sentinel-to-game allowance; module maintainers can adopt it after validating
 their proxy traffic.
 
+For an opted-in template, the operator applies the isolation in this order:
+
+```mermaid
+flowchart TD
+    T["GameTemplate sentinelIsolation: true"] --> P{"Advertised ports declared?"}
+    P -- no --> N["Reconcile stops with a Failed phase;<br/>existing sentinel exposure is revoked"]
+    P -- yes --> L["Game and sentinel pod templates labeled gameplane.local/sentinel-isolation: true"]
+    L --> R["Pods roll out; StatefulSet selectors unchanged"]
+    R --> Y["Per-server policies: &lt;server&gt;-sentinel-ingress and &lt;server&gt;-sentinel-egress"]
+    Y --> Z["Sentinel reaches only its server's advertised ports"]
+```
+
 Upgrade the CRDs, operator and chart together before opting in a template.
 Existing game pods roll out to acquire the isolation label; StatefulSet
 selectors stay unchanged. Do not claim isolation until both game and sentinel
@@ -143,6 +155,20 @@ The pool and address names come from your address manager's own configuration. F
 The dashboard translates these to the CRD fields; the operator then applies them to the Service.
 
 ## Address Preference Behavior
+
+The operator checks a requested pool or address in this order, and the first matching branch sets the `AddressAssignment` reason:
+
+```mermaid
+flowchart TD
+    A["Pool or address requested"] --> B{"Expose is LoadBalancer?"}
+    B -- no --> C["IgnoredForExposureMode"]
+    B -- yes --> D{"Explicit address is an IP?"}
+    D -- no --> E["InvalidAddress"]
+    D -- yes --> F{"operator.addressManager"}
+    F -- "metallb or cilium" --> G["Operator writes annotation or label on the Service"]
+    F -- none --> H["NoAddressManagerConfigured"]
+    G --> I["Assigned, AssignmentPending or a failure reason"]
+```
 
 ### When Expose Mode is LoadBalancer
 

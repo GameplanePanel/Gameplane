@@ -17,6 +17,24 @@ spec:
   quiesce: true
 ```
 
+Each Backup resolves to one of these outcomes, with the two policies applied
+independently:
+
+```mermaid
+flowchart TD
+  req["Backup request"] --> strat{"strategy"}
+  strat -- "volume-snapshot (CSI)" --> csi["Primary PVC only; stopped and all-data are rejected"]
+  strat -- "restic-snapshot" --> pp{"powerPolicy"}
+  pp -- "preserve (default)" --> vp{"volumePolicy"}
+  pp -- "stop-copy-restart" --> stop["Drain workers, copy, then resume only current intent"]
+  vp -- "primary-only (default)" --> prim["Primary data, quiesced if quiesce is true"]
+  vp -- "all-data" --> multi["One snapshot of all data roots"]
+  multi --> cons{"Source stopped and fully drained?"}
+  cons -- yes --> ok["Consistency across included roots"]
+  cons -- no --> live["Consistency=False, LiveMultiVolumeCopy"]
+  stop --> ok
+```
+
 The two policies are independent. CSI (`volume-snapshot`) rejects stopped or
 all-data policies; it remains primary-only and offers no cross-volume atomicity.
 A preserve/all-data Restic copy captures one snapshot but reports
@@ -168,6 +186,24 @@ requesting zero replicas. A successful Restore leaves its initial workload runni
 
 Stopped-source proof, bounded copy preparation and CSI invalidation build on this
 ownership boundary. Staged template adoption is tracked separately in #731.
+
+A live Restic backup with `quiesce: true` runs in this order. The worker is
+prepared before saving is disabled, and save-on is sent only after the worker drains:
+
+```mermaid
+sequenceDiagram
+  participant Op as Operator
+  participant Wk as Restic worker Job
+  participant Ag as Agent in game pod
+  participant Repo as Restic repository
+  Op->>Wk: Create Job, schedule, pull image, mount source, validate repository
+  Wk-->>Op: Ready
+  Op->>Ag: Pod-bound quiesce (save-off, save-all flush)
+  Ag-->>Op: Quiesced
+  Wk->>Repo: Copy included /volumes roots (expiring, pod-bound authorization)
+  Wk-->>Op: Copy finished, worker drained
+  Op->>Ag: Unquiesce (save-on)
+```
 
 ## Backup preparation and capture budgets
 

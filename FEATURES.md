@@ -6,7 +6,7 @@ Default column: **on** (enabled by the chart or the product), **off** (opt-in, s
 
 Notification rows take effect once a notification sink is configured.
 
-Status date: 2026-11-11 (v0.4.0, pre-v1).
+Status date: 2026-11-17 (v0.4.1, pre-v1).
 
 See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
@@ -230,7 +230,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
 | Capability | Maturity | Default | Description | Docs |
 |---|---|---|---|---|
-| Localized dashboard and community language packs | beta | on | Shipped in v0.4.0 (spec 019): per-account or browser language choice with an admin instance default, translated server messages, per-destination notification language and module translations. A language is listed once its pack is at least 80% translated; missing strings fall back to English. | [translating](docs/translating.md) |
+| Localized dashboard and community language packs | beta | on | Shipped in v0.4.0 (spec 019): per-account or browser language choice with an admin instance default, translated server messages, per-destination notification language and module translations. A language is listed once its pack is at least 80% translated; missing strings fall back to English. <!-- doc-versions: historical --> | [translating](docs/translating.md) |
 
 ## Developer and operator tooling
 

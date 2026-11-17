@@ -254,8 +254,8 @@ port-forward` bypasses NetworkPolicy entirely (it tunnels kubelet→pod), so
 "it works via port-forward" is not evidence that in-cluster pod→game traffic
 works.
 
-The bot is `test/e2e/cmd/gameprobe`, built into `gameplane-test/gameprobe:e2e`
-by the `e2e-gameprobe` bake target. That target sits outside the `e2e` bake
+The bot is built from `test/e2e/Dockerfile` into `gameplane-test/gameprobe:e2e`
+by the `e2e-gameprobe` bake target (`containers/docker-bake.hcl`). That target sits outside the `e2e` bake
 group so only the game-bot job pays to build it, and `deploy/kind/e2e.sh`
 side-loads it into the cluster when present. The `e2e game bot (kind)` CI job
 is now blocking rather than advisory.
@@ -321,6 +321,22 @@ and test gates below.
    a file to `changelog/unreleased/` in the same PR (see
    [Changelog entries](#changelog-entries)).
 
+Each PR moves through these stages, from push to merge:
+
+```mermaid
+flowchart TD
+    A["Push branch and open PR"] --> B["auto-label: adds missing type: and area: labels (every 15 min)"]
+    A --> C["ci workflow: detect changes job (hack/ci_scope.py)"]
+    C --> D{"Selection error, unmapped path or ci: full-run label?"}
+    D -- yes --> E["Every CI job runs"]
+    D -- no --> F["Only the jobs the change affects run"]
+    E --> G["ci report job (needs the CI jobs)"]
+    F --> G
+    G --> H["CodeRabbit advisory review"]
+    H --> I["Human approval (master ruleset)"]
+    I --> J["Merge; a push to master runs the full suite"]
+```
+
 Game-module changes (`modules/`) belong in the separate **`GameplanePanel/module`**
 repo, which this repo vendors as a submodule. Open the module PR there; once it
 merges, bump the submodule pointer here (`git add modules`) in a follow-up PR.
@@ -376,7 +392,20 @@ Tags matching `v*` trigger the `release.yaml` workflow, which builds the
 component images, pushes the Helm chart to the `gameplane` OCI registry, and
 keyed-cosign-signs all images (component and chart) and official `modules/*`
 bundles by digest, recording all signatures in the public Sigstore Rekor
-transparency log.
+transparency log. The jobs run in this order:
+
+```mermaid
+flowchart TD
+    T["Tag v* pushed"] --> IM["images: one leg per component (12)"]
+    T --> MO["modules: push and sign official bundles"]
+    IM --> P["Push image by digest"]
+    P --> S["Trivy scan, then cosign sign (keyed)"]
+    S --> V["Verify signature; check signing/cosign.pub matches the key"]
+    V --> TG["oras tag: attach release tags"]
+    TG --> CH["chart: helm push, cosign sign, verify"]
+    CH --> Q["consumer: qualify-release.yaml as anonymous pull"]
+    Q --> GR["github-release: CHANGELOG section as notes"]
+```
 
 Before tagging, fold the files in `changelog/unreleased/` into a
 `## [x.y.z]` section of `CHANGELOG.md` and delete them (keep the folder's

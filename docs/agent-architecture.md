@@ -30,6 +30,13 @@ This document is the **first stop** for AI agents modifying or extending Gamepla
 | **Telemetryschema** | `telemetryschema/specs.md` | Shared telemetry report contract (types, enumerations, strict decode, official module catalog, report signing) used by the API and the telemetry-receiver. |
 | **MCP-Server** | `mcp-server/specs.md` (submodule `GameplanePanel/mcp`) | Read-only Model Context Protocol server exposing cluster state to AI tools. |
 
+## Shared Libraries & Tooling
+
+| Component | `specs.md` location | Primary Responsibilities |
+| --- | --- | --- |
+| **i18n** | `i18n/specs.md` | Shared language packs (`go:embed`), the ICU MessageFormat subset, the pack validator and the `i18n-check` CI tool. Imported by the API, the operator and `gp-module`. |
+| **gp-module** | `gp-module/specs.md` | Module authoring CLI: scaffold, offline validate, dry-run preview and OCI package. Its `pkg/` packages are imported by the API and `test/e2e`. |
+
 ## Frontend & Other
 
 | Component | `specs.md` location | Primary Responsibilities |

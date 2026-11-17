@@ -13,7 +13,7 @@ The dashboard and API can also run on a host without Kubernetes using
 [standalone Docker Compose](docs/standalone-panel.md). Game servers still run
 on registered Kubernetes clusters, each with its own operator and agents.
 
-> Status: **pre-v1 release** (`v0.4.0`). The operator, API, agent, and dashboard
+> Status: **pre-v1 release** (`v0.4.1`). The operator, API, agent, and dashboard
 > are feature-complete for the v1 scope and stabilized for external testing.
 > See [Pre-v1 status & known limitations](#pre-v1-status--limitations) before
 > running it for anything you can't afford to lose.
@@ -44,7 +44,7 @@ Screenshots are captured against mocked data for consistency and reproducibility
 
 ## Pre-v1 Status & Limitations
 
-Gameplane is a **pre-v1 release** (`v0.4.0`). Core workflows — server deployment, live consoles, file management, backups/restores, game modules, multi-cluster management, and RBAC — work end-to-end and are verified by automated unit, integration, upgrade, and end-to-end test suites on every commit.
+Gameplane is a **pre-v1 release** (`v0.4.1`). Core workflows — server deployment, live consoles, file management, backups/restores, game modules, multi-cluster management, and RBAC — work end-to-end and are verified by automated unit, integration, upgrade, and end-to-end test suites on every commit.
 
 Here are a few items to keep in mind:
 
@@ -66,7 +66,7 @@ and Agones (a Kubernetes operator library). While not direct competitors,
 Agones is included as a reference point for teams building on Kubernetes
 primitives.
 
-Status: **pre-v1 release** (`v0.4.0`). The operator, API, agent, and dashboard
+Status: **pre-v1 release** (`v0.4.1`). The operator, API, agent, and dashboard
 are feature-complete for the v1 scope and stabilized for external testing.
 
 | Dimension | Gameplane | Pterodactyl | CubeCoders AMP | Agones |
@@ -104,28 +104,32 @@ Gameplane integrates with **10 mod registries**: Modrinth, CurseForge, Thunderst
 
 ## Architecture
 
-```text
-Dashboard UI (React + TypeScript + Vite + HeroUI v3)
-    │ HTTPS / WSS
-Central API (Go): authentication, RBAC, REST, WebSocket, aggregation
-    │
-    ├── Direct Kubernetes API access ───────────────────────────────┐
-    │   Resource management, Pod logs, PTY attach                   │
-    │                                                              ▼
-    │   ┌── Each registered cluster (local or remote) ──────────────────┐
-    │   │ Kubernetes API ◄── Operator (Go, controller-runtime)          │
-    │   │                      │ reconciles CRDs into local resources  │
-    │   │                      ├── GameServer Pods + Services + PVCs    │
-    │   │                      ├── Backup / restore Jobs               │
-    │   │                      ├── Sentinel wake-on-connect Pods       │
-    │   │                      └── Tunnel relay Pods                   │
-    │   │                                                              │
-    └───┼── Private mTLS ──► Optional per-cluster agent gateway         │
-        │                      ├── mTLS ──► Agent sidecars (:8090)      │
-        │                      │            RCON, logs, files, mods    │
-        │                      └── mTLS ──► Capture sidecars (:9091)    │
-        │                                   Capture downloads/cleanup  │
-        └──────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  ui["Dashboard UI<br/>React + TypeScript + Vite + HeroUI v3"]
+  api["Central API (Go)<br/>auth, RBAC, REST, WebSocket, aggregation"]
+  ui -- "HTTPS / WSS" --> api
+  subgraph cluster["Each registered cluster (local or remote)"]
+    kube["Kubernetes API"]
+    op["Operator (Go, controller-runtime)"]
+    gs["GameServer Pods + Services + PVCs"]
+    jobs["Backup / restore Jobs"]
+    sen["Sentinel wake-on-connect Pods"]
+    tun["Tunnel relay Pods"]
+    gw["Optional agent gateway"]
+    agent["Agent sidecars :8090<br/>RCON, logs, files, mods"]
+    cap["Capture sidecars :9091<br/>capture downloads, cleanup"]
+    op -- "reconciles CRDs" --> kube
+    op --> gs
+    op --> jobs
+    op --> sen
+    op --> tun
+    gs --- agent
+    gw -- mTLS --> agent
+    gw -- mTLS --> cap
+  end
+  api -- "resources, pod logs, PTY attach" --> kube
+  api -- "private mTLS (remote clusters)" --> gw
 ```
 
 In a combined installation, the central API connects directly to agents in its local cluster. Remote agent
@@ -159,6 +163,8 @@ legacy default for custom deployments. See [storage and recovery](docs/standalon
 | `charts/` | Helm | Official Helm deployment chart for operator, API gateway, ingress, and helper services. |
 | `gameproto/` | Go | Shared protocol library for parsing game handshakes (Minecraft, Terraria) in `sentinel`. |
 | `gameaction/` | Go | Security guard and command renderer for custom module admin actions. |
+| `i18n/` | Go | Shared language packs, ICU message formatter and pack checker used by the API, dashboard, operator and `gp-module`. |
+| `gp-module/` | Go | Module authoring CLI: scaffold, offline validate, dry-run preview and OCI package. |
 | `netguard/` | Go | SSRF protection layer for outgoing mod downloads and OCI module fetches. |
 | `telemetryschema/` | Go | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API and `telemetry-receiver`. |
 | `audit-syslog-bridge/` | Go | Submodule (`GameplanePanel/audit-syslog-bridge`): HTTP-JSON to syslog relay [optional] for audit logging infrastructure. |
@@ -177,6 +183,7 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 - **`Module`**: An installed game bundle managed by the operator to materialize a `GameTemplate`.
 - **`ModuleSource`**: A registered game template repository (OCI registry, Git repository, HTTP server, or local upload).
 - **`Cluster`**: A registered remote Kubernetes cluster target for multi-cluster control plane management.
+- **`NetworkCapture`**: An admin-only packet capture on one game server, run by the capture sidecar.
 
 ## Repository Layout
 
@@ -195,6 +202,9 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── website/              # Submodule: Public documentation site
 ├── gameproto/            # Wire-protocol parsing library (Minecraft, Terraria)
 ├── gameaction/           # Console injection guard & action command renderer
+├── i18n/                 # Shared language packs, ICU formatter, pack checker
+├── gp-module/            # Module authoring CLI (init, validate, preview, package)
+├── capture-sidecar/      # Optional packet capture sidecar
 ├── netguard/             # SSRF dial-guard library
 ├── telemetryschema/      # Shared telemetry report contract (types, decoder, signing)
 ├── audit-syslog-bridge/  # Submodule: optional syslog relay for audit logs
@@ -205,6 +215,8 @@ Gameplane extends Kubernetes using custom resources under `gameplane.local/v1alp
 ├── deploy/standalone/    # API + dashboard Docker Compose deployment
 ├── docs/                 # Technical documentation & guides
 ├── specs/                # Feature specifications and proposals
+├── changelog/unreleased/ # One changelog entry per pull request
+├── signing/              # cosign public keys for images and modules
 └── test/                 # Integration & end-to-end kind test suites
 ```
 
