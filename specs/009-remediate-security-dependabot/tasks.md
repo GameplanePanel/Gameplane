@@ -161,11 +161,11 @@
 
 - [X] T054 [US4] Diagnose failing checks on PR #272 (TypeScript 6.0.3 → 7.0.2). CI stopped at `npm ci` because the lint plugin's TypeScript peer range excluded 7.0.2.
 - [X] T055 [US4] Migrate the dashboard to TypeScript 7.0.2. Oxlint runs the type-aware checks and Babel parses TSX for the localization codemod. The original #272 install failure is recorded in `contracts/dependency-upgrade.md` under T054.
-- [ ] T056 [US4] Merge [#902](https://github.com/GameplanePanel/Gameplane/pull/902) after CI passes and the code owner approves. Close #272 as superseded if it remains open.
+- [X] T056 [US4] Merge [#902](https://github.com/GameplanePanel/Gameplane/pull/902) after CI passes and the code owner approves. Close #272 as superseded if it remains open. **DONE 2026-11-11**: #902 merged as `bba9684`; #272 closed unmerged the same day as superseded.
 - [X] T057 [US4] Diagnose failing check on PR #268 (@eslint/js 9.39.5 → 10.0.1) by reading CI logs via gh API and recording specific linting violations encountered; note that ESLint 10 drops eslintrc support, removes deprecated SourceCode and rule-context methods, and raises the Node floor to ^20.19 || ^22.13 || >=24
 - [X] T058 [US4] Apply ESLint 10 migration in web/ by updating web/package.json and web/eslint.config.js to 10.0.1, removing any deprecated rule-context or SourceCode usage, and fixing all resulting linting violations; constitution Principle III forbids resolving any finding with // eslint-disable **NO-OP 2026-08-29**: #268 had no failing check and needed no migration — flat config already in use, no custom rules, CI on Node 24. See contracts/dependency-upgrade.md § T057.
 - [X] T059 [US4] Merge PR #268 once all CI checks are green via gh pr merge 268 -R GameplanePanel/Gameplane --admin --merge
-- [ ] T060 [US4] Confirm `web` and `web e2e (mock)` pass on master after both migrations merge. Both jobs passed on dd7e0e6 after #268 merged on 2026-08-29. Repeat the check on master after T056.
+- [X] T060 [US4] Confirm `web` and `web e2e (mock)` pass on master after both migrations merge. Both jobs passed on dd7e0e6 after #268 merged on 2026-08-29. Repeat the check on master after T056. **DONE 2026-11-17**: on master `668c247` (ci run 44149693081, after #902), `web` and `web e2e (mock)` both SUCCESS.
 
 ---
 
