@@ -160,6 +160,11 @@ func parseStoragePoolReference(text string) (storagePoolReference, error) {
 	if reference.Provider != "openebs-lvm" || len(validation.IsDNS1123Label(reference.Namespace)) != 0 || !validStorageLVMName(reference.VolumeGroup) || !validStorageLVMName(reference.ThinPool) || len(reference.StorageClasses) == 0 {
 		return storagePoolReference{}, invalid
 	}
+	// OpenEBS uses <VG>_thinpool for thin-provisioned volumes; PV metadata
+	// identifies only the VG, so alternate pools cannot be attributed safely.
+	if reference.ThinPool != reference.VolumeGroup+"_thinpool" {
+		return storagePoolReference{}, invalid
+	}
 	classes := map[string]bool{}
 	for _, name := range reference.StorageClasses {
 		if len(validation.IsDNS1123Subdomain(name)) != 0 || classes[name] {
