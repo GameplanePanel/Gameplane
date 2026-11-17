@@ -27,7 +27,6 @@ on:
       - "README.md"
       - "docs/**"
       - "audit-syslog-bridge/README.md"
-      - "mcp-server/README.md"
       - "telemetry-receiver/README.md"
       - "CHANGELOG.md"
       - "AGENTS.md"
@@ -194,7 +193,6 @@ jobs:
               - 'telemetryschema/**'
               - 'i18n/**'
               - 'sentinel/**'
-              - 'mcp-server/**'
               - 'capture-sidecar/**'
               - 'svcutil/**'
               - 'tunnel/**'
@@ -237,6 +235,10 @@ jobs:
               - 'test/e2e/**'
               - 'deploy/kind/**'
               - 'containers/docker-bake.hcl'
+              # mcp-server is a submodule: a pointer bump changes the image the
+              # optional-components e2e loads. 'mcp-server/**' covers any future in-tree files.
+              - 'mcp-server'
+              - 'mcp-server/**'
               - 'hack/trivy-scan-images.sh'
               - 'hack/check-image-scan_test.sh'
             # Narrower than e2etree on purpose: this backs a job that only
@@ -266,6 +268,7 @@ jobs:
             submodules:
               - 'modules'
               - 'website'
+              - 'mcp-server'
               - 'hack/check-submodule-freshness.sh'
               - 'hack/check-submodule-freshness_test.sh'
             # Gate scope for codegen drift (spec 013 T007).
@@ -309,6 +312,7 @@ jobs:
               - 'hack/test-check-publish-edge-paths.sh'
               - 'hack/testdata/check-publish-edge-paths/**'
               - '**/Dockerfile*'
+              - 'mcp-server'
               - '.hadolint.yaml'
               - 'hack/check-hadolint_test.sh'
               - 'hack/testdata/hadolint/**'
@@ -341,7 +345,6 @@ jobs:
               - 'docs/security.md'
               - 'docs/tunnels.md'
               - 'audit-syslog-bridge/README.md'
-              - 'mcp-server/README.md'
               - 'telemetry-receiver/README.md'
               - 'docs/comparison-sources.md'
               - 'FEATURES.md'
@@ -709,7 +712,7 @@ jobs:
       - name: prove the gate fails on a stale types edit
         run: ./hack/check-codegen-drift_test.sh
 
-  # Spec 013 G6 (OD-1): the modules/ and website/ gitlinks must point at
+  # Spec 013 G6 (OD-1): the modules/, website/ and mcp-server/ gitlinks must point at
   # commits already on each submodule's main branch, so a pointer bump never
   # lands before its submodule PR merges.
   submodule-freshness:
@@ -808,7 +811,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, audit-syslog-bridge, telemetry-receiver, mcp-server, capture-sidecar, svcutil, tunnel, gp-module, test/e2e]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, audit-syslog-bridge, telemetry-receiver, capture-sidecar, svcutil, tunnel, gp-module, test/e2e]
         exclude: ${{ fromJSON(needs.changes.outputs.lint-exclude) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -894,7 +897,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, audit-syslog-bridge, telemetry-receiver, sentinel, mcp-server, capture-sidecar, svcutil, tunnel, gp-module]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, audit-syslog-bridge, telemetry-receiver, sentinel, capture-sidecar, svcutil, tunnel, gp-module]
         exclude: ${{ fromJSON(needs.changes.outputs.go-exclude) }}
         arch: [amd64, arm64]
     steps:
@@ -1667,6 +1670,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init mcp-server submodule
+        # check-publish-edge-paths.sh and its test read mcp-server/Dockerfile.
+        run: git submodule update --init mcp-server
       - name: actionlint (download and verify)
         run: |
           set -euo pipefail

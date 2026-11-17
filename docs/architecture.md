@@ -449,7 +449,7 @@ the target. See [registration and permissions](install.md#rbac-and-permissions).
   Opt-in per GameServer via `spec.capture.enabled` and admin-only (`captures:manage`
   permission). Disabled by default; enabled cluster-wide via `capture.enabled`
   Helm value. See `capture-sidecar/`.
-- **mcp-server [optional]**: a standalone, strictly read-only MCP server —
+- **mcp-server [optional]**: a standalone, strictly read-only MCP server (submodule `GameplanePanel/mcp`) —
   its tool handlers only ever hold a `*kube.Client` (`mcp-server/internal/kube`),
   whose sole exported methods are List/Get-shaped; the underlying typed/
   dynamic Kubernetes clientsets are unexported fields in that package, so
@@ -459,6 +459,6 @@ the target. See [registration and permissions](install.md#rbac-and-permissions).
   `kube-system`), and pod logs can surface secrets an app logs at startup.
   Talks directly to the Kubernetes API (not through the API server), gated
   via `mcpServer.enabled` and reachable only via `kubectl exec` (stdio
-  transport, no network port). See `mcp-server/README.md`.
+  transport, no network port). See the [`GameplanePanel/mcp` README](https://github.com/GameplanePanel/mcp/blob/main/README.md) (the `mcp-server/` submodule).
 
 See `docs/security.md` for the threat model.

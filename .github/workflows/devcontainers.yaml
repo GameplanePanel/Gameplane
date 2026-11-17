@@ -21,6 +21,7 @@ on:
       - '**/go.mod'
       - 'modules'
       - 'website'
+      - 'mcp-server'
       - 'web/package*.json'
       - '.github/workflows/devcontainers.yaml'
   push:
@@ -36,6 +37,7 @@ on:
       - '**/go.mod'
       - 'modules'
       - 'website'
+      - 'mcp-server'
       - 'web/package*.json'
       - '.github/workflows/devcontainers.yaml'
 

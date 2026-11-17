@@ -40,7 +40,7 @@ KUBECONFIG_ENV :=
 KUBE_CONTEXT   := kind-$(KIND_CLUSTER)
 endif
 
-GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel mcp-server capture-sidecar svcutil tunnel
+GO_MODULES     := netguard gameaction gameproto telemetryschema i18n gp-module operator api agent audit-syslog-bridge telemetry-receiver sentinel capture-sidecar svcutil tunnel
 GO_INTEGRATION_MODULES := operator api
 
 # test/e2e is a separate module (its own go.mod, excluded from the coverage
@@ -344,6 +344,7 @@ images: $(addprefix image-,$(IMAGES)) image-audit-syslog image-tunnel-frp image-
 # Pattern rule for standard-shaped images
 image-%: ## Build container image
 	@hack/need.sh docker
+	@if [ "$*" = mcp-server ] && [ ! -f mcp-server/Dockerfile ]; then git submodule update --init mcp-server; fi
 	docker build -t $(REGISTRY)/$*:$(TAG) -f $*/Dockerfile .
 
 # Non-standard images (target name ≠ dir, or special Dockerfile paths)
