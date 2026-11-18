@@ -318,8 +318,9 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - Check one or more paths to download a ZIP, create a ZIP in the current directory, or confirm deletion. The file manager identifies failed paths and keeps them selected.
    - New file uses POST `/files/create` with the encoded path, namespace/cluster scope, credentials and CSRF headers. The agent atomically refuses existing entries with 409; a conflict or unsupported older agent/gateway keeps the prompt open, shows the error and does not select a file or invalidate the list. Never fall back to `/files/write`; editor saves and uploads retain overwrite behavior.
 
-6. **Players** (`web/src/routes/tabs/Players.tsx`, 386 lines)
-   - Online player snapshot, ban list, whitelist management
+6. **Players** (`web/src/routes/tabs/Players.tsx`)
+   - Online player snapshot, ban list, whitelist management, and a read-only configured Operators list with its own count. Operators show names and optional UUIDs, including offline entries; loading, empty, and failed reads are distinct. Refresh reloads the snapshot and all supported lists. Failed operator reads hide previously loaded identities until a successful refresh.
+   - Operators require scoped `servers:read`, owner, or collaborator access and the agent's capability. When the initial RCON snapshot fails without an authorization error, the operator endpoint can discover support independently; 404/501 hide unsupported older agents or games until an explicit Refresh probes again. Authorization failures do not trigger discovery, and operator reads do not retry automatically.
    - Rows come from `playerRows()` (`web/src/lib/players.ts`): when the snapshot carries `entries` (Nuclear Option), each row shows the display name, or the raw Steam ID in muted text when none resolved, plus a faction chip; otherwise rows render the flat `players` strings unchanged. The Overview `PlayersCard` uses the same rows (label only, no faction).
    - Kick/ban always send the row's Steam ID, never the rendered display name
    - Player count summary via ui/ StatCard (line 15)
@@ -972,7 +973,7 @@ Visible tab set depends on server template + active version:
 5. **Files** — Browser and editor for server data files (config, save games, logs)
 6. **Mods** — List/install/remove mods; browse by registry provider (Modrinth, CurseForge, etc.) if template declares one
 7. **Modpacks** — Install modpacks (only if template + active version supports loader with modpack capability)
-8. **Players** — Online player snapshot, ban list, whitelist, kick/ban/unban actions
+8. **Players** — Online player snapshot, configured operator identities, ban list, whitelist, kick/ban/unban actions
 9. **Backups** — Per-server backup list, schedule management, restore trigger; reads backup repository URL from Secret `key: "repo"`
 10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:127-175`) and router/tab wiring (`ServerDetail.tsx:278`) are implemented in `web/src`.
 11. **Settings** — Grouped form with sub-sections (below); changes are draft-until-save; conflict detection on reload
@@ -1088,6 +1089,8 @@ Each namespace is an object of typed functions building and fetching URLs:
 **Helpers:** `withNS(path, ns?)` appends `?namespace=<ns>` when provided; `withCluster(path, clusterId)` uses an explicit cluster, defaulting to local. `createRequestClient` binds requests to a cluster and namespace; `createResourceClient` adds the target resource identity.
 
 ### Layer 3: Domain Helpers (`lib/*.ts`)
+
+`Players.operators(server, namespace?)` reads configured operator identities through the resource client's captured cluster and namespace. Its optional `capabilities.operators` flag is provided by the agent; the dashboard does not infer support from game names or read arbitrary game files. The method accepts the resource client's cancellation signal.
 
 - **capabilities.ts** — `resolveConsoleMode(template)`, `serverHasMods(template, server)`, `serverHasModpacks(template, server)` — drive tab visibility
 - **useThemePreferences.ts** — theme preferences plumbing (feature 016; full behavior documented under "User Theme Customization" above): `useThemePreferences(me?, opts?)` reconciles the backend `preferences` from `/users/me` over the `gameplane-theme-prefs` localStorage cache (backend wins on drift), exposes `preferences` + an optimistic `updatePreferences(patch)` mutation (DOM + cache first, PUT via `Users.updatePreferences`, revert-and-report on failure, replay-on-`online` after connectivity loss), and keeps the DOM attributes (`class`/`data-theme`, `data-theme-preset`, `data-theme-type`, `data-custom-css`) and the `#gameplane-custom-css` overlay (always last in `<head>`; unmounted on logout and on `/login`/`/share/:token`) in sync. Plain helpers exported for routes and the boot script's post-boot path: `isSafeModeActive()` (`?safe-mode=1` or the `gameplane-safe-mode` sessionStorage flag — suspends only the overlay), `readThemePreferences` / `writeThemePreferences`, `normalizeThemePreferences`, `themePreferencesEqual`, `applyThemePreferences`, `unmountCustomCssOverlay`, plus the storage keys/element ids and the `gameplane-theme-error` window event. The inline `theme-boot` script in `index.html` applies the same cache synchronously pre-paint and is the authoritative boot path (never applies cached prefs on `/login` or `/share/:token`).
