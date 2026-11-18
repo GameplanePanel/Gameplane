@@ -155,6 +155,6 @@ Remove the GameServer and fixture template, revoke the disposable auth key, and
 delete all test devices from the tailnet. Retain only the sanitized result record.
 
 The implementation uses the official [tsnet APIs](https://tailscale.com/docs/reference/tsnet-server-api).
-Its Go 1.26.10 minimum and Go 1.27.3 image builders include the `crypto/x509`
+Its Go 1.27.4 minimum and Go 1.27.4 image builders include the `crypto/x509`
 security fix described in the [Go release history](https://go.dev/doc/devel/release)
 and [Tailscale security bulletin TS-2026-013](https://tailscale.com/security-bulletins#ts-2026-013).

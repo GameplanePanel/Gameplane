@@ -38,7 +38,7 @@ gameaction/
 └── action_test.go      # Unit tests (91% coverage gate)
 ```
 
-Single file, no subdirectories. Part of the Go workspace (`go.work`) with netguard, operator, api, agent, and other modules.
+Source is a single file (action.go). Tests are action_test.go and fuzz_test.go; the fuzz corpus lives under testdata/fuzz/. Part of the Go workspace (`go.work`) with netguard, operator, api, agent, and other modules.
 
 ## External interface / contracts
 

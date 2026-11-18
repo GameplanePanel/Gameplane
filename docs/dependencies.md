@@ -162,7 +162,7 @@ BackupSchedule, Restore, Module, and ModuleSource. Direct deps from
 | `github.com/google/go-containerregistry` | v0.22.0 | `internal/verify/verify.go` — `name.NewDigest` + `remote.WithAuth/WithContext` resolve and authenticate the image ref being cosign-verified | direct-runtime | <!-- doc-versions: dependency -->
 | `oras.land/oras-go/v2` | v2.6.2 | `internal/oci/client.go` — pulls Module OCI bundle artifacts from the registry (`registry/remote.Repository` + retry transport) | direct-runtime |
 | `github.com/opencontainers/image-spec` | v1.1.1 | `internal/oci/client.go` — `ocispec.Manifest`/`ocispec.Descriptor` types for parsing OCI manifests when pulling module bundles | direct-runtime |
-| `github.com/sigstore/cosign/v2` | v2.6.5 | `internal/verify/verify.go` — `cosign.VerifyImageSignatures`/`CheckOpts` verify Module OCI bundle signatures, keyed (against `cosign.pub`) or keyless (Fulcio/Rekor) | direct-runtime |
+| `github.com/sigstore/cosign/v3` | v3.1.4 | `internal/verify/verify.go` — `cosign.VerifyImageSignatures`/`CheckOpts` verify Module OCI bundle signatures, keyed (against `cosign.pub`) or keyless (Fulcio/Rekor) | direct-runtime |
 | `github.com/sigstore/sigstore` | v1.10.9 | `internal/verify/verify.go` — `pkg/fulcioroots` supplies Fulcio root certs for keyless cosign verification | direct-runtime |
 | `golang.org/x/mod` | v0.40.0 | `semver.Compare`/`semver.IsValid` in `internal/controller/semver.go`, `module_controller.go`, `internal/modsrc/oci.go`, `internal/oci/client.go` — sorts/validates Module version tags | direct-runtime | <!-- doc-versions: dependency -->
 | `sigs.k8s.io/yaml` | v1.6.0 | `internal/modsrc/bundle.go` parses `module.yaml`; `internal/controller/module_controller.go` parses the bundled `template.yaml` into JSON-tagged Go structs | direct-runtime |
@@ -351,7 +351,7 @@ package a game module before publishing it. Direct deps from
 
 ### web
 
-React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
+React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
 `0.4.1`, matching the repo version):
 
 **Framework / core**
@@ -365,7 +365,7 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 
 **UI primitives (HeroUI v3)**
 - `@heroui/react` `^3.2.4` — foundational component library (Button, Input, Select, Modal, Table, etc.); composed and themed in `src/components/ui/` (Gameplane's composition layer over HeroUI).
-- `@heroui/styles` `^3.2.4` — companion style package with semantic token infrastructure for light/dark modes and brand customization; `@heroui/styles` is imported in `src/main.tsx` for global theme setup.
+- `@heroui/styles` `^3.2.4` — companion style package with semantic token infrastructure for light/dark modes and brand customization; `@heroui/styles` is imported in `src/styles/globals.css` for global theme setup.
 - `clsx` `^2.1.1` + `tailwind-merge` `^3.6.0` — combined into the `cn()` helper in `src/lib/utils.ts`, used app-wide for conditional/merged Tailwind classes and with HeroUI's theme tokens.
 - `lucide-react` `^1.37.0` — icon set, imported in roughly 35 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
 - `react-aria` — peer dependency of HeroUI, providing accessibility primitives (via `react-aria-components`) used by HeroUI atoms.
@@ -375,7 +375,7 @@ React 18 + TypeScript strict + Vite dashboard (`web/package.json` version
 - `@xterm/xterm` `^6.0.0` + `@xterm/addon-fit` `^0.11.0` — `Terminal`/`FitAddon` in `src/routes/tabs/useConsoleTerminal.ts`, driving the live server console (`Console.tsx`); also chunked separately in `vite.config.ts`. <!-- doc-versions: dependency -->
 
 **Styling / build**
-- `tailwindcss` `^4.3.3`, `autoprefixer` `^10.5.4`, `postcss` `^8.5.26` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; `tailwind.config.ts` defines the design tokens used throughout `src/styles` and Tailwind classes app-wide.
+- `tailwindcss` `^4.3.3`, `autoprefixer` `^10.5.4`, `postcss` `^8.5.26` (dev) — `postcss.config.js` wires Tailwind + autoprefixer; there is no `tailwind.config.ts`; design tokens live in `src/styles/globals.css`, which imports `@heroui/styles`.
 - `vite` `^8.2.2`, `@vitejs/plugin-react` `^6.1.1` (dev) — `vite.config.ts` drives the dev server (with the API/WS proxy to the in-cluster API used by `make web-dev`), production build, and is the engine behind `vitest.config.ts`.
 - `typescript` `^7.0.2` (dev) provides the native `tsc` used for the dashboard build and Playwright type checks. The i18n migration script reads TSX syntax with Babel.
 - Opening a JavaScript or TypeScript file starts Microsoft's TypeScript language server in a WebAssembly worker. The browser package is pinned to `7.1.0-dev.20261030.1`, the version Microsoft tested in Playground v2. The worker checks the open file against TypeScript's standard library in browser memory. [Microsoft's Playground implementation](https://github.com/microsoft/TypeScript-Website/pull/3653)
@@ -424,20 +424,19 @@ patch versions can drift between modules.
 These aren't code dependencies of any component; they're invoked by
 `Makefile` targets and GitHub Actions workflows.
 
-- **`sigs.k8s.io/controller-tools/cmd/controller-gen`** (`tool` directive in `operator/go.mod`, pulling in `sigs.k8s.io/controller-tools v0.20.1` indirect) — `make generate`/`make manifests` regenerate `zz_generated.deepcopy.go` and the CRD/RBAC YAML. <!-- doc-versions: dependency -->
+- **`sigs.k8s.io/controller-tools/cmd/controller-gen`** (`tool` directive in `operator/go.mod`, pulling in `sigs.k8s.io/controller-tools v0.22.0` indirect) — `make generate`/`make manifests` regenerate `zz_generated.deepcopy.go` and the CRD/RBAC YAML. <!-- doc-versions: dependency -->
 - **`github.com/vladopajic/go-test-coverage/v2@v2.18.9`** — pinned in `Makefile`'s `GO_TEST_COVERAGE_PKG`, run via `go run` (no install step) by `make cover-go-check` and CI's `go` job to enforce each module's `.testcoverage.yml` threshold.
 - **`github.com/wadey/gocovmerge@v0.0.0-20160331181800-b5bfa59ec0ad`** — pinned in `Makefile`'s `GOCOVMERGE_PKG`, merges each module's `unit.out` + `envtest.out` coverage profiles before the threshold gate. <!-- doc-versions: dependency -->
 - **`sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.24`** — installed by `make envtest-bin`; downloads the K8s 1.36.2 envtest binaries (`kube-apiserver`, `etcd`) that back `operator`'s and `api`'s `-tags=envtest` integration tests.
 - **`golangci-lint` v2.14.0** — pinned in `.github/workflows/ci.yaml`, `.devcontainer/versions.toml` (`golangci_lint`, installed by `.devcontainer/setup.sh`), and the exact-version guard in `test/e2e/lint-gate-verify.sh`. Its `golang.org/x/tools v0.50.0` importer supports the export-data version 5 emitted by Go 1.27.3; v2.13.2's importer does not. CI uses the published binary and the devcontainer builds the same release from source. The CI `lint` matrix gates every selected workspace module with `.golangci.yml`, using `envtest` tags for operator/API and `e2e` tags for test/e2e. Update the verifier's valid fixtures with the pin; unsupported or unpinned versions must still fail. Tests and general lint run only in CI under repository policy. <!-- doc-versions: dependency -->
-- **`oras` CLI ≥ 1.2.0** (pinned `1.2.0` in `.devcontainer/versions.toml`; `oras-project/setup-oras@v2.0.1` action in `release.yaml`) — `modules/build.sh` pushes each `modules/<name>/` directory as an OCI module bundle (`make modules-push`); this is a *different* thing from `operator`'s `oras.land/oras-go/v2` **library** dependency, which is the operator's own pull-side client, not the CLI.
-- **`cosign` CLI v3.1.2** (`sigstore/cosign-installer@v4.1.2`) — used in `publish-edge.yaml`/`release.yaml` to sign published container images, the Helm chart, and module bundles against `COSIGN_PRIVATE_KEY`, recording each signature in the public Rekor transparency log, and to round-trip-verify against the derived public key before publishing. Signatures use the classic format (`--new-bundle-format=false --use-signing-config=false`), which is what keeps them readable by the operator's `sigstore/cosign/v2` library; cosign's newer Rekor v2 flow additionally requires an RFC3161 timestamp authority that keyed signing cannot satisfy. `modules/build.sh` gates the same behaviour behind its own `--tlog-upload` flag so local and air-gapped authoring stays offline. Distinct from `operator`'s `sigstore/cosign/v2` **library** dependency, which only ever *verifies* (never signs) at reconcile time.
-- **`kind`** v0.32.0 (pinned in `.devcontainer/versions.toml`) / `helm/kind-action@v1.14.0` (`install_only: true` in CI) — spins up the ephemeral clusters for `make dev-up`, `make test-e2e`, and every `e2e-*` CI job. <!-- doc-versions: dependency -->
-- **`helm`** (`azure/setup-helm@v5.0.1` in CI; `helm` 4.3.1 pinned in `.devcontainer/versions.toml` and installed by the full dev container profile) — chart lint (`helm lint`), chart render sanity-check, `helm template`, and `helm upgrade --install` in `deploy/kind/*.sh`/`Makefile`'s `dev-install`.
-- **`docker buildx bake`** (`containers/docker-bake.hcl`, `docker/bake-action@v6`) — builds the operator/api/agent e2e images concurrently with a shared GitHub Actions layer cache (`.github/actions/e2e-images`); also builds the `e2e-gameprobe` headless bot image used only by the game-bot CI job.
-- **`docker/build-push-action@v6` + `docker/metadata-action@v5`** — the actual multi-arch (`linux/amd64,linux/arm64`) image builds and GHCR tagging in `publish-edge.yaml` (main → `:edge`) and `release.yaml` (`v*` tags → versioned images + `oci://ghcr.io/<owner>/charts` Helm push).
+- **`oras` CLI ≥ 1.2.0** (pinned `1.2.0` in `.devcontainer/versions.toml`; `oras-project/setup-oras@v2.0.3` action in `release.yaml`) — `modules/build.sh` pushes each `modules/<name>/` directory as an OCI module bundle (`make modules-push`); this is a *different* thing from `operator`'s `oras.land/oras-go/v2` **library** dependency, which is the operator's own pull-side client, not the CLI.
+- **`cosign` CLI v3.1.2** (`sigstore/cosign-installer@v4.1.3`) — used in `publish-edge.yaml`/`release.yaml` to sign published container images, the Helm chart, and module bundles against `COSIGN_PRIVATE_KEY`, recording each signature in the public Rekor transparency log, and to round-trip-verify against the derived public key before publishing. Signatures use the classic format (`--new-bundle-format=false --use-signing-config=false`), which is what keeps them readable by the operator's `sigstore/cosign/v3` library; cosign's newer Rekor v2 flow additionally requires an RFC3161 timestamp authority that keyed signing cannot satisfy. `modules/build.sh` gates the same behaviour behind its own `--tlog-upload` flag so local and air-gapped authoring stays offline. Distinct from `operator`'s `sigstore/cosign/v3` **library** dependency, which only ever *verifies* (never signs) at reconcile time.
+- **`kind`** v0.32.0 (pinned in `.devcontainer/versions.toml`) / `helm/kind-action@v1.15.2` (`install_only: true` in CI) — spins up the ephemeral clusters for `make dev-up`, `make test-e2e`, and every `e2e-*` CI job. <!-- doc-versions: dependency -->
+- **`helm`** (`azure/setup-helm@v5.1.0` in CI; `helm` 4.3.1 pinned in `.devcontainer/versions.toml` and installed by the full dev container profile) — chart lint (`helm lint`), chart render sanity-check, `helm template`, and `helm upgrade --install` in `deploy/kind/*.sh`/`Makefile`'s `dev-install`.
+- **`docker buildx bake`** (`containers/docker-bake.hcl`, `docker/bake-action@v7.3.0`) — builds the operator/api/agent e2e images concurrently with a shared GitHub Actions layer cache (`.github/actions/e2e-images`); also builds the `e2e-gameprobe` headless bot image used only by the game-bot CI job.
+- **`docker/build-push-action@v7.4.0` + `docker/metadata-action@v6.2.0`** — the actual multi-arch (`linux/amd64,linux/arm64`) image builds and GHCR tagging in `publish-edge.yaml` (main → `:edge`) and `release.yaml` (`v*` tags → versioned images + `oci://ghcr.io/<owner>/charts` Helm push).
 
-The Helm chart itself (`charts/gameplane/Chart.yaml`) declares **no chart
-`dependencies:`** — it's a single chart with no subcharts.
+The Helm chart itself (`charts/gameplane/Chart.yaml`) declares one vendored subchart dependency, `gameplane-crds` (condition `operator.enabled`), under `charts/gameplane/charts/gameplane-crds`.
 
 ## Notable policies
 
@@ -470,19 +469,17 @@ The Helm chart itself (`charts/gameplane/Chart.yaml`) declares **no chart
   module error, not a subtle bug — but it's a manual step to remember when
   adding a new local module.
 - **Signing has two independent code paths that must be kept in sync.**
-  Verification (`operator`'s `sigstore/cosign/v2` **library**, checked at
+  Verification (`operator`'s `sigstore/cosign/v3` **library**, checked at
   Module-reconcile time against `cosign.pub`) and signing (the `cosign` **CLI**
-  v3.0.6, `sigstore/cosign-installer@v4.1.2` in CI) both use classic cosign
+  v3.1.2, `sigstore/cosign-installer@v4.1.3` in CI) both use classic cosign
   signature format (`--new-bundle-format=false --use-signing-config=false`) for
   mutual compatibility. A bump to either side needs to preserve that format
   compatibility and the ability to sign with `--tlog-upload` (Rekor logging).
-- **Lint is configured but not CI-enforced.** `.golangci.yml` and
+- **Lint is enforced in CI.** `.golangci.yml` and
   `web/eslint.config.js` are both real, actively-maintained rule sets (see
-  "Fix, don't silence" in `CLAUDE.md`), but neither `golangci-lint run` nor
-  `npm run lint` currently appears in `.github/workflows/ci.yaml` — only
-  `go vet` (Go) and `npm run build`/`test:cover` (web) are CI-gated. Lint
-  is a devcontainer/local (`make lint`) and `docs/contributing.md`
-  pre-PR-checklist step today, not an automated CI gate.
+  "Fix, don't silence" in `CLAUDE.md`). `.github/workflows/ci.yaml` runs
+  `golangci-lint` v2.14.0 in its `lint` job and `npm run lint` (ESLint and
+  Oxlint) for the dashboard; `make lint` runs the same checks locally.
 - **Workspace-wide `k8s.io/*` versions.** The six client-go consumers
   are one patch apart: `operator`, `agent` and `sentinel` are on
   `k8s.io/*` v0.37.1, `api`, `mcp-server` and `test/e2e` on v0.37.0. <!-- doc-versions: dependency --> Because `go.work`

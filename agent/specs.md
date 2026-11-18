@@ -73,13 +73,16 @@ agent/
 │   ├── console/             # Duplex WebSocket console bridge (RCON stdin/stdout)
 │   ├── files/               # File-browser HTTP API (list, read, write, upload, mkdir, delete)
 │   ├── heartbeat/           # GameServer status patcher (lastHeartbeat, players, version, usage)
+│   ├── httpjson/            # Shared JSON response helpers
 │   ├── lifecycle/           # Stop sequence execution before scale-to-zero
 │   ├── logs/                # Log file streaming over WebSocket (tail from start or end)
+│   ├── metrics/             # Per-server Prometheus metrics collected by the heartbeat loop
 │   ├── mods/                # Mod list, install, uninstall (manifest tracking, SSRF guard)
 │   ├── players/             # Player count, names, ban lists, moderation (kick, ban, unban)
 │   ├── quiesce/             # Pause auto-saves and flush state before snapshots
 │   ├── rcon/                # RCON wire protocols (source, telnet, websocket, battleye, satisfactory, palworld, nuclearoption, rest, cli)
 │   ├── status/              # Live metrics extraction via RCON + regex
+│   ├── target/              # Binds versioned agent routes to an immutable resource UID
 │   └── usage/               # Resource usage reader (/proc or cgroups; asynchronous per-directory disk usage)
 ├── openapi.yaml             # Partial machine-readable HTTP contract (subset of routes)
 └── .testcoverage.yml        # Coverage gate (90% total, unit-only)
@@ -262,14 +265,14 @@ All endpoints on the `--addr` control mux, except `/healthz`, return `401 Unauth
 
 | Module | Version | Purpose |
 |--------|---------|---------|
-| `github.com/go-chi/chi/v5` | v5.3.2 | HTTP router |
+| `github.com/go-chi/chi/v5` | v5.5.0 | HTTP router |
 | `github.com/coder/websocket` | v1.8.15 | WebSocket library for console, logs, player queries |
-| `k8s.io/apimachinery` | v0.37.1 | Kubernetes types for status patches |
-| `k8s.io/client-go` | v0.37.1 | Kubernetes client for heartbeat (GameServer status patches) |
-| `github.com/prometheus/client_golang` | v1.24.1 | Prometheus metrics (`/metrics` endpoint) |
-| `golang.org/x/sys` | v0.48.0 | System-level utilities (used by client-go) |
+| `k8s.io/apimachinery` | v0.37.2 | Kubernetes types for status patches |
+| `k8s.io/client-go` | v0.37.2 | Kubernetes client for heartbeat (GameServer status patches) |
+| `github.com/prometheus/client_golang` | v1.25.0 | Prometheus metrics (`/metrics` endpoint) |
+| `golang.org/x/sys` | v0.50.0 | System-level utilities (used by client-go) |
 
-The agent and operator modules use `k8s.io/apimachinery`/`k8s.io/client-go` v0.37.1 and the api module v0.37.0; each module resolves its own version, so patch versions can drift between them as Dependabot bumps one module at a time.
+The agent and operator modules use `k8s.io/apimachinery`/`k8s.io/client-go` v0.37.2 and the api module v0.37.2; each module resolves its own version, so patch versions can drift between them as Dependabot bumps one module at a time.
 
 ## Data & persistence
 

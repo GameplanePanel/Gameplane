@@ -30,7 +30,7 @@ operator/            controller-runtime operator
   api/v1alpha1/      CRD types (edit here, then `make generate manifests`); zz_generated.deepcopy.go GENERATED
   internal/controller/  reconcilers + envtest suites
   cmd/main.go        entrypoint;  config/{crd,rbac}/ GENERATED
-api/                 REST + WebSocket gateway (chi); cmd/main.go: `serve`, `bootstrap-admin`
+api/                 REST + WebSocket gateway (chi); cmd/main.go: `serve`, `gateway`, `bootstrap-admin`, `rotate-panel-key`
   internal/{handlers,auth,db,kube,notify,rbac,ws}/
 agent/               in-pod sidecar; internal/{auth,console,files,heartbeat,logs,players,rcon,quiesce}/
 audit-syslog-bridge/ SUBMODULE GameplanePanel/audit-syslog-bridge (RFC 5424 HTTP→syslog forwarder; own go.mod, not in go.work; image still built here)
@@ -63,7 +63,7 @@ After cloning: `git submodule update --init modules` (required for `make dev-up`
 - **Dev containers:** `make devcontainers` (regenerate every profile and the `website/` and `modules/` copies after editing `.devcontainer/versions.toml`, `.devcontainer/profiles.toml`, `.devcontainer/devcontainer-lock.json`, `.devcontainer/setup.sh` or a `system-deps.toml`), `make check-devcontainers` (drift check). Profile table: `docs/contributing.md`.
 - **Tests (CI only — never run locally, see Rule 8):** `make test`, `make test-integration` (envtest operator+api), `make test-e2e` (~10–20 min), `make test-e2e-bucket BUCKET=(operator|api-auth|api-roles|api-rbac|api-agent|api-mods|ratelimit|bot-fast|bot-heavy|multicluster|upgrade)`.
 - **E2E conventions:** register new tests in `test/e2e/buckets.sh`; `t.Parallel()` + unique names; guard shared resources (`ociPushMu` for module pushes, `ensureResticRepo(t)` for shared backup repos). Rate limits per cluster: IP burst 10 (5/min), user burst 6 (3/min) — cap an API bucket at ~7 admin logins.
-- **Lint:** `make lint` = gofmt, go vet, golangci-lint, ESLint, Oxlint, `check-specs`, `check-doc-versions`, `check-links`.
+- **Lint:** `make lint` runs `check-doc-versions`, `check-links`, `check-features-sync`, `check-specs`, `check-telemetry-catalog`, `check-i18n`, `check-dev-load-images`, `check-coverage-gaps`, `check-devcontainers`, `test-up-registry`, `lint-go` and `lint-web`.
 
 **Coverage minimums:** netguard 91, gameaction 91, gameproto 90, telemetryschema 90, i18n 90, gp-module 80, operator 72, api 80, agent 90; telemetry-receiver, sentinel 70; web 92 lines / 76 functions / 82 branches / 92 statements.
 
