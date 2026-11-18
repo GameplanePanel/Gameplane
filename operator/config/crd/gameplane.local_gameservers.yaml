@@ -1414,10 +1414,15 @@ spec:
                       Service, which gets a new cluster IP and, usually, a new external
                       address. Unset leaves the Service's class as it is. The value is a
                       Kubernetes qualified name: an optional DNS-subdomain prefix and a
-                      slash, then a name of at most 63 characters.
-                    maxLength: 253
+                      slash, then a name of at most 63 characters. The prefix is at most 253
+                      characters, so the whole value is at most 317.
+                    maxLength: 317
                     pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?$
                     type: string
+                    x-kubernetes-validations:
+                    - message: the loadBalancerClass prefix must be at most 253 characters
+                      rule: '!self.contains(''/'') || self.split(''/'')[0].size()
+                        <= 253'
                   portOverrides:
                     description: |-
                       PortOverrides lets the user pin a specific NodePort or override

@@ -479,7 +479,14 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); err != nil {
+	// A Service being replaced for a loadBalancerClass change is a pending
+	// networking change, not a failure: lifecycle and status keep reconciling
+	// (so Stop works while the old load balancer cleans up), and the pass
+	// requeues until the new Service exists.
+	serviceReplacing := false
+	if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
+		serviceReplacing = true
+	} else if err != nil {
 		logger.Error(err, "reconcile Service")
 		return ctrl.Result{}, err
 	}
@@ -571,6 +578,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
+	}
+	if serviceReplacing {
+		hints = append(hints, serviceReplaceRetry)
 	}
 	if sentinelBackstopPending(plan) {
 		// Bounded backstop for planSentinel's wait on the sentinel or the
@@ -790,6 +800,10 @@ func (r *GameServerReconciler) reconcileService(
 // cleans up, and a new one can only be created once it is gone.
 var errServiceReplaced = errors.New("replacing the Service for a loadBalancerClass change")
 
+// serviceReplaceRetry bounds how long a pass waits to see the old Service
+// gone. Owns(&corev1.Service{}) normally retriggers the reconcile when it is.
+const serviceReplaceRetry = 5 * time.Second
+
 // replaceServiceForClassChange deletes the game Service when the GameServer
 // asks for a different loadBalancerClass than the Service has, including a
 // LoadBalancer Service with no class, since Kubernetes doesn't allow
@@ -821,7 +835,10 @@ func (r *GameServerReconciler) replaceServiceForClassChange(
 	if !metav1.IsControlledBy(&svc, gs) {
 		return nil
 	}
-	if err := r.Delete(ctx, &svc); err != nil && !apierrors.IsNotFound(err) {
+	// The UID precondition keeps the delete to the Service checked above, not
+	// a same-name one that replaced it in the meantime.
+	uid := svc.UID
+	if err := r.Delete(ctx, &svc, client.Preconditions{UID: &uid}); err != nil && !apierrors.IsNotFound(err) {
 		return fmt.Errorf("delete Service for a loadBalancerClass change: %w", err)
 	}
 	return errServiceReplaced

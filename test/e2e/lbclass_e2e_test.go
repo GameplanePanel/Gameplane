@@ -98,8 +98,9 @@ func TestGameServer_LoadBalancerClassReplacesTheService(t *testing.T) {
 
 // TestCRD_Validation_LoadBalancerClassNameLength — the class's name part may
 // be up to 63 characters, as Kubernetes allows for a Service's
-// loadBalancerClass. One longer is rejected at admission, before it could
-// replace a working Service with one Kubernetes refuses to create.
+// loadBalancerClass, and its prefix up to 253. Longer ones are rejected at
+// admission, before they could replace a working Service with one Kubernetes
+// refuses to create.
 func TestCRD_Validation_LoadBalancerClassNameLength(t *testing.T) {
 	t.Parallel()
 
@@ -125,5 +126,20 @@ spec:
 	}
 
 	expectAdmissionRejection(t, manifest("e2e-validation-lbclass-64", "example.com/"+strings.Repeat("a", 64)),
+		[]string{"loadBalancerClass"})
+
+	// A qualified name's prefix can be 253 characters, so the whole value
+	// can be 317.
+	prefix := func(n int) string {
+		label := strings.Repeat("a", 63)
+		p := strings.Join([]string{label, label, label}, ".") // 191
+		return p + "." + strings.Repeat("b", n-len(p)-1)
+	}
+	if out, err := envInstance.KubectlWithStdin(t.Context(),
+		manifest("e2e-validation-lbclass-317", prefix(253)+"/"+strings.Repeat("a", 63)),
+		"apply", "--dry-run=server", "-f", "-"); err != nil {
+		t.Fatalf("CRD schema rejected a 317-character class, which Kubernetes allows.\nkubectl output:\n%s", out)
+	}
+	expectAdmissionRejection(t, manifest("e2e-validation-lbclass-prefix-254", prefix(254)+"/a"),
 		[]string{"loadBalancerClass"})
 }

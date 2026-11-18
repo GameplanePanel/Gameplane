@@ -308,8 +308,9 @@ A cluster can run more than one load-balancer implementation, each handling
 Services of its own class: a cloud's, MetalLB, Tailscale's operator, or a
 custom one for game traffic. Set `spec.networking.loadBalancerClass` on a
 LoadBalancer server to pick one; it becomes the Service's
-`spec.loadBalancerClass`. Unset, the Service has no class, and the cluster's
-default implementation handles it.
+`spec.loadBalancerClass`. Unset, the operator doesn't manage the class: a new
+Service has none, so the cluster's default implementation handles it, and an
+existing Service keeps any class something else gave it.
 
 Kubernetes doesn't allow changing a Service's class, or adding one to a
 LoadBalancer Service that has none, so when the field is set or changes, the
