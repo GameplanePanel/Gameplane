@@ -24,20 +24,28 @@ import (
 // server. Templates only select a pool; the pool, not the template, decides
 // which servers share ports.
 
-// PoolPortsAnnotation records the Service ports a server holds in its port
-// pool: "<pool>:<name>=<port>/<protocol>,...", one entry per advertised port
-// of the server's effective template, overridden ports included. It is the
-// reservation other servers read, so it never depends on which template or
-// revision the holder runs. It is an operator-owned annotation, not status,
-// for the reason the idle markers are: status is a derived read model a
-// `kubectl replace` can drop, and losing the record would move a server to new
-// ports, breaking every address players have saved.
+// PoolPortsAnnotation is a server's active record: the Service ports it
+// publishes from its port pool, "<pool>:<name>=<port>/<protocol>,...", one
+// entry per advertised port of its effective template, overridden ports
+// included. The main Service and relays publish exactly these ports, and the
+// record is the reservation other servers read, so it never depends on which
+// template or revision the holder runs. It is an operator-owned annotation,
+// not status, for the reason the idle markers are: status is a derived read
+// model a `kubectl replace` can drop, and losing the record would move a
+// server to new ports, breaking every address players have saved.
 const PoolPortsAnnotation = "gameplane.local/pool-ports"
 
-// portPoolExhaustedRetry is how often a server waiting for pool capacity
-// checks again; a deleted server frees its block without notifying the
-// others.
-const portPoolExhaustedRetry = 30 * time.Second
+// PendingPoolPortsAnnotation is a server's pending record, in the same
+// format: the ports reserved for a template rollout whose revision can't
+// publish through the active record. Both records are reserved until the
+// rollout switches the revision and the pending record becomes the active
+// one.
+const PendingPoolPortsAnnotation = "gameplane.local/pool-ports-pending"
+
+// portPoolRetry is how often a server waiting for pool capacity or a held
+// servicePort checks again; a deleted server frees its ports without
+// notifying the others.
+const portPoolRetry = 30 * time.Second
 
 var portPoolNameRE = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$`)
 
@@ -140,10 +148,15 @@ func (rec poolRecord) port(name string) (int32, bool) {
 	return 0, false
 }
 
-// parsePoolRecord reads a server's PoolPortsAnnotation. A malformed record
-// reads as none, so the server is given ports again rather than wedged.
+// parsePoolRecord reads a server's active record.
 func parsePoolRecord(gs *gameplanev1alpha1.GameServer) (poolRecord, bool) {
-	raw, ok := gs.Annotations[PoolPortsAnnotation]
+	return parsePoolRecordAt(gs, PoolPortsAnnotation)
+}
+
+// parsePoolRecordAt reads the record in annotation key. A malformed record
+// reads as none, so the server is given ports again rather than wedged.
+func parsePoolRecordAt(gs *gameplanev1alpha1.GameServer, key string) (poolRecord, bool) {
+	raw, ok := gs.Annotations[key]
 	if !ok {
 		return poolRecord{}, false
 	}
@@ -217,11 +230,14 @@ func (d poolDemand) pooledCount() int32 {
 	return n
 }
 
-// poolHolder is another server's reservation in the same pool.
+// poolHolder is one record another server holds in the same pool: its
+// active record, or the pending one reserved for its rollout.
 type poolHolder struct {
 	gs  *gameplanev1alpha1.GameServer
 	rec poolRecord
 }
+
+func (h poolHolder) String() string { return h.gs.Namespace + "/" + h.gs.Name }
 
 // olderServer orders servers by creation, then namespace and name, so every
 // reconcile settles a contested port the same way.
@@ -235,113 +251,144 @@ func olderServer(a, b *gameplanev1alpha1.GameServer) bool {
 	return a.Name < b.Name
 }
 
-// allocatePoolPorts decides a server's record. Its fixed ports are taken as
-// they are. Its pooled ports keep their recorded ports when the record is for
-// this pool, names the same pooled ports and protocols, stays in the range,
-// and collides with neither the server's own fixed ports nor an older
-// server's record; a younger server holding the same port moves instead.
-// Otherwise the pooled ports get one contiguous block, in template order: at
-// the recorded first port when it is free, else the lowest free block. Every
-// other server's record is avoided, so an assignment is never taken from a
-// server that holds it. ok is false when no block is free.
-func allocatePoolPorts(
-	gs *gameplanev1alpha1.GameServer, demand poolDemand, pool PortPool, holders []poolHolder,
-) (poolRecord, bool) {
-	fixed := map[poolPortKey]bool{}
-	for _, p := range demand.ports {
-		if p.fixed != 0 {
-			fixed[poolPortKey{p.protocol, p.fixed}] = true
+// poolConflict is an explicit servicePort another server already holds.
+type poolConflict struct {
+	port     int32
+	protocol corev1.Protocol
+	holder   string
+}
+
+func (c *poolConflict) String() string { return fmt.Sprintf("%d/%s", c.port, c.protocol) }
+
+// poolPlan is the allocation a demand can have now.
+type poolPlan struct {
+	record   poolRecord
+	ok       bool
+	kept     int // which candidate was kept (0-based), or -1 for a new block
+	conflict *poolConflict
+}
+
+// compatibleRecord reports whether rec publishes exactly demand's ports: the
+// same names and protocols, and each fixed port at its servicePort.
+func compatibleRecord(rec poolRecord, demand poolDemand) bool {
+	if len(rec.entries) != len(demand.ports) {
+		return false
+	}
+	for i, p := range demand.ports {
+		e := rec.entries[i]
+		if e.name != p.name || e.protocol != p.protocol || (p.fixed != 0 && e.port != p.fixed) {
+			return false
 		}
 	}
-	takenByAny := map[poolPortKey]bool{}
-	takenByOlder := map[poolPortKey]bool{}
+	return true
+}
+
+// contested reports whether an older server's record holds any of rec's
+// ports. Two records only share a port after a restore or a hand edit; the
+// older server keeps it.
+func contested(gs *gameplanev1alpha1.GameServer, rec poolRecord, holders []poolHolder) bool {
 	for _, h := range holders {
-		for _, e := range h.rec.entries {
-			k := poolPortKey{e.protocol, e.port}
-			takenByAny[k] = true
-			if olderServer(h.gs, gs) {
-				takenByOlder[k] = true
+		if !olderServer(h.gs, gs) {
+			continue
+		}
+		for _, e := range rec.entries {
+			for _, o := range h.rec.entries {
+				if e.protocol == o.protocol && e.port == o.port {
+					return true
+				}
 			}
 		}
 	}
+	return false
+}
 
-	build := func(portFor func(i int32) int32) poolRecord {
+// planPoolPorts decides the record a server's demand can have, given every
+// other server's records (holders) and the server's own records
+// (candidates, such as its active and pending records):
+//
+//  1. A candidate that publishes exactly the demand's ports and isn't
+//     contested is kept as it is, wherever its ports are: a pool that shrank
+//     still leaves an existing server its ports.
+//  2. An explicit servicePort another server holds is refused: the plan
+//     reports the conflict and allocates nothing, and the holder keeps it.
+//  3. Otherwise the pooled ports get one contiguous block, in the range and
+//     in template order, that no holder and none of the server's own fixed
+//     ports use: at prefer's first pooled port when the block fits there,
+//     else the lowest such block. The server's own records don't block it,
+//     since the Service moves from them to the new block in one update.
+//
+// ok is false when no block is free, or on a conflict.
+func planPoolPorts(
+	gs *gameplanev1alpha1.GameServer, demand poolDemand, pool PortPool, holders []poolHolder,
+	candidates []poolRecord, prefer poolRecord,
+) poolPlan {
+	for i, c := range candidates {
+		if c.pool == pool.Name && compatibleRecord(c, demand) && !contested(gs, c, holders) {
+			return poolPlan{record: c, ok: true, kept: i}
+		}
+	}
+
+	taken := map[poolPortKey]string{}
+	for _, h := range holders {
+		for _, e := range h.rec.entries {
+			taken[poolPortKey{e.protocol, e.port}] = h.String()
+		}
+	}
+	fixed := map[poolPortKey]bool{}
+	for _, p := range demand.ports {
+		if p.fixed == 0 {
+			continue
+		}
+		k := poolPortKey{p.protocol, p.fixed}
+		if holder, held := taken[k]; held {
+			return poolPlan{kept: -1, conflict: &poolConflict{port: p.fixed, protocol: p.protocol, holder: holder}}
+		}
+		fixed[k] = true
+	}
+
+	build := func(start int32) poolRecord {
 		rec := poolRecord{pool: pool.Name}
-		var i int32
+		next := start
 		for _, p := range demand.ports {
 			port := p.fixed
 			if port == 0 {
-				port = portFor(i)
-				i++
+				port = next
+				next++
 			}
 			rec.entries = append(rec.entries, poolPortEntry{name: p.name, protocol: p.protocol, port: port})
 		}
 		return rec
 	}
-
-	// Keep the recorded pooled ports when they still fit.
-	if prev, ok := parsePoolRecord(gs); ok && prev.pool == pool.Name {
-		keep := true
-		var pooled []int32
-		for _, p := range demand.ports {
-			if p.fixed != 0 {
-				continue
-			}
-			port, found := prev.port(p.name)
-			k := poolPortKey{p.protocol, port}
-			if !found || !recordedProtocol(prev, p.name, p.protocol) ||
-				port < pool.First || port > pool.Last || fixed[k] || takenByOlder[k] {
-				keep = false
-				break
-			}
-			pooled = append(pooled, port)
-		}
-		if keep {
-			return build(func(i int32) int32 { return pooled[i] }), true
-		}
-	}
-
 	n := demand.pooledCount()
 	if n == 0 {
-		return build(nil), true
+		return poolPlan{record: build(0), ok: true, kept: -1}
 	}
 	free := func(start int32) bool {
 		if start < pool.First || start+n-1 > pool.Last {
 			return false
 		}
-		var i int32
+		next := start
 		for _, p := range demand.ports {
 			if p.fixed != 0 {
 				continue
 			}
-			k := poolPortKey{p.protocol, start + i}
-			if takenByAny[k] || fixed[k] {
+			k := poolPortKey{p.protocol, next}
+			if _, held := taken[k]; held || fixed[k] {
 				return false
 			}
-			i++
+			next++
 		}
 		return true
 	}
-	if prev, ok := parsePoolRecord(gs); ok && prev.pool == pool.Name {
-		if start, found := firstPooledPort(prev, demand); found && free(start) {
-			return build(func(i int32) int32 { return start + i }), true
-		}
+	if start, found := firstPooledPort(prefer, demand); prefer.pool == pool.Name && found && free(start) {
+		return poolPlan{record: build(start), ok: true, kept: -1}
 	}
 	for start := pool.First; start+n-1 <= pool.Last; start++ {
 		if free(start) {
-			return build(func(i int32) int32 { return start + i }), true
+			return poolPlan{record: build(start), ok: true, kept: -1}
 		}
 	}
-	return poolRecord{}, false
-}
-
-func recordedProtocol(rec poolRecord, name string, protocol corev1.Protocol) bool {
-	for _, e := range rec.entries {
-		if e.name == name {
-			return e.protocol == protocol
-		}
-	}
-	return false
+	return poolPlan{kept: -1}
 }
 
 // firstPooledPort is the lowest recorded port among the demand's pooled
@@ -359,38 +406,78 @@ func firstPooledPort(rec poolRecord, demand poolDemand) (int32, bool) {
 	return lowest, lowest != 0
 }
 
-// portAllocation is one pass's outcome for a server, for its status.
+// outsideRange lists a record's pooled ports outside the pool's range: a pool
+// that shrank leaves them with the servers that hold them.
+func outsideRange(rec poolRecord, demand poolDemand, pool PortPool) []poolPortEntry {
+	var out []poolPortEntry
+	for i, e := range rec.entries {
+		if i < len(demand.ports) && demand.ports[i].fixed != 0 {
+			continue
+		}
+		if e.port < pool.First || e.port > pool.Last {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+// Reasons for the PortAllocation condition.
+const (
+	portReasonAllocated     = "Allocated"
+	portReasonOutsideRange  = "AllocatedOutsideRange"
+	portReasonExhausted     = "PoolExhausted"
+	portReasonConflict      = "ServicePortConflict"
+	portReasonConflictNoSvc = "ServicePortConflictUnpublished"
+	portReasonChangePending = "ChangePending"
+	portReasonRollout       = "RolloutPending"
+	portReasonRolloutPort   = "RolloutPortConflict"
+)
+
+// portAllocation is one pass's outcome for a server: its effective record,
+// which its Service and relays publish, and the condition to report.
 type portAllocation struct {
 	pooled    bool
 	pool      string
-	exhausted bool
-	needed    int32
+	published bool // the server has an effective record, so it has a Service
 	record    poolRecord
+	reason    string
+	needed    int32 // the pooled ports a pending change or a new server needs
+	conflict  *poolConflict
+	outside   []poolPortEntry
 }
 
-// reconcilePoolPorts keeps the server's PoolPortsAnnotation current: set from
-// its template's pool, or removed when the template selects none or the pool
-// has no room. It updates gs in memory too, so the Service this pass builds
-// uses the ports. Allocations are serialized and read servers uncached, so
-// two new servers can't be given the same block.
-func (r *GameServerReconciler) reconcilePoolPorts(
-	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
-) (portAllocation, error) {
-	pool, pooled := r.PortPools.forTemplate(tmpl.Name)
-	if !pooled {
-		return portAllocation{}, r.setPoolRecord(ctx, gs, "")
+// retry reports whether the server waits for capacity or a free servicePort,
+// which no event announces: a deleted server frees its ports without
+// notifying the others.
+func (a portAllocation) retry() bool {
+	switch a.reason {
+	case portReasonExhausted, portReasonConflict, portReasonConflictNoSvc, portReasonChangePending,
+		portReasonRollout, portReasonRolloutPort:
+		return true
 	}
+	return false
+}
 
-	r.portPoolMu.Lock()
-	defer r.portPoolMu.Unlock()
+// poolRolloutWait is why a rollout waits to be admitted, kept for the pass's
+// status.
+type poolRolloutWait struct {
+	needed   int32
+	conflict *poolConflict
+}
 
+// poolHolders lists every other server's records in pool, uncached. A
+// terminating server still holds its ports, since its Service can outlive
+// it until garbage collection removes it.
+func (r *GameServerReconciler) poolHolders(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer, pool PortPool,
+) ([]poolHolder, error) {
 	reader := r.APIReader
 	if reader == nil {
 		reader = r.Client
 	}
 	var list gameplanev1alpha1.GameServerList
 	if err := reader.List(ctx, &list); err != nil {
-		return portAllocation{}, fmt.Errorf("list GameServers for port pool %s: %w", pool.Name, err)
+		return nil, fmt.Errorf("list GameServers for port pool %s: %w", pool.Name, err)
 	}
 	var holders []poolHolder
 	for i := range list.Items {
@@ -398,41 +485,177 @@ func (r *GameServerReconciler) reconcilePoolPorts(
 		if other.UID == gs.UID || (other.Namespace == gs.Namespace && other.Name == gs.Name) {
 			continue
 		}
-		if !other.DeletionTimestamp.IsZero() {
-			continue
-		}
-		if rec, ok := parsePoolRecord(other); ok && rec.pool == pool.Name {
-			holders = append(holders, poolHolder{gs: other, rec: rec})
+		for _, key := range []string{PoolPortsAnnotation, PendingPoolPortsAnnotation} {
+			if rec, ok := parsePoolRecordAt(other, key); ok && rec.pool == pool.Name {
+				holders = append(holders, poolHolder{gs: other, rec: rec})
+			}
 		}
 	}
 	sort.Slice(holders, func(i, j int) bool { return olderServer(holders[i].gs, holders[j].gs) })
-
-	demand := demandFor(gs, tmpl)
-	out := portAllocation{pooled: true, pool: pool.Name, needed: demand.pooledCount()}
-	rec, ok := allocatePoolPorts(gs, demand, pool, holders)
-	if !ok {
-		out.exhausted = true
-		return out, r.setPoolRecord(ctx, gs, "")
-	}
-	out.record = rec
-	return out, r.setPoolRecord(ctx, gs, rec.String())
+	return holders, nil
 }
 
-// setPoolRecord writes (or, for "", removes) the PoolPortsAnnotation,
+// rolloutHeld reports whether a template rollout owns the server's
+// lifecycle, which is what a pending record is reserved for.
+func rolloutHeld(gs *gameplanev1alpha1.GameServer) bool {
+	op, held, err := lifecycleOwner(gs)
+	return err == nil && held && op.Kind == "Rollout"
+}
+
+// reconcilePoolPorts keeps the server's records current and returns its
+// effective allocation. With a plan (planPoolPorts) the active record
+// becomes it, taking over a pending record once the rollout it was reserved
+// for has switched the server's revision. Without one, an active record that
+// still publishes the effective template's ports and isn't contested stays
+// in effect, and the change is reported as pending; otherwise the record is
+// removed and the server is unpublished. It updates gs in memory too, so the
+// Service this pass builds uses the ports. Allocations are serialized and
+// read servers uncached, so two servers can't be given the same block.
+func (r *GameServerReconciler) reconcilePoolPorts(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
+) (portAllocation, error) {
+	pool, pooled := r.PortPools.forTemplate(tmpl.Name)
+	if !pooled {
+		return portAllocation{}, r.setPoolRecords(ctx, gs, "", "")
+	}
+
+	r.portPoolMu.Lock()
+	defer r.portPoolMu.Unlock()
+	holders, err := r.poolHolders(ctx, gs, pool)
+	if err != nil {
+		return portAllocation{}, err
+	}
+
+	active, _ := parsePoolRecordAt(gs, PoolPortsAnnotation)
+	pending, _ := parsePoolRecordAt(gs, PendingPoolPortsAnnotation)
+	demand := demandFor(gs, tmpl)
+	out := portAllocation{pooled: true, pool: pool.Name, needed: demand.pooledCount()}
+	plan := planPoolPorts(gs, demand, pool, holders, []poolRecord{active, pending}, active)
+	// The pending record becomes the active one once it fits the effective
+	// revision, and is dropped once no rollout holds it.
+	if plan.kept == 1 || !rolloutHeld(gs) {
+		pending = poolRecord{}
+	}
+	switch {
+	case plan.ok:
+		active = plan.record
+		out.published, out.record = true, active
+		out.reason = portReasonAllocated
+		if out.outside = outsideRange(active, demand, pool); len(out.outside) != 0 {
+			out.reason = portReasonOutsideRange
+		}
+		if wait, waiting := r.poolRolloutWaits.Load(gs.UID); waiting {
+			w := wait.(poolRolloutWait)
+			out.reason, out.needed, out.conflict = portReasonRollout, w.needed, w.conflict
+			if w.conflict != nil {
+				out.reason = portReasonRolloutPort
+			}
+		}
+	case active.pool == pool.Name && compatibleNames(active, demand) && !contested(gs, active, holders):
+		// The change can't be made yet; the ports in use stay reserved and
+		// published.
+		out.published, out.record, out.conflict = true, active, plan.conflict
+		out.reason = portReasonChangePending
+		if plan.conflict != nil {
+			out.reason = portReasonConflict
+		}
+	default:
+		active = poolRecord{}
+		out.conflict = plan.conflict
+		out.reason = portReasonExhausted
+		if plan.conflict != nil {
+			out.reason = portReasonConflictNoSvc
+		}
+	}
+	return out, r.setPoolRecords(ctx, gs, recordValue(active), recordValue(pending))
+}
+
+// compatibleNames reports whether rec still publishes each of demand's ports
+// by name and protocol, whatever their servicePorts, so the Service it
+// describes still reaches the effective workload.
+func compatibleNames(rec poolRecord, demand poolDemand) bool {
+	if len(rec.entries) != len(demand.ports) {
+		return false
+	}
+	for i, p := range demand.ports {
+		if rec.entries[i].name != p.name || rec.entries[i].protocol != p.protocol {
+			return false
+		}
+	}
+	return true
+}
+
+func recordValue(rec poolRecord) string {
+	if rec.pool == "" {
+		return ""
+	}
+	return rec.String()
+}
+
+// reservePoolPortsForRollout runs before a template rollout is admitted, and
+// again before the rollout switches the server's revision. When the target
+// revision can't publish through the active record, it reserves the target's
+// ports durably in the pending record, so the rollout never drains a running
+// server it then can't publish; the active record stays reserved until the
+// switch. It returns false, and keeps the reason for the pass's status, when
+// the pool can't reserve them yet; the server keeps its current revision.
+func (r *GameServerReconciler) reservePoolPortsForRollout(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer, target *gameplanev1alpha1.GameTemplate,
+) (bool, error) {
+	pool, pooled := r.PortPools.forTemplate(target.Name)
+	if !pooled {
+		return true, nil
+	}
+	active, hasActive := parsePoolRecordAt(gs, PoolPortsAnnotation)
+	if !hasActive || active.pool != pool.Name {
+		// Nothing is published through the pool yet, so the rollout drains
+		// no exposure; the target is allocated like a new server.
+		return true, r.setPoolRecords(ctx, gs, gs.Annotations[PoolPortsAnnotation], "")
+	}
+
+	r.portPoolMu.Lock()
+	defer r.portPoolMu.Unlock()
+	holders, err := r.poolHolders(ctx, gs, pool)
+	if err != nil {
+		return false, err
+	}
+	pending, _ := parsePoolRecordAt(gs, PendingPoolPortsAnnotation)
+	demand := demandFor(gs, target)
+	plan := planPoolPorts(gs, demand, pool, holders, []poolRecord{active, pending}, active)
+	if !plan.ok {
+		r.poolRolloutWaits.Store(gs.UID, poolRolloutWait{needed: demand.pooledCount(), conflict: plan.conflict})
+		return false, nil
+	}
+	want := ""
+	if plan.kept != 0 {
+		want = plan.record.String()
+	}
+	return true, r.setPoolRecords(ctx, gs, active.String(), want)
+}
+
+// setPoolRecords writes the active and pending records ("" removes one),
 // guarded by resourceVersion so a concurrent edit isn't overwritten.
-func (r *GameServerReconciler) setPoolRecord(ctx context.Context, gs *gameplanev1alpha1.GameServer, want string) error {
-	current, has := gs.Annotations[PoolPortsAnnotation]
-	if (want == "" && !has) || (has && current == want) {
+func (r *GameServerReconciler) setPoolRecords(ctx context.Context, gs *gameplanev1alpha1.GameServer, active, pending string) error {
+	want := map[string]string{PoolPortsAnnotation: active, PendingPoolPortsAnnotation: pending}
+	changed := false
+	for key, value := range want {
+		if current, has := gs.Annotations[key]; (value == "" && has) || (value != "" && current != value) {
+			changed = true
+		}
+	}
+	if !changed {
 		return nil
 	}
 	patch := client.MergeFromWithOptions(gs.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	if gs.Annotations == nil {
 		gs.Annotations = map[string]string{}
 	}
-	if want == "" {
-		delete(gs.Annotations, PoolPortsAnnotation)
-	} else {
-		gs.Annotations[PoolPortsAnnotation] = want
+	for key, value := range want {
+		if value == "" {
+			delete(gs.Annotations, key)
+		} else {
+			gs.Annotations[key] = value
+		}
 	}
 	if err := r.Patch(ctx, gs, patch); err != nil {
 		return fmt.Errorf("record pool ports: %w", err)
@@ -440,8 +663,8 @@ func (r *GameServerReconciler) setPoolRecord(ctx context.Context, gs *gameplanev
 	return nil
 }
 
-// poolServicePort is the Service port recorded for an advertised port, or 0
-// when the server has no record for it.
+// poolServicePort is the Service port the active record gives an advertised
+// port, or 0 when the server has no record for it.
 func poolServicePort(gs *gameplanev1alpha1.GameServer, name string) int32 {
 	rec, ok := parsePoolRecord(gs)
 	if !ok {
@@ -449,6 +672,21 @@ func poolServicePort(gs *gameplanev1alpha1.GameServer, name string) int32 {
 	}
 	port, _ := rec.port(name)
 	return port
+}
+
+// deleteUnpublishedService removes the main Service of a pooled server with
+// no effective record, so it publishes nothing rather than ports another
+// server in the pool may hold.
+func (r *GameServerReconciler) deleteUnpublishedService(ctx context.Context, gs *gameplanev1alpha1.GameServer) error {
+	var svc corev1.Service
+	if err := r.Get(ctx, client.ObjectKey{Namespace: gs.Namespace, Name: gs.Name}, &svc); err != nil {
+		return client.IgnoreNotFound(err)
+	}
+	if !metav1.IsControlledBy(&svc, gs) || !svc.DeletionTimestamp.IsZero() {
+		return nil
+	}
+	uid := svc.UID
+	return client.IgnoreNotFound(r.Delete(ctx, &svc, client.Preconditions{UID: &uid}))
 }
 
 // portAllocationCondition reports a pass's outcome on the PortAllocation
@@ -462,17 +700,51 @@ func portAllocationCondition(
 	cond := metav1.Condition{
 		Type:               gameplanev1alpha1.GameServerConditionPortAllocation,
 		ObservedGeneration: gs.Generation,
+		Status:             metav1.ConditionFalse,
 	}
-	if alloc.exhausted {
-		cond.Status = metav1.ConditionFalse
+	// Each reason is written as a literal, which the condition-ids table's
+	// guard reads.
+	switch alloc.reason {
+	case portReasonAllocated:
+		cond.Reason = "Allocated"
+		cond.Status = metav1.ConditionTrue
+		cond.Message = fmt.Sprintf("Ports %s assigned from port pool '%s'.", poolPortsSummary(alloc.record.entries), alloc.pool)
+	case portReasonOutsideRange:
+		cond.Reason = "AllocatedOutsideRange"
+		cond.Status = metav1.ConditionTrue
+		cond.Message = fmt.Sprintf(
+			"Ports %s assigned from port pool '%s'. Ports %s are outside the pool's range and stay in use until the server is moved; keep forwarding them.",
+			poolPortsSummary(alloc.record.entries), alloc.pool, poolPortsSummary(alloc.outside))
+	case portReasonExhausted:
 		cond.Reason = "PoolExhausted"
 		cond.Message = fmt.Sprintf(
 			"Port pool '%s' has no free block of %d ports for this server, so it has no Service until a block frees up.",
 			alloc.pool, alloc.needed)
-	} else {
-		cond.Status = metav1.ConditionTrue
-		cond.Reason = "Allocated"
-		cond.Message = fmt.Sprintf("Ports %s assigned from port pool '%s'.", poolPortsSummary(alloc.record), alloc.pool)
+	case portReasonConflict:
+		cond.Reason = "ServicePortConflict"
+		cond.Message = fmt.Sprintf(
+			"Service port %s is held by %s in port pool '%s', so the server keeps ports %s until it is free.",
+			alloc.conflict, alloc.conflict.holder, alloc.pool, poolPortsSummary(alloc.record.entries))
+	case portReasonConflictNoSvc:
+		cond.Reason = "ServicePortConflictUnpublished"
+		cond.Message = fmt.Sprintf(
+			"Service port %s is held by %s in port pool '%s', so the server has no Service until it is free.",
+			alloc.conflict, alloc.conflict.holder, alloc.pool)
+	case portReasonChangePending:
+		cond.Reason = "ChangePending"
+		cond.Message = fmt.Sprintf(
+			"Port pool '%s' has no free block of %d ports for the requested change, so the server keeps ports %s until one frees up.",
+			alloc.pool, alloc.needed, poolPortsSummary(alloc.record.entries))
+	case portReasonRollout:
+		cond.Reason = "RolloutPending"
+		cond.Message = fmt.Sprintf(
+			"The template update waits for %d free ports in port pool '%s'; the server keeps its current revision on ports %s.",
+			alloc.needed, alloc.pool, poolPortsSummary(alloc.record.entries))
+	case portReasonRolloutPort:
+		cond.Reason = "RolloutPortConflict"
+		cond.Message = fmt.Sprintf(
+			"The template update waits for Service port %s, held by %s in port pool '%s'; the server keeps its current revision on ports %s.",
+			alloc.conflict, alloc.conflict.holder, alloc.pool, poolPortsSummary(alloc.record.entries))
 	}
 	if existing := meta.FindStatusCondition(conds, cond.Type); existing != nil &&
 		existing.Status == cond.Status && existing.Reason == cond.Reason && existing.Message == cond.Message {
@@ -482,11 +754,11 @@ func portAllocationCondition(
 	return conds
 }
 
-// poolPortsSummary lists a record's ports for the condition message, such as
+// poolPortsSummary lists ports for a condition message, such as
 // "2456/UDP, 2457/UDP".
-func poolPortsSummary(rec poolRecord) string {
-	parts := make([]string, 0, len(rec.entries))
-	for _, e := range rec.entries {
+func poolPortsSummary(entries []poolPortEntry) string {
+	parts := make([]string, 0, len(entries))
+	for _, e := range entries {
 		parts = append(parts, fmt.Sprintf("%d/%s", e.port, e.protocol))
 	}
 	return strings.Join(parts, ", ")

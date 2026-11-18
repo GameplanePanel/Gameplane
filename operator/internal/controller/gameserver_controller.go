@@ -142,8 +142,11 @@ type GameServerReconciler struct {
 	// PortPools gives the servers of each pooled template Service ports of
 	// their own on a shared endpoint (--port-pool, --port-pool-template); see
 	// gameserver_portpool.go. portPoolMu serializes allocations.
-	PortPools  PortPools
-	portPoolMu sync.Mutex
+	// poolRolloutWaits holds, by server UID, why this pass's template
+	// rollout waits for pool ports, for the pass's status.
+	PortPools        PortPools
+	portPoolMu       sync.Mutex
+	poolRolloutWaits sync.Map
 
 	// MetalLBNamespace is the namespace MetalLB's IPAddressPool custom
 	// resources (metallb.io/v1beta1, namespaced) live in. Used only when
@@ -326,6 +329,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	// Snapshot resolution precedes config, images, init containers, storage,
 	// services and every other template-derived resource.
+	r.poolRolloutWaits.Delete(gs.UID)
 	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
 	if err != nil {
 		var rejected workloadPolicyRejection
@@ -497,22 +501,26 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
-	// A server waiting for pool capacity gets no Service, rather than one on
-	// its template's ports, which another server in the pool may hold. One it
-	// already has is left as it is.
+	// A pooled server with no effective record publishes nothing, rather
+	// than its template's ports, which another server in the pool may hold.
+	// One with a record, even while a change waits, keeps its Service
+	// current: selectors (sleep and wake), ports and metadata.
 	//
 	// A Service being replaced for a loadBalancerClass change is a pending
 	// networking change, not a failure: lifecycle and status keep reconciling
 	// (so Stop works while the old load balancer cleans up), and the pass
 	// requeues until the new Service exists.
 	serviceReplacing := false
-	if !portAlloc.exhausted {
-		if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
-			serviceReplacing = true
-		} else if err != nil {
-			logger.Error(err, "reconcile Service")
+	if portAlloc.pooled && !portAlloc.published {
+		if err := r.deleteUnpublishedService(ctx, &gs); err != nil {
+			logger.Error(err, "remove unpublished Service")
 			return ctrl.Result{}, err
 		}
+	} else if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
+		serviceReplacing = true
+	} else if err != nil {
+		logger.Error(err, "reconcile Service")
+		return ctrl.Result{}, err
 	}
 
 	var replicas int32
@@ -617,10 +625,8 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// replaced — every step above still ran this pass regardless.
 		hints = append(hints, sentinelBackstopRequeue)
 	}
-	if portAlloc.exhausted {
-		// A deleted server frees its block without notifying the servers
-		// waiting for one.
-		hints = append(hints, portPoolExhaustedRetry)
+	if portAlloc.retry() {
+		hints = append(hints, portPoolRetry)
 	}
 	for _, hint := range hints {
 		if hint > 0 && (requeue == 0 || hint < requeue) {
@@ -1387,17 +1393,18 @@ func svcPortsFromTemplate(
 			continue
 		}
 		port := p.ContainerPort
-		// A port from the server's pool (gameserver_portpool.go) replaces
-		// the default; an explicit override still wins.
-		if pooled := poolServicePort(gs, p.Name); pooled != 0 {
-			port = pooled
-		}
 		nodePort := int32(0)
 		if o, ok := overrides[p.Name]; ok {
 			if o.ServicePort != 0 {
 				port = o.ServicePort
 			}
 			nodePort = o.NodePort
+		}
+		// A pooled server's active record (gameserver_portpool.go) already
+		// includes its overrides, and wins: while an override waits for a
+		// port another server holds, the Service keeps the reserved ports.
+		if pooled := poolServicePort(gs, p.Name); pooled != 0 {
+			port = pooled
 		}
 		sp := corev1.ServicePort{
 			Name:       p.Name,

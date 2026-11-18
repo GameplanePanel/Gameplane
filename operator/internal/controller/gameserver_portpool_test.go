@@ -8,12 +8,14 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -52,13 +54,18 @@ func holder(name string, age int, record string) poolHolder {
 	return poolHolder{gs: &gs, rec: rec}
 }
 
+// allocate plans gs's ports the way a reconcile does, from its active record.
 func allocate(t *testing.T, gs gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate, holders ...poolHolder) string {
 	t.Helper()
-	rec, ok := allocatePoolPorts(&gs, demandFor(&gs, tmpl), edgePool, holders)
-	if !ok {
+	active, _ := parsePoolRecord(&gs)
+	plan := planPoolPorts(&gs, demandFor(&gs, tmpl), edgePool, holders, []poolRecord{active}, active)
+	if plan.conflict != nil {
+		return "conflict " + plan.conflict.String() + " " + plan.conflict.holder
+	}
+	if !plan.ok {
 		return "exhausted"
 	}
-	return rec.String()
+	return plan.record.String()
 }
 
 func TestParsePortPools(t *testing.T) {
@@ -198,7 +205,6 @@ func TestAllocatePoolPorts_ChangedPortSetKeepsItsBlockWhenFree(t *testing.T) {
 // block fits there, else at the lowest free block.
 func TestAllocatePoolPorts_ReassignedWhenTheRecordNoLongerFits(t *testing.T) {
 	for name, tc := range map[string]struct{ record, want string }{
-		"out of range":   {"edge:game=2467/UDP,query=2468/UDP", "edge:game=2456/UDP,query=2457/UDP"},
 		"another pool":   {"lan:game=2460/UDP,query=2461/UDP", "edge:game=2456/UDP,query=2457/UDP"},
 		"protocol":       {"edge:game=2460/TCP,query=2461/UDP", "edge:game=2460/UDP,query=2461/UDP"},
 		"missing a port": {"edge:game=2460/UDP", "edge:game=2460/UDP,query=2461/UDP"},
@@ -208,6 +214,48 @@ func TestAllocatePoolPorts_ReassignedWhenTheRecordNoLongerFits(t *testing.T) {
 				t.Errorf("got %s, want %s", got, tc.want)
 			}
 		})
+	}
+}
+
+// A pool that shrank leaves an existing server its ports; only new and
+// replacement blocks come from the reduced range.
+func TestAllocatePoolPorts_ShrunkPoolKeepsExistingPorts(t *testing.T) {
+	record := "edge:game=2467/UDP,query=2468/UDP"
+	if got := allocate(t, pooledServer("b", 2, record), valheimTemplate()); got != record {
+		t.Errorf("got %s, want the recorded ports kept", got)
+	}
+	// Its port set changing gives it a block in the range: at its first port
+	// when the block fits there, else the lowest free one.
+	tmpl := valheimTemplate()
+	tmpl.Spec.Ports = tmpl.Spec.Ports[:1]
+	if got := allocate(t, pooledServer("b", 2, record), tmpl); got != "edge:game=2467/UDP" {
+		t.Errorf("replacement at its first port: got %s", got)
+	}
+	tmpl = threePortTemplate()
+	if got := allocate(t, pooledServer("b", 2, record), tmpl); got != "edge:game=2456/UDP,query=2457/UDP,extra=2458/UDP" {
+		t.Errorf("replacement in the range: got %s", got)
+	}
+}
+
+// An explicit servicePort another server holds is refused, whatever the two
+// servers' ages: the holder keeps it.
+func TestAllocatePoolPorts_RefusesAHeldServicePort(t *testing.T) {
+	for name, age := range map[string]int{"younger holder": 3, "older holder": 0} {
+		t.Run(name, func(t *testing.T) {
+			gs := pooledServer("b", 2, "edge:game=2456/UDP,query=2457/UDP")
+			gs.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 2460}}
+			got := allocate(t, gs, valheimTemplate(), holder("a", age, "edge:game=2460/UDP,query=2461/UDP"))
+			if got != "conflict 2460/UDP games/a" {
+				t.Errorf("got %s", got)
+			}
+		})
+	}
+	// An override the server already holds stays with it when a younger
+	// duplicate appears.
+	gs := pooledServer("b", 2, "edge:game=2456/UDP,query=2460/UDP")
+	gs.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 2460}}
+	if got := allocate(t, gs, valheimTemplate(), holder("c", 3, "edge:game=2460/UDP")); got != "edge:game=2456/UDP,query=2460/UDP" {
+		t.Errorf("held override: got %s", got)
 	}
 }
 
@@ -252,8 +300,8 @@ func TestAllocatePoolPorts_Exhausted(t *testing.T) {
 	small := PortPool{Name: "edge", First: 2456, Last: 2458}
 	gs := pooledServer("b", 2, "")
 	others := []poolHolder{holder("a", 1, "edge:game=2456/UDP,query=2457/UDP")}
-	if _, ok := allocatePoolPorts(&gs, demandFor(&gs, valheimTemplate()), small, others); ok {
-		t.Fatal("want no block")
+	if plan := planPoolPorts(&gs, demandFor(&gs, valheimTemplate()), small, others, nil, poolRecord{}); plan.ok || plan.conflict != nil {
+		t.Fatalf("got %+v, want no block", plan)
 	}
 }
 
@@ -274,13 +322,19 @@ func TestSvcPortsFromTemplate_PoolPorts(t *testing.T) {
 		ports[0].TargetPort.IntVal != 2456 || ports[1].TargetPort.IntVal != 2457 {
 		t.Fatalf("got %+v", ports)
 	}
+	// The record already includes the server's overrides, so it wins over
+	// one waiting for a port another server holds.
 	gs.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 3000}}
-	if ports := svcPortsFromTemplate(valheimTemplate(), &gs); ports[1].Port != 3000 {
-		t.Errorf("override: got %d, want 3000", ports[1].Port)
+	if ports := svcPortsFromTemplate(valheimTemplate(), &gs); ports[1].Port != 2461 {
+		t.Errorf("waiting override: got %d, want the recorded 2461", ports[1].Port)
 	}
 	plain := pooledServer("b", 1, "")
 	if ports := svcPortsFromTemplate(valheimTemplate(), &plain); ports[0].Port != 2456 {
 		t.Errorf("no record: got %d, want the container port", ports[0].Port)
+	}
+	plain.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 3000}}
+	if ports := svcPortsFromTemplate(valheimTemplate(), &plain); ports[1].Port != 3000 {
+		t.Errorf("override without a record: got %d, want 3000", ports[1].Port)
 	}
 }
 
@@ -353,7 +407,7 @@ func TestReconcilePoolPorts_RecordsTheBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := "edge:game=2458/UDP,query=2459/UDP"
-	if !alloc.pooled || alloc.exhausted || alloc.record.String() != want {
+	if !alloc.pooled || !alloc.published || alloc.reason != portReasonAllocated || alloc.record.String() != want {
 		t.Errorf("allocation: %+v", alloc)
 	}
 	if gs.Annotations[PoolPortsAnnotation] != want {
@@ -386,15 +440,16 @@ func TestReconcilePoolPorts_RemovedWithThePool(t *testing.T) {
 	}
 }
 
-func TestReconcilePoolPorts_ExhaustedRemovesTheRecord(t *testing.T) {
+// A new server in a full pool gets no record and no Service.
+func TestReconcilePoolPorts_ExhaustedNewServer(t *testing.T) {
 	full := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
-	gs := pooledServer("b", 2, "edge:game=2470/UDP,query=2471/UDP")
+	gs := pooledServer("b", 2, "")
 	r, c := poolReconciler(t, edgePools(t, "2456-2458"), nil, &full, &gs)
 	alloc, err := r.reconcilePoolPorts(t.Context(), &gs, valheimTemplate())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !alloc.exhausted || alloc.needed != 2 {
+	if alloc.published || alloc.reason != portReasonExhausted || alloc.needed != 2 || !alloc.retry() {
 		t.Errorf("allocation: %+v", alloc)
 	}
 	if v, ok := storedPoolRecord(t, c, &gs); ok {
@@ -402,8 +457,102 @@ func TestReconcilePoolPorts_ExhaustedRemovesTheRecord(t *testing.T) {
 	}
 }
 
-// Terminating servers no longer hold ports.
-func TestReconcilePoolPorts_IgnoresTerminatingServers(t *testing.T) {
+// A serving server whose change can't be made keeps its record, so it keeps
+// publishing those ports, reserved.
+func TestReconcilePoolPorts_ChangeWaitsOnTheServingRecord(t *testing.T) {
+	// a serves 2470-2471, outside the shrunk range, and asks for query on
+	// 2480, so game needs a port in the range, which b fills.
+	a := pooledServer("a", 1, "edge:game=2470/UDP,query=2471/UDP")
+	a.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 2480}}
+	b := pooledServer("b", 2, "edge:game=2456/UDP,query=2457/UDP")
+	r, c := poolReconciler(t, edgePools(t, "2456-2457"), nil, &a, &b)
+	alloc, err := r.reconcilePoolPorts(t.Context(), &a, valheimTemplate())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !alloc.published || alloc.reason != portReasonChangePending || !alloc.retry() {
+		t.Fatalf("allocation: %+v", alloc)
+	}
+	if v, _ := storedPoolRecord(t, c, &a); v != "edge:game=2470/UDP,query=2471/UDP" {
+		t.Errorf("stored: got %q, want the serving record", v)
+	}
+	if ports := svcPortsFromTemplate(valheimTemplate(), &a); ports[0].Port != 2470 || ports[1].Port != 2471 {
+		t.Errorf("Service: got %+v, want the serving ports", ports)
+	}
+}
+
+// A record an older server also holds isn't kept while the server waits: it
+// is unpublished rather than left sharing ports.
+func TestReconcilePoolPorts_ContestedRecordIsNotKept(t *testing.T) {
+	record := "edge:game=2456/UDP,query=2457/UDP"
+	older, gs := pooledServer("a", 1, record), pooledServer("b", 2, record)
+	r, c := poolReconciler(t, edgePools(t, "2456-2458"), nil, &older, &gs)
+	alloc, err := r.reconcilePoolPorts(t.Context(), &gs, valheimTemplate())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if alloc.published || alloc.reason != portReasonExhausted {
+		t.Errorf("allocation: %+v", alloc)
+	}
+	if v, ok := storedPoolRecord(t, c, &gs); ok {
+		t.Errorf("stored: got %q, want no record", v)
+	}
+}
+
+// A held servicePort is refused: a server with a record keeps it, one
+// without stays unpublished.
+func TestReconcilePoolPorts_ServicePortConflict(t *testing.T) {
+	h := pooledServer("h", 3, "edge:game=2460/UDP,query=2461/UDP")
+	withRecord := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
+	withRecord.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 2461}}
+	without := pooledServer("b", 2, "")
+	without.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 2461}}
+	r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &h, &withRecord, &without)
+
+	alloc, err := r.reconcilePoolPorts(t.Context(), &withRecord, valheimTemplate())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !alloc.published || alloc.reason != portReasonConflict || alloc.conflict.holder != "games/h" {
+		t.Fatalf("with a record: %+v", alloc)
+	}
+	if ports := svcPortsFromTemplate(valheimTemplate(), &withRecord); ports[1].Port != 2457 {
+		t.Errorf("Service: got %d, want the kept 2457", ports[1].Port)
+	}
+	alloc, err = r.reconcilePoolPorts(t.Context(), &without, valheimTemplate())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if alloc.published || alloc.reason != portReasonConflictNoSvc {
+		t.Fatalf("without a record: %+v", alloc)
+	}
+	if v, _ := storedPoolRecord(t, c, &h); v != "edge:game=2460/UDP,query=2461/UDP" {
+		t.Errorf("holder: got %q, want it unchanged", v)
+	}
+}
+
+// A pool that shrank keeps existing servers' ports, says which are outside
+// the range, and keeps them across restarts (a fresh reconciler).
+func TestReconcilePoolPorts_ShrunkPoolKeepsPorts(t *testing.T) {
+	gs := pooledServer("a", 1, "edge:game=2470/UDP,query=2471/UDP")
+	for pass := range 2 {
+		r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs)
+		alloc, err := r.reconcilePoolPorts(t.Context(), &gs, valheimTemplate())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if alloc.reason != portReasonOutsideRange || poolPortsSummary(alloc.outside) != "2470/UDP, 2471/UDP" {
+			t.Fatalf("pass %d: %+v", pass, alloc)
+		}
+		if v, _ := storedPoolRecord(t, c, &gs); v != "edge:game=2470/UDP,query=2471/UDP" {
+			t.Fatalf("pass %d: stored %q", pass, v)
+		}
+		gs.ResourceVersion = ""
+	}
+}
+
+// A terminating server still holds its ports: its Service can outlive it.
+func TestReconcilePoolPorts_TerminatingServersStillHold(t *testing.T) {
 	leaving := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
 	leaving.Finalizers = []string{"example.com/hold"}
 	gs := pooledServer("b", 2, "")
@@ -415,9 +564,180 @@ func TestReconcilePoolPorts_IgnoresTerminatingServers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if alloc.record.String() != "edge:game=2456/UDP,query=2457/UDP" {
+	if alloc.record.String() != "edge:game=2458/UDP,query=2459/UDP" {
 		t.Errorf("got %s", alloc.record)
 	}
+}
+
+const testRevision = "0000000000000000000000000000000000000000000000000000000000000001"
+
+// withRollout gives gs a held template rollout.
+func withRollout(gs *gameplanev1alpha1.GameServer) {
+	if gs.Annotations == nil {
+		gs.Annotations = map[string]string{}
+	}
+	gs.Annotations[lifecycleOperationAnnotation] = lifecycleOperationJSON(lifecycleOperation{lifecycleIdentity: lifecycleIdentity{
+		Kind: "Rollout", Name: gs.Name, UID: gs.UID, TargetUID: gs.UID, Token: testRevision,
+	}})
+}
+
+func threePortTemplate() *gameplanev1alpha1.GameTemplate {
+	tmpl := valheimTemplate()
+	tmpl.Spec.Ports = append(tmpl.Spec.Ports, gameplanev1alpha1.GamePort{
+		Name: "extra", ContainerPort: 2458, Protocol: corev1.ProtocolUDP, Advertise: true,
+	})
+	return tmpl
+}
+
+// A rollout whose revision needs other ports reserves them first, and the
+// running server keeps its own until the switch.
+func TestReservePoolPortsForRollout(t *testing.T) {
+	t.Run("same ports need no reservation", func(t *testing.T) {
+		gs := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
+		r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs)
+		if ok, err := r.reservePoolPortsForRollout(t.Context(), &gs, valheimTemplate()); err != nil || !ok {
+			t.Fatalf("got %v, %v", ok, err)
+		}
+		if _, has := storedPendingRecord(t, c, &gs); has {
+			t.Error("want no pending record")
+		}
+	})
+	t.Run("reserved", func(t *testing.T) {
+		gs := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
+		other := pooledServer("b", 2, "edge:game=2458/UDP")
+		r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs, &other)
+		if ok, err := r.reservePoolPortsForRollout(t.Context(), &gs, threePortTemplate()); err != nil || !ok {
+			t.Fatalf("got %v, %v", ok, err)
+		}
+		pending, _ := storedPendingRecord(t, c, &gs)
+		if pending != "edge:game=2459/UDP,query=2460/UDP,extra=2461/UDP" {
+			t.Errorf("pending: got %q", pending)
+		}
+		if v, _ := storedPoolRecord(t, c, &gs); v != "edge:game=2456/UDP,query=2457/UDP" {
+			t.Errorf("active: got %q, want it kept", v)
+		}
+		// Another server avoids both records.
+		n := pooledServer("n", 3, "")
+		if err := c.Create(t.Context(), &n); err != nil {
+			t.Fatal(err)
+		}
+		tmpl := valheimTemplate()
+		tmpl.Spec.Ports = tmpl.Spec.Ports[:1]
+		alloc, err := r.reconcilePoolPorts(t.Context(), &n, tmpl)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if alloc.record.String() != "edge:game=2462/UDP" {
+			t.Errorf("new server: got %s", alloc.record)
+		}
+	})
+	t.Run("no room keeps the current revision", func(t *testing.T) {
+		gs := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
+		other := pooledServer("b", 2, "edge:game=2458/UDP")
+		r, c := poolReconciler(t, edgePools(t, "2456-2458"), nil, &gs, &other)
+		if ok, err := r.reservePoolPortsForRollout(t.Context(), &gs, threePortTemplate()); err != nil || ok {
+			t.Fatalf("got %v, %v, want it to wait", ok, err)
+		}
+		if _, has := storedPendingRecord(t, c, &gs); has {
+			t.Error("want no pending record")
+		}
+		alloc, err := r.reconcilePoolPorts(t.Context(), &gs, valheimTemplate())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !alloc.published || alloc.reason != portReasonRollout || alloc.needed != 3 || !alloc.retry() ||
+			alloc.record.String() != "edge:game=2456/UDP,query=2457/UDP" {
+			t.Errorf("allocation: %+v", alloc)
+		}
+	})
+	t.Run("no record yet", func(t *testing.T) {
+		gs := pooledServer("a", 1, "")
+		r, _ := poolReconciler(t, edgePools(t, "2456-2458"), nil, &gs)
+		if ok, err := r.reservePoolPortsForRollout(t.Context(), &gs, threePortTemplate()); err != nil || !ok {
+			t.Fatalf("got %v, %v", ok, err)
+		}
+	})
+}
+
+// Once the rollout switches the revision, the pending record becomes the
+// active one; without a rollout, a pending record is dropped.
+func TestReconcilePoolPorts_PendingRecord(t *testing.T) {
+	gs := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
+	gs.Annotations[PendingPoolPortsAnnotation] = "edge:game=2459/UDP,query=2460/UDP,extra=2461/UDP"
+	withRollout(&gs)
+	r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs)
+
+	// Before the switch, the old revision keeps its ports and both stay.
+	if _, err := r.reconcilePoolPorts(t.Context(), &gs, valheimTemplate()); err != nil {
+		t.Fatal(err)
+	}
+	if v, _ := storedPendingRecord(t, c, &gs); v == "" {
+		t.Fatal("pending record dropped before the switch")
+	}
+	alloc, err := r.reconcilePoolPorts(t.Context(), &gs, threePortTemplate())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if alloc.record.String() != "edge:game=2459/UDP,query=2460/UDP,extra=2461/UDP" {
+		t.Errorf("after the switch: got %s", alloc.record)
+	}
+	if v, has := storedPendingRecord(t, c, &gs); has {
+		t.Errorf("pending: got %q, want it promoted", v)
+	}
+
+	stale := pooledServer("b", 2, "edge:game=2462/UDP,query=2463/UDP")
+	stale.Annotations[PendingPoolPortsAnnotation] = "edge:game=2464/UDP,query=2465/UDP,extra=2466/UDP"
+	r, c = poolReconciler(t, edgePools(t, "2456-2467"), nil, &stale)
+	if _, err := r.reconcilePoolPorts(t.Context(), &stale, valheimTemplate()); err != nil {
+		t.Fatal(err)
+	}
+	if v, has := storedPendingRecord(t, c, &stale); has {
+		t.Errorf("stale pending: got %q, want it dropped", v)
+	}
+}
+
+// A pooled server with no record loses the Service it had; a Service it
+// doesn't control is left alone.
+func TestDeleteUnpublishedService(t *testing.T) {
+	gs := pooledServer("a", 1, "")
+	r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs)
+	svc := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: "a", Namespace: "games"}}
+	if err := controllerutil.SetControllerReference(&gs, svc, r.Scheme); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Create(t.Context(), svc); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.deleteUnpublishedService(t.Context(), &gs); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Get(t.Context(), client.ObjectKeyFromObject(svc), svc); !apierrors.IsNotFound(err) {
+		t.Fatalf("got %v, want the Service deleted", err)
+	}
+	foreign := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: "a", Namespace: "games"}}
+	if err := c.Create(t.Context(), foreign); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.deleteUnpublishedService(t.Context(), &gs); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Get(t.Context(), client.ObjectKeyFromObject(foreign), foreign); err != nil {
+		t.Fatalf("foreign Service: %v", err)
+	}
+	gone := pooledServer("gone", 1, "")
+	if err := r.deleteUnpublishedService(t.Context(), &gone); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func storedPendingRecord(t *testing.T, c client.Client, gs *gameplanev1alpha1.GameServer) (string, bool) {
+	t.Helper()
+	var got gameplanev1alpha1.GameServer
+	if err := c.Get(t.Context(), client.ObjectKeyFromObject(gs), &got); err != nil {
+		t.Fatal(err)
+	}
+	v, ok := got.Annotations[PendingPoolPortsAnnotation]
+	return v, ok
 }
 
 func TestReconcilePoolPorts_APIErrors(t *testing.T) {
@@ -444,28 +764,58 @@ func TestPortAllocationCondition(t *testing.T) {
 	rec, _ := parsePoolRecord(&gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{
 		Annotations: map[string]string{PoolPortsAnnotation: "edge:game=2456/UDP,query=2457/UDP"},
 	}})
-	conds := portAllocationCondition(nil, &gs, portAllocation{pooled: true, pool: "edge", needed: 2, record: rec})
-	c := meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation)
-	if c == nil || c.Status != metav1.ConditionTrue || c.Reason != "Allocated" || c.ObservedGeneration != 4 ||
-		!strings.Contains(c.Message, "2456/UDP, 2457/UDP") {
-		t.Fatalf("allocated: %+v", c)
+	conflict := &poolConflict{port: 2460, protocol: corev1.ProtocolUDP, holder: "games/h"}
+	for _, tc := range []struct {
+		alloc  portAllocation
+		status metav1.ConditionStatus
+		text   string
+		args   map[string]string
+	}{
+		{portAllocation{published: true, reason: portReasonAllocated, record: rec}, metav1.ConditionTrue,
+			"2456/UDP, 2457/UDP", map[string]string{"ports": "2456/UDP, 2457/UDP"}},
+		{portAllocation{published: true, reason: portReasonOutsideRange, record: rec, outside: rec.entries[1:]}, metav1.ConditionTrue,
+			"Ports 2457/UDP are outside", map[string]string{"outside": "2457/UDP"}},
+		{portAllocation{reason: portReasonExhausted, needed: 2}, metav1.ConditionFalse,
+			"no free block of 2 ports", map[string]string{"count": "2"}},
+		{portAllocation{published: true, reason: portReasonConflict, record: rec, conflict: conflict}, metav1.ConditionFalse,
+			"2460/UDP is held by games/h", map[string]string{"port": "2460/UDP", "holder": "games/h", "ports": "2456/UDP, 2457/UDP"}},
+		{portAllocation{reason: portReasonConflictNoSvc, conflict: conflict}, metav1.ConditionFalse,
+			"has no Service", map[string]string{"port": "2460/UDP"}},
+		{portAllocation{published: true, reason: portReasonChangePending, record: rec, needed: 1}, metav1.ConditionFalse,
+			"keeps ports 2456/UDP, 2457/UDP", map[string]string{"count": "1"}},
+		{portAllocation{published: true, reason: portReasonRollout, record: rec, needed: 3}, metav1.ConditionFalse,
+			"waits for 3 free ports", map[string]string{"count": "3"}},
+		{portAllocation{published: true, reason: portReasonRolloutPort, record: rec, conflict: conflict}, metav1.ConditionFalse,
+			"waits for Service port 2460/UDP", map[string]string{"holder": "games/h"}},
+	} {
+		t.Run(tc.alloc.reason, func(t *testing.T) {
+			tc.alloc.pooled, tc.alloc.pool = true, "edge"
+			conds := portAllocationCondition(nil, &gs, tc.alloc)
+			c := meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation)
+			if c == nil || c.Status != tc.status || c.Reason != tc.alloc.reason || c.ObservedGeneration != 4 ||
+				!strings.Contains(c.Message, tc.text) || !strings.Contains(c.Message, "'edge'") {
+				t.Fatalf("got %+v", c)
+			}
+			args := conditionArgsFor(&gs, c, conditionArgsInput{ports: tc.alloc})
+			if args["pool"] != "edge" {
+				t.Errorf("args: %v", args)
+			}
+			for k, v := range tc.args {
+				if args[k] != v {
+					t.Errorf("arg %s: got %q, want %q", k, args[k], v)
+				}
+			}
+		})
 	}
-	args := conditionArgsFor(&gs, c, conditionArgsInput{ports: portAllocation{pooled: true, pool: "edge", record: rec}})
-	if args["pool"] != "edge" || args["ports"] != "2456/UDP, 2457/UDP" {
-		t.Errorf("allocated args: %v", args)
+	c := &metav1.Condition{Type: gameplanev1alpha1.GameServerConditionPortAllocation, Reason: "Unknown"}
+	if args := conditionArgsFor(&gs, c, conditionArgsInput{}); args != nil {
+		t.Errorf("unknown reason: got %v", args)
 	}
-
-	conds = portAllocationCondition(conds, &gs, portAllocation{pooled: true, pool: "edge", needed: 2, exhausted: true})
-	c = meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation)
-	if c == nil || c.Status != metav1.ConditionFalse || c.Reason != "PoolExhausted" {
-		t.Fatalf("exhausted: %+v", c)
+	c.Reason = portReasonConflict
+	if args := conditionArgsFor(&gs, c, conditionArgsInput{ports: portAllocation{pool: "edge"}}); args != nil {
+		t.Errorf("conflict without a holder: got %v", args)
 	}
-	args = conditionArgsFor(&gs, c, conditionArgsInput{ports: portAllocation{pool: "edge", needed: 2}})
-	if args["pool"] != "edge" || args["count"] != "2" {
-		t.Errorf("exhausted args: %v", args)
-	}
-
-	if conds = portAllocationCondition(conds, &gs, portAllocation{}); meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation) != nil {
+	if conds := portAllocationCondition(nil, &gs, portAllocation{}); meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation) != nil {
 		t.Error("want the condition removed outside a pool")
 	}
 }

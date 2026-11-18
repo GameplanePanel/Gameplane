@@ -163,8 +163,9 @@ operator:
   # pool, one port per advertised port, recorded in its
   # gameplane.local/pool-ports annotation and kept for the server's life. A
   # (protocol, port) pair goes to one server, whatever its template. Servers'
-  # explicit servicePort overrides win and are reserved too. A template draws
-  # from at most one pool. See docs/networking.md#port-pools. Example:
+  # explicit servicePort overrides are reserved too, and refused when another
+  # server holds the port. Shrinking a range leaves existing servers their
+  # ports; keep forwarding them. A template draws from at most one pool. See docs/networking.md#port-pools. Example:
   #   portPools:
   #     - name: edge
   #       ports: "2456-2499"

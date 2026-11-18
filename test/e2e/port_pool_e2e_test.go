@@ -42,7 +42,7 @@ HTTPServer(('0.0.0.0',8080),Handler).serve_forever()
 func TestGameServer_PortPoolAllocation(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	ns := "gameplane-games"
 	suffix := time.Now().UnixNano()
 
@@ -57,7 +57,7 @@ func TestGameServer_PortPoolAllocation(t *testing.T) {
 			t.Fatalf("create template %s: %v", name, err)
 		}
 		t.Cleanup(func() {
-			_ = envInstance.Dyn.Resource(gameTemplateGVR).Delete(context.Background(), name, metav1.DeleteOptions{})
+			_ = envInstance.Dyn.Resource(gameTemplateGVR).Delete(context.WithoutCancel(ctx), name, metav1.DeleteOptions{})
 		})
 	}
 	createTemplate(portPoolTemplateA, map[string]any{
@@ -92,7 +92,7 @@ func TestGameServer_PortPoolAllocation(t *testing.T) {
 		}
 		t.Cleanup(func() {
 			_ = envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).
-				Delete(context.Background(), gsName, metav1.DeleteOptions{})
+				Delete(context.WithoutCancel(ctx), gsName, metav1.DeleteOptions{})
 		})
 		return gsName
 	}
@@ -198,7 +198,7 @@ func TestGameServer_PortPoolAllocation(t *testing.T) {
 		t.Fatalf("create probe pod: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = envInstance.K8s.CoreV1().Pods(probeNS).Delete(context.Background(), probe.Name, metav1.DeleteOptions{})
+		_ = envInstance.K8s.CoreV1().Pods(probeNS).Delete(context.WithoutCancel(ctx), probe.Name, metav1.DeleteOptions{})
 	})
 	url := fmt.Sprintf("http://%s.%s.svc:31000/", a1, ns)
 	envInstance.Eventually(t, 3*time.Minute, func() (bool, string) {

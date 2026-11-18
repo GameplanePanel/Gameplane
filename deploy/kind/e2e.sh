@@ -440,6 +440,9 @@ EOF
         --set "operator.portPools[0].ports=31000-31005" \
         --set "operator.portPools[0].templates[0]=e2e-portpool-a" \
         --set "operator.portPools[0].templates[1]=e2e-portpool-b" \
+        --set "operator.portPools[1].name=e2e-pool-serving" \
+        --set "operator.portPools[1].ports=31010-31012" \
+        --set "operator.portPools[1].templates[0]=e2e-portpool-c" \
         --set "operator.gameDataStorage.storageClassName=gameplane-e2e-install-default" \
         --set "defaultModuleSource.enabled=false" \
         --set "api.telemetry.receiver.enabled=true" \

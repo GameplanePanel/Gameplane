@@ -362,18 +362,27 @@ game's own, and `status.endpoints` and the dashboard show them. Relays (frp,
 Tailscale, Playit) forward to those ports too. The `PortAllocation`
 condition lists them.
 
-A server's explicit `spec.networking.portOverrides[].servicePort` still wins,
-and is reserved, so the pool never hands it to another server. When no block
-is free, the server reports `PortAllocation` `PoolExhausted` and gets no
-Service until a block frees up, for example when a server is deleted; it
-checks again every 30 seconds. Its game keeps running.
+A server's explicit `spec.networking.portOverrides[].servicePort` is
+reserved too, so the pool never hands it to another server. An override that
+names a port another server already holds is refused: the server reports
+`PortAllocation` `ServicePortConflict` and keeps the ports it had.
+
+When no block is free, a new server reports `PoolExhausted` and gets no
+Service until a block frees up, for example when a server is deleted. A
+server that already has ports keeps them, and keeps working, sleeping and
+waking, while a change it needs waits (`ChangePending`). A template update
+that needs other ports reserves them before the server is restarted for it;
+when the pool can't, the server stays on its current version and reports
+`RolloutPending`. Servers that wait check again every 30 seconds, and their
+games keep running.
 
 Forward the whole range at the relay or edge, to the cluster's load
-balancer. Grow a pool rather than shrink it: servers with ports outside a new
-range are moved, and players have to use their new ports. Removing a template
-from its pool returns its servers to the template's ports. The full rules,
-including template revisions and recovery, are in
-[spec 036](../specs/036-port-pools/spec.md).
+balancer. When you shrink a pool, existing servers keep their ports, even
+ones outside the new range, and report `AllocatedOutsideRange` with those
+ports. Keep forwarding them until you move those servers; only new servers
+use the smaller range. Removing a template from its pool returns its servers
+to the template's ports. The full rules, including template revisions and
+recovery, are in [spec 036](../specs/036-port-pools/spec.md).
 
 ## Related
 

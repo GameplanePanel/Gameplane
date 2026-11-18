@@ -15,6 +15,13 @@
   `e2e-pool`), registered in the operator bucket.
 - [X] T007 operator/specs.md, docs/networking.md, docs/install.md, changelog.
 - [X] T008 Compile operator and E2E locally without running tests or lint.
+- [X] T011 Maintainer decisions (OPEN-DECISIONS.md): refuse held overrides,
+  keep a serving allocation on exhaustion (no skipped Service reconcile),
+  keep ports on a shrink, reserve before a rollout (pending record); new
+  `PortAllocation` reasons with translations.
+- [X] T012 Regression tests for those rules, and E2E
+  `TestGameServer_PortPoolServingAllocation` (kind pool `e2e-pool-serving`);
+  `contextcheck` fixes in `port_pool_e2e_test.go`.
 - [ ] T009 CI: unit, envtest, E2E, lint and coverage; runtime verification
   is deferred to CI by repository policy.
 - [ ] T010 Maintainer review of the design (spec.md) and the PR.
