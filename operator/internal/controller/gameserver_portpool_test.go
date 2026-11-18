@@ -106,7 +106,8 @@ func TestParsePoolRecord(t *testing.T) {
 		t.Fatalf("got %+v, %v", rec, ok)
 	}
 	for _, bad := range []string{"", "edge", "edge:", ":game=1/UDP", "edge:game", "edge:game=1", "edge:=1/UDP",
-		"edge:game=x/UDP", "edge:game=0/UDP", "edge:game=70000/UDP", "edge:game=1/ICMP"} {
+		"edge:game=x/UDP", "edge:game=0/UDP", "edge:game=70000/UDP", "edge:game=1/ICMP",
+		"Edge:game=1/UDP", "edge/a:game=1/UDP", strings.Repeat("e", 64) + ":game=1/UDP"} {
 		gs := pooledServer("a", 0, bad)
 		if gs.Annotations == nil {
 			gs.Annotations = map[string]string{PoolPortsAnnotation: bad}

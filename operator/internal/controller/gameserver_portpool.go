@@ -175,7 +175,7 @@ func parsePoolRecordAt(gs *gameplanev1alpha1.GameServer, key string) (poolRecord
 		return poolRecord{}, false
 	}
 	pool, list, ok := strings.Cut(raw, ":")
-	if !ok || pool == "" || list == "" {
+	if !ok || !portPoolNameRE.MatchString(pool) || list == "" {
 		return poolRecord{}, false
 	}
 	rec := poolRecord{pool: pool}
