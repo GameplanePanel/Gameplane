@@ -69,6 +69,11 @@ template, so a holder pinned to an older revision reserves exactly what its
 Service publishes. They are annotations, not status, so a `kubectl replace`
 of status can't lose them, and they survive operator restarts.
 
+The main Service is labeled `gameplane.local/port-pool=<pool>`, and the ports
+it publishes are reservations too. A record that moves to a new block frees
+its old ports only once the Service has moved off them or been deleted, so a
+failed Service update never leaves two servers publishing one port.
+
 ## Allocation
 
 `reconcilePoolPorts` runs each pass before the tunnel and the Service, which
@@ -81,11 +86,13 @@ For a server whose template draws from pool P:
 1. **Demand.** The server's advertised ports from its effective template
    revision. A port with an explicit `portOverrides[].servicePort` is
    **fixed** at that port; the others are **pooled**.
-2. **Reservations.** Every other server's active and pending records for P.
+2. **Reservations.** Every other server's active and pending records for P,
+   and the ports every other server's main Service labeled for P publishes.
    A terminating server still holds its ports, since its Service can outlive
    it until garbage collection removes it.
 3. **Keep.** The active record is kept when it publishes exactly the
-   demand's ports (the same names and protocols, each fixed port at its
+   demand's ports (the same names and protocols, matched by name so
+   reordering a template's ports moves none, each fixed port at its
    servicePort) and isn't **contested**: no older server's record holds one
    of its ports. Servers are ordered by creation time, then namespace, then
    name. The range isn't checked, so a pool that shrank leaves existing
@@ -104,7 +111,8 @@ For a server whose template draws from pool P:
    same protocols, and isn't contested **stays in effect**: its ports stay
    reserved and published, and the change is reported as pending. Otherwise
    the active record is removed and the server is **unpublished**: its main
-   Service is deleted and it is never given its template's ports instead.
+   Service is deleted, its status lists no endpoints, and it is never given
+   its template's ports instead.
    Retention never keeps a contested or unusable record.
 
 Contiguous blocks matter for games that derive one port from another, such
@@ -158,7 +166,10 @@ reserves the replacement before it disrupts anything:
 
 A pending record is dropped when no rollout owns the server's lifecycle, for
 example after a canceled rollout. A server with no active record has no
-exposure to keep, so its rollout needs no reservation. If a pending record
+exposure to keep, so its rollout needs no reservation. Nor does one whose
+active record is for another pool, after its template moved pools: the same
+pass's `reconcilePoolPorts` places it in the new pool, or unpublishes it when
+that pool is full, whether or not a rollout runs. If a pending record
 is lost by hand after admission, the switch waits until it can be reserved
 again, with the workload drained; this is not a rollback framework.
 

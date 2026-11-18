@@ -42,6 +42,12 @@ const PoolPortsAnnotation = "gameplane.local/pool-ports"
 // one.
 const PendingPoolPortsAnnotation = "gameplane.local/pool-ports-pending"
 
+// PortPoolServiceLabel marks a pooled server's main Service with its pool.
+// The ports the Service publishes stay reserved, alongside the records,
+// until the Service changes or is deleted: a record that moves to a new
+// block frees its old ports only once the Service has moved off them.
+const PortPoolServiceLabel = "gameplane.local/port-pool"
+
 // portPoolRetry is how often a server waiting for pool capacity or a held
 // servicePort checks again; a deleted server frees its ports without
 // notifying the others.
@@ -140,12 +146,20 @@ func (rec poolRecord) String() string {
 
 // port returns the recorded Service port for an advertised port name.
 func (rec poolRecord) port(name string) (int32, bool) {
+	e, ok := rec.entry(name)
+	return e.port, ok
+}
+
+// entry returns the record's entry for an advertised port name. Entries are
+// matched by name, never by position, so reordering a template's ports
+// leaves each port its assignment.
+func (rec poolRecord) entry(name string) (poolPortEntry, bool) {
 	for _, e := range rec.entries {
 		if e.name == name {
-			return e.port, true
+			return e, true
 		}
 	}
-	return 0, false
+	return poolPortEntry{}, false
 }
 
 // parsePoolRecord reads a server's active record.
@@ -271,12 +285,11 @@ type poolPlan struct {
 // compatibleRecord reports whether rec publishes exactly demand's ports: the
 // same names and protocols, and each fixed port at its servicePort.
 func compatibleRecord(rec poolRecord, demand poolDemand) bool {
-	if len(rec.entries) != len(demand.ports) {
+	if !compatibleNames(rec, demand) {
 		return false
 	}
-	for i, p := range demand.ports {
-		e := rec.entries[i]
-		if e.name != p.name || e.protocol != p.protocol || (p.fixed != 0 && e.port != p.fixed) {
+	for _, p := range demand.ports {
+		if e, _ := rec.entry(p.name); p.fixed != 0 && e.port != p.fixed {
 			return false
 		}
 	}
@@ -409,12 +422,13 @@ func firstPooledPort(rec poolRecord, demand poolDemand) (int32, bool) {
 // outsideRange lists a record's pooled ports outside the pool's range: a pool
 // that shrank leaves them with the servers that hold them.
 func outsideRange(rec poolRecord, demand poolDemand, pool PortPool) []poolPortEntry {
+	fixed := map[string]bool{}
+	for _, p := range demand.ports {
+		fixed[p.name] = p.fixed != 0
+	}
 	var out []poolPortEntry
-	for i, e := range rec.entries {
-		if i < len(demand.ports) && demand.ports[i].fixed != 0 {
-			continue
-		}
-		if e.port < pool.First || e.port > pool.Last {
+	for _, e := range rec.entries {
+		if !fixed[e.name] && (e.port < pool.First || e.port > pool.Last) {
 			out = append(out, e)
 		}
 	}
@@ -465,7 +479,8 @@ type poolRolloutWait struct {
 	conflict *poolConflict
 }
 
-// poolHolders lists every other server's records in pool, uncached. A
+// poolHolders lists every other server's records in pool, and the ports
+// every other server's main Service publishes through it, uncached. A
 // terminating server still holds its ports, since its Service can outlive
 // it until garbage collection removes it.
 func (r *GameServerReconciler) poolHolders(
@@ -491,7 +506,59 @@ func (r *GameServerReconciler) poolHolders(
 			}
 		}
 	}
+	published, err := r.publishedPoolPorts(ctx, gs, pool, list.Items)
+	if err != nil {
+		return nil, err
+	}
+	holders = append(holders, published...)
 	sort.Slice(holders, func(i, j int) bool { return olderServer(holders[i].gs, holders[j].gs) })
+	return holders, nil
+}
+
+// publishedPoolPorts lists the ports other servers' main Services publish
+// through pool, each held by the Service's server. A Service whose server is
+// already gone is held as of the Service's creation.
+func (r *GameServerReconciler) publishedPoolPorts(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer, pool PortPool, servers []gameplanev1alpha1.GameServer,
+) ([]poolHolder, error) {
+	reader := r.APIReader
+	if reader == nil {
+		reader = r.Client
+	}
+	var svcs corev1.ServiceList
+	if err := reader.List(ctx, &svcs, client.MatchingLabels{PortPoolServiceLabel: pool.Name}); err != nil {
+		return nil, fmt.Errorf("list Services for port pool %s: %w", pool.Name, err)
+	}
+	var holders []poolHolder
+	for i := range svcs.Items {
+		svc := &svcs.Items[i]
+		owner := metav1.GetControllerOf(svc)
+		if owner == nil || owner.Kind != "GameServer" || owner.UID == gs.UID ||
+			(svc.Namespace == gs.Namespace && owner.Name == gs.Name) {
+			continue
+		}
+		var held *gameplanev1alpha1.GameServer
+		for j := range servers {
+			if servers[j].UID == owner.UID {
+				held = &servers[j]
+				break
+			}
+		}
+		if held == nil {
+			held = &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{
+				Name: owner.Name, Namespace: svc.Namespace, UID: owner.UID, CreationTimestamp: svc.CreationTimestamp,
+			}}
+		}
+		rec := poolRecord{pool: pool.Name}
+		for _, p := range svc.Spec.Ports {
+			protocol := p.Protocol
+			if protocol == "" {
+				protocol = corev1.ProtocolTCP
+			}
+			rec.entries = append(rec.entries, poolPortEntry{name: p.Name, protocol: protocol, port: p.Port})
+		}
+		holders = append(holders, poolHolder{gs: held, rec: rec})
+	}
 	return holders, nil
 }
 
@@ -577,8 +644,8 @@ func compatibleNames(rec poolRecord, demand poolDemand) bool {
 	if len(rec.entries) != len(demand.ports) {
 		return false
 	}
-	for i, p := range demand.ports {
-		if rec.entries[i].name != p.name || rec.entries[i].protocol != p.protocol {
+	for _, p := range demand.ports {
+		if e, ok := rec.entry(p.name); !ok || e.protocol != p.protocol {
 			return false
 		}
 	}
@@ -608,8 +675,12 @@ func (r *GameServerReconciler) reservePoolPortsForRollout(
 	}
 	active, hasActive := parsePoolRecordAt(gs, PoolPortsAnnotation)
 	if !hasActive || active.pool != pool.Name {
-		// Nothing is published through the pool yet, so the rollout drains
-		// no exposure; the target is allocated like a new server.
+		// Nothing is published through this pool. A record from another
+		// pool means the template's pool changed in the operator's
+		// configuration; this pass's reconcilePoolPorts moves the server to
+		// this pool, or unpublishes it when the pool is full, whether or not
+		// a rollout runs. Either way the target is allocated like a new
+		// server's.
 		return true, r.setPoolRecords(ctx, gs, gs.Annotations[PoolPortsAnnotation], "")
 	}
 

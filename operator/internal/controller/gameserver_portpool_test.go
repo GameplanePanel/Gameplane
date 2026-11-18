@@ -569,6 +569,78 @@ func TestReconcilePoolPorts_TerminatingServersStillHold(t *testing.T) {
 	}
 }
 
+// Reordering a template's ports leaves each port its assignment.
+func TestAllocatePoolPorts_ReorderedPortsKeepTheirAssignments(t *testing.T) {
+	gs := pooledServer("a", 1, "edge:game=2460/UDP,query=2461/UDP")
+	gs.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{{Name: "query", ServicePort: 2461}}
+	tmpl := valheimTemplate()
+	tmpl.Spec.Ports[0], tmpl.Spec.Ports[1] = tmpl.Spec.Ports[1], tmpl.Spec.Ports[0]
+	if got := allocate(t, gs, tmpl); got != "edge:game=2460/UDP,query=2461/UDP" {
+		t.Errorf("got %s, want the recorded ports", got)
+	}
+	if out := outsideRange(poolRecord{pool: "edge", entries: []poolPortEntry{
+		{name: "game", protocol: corev1.ProtocolUDP, port: 2470}, {name: "query", protocol: corev1.ProtocolUDP, port: 2461},
+	}}, demandFor(&gs, tmpl), edgePool); len(out) != 1 || out[0].name != "game" {
+		t.Errorf("outside range: got %+v, want game", out)
+	}
+}
+
+// Ports a server's Service still publishes stay reserved after its record
+// moves off them, until the Service moves too.
+func TestReconcilePoolPorts_PublishedPortsStayReserved(t *testing.T) {
+	moved := pooledServer("a", 1, "edge:game=2458/UDP,query=2459/UDP")
+	gs := pooledServer("b", 2, "")
+	r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &moved, &gs)
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "a", Namespace: "games", Labels: map[string]string{PortPoolServiceLabel: "edge"}},
+		Spec: corev1.ServiceSpec{Ports: []corev1.ServicePort{
+			{Name: "game", Port: 2456, Protocol: corev1.ProtocolUDP}, {Name: "query", Port: 2457, Protocol: corev1.ProtocolUDP},
+		}},
+	}
+	if err := controllerutil.SetControllerReference(&moved, svc, r.Scheme); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Create(t.Context(), svc); err != nil {
+		t.Fatal(err)
+	}
+	alloc, err := r.reconcilePoolPorts(t.Context(), &gs, valheimTemplate())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if alloc.record.String() != "edge:game=2460/UDP,query=2461/UDP" {
+		t.Errorf("got %s, want a block clear of both a's record and its Service", alloc.record)
+	}
+	// a's own Service doesn't hold a's ports against it.
+	if alloc, err := r.reconcilePoolPorts(t.Context(), &moved, valheimTemplate()); err != nil || alloc.record.String() != "edge:game=2458/UDP,query=2459/UDP" {
+		t.Errorf("a: got %s, %v", alloc.record, err)
+	}
+}
+
+// The main Service carries its server's pool, and loses it with the record.
+func TestReconcileService_LabelsThePool(t *testing.T) {
+	gs := pooledServer("a", 1, "edge:game=2460/UDP,query=2461/UDP")
+	r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs)
+	label := func() (string, bool) {
+		t.Helper()
+		if err := r.reconcileService(t.Context(), &gs, valheimTemplate(), false); err != nil {
+			t.Fatal(err)
+		}
+		var svc corev1.Service
+		if err := c.Get(t.Context(), client.ObjectKey{Namespace: "games", Name: "a"}, &svc); err != nil {
+			t.Fatal(err)
+		}
+		v, ok := svc.Labels[PortPoolServiceLabel]
+		return v, ok
+	}
+	if v, _ := label(); v != "edge" {
+		t.Errorf("got %q, want edge", v)
+	}
+	delete(gs.Annotations, PoolPortsAnnotation)
+	if v, ok := label(); ok {
+		t.Errorf("got %q, want no label", v)
+	}
+}
+
 const testRevision = "0000000000000000000000000000000000000000000000000000000000000001"
 
 // withRollout gives gs a held template rollout.

@@ -216,9 +216,17 @@ func TestGameServer_PortPoolAllocation(t *testing.T) {
 		if err != nil {
 			return false, "get game-direct service: " + err.Error()
 		}
+		want := map[string]int32{"game": 8080, "extra": 8081}
+		got := map[string][2]int32{}
 		for _, p := range direct.Spec.Ports {
-			if p.Port != p.TargetPort.IntVal {
-				return false, fmt.Sprintf("game-direct %s port %d, want its container port %d", p.Name, p.Port, p.TargetPort.IntVal)
+			got[p.Name] = [2]int32{p.Port, p.TargetPort.IntVal}
+		}
+		if len(got) != len(want) {
+			return false, fmt.Sprintf("game-direct ports = %v, want %v on port and targetPort", got, want)
+		}
+		for name, port := range want {
+			if got[name] != [2]int32{port, port} {
+				return false, fmt.Sprintf("game-direct ports = %v, want %v on port and targetPort", got, want)
 			}
 		}
 		return true, ""

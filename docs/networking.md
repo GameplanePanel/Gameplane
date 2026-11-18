@@ -368,7 +368,7 @@ names a port another server already holds is refused: the server reports
 `PortAllocation` `ServicePortConflict` and keeps the ports it had.
 
 When no block is free, a new server reports `PoolExhausted` and gets no
-Service until a block frees up, for example when a server is deleted. A
+Service or address until a block frees up, for example when a server is deleted. A
 server that already has ports keeps them, and keeps working, sleeping and
 waking, while a change it needs waits (`ChangePending`). A template update
 that needs other ports reserves them before the server is restarted for it;

@@ -269,10 +269,15 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Endpoints: tunnel endpoints come first (when present) so the dashboard's
 	// Connection card reads the address players actually use.
-	if svcExists {
+	switch {
+	case extra.portAllocation.pooled && !extra.portAllocation.published:
+		// A pooled server with no record has no Service, so no address
+		// reaches it, even while its old Service is still being deleted.
+		gs.Status.Endpoints = nil
+	case svcExists:
 		gs.Status.Endpoints = withAdvertisedHostname(
 			endpointsFromService(&svc, addrPlan), &svc, gs.Spec.Networking.Hostname)
-	} else {
+	default:
 		// A deleted/replacing Service must not preserve a stale tailnet endpoint
 		// when the forwarding deployment has since lost readiness.
 		var retained []gameplanev1alpha1.GameServerEndpoint

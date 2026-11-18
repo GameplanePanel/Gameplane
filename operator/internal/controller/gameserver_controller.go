@@ -825,7 +825,16 @@ func (r *GameServerReconciler) reconcileService(
 		// After applyManagedServiceAnnotations: the managed-label bookkeeping
 		// lives in an annotation, and applying it second keeps that annotation
 		// from being pruned as an unmanaged leftover.
-		applyManagedServiceLabels(svc, plan.serviceLabels())
+		labels := plan.serviceLabels()
+		// A pooled server's Service is labeled with its pool, so the ports
+		// it publishes stay reserved until it moves off them.
+		if rec, ok := parsePoolRecord(gs); ok {
+			if labels == nil {
+				labels = map[string]string{}
+			}
+			labels[PortPoolServiceLabel] = rec.pool
+		}
+		applyManagedServiceLabels(svc, labels)
 		return controllerutil.SetControllerReference(gs, svc, r.Scheme)
 	})
 	return err
