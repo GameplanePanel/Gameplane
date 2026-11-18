@@ -545,7 +545,7 @@ func (r *GameServerReconciler) reconcilePoolPorts(
 			out.reason = portReasonOutsideRange
 		}
 		if wait, waiting := r.poolRolloutWaits.Load(gs.UID); waiting {
-			w := wait.(poolRolloutWait)
+			w, _ := wait.(poolRolloutWait)
 			out.reason, out.needed, out.conflict = portReasonRollout, w.needed, w.conflict
 			if w.conflict != nil {
 				out.reason = portReasonRolloutPort
