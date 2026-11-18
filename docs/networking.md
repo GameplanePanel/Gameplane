@@ -278,6 +278,30 @@ For this reason, **changing the pool on a live server should be avoided when pos
 
 The project's e2e test `TestAddressPool_ChangePoolOnRunningServer` verifies that the pool assignment metadata is updated on the GameServer's status; it does not verify whether the actual IP address remains stable or changes, as this is load-balancer dependent. To determine the exact behavior in your deployment, test the address-change scenario against your specific load-balancer version and pool configuration before relying on it in production.
 
+## A Hostname as the Server's Address
+
+Set `spec.networking.hostname` to the DNS name players use. The operator
+adds it to the Service as an external-dns hint
+(`external-dns.alpha.kubernetes.io/hostname`), and on a LoadBalancer server,
+once the load balancer has published an address, `status.endpoints` and the
+dashboard report the hostname in place of that address, with the Service's
+ports. Players then see the name instead of an IP.
+
+The operator doesn't create the DNS record. With external-dns watching
+Services, the record is created from the hint and follows the load balancer
+if it hands out a new IP. A record you keep yourself must be updated by hand
+when that happens, or players reach the old address. A ClusterIP or NodePort
+server keeps reporting its own address.
+
+The load balancer's address stays in `status.endpoints[].serviceAddress`, and
+address-conflict checks for `spec.networking.address` compare against it, so
+a server advertising a hostname still holds its IP.
+
+This applies to every LoadBalancer server with a hostname, including ones
+created before the upgrade that introduced it. A hostname that doesn't
+resolve to its server would now be shown to players, so before upgrading,
+check each such hostname, or clear it where it isn't the name players use.
+
 ## Related
 
 - [`install.md`](install.md) — Helm chart values for `operator.addressManager` and cluster prerequisites.

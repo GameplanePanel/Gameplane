@@ -3045,7 +3045,10 @@ func (r *GameServerReconciler) findAddressConflict(
 
 // candidateHoldsAddress reports whether gs is a genuine LoadBalancer holder
 // of addr — its expose mode is LoadBalancer and one of its status.endpoints
-// carries addr as Host with no TunnelProvider. See the discriminator notes
+// carries addr as its Service address with no TunnelProvider. The Service
+// address is ServiceAddress, not Host, since Host may be an advertised
+// hostname; Host is the fallback for status written before ServiceAddress
+// existed, when the two were always the same. See the discriminator notes
 // on findAddressConflict for what this deliberately excludes (tunnel-sourced
 // endpoints, and the residual ClusterIP-fallback edge case).
 func candidateHoldsAddress(gs *gameplanev1alpha1.GameServer, addr string) bool {
@@ -3053,7 +3056,14 @@ func candidateHoldsAddress(gs *gameplanev1alpha1.GameServer, addr string) bool {
 		return false
 	}
 	for _, endpoint := range gs.Status.Endpoints {
-		if endpoint.TunnelProvider == "" && endpoint.Host == addr {
+		if endpoint.TunnelProvider != "" {
+			continue
+		}
+		held := endpoint.ServiceAddress
+		if held == "" {
+			held = endpoint.Host
+		}
+		if held == addr {
 			return true
 		}
 	}

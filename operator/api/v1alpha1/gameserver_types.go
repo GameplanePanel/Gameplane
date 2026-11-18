@@ -306,7 +306,10 @@ type GameServerNetworking struct {
 	// ingress / external-dns annotations on the Service. Must be an
 	// RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
 	// or hyphens, no leading/trailing hyphen, at most 253 characters
-	// total. The operator does not create the DNS record itself.
+	// total. The operator does not create the DNS record itself. On a
+	// LoadBalancer server, once the load balancer has an address, the
+	// hostname is also the address status.endpoints and the dashboard
+	// report, since it is the name players use.
 	// +kubebuilder:validation:MaxLength=253
 	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$`
 	// +optional
@@ -689,8 +692,18 @@ type CaptureStatus struct {
 // associated with a named template port.
 type GameServerEndpoint struct {
 	Name string `json:"name"`
+	// Host is the address players connect to: the Service's address, or on
+	// a LoadBalancer server with spec.networking.hostname, that hostname.
 	Host string `json:"host"`
 	Port int32  `json:"port"`
+
+	// ServiceAddress is the address the backing Service was assigned (its
+	// load-balancer IP or hostname, or its cluster IP while none is
+	// published), kept apart from Host so an advertised hostname doesn't
+	// hide which address a server holds. Reconciler-owned; empty on tunnel
+	// endpoints and on status written by an operator that predates it.
+	// +optional
+	ServiceAddress string `json:"serviceAddress,omitempty"`
 	// +optional
 	Protocol corev1.Protocol `json:"protocol,omitempty"`
 

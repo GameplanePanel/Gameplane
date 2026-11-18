@@ -265,7 +265,8 @@ func (r *GameServerReconciler) reconcileStatus(
 	// Endpoints: tunnel endpoints come first (when present) so the dashboard's
 	// Connection card reads the address players actually use.
 	if svcExists {
-		gs.Status.Endpoints = endpointsFromService(&svc, addrPlan)
+		gs.Status.Endpoints = withAdvertisedHostname(
+			endpointsFromService(&svc, addrPlan), &svc, gs.Spec.Networking.Hostname)
 	} else {
 		// A deleted/replacing Service must not preserve a stale tailnet endpoint
 		// when the forwarding deployment has since lost readiness.
@@ -1311,6 +1312,28 @@ func loadBalancerAddress(svc *corev1.Service) string {
 	return ing.IP
 }
 
+// withAdvertisedHostname reports a LoadBalancer server's
+// spec.networking.hostname as its address, in place of the load balancer's
+// own. The hostname is the DNS name advertised for the Service (through
+// external-dns, or a record the admin keeps), so it is the address players
+// should use, and a name survives the load balancer handing out a new IP.
+// It applies only once the load balancer has published an address, since
+// until then the name has nothing to point at, and never to ClusterIP or
+// NodePort Services, whose endpoints are not the name's target. Only Host
+// changes: ServiceAddress keeps the load balancer's address, which address
+// conflict detection compares against (candidateHoldsAddress).
+func withAdvertisedHostname(
+	eps []gameplanev1alpha1.GameServerEndpoint, svc *corev1.Service, hostname string,
+) []gameplanev1alpha1.GameServerEndpoint {
+	if hostname == "" || loadBalancerAddress(svc) == "" {
+		return eps
+	}
+	for i := range eps {
+		eps[i].Host = hostname
+	}
+	return eps
+}
+
 // endpointsFromService lists the per-port externally reachable address
 // for a Service. For ClusterIP we report the cluster IP; for NodePort
 // we report the Service's declared port (the node IP is left to the API
@@ -1342,11 +1365,12 @@ func endpointsFromService(
 	}
 	for _, p := range svc.Spec.Ports {
 		ep := gameplanev1alpha1.GameServerEndpoint{
-			Name:     p.Name,
-			Host:     host,
-			Port:     p.Port,
-			Protocol: p.Protocol,
-			Pool:     pool,
+			Name:           p.Name,
+			Host:           host,
+			ServiceAddress: host,
+			Port:           p.Port,
+			Protocol:       p.Protocol,
+			Pool:           pool,
 		}
 		if svc.Spec.Type == corev1.ServiceTypeNodePort && p.NodePort != 0 {
 			ep.Port = p.NodePort
