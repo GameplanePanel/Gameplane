@@ -101,8 +101,8 @@ helm upgrade --install gameplane ./charts/gameplane \
 ```
 
 > **Note:** GHCR packages are private on first publish. The maintainer makes the
-> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, and `charts/gameplane`
-> packages public once (GHCR → package → *Package settings* → *Change visibility*)
+> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, `charts/gameplane` and
+> `charts/gameplane-crds` packages public once (GHCR → package → *Package settings* → *Change visibility*)
 > so anonymous `helm install` / `docker pull` works. For a private install,
 > create a `kubernetes.io/dockerconfigjson` pull secret and set
 > `image.pullSecrets`.
