@@ -53,7 +53,7 @@ test.describe("live: mod registries", () => {
     }
   });
 
-  test("set, persist, then remove the Nexus Mods API key", async ({ page }) => {
+  test("set, replace, and remove the Nexus Mods API key without a second save", async ({ page }) => {
     const stamp = Date.now().toString(36);
     const row = page.getByRole("listitem").filter({ hasText: "Nexus Mods" });
 
@@ -61,10 +61,9 @@ test.describe("live: mod registries", () => {
     await row.getByRole("button", { name: "Set API key" }).click();
     await page.getByLabel(/API key/i).fill(`e2e-nexus-key-${stamp}`);
     await page.getByRole("button", { name: /^Save$/ }).click();
-    await expect(row.getByText("Configured", { exact: true })).toBeVisible();
-
-    await page.getByRole("button", { name: /^Save changes$/ }).click();
     await expect(page.getByText("Saved", { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(row.getByText("Configured", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Save changes$/ })).toHaveCount(0);
 
     // Persistence: a reload shows the saved state from the API.
     await page.reload();
@@ -72,9 +71,18 @@ test.describe("live: mod registries", () => {
     await expect(row.getByRole("button", { name: "Replace" })).toBeVisible();
     await expect(row.getByRole("button", { name: "Remove" })).toBeVisible();
 
-    // Remove the key and save; the reload shows it gone again.
+    // Replacement starts with an empty write-only field and also saves at once.
+    await row.getByRole("button", { name: "Replace" }).click();
+    await expect(page.getByLabel(/API key/i)).toHaveValue("");
+    await page.getByLabel(/API key/i).fill(`e2e-nexus-replacement-${stamp}`);
+    await page.getByRole("button", { name: /^Save$/ }).click();
+    await expect(page.getByText("Saved", { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByLabel(/API key/i)).toHaveCount(0);
+    await page.reload();
+    await expect(row.getByText("Configured", { exact: true })).toBeVisible();
+
+    // Removal is immediate; the reload shows it gone again.
     await row.getByRole("button", { name: "Remove" }).click();
-    await page.getByRole("button", { name: /^Save changes$/ }).click();
     await expect(page.getByText("Saved", { exact: true })).toBeVisible({ timeout: 15_000 });
 
     await page.reload();
@@ -104,11 +112,14 @@ test.describe("live: mod registries", () => {
     await row.getByRole("button", { name: "Set API key" }).click();
     await page.getByLabel(/API key/i).fill(`e2e-nexus-key-${stamp}`);
     await page.getByRole("button", { name: /^Save$/ }).click();
-    await page.getByRole("button", { name: /^Save changes$/ }).click();
 
     await expect(
       page.getByText(/a secret with that name exists but is not managed by Gameplane/i),
     ).toBeVisible();
+
+    await expect(page.getByLabel(/API key/i)).toHaveValue(`e2e-nexus-key-${stamp}`);
+    await expect(page.getByRole("button", { name: /^Save$/ })).toBeEnabled();
+    await expect(row.getByText("Not configured", { exact: true })).toBeVisible();
 
     // The config row is written only after the Secret write succeeds, so a
     // reload must still show the registry as not configured.

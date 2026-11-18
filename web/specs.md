@@ -862,6 +862,21 @@ package.json                # @gameplane/web v0.4.1; dev: vite, npm scripts for 
      changes for a retry. A row added or removed but never saved leaves its Secret as it was. Secrets the section
      didn't create (a user-set `configRef`) are never removed.
 
+### Immediate registry persistence
+
+`useModRegistrySave` implements an immediate save for keyed mod registries. It
+reads current configuration before writing, rejects a changed selected provider,
+and preserves other providers' current entries. A key save stores its managed
+Secret before the config row. Removal stores the row deletion before deleting
+only the API-owned Secret. Errors remain visible to the caller; the query cache
+retains a committed config write even if Secret cleanup fails. Set, replace and
+remove actions persist immediately without a second section-level Save button.
+The key form remains open and retains its write-only input on failure. Pending
+saves disable the field, cancel and provider actions, with an event-level guard
+against duplicate submissions. Only confirmed success closes the form and
+clears the key; reopening Replace always starts empty. Configured badges reflect
+committed configuration, including after leaving or reloading settings.
+
 ### Install-Time Settings Display & OIDC Role Mapping Overrides (AdminSettings & Cluster split)
 
 **Pattern:** Install-time cluster configuration (set via Helm values at deploy time) is read-only in the dashboard. These settings are **never dashboard-editable**; they originate from `installTimeSettings` injected via the API's `GET /admin/config` response.
