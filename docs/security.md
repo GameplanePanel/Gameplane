@@ -912,7 +912,7 @@ by matching known patterns:
 An important limitation: **redaction is pattern-based and therefore best-effort.**
 A credential in an unrecognised shape — a long hex string, a custom token format,
 or a value buried in a JSON log without a recognisable key — may not be caught.
-No Kubernetes Secret object is ever collected into dumps (the action only runs `kubectl get all -A`, `get jobs`, `describe pods`, pod and container queries, and `logs`, none of which read Secrets), so high-entropy database passwords and
+No Kubernetes Secret object is ever collected into dumps (the action only runs `kubectl get all -A`, `get jobs`, `describe pods`, pod and container queries, and `logs`, plus `helm history gameplane` when `include-helm-history` is true; none of these read Secrets, but reviewers should inspect the Helm history output like the rest of the dump), so high-entropy database passwords and
 OIDC secrets bound to the pod via Secrets are outside the dump scope entirely.
 
 Operators should: treat CI artifacts as sensitive (not suitable for sharing with

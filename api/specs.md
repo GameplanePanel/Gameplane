@@ -468,7 +468,7 @@ A submitted stylesheet is rejected with 400 and a message naming the offending r
   - Capture audit entries would still flow through the audit middleware, but the RBAC denial that should have fired never happens
   - No CI test currently detects this regression
 - **Regression test guards** (api/internal/handlers/capture_test.go and rbac_test.go):
-  - Test TestCapture_OnlyAdminCanAccess (or similar) verifies that operator role gets 403 on all 10 capture endpoints
+  - Test TestCapture_OnlyAdminCanAccess (or similar) verifies that operator role gets 403 on the 8 server capture endpoints; `:capture-node-enable` and `:capture-node-disable` are not yet in that matrix or in `TestCaptures_RuleOrdering`
   - Test TestRBACRuleOrdering (or similar) validates that capture rules appear before servers:write in the rule table (structural assertion on rule slice ordering)
   - These tests prevent accidental reordering in future edits
 
