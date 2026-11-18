@@ -608,6 +608,8 @@ Verify from `/api/go.mod`.
 **005_audit_chain.sql:** (hash-chain integrity)
 - Adds `prev_hash` and `hash` columns to `audit_events` for tamper detection
 
+**Public share power policy:** `GET /shares/{token}` includes `manuallyStopped` (the server's explicit stop setting) and `canStart` (the link permits waking and the server is not manually stopped). The existing `status` remains the observed phase. `POST /shares/{token}/start` is wake-only: an authorized link to a manually stopped server returns 409 with the stable generic JSON body `{"error":"server stopped"}` without stamping a wake or changing `spec.suspend`. Idle-asleep servers still receive a conditional wake annotation and 202; the operator owns reconciliation. Invalid and view-only start requests retain the identical neutral 404 response.
+
 **006_share_links.sql:** (unauthenticated server access tokens)
 - Creates `share_links` table: signed, revocable tokens for unauthenticated access to a single GameServer's status and connection address, optionally with start capability
 - Token never stored; only SHA-256 hash persisted and indexed for O(1) lookup

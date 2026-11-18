@@ -463,10 +463,12 @@ func TestSharePublicPayloadSafe(t *testing.T) {
 
 	// The response should only have the safe fields.
 	expectedKeys := map[string]bool{
-		"serverName":    true,
-		"status":        true,
-		"address":       true,
-		"playersOnline": true,
+		"serverName":      true,
+		"status":          true,
+		"manuallyStopped": true,
+		"canStart":        true,
+		"address":         true,
+		"playersOnline":   true,
 	}
 	for key := range m {
 		if !expectedKeys[key] {

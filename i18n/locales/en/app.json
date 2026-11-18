@@ -7923,6 +7923,10 @@
     "defaultMessage": "Online",
     "description": "Share: status badge under the server name on the share page, shown when the server is running; keep it short"
   },
+  "web.routes.share.owner_must_start": {
+    "defaultMessage": "This server was stopped by its owner. Ask the server owner to start it.",
+    "description": "Share: a manually stopped server cannot be started through a public wake-only link"
+  },
   "web.routes.share.players": {
     "defaultMessage": "PLAYERS",
     "description": "Share: small label above the players-online line on the share page"
@@ -7939,6 +7943,14 @@
     "defaultMessage": "Start server",
     "description": "Share: button label that starts the shared server"
   },
+  "web.routes.share.start_timed_out": {
+    "defaultMessage": "The server is taking longer than expected to start. Check back later, or ask the server owner for help.",
+    "description": "Share: startup polling stopped after five minutes; the visitor can check later or ask the owner"
+  },
+  "web.routes.share.start_timeout": {
+    "defaultMessage": "Still unavailable",
+    "description": "Share: status badge after waiting five minutes for a server to start"
+  },
   "web.routes.share.starting": {
     "defaultMessage": "Starting...",
     "description": "Share: status badge with a spinner under the server name while the server is starting; keep it short"
@@ -7946,6 +7958,10 @@
   "web.routes.share.starting_ellipsis": {
     "defaultMessage": "Starting...",
     "description": "Share: start button label while the start request is in flight"
+  },
+  "web.routes.share.stopped": {
+    "defaultMessage": "Stopped",
+    "description": "Share: status badge when the owner has manually stopped the server"
   },
   "web.routes.share.the_server_is_starting_up_this_usually": {
     "defaultMessage": "The server is starting up. This usually takes a minute or two — this page updates on its own.",

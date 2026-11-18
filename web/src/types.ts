@@ -1189,6 +1189,10 @@ export interface ShareAddr {
 export interface ShareLinkPublic {
   serverName: string;
   status: string; // e.g. "Running", "Asleep", "Failed"
+  /** Explicit owner stop; optional for older API versions. */
+  manuallyStopped?: boolean;
+  /** This link permits waking and the server is not manually stopped. */
+  canStart?: boolean;
   address?: ShareAddr; // undefined if no public endpoint is exposed
   playersOnline?: number; // undefined if not exposed by the game
 }
