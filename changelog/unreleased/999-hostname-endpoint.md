@@ -1,4 +1,4 @@
-# LoadBalancer servers show their hostname as their address
+# Breaking: LoadBalancer servers show their hostname as their address
 
 After upgrading, every LoadBalancer server that already has
 `spec.networking.hostname` set reports that hostname as its address in
