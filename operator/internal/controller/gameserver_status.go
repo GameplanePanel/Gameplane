@@ -67,9 +67,7 @@ func (r *GameServerReconciler) reconcileStatus(
 	if svcErr != nil && !apierrors.IsNotFound(svcErr) {
 		return 0, svcErr
 	}
-	// A terminating Service (being replaced for a loadBalancerClass change)
-	// no longer serves players, so its address is not reported.
-	svcExists := svcErr == nil && svc.DeletionTimestamp.IsZero()
+	svcExists := svcErr == nil
 	var svcPtr *corev1.Service
 	if svcExists {
 		svcPtr = &svc

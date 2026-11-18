@@ -300,9 +300,6 @@ func TestGameServer_StopWhileTheServiceIsReplaced(t *testing.T) {
 		if cur.Status.Phase != gameplanev1alpha1.GameServerPhaseSuspended {
 			return false, "phase = " + string(cur.Status.Phase)
 		}
-		if len(cur.Status.Endpoints) != 0 {
-			return false, "status still lists the terminating Service's endpoints"
-		}
 		var svc corev1.Service
 		if err := k8sClient.Get(context.Background(), key, &svc); err != nil || svc.UID != oldUID {
 			return false, "old Service gone before the check"
