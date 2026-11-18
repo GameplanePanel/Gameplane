@@ -108,7 +108,7 @@ In the Gameplane web dashboard:
 1. Navigate to **Modules** in the main navigation.
 2. Click **"Create module"** in the top-right header actions.
 3. Follow the 3-step modal wizard:
-   - **Step 1 (Preset & Metadata)**: Choose an archetype card (`SteamCMD Dedicated`, `Java Server`, or `Generic Container`), enter the module name (validated live against DNS-1123 standards), and select category chips.
+   - **Step 1 (Preset & Metadata)**: Choose an archetype card (`SteamCMD Dedicated Server`, `Java Application Server`, or `Generic Container Server`), enter the module name (validated live against DNS-1123 standards), and select category chips.
    - **Step 2 (Container & Ports)**: Configure container image (with digest pinning verification), dynamic port mappings (TCP/UDP, advertise flag), and storage volume size and mount path.
    - **Step 3 (Review & Export)**: View generated files across tabs (`module.yaml`, `template.yaml`, `README.md`) with live syntax editing, monitor instant offline validation results, simulate memory limit scaling, and either download the `.tar.gz` archive or install directly into your cluster's upload source.
 
@@ -282,7 +282,7 @@ Then:
 
 ```sh
 # push every bundle in modules/ to a registry
-make modules-push REGISTRY=ghcr.io/gameplanepanel/gameplane-modules
+make modules-push MODULE_REGISTRY=ghcr.io/gameplanepanel/gameplane-modules
 
 # push a single module to a local kind registry
 modules/build.sh push --registry localhost:5001 --name minecraft-java
@@ -1286,7 +1286,7 @@ capabilities:
   group `names`.
 - `list` lets games with no moderation capability still report the
   online player list. `command` is the console command that prints the
-  players (e.g., `/players online` on Factorio, `ShowPlayers` on Palworld).
+  players (e.g., `/players online` on Factorio).
   `entryRegex` optionally extracts one player name per match (first
   capture group, or whole match if no group); multiline mode (`^` / `$`
   per line). When omitted, a built-in parser is used. This is useful for
@@ -1317,7 +1317,7 @@ capabilities:
   a server with no player count never sleeps. Bots aren't counted. The
   Players tab's list and moderation still use the console.
 
-  From `modules/valheim/template.yaml` (Valheim has no RCON; it answers
+  Illustrative, modelled on Valheim (no RCON; it answers
   A2S on the game port plus one):
 
   ```yaml
@@ -1354,8 +1354,8 @@ capabilities:
   restarts): the operator issues the sequence — over RCON when the
   template has it, otherwise over a stdin pod-attach for `consoleMode:
   pty` — and waits for the server to exit on its own, so a SIGTERM never
-  interrupts an in-progress world save (`["Save", "Shutdown 1"]` on
-  Palworld, `["stop"]` on Minecraft, `["save", "exit"]` for a
+  interrupts an in-progress world save (`["save", "shutdown 1"]` on
+  Palworld, `["stop"]` on Minecraft, `["exit"]` for a
   stdin-driven game like Terraria). Omit it for games that save on
   SIGTERM, or for games with neither RCON nor `consoleMode: pty` — there,
   declaring it has no effect since the operator has no transport to run

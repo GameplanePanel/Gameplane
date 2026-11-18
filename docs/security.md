@@ -881,10 +881,11 @@ termination is not clean.
 Default timeout budget is ≤30 minutes. Documented exceptions with inline
 justification comments:
 
-- The five e2e jobs in ci.yaml run at 60 minutes (the `e2e-go` job uses a
-  `job_timeout` matrix value; `e2e-multicluster`, `e2e-upgrade`, `e2e-web-live`,
-  `e2e-game-bot` set it directly). E2E test suites on kind clusters are
-  inherently slow; 60 minutes is measured from prior runs.
+- The e2e jobs in ci.yaml run at 45 to 105 minutes: most buckets at 60 or 75 minutes (the `e2e-go` jobs use a
+  `job_timeout` matrix value), `e2e-upgrade` at 85 and `e2e-postgres` at 105.
+  E2E test suites on kind clusters are inherently slow; the budgets are measured
+  from prior runs.
+- **release.yaml**: the `images` job runs at 45 minutes.
 - **publish-edge.yaml**: the `images` job runs at 35 minutes (measured 31-minute
   historical max for full image build and push across all components).
 
@@ -911,8 +912,7 @@ by matching known patterns:
 An important limitation: **redaction is pattern-based and therefore best-effort.**
 A credential in an unrecognised shape — a long hex string, a custom token format,
 or a value buried in a JSON log without a recognisable key — may not be caught.
-No Kubernetes Secret object is ever collected into dumps (`for obj in deployments
-statefulsets daemonsets jobs configmaps`), so high-entropy database passwords and
+No Kubernetes Secret object is ever collected into dumps (the action only runs `kubectl get all -A`, `get jobs`, `describe pods`, pod and container queries, and `logs`, plus `helm history gameplane` when `include-helm-history` is true; none of these read Secrets, but reviewers should inspect the Helm history output like the rest of the dump), so high-entropy database passwords and
 OIDC secrets bound to the pod via Secrets are outside the dump scope entirely.
 
 Operators should: treat CI artifacts as sensitive (not suitable for sharing with
@@ -976,8 +976,8 @@ Anyone can therefore post reports. Defences:
 - only daily aggregates and expiring activity records are stored; raw
   reports and source addresses are never written to disk
 
-`GET /v1/summary` is off unless `PUBLIC_SUMMARY=true`. It returns five
-fixed counts and nothing else: no breakdown, no per-day series, no install
+`GET /v1/summary` is off unless `PUBLIC_SUMMARY=true`. It returns four
+fixed counts plus an as-of timestamp and nothing else: no breakdown, no per-day series, no install
 ID. It is cached and rate-limited so public polling can't degrade ingest.
 
 What this does not stop: someone can invent installs and send fabricated

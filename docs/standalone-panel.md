@@ -441,7 +441,7 @@ chart, matching images, and your standalone values file. Keep
 Helm API deployments use Recreate by default, which accepts a brief panel outage
 during rollout. With `api.postgresHA.enabled` the Deployment instead uses
 RollingUpdate with `maxUnavailable: 1` and `maxSurge: 0`. Neither mode fences a process on a partitioned node after force
-deletion. See [API upgrades and readiness](install.md#api-upgrades-brief-downtime)
+deletion. See [API upgrades and readiness](install.md#api-rollout-and-postgresql-availability)
 for the singleton boundary and the separate database readiness probe.
 
 ## Troubleshooting

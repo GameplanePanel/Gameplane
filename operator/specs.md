@@ -804,24 +804,24 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 
 | Module | Version | Purpose |
 |--------|---------|---------|
-| k8s.io/api | v0.37.1 | Kubernetes core types (Pod, StatefulSet, Service, Job, etc.). |
-| k8s.io/apimachinery | v0.37.1 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
-| k8s.io/client-go | v0.37.1 | Kubernetes client (for exec, logs, discovery). |
-| sigs.k8s.io/controller-runtime | v0.25.1 | Reconciler framework (Manager, Builder, Reconciler interface). |
+| k8s.io/api | v0.37.2 | Kubernetes core types (Pod, StatefulSet, Service, Job, etc.). |
+| k8s.io/apimachinery | v0.37.2 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
+| k8s.io/client-go | v0.37.2 | Kubernetes client (for exec, logs, discovery). |
+| sigs.k8s.io/controller-runtime | v0.25.2 | Reconciler framework (Manager, Builder, Reconciler interface). |
 | github.com/GameplanePanel/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries). |
-| github.com/go-git/go-git/v5 | v5.19.2 | Git operations (clone, fetch) for ModuleSources. |
-| github.com/go-git/go-billy/v5 | v5.9.1 | VCS filesystem abstraction for go-git. |
+| github.com/go-git/go-git/v5 | v5.19.3 | Git operations (clone, fetch) for ModuleSources. |
+| github.com/go-git/go-billy/v5 | v5.9.2 | VCS filesystem abstraction for go-git. |
 | github.com/google/go-containerregistry | v0.22.1 | OCI image operations (push, pull, digest). |
-| github.com/kubernetes-csi/external-snapshotter/client/v8 | v8.6.0 | VolumeSnapshot API types. |
+| github.com/kubernetes-csi/external-snapshotter/client/v8 | v8.7.0 | VolumeSnapshot API types. |
 | github.com/opencontainers/go-digest | v1.0.0 | OCI digest parsing. |
 | github.com/opencontainers/image-spec | v1.1.1 | OCI image spec types. |
-| github.com/prometheus/client_golang | v1.24.1 | Prometheus metrics registration & exposition. |
+| github.com/prometheus/client_golang | v1.25.0 | Prometheus metrics registration & exposition. |
 | github.com/robfig/cron/v3 | v3.0.1 | Cron expression parsing (BackupSchedule). |
-| github.com/sigstore/cosign/v2 | v2.6.5 | cosign signature verification (module bundles). |
-| github.com/sigstore/sigstore | v1.10.9 | sigstore primitives (Fulcio roots, certificate chains). |
-| golang.org/x/crypto | v0.57.0 | Cryptographic primitives (TLS, X.509). |
-| golang.org/x/mod | v0.41.0 | Semantic versioning (semver package). |
-| oras.land/oras-go/v2 | v2.6.2 | OCI artifact pull (module bundles). |
+| github.com/sigstore/cosign/v3 | v3.1.4 | cosign signature verification (module bundles). |
+| github.com/sigstore/sigstore | v1.11.1 | sigstore primitives (Fulcio roots, certificate chains). |
+| golang.org/x/crypto | v0.59.0 | Cryptographic primitives (TLS, X.509). |
+| golang.org/x/mod | v0.43.0 | Semantic versioning (semver package). |
+| oras.land/oras-go/v2 | v2.7.0 | OCI artifact pull (module bundles). |
 | sigs.k8s.io/yaml | v1.6.0 | YAML marshaling (CRD manifests). |
 
 **Indirect:** Transitively pulled by the above (go-logr, crypto libraries, etc.).

@@ -248,7 +248,7 @@ retrying; removing owner annotations is not proof that copying stopped.
 
 Custom Restic images must provide the restic CLI (including `snapshots --retry-lock`),
 POSIX `/bin/sh`, `date +%s`, `cat`, `touch`, `sleep`, and `timeout -s TERM -k 5`.
-The pinned `restic/restic:0.17.1` release uses Alpine/BusyBox and supports this
+The pinned `restic/restic:0.19.1` release uses Alpine/BusyBox and supports this
 contract. The gate runs under the existing non-root, read-only-root-filesystem
 security context. Node/operator clocks must be synchronized for absolute token
 expiry. No worker receives Kubernetes API credentials.
