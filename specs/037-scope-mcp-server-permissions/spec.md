@@ -1,6 +1,6 @@
 # Feature Specification: Scope MCP server permissions
 
-**Feature Branch**: `spec-036/scope-mcp-server-permissions`
+**Feature Branch**: `spec-037/scope-mcp-server-permissions`
 
 **Created**: 2026-11-17
 

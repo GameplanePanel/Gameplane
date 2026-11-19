@@ -1,4 +1,4 @@
-# Open decisions: spec 036 Scope MCP server permissions
+# Open decisions: spec 037 Scope MCP server permissions
 
 Each was asked of valgul as a decision card on 2026-11-17. Only a decision valgul answers is written here as settled. All three are settled; none are open.
 
