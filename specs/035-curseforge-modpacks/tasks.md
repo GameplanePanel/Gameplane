@@ -155,14 +155,14 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US5
 
-- [ ] T050 [P] [US5] Unit test the FTB engine with the T002 fixtures (search resolves ids in batches, filters before the page limit so a match after the first 20 candidates is found, stops at 100 details, cache, bounded concurrency, upstream error) in api/internal/registry/ftb_test.go
-- [ ] T051 [P] [US5] Add an FTB case to the dial-guard test in api/internal/registry/registry_dialguard_test.go
+- [X] T050 [P] [US5] Unit test the FTB engine with the T002 fixtures (search resolves ids in batches, filters before the page limit so a match after the first 20 candidates is found, stops at 100 details, cache, bounded concurrency, upstream error) in api/internal/registry/ftb_test.go
+- [X] T051 [P] [US5] Add an FTB case to the dial-guard test in api/internal/registry/registry_dialguard_test.go
 - [ ] T052 [US5] E2E (written, excluded from every CI bucket with a comment: FTB packs exceed CI runner budget) installing a small FTB pack in test/e2e/modpack_ftb_e2e_test.go and test/e2e/buckets.sh
 
 ### Implementation for US5
 
-- [ ] T053 [US5] Implement the keyless FTB engine (research R8) in new api/internal/registry/ftb.go
-- [ ] T054 [US5] Register `ftb` in the engine set and `For()` in api/internal/registry/registry.go
+- [X] T053 [US5] Implement the keyless FTB engine (research R8) in new api/internal/registry/ftb.go
+- [X] T054 [US5] Register `ftb` in the engine set and `For()` in api/internal/registry/registry.go
 - [ ] T055 [US5] Show FTB in the Modpacks switch (no new screens; uses the US1 flow) and add its label to i18n/locales/en/app.json and web/src/routes/tabs/Modpacks.tsx
 
 **Checkpoint**: all three registries install pinned packs.
