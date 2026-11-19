@@ -56,7 +56,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Tests for US1
 
 - [X] T014 [P] [US1] Unit test CurseForge modpack versions filtered by game version and loader using the T002 fixture in api/internal/registry/curseforge_test.go
-- [ ] T015 [P] [US1] envtest: POST install writes `spec.modpack`, needs manage permission, writes an audit entry without the key, returns 409 `server.modpack.key_required` on a java8-multiarch version while sharing is off, in api/internal/handlers/registry_modpack_envtest_test.go
+- [X] T015 [P] [US1] envtest: POST install writes `spec.modpack`, needs manage permission, writes an audit entry without the key, returns 409 `server.modpack.key_required` on a java8-multiarch version while sharing is off, in api/internal/handlers/registry_modpack_envtest_test.go
 - [ ] T016 [P] [US1] envtest: share on → `<gs>-curseforge-key` owned by the GameServer, mounted read-only at `/run/gameplane/curseforge/api-key` in the game container only, `CF_API_KEY_FILE` set, no key value in the pod spec, no config-hash change on key rotation; share off or key deleted → copy and mount removed, in operator/internal/controller/gameserver_modpack_key_envtest_test.go
 - [ ] T017 [US1] E2E: install a small CurseForge Fabric pack by slug + file id through the API (image built-in key, no browse key in CI), assert `Applied`, Running and the pack env; then install a Modrinth pack and assert no `CF_*` env remains (SC-004); one admin login; register in a bucket with login headroom per the comments in test/e2e/buckets.sh (not api-auth, api-roles, api-mods, api-rbac, api-agent) in test/e2e/modpack_e2e_test.go
 
@@ -85,15 +85,15 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US2
 
-- [ ] T028 [P] [US2] envtest: `backupFirst` → Backup CR `<gs>-modpack-<generation>` owned by the GameServer, env unchanged until it succeeds; failed backup → `BackupFailed`, message set, env unchanged; a new change after `BackupFailed` restarts the flow, in operator/internal/controller/gameserver_modpack_envtest_test.go
-- [ ] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll) while players are online; an adopted server with a version gets the pin with one restart once `status.agent.playersOnline` is 0, or right away when stopped or asleep (OD-8 B); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
-- [ ] T030 [P] [US2] envtest: legacy sweep reads `versionId` through the agent and writes `spec.modpack` + adopted annotation; unreadable → no `version` and `pinned: false`; 400 `server.modpack.backup_unavailable`; 409 `server.modpack.change_in_progress`, in api/internal/handlers/modpack_adopt_envtest_test.go
+- [X] T028 [P] [US2] envtest: `backupFirst` → Backup CR `<gs>-modpack-<generation>` owned by the GameServer, env unchanged until it succeeds; failed backup → `BackupFailed`, message set, env unchanged; a new change after `BackupFailed` restarts the flow, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [X] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll) while players are online; an adopted server with a version gets the pin with one restart once `status.agent.playersOnline` is 0, or right away when stopped or asleep (OD-8 B); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [X] T030 [P] [US2] envtest: legacy sweep reads `versionId` through the agent and writes `spec.modpack` + adopted annotation; unreadable → no `version` and `pinned: false`; 400 `server.modpack.backup_unavailable`; 409 `server.modpack.change_in_progress`, in api/internal/handlers/modpack_adopt_envtest_test.go
 - [ ] T031 [US2] E2E: pinned version survives 3 restarts (read `.curseforge-manifest.json` `fileId` through the agent) in test/e2e/modpack_e2e_test.go
 
 ### Implementation for US2
 
-- [ ] T032 [US2] Add the backup step to the state machine (`BackingUp`, Backup CR creation and watch, `BackupFailed`) in operator/internal/controller/gameserver_modpack.go, with RBAC markers and `make manifests`
-- [ ] T033 [US2] Implement adopted-pack rendering (rule 2 of contracts/operator-modpack.md) in operator/internal/controller/gameserver_modpack.go
+- [X] T032 [US2] Add the backup step to the state machine (`BackingUp`, Backup CR creation and watch, `BackupFailed`) in operator/internal/controller/gameserver_modpack.go, with RBAC markers and `make manifests`
+- [X] T033 [US2] Implement adopted-pack rendering (rule 2 of contracts/operator-modpack.md) in operator/internal/controller/gameserver_modpack.go
 - [X] T034 [US2] Implement the legacy sweep at API startup plus the lazy retry on `GET /servers/{name}/modpack` (research R6) in new api/internal/handlers/modpack_adopt.go and wire it in api/cmd/main.go
 - [X] T035 [US2] Validate `version` required, `backupFirst` vs destination, change-in-progress on POST in api/internal/handlers/registry.go
 - [ ] T036 [US2] Build version change, older-version marking, downgrade warning and the "Back up first" checkbox from the approved design in web/src/components/modpack-version-picker.tsx and web/src/components/modpack-confirm-dialog.tsx
@@ -111,14 +111,14 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US3
 
-- [ ] T038 [P] [US3] envtest: DELETE removes `spec.modpack`, sets the remove annotation with a request id, accepts a retry after a removal's backup failed, returns 404 only when neither `spec.modpack` nor `status.modpack.applied` is set, GET shows `pendingRemoval`, writes an audit entry, in api/internal/handlers/registry_modpack_envtest_test.go
-- [ ] T039 [P] [US3] envtest: removal adds the one-shot wipe init step for the active loader's mods mount only, guarded by `.gameplane-mods-wiped-<generation>`; install of a different pack adds no wipe step, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [X] T038 [P] [US3] envtest: DELETE removes `spec.modpack`, sets the remove annotation with a request id, accepts a retry after a removal's backup failed, returns 404 only when neither `spec.modpack` nor `status.modpack.applied` is set, GET shows `pendingRemoval`, writes an audit entry, in api/internal/handlers/registry_modpack_envtest_test.go
+- [X] T039 [P] [US3] envtest: removal adds the one-shot wipe init step for the active loader's mods mount only, guarded by `.gameplane-mods-wiped-<generation>`; install of a different pack adds no wipe step, in operator/internal/controller/gameserver_modpack_envtest_test.go
 - [ ] T040 [US3] E2E: remove the pack; mods folder empty, world folder unchanged, server Running as plain loader, in test/e2e/modpack_e2e_test.go
 
 ### Implementation for US3
 
 - [X] T041 [US3] Add `DELETE /servers/{name}/modpack?backupFirst=` per contracts/api-modpack.md in api/internal/handlers/registry.go
-- [ ] T042 [US3] Implement removal handling (annotation consume, optional backup, wipe init step with marker, annotation cleared once applied) in operator/internal/controller/gameserver_modpack.go
+- [X] T042 [US3] Implement removal handling (annotation consume, optional backup, wipe init step with marker, annotation cleared once applied) in operator/internal/controller/gameserver_modpack.go
 - [ ] T043 [US3] Build the Active modpack card (title, registry, version or "Not pinned", phase and message, Change version, Remove with the "every mod is deleted, including ones added by hand" confirmation) from the approved design in new web/src/components/modpack-active-card.tsx and web/src/routes/tabs/Modpacks.tsx
 - [ ] T044 [P] [US3] vitest for card states (Applied, BackingUp, Applying, BackupFailed, Not pinned, read-only) in web/src/components/modpack-active-card.test.tsx
 
@@ -134,7 +134,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US4
 
-- [ ] T045 [P] [US4] Unit test the `MODS_NEED_DOWNLOAD.txt` parser (rows, 2+ space columns, URL last, non-CurseForge URLs dropped, size cap) with a captured sample, and `missingFilesUnknown` when no pod exists, in api/internal/handlers/modpack_missing_test.go
+- [X] T045 [P] [US4] Unit test the `MODS_NEED_DOWNLOAD.txt` parser (rows, 2+ space columns, URL last, non-CurseForge URLs dropped, size cap) with a captured sample, and `missingFilesUnknown` when no pod exists, in api/internal/handlers/modpack_missing_test.go
 - [ ] T046 [US4] E2E (written, excluded from every CI bucket with a comment: needs a manual browser download) for a pack with a blocked mod in test/e2e/modpack_blocked_e2e_test.go and test/e2e/buckets.sh
 
 ### Implementation for US4
