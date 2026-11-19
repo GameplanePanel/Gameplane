@@ -42,6 +42,10 @@ requires all capture workers to have been drained before `Completed` is reported
 The drill explicitly verifies that shared PID remains enabled for agent metrics
 after the Restricted upgrade and after capture completion and revocation.
 
+The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
+
+It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
+
 ### Modpack drills (spec 035)
 
 `TestGameServer_Modpack_CurseForgeThenModrinth`, `TestGameServer_Modpack_PinSurvivesRestarts` and
@@ -54,10 +58,6 @@ folder with an untouched world folder and a plain Fabric server after removal. T
 minecraft-java 2.13.0 providers block and skip when `modules/minecraft-java` is checked out without it.
 `TestGameServer_Modpack_BlockedModManualDownload` (manual browser download) and `TestGameServer_Modpack_FTBInstall`
 (~170 MB pack) are in no bucket; run them by hand with `GAMEPLANE_E2E_GAME_BOT=1`.
-
-The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
-
-It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
 
 ## Responsibilities
 

@@ -31,7 +31,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 **Purpose**: CRD shape, operator env rendering, module declaration and design. Nothing in Phase 3+ starts before T003–T010; web tasks also wait for T011–T013.
 
-- [X] T003 Add `ftb` to the `ModProvider.provider` enum, add `ModProvider.modpacksOnly`, and add `ModpackSpec.versionEnv`, `apiKeyFileEnv` (CEL: only when provider is curseforge), `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile{path,field}` with the validation in data-model.md to operator/api/v1alpha1/gametemplate_types.go
+- [X] T003 Add `ftb` to the `ModProvider.provider` enum, add `ModProvider.modpacksOnly`, and add `ModpackSpec.versionEnv`, `apiKeyEnv` (CEL: only when provider is curseforge), `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile{path,field}` with the validation in data-model.md to operator/api/v1alpha1/gametemplate_types.go
 - [X] T004 Add `GameServerSpec.Modpack *GameServerModpackSpec` (provider, project, version, title, versionName, backupFirst) and `GameServerStatus.Modpack` (observedGeneration, phase enum, applied, backupName, message, keyShared) plus annotation constants `gameplane.local/modpack-adopted` and `gameplane.local/modpack-remove` to operator/api/v1alpha1/gameserver_types.go
 - [X] T005 Run `make generate && make manifests`; commit operator/api/v1alpha1/zz_generated.deepcopy.go, operator/config/crd/, operator/config/rbac/, charts/gameplane/charts/gameplane-crds/crds/ and charts/gameplane/crd-manifests/ with T003–T004 (core rule 7)
 - [X] T006 Implement env rendering rule 1 of contracts/operator-modpack.md (strip every modpack-declared env name from the merged env, then add the applied provider's fixed env, `refEnv=project`, `versionEnv=version`) in new operator/internal/controller/gameserver_modpack.go and call it from the env build in operator/internal/controller/gameserver_controller.go
@@ -175,7 +175,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [X] T057 [P] Update api/specs.md (modpack routes, FTB engine, adoption sweep, share toggle)
 - [X] T058 [P] Update web/specs.md (Modpacks tab surfaces, admin share switch) (planned surfaces only; web code tasks pending)
 - [ ] T059 [P] Update modules/minecraft-java/specs.md and modules/minecraft-java/README.md (three registries, pinning, downloads folder, java8 key note) in the module repo
-- [X] T060 [P] Document `versionEnv`, `apiKeyFileEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, `modpacksOnly` and `ftb` in docs/module-authoring.md
+- [X] T060 [P] Document `versionEnv`, `apiKeyEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, `modpacksOnly` and `ftb` in docs/module-authoring.md
 - [X] T061 [P] Add the shared-key residual risk (research R2) to docs/security.md
 - [X] T062 [P] Add a CHANGELOG entry for CurseForge and FTB modpacks in CHANGELOG.md (changelog/unreleased/035-curseforge-ftb-modpacks.md, slug-only name, PR number added when the PR opens)
 - [ ] T063 Bump the modules submodule pointer after the module PR merges (`submodule-bump` skill), in modules
