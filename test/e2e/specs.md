@@ -42,6 +42,19 @@ requires all capture workers to have been drained before `Completed` is reported
 The drill explicitly verifies that shared PID remains enabled for agent metrics
 after the Restricted upgrade and after capture completion and revocation.
 
+### Modpack drills (spec 035)
+
+`TestGameServer_Modpack_CurseForgeThenModrinth`, `TestGameServer_Modpack_PinSurvivesRestarts` and
+`TestGameServer_Modpack_RemoveKeepsWorld` run in `bot-fast` (one runner per test, one admin login each, game-bot gate:
+`GAMEPLANE_E2E_GAME_BOT=1`). They install a small CurseForge Fabric pack (Fabulously Optimized, file 9127669) and a
+Modrinth pack (FPS Modpack, `kedIKix5`) through `POST /servers/{name}/modpack` with the itzg image's built-in CurseForge
+key, and assert the operator's `Applied` phase, a Ready game pod and the rendered env (no `CF_*` after switching to
+Modrinth), a pinned `CF_FILE_ID` and `.curseforge-manifest.json` `fileId` across three restarts, and an empty mods
+folder with an untouched world folder and a plain Fabric server after removal. The tests build a template mirroring the
+minecraft-java 2.13.0 providers block and skip when `modules/minecraft-java` is checked out without it.
+`TestGameServer_Modpack_BlockedModManualDownload` (manual browser download) and `TestGameServer_Modpack_FTBInstall`
+(~170 MB pack) are in no bucket; run them by hand with `GAMEPLANE_E2E_GAME_BOT=1`.
+
 The `test/e2e` module is Gameplane's end-to-end test suite: it stands up a real (kind-based) Kubernetes cluster, installs the Helm chart, and drives the operator/api/agent/sentinel stack as real components rather than mocks — CRDs applied through the typed/dynamic client, HTTP calls through a real port-forward, RCON/wire-protocol joins against real game server containers. Where the other modules' test tiers (unit, envtest) prove a component's own logic in isolation, this module proves the whole product works together on a cluster shaped like the ones users actually run.
 
 It was one of three `go.work` modules without CI lint coverage until this feature (`api`, `agent`, and `test/e2e` — see FR-001); all 13 `go.work` members (`netguard`, `gameaction`, `gameproto`, `operator`, `agent`, `api`, `sentinel`, `audit-syslog-bridge`, `telemetry-receiver`, `mcp-server`, `svcutil`, `tunnel`, and `test/e2e`) are golangci-lint gated in CI now — see the `lint` job's matrix in `.github/workflows/ci.yaml`. `test/e2e` lints with `--build-tags=e2e`, same tier as `operator`/`api`'s `--build-tags=envtest`, run as their own step so the catch-all lint step excludes all three and nothing is linted twice.
