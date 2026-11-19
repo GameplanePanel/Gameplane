@@ -43,8 +43,12 @@ func (r *GameServerReconciler) reconcileStatus(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	idle idleState, idleStatus *gameplanev1alpha1.IdleStatus, idleScheduleErr error, tunnelPlan tunnelPlan,
 	tmpl *gameplanev1alpha1.GameTemplate, svcEvents []corev1.Event, conflictingServer string,
-	hostportConditions ...*metav1.Condition,
+	extras ...statusExtras,
 ) (time.Duration, error) {
+	var extra statusExtras
+	if len(extras) != 0 {
+		extra = extras[0]
+	}
 	// base captures the object as fetched so we can issue a JSON merge
 	// patch of only the fields this reconciler owns. The agent sidecar
 	// concurrently patches status.agent (its heartbeat); a full
@@ -195,11 +199,12 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Compute tunnel conditions.
 	gs.Status.Conditions = computeTunnelConditions(gs, tunnelPlan, tunnelDep)
-	if len(hostportConditions) != 0 && hostportConditions[0] != nil {
-		gs.Status.Conditions = applyHostportCondition(gs.Status.Conditions, hostportConditions[0])
+	if extra.hostport != nil {
+		gs.Status.Conditions = applyHostportCondition(gs.Status.Conditions, extra.hostport)
 	} else {
 		gs.Status.Conditions = removeCondition(gs.Status.Conditions, hostportWakeCondition)
 	}
+	gs.Status.Conditions = portAllocationCondition(gs.Status.Conditions, gs, extra.portAllocation)
 
 	// Validate and merge playit tunnel endpoints if present.
 	var playitErr string
@@ -264,10 +269,17 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Endpoints: tunnel endpoints come first (when present) so the dashboard's
 	// Connection card reads the address players actually use.
-	if svcExists {
+	unpublished := extra.portAllocation.pooled && !extra.portAllocation.published
+	switch {
+	case unpublished:
+		// A pooled server with no record has no Service, so no address
+		// reaches it, a relay's included, even while its old Service is
+		// still being deleted.
+		gs.Status.Endpoints = nil
+	case svcExists:
 		gs.Status.Endpoints = withAdvertisedHostname(
 			endpointsFromService(&svc, addrPlan), &svc, gs.Spec.Networking.Hostname)
-	} else {
+	default:
 		// A deleted/replacing Service must not preserve a stale tailnet endpoint
 		// when the forwarding deployment has since lost readiness.
 		var retained []gameplanev1alpha1.GameServerEndpoint
@@ -278,7 +290,7 @@ func (r *GameServerReconciler) reconcileStatus(
 		}
 		gs.Status.Endpoints = retained
 	}
-	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 &&
+	if tunnelPlan.wantTunnel && !unpublished && len(tunnelPlan.endpoints) > 0 &&
 		(gs.Spec.Networking.Tunnel.Provider != "tailscale" || meta.IsStatusConditionTrue(gs.Status.Conditions, "TunnelReady")) {
 		gs.Status.Endpoints = append(tunnelPlan.endpoints, gs.Status.Endpoints...)
 	}
@@ -311,6 +323,7 @@ func (r *GameServerReconciler) reconcileStatus(
 		tunnelPlan:   tunnelPlan,
 		playitErr:    playitErr,
 		idleSchedErr: idleScheduleErr,
+		ports:        extra.portAllocation,
 	})
 
 	if !reflect.DeepEqual(orig, &gs.Status) {
@@ -328,6 +341,13 @@ func (r *GameServerReconciler) reconcileStatus(
 
 // applyHostportCondition preserves the more specific failure already computed
 // for the game while still exposing the independent endpoint diagnostic.
+// statusExtras carries this pass's results that reconcileStatus reports but
+// doesn't compute itself.
+type statusExtras struct {
+	hostport       *metav1.Condition
+	portAllocation portAllocation
+}
+
 func applyHostportCondition(conditions []metav1.Condition, hostport *metav1.Condition) []metav1.Condition {
 	conditions = upsertCondition(conditions, *hostport)
 	ready := meta.FindStatusCondition(conditions, "Ready")

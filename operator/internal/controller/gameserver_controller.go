@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -137,6 +138,15 @@ type GameServerReconciler struct {
 	// is treated exactly as "none": mutate nothing and report the
 	// unhonored request, never silently fall back to the default pool.
 	AddressManager string
+
+	// PortPools gives the servers of each pooled template Service ports of
+	// their own on a shared endpoint (--port-pool, --port-pool-template); see
+	// gameserver_portpool.go. portPoolMu serializes allocations.
+	// poolRolloutWaits holds, by server UID, why this pass's template
+	// rollout waits for pool ports, for the pass's status.
+	PortPools        PortPools
+	portPoolMu       sync.Mutex
+	poolRolloutWaits sync.Map
 
 	// MetalLBNamespace is the namespace MetalLB's IPAddressPool custom
 	// resources (metallb.io/v1beta1, namespaced) live in. Used only when
@@ -319,6 +329,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	// Snapshot resolution precedes config, images, init containers, storage,
 	// services and every other template-derived resource.
+	// A rollout wait is only for this pass's status, so it is dropped when
+	// the pass ends, however it ends.
+	defer r.poolRolloutWaits.Delete(gs.UID)
 	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
 	if err != nil {
 		var rejected workloadPolicyRejection
@@ -467,6 +480,28 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
+	// Pool ports come before the tunnel and the Service, which both use the
+	// server's Service ports.
+	portAlloc, err := r.reconcilePoolPorts(ctx, &gs, &tmpl)
+	if err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile pool ports")
+		return ctrl.Result{}, err
+	}
+	// A pooled server with no effective record publishes nothing, rather
+	// than its template's ports, which another server in the pool may hold.
+	// Its Service is removed before the tunnel steps, so a tunnel error
+	// can't leave it published.
+	unpublished := portAlloc.pooled && !portAlloc.published
+	if unpublished {
+		if err := r.deleteUnpublishedService(ctx, &gs); err != nil {
+			logger.Error(err, "remove unpublished Service")
+			return ctrl.Result{}, err
+		}
+	}
+
 	// planTunnel decides whether the tunnel pod should exist and what endpoints
 	// it will advertise. Like planSentinel, this is computed once per pass so
 	// there is a single source of truth (see planTunnel's doc comment).
@@ -479,16 +514,21 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
+	// A pooled server with a record, even while a change waits, keeps its
+	// Service current: selectors (sleep and wake), ports and metadata.
+	//
 	// A Service being replaced for a loadBalancerClass change is a pending
 	// networking change, not a failure: lifecycle and status keep reconciling
 	// (so Stop works while the old load balancer cleans up), and the pass
 	// requeues until the new Service exists.
 	serviceReplacing := false
-	if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
-		serviceReplacing = true
-	} else if err != nil {
-		logger.Error(err, "reconcile Service")
-		return ctrl.Result{}, err
+	if !unpublished {
+		if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
+			serviceReplacing = true
+		} else if err != nil {
+			logger.Error(err, "reconcile Service")
+			return ctrl.Result{}, err
+		}
 	}
 
 	var replicas int32
@@ -566,7 +606,8 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer, plan.hostportCondition)
+	requeue, err := r.reconcileStatus(ctx, &gs, idle, idleStatus, idleScheduleErr, tunnelPlan, &tmpl, svcEvents, conflictingServer,
+		statusExtras{hostport: plan.hostportCondition, portAllocation: portAlloc})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -591,6 +632,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// NOT a substitute for the early-return-and-skip-everything this
 		// replaced — every step above still ran this pass regardless.
 		hints = append(hints, sentinelBackstopRequeue)
+	}
+	if portAlloc.retry() {
+		hints = append(hints, portPoolRetry)
 	}
 	for _, hint := range hints {
 		if hint > 0 && (requeue == 0 || hint < requeue) {
@@ -789,7 +833,16 @@ func (r *GameServerReconciler) reconcileService(
 		// After applyManagedServiceAnnotations: the managed-label bookkeeping
 		// lives in an annotation, and applying it second keeps that annotation
 		// from being pruned as an unmanaged leftover.
-		applyManagedServiceLabels(svc, plan.serviceLabels())
+		labels := plan.serviceLabels()
+		// A pooled server's Service is labeled with its pool, so the ports
+		// it publishes stay reserved until it moves off them.
+		if rec, ok := parsePoolRecord(gs); ok {
+			if labels == nil {
+				labels = map[string]string{}
+			}
+			labels[PortPoolServiceLabel] = rec.pool
+		}
+		applyManagedServiceLabels(svc, labels)
 		return controllerutil.SetControllerReference(gs, svc, r.Scheme)
 	})
 	return err
@@ -1363,6 +1416,12 @@ func svcPortsFromTemplate(
 				port = o.ServicePort
 			}
 			nodePort = o.NodePort
+		}
+		// A pooled server's active record (gameserver_portpool.go) already
+		// includes its overrides, and wins: while an override waits for a
+		// port another server holds, the Service keeps the reserved ports.
+		if pooled := poolServicePort(gs, p.Name); pooled != 0 {
+			port = pooled
 		}
 		sp := corev1.ServicePort{
 			Name:       p.Name,

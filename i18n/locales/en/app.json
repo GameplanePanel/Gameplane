@@ -379,6 +379,38 @@
     "defaultMessage": "Module translations could not be stored.",
     "description": "LocalesValid condition on a GameTemplate when the translations ConfigMap could not be written. The message holds the English error."
   },
+  "condition.portallocation.allocated": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''.",
+    "description": "PortAllocation condition once a server has Service ports from its port pool. ports lists them as port/protocol."
+  },
+  "condition.portallocation.allocatedoutsiderange": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''. Ports {outside} are outside the pool's range and stay in use until the server is moved; keep forwarding them.",
+    "description": "PortAllocation condition when the pool shrank and the server keeps ports outside the new range. outside lists them as port/protocol."
+  },
+  "condition.portallocation.changepending": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for the requested change, so the server keeps ports {ports} until one frees up.",
+    "description": "PortAllocation condition when a change to the server's ports waits for pool capacity. count is how many pooled ports the change needs."
+  },
+  "condition.portallocation.poolexhausted": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for this server, so it has no Service until a block frees up.",
+    "description": "PortAllocation condition when the server's port pool is full. count is how many ports the server needs."
+  },
+  "condition.portallocation.rolloutpending": {
+    "defaultMessage": "The template update waits for {count} free ports in port pool ''{pool}''; the server keeps its current revision on ports {ports}.",
+    "description": "PortAllocation condition when a template revision needs other ports and the pool can't reserve them yet."
+  },
+  "condition.portallocation.rolloutportconflict": {
+    "defaultMessage": "The template update waits for Service port {port}, held by {holder} in port pool ''{pool}''; the server keeps its current revision on ports {ports}.",
+    "description": "PortAllocation condition when a template revision's servicePort override names a port another server holds. holder is that server as namespace/name."
+  },
+  "condition.portallocation.serviceportconflict": {
+    "defaultMessage": "Service port {port} is held by {holder} in port pool ''{pool}'', so the server keeps ports {ports} until it is free.",
+    "description": "PortAllocation condition when a servicePort override names a port another server holds. holder is that server as namespace/name; ports are the ones the server keeps."
+  },
+  "condition.portallocation.serviceportconflictunpublished": {
+    "defaultMessage": "Service port {port} is held by {holder} in port pool ''{pool}'', so the server has no Service until it is free.",
+    "description": "PortAllocation condition when a servicePort override names a port another server holds and the server has no ports yet. holder is that server as namespace/name."
+  },
   "condition.progressing.containercreating": {
     "defaultMessage": "Creating the container.",
     "description": "Progressing detail while the kubelet creates the container."

@@ -327,6 +327,64 @@ configured address manager; a Service of another class is outside that
 manager's control, so leave them unset with a class of another
 implementation.
 
+## Port Pools
+
+Some installs reach every game server through one public address, a relay
+or an edge that forwards a range of ports to the cluster's load balancer.
+Games whose clients send the hostname they connect to (Minecraft Java) can
+share a port behind a router that picks the server by name, but most games
+send no hostname, so behind one address each server needs ports of its own.
+A port pool hands them out.
+
+A pool is a range of ports on one shared endpoint. Name it for the endpoint,
+and list the templates whose servers draw from it, with the Helm value
+`operator.portPools`:
+
+```yaml
+operator:
+  portPools:
+    - name: edge
+      ports: "2456-2499"
+      templates: [valheim, factorio]
+```
+
+Every server of those templates then gets a contiguous block of the pool, one
+port per advertised port, in template order: the first Valheim server
+2456-2457, a Factorio server next 2458, the next Valheim server 2459-2460.
+The pool decides who shares: a port goes to one server whatever its
+template, and ports are reserved per protocol, so TCP 2456 and UDP 2456 are
+two ports. A template draws from at most one pool.
+
+The operator records each server's ports in its `gameplane.local/pool-ports`
+annotation and keeps them for the server's life, so players' saved addresses
+keep working. The Service publishes those ports and forwards them to the
+game's own, and `status.endpoints` and the dashboard show them. Relays (frp,
+Tailscale, Playit) forward to those ports too. The `PortAllocation`
+condition lists them.
+
+A server's explicit `spec.networking.portOverrides[].servicePort` is
+reserved too, so the pool never hands it to another server. An override that
+names a port another server already holds is refused: the server reports
+`PortAllocation` `ServicePortConflict` and keeps the ports it had.
+
+When no block is free, a new server reports `PoolExhausted` and gets no
+Service or address until a block frees up, for example when a server is deleted. A
+server that already has ports keeps them, and keeps working, sleeping and
+waking, while a change it needs waits (`ChangePending`). A template update
+that needs other ports reserves them before the server is restarted for it;
+when the pool can't, the server stays on its current version and reports
+`RolloutPending`. Servers that wait check again every 30 seconds, and their
+games keep running.
+
+Forward the whole range at the relay or edge, to the cluster's load
+balancer. When you shrink a pool, existing servers keep their ports, even
+ones outside the new range, and report `AllocatedOutsideRange` with those
+ports. Keep forwarding them until you move those servers. New servers, and
+servers that need new ports, for example for a template update, are given
+ports from the smaller range. Removing a template from its pool returns its servers
+to the template's ports. The full rules, including template revisions and
+recovery, are in [spec 036](../specs/036-port-pools/spec.md).
+
 ## Related
 
 - [`install.md`](install.md) — Helm chart values for `operator.addressManager` and cluster prerequisites.

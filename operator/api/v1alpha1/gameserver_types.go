@@ -35,6 +35,13 @@ const (
 	// volume (e.g. a permission error on a subdirectory it doesn't own).
 	// Absent once a wipe has succeeded and been acked.
 	GameServerConditionDataWipe = "DataWipe"
+
+	// GameServerConditionPortAllocation reports the Service ports a server
+	// holds in its template's port pool (operator --port-pool): True with
+	// Reason "Allocated", or False with Reason "PoolExhausted" when the pool
+	// has no free block, in which case the server has no Service. Absent
+	// when the template draws from no pool.
+	GameServerConditionPortAllocation = "PortAllocation"
 )
 
 // GameServerSpec is the desired state of a single game server instance.
