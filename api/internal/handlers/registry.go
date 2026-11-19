@@ -9,7 +9,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -23,6 +22,12 @@ import (
 // registry (or the requested provider isn't declared/available). Mapped to
 // 501 so the dashboard hides Browse and falls back to install-by-URL.
 var errNoRegistry = errors.New("no mod registry for this server")
+
+// Install-body validation errors (400).
+var (
+	errModpackProject = errors.New("project (or ref) is required and may only contain letters, digits, '.', '_' and '-' (max 128)")
+	errModpackVersion = errors.New("version may only contain letters, digits, '.', '_' and '-' (max 64)")
+)
 
 // registrySet is the subset of *registry.Set the handler needs, so tests
 // can inject a fake. Available reports whether an engine is usable (e.g.
@@ -56,6 +61,7 @@ func mountRegistry(r chi.Router, h *registryHandler) {
 	r.Get("/servers/{name}/mods/registry/search", h.search)
 	r.Get("/servers/{name}/mods/registry/projects/{project}/versions", h.versions)
 	r.Get("/servers/{name}/mods/registry/projects/{project}/modpack", h.modpackDeps)
+	r.Get("/servers/{name}/modpack", h.getModpack)
 	r.Post("/servers/{name}/modpack", h.installModpack)
 }
 
@@ -172,16 +178,28 @@ func (h *registryHandler) modpackDeps(w http.ResponseWriter, req *http.Request) 
 	writeJSON(w, files)
 }
 
-// installModpack applies an env-mode modpack (e.g. Modrinth on itzg): it
-// patches the GameServer's env to pin the chosen pack, which the operator
-// rolls out. Deps-mode providers (no refEnv) are installed via modpackDeps
-// + /mods/install instead, so they get a 409 here.
+// installModpack records an env-mode modpack (e.g. Modrinth, CurseForge, FTB
+// on itzg) as GameServer.spec.modpack. It never touches spec.env: the operator
+// renders the pack env and rolls the server out (spec 035, core rule 10).
+// Deps-mode providers (no refEnv) are installed via modpackDeps +
+// /mods/install instead, so they get a 409 here. The body is either the new
+// {provider, project, version, title, versionName, backupFirst} or the legacy
+// {"ref"} with ?provider= (project = ref, no pinned version).
 func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Request) {
 	target, ok := loadModTarget(w, req, h.clients, h.k)
 	if !ok {
 		return
 	}
-	prov, ok := pickProvider(target.template, req.URL.Query().Get("provider"))
+	var body modpackInstallBody
+	if err := decodeBody(req, &body); err != nil {
+		httperr.WriteCode(w, req, http.StatusBadRequest, errModpackProject)
+		return
+	}
+	providerName := body.Provider
+	if providerName == "" {
+		providerName = req.URL.Query().Get("provider")
+	}
+	prov, ok := pickProvider(target.template, providerName)
 	if !ok || prov.modpacks == nil {
 		httperr.WriteCode(w, req, http.StatusNotImplemented, errNoRegistry)
 		return
@@ -191,23 +209,19 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 			errors.New("this provider installs modpacks per dependency; install the resolved mods instead"))
 		return
 	}
-
-	var body struct {
-		Ref string `json:"ref"`
-	}
-	if err := decodeBody(req, &body); err != nil || strings.TrimSpace(body.Ref) == "" {
-		httperr.WriteCode(w, req, http.StatusBadRequest, errors.New("ref is required"))
+	if !normalizeModpackBody(w, req, &body) {
 		return
 	}
-
-	apply := append([]envKV{{Name: prov.modpacks.refEnv, Value: strings.TrimSpace(body.Ref)}}, prov.modpacks.env...)
-	if _, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
-		setEnvVars(current, apply)
-	}); err != nil {
+	spec := modpackSpecFrom(prov.provider, body)
+	updated, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
+		// SetNestedMap only fails on a non-map parent; spec is always a map here.
+		_ = unstructured.SetNestedMap(current.Object, spec, "spec", "modpack")
+	})
+	if err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
-	writeJSON(w, map[string]any{"ok": true})
+	writeJSONStatus(w, http.StatusAccepted, h.modpackViewFor(req, target, updated))
 }
 
 // resolve picks the requested provider from the selected server's template,
