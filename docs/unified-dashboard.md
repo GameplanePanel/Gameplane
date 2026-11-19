@@ -36,6 +36,25 @@ Collection reads use bounded concurrency, timeouts and response limits. They ret
 
 Filters issue a narrower backend read rather than only hiding rows from a capped combined response. Scope metadata exposes explicitly permitted scopes and scopes containing returned owned/collaborating servers, allowing stable Cluster / namespace choices without revealing unrelated registrations.
 
+Authenticated fleet reads such as `GET /fleet/servers` follow the flow below. Each
+scope is read independently, so one unavailable site yields partial data rather
+than an error for the whole list.
+
+```mermaid
+flowchart TD
+    req["GET /fleet/servers with optional cluster and namespace filters"] --> cand["Discover local, default and registered clusters"]
+    cand --> scopes["Build cluster and namespace scopes the user can read"]
+    scopes --> cap{"More than 128 scopes?"}
+    cap -- "Yes" --> trim["Keep granted scopes first and mark partial"]
+    cap -- "No" --> fan
+    trim --> fan["Read scopes with 4 workers, 5 s timeout each"]
+    fan --> merge["Merge and sort by cluster, namespace and name"]
+    merge --> lim{"More than the limit of 2000 items?"}
+    lim -- "Yes" --> cut["Truncate and mark partial"]
+    lim -- "No" --> out
+    cut --> out["Return items, scopes, issues and partial flag"]
+```
+
 Existing per-target mutation and stream APIs remain in use. Every client operation captures its target before asynchronous work, including chained calls and raw file/socket paths. Query keys and invalidation include the resource's cluster and namespace; instance-specific data additionally includes UID. Route changes discard old forms, results and reconnect attempts. UID is also a cache/row identity; it does not claim a new universal server-side mutation precondition beyond existing endpoint and gateway safeguards.
 
 ## Acceptance

@@ -169,6 +169,7 @@ export interface ModID {
 // players/quiesce are agent-side and left opaque here.
 export interface GameCapabilities {
   players?: unknown;
+  backupFlush?: 'minecraft-save-all';
   quiesce?: unknown;
   actions?: ServerActionDecl[];
   status?: { metrics?: StatusMetricDecl[] };
@@ -250,10 +251,10 @@ export type ProbeKind = "readiness" | "liveness" | "startup";
 // One entry in a template's version catalog (spec.versions[]). Selecting it
 // (GameServer.spec.version = id) pins the image and, when `loader` keys into
 // capabilities.mods.loaders, that loader's per-(version+loader) mod volume.
-// `env` is operator-side only and intentionally not surfaced here.
 export interface GameVersion {
   id: string;
   displayName: string;
+  env?: EnvVar[];
   image?: string;
   loader?: string;
   default?: boolean;
@@ -311,7 +312,10 @@ export interface GameTemplate {
     icon?: string;
     accentColor?: string;
     image: string;
+    command?: string[];
     versions?: GameVersion[];
+    env?: EnvVar[];
+    resources?: ResourceRequirements;
     // Ports the game listens on. wakeProtocol picks the wake sentinel's parser
     // for the port while the server sleeps; the CRD defaults it to "generic",
     // and "none" means the port never wakes the server.
@@ -341,6 +345,7 @@ export interface GameTemplate {
       // Env var the value is exported as instead of name (target "env").
       envName?: string;
       autoFromMemoryLimit?: { percent: number };
+      applyOnRestart?: boolean;
       // Bounds mirror the CRD ConfigField: min/max apply to int fields,
       // minLength/maxLength to string and password fields (bytes).
       min?: number;
@@ -433,6 +438,8 @@ export interface GameServerNetworking {
   serviceAnnotations?: Record<string, string>;
   portOverrides?: PortOverride[];
   sourceRanges?: string[];
+  // The Service's loadBalancerClass; honored only for expose: LoadBalancer.
+  loadBalancerClass?: string;
   // Load-balancer address pool to allocate from; honored only for
   // expose: LoadBalancer, and only when the cluster runs a supported
   // address manager (MetalLB or Cilium LB-IPAM).
@@ -543,7 +550,10 @@ export interface InlineBackupPolicy {
 
 export interface GameServerEndpoint {
   name: string;
+  // The address players connect to: the Service's, or the server's hostname.
   host: string;
+  // The address the Service was assigned, when host is an advertised hostname.
+  serviceAddress?: string;
   port: number;
   protocol?: string;
   // Tailscale endpoints are tailnet-private only, not reachable from the internet.
@@ -953,6 +963,7 @@ export interface PlayerCapabilities {
   ban: boolean;
   unban: boolean;
   whitelist?: boolean;
+  operators?: boolean;
 }
 
 export interface PlayerEntry {
@@ -971,6 +982,11 @@ export interface PlayersResp {
   entries?: PlayerEntry[];
   asOf: string;
   capabilities: PlayerCapabilities;
+}
+
+export interface ServerOperator {
+  name: string;
+  uuid?: string;
 }
 
 export interface BannedPlayer {
@@ -1193,6 +1209,10 @@ export interface ShareAddr {
 export interface ShareLinkPublic {
   serverName: string;
   status: string; // e.g. "Running", "Asleep", "Failed"
+  /** Explicit owner stop; optional for older API versions. */
+  manuallyStopped?: boolean;
+  /** This link permits waking and the server is not manually stopped. */
+  canStart?: boolean;
   address?: ShareAddr; // undefined if no public endpoint is exposed
   playersOnline?: number; // undefined if not exposed by the game
 }

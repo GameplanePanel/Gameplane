@@ -17,9 +17,15 @@ vi.mock("@tanstack/react-router", () => ({
 import { AdminSettingsPage } from "./AdminSettings";
 
 function seedRegistries(modRegistries: ModRegistriesCfg) {
+  const state = { modRegistries };
   server.use(
-    http.get("/admin/config", () => HttpResponse.json(makeConfig({ modRegistries }))),
+    http.get("/admin/config", () => HttpResponse.json(makeConfig({ modRegistries: state.modRegistries }))),
+    http.put("/admin/config/modRegistries", async ({ request }) => {
+      state.modRegistries = await request.json() as ModRegistriesCfg;
+      return new HttpResponse(null, { status: 204 });
+    }),
   );
+  return state;
 }
 
 async function gotoModRegistries() {
@@ -63,10 +69,11 @@ describe("AdminSettings mod registries", () => {
     )).toBeInTheDocument();
   });
 
-  it("sets an API key: stores the Secret first, then saves the config row on Save changes", async () => {
+  it("saves an API key with Enter and retains it after reopening settings", async () => {
     const calls: string[] = [];
     let secretBody: Record<string, string> | undefined;
     let saved: ModRegistriesCfg | undefined;
+    const state = seedRegistries({ registries: [] });
     server.use(
       http.put("/admin/registries/:provider/secret", async ({ params, request }) => {
         calls.push("secret");
@@ -76,30 +83,35 @@ describe("AdminSettings mod registries", () => {
       http.put("/admin/config/modRegistries", async ({ request }) => {
         calls.push("config");
         saved = (await request.json()) as ModRegistriesCfg;
+        state.modRegistries = saved;
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    seedRegistries({ registries: [] });
-    renderWithQuery(<AdminSettingsPage />);
+    const rendered = renderWithQuery(<AdminSettingsPage />);
     await gotoModRegistries();
+    expect(screen.queryByRole("button", { name: /^Save changes$/i })).not.toBeInTheDocument();
     const steamRow = (await screen.findByText("Steam Workshop")).closest("li")!;
     await userEvent.click(within(steamRow).getByRole("button", { name: /Set API key/i }));
     await userEvent.type(screen.getByLabelText(/API key/i), "steam-secret-key");
-    await userEvent.click(screen.getByRole("button", { name: /^Save$/i }));
-    // The row flips to Configured locally, but neither the key nor the
-    // config row is stored until the section's own Save changes.
-    expect(await screen.findByText(/Active in the Mods browser/i)).toBeInTheDocument();
-    expect(calls).toEqual([]);
-    await userEvent.click(screen.getByRole("button", { name: /^Save changes$/i }));
-    await waitFor(() => expect(saved).toBeDefined());
+    await userEvent.keyboard("{Enter}");
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/API key/i)).not.toBeInTheDocument();
+    expect(within(steamRow).getByText("Configured")).toBeInTheDocument();
     expect(secretBody).toEqual({ apiKey: "steam-secret-key" });
     expect(calls).toEqual(["secret", "config"]);
     expect(saved?.registries).toEqual([
       { provider: "steam", configRef: "gameplane-modreg-steam" },
     ]);
+    rendered.unmount();
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoModRegistries();
+    const reopened = (await screen.findByText("Steam Workshop")).closest("li")!;
+    expect(within(reopened).getByText("Configured")).toBeInTheDocument();
+    await userEvent.click(within(reopened).getByRole("button", { name: /Replace/i }));
+    expect(screen.getByLabelText(/API key/i)).toHaveValue("");
   });
 
-  it("removes a configured key: updates the draft at once and deletes the managed Secret on Save changes", async () => {
+  it("removes a configured key immediately and deletes its managed Secret", async () => {
     let deletedProvider: string | null = null;
     seedRegistries({ registries: [{ provider: "curseforge", configRef: "gameplane-modreg-curseforge" }] });
     server.use(
@@ -116,10 +128,8 @@ describe("AdminSettings mod registries", () => {
     // providers" test above about the section subtitle colliding with the
     // /Hidden from the Mods browser/i regex.
     const list = screen.getByRole("list");
-    expect(await within(list).findAllByText("Not configured")).toHaveLength(3);
+    await waitFor(() => expect(within(list).getAllByText("Not configured")).toHaveLength(3));
     expect(within(list).getAllByText(/Hidden from the Mods browser/i)).toHaveLength(3);
-    expect(deletedProvider).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: /^Save changes$/i }));
     await waitFor(() => expect(deletedProvider).toBe("curseforge"));
   });
 
@@ -136,8 +146,85 @@ describe("AdminSettings mod registries", () => {
     await gotoModRegistries();
     await screen.findByText("Configured");
     await userEvent.click(screen.getByRole("button", { name: /Remove/i }));
-    expect(await screen.findAllByText("Not configured")).toHaveLength(3);
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(screen.getAllByText("Not configured")).toHaveLength(3);
     expect(deleteCalled).toBe(false);
+  });
+
+  it("keeps the form and key through a pending save and prevents duplicate actions", async () => {
+    seedRegistries({ registries: [] });
+    let release: (() => void) | undefined;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    const secret = vi.fn(async () => {
+      await pending;
+      return HttpResponse.json({ name: "gameplane-modreg-steam", keys: ["apiKey"] });
+    });
+    server.use(http.put("/admin/registries/steam/secret", secret));
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoModRegistries();
+    const row = (await screen.findByText("Steam Workshop")).closest("li")!;
+    await userEvent.click(within(row).getByRole("button", { name: /Set API key/i }));
+    const input = screen.getByLabelText(/API key/i);
+    await userEvent.type(input, "pending-secret");
+    const save = screen.getByRole("button", { name: /^Save$/i });
+    await userEvent.dblClick(save);
+    await waitFor(() => expect(secret).toHaveBeenCalledTimes(1));
+    expect(input).toHaveValue("pending-secret");
+    expect(input).toBeDisabled();
+    expect(save).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Cancel/i })).toBeDisabled();
+    for (const button of screen.getAllByRole("button", { name: /Set API key/i })) expect(button).toBeDisabled();
+    expect(within(row).getByText("Not configured")).toBeInTheDocument();
+    release?.();
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/API key/i)).not.toBeInTheDocument();
+    expect(secret).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["secret", "config"])("keeps an unsuccessful %s save open for retry without showing a configured row", async (failure) => {
+    seedRegistries({ registries: [] });
+    let failed = true;
+    server.use(
+      http.put("/admin/registries/steam/secret", () => failed && failure === "secret"
+        ? HttpResponse.text("Key storage unavailable", { status: 503 })
+        : HttpResponse.json({ name: "gameplane-modreg-steam", keys: ["apiKey"] })),
+      http.put("/admin/config/modRegistries", async ({ request }) => {
+        if (failed && failure === "config") return HttpResponse.text("Configuration unavailable", { status: 503 });
+        const modRegistries = await request.json() as ModRegistriesCfg;
+        seedRegistries(modRegistries);
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoModRegistries();
+    const row = (await screen.findByText("Steam Workshop")).closest("li")!;
+    await userEvent.click(within(row).getByRole("button", { name: /Set API key/i }));
+    const input = screen.getByLabelText(/API key/i);
+    await userEvent.type(input, "retry-secret");
+    await userEvent.click(screen.getByRole("button", { name: /^Save$/i }));
+    expect(await screen.findByText(failure === "secret" ? "Key storage unavailable" : "Configuration unavailable")).toBeInTheDocument();
+    expect(input).toHaveValue("retry-secret");
+    expect(input).toBeEnabled();
+    expect(within(row).getByText("Not configured")).toBeInTheDocument();
+    failed = false;
+    await userEvent.click(screen.getByRole("button", { name: /^Save$/i }));
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/API key/i)).not.toBeInTheDocument();
+    expect(within(row).getByText("Configured")).toBeInTheDocument();
+  });
+
+  it("shows a cleanup failure without restoring the removed provider", async () => {
+    seedRegistries({ registries: [{ provider: "curseforge", configRef: "gameplane-modreg-curseforge" }] });
+    server.use(http.delete("/admin/registries/curseforge/secret", () => HttpResponse.text("Cleanup unavailable", { status: 503 })));
+    const rendered = renderWithQuery(<AdminSettingsPage />);
+    await gotoModRegistries();
+    await userEvent.click(await screen.findByRole("button", { name: /Remove/i }));
+    expect(await screen.findByText("Cleanup unavailable")).toBeInTheDocument();
+    expect(screen.getAllByText("Not configured")).toHaveLength(3);
+    rendered.unmount();
+    renderWithQuery(<AdminSettingsPage />);
+    await gotoModRegistries();
+    await waitFor(() => expect(screen.getAllByText("Not configured")).toHaveLength(3));
   });
 
   it("never renders the stored API key anywhere, including the Replace form", async () => {

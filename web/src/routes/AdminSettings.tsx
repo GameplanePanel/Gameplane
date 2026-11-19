@@ -1,3 +1,4 @@
+import { useModRegistrySave, type RegistryChange } from "@/lib/useModRegistrySave";
 import { useInstallation } from "@/lib/useInstallation";
 import { useState, useEffect, useRef, type ChangeEvent, type ComponentType, type ReactNode, type SetStateAction } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,7 +47,7 @@ import { cn } from "@/lib/utils";
 import { errorTextIntl } from "@/lib/errors";
 import { Telemetry, type TelemetryInfo } from "@/lib/api";
 import { TELEMETRY_STATEMENT_URL } from "@/lib/links";
-import { Auth, AuthProviders, Cluster, ModRegistries, Notifications, type SinkSecretBody } from "@/lib/endpoints";
+import { Auth, AuthProviders, Cluster, Notifications, type SinkSecretBody } from "@/lib/endpoints";
 import { LegacyBackupSettings } from "@/components/clusters/LegacyBackupSettings";
 import { can, useMe } from "@/lib/auth";
 import type { ClusterInfo } from "@/types";
@@ -947,12 +948,6 @@ function AddProviderForm({
   );
 }
 
-const defaultModRegistries: ModRegistriesCfg = { registries: [] };
-
-// The managed-Secret name the API derives for a provider's key (mirrors
-// registryKeySecretPrefix / DefaultKeySecretName in api/internal/registry/keys.go).
-const registryKeySecretPrefix = "gameplane-modreg-";
-
 // Keyed providers only: curseforge, steam, and nexus need an admin-set API
 // key and stay hidden from the Mods browser until one exists (mirrors
 // registry.KeyedProviders server-side). The icon is purely decorative, one
@@ -964,37 +959,34 @@ const keyedRegistryProviders: Array<{ provider: KeyedRegistryProvider; label: st
 ];
 
 function SetRegistryKeyForm({
-  provider,
+  pending,
   label,
   replacing,
-  onSaved,
+  onSave,
   onClose,
 }: {
-  provider: KeyedRegistryProvider;
+  pending: boolean;
   label: string;
   replacing: boolean;
-  onSaved: (entry: ModRegistryEntry, apiKey: string) => void;
+  onSave: (apiKey: string) => void;
   onClose: () => void;
 }) {
   const intl = useOptionalIntl();
   const [apiKey, setApiKey] = useState("");
 
-  // The key is written by the section's Save, just before the registries
-  // row that references it; nothing is stored before then. The key itself
-  // is never displayed — this input only ever writes, and the server never
-  // echoes the value.
-  const submit = () => {
-    onSaved({ provider, configRef: registryKeySecretPrefix + provider }, apiKey);
-    onClose();
-  };
-
+  // Keep the write-only value until the complete save succeeds. The parent
+  // unmounts this form on success, clearing the key without ever displaying it.
   return (
-    <div className="space-y-3 rounded-md border border-border bg-surface/30 p-4">
+    <form className="space-y-3 rounded-md border border-border bg-surface/30 p-4" onSubmit={(event) => {
+      event.preventDefault();
+      if (!pending && apiKey.trim() !== "") onSave(apiKey);
+    }}>
       <div className="text-sm font-medium">
         {replacing ? intl.formatMessage({ id: "web.routes.admin_settings.replace_verb", defaultMessage: "Replace", description: "Admin settings: verb on the button that replaces a stored API key" }) : intl.formatMessage({ id: "web.routes.admin_settings.set_verb", defaultMessage: "Set", description: "Admin settings: verb on the button that sets an API key for the first time" })} {intl.formatMessage({ id: "web.routes.admin_settings.api_key_label", defaultMessage: "API key — {label}", description: "Admin settings: sentence with label in div" }, { label: label })}</div>
       <Field label={intl.formatMessage({ id: "web.routes.admin_settings.api_key", defaultMessage: "API key", description: "Admin settings: label of the API key field in the dialog that sets the key for a module registry" })}>
         <HeroInput
           type="password"
+          disabled={pending}
           autoFocus
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
@@ -1002,54 +994,54 @@ function SetRegistryKeyForm({
         />
       </Field>
       <div className="flex justify-end gap-2 pt-1">
-        <Button variant="ghost" onPress={onClose}>{intl.formatMessage({ id: "web.routes.admin_settings.cancel", defaultMessage: "Cancel", description: "Admin settings: button that closes an add or set form without saving; keep it short" })}</Button>
-        <Button isDisabled={apiKey.trim() === ""} onPress={submit}>{intl.formatMessage({ id: "web.routes.admin_settings.save", defaultMessage: "Save", description: "Admin settings: button that saves the module registry API key; keep it short" })}</Button>
+        <Button type="button" variant="ghost" isDisabled={pending} onPress={onClose}>{intl.formatMessage({ id: "web.routes.admin_settings.cancel", defaultMessage: "Cancel", description: "Admin settings: button that closes an add or set form without saving; keep it short" })}</Button>
+        <Button type="submit" isDisabled={pending || apiKey.trim() === ""}>{intl.formatMessage({ id: "web.routes.admin_settings.save", defaultMessage: "Save", description: "Admin settings: button that saves the module registry API key; keep it short" })}</Button>
       </div>
-    </div>
+    </form>
   );
 }
 
 function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
   const intl = useOptionalIntl();
-  const f = useSectionForm<ModRegistriesCfg>(initial ?? defaultModRegistries, "modRegistries");
-  const [editing, setEditing] = useState<KeyedRegistryProvider | null>(null);
+  const save = useModRegistrySave();
+  const saving = useRef(false);
+  const [editing, setEditing] = useState<{ provider: KeyedRegistryProvider; expected?: ModRegistryEntry } | null>(null);
+  const entryFor = (provider: KeyedRegistryProvider) => initial?.registries.find((entry) => entry.provider === provider);
 
-  const entryFor = (p: KeyedRegistryProvider) => f.draft.registries.find((r) => r.provider === p);
-
-  const removeEntry = (provider: KeyedRegistryProvider) => {
-    const entry = entryFor(provider);
-    // The API-managed key Secret is removed only by the Save that drops
-    // this row; the server refuses Secrets it didn't create.
-    if (!entry?.configRef || entry.configRef === registryKeySecretPrefix + provider) {
-      f.stageSecret(`registry:${provider}`, {
-        kind: "remove",
-        run: () => ModRegistries.deleteSecret(provider),
-      });
+  const openEditor = (provider: KeyedRegistryProvider) => {
+    save.reset();
+    setEditing({ provider, expected: entryFor(provider) });
+  };
+  const persist = async (change: RegistryChange) => {
+    // Block repeated events before the pending mutation renders disabled controls.
+    if (saving.current) return;
+    saving.current = true;
+    try {
+      await save.mutateAsync(change);
+      setEditing(null);
+    } catch {
+      // SaveStatus renders the mutation error; retain the form and entered key.
+    } finally {
+      saving.current = false;
     }
-    f.replace({ ...f.draft, registries: f.draft.registries.filter((r) => r.provider !== provider) });
   };
 
   return (
     <SectionCard
       title={intl.formatMessage({ id: "web.routes.admin_settings.mod_registries", defaultMessage: "Mod registries", description: "Admin settings: title of the Mod registries card that lists mod registries which may need an API key; keep it short" })}
       subtitle={intl.formatMessage({ id: "web.routes.admin_settings.registries_that_require_an_api_key_stay", defaultMessage: "Registries that require an API key stay hidden from the Mods browser until a key is configured.", description: "Admin settings: subtitle under Mod registries: registries that need an API key stay hidden from the Mods browser until a key is set" })}
-      footer={
-        <>
-          <SaveStatus pending={f.pending} error={f.error} saved={f.saved} />
-          <Button onPress={f.save} isDisabled={f.pending}>{intl.formatMessage({ id: "web.routes.admin_settings.save_changes", defaultMessage: "Save changes", description: "Admin settings: button that saves the changes in this section; keep it short" })}</Button>
-        </>
-      }
+      footer={<SaveStatus pending={save.isPending} error={save.error ? errorTextIntl(intl, save.error) : null} saved={save.isSuccess} />}
     >
       <ul className="divide-y divide-border">
         {keyedRegistryProviders.map(({ provider, label, icon: Icon }) => {
           const entry = entryFor(provider);
           const configured = Boolean(entry);
           return (
-            <li key={provider} className="flex items-center gap-3 py-3">
+            <li key={provider} className="flex flex-wrap items-center gap-3 py-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surface">
                 <Icon className="h-4 w-4 text-muted" />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-28 flex-1">
                 <div className="text-sm">{label}</div>
                 <div className="truncate text-xs text-muted">
                   {configured ? intl.formatMessage({ id: "web.routes.admin_settings.active_in_mods_browser", defaultMessage: "Active in the Mods browser", description: "Admin settings: registry status when a key is configured and the provider shows in the Mods browser" }) : intl.formatMessage({ id: "web.routes.admin_settings.hidden_from_mods_browser", defaultMessage: "Hidden from the Mods browser", description: "Admin settings: registry status when no key is configured and the provider is hidden from the Mods browser" })}
@@ -1064,14 +1056,14 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                 {configured ? intl.formatMessage({ id: "web.routes.admin_settings.configured", defaultMessage: "Configured", description: "Admin settings: badge on a mod registry whose API key is set" }) : intl.formatMessage({ id: "web.routes.admin_settings.not_configured", defaultMessage: "Not configured", description: "Admin settings: badge on a mod registry whose API key is not set" })}
               </span>
-              {editing !== provider && (
+              {editing?.provider !== provider && (
                 configured ? (
                   <>
-                    <Button variant="primary" size="sm" onPress={() => setEditing(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.replace", defaultMessage: "Replace", description: "Admin settings: button on a configured module registry that opens the dialog to replace its API key; keep it short" })}</Button>
-                    <Button variant="danger" size="sm" onPress={() => removeEntry(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.remove", defaultMessage: "Remove", description: "Admin settings: button that removes the API key entry of a module registry; keep it short" })}</Button>
+                    <Button variant="primary" size="sm" isDisabled={save.isPending || editing !== null} onPress={() => openEditor(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.replace", defaultMessage: "Replace", description: "Admin settings: button on a configured module registry that opens the dialog to replace its API key; keep it short" })}</Button>
+                    <Button variant="danger" size="sm" isDisabled={save.isPending || editing !== null} onPress={() => { void persist({ kind: "remove", provider, expected: entry }); }}>{intl.formatMessage({ id: "web.routes.admin_settings.remove", defaultMessage: "Remove", description: "Admin settings: button that removes the API key entry of a module registry; keep it short" })}</Button>
                   </>
                 ) : (
-                  <Button variant="primary" size="sm" onPress={() => setEditing(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.set_api_key", defaultMessage: "Set API key", description: "Admin settings: button on an unconfigured module registry that opens the dialog to add its API key; keep it short" })}</Button>
+                  <Button variant="primary" size="sm" isDisabled={save.isPending || editing !== null} onPress={() => openEditor(provider)}>{intl.formatMessage({ id: "web.routes.admin_settings.set_api_key", defaultMessage: "Set API key", description: "Admin settings: button on an unconfigured module registry that opens the dialog to add its API key; keep it short" })}</Button>
                 )
               )}
             </li>
@@ -1080,20 +1072,12 @@ function ModRegistriesSection({ initial }: { initial?: ModRegistriesCfg }) {
       </ul>
       {editing && (
         <SetRegistryKeyForm
-          provider={editing}
-          label={keyedRegistryProviders.find((p) => p.provider === editing)?.label ?? editing}
-          replacing={Boolean(entryFor(editing))}
-          onSaved={(entry, apiKey) => {
-            f.stageSecret(`registry:${entry.provider}`, {
-              kind: "write",
-              run: () => ModRegistries.putSecret(entry.provider, apiKey),
-            });
-            f.replace({
-              ...f.draft,
-              registries: [...f.draft.registries.filter((r) => r.provider !== entry.provider), entry],
-            });
-          }}
-          onClose={() => setEditing(null)}
+          key={editing.provider}
+          pending={save.isPending}
+          label={keyedRegistryProviders.find((provider) => provider.provider === editing.provider)?.label ?? editing.provider}
+          replacing={Boolean(editing.expected)}
+          onSave={(apiKey) => { void persist({ kind: "set", provider: editing.provider, expected: editing.expected, apiKey }); }}
+          onClose={() => { setEditing(null); save.reset(); }}
         />
       )}
       <p className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.admin_settings.always_available_modrinth_thunderstore", defaultMessage: "Always available: Modrinth, Thunderstore, Hangar, Factorio, Spigot, GitHub, uMod", description: "Admin settings: note under the registry list naming the registries that need no key; the names are product names, usually left untranslated" })}</p>

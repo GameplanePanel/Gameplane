@@ -1,3 +1,6 @@
 # Parallel branches each add a line at the top of the unreleased CHANGELOG
 # section; union merge keeps both sides instead of raising a conflict.
 CHANGELOG.md merge=union
+
+# Match the LF output from controller-gen when applying CRD overlays on Windows.
+operator/config/patches/*.patch text eol=lf

@@ -84,14 +84,19 @@ func bootstrapAdmin(ctx context.Context, args []string, stdin io.Reader, stderr 
 		display = bf.username
 	}
 
+	tx, err := store.BeginUserManagement(ctx)
+	if err != nil {
+		return fmt.Errorf("begin admin update: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
 	var existingID int64
-	row := store.DB.QueryRowContext(ctx, `SELECT id FROM users WHERE username = ?`, bf.username)
+	row := tx.QueryRowContext(ctx, `SELECT id FROM users WHERE username = ?`, bf.username)
 	switch err := row.Scan(&existingID); {
 	case errors.Is(err, sql.ErrNoRows):
 		// RETURNING id instead of LastInsertId: pgx's database/sql driver
 		// has no LastInsertId, and both SQLite and Postgres support RETURNING.
 		var newID int64
-		if err := store.DB.QueryRowContext(ctx,
+		if err := tx.QueryRowContext(ctx,
 			`INSERT INTO users(username, display_name, email, role, pw_hash) VALUES (?, ?, ?, 'admin', ?) RETURNING id`,
 			bf.username, display, bf.email, hash,
 		).Scan(&newID); err != nil {
@@ -100,8 +105,11 @@ func bootstrapAdmin(ctx context.Context, args []string, stdin io.Reader, stderr 
 		// Mirror the admin role into a cluster-wide role binding so RBAC
 		// resolves the user's permissions (this runs after Migrate, so the
 		// migration's backfill never saw this row).
-		if err := store.SetClusterRoleBinding(ctx, nil, newID, scope.DefaultCluster, "admin"); err != nil {
+		if err := store.SetClusterRoleBinding(ctx, tx, newID, scope.DefaultCluster, "admin"); err != nil {
 			return fmt.Errorf("bind admin role: %w", err)
+		}
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("commit admin creation: %w", err)
 		}
 		_, _ = fmt.Fprintf(stderr, "bootstrap-admin: created user %q\n", bf.username)
 		return nil
@@ -112,15 +120,6 @@ func bootstrapAdmin(ctx context.Context, args []string, stdin io.Reader, stderr 
 	if !bf.force {
 		return fmt.Errorf("user %q already exists; pass --force to overwrite password and promote to admin", bf.username)
 	}
-
-	// Wrap password, role, and session eviction in a transaction so they
-	// commit together: no session outlives a reset that succeeded and
-	// nothing changes if any step fails.
-	tx, err := store.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("begin reset: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
 
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE users
@@ -220,15 +219,19 @@ func enableLocalLogin(ctx context.Context, store *db.Store, stderr io.Writer) er
 	if err != nil {
 		return fmt.Errorf("encode auth config: %w", err)
 	}
-	if _, err := store.DB.ExecContext(ctx,
-		`INSERT INTO config(key, value, updated_at)
-		 VALUES ('auth', ?, ?)
-		 ON CONFLICT(key) DO UPDATE SET
-		     value      = excluded.value,
-		     updated_at = excluded.updated_at`,
-		string(canon), db.NowTimestamp(),
-	); err != nil {
+	// Refuse to overwrite an identity-provider change made on another API
+	// replica while this command was decoding the old configuration.
+	res, err := store.DB.ExecContext(ctx, `UPDATE config SET value = ?, updated_at = ? WHERE key = 'auth' AND value = ?`,
+		string(canon), db.NowTimestamp(), raw)
+	if err != nil {
 		return fmt.Errorf("write auth config: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("confirm auth config write: %w", err)
+	}
+	if n != 1 {
+		return errors.New("auth config changed concurrently; retry enabling local login")
 	}
 	_, _ = fmt.Fprintln(stderr, "bootstrap-admin: local login re-enabled in the auth config")
 	return nil

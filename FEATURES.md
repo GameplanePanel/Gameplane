@@ -6,7 +6,7 @@ Default column: **on** (enabled by the chart or the product), **off** (opt-in, s
 
 Notification rows take effect once a notification sink is configured.
 
-Status date: 2026-11-11 (v0.4.0, pre-v1).
+Status date: 2026-11-17 (v0.4.1, pre-v1).
 
 See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
@@ -182,7 +182,7 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 | Record and page through the audit log | stable | on | Each mutating API request writes an audit event to the audit_events table that the dashboard serves, and GET /admin/audit pages and filters the events. | [install](docs/install.md#audit-log) |
 | Export the audit trail and verify its hash chain | beta | on | GET /admin/audit/export downloads the full trail as CSV or JSON, and GET /admin/audit/verify re-walks the SHA-256 chain and reports the first broken link. | [security](docs/security.md#audit-log-integrity) |
 | Forward audit events to stdout or a webhook | beta | off | Mirrors each event as a structured JSON log line when api.audit.stdout is set, and POSTs each event as JSON from a bounded best-effort buffer when api.audit.webhook.url is set, with an optional Authorization header read from a Secret. | [install](docs/install.md#audit-log) |
-| Ship audit events to syslog or S3-compatible storage | beta | off | The bundled audit-syslog-bridge turns events into RFC 5424 records sent over TCP, TCP with TLS or UDP, with TCP recommended, and api.audit.s3 batches NDJSON objects flushed at 100 events, 1 MiB or 5 seconds. | [audit-syslog-bridge](audit-syslog-bridge/README.md#transport-prefer-tcp) |
+| Ship audit events to syslog or S3-compatible storage | beta | off | The bundled audit-syslog-bridge turns events into RFC 5424 records sent over TCP, TCP with TLS or UDP, with TCP recommended, and api.audit.s3 batches NDJSON objects flushed at 100 events, 1 MiB or 5 seconds. | [audit-syslog-bridge](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md#transport-prefer-tcp) |
 | Prune audit events past a retention age | beta | off | api.audit.retentionDays removes events older than N days, and the default of 0 keeps events forever. | [install](docs/install.md#audit-log) |
 | Resolve client IPs through trusted proxies | beta | on | The API reads X-Forwarded-For only from peers inside api.trustedProxies, so audit records and per-IP limits use the real client address. | [security](docs/security.md#client-ip-extraction-from-forwarded-headers) |
 | Run Gameplane pods hardened and optionally enforce restricted Pod Security | beta | on | Operator, API, agent and optional bridge pods run as uid 65532 with read-only root filesystems, RuntimeDefault seccomp and all capabilities dropped, and new installations enforce the Restricted Pod Security Standard in managed game namespaces by default. | [security](docs/security.md#pod-security) |
@@ -230,14 +230,14 @@ See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
 | Capability | Maturity | Default | Description | Docs |
 |---|---|---|---|---|
-| Localized dashboard and community language packs | beta | on | Shipped in v0.4.0 (spec 019): per-account or browser language choice with an admin instance default, translated server messages, per-destination notification language and module translations. A language is listed once its pack is at least 80% translated; missing strings fall back to English. | [translating](docs/translating.md) |
+| Localized dashboard and community language packs | beta | on | Shipped in v0.4.0 (spec 019): per-account or browser language choice with an admin instance default, translated server messages, per-destination notification language and module translations. A language is listed once its pack is at least 80% translated; missing strings fall back to English. <!-- doc-versions: historical --> | [translating](docs/translating.md) |
 
 ## Developer and operator tooling
 
 | Capability | Maturity | Default | Description | Docs |
 |---|---|---|---|---|
 | Install and upgrade the panel from the Helm chart | stable | on | One helm upgrade --install installs the operator, API and dashboard, and a pre-upgrade hook applies the Gameplane CRDs so every upgrade keeps the schema current. | [install](docs/install.md#one-shot-install) |
-| Read-only MCP server | beta | off | An optional MCP server lets AI assistants read GameServers, pods, events and logs and propose fixes without writing. | [mcp-server](mcp-server/README.md#tools) |
+| Read-only MCP server | beta | off | An optional MCP server lets AI assistants read GameServers, pods, events and logs and propose fixes without writing. | [mcp-server](https://github.com/GameplanePanel/mcp/blob/main/README.md#tools) |
 | Helper image overrides for air-gapped mirrors | beta | n/a | Helm lets operators retag the config-init and restic helper images to a private registry mirror. | [install](docs/install.md#values-reference) |
 | Rolling edge images | beta | off | Setting image.tag to edge runs the rolling build published on every master push. | [install](docs/install.md#edge-channel-latest-edge-build) |
 | Local Kind development loop | beta | n/a | Make targets create a Kind cluster with a local OCI registry, load images and run the web dev server. | [contributing](docs/contributing.md#dev-loop) |

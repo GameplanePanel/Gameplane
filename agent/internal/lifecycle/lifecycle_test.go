@@ -7,12 +7,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"sync"
 	"testing"
+	"testing/synctest"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 )
 
 type fakeRcon struct {
@@ -68,6 +71,37 @@ func TestStop_RunsDeclaredSequenceInOrder(t *testing.T) {
 	if len(calls) != 2 || calls[0] != "say bye" || calls[1] != "stop" {
 		t.Fatalf("commands not run in order: %v", calls)
 	}
+}
+
+func TestStop_FinishesQueuedSequenceAfterRequestCancellation(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		transport := &fakeRcon{}
+		commands := rcon.NewCommands(transport)
+		router := chi.NewRouter()
+		sequence := []string{"save-all flush", "stop"}
+		Mount(router, commands, "minecraft-java", &caps.Lifecycle{Stop: sequence})
+		ctx, cancel := context.WithCancel(t.Context())
+		defer cancel()
+		req := httptest.NewRequestWithContext(ctx, http.MethodPost, "/lifecycle/stop", nil)
+		rec := httptest.NewRecorder()
+
+		// Hold admission as a backup does. Disconnect the operator while its
+		// stop request is queued, then allow the backup to release the transport.
+		err := commands.Sequence(t.Context(), func(rcon.Executor) error {
+			go router.ServeHTTP(rec, req)
+			synctest.Wait()
+			cancel()
+			synctest.Wait()
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		synctest.Wait()
+		if calls := transport.calls(); !slices.Equal(calls, sequence) {
+			t.Fatalf("stop commands after disconnect = %v, want %v", calls, sequence)
+		}
+	})
 }
 
 func TestStop_ToleratesRconError(t *testing.T) {

@@ -142,6 +142,7 @@ func main() {
 		moduleConfigMapNamespace         string
 		moduleLocalRoot                  string
 		controlPlaneNamespace            string
+		wakeStartLimit                   int
 		remoteClusters                   bool
 		gameNamespaces                   string
 		addressManager                   string
@@ -150,6 +151,8 @@ func main() {
 		gameIngressFromCIDR              cidrListFlag
 		probeIngressPolicy               bool
 		probeIngressFromCIDR             cidrListFlag
+		portPoolFlags                    cidrListFlag
+		portPoolTemplateFlags            cidrListFlag
 		gameDataStorageClass             string
 		captureEnabled                   bool
 		restrictedWorkloads              bool
@@ -275,6 +278,7 @@ func main() {
 	}
 	flag.StringVar(&controlPlaneNamespace, "control-plane-namespace", controlPlaneNamespaceDefault,
 		"Namespace where registered cluster kubeconfig Secrets are stored.")
+	flag.IntVar(&wakeStartLimit, "wake-start-limit", 0, "Maximum concurrent idle cold starts across the fleet; zero disables admission.")
 	flag.BoolVar(&remoteClusters, "remote-clusters", true, "watch registered clusters and their kubeconfig credentials")
 	addressManagerDefault := os.Getenv("GAMEPLANE_ADDRESS_MANAGER")
 	if addressManagerDefault == "" {
@@ -302,6 +306,12 @@ func main() {
 	flag.BoolVar(&probeIngressPolicy, "probe-ingress-policy", false,
 		"Reconcile a per-GameServer NetworkPolicy admitting kubelet probes to the game container's "+
 			"probe ports only. When false, the operator ensures the policy is absent.")
+	flag.Var(&portPoolFlags, "port-pool",
+		"A port pool, <pool>=<first>-<last>: a range of Service ports on one shared endpoint, such as a "+
+			"relay or port-forwarding edge, that its servers share without collisions. Repeatable.")
+	flag.Var(&portPoolTemplateFlags, "port-pool-template",
+		"<template>=<pool>: the template's servers get Service ports from the pool, a contiguous block "+
+			"each. Repeatable; a template draws from at most one pool.")
 	flag.Var(&probeIngressFromCIDR, "probe-ingress-from-cidr",
 		"Kubelet source CIDR admitted by the probe NetworkPolicy. Repeatable. Defaults to "+
 			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 and 169.254.0.0/16 when not supplied.")
@@ -313,6 +323,10 @@ func main() {
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	if wakeStartLimit < 0 || wakeStartLimit > 128 {
+		fmt.Fprintln(os.Stderr, "--wake-start-limit must be between 0 and 128")
+		os.Exit(1)
+	}
 	if agentTokenExpirationSeconds < 600 || agentTokenExpirationSeconds > 3600 {
 		fmt.Fprintln(os.Stderr, "agent-token-expiration-seconds must be between 600 and 3600")
 		os.Exit(1)
@@ -435,6 +449,11 @@ func main() {
 		setupLog.Error(err, "invalid --address-manager value")
 		os.Exit(1)
 	}
+	portPools, err := controller.ParsePortPools(portPoolFlags, portPoolTemplateFlags)
+	if err != nil {
+		setupLog.Error(err, "invalid --port-pool value")
+		os.Exit(1)
+	}
 
 	// Games are meant to be publicly reachable, so an unset
 	// --game-ingress-from-cidr defaults to wide-open rather than an empty
@@ -528,6 +547,8 @@ func main() {
 		AgentLogLevel:          agentLogLevel,
 		AgentCASecretName:      agentCASecretName,
 		AgentCASecretNamespace: agentCASecretNamespace,
+		WakeStartLimit:         wakeStartLimit,
+		WakeStartNamespace:     controlPlaneNamespaceDefault,
 		AgentClient:            agentClient,
 		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{
@@ -535,6 +556,7 @@ func main() {
 			Clientset: kubernetes.NewForConfigOrDie(mgr.GetConfig()),
 		},
 		AddressManager:              addressManager,
+		PortPools:                   portPools,
 		MetalLBNamespace:            metalLBNamespace,
 		GameIngressPolicyEnabled:    gameIngressPolicy,
 		GameIngressFromCIDRs:        gameIngressFromCIDR,
@@ -567,6 +589,7 @@ func main() {
 		AgentClient:              agentClient,
 		ResticImage:              resticImage,
 		BackupResources:          backupResources,
+		GameWorkloadPolicy:       gameWorkloadPolicy,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 		EventRecorder:            mgr.GetEventRecorder("backup-controller"),
@@ -592,6 +615,7 @@ func main() {
 		OperationQuiescer:        agentClient,
 		ResticImage:              resticImage,
 		BackupResources:          backupResources,
+		GameWorkloadPolicy:       gameWorkloadPolicy,
 		JobBackoffLimit:          &backupJobBackoff32,
 		JobActiveDeadlineSeconds: backupJobActiveDeadlineSeconds,
 	}).SetupWithManager(mgr); err != nil {

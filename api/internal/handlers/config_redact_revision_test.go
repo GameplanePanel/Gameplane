@@ -66,6 +66,27 @@ func catalogWithoutPasswords() *unstructured.Unstructured {
 	return tmpl
 }
 
+func TestServerTemplateUsesAdmittedSchema(t *testing.T) {
+	k := fakeKubeClient(catalogWithoutPasswords())
+	gs := serverWithConfig("alpha", plainConfig())
+	tmpl := redactTemplate()
+	pinRedactionTemplate(t, k, gs, tmpl)
+	if _, err := k.Dynamic.Resource(kube.GVRs["servers"]).Namespace(redactNS).Create(t.Context(), gs, metav1.CreateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	router := mountResourcesRouter(k)
+	if denied := do(t, router, http.MethodGet, "/servers/alpha/template", nil); denied.Code != http.StatusForbidden {
+		t.Fatalf("template read without permission: %d", denied.Code)
+	}
+	req := httptest.NewRequestWithContext(auth.WithUser(t.Context(), inventoryUser("local", "*", "templates:read")), http.MethodGet, "/servers/alpha/template", nil)
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	var got map[string]any
+	if rr.Code != http.StatusOK || json.Unmarshal(rr.Body.Bytes(), &got) != nil || !reflect.DeepEqual(got["spec"], tmpl.Object["spec"]) {
+		t.Fatalf("unexpected effective template: %d %s", rr.Code, rr.Body)
+	}
+}
+
 func TestRedact_PinnedTemplateSurvivesCatalogPasswordRemoval(t *testing.T) {
 	k := fakeKubeClient(catalogWithoutPasswords())
 	gs := serverWithConfig("alpha", plainConfig())

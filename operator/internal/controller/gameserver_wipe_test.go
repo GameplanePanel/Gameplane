@@ -224,13 +224,19 @@ func TestReconcileWipe_CreatesJobWhenPodGone(t *testing.T) {
 	gs := wipeGameServer(true, "tok1")
 	tmpl := &gameplanev1alpha1.GameTemplate{}
 	tmpl.Name = "mc"
+	tmpl.Spec.RequiredNodeArchitecture = "amd64"
 
 	// StatefulSet exists with replicas == 0 (pod is gone).
 	ss := wipeStoppedSet(gs)
 	ss.Status.Replicas = 0
-	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss).Build()
+	pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Name: "alpha-data", Namespace: "ns"}}
+	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(gs, ss, pvc).Build()
 	r := &GameServerReconciler{Client: cl, APIReader: cl, Scheme: s}
-	wipePasses(t, r, gs, 4)
+	for range 4 {
+		if err := r.reconcileWipe(t.Context(), gs, tmpl); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	// Wipe job should be created once the pod is gone.
 	var job batchv1.Job
@@ -239,5 +245,8 @@ func TestReconcileWipe_CreatesJobWhenPodGone(t *testing.T) {
 	}
 	if job.Labels[wipeTokenLabel] != "tok1" {
 		t.Errorf("token label = %q, want tok1", job.Labels[wipeTokenLabel])
+	}
+	if job.Spec.Template.Spec.NodeSelector[corev1.LabelArchStable] != "amd64" {
+		t.Fatalf("wipe can bind an incompatible local volume: %v", job.Spec.Template.Spec.NodeSelector)
 	}
 }

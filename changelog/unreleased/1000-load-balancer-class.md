@@ -1,0 +1,9 @@
+# Choose a server's load-balancer implementation
+
+A LoadBalancer server can set `spec.networking.loadBalancerClass` to pick
+which load-balancer implementation handles its Service, for a cluster that
+runs more than one. Changing it replaces the Service, since Kubernetes
+doesn't allow changing a Service's class in place, and the server usually
+gets a new external address; see
+[Choosing a Load-Balancer Implementation](../../docs/networking.md#choosing-a-load-balancer-implementation).
+[PR #1000](https://github.com/GameplanePanel/Gameplane/pull/1000)

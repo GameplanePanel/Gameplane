@@ -1,6 +1,6 @@
 # gameaction — Specification
 
-**Status:** pre-v1 (v0.4.0)  
+**Status:** pre-v1 (v0.4.1)  
 **Module / package:** `github.com/GameplanePanel/gameplane/gameaction`  
 **Dependencies:** stdlib only (Go 1.27+)
 
@@ -38,7 +38,7 @@ gameaction/
 └── action_test.go      # Unit tests (91% coverage gate)
 ```
 
-Single file, no subdirectories. Part of the Go workspace (`go.work`) with netguard, operator, api, agent, and other modules.
+Source is a single file (action.go). Tests are action_test.go and fuzz_test.go; the fuzz corpus lives under testdata/fuzz/. Part of the Go workspace (`go.work`) with netguard, operator, api, agent, and other modules.
 
 ## External interface / contracts
 

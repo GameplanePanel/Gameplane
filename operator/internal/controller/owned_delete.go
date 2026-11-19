@@ -16,6 +16,7 @@ import (
 // Returns no error if the object doesn't exist or is not owned by gs.
 func (r *GameServerReconciler) deleteIfControlledBy(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, obj client.Object,
+	opts ...client.DeleteOption,
 ) error {
 	// Read from the cache to check ownership.
 	if err := r.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
@@ -40,5 +41,6 @@ func (r *GameServerReconciler) deleteIfControlledBy(
 	// never controlled the replacement.
 	// Also fence ownership changes to the same object between the read and delete.
 	uid, version := obj.GetUID(), obj.GetResourceVersion()
-	return client.IgnoreNotFound(r.Delete(ctx, obj, client.Preconditions{UID: &uid, ResourceVersion: &version}))
+	opts = append(opts, client.Preconditions{UID: &uid, ResourceVersion: &version})
+	return client.IgnoreNotFound(r.Delete(ctx, obj, opts...))
 }

@@ -17,10 +17,8 @@
 # the GAMEPLANE_E2E_TAG env var.
 #
 # Profile defaults to "default". The "postgres" profile (spec 013 US5) runs
-# the API on PostgreSQL: it applies deploy/kind/postgres.yaml, retags the
-# postgres-tagged api image as gameplane-test/api:<tag> before loading, and
-# installs with api.db.driver=postgres and the DSN from the
-# gameplane-postgres Secret. The retag replaces the local SQLite api image.
+# the standard API image against deploy/kind/postgres.yaml using the DSN
+# referenced by the gameplane-postgres Secret.
 
 set -euo pipefail
 
@@ -34,9 +32,9 @@ kindnet | cilium) ;;
 *) echo "unsupported E2E CNI: ${CNI}" >&2; exit 2 ;;
 esac
 case "${PROFILE}" in
-default | postgres | two-node | management) ;;
+default | postgres | postgres-ha | two-node | management) ;;
 *)
-    echo "unknown profile '${PROFILE}' (want default, postgres, two-node or management)" >&2
+    echo "unknown profile '${PROFILE}' (want default, postgres, postgres-ha, two-node or management)" >&2
     exit 2
     ;;
 esac
@@ -204,7 +202,7 @@ up)
     extra_nodes=""
     if [[ "${PROFILE}" == "two-node" ]]; then
         extra_nodes="  - role: worker"
-    elif [[ "${PROFILE}" == "management" ]]; then
+    elif [[ "${PROFILE}" == "management" || "${PROFILE}" == "postgres-ha" ]]; then
         extra_nodes=$'  - role: worker\n  - role: worker'
     fi
     kind create cluster --name "${CLUSTER}" --wait "${kind_wait}" --config - <<EOF
@@ -232,17 +230,6 @@ EOF
     install_metallb
     apply_metallb_pools
 
-    # The chart has one image.tag for every component, so the postgres
-    # profile loads the postgres-tagged api build under the shared tag.
-    if [ "${PROFILE}" = postgres ]; then
-        if ! docker image inspect gameplane-test/api:e2e-postgres >/dev/null 2>&1; then
-            echo "missing local image gameplane-test/api:e2e-postgres (bake target e2e-api-postgres)" >&2
-            exit 1
-        fi
-        echo "retagging gameplane-test/api:e2e-postgres as gameplane-test/api:${TAG}"
-        docker tag gameplane-test/api:e2e-postgres "gameplane-test/api:${TAG}"
-    fi
-
     echo "loading gameplane-test/{operator,api,agent,sentinel,capture-sidecar,telemetry-receiver,mcp-server,audit-syslog-bridge,tunnel-frp}:${TAG} images into kind"
     for img in operator api agent sentinel capture-sidecar telemetry-receiver mcp-server audit-syslog-bridge tunnel-frp; do
         if ! docker image inspect "gameplane-test/${img}:${TAG}" >/dev/null 2>&1; then
@@ -251,6 +238,8 @@ EOF
             if [ "${img}" = tunnel-frp ]; then
                 dockerfile="${REPO}/tunnel/Dockerfile.frp"
             fi
+            # Component images build from a submodule (hack/submodules.sh).
+            "${REPO}/hack/submodules.sh" ensure "$(basename "$(dirname "${dockerfile}")")"
             docker build -t "gameplane-test/${img}:${TAG}" -f "${dockerfile}" "${REPO}"
         fi
         kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
@@ -304,7 +293,7 @@ EOF
     echo "creating gameplane-system namespace (pre-Helm, for the fake-OIDC fixture)"
     kubectl create namespace gameplane-system --dry-run=client -o yaml | kubectl apply -f -
 
-    if [ "${PROFILE}" = postgres ]; then
+    if [[ "${PROFILE}" == postgres || "${PROFILE}" == postgres-ha ]]; then
         echo "deploying PostgreSQL (postgres profile)"
         kubectl apply -f "${HERE}/postgres.yaml"
         kubectl rollout status --namespace gameplane-system \
@@ -400,8 +389,12 @@ EOF
             --set networkPolicies.probePorts[0].protocol=TCP
             --set networkPolicies.probePorts[0].port=25566)
     fi
-    if [ "${PROFILE}" = postgres ]; then
+    if [[ "${PROFILE}" == postgres || "${PROFILE}" == postgres-ha ]]; then
         DB_SETS=(--set api.db.driver=postgres --set api.db.existingSecret=gameplane-postgres)
+    fi
+    if [[ "${PROFILE}" == postgres-ha ]]; then
+        kubectl label nodes "${CLUSTER}-worker" "${CLUSTER}-worker2" gameplane-ha=worker
+        DB_SETS+=(--set-string api.nodeSelector.gameplane-ha=worker)
     fi
 
     echo "helm upgrade --install gameplane"
@@ -423,6 +416,7 @@ EOF
     # CI or dev installs reach the project provider (spec 022 R17).
     # The legacy fixtures exercise Hostport, in-pod capture and root init.
     # The restricted-workloads bucket upgrades this same installation to PSA.
+    # The port pool serves TestGameServer_PortPool* (port_pool_e2e_test.go).
     helm upgrade --install gameplane "${CHART_DIR}" \
         --namespace gameplane-system --create-namespace \
         --set "image.registry=gameplane-test" \
@@ -442,6 +436,13 @@ EOF
         --set "api.oidc.roleMappings.admin[0]=gameplane-e2e-oidc-admins" \
         --set "operator.leaderElect=false" \
         --set "operator.addressManager=metallb" \
+        --set "operator.portPools[0].name=e2e-pool" \
+        --set "operator.portPools[0].ports=31000-31005" \
+        --set "operator.portPools[0].templates[0]=e2e-portpool-a" \
+        --set "operator.portPools[0].templates[1]=e2e-portpool-b" \
+        --set "operator.portPools[1].name=e2e-pool-serving" \
+        --set "operator.portPools[1].ports=31010-31012" \
+        --set "operator.portPools[1].templates[0]=e2e-portpool-c" \
         --set "operator.gameDataStorage.storageClassName=gameplane-e2e-install-default" \
         --set "defaultModuleSource.enabled=false" \
         --set "api.telemetry.receiver.enabled=true" \

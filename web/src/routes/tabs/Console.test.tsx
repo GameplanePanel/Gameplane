@@ -283,6 +283,23 @@ describe("ConsoleTab", () => {
     expect(term.writeln).toHaveBeenCalledTimes(2);
   });
 
+  it.each(["\n", "\r\n"])("starts each RCON output line in column zero for %j line endings", async (ending) => {
+    const { opts, term } = await renderConsole("rcon");
+    const body = `Minecraft server output${ending}  indented player list${ending}玩家`;
+    const normalized = "Minecraft server output\r\n  indented player list\r\n玩家";
+    opts.onMessage?.(JSON.stringify({ kind: "out", body }));
+    expect(term.writeln).toHaveBeenLastCalledWith(normalized);
+    opts.onMessage?.(JSON.stringify({ kind: "err", body }));
+    expect(term.writeln).toHaveBeenLastCalledWith(`\x1b[31m${normalized}\x1b[0m`);
+  });
+
+  it("keeps PTY line endings and terminal control characters intact", async () => {
+    const { opts, term } = await renderConsole("pty");
+    const output = "first\n  second\rprogress\r\n\x1b[32mgreen";
+    opts.onMessage?.(JSON.stringify({ kind: "stdout", body: btoa(output) }));
+    expect(term.write).toHaveBeenLastCalledWith(output);
+  });
+
   it("safe-fits on mount and never fits a disposed terminal (B1)", async () => {
     const { unmount, fit } = await renderConsole("rcon");
     // The deferred initial fit ran once (host connected, not disposed).

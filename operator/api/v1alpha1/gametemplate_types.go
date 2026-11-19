@@ -11,6 +11,7 @@ import (
 // references it.
 // +kubebuilder:validation:XValidation:rule="!has(self.consoleMode) || self.consoleMode != 'rcon' || (has(self.rcon) && (!has(self.rcon.protocol) || self.rcon.protocol != 'none'))",message="consoleMode 'rcon' requires spec.rcon with a protocol other than 'none'"
 // +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders) || size(self.capabilities.mods.loaders) == 0 || (has(self.versions) && size(self.versions) > 0)",message="capabilities.mods.loaders requires a non-empty spec.versions catalog (a mod loader is selected by versions[].loader)"
+// +kubebuilder:validation:XValidation:rule="!has(self.capabilities) || !has(self.capabilities.backupFlush) || (self.game == 'minecraft-java' && has(self.rcon) && (!has(self.rcon.protocol) || self.rcon.protocol != 'none'))",message="backupFlush requires Minecraft Java with RCON enabled"
 type GameTemplateSpec struct {
 	// DisplayName is a human-friendly label shown in the dashboard.
 	// +kubebuilder:validation:MinLength=1
@@ -64,6 +65,14 @@ type GameTemplateSpec struct {
 	// override. Can be overridden by GameServer.
 	// +kubebuilder:validation:MinLength=1
 	Image string `json:"image"`
+
+	// RequiredNodeArchitecture is the kubernetes.io/arch label required by
+	// the game executable (for example, amd64). Omit for portable templates.
+	// The requirement also applies to version selections and image overrides.
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]+$`
+	// +kubebuilder:validation:MaxLength=63
+	// +optional
+	RequiredNodeArchitecture string `json:"requiredNodeArchitecture,omitempty"`
 
 	// Versions is an optional catalog of selectable game versions surfaced
 	// in the Create Server wizard. Each entry maps a user choice to a
@@ -268,7 +277,13 @@ type GameVersion struct {
 
 // CapabilitiesSpec declares the per-game command surface the agent
 // interprets.
+// +kubebuilder:validation:XValidation:rule="!(has(self.backupFlush) && has(self.quiesce))",message="choose a flush-only checkpoint or a write-freeze declaration"
 type CapabilitiesSpec struct {
+	// BackupFlush requests an acknowledged checkpoint without disabling writes.
+	// +optional
+	// +kubebuilder:validation:Enum=minecraft-save-all
+	BackupFlush string `json:"backupFlush,omitempty"`
+
 	// Players configures the moderation actions on the Players tab.
 	// +optional
 	Players *PlayerActionsSpec `json:"players,omitempty"`
@@ -795,6 +810,29 @@ type PlayerActionsSpec struct {
 	// List configures how the online player list is read.
 	// +optional
 	List *PlayerListSpec `json:"list,omitempty"`
+
+	// Query reads the online player count from a server query protocol
+	// instead of the console, for games with no console that lists players
+	// (Valheim has no RCON at all). When set, the heartbeat's player count,
+	// which idle sleep relies on, comes from this query. The Players tab's
+	// list and moderation still use the console.
+	// +optional
+	Query *PlayerQuerySpec `json:"query,omitempty"`
+}
+
+// PlayerQuerySpec reads the player count over a game server query protocol.
+type PlayerQuerySpec struct {
+	// Protocol is the query protocol. "a2s" is Valve's Steam server query
+	// (A2S_INFO over UDP), which most Steam dedicated servers answer on
+	// their query port.
+	// +kubebuilder:validation:Enum=a2s
+	Protocol string `json:"protocol"`
+
+	// Port is the UDP port, inside the pod, that answers the query: for
+	// Valheim, 2457 (the game port plus one).
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	Port int32 `json:"port"`
 }
 
 // WhitelistSpec declares how to manage the game's whitelist (allow list).
@@ -1123,6 +1161,8 @@ type AgentSpec struct {
 
 // ConfigField is a single user-tunable setting surfaced in the wizard.
 // +kubebuilder:validation:XValidation:rule="!has(self.envName) || !has(self.target) || self.target == 'env'",message="envName applies only to target env fields"
+// +kubebuilder:validation:XValidation:rule="!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target) || self.target == 'env'",message="applyOnRestart requires an environment field"
+// +kubebuilder:validation:XValidation:rule="!has(self.applyOnRestart) || !self.applyOnRestart || (size(self.name) <= 253 && self.name != '.' && !self.name.startsWith('..'))",message="applyOnRestart requires a Secret key name of at most 253 characters that is not '.' and does not start with '..'"
 type ConfigField struct {
 	// Name is the field identifier and the key in GameServer.spec.config.
 	// It is also the env var name when Target is "env" and EnvName is
@@ -1172,6 +1212,15 @@ type ConfigField struct {
 	// +kubebuilder:validation:MaxLength=253
 	// +optional
 	EnvName string `json:"envName,omitempty"`
+
+	// ApplyOnRestart stages this environment value for the next container start.
+	// Edits and clears update the config Secret without rolling the game Pod.
+	// Config files that reference the field are refreshed by their init container
+	// on the next Pod start. Other fields keep their usual rollout behavior.
+	// Name must be a valid Kubernetes Secret key. Admission enforces this rule,
+	// and the reconciler checks keys from previously admitted template revisions.
+	// +optional
+	ApplyOnRestart bool `json:"applyOnRestart,omitempty"`
 
 	// AutoFromMemoryLimit, when set, computes this field's value from the
 	// game container's effective memory limit whenever neither

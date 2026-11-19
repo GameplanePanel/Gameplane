@@ -72,6 +72,101 @@ func lifecycleRestore(name string, uid types.UID) *gameplanev1alpha1.Restore {
 	}
 }
 
+func TestRestoreUsesGamePlacementOnlyForFirstVolumeConsumer(t *testing.T) {
+	for _, state := range []string{"unbound", "missing", "bound", "conflict"} {
+		t.Run(state, func(t *testing.T) {
+			policy, _, tmpl := gamePolicyFixture(t)
+			tmpl.Name = "game-template"
+			tmpl.Spec.RequiredNodeArchitecture = "amd64"
+			extras := []client.Object{tmpl}
+			if state != "missing" {
+				pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "server-data"}}
+				if state == "bound" {
+					pvc.Spec.VolumeName = "legacy-arm64-volume"
+				}
+				extras = append(extras, pvc)
+			}
+			r, gs, rs := restoreLifecycleFixture(t, extras...)
+			r.GameWorkloadPolicy = policy
+			gs.Spec.TemplateRef.Name = tmpl.Name
+			gs.Spec.NodeSelector = map[string]string{"rack": "west"}
+			if state == "conflict" {
+				gs.Spec.NodeSelector[corev1.LabelArchStable] = "arm64"
+			}
+			gs.Spec.Affinity = &corev1.Affinity{PodAntiAffinity: &corev1.PodAntiAffinity{}}
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			lifecyclePasses(t, r, "first", 10)
+			jobs := lifecycleJobs(t, r)
+			if state == "conflict" {
+				if err := r.Get(t.Context(), client.ObjectKeyFromObject(rs), rs); err != nil {
+					t.Fatal(err)
+				}
+				target := lifecycleServer(t, r)
+				if rs.Status.Phase != gameplanev1alpha1.RestorePhaseFailed || len(jobs) != 0 ||
+					target.Annotations[lifecycleOperationAnnotation] != "" || target.Annotations[restoreGuardAnnotation] != "" {
+					t.Fatalf("placement conflict failed to release restore: %+v, %v", rs.Status, target.Annotations)
+				}
+				return
+			}
+			if len(jobs) != 1 {
+				t.Fatalf("restore jobs: %v", jobs)
+			}
+			pod := jobs[0].Spec.Template.Spec
+			if state == "bound" {
+				if len(pod.NodeSelector) != 0 || pod.Affinity != nil {
+					t.Fatalf("bound volume recovery acquired game node constraints: %+v", pod)
+				}
+				return
+			}
+			if pod.NodeSelector[corev1.LabelArchStable] != "amd64" || pod.NodeSelector["rack"] != "west" ||
+				pod.NodeSelector[policy.PoolLabel] != policy.PoolValue || len(pod.Tolerations) != 1 ||
+				pod.Affinity == nil || pod.Affinity.PodAntiAffinity == nil {
+				t.Fatalf("first consumer can bind outside game placement: %+v", pod)
+			}
+		})
+	}
+}
+
+func TestLegacyTemplateRestoreUsesGamePlacementOnUnboundVolume(t *testing.T) {
+	policy, _, tmpl := gamePolicyFixture(t)
+	tmpl.Name = "legacy-template"
+	for _, tc := range []struct {
+		name     string
+		policy   *GameWorkloadPolicy
+		selector map[string]string
+		wantKey  string
+		want     string
+	}{
+		{"server architecture selector", nil, map[string]string{corev1.LabelArchStable: "amd64"}, corev1.LabelArchStable, "amd64"},
+		{"administrator pool", policy, nil, policy.PoolLabel, policy.PoolValue},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "server-data"}}
+			r, gs, _ := restoreLifecycleFixture(t, tmpl.DeepCopy(), pvc)
+			r.GameWorkloadPolicy = tc.policy
+			gs.Spec.TemplateRef.Name = tmpl.Name
+			gs.Spec.NodeSelector = tc.selector
+			if err := r.Update(t.Context(), gs); err != nil {
+				t.Fatal(err)
+			}
+			lifecyclePasses(t, r, "first", 10)
+			jobs := lifecycleJobs(t, r)
+			if len(jobs) != 1 {
+				t.Fatalf("got %d restore jobs, want one", len(jobs))
+			}
+			pod := jobs[0].Spec.Template.Spec
+			if pod.NodeSelector[tc.wantKey] != tc.want {
+				t.Fatalf("restore worker selector %v, want %s=%s", pod.NodeSelector, tc.wantKey, tc.want)
+			}
+			if tc.policy != nil && (len(pod.Tolerations) != 1 || pod.Tolerations[0].Key != tc.wantKey || pod.Tolerations[0].Value != tc.want) {
+				t.Fatalf("restore worker missing pool toleration: %v", pod.Tolerations)
+			}
+		})
+	}
+}
+
 func TestPendingRestoreTemplateBindsBeforeCopyFailure(t *testing.T) {
 	r, gs, rs := restoreLifecycleFixture(t)
 	gs.Annotations = map[string]string{restoreGuardAnnotation: restoreIdentityJSON(rs.Name, rs.UID), restoreTemplateAnnotation: "missing-plan"}

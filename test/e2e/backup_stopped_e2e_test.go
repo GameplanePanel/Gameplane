@@ -6,7 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -41,7 +43,14 @@ func TestBackup_StoppedCopiesRemainRestorable(t *testing.T) {
 		}
 		return false, "game container not ready"
 	})
-	if out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0", "sh", "-c", "echo stopped-backup-marker > /data/marker.txt && sync"); err != nil {
+	// The CI runner creates an actual SQLite database. BusyBox only transports
+	// the bytes into the disposable game volume and back out of the Restic job.
+	createDB := "import base64,sqlite3; db=sqlite3.connect(':memory:'); db.execute('create table player(score integer)'); db.execute('insert into player values(17)'); db.commit(); print(base64.b64encode(db.serialize()).decode())"
+	fixture, err := exec.CommandContext(t.Context(), "python3", "-c", createDB).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out, err := envInstance.KubectlExec(t, ns, "pod/"+gs+"-0", "sh", "-c", `echo stopped-backup-marker > /data/marker.txt && printf %s "$1" | base64 -d > /data/world.db && sync`, "sh", strings.TrimSpace(string(fixture))); err != nil {
 		t.Fatalf("write marker: %v\n%s", err, out)
 	}
 	if _, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Patch(ctx, gs, types.MergePatchType, []byte(`{"spec":{"suspend":true}}`), metav1.PatchOptions{}); err != nil {
@@ -102,7 +111,18 @@ func TestBackup_StoppedCopiesRemainRestorable(t *testing.T) {
 		if !regexp.MustCompile(`^[0-9a-f]{8,64}$`).MatchString(snapshotID) {
 			t.Fatalf("unexpected snapshot ID %q", snapshotID)
 		}
-		runResticJob(t, "restic restore "+snapshotID+" --target /tmp/stopped-restore --retry-lock 5m && test \"$(cat /tmp/stopped-restore/data/marker.txt)\" = stopped-backup-marker")
+		logs := runResticJob(t, "restic restore "+snapshotID+" --target /tmp/stopped-restore --retry-lock 5m && test \"$(cat /tmp/stopped-restore/data/marker.txt)\" = stopped-backup-marker && echo SQLITE_BEGIN && base64 /tmp/stopped-restore/data/world.db && echo SQLITE_END")
+		_, encoded, found := strings.Cut(logs, "SQLITE_BEGIN")
+		encoded, _, ended := strings.Cut(encoded, "SQLITE_END")
+		if !found || !ended {
+			t.Fatal("restored database absent from worker output")
+		}
+		verifyDB := "import base64,sqlite3,sys; db=sqlite3.connect(':memory:'); db.deserialize(base64.b64decode(sys.stdin.read())); assert db.execute('pragma integrity_check').fetchall()==[('ok',)]; assert db.execute('select score from player').fetchall()==[(17,)]"
+		verify := exec.CommandContext(t.Context(), "python3", "-c", verifyDB)
+		verify.Stdin = strings.NewReader(encoded)
+		if out, err := verify.CombinedOutput(); err != nil {
+			t.Fatalf("verify restored SQLite integrity and player data: %v\n%s", err, out)
+		}
 	}
 	got, err := envInstance.Dyn.Resource(gameServerGVR).Namespace(ns).Get(ctx, gs, metav1.GetOptions{})
 	if err != nil {

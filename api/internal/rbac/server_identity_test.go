@@ -52,7 +52,7 @@ func TestOwnershipGrantBindsExactServerIdentity(t *testing.T) {
 
 func TestIdentityBindingChecksEveryTargetDimension(t *testing.T) {
 	identity := ServerIdentity{Cluster: "remote", Namespace: "games", Name: "same-name", UID: "uid"}
-	ctx := context.WithValue(t.Context(), serverIdentityKey{}, identity)
+	ctx := context.WithValue(t.Context(), serverIdentityKey{}, serverGrant{ServerIdentity: identity})
 	for _, observed := range []ServerIdentity{
 		{Cluster: "local", Namespace: "games", Name: "same-name", UID: "uid"},
 		{Cluster: "remote", Namespace: "other", Name: "same-name", UID: "uid"},
@@ -66,7 +66,7 @@ func TestIdentityBindingChecksEveryTargetDimension(t *testing.T) {
 	if err := ValidateServerIdentity(t.Context(), "remote", "games", "same-name", "replacement"); err != nil {
 		t.Fatalf("unbound namespace grant changed: %v", err)
 	}
-	emptyUID := context.WithValue(t.Context(), serverIdentityKey{}, ServerIdentity{Cluster: "remote", Namespace: "games", Name: "same-name"})
+	emptyUID := context.WithValue(t.Context(), serverIdentityKey{}, serverGrant{ServerIdentity: ServerIdentity{Cluster: "remote", Namespace: "games", Name: "same-name"}})
 	if err := ValidateServerIdentity(emptyUID, "remote", "games", "same-name", ""); err == nil {
 		t.Fatal("empty resource identity accepted")
 	}
@@ -77,6 +77,9 @@ func TestNamespacePermissionDoesNotBecomeOwnershipBound(t *testing.T) {
 	handler := Middleware(identityFetcher{})(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if _, bound := BoundServerIdentity(req.Context()); bound {
 			t.Fatal("namespace permission unexpectedly bound to server")
+		}
+		if !StreamGrantValidator(nil)(req.Context(), user.ID) {
+			t.Fatal("namespace permission required a Kubernetes lookup")
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}))
@@ -100,6 +103,11 @@ func TestOwnerOnlyNamespacePermissionStillBindsOwnershipIdentity(t *testing.T) {
 			handler := Middleware(identityFetcher{server})(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				if err := ValidateServerIdentity(req.Context(), "remote", scope.DefaultNamespace, "same-name", "replacement-uid"); !errors.Is(err, ErrServerIdentityChanged) {
 					t.Errorf("owner-only namespace grant rebound to replacement: %v", err)
+				}
+				transferred := server.DeepCopy()
+				transferred.SetAnnotations(map[string]string{"gameplane.local/collaborators": "42"})
+				if StreamGrantValidator(identityFetcher{transferred})(req.Context(), user.ID) {
+					t.Error("former owner kept an owner-only grant as a collaborator")
 				}
 				w.WriteHeader(http.StatusNoContent)
 			}))

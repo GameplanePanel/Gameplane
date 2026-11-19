@@ -17,6 +17,18 @@ and destinations. Templates without the field retain the existing broad
 sentinel-to-game allowance; module maintainers can adopt it after validating
 their proxy traffic.
 
+For an opted-in template, the operator applies the isolation in this order:
+
+```mermaid
+flowchart TD
+    T["GameTemplate sentinelIsolation: true"] --> P{"Advertised ports declared?"}
+    P -- no --> N["Reconcile stops with a Failed phase;<br/>existing sentinel exposure is revoked"]
+    P -- yes --> L["Game and sentinel pod templates labeled gameplane.local/sentinel-isolation: true"]
+    L --> R["Pods roll out; StatefulSet selectors unchanged"]
+    R --> Y["Per-server policies: &lt;server&gt;-sentinel-ingress and &lt;server&gt;-sentinel-egress"]
+    Y --> Z["Sentinel reaches only its server's advertised ports"]
+```
+
 Upgrade the CRDs, operator and chart together before opting in a template.
 Existing game pods roll out to acquire the isolation label; StatefulSet
 selectors stay unchanged. Do not claim isolation until both game and sentinel
@@ -144,6 +156,20 @@ The dashboard translates these to the CRD fields; the operator then applies them
 
 ## Address Preference Behavior
 
+The operator checks a requested pool or address in this order, and the first matching branch sets the `AddressAssignment` reason:
+
+```mermaid
+flowchart TD
+    A["Pool or address requested"] --> B{"Expose is LoadBalancer?"}
+    B -- no --> C["IgnoredForExposureMode"]
+    B -- yes --> D{"Explicit address is an IP?"}
+    D -- no --> E["InvalidAddress"]
+    D -- yes --> F{"operator.addressManager"}
+    F -- "metallb or cilium" --> G["Operator writes annotation or label on the Service"]
+    F -- none --> H["NoAddressManagerConfigured"]
+    G --> I["Assigned, AssignmentPending or a failure reason"]
+```
+
 ### When Expose Mode is LoadBalancer
 
 - `addressPool` and `address` are honored by the address manager (MetalLB or Cilium).
@@ -251,6 +277,113 @@ For this reason, **changing the pool on a live server should be avoided when pos
 **Verification:**
 
 The project's e2e test `TestAddressPool_ChangePoolOnRunningServer` verifies that the pool assignment metadata is updated on the GameServer's status; it does not verify whether the actual IP address remains stable or changes, as this is load-balancer dependent. To determine the exact behavior in your deployment, test the address-change scenario against your specific load-balancer version and pool configuration before relying on it in production.
+
+## A Hostname as the Server's Address
+
+Set `spec.networking.hostname` to the DNS name players use. The operator
+adds it to the Service as an external-dns hint
+(`external-dns.alpha.kubernetes.io/hostname`), and on a LoadBalancer server,
+once the load balancer has published an address, `status.endpoints` and the
+dashboard report the hostname in place of that address, with the Service's
+ports. Players then see the name instead of an IP.
+
+The operator doesn't create the DNS record. With external-dns watching
+Services, the record is created from the hint and follows the load balancer
+if it hands out a new IP. A record you keep yourself must be updated by hand
+when that happens, or players reach the old address. A ClusterIP or NodePort
+server keeps reporting its own address.
+
+The load balancer's address stays in `status.endpoints[].serviceAddress`, and
+address-conflict checks for `spec.networking.address` compare against it, so
+a server advertising a hostname still holds its IP.
+
+This applies to every LoadBalancer server with a hostname, including ones
+created before the upgrade that introduced it. A hostname that doesn't
+resolve to its server would now be shown to players, so before upgrading,
+check each such hostname, or clear it where it isn't the name players use.
+
+## Choosing a Load-Balancer Implementation
+
+A cluster can run more than one load-balancer implementation, each handling
+Services of its own class: a cloud's, MetalLB, Tailscale's operator, or a
+custom one for game traffic. Set `spec.networking.loadBalancerClass` on a
+LoadBalancer server to pick one; it becomes the Service's
+`spec.loadBalancerClass`. Unset, the operator doesn't manage the class: a new
+Service has none, so the cluster's default implementation handles it, and an
+existing Service keeps any class something else gave it.
+
+Kubernetes doesn't allow changing a Service's class, or adding one to a
+LoadBalancer Service that has none, so when the field is set or changes, the
+operator deletes the Service and creates it again with the new class. The server keeps running, but its Service gets a new cluster IP and,
+usually, a new external address, so players reconnect. Removing the field
+leaves the Service's class as it is until the Service is next replaced. The
+class is a Kubernetes qualified name, such as `example.com/games`: the part
+after the slash is at most 63 characters. The dashboard doesn't edit the
+class, and keeps it when you save other networking settings; set it through
+the API or `kubectl`.
+
+An address pool or address (`addressPool`, `address`) is a request to the
+configured address manager; a Service of another class is outside that
+manager's control, so leave them unset with a class of another
+implementation.
+
+## Port Pools
+
+Some installs reach every game server through one public address, a relay
+or an edge that forwards a range of ports to the cluster's load balancer.
+Games whose clients send the hostname they connect to (Minecraft Java) can
+share a port behind a router that picks the server by name, but most games
+send no hostname, so behind one address each server needs ports of its own.
+A port pool hands them out.
+
+A pool is a range of ports on one shared endpoint. Name it for the endpoint,
+and list the templates whose servers draw from it, with the Helm value
+`operator.portPools`:
+
+```yaml
+operator:
+  portPools:
+    - name: edge
+      ports: "2456-2499"
+      templates: [valheim, factorio]
+```
+
+Every server of those templates then gets a contiguous block of the pool, one
+port per advertised port, in template order: the first Valheim server
+2456-2457, a Factorio server next 2458, the next Valheim server 2459-2460.
+The pool decides who shares: a port goes to one server whatever its
+template, and ports are reserved per protocol, so TCP 2456 and UDP 2456 are
+two ports. A template draws from at most one pool.
+
+The operator records each server's ports in its `gameplane.local/pool-ports`
+annotation and keeps them for the server's life, so players' saved addresses
+keep working. The Service publishes those ports and forwards them to the
+game's own, and `status.endpoints` and the dashboard show them. Relays (frp,
+Tailscale, Playit) forward to those ports too. The `PortAllocation`
+condition lists them.
+
+A server's explicit `spec.networking.portOverrides[].servicePort` is
+reserved too, so the pool never hands it to another server. An override that
+names a port another server already holds is refused: the server reports
+`PortAllocation` `ServicePortConflict` and keeps the ports it had.
+
+When no block is free, a new server reports `PoolExhausted` and gets no
+Service or address until a block frees up, for example when a server is deleted. A
+server that already has ports keeps them, and keeps working, sleeping and
+waking, while a change it needs waits (`ChangePending`). A template update
+that needs other ports reserves them before the server is restarted for it;
+when the pool can't, the server stays on its current version and reports
+`RolloutPending`. Servers that wait check again every 30 seconds, and their
+games keep running.
+
+Forward the whole range at the relay or edge, to the cluster's load
+balancer. When you shrink a pool, existing servers keep their ports, even
+ones outside the new range, and report `AllocatedOutsideRange` with those
+ports. Keep forwarding them until you move those servers. New servers, and
+servers that need new ports, for example for a template update, are given
+ports from the smaller range. Removing a template from its pool returns its servers
+to the template's ports. The full rules, including template revisions and
+recovery, are in [spec 036](../specs/036-port-pools/spec.md).
 
 ## Related
 

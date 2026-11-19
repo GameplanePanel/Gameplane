@@ -205,7 +205,7 @@ spec:
       {{- /* The target may be enabled for the first time during this upgrade.
              Only an existing Deployment needs migration; a lookup error fails
              rendering, while NotFound safely skips the patch. */}}
-      {{- if and (eq (include "gameplane.apiEnabled" .) "true") .Release.IsUpgrade (lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-api") }}
+      {{- if and (eq (include "gameplane.apiEnabled" .) "true") (not (.Values.api.postgresHA | default dict).enabled) .Release.IsUpgrade (lookup "apps/v1" "Deployment" .Release.Namespace "gameplane-api") }}
       initContainers:
         # Clear the stale spec.strategy.rollingUpdate left by releases that
         # predate the Recreate strategy — see the Role above for why Helm

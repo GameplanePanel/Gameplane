@@ -8,6 +8,7 @@ import type {
   BackupDestination,
   BackupSchedule,
   BannedPlayer,
+  ServerOperator,
   CatalogEntry,
   ClusterInfo,
   ClusterRegistry,
@@ -673,6 +674,7 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
   const withCluster = (path: string, cluster?: string) => request.url(cluster ? withClusterParam(path, cluster) : path);
   const fetch = request.raw;
   const Servers = {
+    effectiveTemplate: (name: string, ns?: string) => api<GameTemplate>(withNS(`/servers/${name}/template`, ns)),
     // A bare list() call defaults to the server's default namespace scope
     // (scope.DefaultNamespace) exactly as before (F-263); pass ns to target
     // one of the namespaces from Namespaces.list() explicitly.
@@ -920,6 +922,8 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
     snapshot: (server: string, ns?: string) => api<PlayersResp>(withNS(`/servers/${server}/players`, ns)),
     banned: (server: string, ns?: string) =>
       api<BannedPlayer[]>(withNS(`/servers/${server}/players/banned`, ns)),
+    operators: (server: string, ns?: string) =>
+      api<ServerOperator[]>(withNS(`/servers/${server}/players/operators`, ns)),
     moderate: (
       server: string,
       action: ModerateAction,

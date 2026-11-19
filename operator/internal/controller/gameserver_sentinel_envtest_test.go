@@ -177,13 +177,14 @@ func TestSentinelReconciliation(t *testing.T) {
 		ns := newNamespace(t)
 
 		tmpl := wakeableTestTemplate(uniqueName("sentinel-tmpl"), "minecraft")
+		tmpl.Spec.RequiredNodeArchitecture = "amd64"
 		if err := k8sClient.Create(ctx, tmpl); err != nil {
 			t.Fatalf("create template: %v", err)
 		}
 		deleteCleanup(t, tmpl)
 
 		policy, _, _ := gamePolicyFixture(t)
-		node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: uniqueName("sentinel-node"), Labels: map[string]string{policy.PoolLabel: policy.PoolValue}}}
+		node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: uniqueName("sentinel-node"), Labels: map[string]string{policy.PoolLabel: policy.PoolValue, corev1.LabelArchStable: "amd64"}}}
 		if err := k8sClient.Create(ctx, node); err != nil {
 			t.Fatalf("create node: %v", err)
 		}
@@ -220,7 +221,7 @@ func TestSentinelReconciliation(t *testing.T) {
 			t.Fatalf("get sentinel deployment: %v", err)
 		}
 		pod := dep.Spec.Template.Spec
-		if pod.NodeSelector[policy.PoolLabel] != policy.PoolValue || len(pod.Tolerations) != 1 || pod.Tolerations[0].Value != policy.PoolValue ||
+		if pod.NodeSelector[corev1.LabelArchStable] != "amd64" || pod.NodeSelector[policy.PoolLabel] != policy.PoolValue || len(pod.Tolerations) != 1 || pod.Tolerations[0].Value != policy.PoolValue ||
 			pod.Affinity == nil || pod.Affinity.NodeAffinity == nil {
 			t.Fatalf("hostport listener lost game pool or endpoint affinity: %+v", pod)
 		}

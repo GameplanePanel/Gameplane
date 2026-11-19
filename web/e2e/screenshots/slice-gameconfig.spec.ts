@@ -1,9 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
+import { capture as captureDesign } from "./capture";
 import path from "path";
 import { fileURLToPath } from "node:url";
 
 // Settings > Game configuration (design frames OC804, QFEg9, BguST password
 // will be removed, YN8cE new password typed) and the 404 page (Ne5TA), captured at 1440x900 @2x = 2880x1800, same as the frames.
+// The JVM screens KJdxg and ZUAq1 use their exported frame sizes.
 // Frames wxINm (read-only) and e9FnC (orphan key) are intentionally not
 // captured: they need per-state server fixtures.
 
@@ -86,6 +88,29 @@ test.describe("Game configuration + 404 (Desktop — 1440x900) @screenshots", ()
     await page.waitForTimeout(200);
     await capture(page, "YN8cE");
   });
+
+  for (const state of [
+    { id: "KJdxg", variant: "jvm-adopted", initial: "1536M", flag: "1536M", notice: /next container start/i, valid: true },
+    { id: "ZUAq1", variant: "jvm-adopting", initial: "", flag: "3072M", notice: /may restart once/i, valid: false },
+  ]) {
+    test(`${state.id}: Minecraft JVM startup — ${state.variant}`, async ({ context, page }) => {
+      await context.addCookies([{ name: "e2e_server_variant", value: state.variant, domain: "localhost", path: "/" }]);
+      await page.goto("/servers/mc-survival");
+      await clickTab(page, "Settings");
+      await clickTab(page, "Game configuration");
+      await page.getByLabel(/^JVM initial heap/).fill(state.initial);
+      await expect(page.getByTestId("config-restart-note")).toHaveText(state.notice);
+      await expect(page.getByText(`Heap options before additional JVM arguments: -Xms${state.flag} -Xmx2G`)).toBeVisible();
+      const save = page.getByRole("button", { name: /save changes/i });
+      if (state.valid) {
+        await expect(save).toBeEnabled();
+      } else {
+        await expect(page.getByText(/The initial heap exceeds the maximum heap/)).toBeVisible();
+        await expect(save).toBeDisabled();
+      }
+      await captureDesign(page, state.id);
+    });
+  }
 
   test("Ne5TA: Page not found", async ({ page }) => {
     await page.goto("/this-page-does-not-exist");

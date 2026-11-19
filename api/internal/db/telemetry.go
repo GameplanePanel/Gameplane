@@ -49,16 +49,11 @@ type TelemetryState struct {
 // schema_migrations held no rows when Migrate started. Running it again, for
 // example bootstrap-admin followed by serve, finds the row and changes
 // nothing, so a fresh install never flips to legacy.
-func (s *Store) seedTelemetryState(ctx context.Context, fresh bool) error {
+func seedTelemetryState(ctx context.Context, tx *sql.Tx, fresh bool) error {
 	source := TelemetryConsentLegacy
 	if fresh {
 		source = TelemetryConsentDefault
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("seed telemetry state: begin: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
 
 	res, err := tx.ExecContext(ctx,
 		`INSERT INTO telemetry_state(id, consent_source) VALUES (?, ?) ON CONFLICT (id) DO NOTHING`,
@@ -90,9 +85,6 @@ func (s *Store) seedTelemetryState(ctx context.Context, fresh bool) error {
 				}
 			}
 		}
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("seed telemetry state: commit: %w", err)
 	}
 	return nil
 }

@@ -32,6 +32,25 @@ is missed by the sinks (it is still visible in the dashboard, `kubectl`, and
 the `GameplaneBackupFailed` Prometheus alert). There is deliberately no
 cross-restart watermark.
 
+An observed transition reaches each matching sink along this path:
+
+```mermaid
+flowchart TD
+    A["Watchers on GameServer, Backup and Restore status"] --> B{"Transition maps to an event type?"}
+    B -->|No| Z["Ignored"]
+    B -->|Yes| C["Enqueue without blocking (queue of 256)"]
+    C -->|Queue full| D["Dropped, counted in metrics"]
+    C --> E["Worker matches each sink's event filter"]
+    E --> F{"Sink has a configRef?"}
+    F -->|No| G["Counted as skipped_no_secret"]
+    F -->|Yes| H["Read the sink Secret"]
+    H --> I{"PostgreSQL: dispatch claim won?"}
+    I -->|No| Z2["Skipped, another replica owns it"]
+    I -->|Yes| J["Deliver with retries at 0, 2 s and 8 s"]
+    J --> K["sent"]
+    J --> L["failed, 4xx responses not retried"]
+```
+
 ## Sink credentials (Secrets)
 
 The **Add sink** form takes the credential material directly — the webhook

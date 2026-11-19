@@ -44,10 +44,29 @@ NO_E2E_DIRS = ("docs", "specs", "assets", "website", "hack", ".github", ".claude
                ".githooks", ".jules", ".specify", "deploy/standalone", "test/e2e/testdata")
 # The dashboard live run drives these components through a real cluster.
 WEB_LIVE_COMPONENTS = {"web", "api", "operator", "agent"}
+
+
+def component_submodules(root):
+    """Return the paths of .gitmodules entries marked `component = true` (hack/submodules.sh)."""
+    try:
+        text = (root / ".gitmodules").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return ()
+    paths = []
+    for section in re.split(r"^\[submodule ", text, flags=re.MULTILINE)[1:]:
+        values = dict(re.findall(r"^\s*(\w+)\s*=\s*(\S+)\s*$", section, re.MULTILINE))
+        if values.get("component") == "true" and values.get("path"):
+            paths.append(values["path"])
+    return tuple(paths)
+
+
+# Split Go services checked out as submodules at their old paths; each is its own component.
+SUBMODULE_COMPONENTS = component_submodules(ROOT)
 # Component ids beside the go.work modules (data-model.md Component).
-EXTRA_COMPONENTS = ("web", "charts", "deploy-kind", "modules", "e2e-harness")
+EXTRA_COMPONENTS = ("web", "charts", "deploy-kind", "modules", "e2e-harness") + SUBMODULE_COMPONENTS
 # Top-level areas a selection rule knows; any other path is unmapped and forces full scope.
-KNOWN_DIRS = ("charts", "containers", "deploy/kind", "signing", "test/e2e", "web", "modules")
+KNOWN_DIRS = ("charts", "containers", "deploy/kind", "signing", "test/e2e", "web",
+              "modules") + SUBMODULE_COMPONENTS
 # A change to one of these files in a module root reruns that whole module (research R4).
 GO_MODULE_WIDE = {"go.mod", "go.sum", ".testcoverage.yml"}
 # Tests that read files outside their package directory. A changed path under a key also
@@ -471,6 +490,8 @@ def select_e2e(root, paths, reason, suites, buckets):
             components.setdefault("web", []).append(path)
         elif under(path, "modules"):
             components.setdefault("modules", []).append(path)
+        elif submodule := next((sub for sub in SUBMODULE_COMPONENTS if under(path, sub)), None):
+            components.setdefault(submodule, []).append(path)
         else:
             unmapped.append(path)
     if unmapped:

@@ -58,8 +58,7 @@ func (n *Notifier) runClusterWatchers(ctx context.Context, k *kube.Client, clust
 			}
 			mu.Unlock()
 			for _, e := range events {
-				e.Cluster = cluster
-				n.Enqueue(stampTS(e))
+				n.enqueueObserved(e, cluster, newU)
 			}
 		},
 		DeleteFunc: func(obj any) {
@@ -88,8 +87,7 @@ func (n *Notifier) runClusterWatchers(ctx context.Context, k *kube.Client, clust
 					return
 				}
 				for _, e := range phaseEvents(kind, oldU, newU) {
-					e.Cluster = cluster
-					n.Enqueue(stampTS(e))
+					n.enqueueObserved(e, cluster, newU)
 				}
 			},
 		}); err != nil {
@@ -102,6 +100,13 @@ func (n *Notifier) runClusterWatchers(ctx context.Context, k *kube.Client, clust
 	// only be observed against a synced baseline, and returning here lets
 	// callers sequence "watching" deterministically.
 	factory.WaitForCacheSync(ctx.Done())
+}
+
+func (n *Notifier) enqueueObserved(e Event, cluster string, object *unstructured.Unstructured) {
+	e.Cluster = cluster
+	e.objectUID = string(object.GetUID())
+	e.objectVersion = object.GetResourceVersion()
+	n.Enqueue(stampTS(e))
 }
 
 func stampTS(e Event) Event {

@@ -8,8 +8,8 @@ description: "How design.pen (and the other .pen files) is organised on the canv
 - Binding for `design.pen` (dashboard). `website/website.pen` and `telemetry-receiver/telemetry-dashboard.pen`
   follow the same two-zone principle (components on top, one row per page, variants to the right), with
   their own page order (site navigation / dashboard views). The canonical row list below is for `design.pen` only.
-- All access through the Pencil MCP (`mcp__pencil__execute`). Never Read, grep or edit `.pen` files (CLAUDE.md core rule 2).
-- Pencil does not autosave. Ask the user to save in the Pencil UI before committing.
+- All access through Pencil: the Pencil MCP (`mcp__pencil__execute`) or the Pen CLI (`execute({ input })` in `pen interactive`; see the `design-export` skill). Never Read, grep or edit `.pen` files (CLAUDE.md core rule 2).
+- Saving: Pencil does not autosave, so with the MCP ask the user to save in the Pencil UI before committing. With the CLI, end the run with `save()`.
 
 ## Two zones
 
@@ -84,7 +84,7 @@ The live canvas row label notes are the authoritative list of row ids. Do not co
 
 ## Procedures
 
-Each procedure runs as an `mcp__pencil__execute` snippet. Include the snippets verbatim.
+Each procedure runs as an `execute` snippet (`mcp__pencil__execute`, or `execute({ input })` in the Pen CLI). Include the snippets verbatim.
 
 **List root nodes safely.** The visitor form of `Get` crashes inside some subtrees (see
 `docs/design/pencil-visitor-crash-report.md`), so always call `c.skipChildren()` at the root:
@@ -113,7 +113,7 @@ L.sort((a,b)=>a.y-b.y).forEach((l,i)=>{const k=String(i+1).padStart(2,"0")+" · 
 **C. Add a component.** See "Component boards" above.
 
 **D. Verify.** Pass the full content of `check-layout.js` (next to this file) as the `input` of
-`mcp__pencil__execute`, with `filePath` set to the `.pen` file. It is read-only and must end with
+`mcp__pencil__execute` with `filePath` set to the `.pen` file (Pen CLI: `pen interactive -i <file.pen> -o /tmp/check.pen`, no `save()`). It is read-only and must end with
 `NO ISSUES`. It checks:
 - no loose components at the root
 - boards hold only components and labels (HeroUI library examples excepted)

@@ -207,6 +207,14 @@
     "defaultMessage": "The primary CSI snapshot is crash-consistent; application quiesce was not confirmed.",
     "description": "Backup achieved consistency: CrashConsistentSnapshot."
   },
+  "condition.consistency.flushedlivecopy": {
+    "defaultMessage": "The game acknowledged a checkpoint. Subsequent writes could change files during this copy.",
+    "description": "Live copy after a checkpoint with ongoing writes."
+  },
+  "condition.consistency.legacyhookunverified": {
+    "defaultMessage": "The historical hook reported success without proving that writes stayed paused. The snapshot remains available for restore.",
+    "description": "Historical recovery point with no verified write freeze."
+  },
   "condition.consistency.legacymetadataunknown": {
     "defaultMessage": "Capture-time metadata is unavailable. Do not infer consistency or volume coverage from the current template.",
     "description": "Backup achieved consistency: LegacyMetadataUnknown."
@@ -216,7 +224,7 @@
     "description": "Backup achieved consistency: LiveMultiVolumeCopy."
   },
   "condition.consistency.quiesced": {
-    "defaultMessage": "The included volumes were copied after the agent confirmed quiesce. This depends on the module's quiesce commands; consult the manifest for excluded volumes.",
+    "defaultMessage": "The pod-bound agent verified the game write-freeze command sequence before capture. See the manifest for included volumes.",
     "description": "Backup achieved consistency: Quiesced."
   },
   "condition.consistency.rawcopy": {
@@ -234,6 +242,10 @@
   "condition.datawipe.jobfailed": {
     "defaultMessage": "The data wipe job did not complete. The volume may not be fully cleared.",
     "description": "DataWipe condition when the wipe job fails."
+  },
+  "condition.datawipe.placementrejected": {
+    "defaultMessage": "The data wipe could not start. Correct the worker placement settings before requesting another wipe.",
+    "description": "DataWipe condition when worker placement prevents the wipe from starting."
   },
   "condition.failed.capture_already_in_progress": {
     "defaultMessage": "Another capture is already running on this server.",
@@ -366,6 +378,38 @@
   "condition.localesvalid.writefailed": {
     "defaultMessage": "Module translations could not be stored.",
     "description": "LocalesValid condition on a GameTemplate when the translations ConfigMap could not be written. The message holds the English error."
+  },
+  "condition.portallocation.allocated": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''.",
+    "description": "PortAllocation condition once a server has Service ports from its port pool. ports lists them as port/protocol."
+  },
+  "condition.portallocation.allocatedoutsiderange": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''. Ports {outside} are outside the pool's range and stay in use until the server is moved; keep forwarding them.",
+    "description": "PortAllocation condition when the pool shrank and the server keeps ports outside the new range. outside lists them as port/protocol."
+  },
+  "condition.portallocation.changepending": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for the requested change, so the server keeps ports {ports} until one frees up.",
+    "description": "PortAllocation condition when a change to the server's ports waits for pool capacity. count is how many pooled ports the change needs."
+  },
+  "condition.portallocation.poolexhausted": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for this server, so it has no Service until a block frees up.",
+    "description": "PortAllocation condition when the server's port pool is full. count is how many ports the server needs."
+  },
+  "condition.portallocation.rolloutpending": {
+    "defaultMessage": "The template update waits for {count} free ports in port pool ''{pool}''; the server keeps its current revision on ports {ports}.",
+    "description": "PortAllocation condition when a template revision needs other ports and the pool can't reserve them yet."
+  },
+  "condition.portallocation.rolloutportconflict": {
+    "defaultMessage": "The template update waits for Service port {port}, held by {holder} in port pool ''{pool}''; the server keeps its current revision on ports {ports}.",
+    "description": "PortAllocation condition when a template revision's servicePort override names a port another server holds. holder is that server as namespace/name."
+  },
+  "condition.portallocation.serviceportconflict": {
+    "defaultMessage": "Service port {port} is held by {holder} in port pool ''{pool}'', so the server keeps ports {ports} until it is free.",
+    "description": "PortAllocation condition when a servicePort override names a port another server holds. holder is that server as namespace/name; ports are the ones the server keeps."
+  },
+  "condition.portallocation.serviceportconflictunpublished": {
+    "defaultMessage": "Service port {port} is held by {holder} in port pool ''{pool}'', so the server has no Service until it is free.",
+    "description": "PortAllocation condition when a servicePort override names a port another server holds and the server has no ports yet. holder is that server as namespace/name."
   },
   "condition.progressing.containercreating": {
     "defaultMessage": "Creating the container.",
@@ -4367,6 +4411,14 @@
     "defaultMessage": "User menu",
     "description": "Top bar: screen-reader name of the user avatar dropdown menu; not visible on screen"
   },
+  "web.jvm.heap_format": {
+    "defaultMessage": "Enter a JVM heap size such as 512M or 2G, or a percentage from 0% to 100%.",
+    "description": "Settings: invalid Minecraft Java heap value"
+  },
+  "web.jvm.heap_order": {
+    "defaultMessage": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
+    "description": "Settings: the independently resolved initial Java heap is larger than the maximum heap"
+  },
   "web.lib.errors.request_failed": {
     "defaultMessage": "request failed",
     "description": "Fallback error text when a failed request has no usable message"
@@ -7927,6 +7979,10 @@
     "defaultMessage": "Online",
     "description": "Share: status badge under the server name on the share page, shown when the server is running; keep it short"
   },
+  "web.routes.share.owner_must_start": {
+    "defaultMessage": "This server was stopped by its owner. Ask the server owner to start it.",
+    "description": "Share: a manually stopped server cannot be started through a public wake-only link"
+  },
   "web.routes.share.players": {
     "defaultMessage": "PLAYERS",
     "description": "Share: small label above the players-online line on the share page"
@@ -7943,6 +7999,14 @@
     "defaultMessage": "Start server",
     "description": "Share: button label that starts the shared server"
   },
+  "web.routes.share.start_timed_out": {
+    "defaultMessage": "The server is taking longer than expected to start. Check back later, or ask the server owner for help.",
+    "description": "Share: startup polling stopped after five minutes; the visitor can check later or ask the owner"
+  },
+  "web.routes.share.start_timeout": {
+    "defaultMessage": "Still unavailable",
+    "description": "Share: status badge after waiting five minutes for a server to start"
+  },
   "web.routes.share.starting": {
     "defaultMessage": "Starting...",
     "description": "Share: status badge with a spinner under the server name while the server is starting; keep it short"
@@ -7950,6 +8014,10 @@
   "web.routes.share.starting_ellipsis": {
     "defaultMessage": "Starting...",
     "description": "Share: start button label while the start request is in flight"
+  },
+  "web.routes.share.stopped": {
+    "defaultMessage": "Stopped",
+    "description": "Share: status badge when the owner has manually stopped the server"
   },
   "web.routes.share.the_server_is_starting_up_this_usually": {
     "defaultMessage": "The server is starting up. This usually takes a minute or two — this page updates on its own.",
@@ -8959,6 +9027,10 @@
     "defaultMessage": "Recent events",
     "description": "Overview tab: small uppercase heading of the recent events card"
   },
+  "web.routes.tabs.overview.storage_requested": {
+    "defaultMessage": "{size} requested",
+    "description": "Requested size of the server data volume when measured capacity is unavailable"
+  },
   "web.routes.tabs.overview.tailnet_only": {
     "defaultMessage": "Tailnet only",
     "description": "Overview tab: warning badge beside a tunnel address meaning it is reachable only inside the tailnet; keep it short"
@@ -9067,6 +9139,14 @@
     "defaultMessage": "Loading…",
     "description": "Players: shown while the player list is loading"
   },
+  "web.routes.tabs.players.loading_operators": {
+    "defaultMessage": "Loading operators…",
+    "description": "Players: loading state for the configured operator list"
+  },
+  "web.routes.tabs.players.no_operators": {
+    "defaultMessage": "No operators configured.",
+    "description": "Players: empty state for the configured operator list"
+  },
   "web.routes.tabs.players.nobody_is_banned": {
     "defaultMessage": "Nobody is banned.",
     "description": "Players tab: empty-state text in the banned section when no player is banned"
@@ -9090,6 +9170,14 @@
   "web.routes.tabs.players.online_of_max_heading": {
     "defaultMessage": "{online} / {max} online",
     "description": "Players: heading with the online count and the player slot limit; {online} is the number of players online and {max} the slot limit"
+  },
+  "web.routes.tabs.players.operators": {
+    "defaultMessage": "Operators",
+    "description": "Players: stat label and heading for the read-only configured operator list"
+  },
+  "web.routes.tabs.players.operators_unavailable": {
+    "defaultMessage": "Could not load operators. Refresh to try again.",
+    "description": "Players: error when the configured operator list cannot be read"
   },
   "web.routes.tabs.players.player_id_in_parens": {
     "defaultMessage": "({playerId})",
@@ -9126,6 +9214,10 @@
   "web.routes.tabs.players.source_reason_separator": {
     "defaultMessage": "·",
     "description": "Players: separator between the ban source and the ban reason"
+  },
+  "web.routes.tabs.players.unavailable": {
+    "defaultMessage": "Player information is unavailable.",
+    "description": "Players: shown when live player information could not be loaded"
   },
   "web.routes.tabs.players.unban": {
     "defaultMessage": "Unban",
@@ -11190,6 +11282,30 @@
   "web.settings.compact_language_trigger": {
     "defaultMessage": "Language",
     "description": "Accessible name of the compact language menu button in the corner of the sign-in and shared-link cards."
+  },
+  "web.settings.config_adoption": {
+    "defaultMessage": "The server may restart once when it adopts these startup settings.",
+    "description": "Settings: startup notice before the server has adopted the effective template"
+  },
+  "web.settings.config_mixed": {
+    "defaultMessage": "Some settings apply at the next container start. Changing other settings restarts the server.",
+    "description": "Settings: initial notice for a template with both immediate and deferred settings"
+  },
+  "web.settings.config_next_start": {
+    "defaultMessage": "These configuration changes apply at the next container start.",
+    "description": "Settings: notice when all edited configuration fields defer application until startup"
+  },
+  "web.settings.config_schema_source": {
+    "defaultMessage": "Settings from this server's game template.",
+    "description": "Settings: source of the configuration fields for a server"
+  },
+  "web.settings.jvm_heap_options": {
+    "defaultMessage": "Heap options before additional JVM arguments: {options}",
+    "description": "Settings: JVM arguments computed from the initial and maximum heap settings"
+  },
+  "web.settings.jvm_startup": {
+    "defaultMessage": "JVM startup",
+    "description": "Settings: heading for Minecraft Java startup options"
   },
   "web.settings.language.automatic": {
     "defaultMessage": "Automatic (browser language)",

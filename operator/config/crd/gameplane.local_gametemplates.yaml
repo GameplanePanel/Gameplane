@@ -290,6 +290,12 @@ spec:
                           > 0)
                     maxItems: 32
                     type: array
+                  backupFlush:
+                    description: BackupFlush requests an acknowledged checkpoint without
+                      disabling writes.
+                    enum:
+                    - minecraft-save-all
+                    type: string
                   lifecycle:
                     description: |-
                       Lifecycle configures graceful lifecycle transitions the agent drives
@@ -864,6 +870,34 @@ spec:
                         required:
                         - command
                         type: object
+                      query:
+                        description: |-
+                          Query reads the online player count from a server query protocol
+                          instead of the console, for games with no console that lists players
+                          (Valheim has no RCON at all). When set, the heartbeat's player count,
+                          which idle sleep relies on, comes from this query. The Players tab's
+                          list and moderation still use the console.
+                        properties:
+                          port:
+                            description: |-
+                              Port is the UDP port, inside the pod, that answers the query: for
+                              Valheim, 2457 (the game port plus one).
+                            format: int32
+                            maximum: 65535
+                            minimum: 1
+                            type: integer
+                          protocol:
+                            description: |-
+                              Protocol is the query protocol. "a2s" is Valve's Steam server query
+                              (A2S_INFO over UDP), which most Steam dedicated servers answer on
+                              their query port.
+                            enum:
+                            - a2s
+                            type: string
+                        required:
+                        - port
+                        - protocol
+                        type: object
                       unban:
                         description: Unban lifts a ban, e.g. "pardon {{.Player}}".
                         type: string
@@ -1015,6 +1049,9 @@ spec:
                         type: array
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: choose a flush-only checkpoint or a write-freeze declaration
+                  rule: '!(has(self.backupFlush) && has(self.quiesce))'
               categories:
                 description: |-
                   Categories group this game in the dashboard's catalog and Create
@@ -1087,9 +1124,26 @@ spec:
                   Fields with target=file are consumed by ConfigFiles templates
                   instead of becoming env vars.
                 items:
+                  anyOf:
+                  - properties:
+                      applyOnRestart:
+                        enum:
+                        - false
+                  - properties:
+                      name:
+                        pattern: ^[-._a-zA-Z0-9]+$
                   description: ConfigField is a single user-tunable setting surfaced
                     in the wizard.
                   properties:
+                    applyOnRestart:
+                      description: |-
+                        ApplyOnRestart stages this environment value for the next container start.
+                        Edits and clears update the config Secret without rolling the game Pod.
+                        Config files that reference the field are refreshed by their init container
+                        on the next Pod start. Other fields keep their usual rollout behavior.
+                        Name must be a valid Kubernetes Secret key. Admission enforces this rule,
+                        and the reconciler checks keys from previously admitted template revisions.
+                      type: boolean
                     autoFromMemoryLimit:
                       description: |-
                         AutoFromMemoryLimit, when set, computes this field's value from the
@@ -1203,6 +1257,13 @@ spec:
                   - message: envName applies only to target env fields
                     rule: '!has(self.envName) || !has(self.target) || self.target
                       == ''env'''
+                  - message: applyOnRestart requires an environment field
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || !has(self.target)
+                      || self.target == ''env'''
+                  - message: applyOnRestart requires a Secret key name of at most
+                      253 characters that is not '.' and does not start with '..'
+                    rule: '!has(self.applyOnRestart) || !self.applyOnRestart || (size(self.name)
+                      <= 253 && self.name != ''.'' && !self.name.startsWith(''..''))'
                 type: array
               consoleMode:
                 description: |-
@@ -2099,6 +2160,14 @@ spec:
                   rule: '!has(self.authentication) || self.authentication || (!has(self.passwordSecretRef)
                     && (!has(self.passwordEnv) || size(self.passwordEnv) == 0) &&
                     (!has(self.passwordFile) || size(self.passwordFile) == 0))'
+              requiredNodeArchitecture:
+                description: |-
+                  RequiredNodeArchitecture is the kubernetes.io/arch label required by
+                  the game executable (for example, amd64). Omit for portable templates.
+                  The requirement also applies to version selections and image overrides.
+                maxLength: 63
+                pattern: ^[a-z0-9]+$
+                type: string
               resources:
                 description: Resources are the default compute resources for the game
                   container.
@@ -2561,6 +2630,10 @@ spec:
               rule: '!has(self.capabilities) || !has(self.capabilities.mods) || !has(self.capabilities.mods.loaders)
                 || size(self.capabilities.mods.loaders) == 0 || (has(self.versions)
                 && size(self.versions) > 0)'
+            - message: backupFlush requires Minecraft Java with RCON enabled
+              rule: '!has(self.capabilities) || !has(self.capabilities.backupFlush)
+                || (self.game == ''minecraft-java'' && has(self.rcon) && (!has(self.rcon.protocol)
+                || self.rcon.protocol != ''none''))'
           status:
             description: |-
               GameTemplateStatus is intentionally minimal — templates are mostly

@@ -183,6 +183,10 @@
         "defaultMessage": "La tâche d'effacement des données ne s'est pas terminée. Le volume n'est peut-être pas entièrement vidé.",
         "description": "DataWipe condition when the wipe job fails."
     },
+    "condition.datawipe.placementrejected": {
+        "defaultMessage": "L’effacement des données n’a pas pu démarrer. Corrigez les paramètres de placement sur les nœuds avant de demander un nouvel effacement.",
+        "description": "DataWipe condition when worker placement prevents the wipe from starting."
+    },
     "condition.failed.capture_already_in_progress": {
         "defaultMessage": "Une autre capture est déjà en cours sur ce serveur.",
         "description": "Failed condition when two captures target one server."
@@ -10480,8 +10484,14 @@
     "condition.consistency.legacymetadataunknown": {
         "defaultMessage": "Les métadonnées au moment de la capture sont indisponibles. Ne déduisez pas la cohérence ou la couverture des volumes à partir du modèle actuel."
     },
+    "condition.consistency.legacyhookunverified": {
+        "defaultMessage": "L’ancien mécanisme de sauvegarde a signalé un succès sans vérifier que les écritures restaient suspendues. L’instantané reste disponible pour une restauration."
+    },
+    "condition.consistency.flushedlivecopy": {
+        "defaultMessage": "Le jeu a confirmé l’enregistrement d’un point de sauvegarde. Des écritures ultérieures ont pu modifier les fichiers pendant la copie."
+    },
     "condition.consistency.quiesced": {
-        "defaultMessage": "Les volumes inclus ont été copiés après confirmation de la mise au repos par l'agent. Cela dépend des commandes de mise au repos du module ; consultez le manifeste pour connaître les volumes exclus."
+        "defaultMessage": "Avant la capture, l’agent du pod ciblé a vérifié les commandes de suspension des écritures du jeu. Consultez le manifeste pour connaître les volumes inclus."
     },
     "condition.consistency.rawcopy": {
         "defaultMessage": "Le volume principal a été copié sans confirmation de la mise au repos de l'application."

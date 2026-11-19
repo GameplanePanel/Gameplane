@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"net"
 	"net/http"
 	"strconv"
@@ -21,9 +20,10 @@ import (
 //
 // Sized for the login path, where legitimate traffic is tiny but
 // attackers will fire as fast as the argon2 cost allows. Keeping this
-// in-process is fine for single-replica deployments; HA setups with
-// multiple API pods should replace this with Redis later.
+// in-process handles SQLite. PostgreSQL requests use the same budget names,
+// rates and bursts through the shared store.
 type TokenBucket struct {
+	name  string
 	rate  float64 // tokens per second
 	burst float64
 
@@ -44,6 +44,12 @@ func newTokenBucket(rate, burst float64) *TokenBucket {
 		buckets: map[string]*bucket{},
 		lastGC:  time.Now(),
 	}
+}
+
+func namedBucket(name string, rate, burst float64) *TokenBucket {
+	b := newTokenBucket(rate, burst)
+	b.name = name
+	return b
 }
 
 // Allow returns true if the key has tokens available and reserves one, false otherwise.
@@ -100,9 +106,7 @@ func (t *TokenBucket) Middleware(next http.Handler) http.Handler {
 				clientIP = host
 			}
 		}
-		if !t.Allow(clientIP) {
-			w.Header().Set("Retry-After", "30")
-			httperr.WriteCode(w, req, http.StatusTooManyRequests, errors.New("too many requests"))
+		if !t.requestBudget(w, req, clientIP) {
 			return
 		}
 		next.ServeHTTP(w, req)
@@ -112,35 +116,35 @@ func (t *TokenBucket) Middleware(next http.Handler) http.Handler {
 // LoginLimiter caps login attempts per client IP. 5/min with a burst of
 // 10 tolerates accidental retries but starves a brute-forcer of argon2
 // cycles quickly.
-var LoginLimiter = newTokenBucket(5.0/60.0, 10)
+var LoginLimiter = namedBucket("login_ip", 5.0/60.0, 10)
 
 // LoginUserLimiter caps login attempts per *username*, layered on top of
 // LoginLimiter. Without it, an attacker spread across a botnet would
 // still burn through usernames at full speed because each IP has its
 // own bucket. 3/min with a burst of 6 blunts that without tripping on
 // a user fat-fingering their password.
-var LoginUserLimiter = newTokenBucket(3.0/60.0, 6)
+var LoginUserLimiter = namedBucket("login_user", 3.0/60.0, 6)
 
 // OIDCCallbackLimiter guards /auth/oidc/callback. Each redirect back
 // from the IdP triggers a token exchange + DB writes; flooding it can
 // overwhelm the IdP and the local DB. Tight burst; generous refill.
-var OIDCCallbackLimiter = newTokenBucket(10.0/60.0, 10)
+var OIDCCallbackLimiter = namedBucket("oidc", 10.0/60.0, 10)
 
 // NotifyTestLimiter guards the notification test-send endpoint. Each hit
 // dials an admin-configured external endpoint synchronously, so it gets a
 // far tighter budget than ordinary mutations: enough to poke every sink
 // while setting things up, not enough to use the API as a POST cannon.
-var NotifyTestLimiter = newTokenBucket(12.0/60.0, 3)
+var NotifyTestLimiter = namedBucket("notify_test", 12.0/60.0, 3)
 
 // MutationLimiter caps authenticated writes per IP. The login bucket is
 // narrow (argon2 is expensive); this one is broad — 60/min with 60
 // burst — and only exists to keep a single client from pegging the
 // database on a mass create/delete loop.
-var MutationLimiter = newTokenBucket(1.0, 60) // 60/min refill, 60 burst
+var MutationLimiter = namedBucket("mutation", 1.0, 60) // 60/min refill, 60 burst
 
 // NewFleetReadLimiter creates a budget shared by all fleet reads on one router:
 // 60/min sustained, burst 10. It is independent of login and mutation budgets.
-func NewFleetReadLimiter() *TokenBucket { return newTokenBucket(1.0, 10) }
+func NewFleetReadLimiter() *TokenBucket { return namedBucket("fleet_read", 1.0, 10) }
 
 // UserMiddleware enforces a bucket keyed by the authenticated account rather
 // than IP or session, so separate users behind one proxy do not share a budget.
@@ -151,7 +155,12 @@ func (t *TokenBucket) UserMiddleware(next http.Handler) http.Handler {
 			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
-		if !t.AllowUser(strconv.FormatInt(u.ID, 10)) {
+		allowed, err := t.check(req, strconv.FormatInt(u.ID, 10))
+		if err != nil {
+			httperr.WriteMessage(w, req, messages.New("server.generic.503", nil))
+			return
+		}
+		if !allowed {
 			w.Header().Set("Retry-After", "1")
 			httperr.WriteMessage(w, req, messages.New("server.common.too_many_requests", nil))
 			return
@@ -165,7 +174,7 @@ func (t *TokenBucket) UserMiddleware(next http.Handler) http.Handler {
 // mutations but higher than login attempts. 20/min with burst of 20 allows
 // legitimate players to retry connection attempts while keeping brute-force
 // costs reasonable.
-var ShareLimiter = newTokenBucket(20.0/60.0, 20)
+var ShareLimiter = namedBucket("public_share", 20.0/60.0, 20)
 
 // AllowUser is a helper for rate-limit checks keyed on something other
 // than the IP (e.g. username). Returns the same bool as Middleware's

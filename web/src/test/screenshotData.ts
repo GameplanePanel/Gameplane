@@ -1407,6 +1407,24 @@ export const screenshotModrinthProjects: RegistryProject[] = [
 // Helper for tests/e2e to conditionally swap handler sets
 // ============================================================================
 
+export const screenshotJvmTemplate = makeTemplate({
+  metadata: { name: "minecraft-java" },
+  spec: {
+    displayName: "Minecraft Java",
+    game: "minecraft-java",
+    version: "2.12.0",
+    image: "itzg/minecraft-server:java21",
+    resources: { limits: { memory: "4Gi" } },
+    configSchema: [
+      { name: "MAX_MEMORY", displayName: "JVM max heap", type: "string", applyOnRestart: true, autoFromMemoryLimit: { percent: 75 } },
+      { name: "INIT_MEMORY", displayName: "JVM initial heap", type: "string", applyOnRestart: true, autoFromMemoryLimit: { percent: 75 } },
+      { name: "JVM_OPTS", displayName: "Additional JVM options", type: "string", applyOnRestart: true },
+      { name: "JVM_XX_OPTS", displayName: "Additional JVM tuning options", type: "string", applyOnRestart: true },
+      { name: "USE_AIKAR_FLAGS", displayName: "Use Aikar’s flags", type: "bool", default: "false", applyOnRestart: true },
+    ],
+  },
+});
+
 // configSchema served ONLY by the single-template GET (see handlers.ts), so
 // Settings > Game configuration renders (design frames OC804/QFEg9) while the
 // Create wizard's template list — whose captures have no "Template

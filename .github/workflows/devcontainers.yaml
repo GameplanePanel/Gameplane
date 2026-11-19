@@ -21,6 +21,10 @@ on:
       - '**/go.mod'
       - 'modules'
       - 'website'
+      - 'mcp-server'
+      - 'audit-syslog-bridge'
+      - 'tunnel'
+      - 'capture-sidecar'
       - 'web/package*.json'
       - '.github/workflows/devcontainers.yaml'
   push:
@@ -36,6 +40,10 @@ on:
       - '**/go.mod'
       - 'modules'
       - 'website'
+      - 'mcp-server'
+      - 'audit-syslog-bridge'
+      - 'tunnel'
+      - 'capture-sidecar'
       - 'web/package*.json'
       - '.github/workflows/devcontainers.yaml'
 

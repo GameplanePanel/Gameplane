@@ -17,7 +17,7 @@ A long-running binary (a Deployment, DaemonSet, sidecar or Job image).
 
 ```text
 <module>/
-├── cmd/main.go          thin wiring: flags and env (svcutil), construct, run
+├── cmd/main.go          thin wiring: flags and env, construct, run
 ├── internal/<concern>/  all behavior, one package per concern
 ├── specs.md
 ├── README.md
@@ -85,29 +85,29 @@ web/src/
 
 ## 2. Layout map
 
-Measured on `master` at `54d5819` (2026-10-22). "Gap today" is `matches` or the
-move spec 028 makes.
+Measured on `master` at `54d5819` (2026-10-22) and re-counted on 2026-11-17 for
+the file and line numbers below. "Gap today" is `matches` or the move spec 028
+makes.
 
 | Module | Kind | Target | Gap today |
 | --- | --- | --- | --- |
 | `agent` | Service | `cmd/main.go` + `internal/<concern>/` | matches |
-| `api` | Service | `cmd/main.go` + `internal/<concern>/` | `cmd/` holds 7 non-test files (bootstrap, gateway, management, memlimit, metrics, panel key) → keep wiring in `cmd/`, move behavior to `internal/<concern>/`; second binary `cmd/messages-export/` matches; `internal/handlers/` is one flat package of 146 files (spec 028 splits it) |
-| `audit-syslog-bridge` | Service | `cmd/main.go` + `internal/<concern>/` | 3 files in root `package main` (`main.go` 460 lines) → `cmd/main.go` + `internal/<concern>/` |
-| `capture-sidecar` | Service | `cmd/main.go` + `internal/<concern>/` | matches |
-| `mcp-server` | Service | `cmd/main.go` + `internal/<concern>/` | root `package main` (`main.go`, `tools.go`, `fixadvice.go`) → `cmd/main.go` + `internal/<concern>/`; `internal/kube/` matches |
-| `operator` | Service | `cmd/main.go` + `internal/<concern>/` | matches; `internal/controller/` is one flat package of 150 files (spec 028 splits it); `api/v1alpha1/` see §3 |
-| `sentinel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 1,017 lines at root → `cmd/main.go` + `internal/<concern>/` |
+| `api` | Service | `cmd/main.go` + `internal/<concern>/` | `cmd/` holds 9 non-test files (bootstrap, gateway, health, main, management, memlimit, metrics, panel_key, workers) → keep wiring in `cmd/`, move behavior to `internal/<concern>/`; second binary `cmd/messages-export/` matches; `internal/handlers/` is one flat package of 160 `.go` files, 51 of them non-test (spec 028 splits it) |
+| `audit-syslog-bridge` | Service | `cmd/main.go` + `internal/<concern>/` | 3 files in root `package main` (`main.go` 460 lines) → `cmd/main.go` + `internal/<concern>/`. Lives in the `GameplanePanel/audit-syslog-bridge` submodule. |
+| `capture-sidecar` | Service | `cmd/main.go` + `internal/<concern>/` | matches. Lives in the `GameplanePanel/capture-sidecar` submodule. |
+| `mcp-server` | Service | `cmd/main.go` + `internal/<concern>/` | root `package main` (`main.go`, `tools.go`, `fixadvice.go`) → `cmd/main.go` + `internal/<concern>/`; `internal/kube/` matches. Lives in the `GameplanePanel/mcp` submodule; the layout is tracked there. |
+| `operator` | Service | `cmd/main.go` + `internal/<concern>/` | matches; `internal/controller/` is one flat package of 222 `.go` files, 65 of them non-test (spec 028 splits it); `api/v1alpha1/` see §3 |
+| `sentinel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 1,068 lines at root → `cmd/main.go` + `internal/<concern>/` |
 | `telemetry-receiver` | Service | `cmd/main.go` + `internal/<concern>/` | 12 source files in root `package main` → `cmd/main.go` + `internal/<concern>/`; `web/` and `design-export/` assets stay |
-| `tunnel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 1,052 and `playit_reporter.go` 525 lines at root → `cmd/main.go` + `internal/<concern>/`; `frpc/` (separate build module, not in `go.work`) stays |
+| `tunnel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 619 and `playit_reporter.go` 525 lines at root → `cmd/main.go` + `internal/<concern>/`; `frpc/` (separate build module, not in `go.work`) stays. Lives in the `GameplanePanel/tunnel` submodule. |
 | `gp-module` | CLI tool | `cmd/gp-module/` + `internal/<concern>/` | matches; `pkg/` holds the 5 packages `api` and `test/e2e` import |
 | `i18n` | Library + CLI | flat root package + `cmd/i18n-check/` | matches (see §3) |
 | `gameaction` | Library | flat root package | matches |
 | `gameproto` | Library | flat root package | matches |
 | `netguard` | Library | flat root package | matches |
-| `svcutil` | Library | flat root package | matches |
 | `telemetryschema` | Library | flat root package | matches |
 | `test/e2e` | Test suite | root package + `internal/<game>/` | matches (see §3) |
-| `web` | Web app | `src/pages/` + route definitions in `src/routes/` | no `src/pages/` yet: screens live in `src/routes/` → move each to `src/pages/<Screen>.tsx`; screens over 500 lines to split: `AdminSettings.tsx` 2,478, `CreateServer.tsx` 1,352, `tabs/Mods.tsx` 1,291, `tabs/settings/Networking.tsx` 1,045, `ThemeSettings.tsx` 886, `Users.tsx` 825, `Servers.tsx` 680, `tabs/Files.tsx` 670, `tabs/settings/ShareLinks.tsx` 658, `Backups.tsx` 642, `Dashboard.tsx` 596 |
+| `web` | Web app | `src/pages/` + route definitions in `src/routes/` | `src/pages/` has started (`ClusterDetail.tsx`, `Nodes.tsx`); most screens still live in `src/routes/` → move each to `src/pages/<Screen>.tsx`; screens over 500 lines to split: `AdminSettings.tsx` 2,290, `CreateServer.tsx` 1,448, `tabs/Mods.tsx` 1,291, `tabs/settings/Networking.tsx` 1,045, `ThemeSettings.tsx` 886, `Users.tsx` 825, `Servers.tsx` 680, `tabs/settings/ShareLinks.tsx` 658, `tabs/Files.tsx` 657, `Backups.tsx` 642, `Dashboard.tsx` 599 |
 
 ## 3. Exceptions
 

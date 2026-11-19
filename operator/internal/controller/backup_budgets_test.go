@@ -79,7 +79,7 @@ func TestBackupWorkerPreparesBeforeQuiesceAndPinsAuthorization(t *testing.T) {
 	worker := budgetReadyWorker(t, r, b.Name, "prepared-worker-uid")
 	budgetPass(t, r, b.Name)
 	b = guardGetBackup(t, r, b.Name)
-	if q.quiesced != 1 || b.Status.CaptureManifest == nil || b.Status.CaptureManifest.State != "Recorded" || b.Status.CaptureManifest.QuiesceOutcome != "confirmed" {
+	if q.quiesced != 1 || b.Status.CaptureManifest == nil || b.Status.CaptureManifest.State != "Recorded" || b.Status.CaptureManifest.QuiesceOutcome != "verified-freeze" {
 		t.Fatalf("prepared copy not quiesced/recorded: %+v, %+v", q, b.Status)
 	}
 	if volumes := b.Status.CaptureManifest.Volumes; len(volumes) != 1 || volumes[0].ClaimName != "server-data" || !volumes[0].Included || volumes[0].Classification != "data" {
@@ -304,6 +304,49 @@ func TestBackupRawSourceWaitsForInitialScheduling(t *testing.T) {
 				t.Fatalf("replacement source escaped immutable binding: %+v", b)
 			}
 		})
+	}
+}
+
+func TestStoppedBackupFirstConsumerUsesGameArchitecture(t *testing.T) {
+	r, _ := stoppedBackupFixture(t, true)
+	tmpl := &gameplanev1alpha1.GameTemplate{ObjectMeta: metav1.ObjectMeta{Name: "template"},
+		Spec: gameplanev1alpha1.GameTemplateSpec{RequiredNodeArchitecture: "amd64"}}
+	pvc := &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Name: "server-data", Namespace: "ns"}}
+	for _, obj := range []client.Object{tmpl, pvc} {
+		if err := r.Create(t.Context(), obj); err != nil {
+			t.Fatal(err)
+		}
+	}
+	budgetPass(t, r, "first")
+	var job batchv1.Job
+	if err := r.Get(t.Context(), client.ObjectKey{Namespace: "ns", Name: "first"}, &job); err != nil {
+		t.Fatal(err)
+	}
+	if job.Spec.Template.Spec.NodeSelector[corev1.LabelArchStable] != "amd64" {
+		t.Fatalf("backup can bind an incompatible local volume: %v", job.Spec.Template.Spec.NodeSelector)
+	}
+}
+
+func TestStoppedBackupReleasesGuardOnFirstConsumerConflict(t *testing.T) {
+	r, _ := stoppedBackupFixture(t, true)
+	tmpl := &gameplanev1alpha1.GameTemplate{ObjectMeta: metav1.ObjectMeta{Name: "template"},
+		Spec: gameplanev1alpha1.GameTemplateSpec{RequiredNodeArchitecture: "amd64"}}
+	if err := r.Create(t.Context(), tmpl); err != nil {
+		t.Fatal(err)
+	}
+	policy, _, _ := gamePolicyFixture(t)
+	policy.PoolLabel, policy.PoolValue = corev1.LabelArchStable, "arm64"
+	r.GameWorkloadPolicy = policy
+	budgetPass(t, r, "first")
+	budgetPass(t, r, "first")
+	b := guardGetBackup(t, r, "first")
+	var gs gameplanev1alpha1.GameServer
+	if err := r.Get(t.Context(), client.ObjectKey{Namespace: "ns", Name: "server"}, &gs); err != nil {
+		t.Fatal(err)
+	}
+	if b.Status.Phase != gameplanev1alpha1.BackupPhaseFailed || !strings.Contains(b.Status.Message, "amd64") ||
+		gs.Annotations[lifecycleOperationAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
+		t.Fatalf("placement conflict failed to release backup: %+v, %v", b.Status, gs.Annotations)
 	}
 }
 

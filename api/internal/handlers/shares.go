@@ -291,10 +291,12 @@ func revokeShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 }
 
 type sharePublicResp struct {
-	ServerName    string     `json:"serverName"`
-	Status        string     `json:"status"`
-	Address       *shareAddr `json:"address,omitempty"`
-	PlayersOnline *int32     `json:"playersOnline,omitempty"`
+	ServerName      string     `json:"serverName"`
+	Status          string     `json:"status"`
+	ManuallyStopped bool       `json:"manuallyStopped"`
+	CanStart        bool       `json:"canStart"`
+	Address         *shareAddr `json:"address,omitempty"`
+	PlayersOnline   *int32     `json:"playersOnline,omitempty"`
 }
 
 type shareAddr struct {
@@ -358,12 +360,15 @@ func resolveShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 		status := getPhase(obj)
 		address := getPublicAddress(obj)
 		players := getPlayersOnline(obj)
+		stopped, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
 
 		resp := sharePublicResp{
-			ServerName:    link.ServerName,
-			Status:        status,
-			Address:       address,
-			PlayersOnline: players,
+			ServerName:      link.ServerName,
+			Status:          status,
+			Address:         address,
+			PlayersOnline:   players,
+			ManuallyStopped: stopped,
+			CanStart:        link.CanStart && !stopped,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -427,6 +432,15 @@ func startShareHandler(reg *kube.Registry, store *db.Store) http.HandlerFunc {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "not found"})
+			return
+		}
+
+		// Share links only request an idle wake. A manual stop is the owner's
+		// power policy and must not be accepted as a start that cannot succeed.
+		if stopped, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend"); stopped {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "server stopped"})
 			return
 		}
 

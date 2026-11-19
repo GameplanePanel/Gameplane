@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -25,7 +26,7 @@ const (
 	wipeTokenLabel          = "gameplane.local/wipe-token"
 
 	// wipeScript empties the directory given as $1 and verifies it is empty
-	// afterwards; see the comment at its use in createWipeJob for why the
+	// afterwards; see the comment at its use in prepareWipeJob for why the
 	// verification step is required.
 	wipeScript = `find "$1" -mindepth 1 -delete
 left=$(ls -A "$1") || exit 1
@@ -43,13 +44,23 @@ func (r *GameServerReconciler) reconcileWipe(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	inventory ...*wipeWorkerState,
 ) error {
-	state := wipeInventory(inventory)
+	return r.advanceWipe(ctx, gs, tmpl, wipeInventory(inventory), nil)
+}
+
+func (r *GameServerReconciler) advanceWipe(ctx context.Context, gs *gameplanev1alpha1.GameServer,
+	tmpl *gameplanev1alpha1.GameTemplate, state *wipeWorkerState, rejection error,
+) error {
+	version := gs.ResourceVersion
 	changed, err := r.ensureWipeGuard(ctx, gs, state)
 	if apierrors.IsNotFound(err) {
 		return nil
 	}
 	if err != nil {
 		return err
+	}
+	if rejection != nil && gs.ResourceVersion != version {
+		// A fresh pass must validate the changed server before rejecting its wipe.
+		return nil
 	}
 	if gs.Annotations[restoreGuardAnnotation] != "" || gs.Annotations[backupGuardAnnotation] != "" {
 		return nil
@@ -132,8 +143,25 @@ func (r *GameServerReconciler) reconcileWipe(
 	if state.busy {
 		return nil
 	}
+	var placement gamePlacementRejection
+	placementOnly := errors.As(rejection, &placement)
+	if rejection != nil && !placementOnly && r.GameWorkloadPolicy.validatePlacement(gs, tmpl) == nil {
+		// No effective first-consumer conflict to settle. Resource limits and
+		// other admission errors cannot authorize a worker.
+		return nil
+	}
 	stopped, err := r.wipeTargetStopped(ctx, gs)
-	if err != nil || !stopped {
+	if err != nil || (!stopped && rejection == nil) {
+		return err
+	}
+	// Check the actual claim through the same first-consumer decision in both
+	// paths. Reject an unbound conflict even if the workload has yet to drain.
+	job, err = r.prepareWipeJob(ctx, gs, tmpl, jobName, guard)
+	var rejected workloadPolicyRejection
+	if errors.As(err, &rejected) {
+		return r.rejectUnstartedWipe(ctx, gs, guard, rejected)
+	}
+	if err != nil || !stopped || (rejection != nil && !placementOnly) {
 		return err
 	}
 	// Revalidate immediately before launch. Another GameServer reconcile for
@@ -148,13 +176,38 @@ func (r *GameServerReconciler) reconcileWipe(
 	if ready, err := wipeLifecycleReady(&live, guard); err != nil || !ready {
 		return err
 	}
-	return r.createWipeJob(ctx, &live, tmpl, jobName, guard)
+	if live.ResourceVersion != gs.ResourceVersion || !live.Spec.Suspend {
+		return nil
+	}
+	if err := r.Create(ctx, job); err != nil && !apierrors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
 }
 
-func (r *GameServerReconciler) createWipeJob(
+// The current owner is ready, and inventory found no Job or live wipe worker.
+// Record rejection before consuming the request. A crash after the checked
+// Update resumes ordinary cancellation, never success or another wipe launch.
+func (r *GameServerReconciler) rejectUnstartedWipe(ctx context.Context, gs *gameplanev1alpha1.GameServer, token string, reason error) error {
+	base := gs.DeepCopy()
+	meta.SetStatusCondition(&gs.Status.Conditions, metav1.Condition{
+		Type: gameplanev1alpha1.GameServerConditionDataWipe, Status: metav1.ConditionFalse,
+		Reason: "PlacementRejected", Message: reason.Error(), ObservedGeneration: gs.Generation,
+	})
+	if err := r.Status().Patch(ctx, gs, client.MergeFromWithOptions(base, client.MergeFromWithOptimisticLock{})); err != nil {
+		return err
+	}
+	delete(gs.Annotations, WipeRequestedAnnotation)
+	if err := r.Update(ctx, gs); err != nil {
+		return err
+	}
+	return r.releaseWipeGuard(ctx, gs, token, false)
+}
+
+func (r *GameServerReconciler) prepareWipeJob(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 	name, token string,
-) error {
+) (*batchv1.Job, error) {
 	mountPath := effectiveMountPath(tmpl)
 	uid := int64(65532) // same non-root UID the game + backup jobs use
 	nonRoot := true
@@ -226,13 +279,13 @@ func (r *GameServerReconciler) createWipeJob(
 			},
 		},
 	}
+	if err := r.GameWorkloadPolicy.placeFirstVolumeConsumer(ctx, r.wipeReader(), gs, tmpl, &job.Spec.Template.Spec); err != nil {
+		return nil, err
+	}
 	if err := controllerutil.SetControllerReference(gs, job, r.Scheme); err != nil {
-		return err
+		return nil, err
 	}
-	if err := r.Create(ctx, job); err != nil && !apierrors.IsAlreadyExists(err) {
-		return err
-	}
-	return nil
+	return job, nil
 }
 
 func (r *GameServerReconciler) ackWipe(ctx context.Context, gs *gameplanev1alpha1.GameServer, token string) error {

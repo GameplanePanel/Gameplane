@@ -22,9 +22,9 @@ func remoteWidePermissionsAllowed(permissions []string) bool {
 	return true
 }
 
-// Callers hold LockUserManagement through this read and their binding write.
-func remoteWideRoleAllowed(ctx context.Context, store *db.Store, role string) (bool, error) {
-	rows, err := store.DB.QueryContext(ctx, `SELECT permission FROM role_permissions WHERE role_name = ?`, role)
+// Callers use a management transaction for this read and their binding write.
+func remoteWideRoleAllowed(ctx context.Context, q db.Reader, role string) (bool, error) {
+	rows, err := q.QueryContext(ctx, `SELECT permission FROM role_permissions WHERE role_name = ?`, role)
 	if err != nil {
 		return false, fmt.Errorf("load remote role permissions: %w", err)
 	}

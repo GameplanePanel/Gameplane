@@ -1103,7 +1103,7 @@ func TestRecoveryQuiesceOutcomeFinalizedOnlyBeforeFirstAuthorization(t *testing.
 	if err := r.finalizeBackupCaptureOutcome(t.Context(), b); err != nil {
 		t.Fatal(err)
 	}
-	if b.Status.CaptureManifest.QuiesceOutcome != "confirmed" {
+	if b.Status.CaptureManifest.QuiesceOutcome != "legacy-unverified" {
 		t.Fatal("capture retained pre-RPC quiesce outcome")
 	}
 	for i, v := range before.Volumes {
@@ -1119,7 +1119,7 @@ func TestRecoveryQuiesceOutcomeFinalizedOnlyBeforeFirstAuthorization(t *testing.
 	if err := r.finalizeBackupCaptureOutcome(t.Context(), b); err != nil {
 		t.Fatal(err)
 	}
-	if b.Status.CaptureManifest.QuiesceOutcome != "confirmed" {
+	if b.Status.CaptureManifest.QuiesceOutcome != "legacy-unverified" {
 		t.Fatal("post-authorization outcome rewrote capture history")
 	}
 	if backupConsistencyCondition(b).Status != metav1.ConditionFalse {

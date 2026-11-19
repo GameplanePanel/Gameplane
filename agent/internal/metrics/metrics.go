@@ -28,6 +28,7 @@ type Snapshot struct {
 	// Disk bytes: used and total. Only emitted when known=true.
 	DiskUsedBytes  int64
 	DiskTotalBytes int64
+	DiskTotalKnown bool
 	DiskKnown      bool
 
 	// Player counts. PlayersOnline is emitted when known=true.
@@ -111,6 +112,8 @@ func (m *Metrics) Collect(ch chan<- prometheus.Metric) {
 	// Disk: emit only when known.
 	if snap.DiskKnown {
 		ch <- prometheus.MustNewConstMetric(diskUsedDesc, prometheus.GaugeValue, float64(snap.DiskUsedBytes), labels...)
+	}
+	if snap.DiskTotalKnown {
 		ch <- prometheus.MustNewConstMetric(diskTotalDesc, prometheus.GaugeValue, float64(snap.DiskTotalBytes), labels...)
 	}
 
@@ -155,7 +158,7 @@ var (
 	)
 	diskTotalDesc = prometheus.NewDesc(
 		"gameplane_agent_disk_total_bytes",
-		"Total disk capacity of the game's data directory, in bytes. Emitted only when readable.",
+		"Observed capacity scoped to the game's data directory, in bytes. Emitted only when available.",
 		[]string{"server", "namespace", "template", "game"}, nil,
 	)
 	playersOnlineDesc = prometheus.NewDesc(

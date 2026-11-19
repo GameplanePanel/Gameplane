@@ -1,6 +1,6 @@
 # agent — Specification
 
-**Status:** pre-v1 (v0.4.0)  
+**Status:** pre-v1 (v0.4.1)  
 **Module / package:** `github.com/GameplanePanel/gameplane/agent`
 
 ## Purpose
@@ -19,9 +19,18 @@ The agent is a per-pod HTTP/HTTPS sidecar that runs inside every game pod to exp
 
 ## Responsibilities
 
+The v2 identity response advertises `Gameplane-Backup-Mode: flush-only`
+for a configured Minecraft Java checkpoint adapter. Its pod-bound
+`POST /v2/pods/{uid}/flush` checks the game's acknowledgment of
+`save-all flush` and keeps automatic saving enabled.
+
 - **Request authentication**: Verify incoming requests via mTLS (preferred) or shared-secret bearer token.
 - **Console & RCON**: Duplex WebSocket forwarding user commands to the game via RCON and echoing responses; supports Valve/Source, Telnet, WebSocket, BattlEye, Satisfactory, and Palworld protocols.
 - **File I/O**: List, read, download, upload, write, mkdir, delete within the `/data` volume; reject path traversal and any symlink traversal; every operation runs through directory descriptors rooted at the data directory, so it cannot be redirected by a concurrent filesystem change.
+
+  GET `/files/list` returns directories before non-directory entries, with each
+  group sorted by name. The same ordering applies to every directory and repeat
+  request; symlinks remain non-directory entries and are never followed.
 
   GET `/files/archive` builds a downloadable ZIP of repeated `path` parameters.
   POST with a `dest` creates a new ZIP atomically. Archive names are relative to
@@ -46,9 +55,9 @@ The agent is a per-pod HTTP/HTTPS sidecar that runs inside every game pod to exp
 
 - The agent does **not** expose a PTY or attach the game container directly. Games with consoleMode "pty" (e.g., Unity servers) are handled by the Gameplane API bridging the browser WebSocket to Kubernetes pod-attach; the agent is uninvolved.
 - The agent does **not** manage game processes or containers — all process/container control is the operator's job (scaling, restarts, resource limits).
-- The agent does **not** validate RCON responses for correctness. It forwards raw game output to the UI, so game-specific parsing happens on the dashboard (e.g., player-list regex rendering).
+- The agent parses supported player-list responses and configured metric formats; it does not otherwise validate arbitrary RCON output for correctness.
 - The agent does **not** require a cluster metrics pipeline for its own resource-usage reporting (no metrics-server dependency); usage is sourced in-pod from `/proc` or cgroups. A Prometheus scrape of `/metrics` (via the chart's optional `serviceMonitors.enabled` PodMonitor) is supported but not required.
-- The agent does **not** implement game-specific business logic. All protocol handlers are per-game and declared in the module's template (`spec.capabilities`); new games require no agent code change.
+- The agent does **not** implement game-specific business logic. Commands are declared in the module's template (`spec.capabilities`); built-in protocol adapters include player-list parsers and the read-only Minecraft Java operator-file reader. New games using supported command protocols require no agent code change.
 
 ## Directory & package layout
 
@@ -57,20 +66,24 @@ agent/
 ├── cmd/main.go              # Entry point: flag parsing, auth setup, chi router, heartbeat goroutine
 ├── cmd/metrics.go           # Separate plain-HTTP /metrics listener (--metrics-addr), off the mTLS control mux
 ├── internal/
+│   ├── a2s/                 # Valve A2S_INFO client for player counts (capabilities.players.query)
 │   ├── actions/             # Module-declared operator actions (templated RCON)
 │   ├── auth/                # Request authenticator (mTLS + bearer token)
 │   ├── caps/                # Mirrors GameTemplate.spec.capabilities schema (JSON unmarshaling)
 │   ├── console/             # Duplex WebSocket console bridge (RCON stdin/stdout)
 │   ├── files/               # File-browser HTTP API (list, read, write, upload, mkdir, delete)
 │   ├── heartbeat/           # GameServer status patcher (lastHeartbeat, players, version, usage)
+│   ├── httpjson/            # Shared JSON response helpers
 │   ├── lifecycle/           # Stop sequence execution before scale-to-zero
 │   ├── logs/                # Log file streaming over WebSocket (tail from start or end)
+│   ├── metrics/             # Per-server Prometheus metrics collected by the heartbeat loop
 │   ├── mods/                # Mod list, install, uninstall (manifest tracking, SSRF guard)
 │   ├── players/             # Player count, names, ban lists, moderation (kick, ban, unban)
 │   ├── quiesce/             # Pause auto-saves and flush state before snapshots
 │   ├── rcon/                # RCON wire protocols (source, telnet, websocket, battleye, satisfactory, palworld, nuclearoption, rest, cli)
 │   ├── status/              # Live metrics extraction via RCON + regex
-│   └── usage/               # Resource usage reader (/proc or cgroups; disk via statfs)
+│   ├── target/              # Binds versioned agent routes to an immutable resource UID
+│   └── usage/               # Resource usage reader (/proc or cgroups; asynchronous per-directory disk usage)
 ├── openapi.yaml             # Partial machine-readable HTTP contract (subset of routes)
 └── .testcoverage.yml        # Coverage gate (90% total, unit-only)
 ```
@@ -94,10 +107,14 @@ Per-package roles:
   connection. Established connections keep their existing TLS state.
   Regular PEM files are also supported; replace the set consistently to
   avoid temporary handshake failures during updates.
+- **`a2s`**: `QueryInfo(ctx, addr, timeout)` sends Valve's A2S_INFO request over UDP and parses the single-packet reply (`FF FF FF FF 'I'`, protocol byte, four NUL-terminated strings, app ID, then the players, max players and bots bytes). A challenge reply (`FF FF FF FF 'A'` + 4 bytes) is answered by resending the request with the challenge appended, at most twice; a server still challenging after that is an error. The timeout bounds the whole exchange. Split replies (`FE FF FF FF`), any other header, truncated strings and short replies are errors; nothing after the bots byte is read. `Info.Humans()` is players minus bots, never below 0.
 - **`caps`**: Unmarshals JSON capabilities blob from `GAMEPLANE_CAPABILITIES` env; exposes `Spec` with `Players`, `Quiesce`, `Lifecycle`, `Actions`, `Status`, `Mods`.
 - **`console`**: Accepts `{ kind: "cmd", body: "<rcon cmd>" }` JSON over WebSocket, runs it via RCON, replies with `{ kind: "out"|"err", body: "<response>" }`. On an RCON failure the `err` body is the generic `upstream unavailable`; the detailed error is logged with every occurrence of the submitted command replaced by `<redacted>`, since RCON clients embed the command in their errors and it may carry a secret.
 - **`files`**: Walks the filesystem under `--data-root`, validates paths lexically, then performs every operation relative to a directory descriptor on the root with `openat(O_NOFOLLOW)` per component (no `..`, no symlink at any component), handles multipart uploads.
 - **`heartbeat`**: Runs a background goroutine that every 20 seconds patches `gameservers/<name>/status` with `status.agent.lastHeartbeat`, `status.agent.playersOnline`, `status.agent.playersMax`, `status.agent.gameVersion`, and resource usage via the pod's ServiceAccount. `gameVersion` is currently always patched `null` ("unknown") — the agent has no source for the game's actual running version; it must never be filled in with the game/template identifier (e.g. `minecraft-java`), which is a different value.
+  - **Player-count source precedence:** when the capabilities declare `players.query`, the heartbeat's count comes only from that query (`queryPlayerCountsA2S`), sent to `--rcon-host` (loopback) on the declared port with a 2-second timeout; the console `players.list` command is not consulted for the count, even when RCON is configured, and is never a fallback. Without `players.query`, the count comes from the console list, as before. `players.query` affects only the heartbeat: the `/players` route, the Players tab list and moderation still use the console.
+  - **Bots:** an A2S count is `players − bots` (clamped at 0), so a server with only bots on it reports 0 and can sleep. `playersMax` is the reply's max players; 0 is patched as unknown (null).
+  - **Failure:** an unsupported protocol, a dial, write or read error, a timeout, a malformed or split reply, or a server that keeps challenging makes the query fail for that heartbeat, and `playersOnline` and `playersMax` are patched null ("unknown"), clearing any earlier count. Unknown is never reported as 0, so a failing query keeps the server awake (see the operator's idle rule); the next heartbeat queries again.
 - **`lifecycle`**: HTTP handler for the operator's `/lifecycle/stop` call; runs module-declared stop commands over RCON before the game process terminates.
 - **`logs`**: Tails a game log file (path from `--game-log-path`) over WebSocket; supports streaming from end (default, "live") or start ("backlog"). Absolute paths must be inside `--data-root`; relative paths resolve beneath it. Downloads and all tail opens, rotation probes, and reopens use regular-file descriptors confined to the trusted data root. Symlinks in any component below the root and nonregular files are rejected; FIFO rejection does not block. Downloads serve the opened descriptor even if the path changes. Ordinary rename rotation and missing-file retries remain supported. Filesystem failures use generic client errors.
 - **`mods`**: Tracks installed mods in a per-volume manifest (`.gameplane-mods.json`); downloads from registry with strict egress validation via `netguard.IsPublic`.
@@ -105,7 +122,7 @@ Per-package roles:
 - **`quiesce`**: Runs module-declared sequences (e.g., Minecraft's `save-off` + `save-all flush`) over RCON; responds `quiesced: false` + reason when unsupported (not an error).
 - **`rcon`**: Factory pattern for wire-protocol clients (`Valve/Source`, `Telnet`, `WebSocket`, `BattlEye`, `Satisfactory`, `Palworld`, `NuclearOption`, `REST`, `CLI`, `Disabled`); `Exec(cmd) (string, error)` interface. RCON reply packets are accepted up to 16394 bytes (a 4096-character Minecraft chunk at its worst-case UTF-8 byte length, plus the 10-byte packet header) and rejected as malformed outside `[10, 16394]` (F-104). Source RCON also caps aggregate response text at 8 MiB and enforces an absolute 30-second command exchange deadline after connection/authentication; each 400-ms fragment idle window is clamped to that deadline. Exceeding the aggregate cap or hard deadline drops the connection and returns an error without partial output. The status collector separately accepts at most 64 KiB.
 - **`status`**: Runs module-declared metrics queries over RCON; each metric specifies a command and a regex with named group `"value"` for extraction.
-- **`usage`**: Reads CPU/memory from `/proc` (proc mode, default) or cgroup v2; disk via `statfs`; exposes `Sample` with `Known` flags so callers distinguish "unknown" from "zero".
+- **`usage`**: Reads CPU/memory from `/proc` (proc mode, default) or cgroup v2; disk from kernel CephFS recursive logical byte counts and the local directory quota, or a bounded asynchronous allocated-block scan on Linux 5.6+; exposes `Sample` with `Known` flags so callers distinguish "unknown" from "zero".
 
 ## External interface / contracts
 
@@ -192,6 +209,7 @@ Resource usage env vars (set by the operator):
 | `/players/ban` | POST | Ban a player; request: `{ name, reason? }`; response: `{ ok, raw? }`; 501 if unsupported; reason is validated with the gameaction input policy (no control characters, no ``; & \| $ ` \ " '``), max 256 bytes (excess truncated); 400 on violation |
 | `/players/unban` | POST | Lift a ban; request: `{ name }`; response: `{ ok, raw? }`; 501 if unsupported |
 | `/players/banned` | GET | Currently banned players; response: `[ { name, reason?, source? } ]`; 502 if RCON unavailable |
+| `/players/operators` | GET | Configured Minecraft Java operators as `[ { name, uuid? } ]`, alphabetically by name; fixed `ops.json` under the data root, independent of RCON. Missing file gives `[]`; malformed, oversized or unsafe files give generic 502. Other games return 501. No caller-supplied path or operator writes. |
 | `/quiesce` | POST | Pause auto-saves before snapshot; response: `{ quiesced, reason? }` (boolean, reason optional); unsupported games return `quiesced: false` with a reason |
 | `/unquiesce` | POST | Resume auto-saves after snapshot; response: `{ quiesced, reason? }` |
 | `/v2/pods/{uid}/identity`, `/v1/pods/{uid}/identity` | GET | Operator preflight: 204 only when `{uid}` matches `GAMEPLANE_POD_UID`; never mutates game state |
@@ -229,7 +247,8 @@ All endpoints on the `--addr` control mux, except `/healthz`, return `401 Unauth
 - **Symlink confinement on upload**: `files.savePart` confines the upload destination the same way as other file operations: an existing symlink at the destination name (pointing inside the root, outside it, or dangling) is rejected with HTTP 400 (`errLinkTraversal`, which wraps `errPathOutOfRoot`), leaving the symlink and its target untouched. Regular (non-symlink) files are overwritten by a successful upload through an atomic `renameat` in the same directory descriptor.
 - **Extracted mod files stay world-readable**: `mods.moduleFileMode` is `0o644`, not a tighter `0o600`, because the mods volume is shared with the game container, which runs as whatever uid its image needs — a different uid than the agent's own. At `0o600` the game process couldn't read its own mods. This is the rationale behind the `.golangci.yml` gosec G302 exclusion scoped to `agent/internal/mods/mods.go`.
 - **Resource usage is in-pod**: The `usage` package reads from `/proc` or cgroups; no external metrics pipeline required. Cgroup mode is a fallback for older clusters; proc mode (default in production) requires the operator to set `ShareProcessNamespace: true`.
-- **Module capabilities drive behavior**: Every game-specific handler (players, quiesce, lifecycle, status, actions) reads its config from `--capabilities` (JSON unmarshaled into `caps.Spec`). New games require no agent code change.
+- **Module capabilities drive commands**: Game-specific commands (players, quiesce, lifecycle, status, actions) read their config from `--capabilities` (JSON unmarshaled into `caps.Spec`). New games using the supported command protocols require no agent code change. Player-list format parsers and the read-only Minecraft Java operator-file reader are built-in protocol adapters.
+- **Minecraft Java operator identities:** the built-in `ops.json` protocol reader is enabled only for the trusted game identifier `minecraft-java` and an agent data root. Player snapshots advertise `capabilities.operators` even when RCON is disabled; other moderation remains template-driven. Reads reuse the file browser's descriptor-relative confinement, reject symlinks and non-regular files, and are capped at 1 MiB. Only names and UUIDs leave the agent, not permission levels or player-limit overrides.
 - **Backup process identity**: The operator injects `GAMEPLANE_POD_UID` from `metadata.uid` through the DownwardAPI. Pod-bound backup routes require the existing mTLS authentication and check this UID at the final network hop, including when the Service resolves to a replacement pod. Missing UID fails closed. Deploy the updated agent image and allow pod rollout when upgrading the operator; older agents return 404 and the operator does not fall back to unbound routes. Legacy endpoints remain available to existing callers during rollout.
 - **RCON connection errors are graceful**: A lost RCON connection does not crash the agent. `console`, `players`, `quiesce`, and `lifecycle` handlers catch connection errors and return appropriate HTTP status (e.g., `502 Bad Gateway`).
 - **Source RCON sends complete frames**: Each AUTH or command frame is submitted in one socket write, with its existing byte-size limit, request ID, type, body, and two NUL terminators preserved. This avoids separate header-only writes rejected by vanilla Minecraft's RCON reader. A short write is an error and drops the connection without replaying the command. Dialing has a five-second limit; authentication has an absolute ten-second limit including continuous preamble packets. Healthy idle completion permits connection reuse; aggregate response overflow or absolute command deadline exhaustion discards partial output and drops the connection.
@@ -246,14 +265,14 @@ All endpoints on the `--addr` control mux, except `/healthz`, return `401 Unauth
 
 | Module | Version | Purpose |
 |--------|---------|---------|
-| `github.com/go-chi/chi/v5` | v5.3.2 | HTTP router |
+| `github.com/go-chi/chi/v5` | v5.5.0 | HTTP router |
 | `github.com/coder/websocket` | v1.8.15 | WebSocket library for console, logs, player queries |
-| `k8s.io/apimachinery` | v0.37.1 | Kubernetes types for status patches |
-| `k8s.io/client-go` | v0.37.1 | Kubernetes client for heartbeat (GameServer status patches) |
-| `github.com/prometheus/client_golang` | v1.24.1 | Prometheus metrics (`/metrics` endpoint) |
-| `golang.org/x/sys` | v0.48.0 | System-level utilities (used by client-go) |
+| `k8s.io/apimachinery` | v0.37.2 | Kubernetes types for status patches |
+| `k8s.io/client-go` | v0.37.2 | Kubernetes client for heartbeat (GameServer status patches) |
+| `github.com/prometheus/client_golang` | v1.25.0 | Prometheus metrics (`/metrics` endpoint) |
+| `golang.org/x/sys` | v0.50.0 | System-level utilities (used by client-go) |
 
-The agent and operator modules use `k8s.io/apimachinery`/`k8s.io/client-go` v0.37.1 and the api module v0.37.0; each module resolves its own version, so patch versions can drift between them as Dependabot bumps one module at a time.
+The agent and operator modules use `k8s.io/apimachinery`/`k8s.io/client-go` v0.37.2 and the api module v0.37.2; each module resolves its own version, so patch versions can drift between them as Dependabot bumps one module at a time.
 
 ## Data & persistence
 
@@ -311,3 +330,5 @@ actual server incarnation even if the name-based agent Service changes between
 the gateway's Kubernetes lookup and connection. Existing operator-owned game
 Pod templates gain the UID environment variable on reconciliation, which can
 roll existing game workloads during an operator upgrade.
+
+Disk scans run every five minutes, with a one-minute budget, a two-million-entry ceiling, and at most 128 nested directories. A failed or incomplete scan clears the reading. A blocked filesystem call can delay cancellation of the single reader. The heartbeat continues and expires stale usage. On shared filesystems a scan counts allocated blocks, so sparse files can use less space than their logical length.

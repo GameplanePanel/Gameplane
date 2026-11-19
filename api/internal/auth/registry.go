@@ -230,7 +230,7 @@ func NewRegistry(store *db.Store, secrets SecretReader, legacy *OIDC, legacyLabe
 	// helmOverride reader so it is read on every login (SC-007).
 	if legacy != nil {
 		legacy.AttachStore(store)
-		legacy.AttachHelmOverrideFunc(reg.HelmPolicyOverride)
+		legacy.attachHelmOverrideReader(reg.helmPolicyOverride)
 	}
 	return reg
 }
@@ -248,62 +248,89 @@ func (r *Registry) AttachAuditWriteSyncFunc(fn func(ctx context.Context, method,
 }
 
 // defaultProviders is the provider set of an install whose auth config
-// row was never written (or cannot be parsed): local login enabled. A
-// corrupted row must degrade to a working login page, not a lockout.
+// row was never written: local login enabled. SQLite also uses this
+// default when recovering from a malformed row.
 func defaultProviders() []Provider {
 	return []Provider{{Name: "local", Kind: "local", Enabled: true}}
 }
 
 // snapshot returns the parsed provider list plus the hash of the raw row
-// it came from. Missing or malformed rows yield the fail-open default.
-func (r *Registry) snapshot(ctx context.Context) ([]Provider, [sha256.Size]byte) {
+// it came from. PostgreSQL callers distinguish a fresh install from an
+// unavailable or corrupted policy.
+func (r *Registry) snapshot(ctx context.Context) ([]Provider, [sha256.Size]byte, error) {
 	raw, ok, err := r.store.ConfigValue(ctx, "auth")
-	if err != nil || !ok {
-		return defaultProviders(), sha256.Sum256(nil)
+	if err != nil && r.store.Driver == "postgres" {
+		return nil, [sha256.Size]byte{}, err
+	}
+	if !ok {
+		return defaultProviders(), sha256.Sum256(nil), nil
 	}
 	var cfg struct {
 		Providers []Provider `json:"providers"`
 	}
 	if json.Unmarshal([]byte(raw), &cfg) != nil || len(cfg.Providers) == 0 {
-		return defaultProviders(), sha256.Sum256(nil)
+		if r.store.Driver == "postgres" {
+			return nil, [sha256.Size]byte{}, errors.New("invalid authentication configuration")
+		}
+		return defaultProviders(), sha256.Sum256(nil), nil
 	}
-	return cfg.Providers, sha256.Sum256([]byte(raw))
+	return cfg.Providers, sha256.Sum256([]byte(raw)), nil
 }
 
 // HelmPolicyOverride returns the helmOverride object of the "auth" config
 // row, which the Helm provider's sign-ins apply on top of the Helm-seeded
-// policy. Returns nil if the auth row is missing, malformed, or carries no
-// helmOverride.
+// policy. Returns nil if the auth row is missing, unreadable, malformed, or
+// carries no helmOverride; sign-ins use helmPolicyOverride, which fails
+// closed on PostgreSQL instead.
 func (r *Registry) HelmPolicyOverride(ctx context.Context) *HelmOverride {
+	ov, _ := r.helmPolicyOverride(ctx)
+	return ov
+}
+
+// helmPolicyOverride is HelmPolicyOverride reporting why the row could not
+// be used. An unavailable or malformed PostgreSQL row is an error, so the
+// sign-in callback aborts instead of dropping the dashboard's restrictions;
+// SQLite keeps the fail-open nil.
+func (r *Registry) helmPolicyOverride(ctx context.Context) (*HelmOverride, error) {
 	raw, ok, err := r.store.ConfigValue(ctx, "auth")
-	if err != nil || !ok {
-		return nil
+	if err != nil && r.store.Driver == "postgres" {
+		return nil, fmt.Errorf("read auth config: %w", err)
+	}
+	if !ok {
+		return nil, nil
 	}
 	var cfg struct {
 		HelmOverride *HelmOverride `json:"helmOverride"`
 	}
-	if json.Unmarshal([]byte(raw), &cfg) != nil {
-		return nil
+	if err := json.Unmarshal([]byte(raw), &cfg); err != nil {
+		if r.store.Driver == "postgres" {
+			return nil, fmt.Errorf("parse auth config: %w", err)
+		}
+		return nil, nil
 	}
-	return cfg.HelmOverride
+	return cfg.HelmOverride, nil
 }
 
 // HelmRoleOverrides returns the current helmOverride.roleMappings (the old
 // per-role form) from the "auth" config row, or nil if the auth row is
-// missing, malformed, or carries no helmOverride.roleMappings.
-func (r *Registry) HelmRoleOverrides(ctx context.Context) *RoleMappings {
-	ov := r.HelmPolicyOverride(ctx)
-	if ov == nil {
-		return nil
+// missing or carries no helmOverride.roleMappings. An unavailable or
+// malformed PostgreSQL row is an error (see helmPolicyOverride).
+func (r *Registry) HelmRoleOverrides(ctx context.Context) (*RoleMappings, error) {
+	ov, err := r.helmPolicyOverride(ctx)
+	if err != nil || ov == nil {
+		return nil, err
 	}
-	return ov.RoleMappings
+	return ov.RoleMappings, nil
 }
 
 // Enabled lists the providers the login page may offer: enabled DB
 // providers plus the synthetic Helm provider when the flags are set.
 // Row read only — no Secret fetch, no discovery.
 func (r *Registry) Enabled(ctx context.Context) []Provider {
-	providers, _ := r.snapshot(ctx)
+	providers, _, err := r.snapshot(ctx)
+	if err != nil {
+		return nil
+	}
 	out := make([]Provider, 0, len(providers)+1)
 	for _, p := range providers {
 		if p.Enabled {
@@ -329,18 +356,25 @@ func (r *Registry) Enabled(ctx context.Context) []Provider {
 }
 
 // LocalEnabled reports whether local (username/password) login is
-// allowed. A missing or unreadable config row means yes — fresh installs
-// must be able to log in.
+// allowed. Fresh installs enable local login.
 func (r *Registry) LocalEnabled(ctx context.Context) bool {
-	providers, _ := r.snapshot(ctx)
+	enabled, _ := r.localEnabled(ctx)
+	return enabled
+}
+
+func (r *Registry) localEnabled(ctx context.Context) (bool, error) {
+	providers, _, err := r.snapshot(ctx)
+	if err != nil {
+		return false, err
+	}
 	for _, p := range providers {
 		if p.Kind == "local" {
-			return p.Enabled
+			return p.Enabled, nil
 		}
 	}
 	// Row exists but carries no local entry (pre-v2 hand-edited config):
 	// fail open for the same reason a missing row does.
-	return true
+	return true, nil
 }
 
 // OIDCFor resolves the named provider to a ready OIDC client, building
@@ -354,7 +388,10 @@ func (r *Registry) OIDCFor(ctx context.Context, name string) (*OIDC, error) {
 		}
 		return r.legacy, nil
 	}
-	providers, hash := r.snapshot(ctx)
+	providers, hash, err := r.snapshot(ctx)
+	if err != nil {
+		return nil, err
+	}
 	var found *Provider
 	for i := range providers {
 		if providers[i].Name == name {
@@ -364,6 +401,21 @@ func (r *Registry) OIDCFor(ctx context.Context, name string) (*OIDC, error) {
 	}
 	if found == nil || !found.Enabled || found.Kind == "local" {
 		return nil, fmt.Errorf("%q: %w", name, ErrUnknownProvider)
+	}
+	var input providerInputs
+	if r.store.Driver == "postgres" {
+		// Discovery is expensive, but Secrets and the redirect URL can change
+		// independently of this provider row on any API replica.
+		input, err = r.providerInputs(ctx, *found)
+		if err != nil {
+			return nil, err
+		}
+		h := sha256.New()
+		_, _ = h.Write(hash[:])
+		secretHash := sha256.Sum256([]byte(input.secret))
+		_, _ = h.Write(secretHash[:])
+		_, _ = h.Write([]byte(input.redirect))
+		copy(hash[:], h.Sum(nil))
 	}
 
 	r.mu.Lock()
@@ -379,36 +431,50 @@ func (r *Registry) OIDCFor(ctx context.Context, name string) (*OIDC, error) {
 		}
 	}
 
-	o, err := r.build(ctx, *found)
+	if r.store.Driver != "postgres" {
+		input, err = r.providerInputs(ctx, *found)
+	}
+	var o *OIDC
+	if err == nil {
+		o, err = r.build(ctx, *found, input)
+	}
 	r.mu.Lock()
 	r.built[name] = builtEntry{oidc: o, err: err, builtAt: r.now(), cfgHash: hash}
 	r.mu.Unlock()
 	return o, err
 }
 
-func (r *Registry) build(ctx context.Context, p Provider) (*OIDC, error) {
+type providerInputs struct {
+	secret   string
+	redirect string
+}
+
+func (r *Registry) providerInputs(ctx context.Context, p Provider) (providerInputs, error) {
 	secretName := p.ConfigRef
 	if secretName == "" {
 		secretName = authProviderPrefix + p.Name
 	}
 	data, err := r.secrets(ctx, secretName)
 	if err != nil {
-		return nil, fmt.Errorf("provider %q: %w", p.Name, err)
+		return providerInputs{}, fmt.Errorf("provider %q: %w", p.Name, err)
 	}
 	clientSecret := string(data["clientSecret"])
 	if clientSecret == "" {
-		return nil, fmt.Errorf(`provider %q: secret %s has no "clientSecret" key`, p.Name, secretName)
+		return providerInputs{}, fmt.Errorf(`provider %q: secret %s has no "clientSecret" key`, p.Name, secretName)
 	}
 	redirect, err := r.redirectURL(ctx, p.Name)
 	if err != nil {
-		return nil, fmt.Errorf("provider %q: %w", p.Name, err)
+		return providerInputs{}, fmt.Errorf("provider %q: %w", p.Name, err)
 	}
-	o, err := NewOIDCWithPolicy(ctx, p.Issuer, p.ClientID, clientSecret, redirect, p.policy())
+	return providerInputs{secret: clientSecret, redirect: redirect}, nil
+}
+
+func (r *Registry) build(ctx context.Context, p Provider, input providerInputs) (*OIDC, error) {
+	o, err := NewOIDCWithPolicy(ctx, p.Issuer, p.ClientID, input.secret, input.redirect, p.policy())
 	if err != nil {
 		return nil, fmt.Errorf("provider %q: discover issuer: %w", p.Name, err)
 	}
 	o.AttachStore(r.store)
-	o.AttachHelmOverrideFunc(r.HelmPolicyOverride)
 	r.mu.Lock()
 	auditFn := r.auditWriteSync
 	r.mu.Unlock()

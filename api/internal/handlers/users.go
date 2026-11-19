@@ -140,16 +140,6 @@ func (h *userHandler) create(w http.ResponseWriter, req *http.Request) {
 	if body.Role == "" {
 		body.Role = "viewer"
 	}
-	if ok, err := h.db.RoleExists(req.Context(), body.Role); err != nil {
-		httperr.Write(w, req, err)
-		return
-	} else if !ok {
-		httperr.WriteMessage(w, req, messages.New("server.users.invalid_role", nil))
-		return
-	}
-	if !allowRoleGrant(w, req, h.db, body.Role) {
-		return
-	}
 	var hash string
 	if body.Password != "" {
 		if len(body.Password) < auth.MinPasswordLen {
@@ -163,11 +153,27 @@ func (h *userHandler) create(w http.ResponseWriter, req *http.Request) {
 		}
 		hash = h2
 	}
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+	if ok, err := (db.Roles{Reader: tx}).RoleExists(req.Context(), body.Role); err != nil {
+		httperr.Write(w, req, err)
+		return
+	} else if !ok {
+		httperr.WriteMessage(w, req, messages.New("server.users.invalid_role", nil))
+		return
+	}
+	if !allowRoleGrant(w, req, tx, body.Role) {
+		return
+	}
 	// RETURNING id instead of LastInsertId: pgx's database/sql driver has
 	// no LastInsertId, and both SQLite and Postgres support RETURNING.
 	var id int64
 	var createdAt string
-	if err := h.db.DB.QueryRowContext(req.Context(),
+	if err := tx.QueryRowContext(req.Context(),
 		`INSERT INTO users(username, display_name, email, role, pw_hash) VALUES (?, ?, ?, ?, ?) RETURNING id, created_at`,
 		body.Username, body.DisplayName, body.Email, body.Role, nullable(hash),
 	).Scan(&id, &createdAt); err != nil {
@@ -177,7 +183,11 @@ func (h *userHandler) create(w http.ResponseWriter, req *http.Request) {
 	// Mirror the primary role into a cluster-wide ("*") role binding so
 	// RBAC resolves the new user's permissions. Without this the user has
 	// no effective permissions at all.
-	if err := h.db.SetClusterRoleBinding(req.Context(), nil, id, scope.DefaultCluster, body.Role); err != nil {
+	if err := h.db.SetClusterRoleBinding(req.Context(), tx, id, scope.DefaultCluster, body.Role); err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
@@ -550,18 +560,22 @@ func (h *userHandler) del(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.cannot_delete_self", nil))
 		return
 	}
-	if !allowTargetChange(w, req, h.db, id) {
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
 		return
 	}
-	// Lock to serialize with writes so the last-user-manager check can't race.
-	unlock := h.db.LockUserManagement()
-	defer unlock()
+	defer func() { _ = tx.Rollback() }()
+	roles := db.Roles{Reader: tx}
+	if !allowTargetChange(w, req, tx, id) {
+		return
+	}
 	// Don't delete the last user who can manage users.
-	if managesNow, err := h.db.UserManagesUsers(req.Context(), id); err != nil {
+	if managesNow, err := roles.UserManagesUsers(req.Context(), id); err != nil {
 		httperr.Write(w, req, err)
 		return
 	} else if managesNow {
-		count, err := h.db.UserManagerCount(req.Context())
+		count, err := roles.UserManagerCount(req.Context())
 		if err != nil {
 			httperr.Write(w, req, err)
 			return
@@ -574,7 +588,11 @@ func (h *userHandler) del(w http.ResponseWriter, req *http.Request) {
 	// One transaction removes the account and every row tied to it (SSO
 	// links, preferences, sessions, bindings) and revokes its share links:
 	// sqlite runs without FK cascade, so nothing else would.
-	if err := h.db.DeleteUser(req.Context(), id); err != nil {
+	if err := h.db.DeleteUserTx(req.Context(), tx, id); err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
@@ -621,8 +639,15 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+	roles := db.Roles{Reader: tx}
 	if body.Role != nil {
-		if ok, err := h.db.RoleExists(req.Context(), *body.Role); err != nil {
+		if ok, err := roles.RoleExists(req.Context(), *body.Role); err != nil {
 			httperr.Write(w, req, err)
 			return
 		} else if !ok {
@@ -630,18 +655,15 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	if !allowTargetChange(w, req, h.db, id) {
+	if !allowTargetChange(w, req, tx, id) {
 		return
 	}
-	if body.Role != nil && !allowRoleGrant(w, req, h.db, *body.Role) {
+	if body.Role != nil && !allowRoleGrant(w, req, tx, *body.Role) {
 		return
 	}
 	caller := auth.UserFromContext(req.Context())
 	if body.Role != nil {
-		// Lock to serialize with writes so the last-user-manager check can't race.
-		unlock := h.db.LockUserManagement()
-		defer unlock()
-		newGrantsManage, err := h.db.RoleGrantsUserManagement(req.Context(), *body.Role)
+		newGrantsManage, err := roles.RoleGrantsUserManagement(req.Context(), *body.Role)
 		if err != nil {
 			httperr.Write(w, req, err)
 			return
@@ -657,11 +679,11 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 		// System-wide safety net: never demote the last user who can manage
 		// users, or the cluster loses all user administration.
 		if !newGrantsManage {
-			if managesNow, err := h.db.UserManagesUsers(req.Context(), id); err != nil {
+			if managesNow, err := roles.UserManagesUsers(req.Context(), id); err != nil {
 				httperr.Write(w, req, err)
 				return
 			} else if managesNow {
-				count, err := h.db.UserManagerCount(req.Context())
+				count, err := roles.UserManagerCount(req.Context())
 				if err != nil {
 					httperr.Write(w, req, err)
 					return
@@ -674,16 +696,15 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	if body.RoleSource != nil {
-		// Serialize with role changes and sign-in resyncs, like a role change.
-		unlock := h.db.LockUserManagement()
-		defer unlock()
-		linked, err := h.hasSSOLink(req.Context(), id)
+		// Read in the user-management transaction, so the check and the
+		// write below are serialized with role changes and sign-in resyncs.
+		linked, err := hasSSOLink(req.Context(), tx, id)
 		if err != nil {
 			httperr.Write(w, req, err)
 			return
 		}
 		if !linked {
-			if ok, err := h.userExists(req.Context(), id); err != nil {
+			if ok, err := userExists(req.Context(), tx, id); err != nil {
 				httperr.Write(w, req, err)
 				return
 			} else if !ok {
@@ -694,13 +715,6 @@ func (h *userHandler) update(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-
-	tx, err := h.db.DB.BeginTx(req.Context(), nil)
-	if err != nil {
-		httperr.Write(w, req, err)
-		return
-	}
-	defer func() { _ = tx.Rollback() }()
 
 	if body.DisplayName != nil {
 		if _, err := tx.ExecContext(req.Context(),
@@ -798,7 +812,7 @@ func (h *userHandler) resetPassword(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.password_too_short", nil))
 		return
 	}
-	if !allowTargetChange(w, req, h.db, id) {
+	if !allowTargetChange(w, req, h.db.DB, id) {
 		return
 	}
 	hash, err := auth.HashPassword(req.Context(), body.Password)
@@ -810,12 +824,15 @@ func (h *userHandler) resetPassword(w http.ResponseWriter, req *http.Request) {
 	// Bumping session_epoch invalidates every session issued before this
 	// reset, including one a concurrent login that verified the old password
 	// is still creating; deleting the rows in the same transaction is cleanup.
-	tx, err := h.db.DB.BeginTx(req.Context(), nil)
+	tx, err := h.db.BeginUserManagement(req.Context())
 	if err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
 	defer func() { _ = tx.Rollback() }()
+	if !allowTargetChange(w, req, tx, id) {
+		return
+	}
 	res, err := tx.ExecContext(req.Context(),
 		`UPDATE users SET pw_hash = ?, session_epoch = session_epoch + 1, updated_at = ? WHERE id = ?`,
 		hash, db.NowTimestamp(), id)
@@ -918,24 +935,24 @@ func (h *userHandler) addBinding(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
 		return
 	}
-	if remoteWide {
-		// Serialize permission validation + insertion with role edits/deletion,
-		// so a safe role cannot become a control-plane grant between them.
-		unlock := h.db.LockUserManagement()
-		defer unlock()
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
 	}
-	if ok, err := h.db.RoleExists(req.Context(), body.RoleName); err != nil {
+	defer func() { _ = tx.Rollback() }()
+	if ok, err := (db.Roles{Reader: tx}).RoleExists(req.Context(), body.RoleName); err != nil {
 		httperr.Write(w, req, err)
 		return
 	} else if !ok {
 		httperr.WriteMessage(w, req, messages.New("server.users.invalid_role", nil))
 		return
 	}
-	if !allowRoleGrant(w, req, h.db, body.RoleName) || !allowTargetChange(w, req, h.db, id) {
+	if !allowRoleGrant(w, req, tx, body.RoleName) || !allowTargetChange(w, req, tx, id) {
 		return
 	}
 	if remoteWide {
-		if allowed, err := remoteWideRoleAllowed(req.Context(), h.db, body.RoleName); err != nil {
+		if allowed, err := remoteWideRoleAllowed(req.Context(), tx, body.RoleName); err != nil {
 			httperr.Write(w, req, err)
 			return
 		} else if !allowed {
@@ -943,7 +960,7 @@ func (h *userHandler) addBinding(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	if ok, err := h.userExists(req.Context(), id); err != nil {
+	if ok, err := userExists(req.Context(), tx, id); err != nil {
 		httperr.Write(w, req, err)
 		return
 	} else if !ok {
@@ -951,7 +968,7 @@ func (h *userHandler) addBinding(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var dup int
-	if err := h.db.DB.QueryRowContext(req.Context(),
+	if err := tx.QueryRowContext(req.Context(),
 		`SELECT COUNT(*) FROM user_role_bindings WHERE user_id = ? AND role_name = ? AND cluster = ? AND namespace = ?`,
 		id, body.RoleName, body.Cluster, body.Namespace).Scan(&dup); err != nil {
 		httperr.Write(w, req, err)
@@ -961,9 +978,13 @@ func (h *userHandler) addBinding(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.binding_already_exists", nil))
 		return
 	}
-	if _, err := h.db.DB.ExecContext(req.Context(),
+	if _, err := tx.ExecContext(req.Context(),
 		`INSERT INTO user_role_bindings(user_id, role_name, cluster, namespace) VALUES (?, ?, ?, ?)`,
 		id, body.RoleName, body.Cluster, body.Namespace); err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
@@ -991,15 +1012,19 @@ func (h *userHandler) deleteBinding(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
 		return
 	}
-	if !allowTargetChange(w, req, h.db, id) {
+	tx, err := h.db.BeginUserManagement(req.Context())
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+	if !allowTargetChange(w, req, tx, id) {
 		return
 	}
 	if namespace == "*" {
-		unlock := h.db.LockUserManagement()
-		defer unlock()
 		// Legacy externally provisioned global grants are not supplemental
 		// remote readers; retain their previous removal protection.
-		if allowed, err := remoteWideRoleAllowed(req.Context(), h.db, role); err != nil {
+		if allowed, err := remoteWideRoleAllowed(req.Context(), tx, role); err != nil {
 			httperr.Write(w, req, err)
 			return
 		} else if !allowed {
@@ -1007,7 +1032,7 @@ func (h *userHandler) deleteBinding(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	res, err := h.db.DB.ExecContext(req.Context(),
+	res, err := tx.ExecContext(req.Context(),
 		`DELETE FROM user_role_bindings WHERE user_id = ? AND role_name = ? AND cluster = ? AND namespace = ?`,
 		id, role, cluster, namespace)
 	if err != nil {
@@ -1018,13 +1043,17 @@ func (h *userHandler) deleteBinding(w http.ResponseWriter, req *http.Request) {
 		httperr.WriteMessage(w, req, messages.New("server.users.binding_not_found", nil))
 		return
 	}
+	if err := tx.Commit(); err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
 	h.invalidateSessions(req, id, "role binding removed")
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *userHandler) userExists(ctx context.Context, id int64) (bool, error) {
+func userExists(ctx context.Context, q db.Reader, id int64) (bool, error) {
 	var x int
-	err := h.db.DB.QueryRowContext(ctx, `SELECT 1 FROM users WHERE id = ?`, id).Scan(&x)
+	err := q.QueryRowContext(ctx, `SELECT 1 FROM users WHERE id = ?`, id).Scan(&x)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -1033,9 +1062,9 @@ func (h *userHandler) userExists(ctx context.Context, id int64) (bool, error) {
 
 // hasSSOLink reports whether the user signs in through an SSO provider,
 // that is, has an oidc_links row.
-func (h *userHandler) hasSSOLink(ctx context.Context, id int64) (bool, error) {
+func hasSSOLink(ctx context.Context, q db.Reader, id int64) (bool, error) {
 	var n int
-	if err := h.db.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM oidc_links WHERE user_id = ?`, id).Scan(&n); err != nil {
+	if err := q.QueryRowContext(ctx, `SELECT COUNT(*) FROM oidc_links WHERE user_id = ?`, id).Scan(&n); err != nil {
 		return false, fmt.Errorf("check sso link: %w", err)
 	}
 	return n > 0, nil

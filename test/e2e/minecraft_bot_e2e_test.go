@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -159,11 +160,26 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 	t.Helper()
 	ensureResticRepo(t)
 	name := gs + "-autosave"
+	exec := func(args ...string) (string, error) {
+		return envInstance.Kubectl(t.Context(), append([]string{"exec", "-n", ns, "pod/" + gs + "-0", "-c", "game", "--"}, args...)...)
+	}
+	run := func(command, expected string) {
+		t.Helper()
+		out, err := exec("rcon-cli", command)
+		if err != nil || !strings.Contains(out, expected) {
+			t.Fatalf("game command %q: %s (%v), want %q", command, out, err, expected)
+		}
+	}
+	worldMarker := fmt.Sprintf("world_%d", time.Now().UnixNano())
+	run("data modify storage gpaudit:backup checkpoint set value "+worldMarker, "Modified storage")
+	run("scoreboard objectives add gp_restore dummy", "gp_restore")
+	run("scoreboard players set gameplane-bot gp_restore 17", "17")
 	b := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gameplane.local/v1alpha1", "kind": "Backup",
 		"metadata": map[string]any{"namespace": ns, "name": name},
 		"spec":     map[string]any{"serverRef": map[string]any{"name": gs}, "repoRef": map[string]any{"name": "e2e-restic-creds", "key": "repo"}, "quiesce": true},
 	}}
+	releaseWorker := holdMinecraftBackupWorker(t, b)
 	backups := envInstance.Dyn.Resource(backupGVR).Namespace(ns)
 	if _, err := backups.Create(t.Context(), b, metav1.CreateOptions{}); err != nil {
 		t.Fatal(err)
@@ -175,6 +191,32 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 			t.Logf("backup worker logs before cleanup: %s (%v)", logs, err)
 		}
 	}()
+	// Change the live game while its acknowledged save-off protects the
+	// already-flushed files. Both marker values must still come from the
+	// earlier generation when the worker's snapshot is restored.
+	envInstance.Eventually(t, 5*time.Minute, func() (bool, string) {
+		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})
+		if err != nil {
+			return false, err.Error()
+		}
+		a := got.GetAnnotations()
+		if a["backup.gameplane.local/unquiesced-at"] != "" {
+			t.Fatal("copy resumed before the live-writer exercise")
+		}
+		return a["backup.gameplane.local/quiesced-at"] != "", "waiting for the live freeze"
+	})
+	run("data modify storage gpaudit:backup checkpoint set value during_copy", "Modified storage")
+	run("scoreboard players set gameplane-bot gp_restore 23", "23")
+	observed, err := backups.Get(t.Context(), name, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := observed.GetAnnotations()
+	if a["backup.gameplane.local/quiesced-at"] == "" || a["backup.gameplane.local/unquiesced-at"] != "" || a["backup.gameplane.local/authorized-worker"] != "" {
+		t.Fatalf("live writes did not complete during the freeze: quiesced=%q unquiesced=%q authorized-worker=%q",
+			a["backup.gameplane.local/quiesced-at"], a["backup.gameplane.local/unquiesced-at"], a["backup.gameplane.local/authorized-worker"])
+	}
+	releaseWorker()
 	waitBackupSucceeded(t, ns, name, 8*time.Minute)
 	envInstance.Eventually(t, time.Minute, func() (bool, string) {
 		got, err := backups.Get(t.Context(), name, metav1.GetOptions{})
@@ -182,12 +224,10 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 			return false, err.Error()
 		}
 		a := got.GetAnnotations()
-		return a["backup.gameplane.local/quiesce-attempted"] == "true" &&
+		outcome, _, _ := unstructured.NestedString(got.Object, "status", "captureManifest", "quiesceOutcome")
+		return outcome == "verified-freeze" && a["backup.gameplane.local/quiesce-attempted"] == "true" &&
 			a["backup.gameplane.local/unquiesced-at"] != "" && a["backup.gameplane.local/cleanup-outcome"] != "source-gone", "waiting for pause and resume of the live game"
 	})
-	exec := func(args ...string) (string, error) {
-		return envInstance.Kubectl(t.Context(), append([]string{"exec", "-n", ns, "pod/" + gs + "-0", "-c", "game", "--"}, args...)...)
-	}
 	// An old command storage file cannot satisfy a new marker.
 	marker := fmt.Sprintf("gameplane_autosave_%d", time.Now().UnixNano())
 	if out, err := exec("rcon-cli", "data modify storage gpaudit:backup marker set value "+marker); err != nil || !strings.Contains(out, "Modified storage") {
@@ -200,4 +240,81 @@ func verifyMinecraftBackupResumesAutosave(t *testing.T, ns, gs string) {
 		out, err := exec("gzip", "-dc", "/data/world/data/command_storage_gpaudit.dat")
 		return err == nil && strings.Contains(out, marker), "waiting for automatic persistence of the post-backup marker"
 	})
+	// Overwrite both independent markers. Seeing the original values after a
+	// real restore proves this join landed on the captured generation.
+	run("data modify storage gpaudit:backup checkpoint set value after_backup", "Modified storage")
+	run("scoreboard players set gameplane-bot gp_restore 42", "42")
+	run("save-all flush", "Saved the game")
+	restore := gs + "-restore-proof"
+	createRestore(t, ns, restore, gs, name)
+	waitRestoreSucceeded(t, ns, restore, 8*time.Minute)
+	s := minecraftBotSpec()
+	res := envInstance.RunGameProbe(t, GameProbe{
+		GameNS: ns, GSName: gs, JobSuffix: "restored", Game: s.Game, Port: s.ProbePort,
+		Deadline: s.ProbeDeadline, ExpectDepth: joindepth.JOINED, Args: s.ProbeArgs,
+	})
+	if res.ExitCode != 0 || res.Verdict == nil || res.Verdict.ReachedDepth != joindepth.JOINED {
+		t.Fatalf("join after restored-world boot: %+v", res)
+	}
+	run("data get storage gpaudit:backup checkpoint", worldMarker)
+	run("scoreboard players get gameplane-bot gp_restore", "17")
+	run("scoreboard players set gameplane-bot gp_restore 18", "18")
+	run("save-all flush", "Saved the game")
+}
+
+// The worker prepares its repository before save-off. The controller records
+// the freeze, then persists the authorized worker UID before it issues the
+// start token. Hold that one metadata update until the live writes finish.
+func holdMinecraftBackupWorker(t *testing.T, backup *unstructured.Unstructured) func() {
+	t.Helper()
+	name := fmt.Sprintf("e2e-live-copy-%d", time.Now().UnixNano())
+	const denial = "waiting for the Minecraft live writes"
+	policy := fmt.Sprintf(`apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: %[1]s
+spec:
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["gameplane.local"]
+      apiVersions: ["v1alpha1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["backups"]
+      resourceNames: [%[2]q]
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: %[3]q
+  validations:
+  - expression: "!has(object.metadata.annotations) || !('backup.gameplane.local/authorized-worker' in object.metadata.annotations)"
+    message: %[4]q
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: %[1]s
+spec:
+  policyName: %[1]s
+  validationActions: [Deny]
+`, name, backup.GetName(), backup.GetNamespace(), denial)
+	release := func() {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(t.Context()), 30*time.Second)
+		defer cancel()
+		if out, err := envInstance.KubectlWithStdin(ctx, policy, "delete", "--ignore-not-found", "-f", "-"); err != nil {
+			t.Fatalf("remove live-write barrier: %s (%v)", out, err)
+		}
+	}
+	t.Cleanup(release)
+	if out, err := envInstance.KubectlWithStdin(t.Context(), policy, "create", "-f", "-"); err != nil {
+		t.Fatalf("create live-write barrier: %s (%v)", out, err)
+	}
+	// Admission configuration propagates asynchronously. Prove that the
+	// barrier is active before the real Backup can start on a fast cluster.
+	probe := backup.DeepCopy()
+	probe.SetAnnotations(map[string]string{"backup.gameplane.local/authorized-worker": "dry-run"})
+	envInstance.Eventually(t, time.Minute, func() (bool, string) {
+		_, err := envInstance.Dyn.Resource(backupGVR).Namespace(backup.GetNamespace()).Create(t.Context(), probe, metav1.CreateOptions{DryRun: []string{metav1.DryRunAll}})
+		return err != nil && strings.Contains(err.Error(), denial), fmt.Sprint(err)
+	})
+	return release
 }

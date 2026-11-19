@@ -329,6 +329,21 @@ func (r *GameServerReconciler) reconcileIdle(
 	}
 
 	out := idleDecide(in)
+	if out.wake && in.asleepSince != nil && !in.suspended && in.spec != nil && in.spec.Enabled && r.WakeStartLimit > 0 {
+		admitted, err := r.reserveWakeStart(ctx, gs)
+		if err != nil {
+			return idleAsleep, nil, 0, nil, err
+		}
+		if !admitted {
+			queued := &gameplanev1alpha1.IdleStatus{Asleep: true, AsleepSince: &metav1.Time{Time: *in.asleepSince},
+				Reason: "queued for fleet cold-start capacity"}
+			if gs.Status.Idle != nil {
+				queued.LastWakeTime = gs.Status.Idle.LastWakeTime.DeepCopy()
+			}
+			return idleAsleep, queued, 5 * time.Second, out.err, nil
+		}
+		out.status.Reason = "cold start admitted; waiting for game readiness"
+	}
 	if out.sleep || out.wake {
 		if err := r.applyIdleTransition(ctx, gs, out, in.now); err != nil {
 			return idleAwake, nil, 0, nil, err

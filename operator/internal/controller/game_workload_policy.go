@@ -31,15 +31,31 @@ type GameWorkloadPolicy struct {
 	MaxMemoryLimit   resource.Quantity `json:"maxMemoryLimit"`
 }
 
-// A rejected rollout must retain the effective template for the running
-// game's stop sequence. The rejected target is never rendered or executed.
+// A workload policy rejection is a permanent configuration error. Callers
+// can safely stop the effective workload or release a failed worker's guard.
 type workloadPolicyRejection struct{ error }
+
+// A placement rejection with valid game resources permits a wipe to
+// recover data on an already-bound volume independently of game scheduling.
+type gamePlacementRejection struct{ error }
 
 // reconcileRejectedGameWorkload permits a suspended, owned server to drain while its requested configuration is invalid.
 func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context, gs *gameplanev1alpha1.GameServer,
 	effective *gameplanev1alpha1.GameTemplate, rejection error,
 ) (ctrl.Result, error) {
 	var result ctrl.Result
+	var wipeState wipeWorkerState
+	if gs.Annotations[wipeGuardAnnotation] != "" {
+		// Validation normally returns before the wipe controller gets a turn.
+		// Continue under the existing owner, including maintenance on a bound volume.
+		version := gs.ResourceVersion
+		if err := r.advanceWipe(ctx, gs, effective, &wipeState, rejection); err != nil {
+			return requeueOnConflict(result, err)
+		}
+		if gs.ResourceVersion != version {
+			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
+		}
+	}
 	if gs.Spec.Suspend {
 		key := client.ObjectKeyFromObject(gs)
 		var live gameplanev1alpha1.GameServer
@@ -49,6 +65,14 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 		if !live.Spec.Suspend || live.UID != gs.UID || live.Generation != gs.Generation ||
 			live.Annotations[effectiveTemplateAnnotation] != gs.Annotations[effectiveTemplateAnnotation] {
 			return ctrl.Result{RequeueAfter: reconcileRetryInterval}, nil
+		}
+		if live.Spec.Networking.Expose == "Hostport" {
+			// Explicit endpoint migration must be able to release a sleeping
+			// server's host ports even while its template is inadmissible.
+			waker := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: live.Namespace, Name: live.Name + "-waker"}}
+			if err := r.deleteIfControlledBy(ctx, &live, waker, client.PropagationPolicy(metav1.DeletePropagationForeground)); err != nil {
+				return requeueOnConflict(result, err)
+			}
 		}
 		var ss appsv1.StatefulSet
 		err := r.wipeReader().Get(ctx, key, &ss)
@@ -72,7 +96,7 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 				// stop can still drain it while the new baseline is inadmissible.
 				replicas, result.RequeueAfter, err = r.softStop(ctx, &live, effective)
 			} else {
-				replicas, result.RequeueAfter, err = r.desiredReplicas(ctx, &live, effective, idleAwake)
+				replicas, result.RequeueAfter, err = r.desiredReplicas(ctx, &live, effective, idleAwake, &wipeState)
 			}
 			if err != nil {
 				return requeueOnConflict(result, err)
@@ -87,6 +111,12 @@ func (r *GameServerReconciler) reconcileRejectedGameWorkload(ctx context.Context
 				}
 			}
 		}
+	}
+	// Orphan wipe Pods do not enqueue this server after their Job is gone.
+	// Continue polling their drain even after the StatefulSet has scaled to zero.
+	if gs.Annotations[wipeGuardAnnotation] != "" && (result.RequeueAfter == 0 || result.RequeueAfter > wipeDrainPoll) &&
+		!r.settledWipeFailure(ctx, gs, &wipeState) {
+		result.RequeueAfter = wipeDrainPoll
 	}
 	return result, r.setPhase(ctx, gs, rejection.Error())
 }
@@ -119,10 +149,45 @@ func ParseGameWorkloadPolicy(raw string) (*GameWorkloadPolicy, error) {
 
 // validate checks the merged game resources and placement before the controller can create or change a workload.
 func (p *GameWorkloadPolicy) validate(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
+	resourceErr := p.validateResources(gs, tmpl)
+	if placementErr := p.validatePlacement(gs, tmpl); placementErr != nil {
+		if resourceErr != nil {
+			// Report placement first, even when resource limits also block recovery.
+			return placementErr
+		}
+		return gamePlacementRejection{placementErr}
+	}
+	return resourceErr
+}
+
+func (p *GameWorkloadPolicy) validateResources(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
 	res := effectiveResources(gs, tmpl)
 	for name, request := range res.Requests {
 		if limit, ok := res.Limits[name]; ok && request.Cmp(limit) > 0 {
 			return fmt.Errorf("effective resources.requests.%s exceeds resources.limits.%s", name, name)
+		}
+	}
+	if p == nil {
+		return nil
+	}
+	cpu := res.Requests.Cpu()
+	if cpu.Cmp(p.MinCPURequest) < 0 || cpu.Cmp(p.MaxCPURequest) > 0 {
+		return fmt.Errorf("effective resources.requests.cpu must be between %s and %s", p.MinCPURequest.String(), p.MaxCPURequest.String())
+	}
+	request, limit := res.Requests.Memory(), res.Limits.Memory()
+	if request.Cmp(p.MinMemoryRequest) < 0 || limit.IsZero() || limit.Cmp(p.MaxMemoryLimit) > 0 {
+		return fmt.Errorf("effective resources.requests.memory must be at least %s, and resources.limits.memory must cover the request and stay within %s", p.MinMemoryRequest.String(), p.MaxMemoryLimit.String())
+	}
+	return nil
+}
+
+func (p *GameWorkloadPolicy) validatePlacement(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
+	if arch := tmpl.Spec.RequiredNodeArchitecture; arch != "" {
+		if value, found := gs.Spec.NodeSelector[corev1.LabelArchStable]; found && value != arch {
+			return fmt.Errorf("spec.nodeSelector sets %s=%q but the game template requires %q", corev1.LabelArchStable, value, arch)
+		}
+		if p != nil && p.PoolLabel == corev1.LabelArchStable && p.PoolValue != arch {
+			return fmt.Errorf("game worker pool sets %s=%q but the game template requires %q", corev1.LabelArchStable, p.PoolValue, arch)
 		}
 	}
 	if p == nil {
@@ -137,23 +202,55 @@ func (p *GameWorkloadPolicy) validate(gs *gameplanev1alpha1.GameServer, tmpl *ga
 			return fmt.Errorf("spec.tolerations may only tolerate %s=%s:NoSchedule", p.PoolLabel, p.PoolValue)
 		}
 	}
-	cpu := res.Requests.Cpu()
-	if cpu.Cmp(p.MinCPURequest) < 0 || cpu.Cmp(p.MaxCPURequest) > 0 {
-		return fmt.Errorf("effective resources.requests.cpu must be between %s and %s", p.MinCPURequest.String(), p.MaxCPURequest.String())
-	}
-	request, limit := res.Requests.Memory(), res.Limits.Memory()
-	if request.Cmp(p.MinMemoryRequest) < 0 || limit.IsZero() || limit.Cmp(p.MaxMemoryLimit) > 0 {
-		return fmt.Errorf("effective resources.requests.memory must be at least %s, and resources.limits.memory must cover the request and stay within %s", p.MinMemoryRequest.String(), p.MaxMemoryLimit.String())
-	}
 	return nil
 }
 
-// placement combines the server's node selectors with the administrator's dedicated worker-pool taint and label.
-func (p *GameWorkloadPolicy) placement(gs *gameplanev1alpha1.GameServer) (map[string]string, []corev1.Toleration) {
-	if p == nil {
-		return gs.Spec.NodeSelector, gs.Spec.Tolerations
+// placement combines the template's executable architecture and the server's
+// selectors with the administrator's dedicated worker-pool taint and label.
+func (p *GameWorkloadPolicy) placement(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) (map[string]string, []corev1.Toleration) {
+	selector := gs.Spec.NodeSelector
+	if arch := tmpl.Spec.RequiredNodeArchitecture; arch != "" {
+		selector = make(map[string]string, len(gs.Spec.NodeSelector)+1)
+		maps.Copy(selector, gs.Spec.NodeSelector)
+		selector[corev1.LabelArchStable] = arch
 	}
-	return workerPlacement(p.PoolLabel, p.PoolValue, gs.Spec.NodeSelector)
+	if p == nil {
+		return selector, gs.Spec.Tolerations
+	}
+	return workerPlacement(p.PoolLabel, p.PoolValue, selector)
+}
+
+// A worker can be the first consumer of a suspended game's local storage.
+// Already-bound claims retain their volume topology so legacy data can be recovered.
+func (p *GameWorkloadPolicy) placeFirstVolumeConsumer(ctx context.Context, reader client.Reader, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate, pod *corev1.PodSpec) error {
+	selector, tolerations := p.placement(gs, tmpl)
+	affinity := hostportAffinity(gs)
+	if len(selector) == 0 && len(tolerations) == 0 && affinity == nil {
+		return nil
+	}
+	for _, volume := range pod.Volumes {
+		if volume.PersistentVolumeClaim == nil {
+			continue
+		}
+		var pvc corev1.PersistentVolumeClaim
+		key := client.ObjectKey{Namespace: gs.Namespace, Name: volume.PersistentVolumeClaim.ClaimName}
+		// A claim can be created after the Job. Treat absence as unbound
+		// so the worker can wait for it within the ordinary Job deadline.
+		if err := reader.Get(ctx, key, &pvc); err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("read game volume %s before scheduling worker: %w", key, err)
+		}
+		if !pvc.DeletionTimestamp.IsZero() {
+			return fmt.Errorf("game volume %s is being deleted", key)
+		}
+		if pvc.Spec.VolumeName == "" {
+			if err := p.validatePlacement(gs, tmpl); err != nil {
+				return workloadPolicyRejection{err}
+			}
+			pod.NodeSelector, pod.Tolerations, pod.Affinity = selector, tolerations, affinity
+			break
+		}
+	}
+	return nil
 }
 
 func validWorkerPool(key, value string) bool {

@@ -1,10 +1,30 @@
 # operator — Specification
 
-**Status:** pre-v1 (v0.4.0)  
+**Status:** pre-v1 (v0.4.1)  
 **Module / package:** github.com/GameplanePanel/gameplane/operator  
 **Go version:** 1.27.0
 
 ## Purpose
+
+The release-operator fleet runner in `hack/rollout/canary.py` uses the existing
+OnRequest API to admit one named server at a time. A separate ConfigMap records
+restore provenance, rollback rehearsal, client join and data checks, without
+taking a server's lifecycle owner. See [the staged rollout procedure](../docs/template-rollouts.md#restored-world-fleet-procedure).
+
+Backup manifests record `verified-freeze` only after a successful pod-bound
+pause. Checkpoint-only and unsupported live copies receive weak consistency
+conditions. Historical unqualified hook success remains readable with
+unknown consistency. A drained source can establish stopped-copy consistency
+for the included claims.
+
+### Configuration at container startup
+
+`GameTemplate.spec.configSchema[].applyOnRestart` opts an environment field
+into an optional Secret key reference that exists in the Pod template for
+every value, including an unset field. The reconciler stages the resolved
+values in the GameServer's owned config Secret. The restart hash still covers
+ordinary config values and the paths and source of rendered files. Files that
+interpolate staged values are copied to the data volume at the next Pod start.
 
 ### Restricted workloads and node capture (#714)
 
@@ -135,6 +155,11 @@ rolling the template or raising replicas while the node is NotReady. Pending or
 terminating Pods do not authorize a wake or a new sleep listener.
 
 After restoring node capacity/readiness, reconciliation resumes automatically.
+Before a template rollout drains a Hostport game, the operator reads the
+recorded endpoint Node and compares its `kubernetes.io/arch` label with the
+target template's `requiredNodeArchitecture`. A missing or different label on
+that Node rejects adoption and reports the required migration. The game keeps
+its current revision and endpoint. A resumed rollout rechecks the same constraint.
 For intentional migration, suspend the server, wait for both game and sentinel
 Pods to disappear, clear both durable endpoint annotations, update scheduling,
 storage placement and the client-facing node address, then resume the game before
@@ -170,11 +195,15 @@ worker, and established TCP sessions use the longer session/drain context.
 
 - `GameServer.spec.templateRollout.policy` defaults to Automatic; OnRequest
   admits only `requestedRevision == status.templateRevision.desired`. Initial
-  provisioning/baseline always adopts the installed content. No fleet scheduler,
+  provisioning/baseline uses the installed content once admission succeeds. No fleet scheduler,
   canary or maintenance-window controller is implied.
-- First-pin initialization uses shared ownership and a checked metadata update
-  without stopping an existing workload. Its StatefulSet UID and render-input
-  fingerprint preserve the existing Pod template byte-for-byte, including API
+- First-pin initialization uses shared ownership and a checked metadata update.
+  A configured game worker policy or a template with `requiredNodeArchitecture`
+  requires the existing workload to drain before the first pin takes effect.
+  For an architecture requirement, the rollout owner records `architectureDrain`
+  at admission so a controller restart continues the same operation. Other
+  baselines can keep running. Their StatefulSet UID and render-input fingerprint
+  preserve the existing Pod template byte-for-byte, including API
   defaults/admission fields, while those inputs are unchanged. A real workload
   input change, replaced StatefulSet or observed stopped drain allows revision
   stamping. An existing unannotated Pod never receives inferred provenance.
@@ -343,10 +372,25 @@ direct and stored GameServers and before template revision adoption. An
 explicit suspend on a rejected configuration gracefully drains an existing
 owned StatefulSet using its pinned template, subject to lifecycle ownership.
 A legacy workload without a pin uses its Kubernetes termination grace.
-Only its replica count can change. Correct the reported policy violation
-before starting or rolling out the game.
-When the worker policy takes over a legacy StatefulSet, a Rollout owner
-keeps its Pod template intact until the StatefulSet observes zero replicas
+Only the StatefulSet replica count can change. For a suspended Hostport server,
+the operator also removes its owned wake listener to release the endpoint.
+Correct the reported policy violation before starting or rolling out the game.
+
+`GameTemplate.spec.requiredNodeArchitecture` adds a `kubernetes.io/arch`
+selector to the game Pod and its Hostport wake sentinel. The requirement covers
+every version and GameServer image override. Server selectors and affinity
+still apply. An explicit architecture selector or worker pool that contradicts
+the template fails placement validation before the operator adopts it.
+
+Restic restore, wipe, and stopped-server backup Jobs can be the first Pods to
+mount a game volume. For a missing or unbound claim they inherit the game's
+placement, including server selectors, tolerations, worker pool and affinity.
+This also applies to older templates that rely on a GameServer selector to
+choose amd64 workers. Once all mounted claims are bound, recovery can use the
+existing volume topology. A backup of a running game uses its source node.
+
+When a worker policy or architecture requirement takes over a legacy StatefulSet,
+a Rollout owner keeps its Pod template intact until the StatefulSet observes zero replicas
 and the old Pod and world-volume writers have gone. A running game with
 a verified Pod revision uses its own saved stop sequence. An unversioned
 Pod uses its existing Kubernetes termination grace. The operator then
@@ -367,7 +411,8 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
     - Empty flag value is a strict no-op — preserves pre-feature behavior (all three sources nil → cluster default).
     - Error handling: `checkPVCProvisioningFailure` detects missing StorageClass and surfaces it as Ready condition False, reason `PVCProvisioningFailed`, with message naming the class — leaves GameServer in phase Pending (not Failed, so it is recoverable once an admin creates the StorageClass).
     - Requires `storage.k8s.io/storageclasses` get/list permission (on each reconcile to verify existence).
-  - Pod spec assembly: inject agent sidecar (image + pull policy + env), mount agent certs + logs volume.
+  - Pod spec assembly: inject agent sidecar (image + pull policy + env), mount agent certs + logs volume. The template's capabilities, `players.query` included, reach the agent unchanged in the `GAMEPLANE_CAPABILITIES` JSON env (`resolveCapabilities`); a change rolls the StatefulSet like any other template change.
+  - **Player counts and idle sleep:** the operator reads only `status.agent.playersOnline`, whatever the agent's source (console list or `players.query`). A count of 0 starts the idle clock; an absent count (a failed or missing query) clears it and keeps the server awake, so a query that stops answering can never sleep a server. E2E: `TestGameServer_A2SPlayerCountDrivesIdle` (template configuration → injection → heartbeat → idle eligibility, with a nonzero count, a real zero and a failed query).
   - Config & credentials: render game startup config (template vars, port mappings, mod credentials).
   - RCON integration: create agent RBAC, mTLS certs; expose RCON port if template declares it.
   - Graceful stop: if template has Lifecycle.Stop sequence, orchestrate via agent before scaling down.
@@ -379,6 +424,8 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
   - Sentinel NetworkPolicies: `GameTemplate.spec.sentinelIsolation` defaults false. When true, reconcile owned `<gs>-sentinel-ingress` and `<gs>-sentinel-egress` policies joining only the same namespace/server instance on advertised protocol/port tuples. An opted-in template with zero advertised ports revokes its owned game-ingress and sentinel policies plus public/game-direct Services through uncached, UID/resourceVersion-guarded cleanup before reporting actionable `Ready=False`; it creates no workloads or unrestricted grants, preserves foreign resources and the agent Service, and reports the failure even when cleanup needs a retry. Set `gameplane.local/sentinel-isolation=true` on both pod templates, without changing immutable workload selectors. On opt-out, roll the labels off both workloads and retain the per-server grants until uncached reads confirm both controllers observed the unlabeled templates and completed their rollouts, and neither game nor sentinel pods still carry the label. Settled opt-outs first probe cached sentinel policies and skip live rollout reads when no owned grants exist. The owned NetworkPolicy watch must remain enabled: delayed cache visibility enqueues another cleanup pass. The matching chart excludes opted-in sources and destinations from legacy grants; other policies remain additive.
   - Fixed-name child cleanup: Delete fixed-name objects (`<gs>-config` Secret, `<gs>-files` Secret, `<gs>-rcon` Secret, `<gs>-auto` BackupSchedule, `<gs>-wipe` Job) only when the GameServer controls them via OwnerReference; unowned objects with these names stay in place (same rule as game-ingress NetworkPolicy). Wipe cleanup carries the verified Job UID as a delete precondition; a foreign Job cannot acknowledge a pending wipe or resume its server.
   - **Conflict requeue:** When reconcileStatefulSet or reconcileWipe encounters an apierrors.IsConflict error (concurrent update races), requeue without error logging — conflicts are expected and transient. Idle-transition and restart-acknowledgment conflicts, including wrapped errors, also return before logging and retry after one second with fresh state. Other errors retain their identity, error logging and controller-runtime backoff. The Module, NetworkCapture and Backup reconcilers apply the conflict rule to every error they return, via `requeueOnConflict` (`conflict.go`).
+  - **Load-balancer class (`spec.networking.loadBalancerClass`):** honored only when `expose` is `LoadBalancer`. Kubernetes accepts a Service's `spec.loadBalancerClass` only as the Service becomes a LoadBalancer and rejects any later change, including adding one to a LoadBalancer Service that has none, so `reconcileService` sets the class only on that transition (a new Service, or one changing type to LoadBalancer). Before that, `replaceServiceForClassChange` deletes a GameServer-controlled LoadBalancer Service whose class differs from the requested one, or which has none, with the checked UID as a delete precondition, and returns `errServiceReplaced`; while the old Service is terminating (its load-balancer finalizer can hold it) it returns the same without deleting again. `Reconcile` treats `errServiceReplaced` as a pending networking change, not a failure: the rest of the pass (replicas and the StatefulSet, so Stop works; status) still runs, and the pass requeues after `serviceReplaceRetry` until the next reconcile creates the Service with the new class. The replacement gets a new cluster IP and usually a new external address. An unset class never replaces a Service, so a class set by something else (an admission policy, an older operator) is kept, and a Service the GameServer doesn't control is never deleted. Validation matches Kubernetes' qualified-name rule (a prefix of at most 253 characters and a name part of at most 63, so at most 317 in all), so a rejected class can't delete a working Service and then fail to create its replacement. The dashboard's Networking settings don't edit the class but keep it through a save. Tests: `TestReplaceServiceForClassChange*` (`gameserver_lbclass_test.go`), `TestGameServer_LoadBalancerClass*` and `TestGameServer_StopWhileTheServiceIsReplaced` (envtest), `TestGameServer_LoadBalancerClassReplacesTheService` and `TestCRD_Validation_LoadBalancerClassNameLength` (E2E).
+  - **Port pools (`gameserver_portpool.go`, spec 036):** `--port-pool=<pool>=<first>-<last>` defines a range of Service ports on one shared endpoint and `--port-pool-template=<template>=<pool>` makes a template's servers draw from it (Helm `operator.portPools`). Each server has an active record `gameplane.local/pool-ports` (`<pool>:<name>=<port>/<protocol>,...`, every advertised port of the effective revision, overrides included), which its main Service and relays publish, and a pending record `gameplane.local/pool-ports-pending` reserved for a rollout. Both are reservations, per (protocol, port), read from every other server, terminating ones included, never from their templates; so are the ports of every other server's main Service, which is labeled `gameplane.local/port-pool=<pool>` (`publishedPoolPorts`), so a record that moves frees its old ports only once the Service moves off them. Records match the demand by port name, not position. `reconcilePoolPorts` runs before the tunnel and the Service, under a reconciler mutex with an uncached list (`planPoolPorts`): it keeps an active record that publishes exactly the demand and no older server's record contests (the range isn't checked, so a shrunk pool keeps existing ports and reports `AllocatedOutsideRange`); refuses an override `servicePort` another server's record holds, whatever the ages; otherwise allocates one contiguous in-range block avoiding every other record and the server's own fixed ports, at the old first pooled port when it fits, else the lowest. Without a plan, an uncontested active record that still names the effective ports stays in effect and published (`ChangePending` or `ServicePortConflict`); otherwise it is removed, the main Service deleted before the tunnel steps and the status endpoints cleared, relay endpoints included (`PoolExhausted` or `ServicePortConflictUnpublished`). Two of a server's own fixed ports on one (protocol, port) are a conflict too; a template that advertises no ports is treated as outside its pool; a record repeating a name or a (protocol, port) is malformed and reads as none. The Service, with its selectors, is reconciled whenever a record is in effect, so sleep and wake keep working. These reasons and `RolloutPending`/`RolloutPortConflict` requeue in 30 seconds. `reconcileTemplateRevision` calls `reservePoolPortsForRollout` before admitting a rollout and again before switching the revision: a target the active record doesn't fit gets its plan written as the pending record first; without one the rollout isn't admitted and the server keeps its revision (the reason is held in `poolRolloutWaits` for the pass's status). After the switch the pending record becomes the active one; a pending record without a held rollout is dropped. No pool: both records and the condition removed. `svcPortsFromTemplate` publishes record > override > container port; the game-direct Service publishes container ports (the sentinel dials them); relays dial the main Service's ports (`relayBackingPorts`), and the Tailscale endpoint reports the same port. Tests: `gameserver_portpool_test.go`, E2E `TestGameServer_PortPoolAllocation` (kind pool `e2e-pool`, 31000-31005) and `TestGameServer_PortPoolServingAllocation` (`e2e-pool-serving`, 31010-31012).
   - Load-balancer address management: translate spec.networking.addressPool / .address preferences onto the Service based on the cluster's address-manager flavor (MetalLB, Cilium, or none), report assignment status via the AddressAssignment condition.
   - **Network capture foundation** (**Phase 2 Foundational**): Pre-provision a `captures` emptyDir (1 GiB) unconditionally on every game pod's StatefulSet template (required because pod.spec.volumes is immutable on running pods; a rolling restart of all existing game pods is incurred once on upgrade). Extend the `<gs>-agent` Service with a second numeric ServicePort 9091 for the capture sidecar's control endpoint. RBAC markers grant `pods/ephemeralcontainers` access (get, list, watch, patch, update) and full CRUD on `networkcaptures` resources. The capture sidecar injection as an ephemeral container is implemented: `buildCaptureEphemeralContainer` (`gameserver_controller.go`) is the single source of truth for the container spec, injected eagerly by `GameServerReconciler.reconcileCapture` when `spec.capture.enabled` is set, with `NetworkCaptureReconciler.injectCaptureContainer` as an idempotent fallback for the case where its own cache is ahead of the GameServer reconciler's write.
 - **Split concerns:**
@@ -434,6 +481,7 @@ Primary reconcilers register with the manager in `cmd/main.go` and handle CRD li
     - Unset (condition absent): no pool or address requested; no condition emitted.
     - Precedence when several apply: `IgnoredForExposureMode` → `InvalidAddress` → `NoAddressManagerConfigured` → direct-conflict `AddressInUse` → event-derived failure → `ServiceNotReady` → `AssignmentPending` → `Assigned`.
   - **Endpoint population:** `endpointsFromService()` populates `GameServerEndpoint.pool` only when a pool request was actually translated (outcome == Assigned and Manager supports it); never claims a pool for the ClusterIP address shown while assignment is pending, for an ignored request, or for a cluster without an address manager.
+  - **Advertised hostname:** `withAdvertisedHostname()` (`gameserver_status.go`) wraps `endpointsFromService()` at its one call site in `reconcileStatus`. When `spec.networking.hostname` is non-empty, the Service is a LoadBalancer, and the load balancer has published an address (`status.loadBalancer.ingress` has an IP or hostname), it replaces the `Host` of every endpoint with the hostname. Ports, protocols and every other field are kept, one endpoint per Service port as before. Until the load balancer publishes an address, and for ClusterIP and NodePort servers or servers without a hostname, the endpoints are unchanged. Tunnel endpoints aren't touched, since they don't come from the Service. `endpointsFromService()` also sets `ServiceAddress` on every endpoint to the Service's assigned address (the load-balancer IP or hostname, or the cluster IP fallback), and `withAdvertisedHostname()` leaves it alone, so the allocation identity stays separate from the advertised connection address. `candidateHoldsAddress` compares `ServiceAddress`, falling back to `Host` for status written before the field existed, so a pool-assigned holder that advertises a hostname still holds its IP, and an explicit holder keeps its priority over an older requester. The behavior is on for every LoadBalancer server with a hostname, existing ones included; the changelog tells operators to check those hostnames before upgrading. Tests: `gameserver_hostname_endpoint_test.go` (including `TestFindAddressConflict_PoolHolderWithHostname` and `TestFindAddressConflict_ExplicitHolderWithHostnameKeepsPriority`), E2E `TestAddressPool_HostnameHolderKeepsAddress`.
   - **status.startedAt:** while the server is Running, `status.startedAt` follows the start time of the running game container, matched by container name (`gameContainerStartedAt` in `gameserver_status.go`). Uptime therefore resets when the game container restarts inside the same pod. When that time is unavailable, `startedAt` is set once to the current time and kept. Test: `TestGameContainerStartedAt` (`gameserver_status_test.go`).
   - **conditionArgs:** `status.conditionArgs[<ConditionType>]` carries the values interpolated into the English `message` of the condition's current reason, recomputed on every `reconcileStatus` pass by `deriveConditionArgs` (`gameserver_condition_args.go`); `setPhase`, `setTunnelCredentialRefused` and `clearTunnelCredentialRefused` maintain their own entry. The `message` is unchanged. Translation ids are `condition.<type>.<reason>` (lower-cased) and are listed in `i18n/locales/en/app.json`.
   - **TunnelReady condition:** Reports tunnel pod readiness when `spec.networking.tunnel.enabled=true` (absent when disabled). Computed in `computeTunnelConditions` (`gameserver_status.go`) each pass reconcileStatus runs, with reasons `InvalidConfig`, `UnsupportedProtocol` (Tailscale, advertised protocols other than TCP/UDP), `DeploymentNotReady`, `PortNotMapped` (frp, unmapped advertised ports), `NoCredentials` (tailscale/playit missing `credentialsSecretRef`), `UnknownProvider`, and `Ready`. **Credential ownership:** `reconcileTunnel` refuses to mount a `credentialsSecretRef` Secret that has no `ownerReference` matching the GameServer's name and UID (including a stale reference from a deleted same-name GameServer) (`isServerOwnedSecret`) — supported credential paths are the dashboard, the `PUT /servers/{name}:tunnel-credentials` API (which sets the ownerReference), or a manually-created Secret with an explicit ownerReference. A refused Secret is never mounted: `reconcileTunnel` still writes the tunnel Deployment, with no credential volume and zero replicas, so a tunnel already running with that Secret stops. It also writes `TunnelReady=False/TunnelCredentialRefused` (naming the Secret, never its data) directly from `reconcileTunnel` before `Reconcile` returns its error — this bypasses the normal `reconcileStatus` pass since Reconcile returns early on that error — The condition carries its own current `observedGeneration`, but `status.observedGeneration` is not advanced on a refused pass (the rest of status is not recomputed). Once the credential becomes acceptable (or the tunnel is no longer wanted), `reconcileTunnel` removes the refusal condition itself (`clearTunnelCredentialRefused`) before returning, so it does not linger if a later step (NetworkPolicy, Service, StatefulSet) fails; reconcileStatus then writes the real TunnelReady. The refusal message points at the dashboard/API, except when the refused Secret is the canonical `<server>-tunnel-auth` name, where the API answers 409 and the message says to fix the ownerReference or delete the Secret first.
@@ -523,6 +571,16 @@ state and existing cleanup intent are preserved before releasing the owner;
 failed/canceled restores remain suspended. Generation changes to active Backup
 or Restore specs fail the operation and enter cleanup rather than authorizing a
 different copy under the old owner. See [operator operation recovery](../docs/operator-operations.md).
+
+If placement rejects a wipe that would first bind the data volume, the operator
+checks that the current request owns the wipe and that no wipe Job or live
+worker remains. It records
+`DataWipe=False` with reason `PlacementRejected`, consumes the rejected request,
+and releases its guard. A canceled request can also finish cleanup while the
+server's placement is invalid. A suspended server with an already-bound data
+volume can complete its wipe on the existing volume topology once the game
+and other writers have stopped. A failed wipe Job retains its guard and logs
+until cancellation or replacement because it may have partially cleared data.
 
 ### ModuleSourceReconciler
 - **Responsibility:** Index module sources and surface available modules into status.
@@ -748,24 +806,24 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 
 | Module | Version | Purpose |
 |--------|---------|---------|
-| k8s.io/api | v0.37.1 | Kubernetes core types (Pod, StatefulSet, Service, Job, etc.). |
-| k8s.io/apimachinery | v0.37.1 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
-| k8s.io/client-go | v0.37.1 | Kubernetes client (for exec, logs, discovery). |
-| sigs.k8s.io/controller-runtime | v0.25.1 | Reconciler framework (Manager, Builder, Reconciler interface). |
+| k8s.io/api | v0.37.2 | Kubernetes core types (Pod, StatefulSet, Service, Job, etc.). |
+| k8s.io/apimachinery | v0.37.2 | Kubernetes API machinery (metav1, runtime.Scheme, etc.). |
+| k8s.io/client-go | v0.37.2 | Kubernetes client (for exec, logs, discovery). |
+| sigs.k8s.io/controller-runtime | v0.25.2 | Reconciler framework (Manager, Builder, Reconciler interface). |
 | github.com/GameplanePanel/gameplane/netguard | local | SSRF dial guard (permissive policy for module fetches from private registries). |
-| github.com/go-git/go-git/v5 | v5.19.2 | Git operations (clone, fetch) for ModuleSources. |
-| github.com/go-git/go-billy/v5 | v5.9.1 | VCS filesystem abstraction for go-git. |
+| github.com/go-git/go-git/v5 | v5.19.3 | Git operations (clone, fetch) for ModuleSources. |
+| github.com/go-git/go-billy/v5 | v5.9.2 | VCS filesystem abstraction for go-git. |
 | github.com/google/go-containerregistry | v0.22.1 | OCI image operations (push, pull, digest). |
-| github.com/kubernetes-csi/external-snapshotter/client/v8 | v8.6.0 | VolumeSnapshot API types. |
+| github.com/kubernetes-csi/external-snapshotter/client/v8 | v8.7.0 | VolumeSnapshot API types. |
 | github.com/opencontainers/go-digest | v1.0.0 | OCI digest parsing. |
 | github.com/opencontainers/image-spec | v1.1.1 | OCI image spec types. |
-| github.com/prometheus/client_golang | v1.24.1 | Prometheus metrics registration & exposition. |
+| github.com/prometheus/client_golang | v1.25.0 | Prometheus metrics registration & exposition. |
 | github.com/robfig/cron/v3 | v3.0.1 | Cron expression parsing (BackupSchedule). |
-| github.com/sigstore/cosign/v2 | v2.6.5 | cosign signature verification (module bundles). |
-| github.com/sigstore/sigstore | v1.10.9 | sigstore primitives (Fulcio roots, certificate chains). |
-| golang.org/x/crypto | v0.57.0 | Cryptographic primitives (TLS, X.509). |
-| golang.org/x/mod | v0.41.0 | Semantic versioning (semver package). |
-| oras.land/oras-go/v2 | v2.6.2 | OCI artifact pull (module bundles). |
+| github.com/sigstore/cosign/v3 | v3.1.4 | cosign signature verification (module bundles). |
+| github.com/sigstore/sigstore | v1.11.1 | sigstore primitives (Fulcio roots, certificate chains). |
+| golang.org/x/crypto | v0.59.0 | Cryptographic primitives (TLS, X.509). |
+| golang.org/x/mod | v0.43.0 | Semantic versioning (semver package). |
+| oras.land/oras-go/v2 | v2.7.0 | OCI artifact pull (module bundles). |
 | sigs.k8s.io/yaml | v1.6.0 | YAML marshaling (CRD manifests). |
 
 **Indirect:** Transitively pulled by the above (go-logr, crypto libraries, etc.).
@@ -850,3 +908,16 @@ and [operator operations](../docs/operator-operations.md) for defaults and failu
 ### Restic parent selection and accounting
 
 New workers use the bound GameServer UID as their Restic host. The first backup after upgrading may have no matching parent. Historical snapshots remain restorable by ID. `status.size` records the logical bytes processed. `status.bytesAdded` records the packed bytes added by that run, including a measured zero. Retention and pruning operate on shared repository data independently.
+
+### Failed StatefulSet rollout recovery
+
+When a corrected rolling update stalls on a failed older ordinal, the GameServer controller requests a pod eviction with UID and resource-version preconditions. It checks live workload ownership, desired replicas, revision and lifecycle fences. The StatefulSet recreates the pod. Disruption budgets can delay recovery.
+
+Recovery first claims the GameServer's shared lifecycle owner for the exact
+failed pod UID and GameServer generation. Backups, restores, wipes and template
+rollouts wait through eviction and termination of that UID. On restart the
+controller resumes the claim before validating new render inputs. A disruption
+budget refusal releases the claim so other operations can proceed during the retry delay.
+While an accepted eviction drains, ordinary resources and status keep reconciling;
+the shared owner preserves the workload's replica count and complete Pod template
+and defers new power operations until the old UID disappears.

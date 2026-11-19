@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -8,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -110,6 +113,83 @@ func TestHostportNodeLossAndUnschedulableListenerStayUnavailable(t *testing.T) {
 	plan, err = r.planSentinel(t.Context(), gs, tmpl, idleAsleep)
 	if err != nil || plan.wantSentinel || plan.hostportCondition.Reason != "EndpointNodeUnavailable" {
 		t.Fatalf("lost node: %+v, %v", plan, err)
+	}
+}
+
+func TestHostportArchitectureDefersToEndpointIdentityChecks(t *testing.T) {
+	r, gs, tmpl := hostportFixture(t)
+	tmpl.Spec.RequiredNodeArchitecture = "amd64"
+	gs.Annotations = map[string]string{hostportNodeAnnotation: "node-a", hostportNodeUIDAnnotation: "previous-uid"}
+	// A replacement with the same name must still trigger the identity-loss
+	// stop, even when the replacement lacks the required architecture label.
+	if err := r.validateHostportArchitecture(t.Context(), gs, tmpl); err != nil {
+		t.Fatal(err)
+	}
+	plan, err := r.planHostportSentinel(t.Context(), gs, idleAwake)
+	if err != nil || !plan.blockGame || plan.hostportCondition.Reason != "EndpointNodeUnavailable" {
+		t.Fatalf("lost the endpoint identity fence: %+v, %v", plan, err)
+	}
+
+	lookupErr := errors.New("node read temporarily unavailable")
+	r.APIReader = fake.NewClientBuilder().WithScheme(r.Scheme).WithInterceptorFuncs(interceptor.Funcs{
+		Get: func(context.Context, client.WithWatch, client.ObjectKey, client.Object, ...client.GetOption) error {
+			return lookupErr
+		},
+	}).Build()
+	var rejected workloadPolicyRejection
+	err = r.validateHostportArchitecture(t.Context(), gs, tmpl)
+	if !errors.Is(err, lookupErr) || errors.As(err, &rejected) {
+		t.Fatalf("node lookup failure must remain retryable: %v", err)
+	}
+}
+
+func TestRejectedHostportDrainsOnlySuspendedOwnedWaker(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		suspended bool
+		foreign   bool
+	}{
+		{name: "sleeping server keeps its listener"},
+		{name: "suspending drains the listener", suspended: true},
+		{name: "foreign listener retained", suspended: true, foreign: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := t.Context()
+			r, gs, tmpl := revisionFixture(t)
+			gs.Spec.Networking.Expose = "Hostport"
+			gs.Spec.Suspend = tc.suspended
+			if err := r.Update(ctx, gs); err != nil {
+				t.Fatal(err)
+			}
+			owner := metav1.NewControllerRef(gs, gameplanev1alpha1.GroupVersion.WithKind("GameServer"))
+			if tc.foreign {
+				owner.UID = "foreign"
+			}
+			waker := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: gs.Name + "-waker", Namespace: gs.Namespace,
+				UID: "waker", OwnerReferences: []metav1.OwnerReference{*owner}}}
+			if err := r.Create(ctx, waker); err != nil {
+				t.Fatal(err)
+			}
+			deleted := false
+			r.Client = interceptor.NewClient(r.Client.(client.WithWatch), interceptor.Funcs{
+				Delete: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
+					options := (&client.DeleteOptions{}).ApplyOptions(opts)
+					if options.PropagationPolicy == nil || *options.PropagationPolicy != metav1.DeletePropagationForeground ||
+						options.Preconditions == nil || options.Preconditions.UID == nil || *options.Preconditions.UID != waker.UID ||
+						options.Preconditions.ResourceVersion == nil || *options.Preconditions.ResourceVersion != waker.ResourceVersion {
+						t.Fatalf("missing foreground or identity preconditions: %+v", options)
+					}
+					deleted = true
+					return c.Delete(ctx, obj, opts...)
+				},
+			})
+			if _, err := r.reconcileRejectedGameWorkload(ctx, gs, tmpl, errors.New("endpoint architecture mismatch")); err != nil {
+				t.Fatal(err)
+			}
+			if deleted != (tc.suspended && !tc.foreign) {
+				t.Fatalf("unexpected listener deletion: %t", deleted)
+			}
+		})
 	}
 }
 

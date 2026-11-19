@@ -1,15 +1,12 @@
 package usage
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
-
-	"golang.org/x/sys/unix"
 )
 
 func writeFile(t *testing.T, dir, name, body string) {
@@ -121,61 +118,10 @@ func TestRead_MemoryMaxUnlimited(t *testing.T) {
 	}
 }
 
-func TestRead_Disk(t *testing.T) {
-	r := New(Config{
-		Root:    t.TempDir(),
-		DataDir: "/data",
-		statfs: func(path string, st *unix.Statfs_t) error {
-			if path != "/data" {
-				t.Fatalf("statfs path = %q", path)
-			}
-			st.Bsize = 4096
-			st.Blocks = 1000
-			st.Bfree = 250
-			return nil
-		},
-	})
-	s := r.Read()
-	if !s.DiskKnown {
-		t.Fatalf("disk should be known")
-	}
-	if s.DiskTotalBytes != 4096*1000 {
-		t.Fatalf("disk total = %d", s.DiskTotalBytes)
-	}
-	if s.DiskUsedBytes != 4096*750 {
-		t.Fatalf("disk used = %d", s.DiskUsedBytes)
-	}
-}
-
 func TestRead_DiskDisabledWhenNoDataDir(t *testing.T) {
 	s := New(Config{Root: t.TempDir()}).Read()
 	if s.DiskKnown {
 		t.Fatalf("disk should be disabled without a DataDir")
-	}
-}
-
-func TestRead_DiskStatfsError(t *testing.T) {
-	r := New(Config{
-		Root:    t.TempDir(),
-		DataDir: "/data",
-		statfs:  func(string, *unix.Statfs_t) error { return errors.New("boom") },
-	})
-	if r.Read().DiskKnown {
-		t.Fatalf("disk should be unknown on statfs error")
-	}
-}
-
-func TestRead_DiskZeroBlockSize(t *testing.T) {
-	r := New(Config{
-		Root:    t.TempDir(),
-		DataDir: "/data",
-		statfs: func(_ string, st *unix.Statfs_t) error {
-			st.Bsize = 0
-			return nil
-		},
-	})
-	if r.Read().DiskKnown {
-		t.Fatalf("disk should be unknown when block size is zero")
 	}
 }
 
@@ -229,8 +175,8 @@ func TestNew_DefaultsRoot(t *testing.T) {
 	if r.cfg.Root != defaultCgroupRoot {
 		t.Fatalf("default root = %q, want %q", r.cfg.Root, defaultCgroupRoot)
 	}
-	if r.cfg.now == nil || r.cfg.statfs == nil {
-		t.Fatalf("now/statfs should default to non-nil")
+	if r.cfg.now == nil {
+		t.Fatalf("clock should default to non-nil")
 	}
 }
 

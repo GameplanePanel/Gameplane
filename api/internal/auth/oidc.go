@@ -129,8 +129,8 @@ type OIDC struct {
 	db                   *db.Store
 	auditWriteSync       func(ctx context.Context, method, path, target, reason string, status int) error
 	providerName         string
-	getHelmRoleOverrides func(context.Context) *RoleMappings
-	getHelmOverride      func(context.Context) *HelmOverride
+	getHelmRoleOverrides func(context.Context) (*RoleMappings, error)
+	getHelmOverride      func(context.Context) (*HelmOverride, error)
 }
 
 // NewOIDCWithPolicy is NewOIDC carrying a group→role mapping policy. The
@@ -317,19 +317,27 @@ func overrideRulesPerRole(base []RoleRule, ov *RoleMappings) []RoleRule {
 // effectivePolicy returns the policy this sign-in decides with. The Helm
 // provider merges the dashboard's helmOverride, read fresh on every sign-in
 // (SC-007); every other provider uses its own policy.
-func (o *OIDC) effectivePolicy(ctx context.Context) *ProviderPolicy {
+func (o *OIDC) effectivePolicy(ctx context.Context) (*ProviderPolicy, error) {
 	if o.providerName != HelmProviderName {
-		return o.policy
+		return o.policy, nil
 	}
 	if o.getHelmOverride != nil {
-		return effectiveHelmOverridePolicy(o.policy, o.getHelmOverride(ctx))
+		ov, err := o.getHelmOverride(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("read helm override: %w", err)
+		}
+		return effectiveHelmOverridePolicy(o.policy, ov), nil
 	}
 	if o.getHelmRoleOverrides != nil {
-		if m := o.getHelmRoleOverrides(ctx); m != nil {
-			return effectiveHelmPolicy(o.policy, m)
+		m, err := o.getHelmRoleOverrides(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("read helm role overrides: %w", err)
+		}
+		if m != nil {
+			return effectiveHelmPolicy(o.policy, m), nil
 		}
 	}
-	return o.policy
+	return o.policy, nil
 }
 
 // Decision is the sign-in rule result for one user (spec 034).
@@ -446,7 +454,7 @@ func (o *OIDC) SetProviderName(name string) { o.providerName = name }
 // AttachHelmRoleOverridesFunc attaches a function that reads the current Helm-seeded
 // role-mapping overrides from the auth config row. Called on every login for the Helm
 // provider to deliver SC-007 (no restart needed after admin edit).
-func (o *OIDC) AttachHelmRoleOverridesFunc(fn func(context.Context) *RoleMappings) {
+func (o *OIDC) AttachHelmRoleOverridesFunc(fn func(context.Context) (*RoleMappings, error)) {
 	o.getHelmRoleOverrides = fn
 }
 
@@ -455,6 +463,17 @@ func (o *OIDC) AttachHelmRoleOverridesFunc(fn func(context.Context) *RoleMapping
 // auth config row. The Helm provider calls it on every sign-in (SC-007). It
 // takes precedence over AttachHelmRoleOverridesFunc.
 func (o *OIDC) AttachHelmOverrideFunc(fn func(context.Context) *HelmOverride) {
+	if fn == nil {
+		o.getHelmOverride = nil
+		return
+	}
+	o.attachHelmOverrideReader(func(ctx context.Context) (*HelmOverride, error) { return fn(ctx), nil })
+}
+
+// attachHelmOverrideReader is AttachHelmOverrideFunc for a reader that can
+// fail. A read error aborts the sign-in with 503, so an unavailable or
+// malformed PostgreSQL auth row never drops the dashboard's restrictions.
+func (o *OIDC) attachHelmOverrideReader(fn func(context.Context) (*HelmOverride, error)) {
 	o.getHelmOverride = fn
 }
 
@@ -562,8 +581,14 @@ func (o *OIDC) HandleCallbackAt(sessions *SessionStore, cookiePath string) http.
 		groups := extractGroups(rawClaims, claimName)
 
 		// The effective policy: for the Helm provider the dashboard's
-		// helmOverride is merged in, read on every sign-in (SC-007).
-		policy := o.effectivePolicy(req.Context())
+		// helmOverride is merged in, read on every sign-in (SC-007). An
+		// unreadable override aborts the sign-in rather than dropping the
+		// dashboard's restrictions.
+		policy, err := o.effectivePolicy(req.Context())
+		if err != nil {
+			httperr.WriteCode(w, req, http.StatusServiceUnavailable, err)
+			return
+		}
 		decision := decideRole(groups, policy)
 
 		// Look up the linked user and its role source before acting on the
@@ -632,9 +657,15 @@ func ruleLabel(d Decision, mappingOn bool) string {
 //     guard kept) and the source becomes sso, or the sign-in is refused on
 //     deny or a missing role, with role and source unchanged;
 //   - existing manual user: always admitted with the stored role, and
-//     nothing is written to the user row (OD-5);
+//     nothing is written to the user's role or source (OD-5);
 //   - mapping off: a new user gets d's role (viewer), an existing user is
 //     left as it is and no event is written.
+//
+// Every read and write runs in one user-management transaction (shared
+// with manual role changes and account deletion; a PostgreSQL advisory lock
+// across API replicas), so the role, its source and the cluster-wide binding
+// change together. A profile refresh failure is rolled back on its own and
+// never blocks the sign-in.
 //
 // A missing role is never skipped in favour of a later rule (OD-2). The
 // returned user is nil only for a refused new user; the caller answers the
@@ -643,6 +674,12 @@ func (o *OIDC) applySignIn(ctx context.Context, issuer string, p oidcProfile, d 
 	if o.db == nil {
 		return nil, nil, errors.New("oidc: no store attached")
 	}
+	tx, err := o.db.BeginUserManagement(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("begin user management: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
 	out := &RoleDecisionOutcome{
 		NewRole:      d.Role,
 		MatchedGroup: d.MatchedGroup(),
@@ -652,7 +689,7 @@ func (o *OIDC) applySignIn(ctx context.Context, issuer string, p oidcProfile, d 
 	// The decision is usable only when it names an existing role.
 	usable := !d.Deny
 	if usable && mappingOn {
-		ok, err := o.db.RoleExists(ctx, d.Role)
+		ok, err := (db.Roles{Reader: tx}).RoleExists(ctx, d.Role)
 		if err != nil {
 			return nil, nil, fmt.Errorf("check role %q: %w", d.Role, err)
 		}
@@ -663,7 +700,7 @@ func (o *OIDC) applySignIn(ctx context.Context, issuer string, p oidcProfile, d 
 		refusal = resultRefusedDeny
 	}
 
-	u, source, err := o.lookupLinkedUser(ctx, issuer, p.Sub)
+	u, source, err := lookupLinkedUser(ctx, tx, issuer, p.Sub)
 	if errors.Is(err, sql.ErrNoRows) {
 		out.PreviousRole = "new_user"
 		out.Source = sourceNew
@@ -671,9 +708,12 @@ func (o *OIDC) applySignIn(ctx context.Context, issuer string, p oidcProfile, d 
 			out.Result = refusal
 			return nil, out, nil
 		}
-		nu, err := o.createLinkedUser(ctx, issuer, p, d.Role)
+		nu, err := createLinkedUser(ctx, tx, issuer, p, d.Role)
 		if err != nil {
 			return nil, nil, err
+		}
+		if err := tx.Commit(); err != nil {
+			return nil, nil, fmt.Errorf("commit: %w", err)
 		}
 		out.Applied = true
 		out.Result = resultApplied
@@ -690,8 +730,6 @@ func (o *OIDC) applySignIn(ctx context.Context, issuer string, p oidcProfile, d 
 		// Mapping off: the stored role and source are never touched.
 		out.NewRole = u.Role
 		out.Applied = true
-		o.refreshProfileOrWarn(ctx, u, issuer, p)
-		return u, out, nil
 	case source == db.RoleSourceManual:
 		// A hand-set role always signs in unchanged (OD-5).
 		if !usable {
@@ -699,59 +737,61 @@ func (o *OIDC) applySignIn(ctx context.Context, issuer string, p oidcProfile, d 
 		} else if d.Role != u.Role {
 			out.Result = resultKeptManual
 		}
-		o.refreshProfileOrWarn(ctx, u, issuer, p)
-		return u, out, nil
 	case !usable:
 		// SSO-managed user: refused, role and source unchanged.
 		out.Result = refusal
 		return u, out, nil
+	default:
+		refreshProfileOrWarn(ctx, tx, u, issuer, p)
+		synced, err := o.syncSSORole(ctx, tx, u.ID, d.Role, true)
+		if err != nil {
+			return nil, nil, fmt.Errorf("sync role for user %d: %w", u.ID, err)
+		}
+		if err := tx.Commit(); err != nil {
+			return nil, nil, fmt.Errorf("commit: %w", err)
+		}
+		synced.MatchedGroup = out.MatchedGroup
+		synced.Rule = out.Rule
+		if synced.Applied {
+			u.Role = synced.NewRole
+		}
+		return u, synced, nil
 	}
-	o.refreshProfileOrWarn(ctx, u, issuer, p)
-	synced, err := o.syncSSORole(ctx, u.ID, d.Role, true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("sync role for user %d: %w", u.ID, err)
+	refreshProfileOrWarn(ctx, tx, u, issuer, p)
+	if err := tx.Commit(); err != nil {
+		return nil, nil, fmt.Errorf("commit: %w", err)
 	}
-	synced.MatchedGroup = out.MatchedGroup
-	synced.Rule = out.Rule
-	if synced.Applied {
-		u.Role = synced.NewRole
-	}
-	return u, synced, nil
+	return u, out, nil
 }
 
 // lookupLinkedUser returns the user linked to (issuer, sub) and its role
-// source. The error wraps sql.ErrNoRows when no user is linked.
-func (o *OIDC) lookupLinkedUser(ctx context.Context, issuer, sub string) (*User, string, error) {
+// source, read in tx. The error wraps sql.ErrNoRows when no user is linked.
+func lookupLinkedUser(ctx context.Context, tx *sql.Tx, issuer, sub string) (*User, string, error) {
 	var u User
 	var source string
-	err := o.db.DB.QueryRowContext(ctx, `
+	err := tx.QueryRowContext(ctx, `
 		SELECT u.id, u.username, u.display_name, u.email, u.role, u.role_source
 		FROM users u JOIN oidc_links l ON l.user_id = u.id
 		WHERE l.issuer = ? AND l.subject = ?`, issuer, sub,
 	).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role, &source)
 	if err != nil {
-		return nil, "", fmt.Errorf("look up linked user: %w", err)
+		return nil, "", fmt.Errorf("read OIDC identity: %w", err)
 	}
 	return &u, source, nil
 }
 
-// refreshProfileOrWarn refreshes the stored profile from the IdP's claims. A
-// stale profile must never lock the user out, so a failure is only logged.
-func (o *OIDC) refreshProfileOrWarn(ctx context.Context, u *User, issuer string, p oidcProfile) {
-	if err := o.refreshProfile(ctx, u, issuer, p); err != nil {
+// refreshProfileOrWarn refreshes the stored profile from the IdP's claims
+// inside tx. A stale profile must never lock the user out, so a failure is
+// only logged; refreshProfile has already rolled its own writes back.
+func refreshProfileOrWarn(ctx context.Context, tx *sql.Tx, u *User, issuer string, p oidcProfile) {
+	if err := refreshProfile(ctx, tx, u, issuer, p); err != nil {
 		slog.Warn("oidc profile refresh failed", "user_id", u.ID, "err", err)
 	}
 }
 
 // createLinkedUser creates an SSO user with role and role source sso, its
-// oidc_links row and its cluster-wide role binding, in one transaction.
-func (o *OIDC) createLinkedUser(ctx context.Context, issuer string, p oidcProfile, role string) (*User, error) {
-	tx, err := o.db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-
+// oidc_links row and its cluster-wide role binding, in the caller's tx.
+func createLinkedUser(ctx context.Context, tx *sql.Tx, issuer string, p oidcProfile, role string) (*User, error) {
 	// Find a username that doesn't collide with an existing local user.
 	// Suffix with a short piece of the OIDC subject on conflict — keeps
 	// the username recognizable while guaranteeing uniqueness.
@@ -783,9 +823,6 @@ func (o *OIDC) createLinkedUser(ctx context.Context, issuer string, p oidcProfil
 	); err != nil {
 		return nil, fmt.Errorf("insert role binding: %w", err)
 	}
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit: %w", err)
-	}
 	return &User{ID: uid, Username: username, DisplayName: p.Name, Email: p.Email, Role: role}, nil
 }
 
@@ -816,40 +853,50 @@ func (o *OIDC) resolveOrLinkUser(
 // else the subject. For an existing user the IdP's non-empty email and name
 // overwrite the stored ones on every login, and a username that is still
 // the raw subject (no better claim was available at first login) is
-// replaced once a preferred_username or email shows up.
+// replaced once a preferred_username or email shows up. Everything runs in
+// one user-management transaction; a profile failure is rolled back on its
+// own and the role sync still commits.
 func (o *OIDC) resolveOrLinkUserProfile(
 	ctx context.Context, issuer string, p oidcProfile, role, matchedGroup string, syncRole bool,
 ) (*User, *RoleAssignmentOutcome, error) {
 	if o.db == nil {
 		return nil, nil, errors.New("oidc: no store attached")
 	}
-	u, _, err := o.lookupLinkedUser(ctx, issuer, p.Sub)
+	tx, err := o.db.BeginUserManagement(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("begin user management: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	u, _, err := lookupLinkedUser(ctx, tx, issuer, p.Sub)
 	if err == nil {
-		o.refreshProfileOrWarn(ctx, u, issuer, p)
+		refreshProfileOrWarn(ctx, tx, u, issuer, p)
+		outcome := &RoleAssignmentOutcome{
+			PreviousRole: u.Role, NewRole: u.Role, Applied: true, MatchedGroup: "none",
+		}
 		if syncRole {
-			outcome, err := o.syncUserRole(ctx, u.ID, role, matchedGroup)
+			outcome, err = o.syncUserRole(ctx, tx, u.ID, role, matchedGroup)
 			if err != nil {
 				return nil, nil, fmt.Errorf("sync role for user %d: %w", u.ID, err)
 			}
 			if outcome.Applied {
 				u.Role = outcome.NewRole
 			}
-			return u, outcome, nil
 		}
-		// No re-evaluation: return the user as-is.
-		return u, &RoleAssignmentOutcome{
-			PreviousRole: u.Role,
-			NewRole:      u.Role,
-			Applied:      true,
-			MatchedGroup: "none",
-		}, nil
+		if err := tx.Commit(); err != nil {
+			return nil, nil, fmt.Errorf("commit: %w", err)
+		}
+		return u, outcome, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}
-	nu, err := o.createLinkedUser(ctx, issuer, p, role)
+	nu, err := createLinkedUser(ctx, tx, issuer, p, role)
 	if err != nil {
 		return nil, nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, nil, fmt.Errorf("commit: %w", err)
 	}
 	return nu, &RoleAssignmentOutcome{
 		PreviousRole: "new_user",
@@ -860,11 +907,12 @@ func (o *OIDC) resolveOrLinkUserProfile(
 }
 
 // syncUserRole re-points an existing user's primary role and their cluster-wide ("*") role
-// binding at newRole and marks the role source sso, whatever the stored source. It returns an
-// outcome describing what happened (previous role, new role, whether applied). The sign-in
-// callback goes through applySignIn, which keeps hand-set roles; see syncSSORole.
-func (o *OIDC) syncUserRole(ctx context.Context, userID int64, newRole, matchedGroup string) (*RoleAssignmentOutcome, error) {
-	out, err := o.syncSSORole(ctx, userID, newRole, false)
+// binding at newRole and marks the role source sso, whatever the stored source, in the caller's
+// user-management transaction tx. It returns an outcome describing what happened (previous
+// role, new role, whether applied). The sign-in callback goes through applySignIn, which keeps
+// hand-set roles; see syncSSORole.
+func (o *OIDC) syncUserRole(ctx context.Context, tx *sql.Tx, userID int64, newRole, matchedGroup string) (*RoleAssignmentOutcome, error) {
+	out, err := o.syncSSORole(ctx, tx, userID, newRole, false)
 	if out != nil {
 		out.MatchedGroup = matchedGroup
 	}
@@ -872,8 +920,9 @@ func (o *OIDC) syncUserRole(ctx context.Context, userID int64, newRole, matchedG
 }
 
 // syncSSORole points an SSO-managed user's primary role and cluster-wide ("*") role binding at
-// newRole and stores role_source = 'sso', in one transaction under the user-management lock
-// (shared with manual role changes and account deletion), and reports the result:
+// newRole and stores role_source = 'sso', all in tx, which the caller opened with
+// db.Store.BeginUserManagement (the guard shared with manual role changes and account deletion)
+// and commits. It reports the result:
 //
 //   - applied: the role changed;
 //   - unchanged: the role already matched and the source moved from sso_pending to sso (OD-6);
@@ -882,17 +931,14 @@ func (o *OIDC) syncUserRole(ctx context.Context, userID int64, newRole, matchedG
 //     users, so it is skipped (Applied false, no error) and the sign-in still succeeds.
 //     Otherwise a group-mapping mistake at the IdP could have the sole admin demote themselves
 //     by logging in, locking everyone out of user administration;
-//   - kept_manual: with honorManual, a user an admin set by hand since the caller looked the
-//     user up keeps the role, so a concurrent PATCH is never undone.
+//   - kept_manual: with honorManual, a user an admin set by hand keeps the role.
 //
 // Namespace-scoped bindings are deliberately left alone — the IdP owns the primary role, not
 // the per-namespace grants an admin may have added.
-func (o *OIDC) syncSSORole(ctx context.Context, userID int64, newRole string, honorManual bool) (*RoleDecisionOutcome, error) {
-	unlock := o.db.LockUserManagement()
-	defer unlock()
-
+func (o *OIDC) syncSSORole(ctx context.Context, tx *sql.Tx, userID int64, newRole string, honorManual bool) (*RoleDecisionOutcome, error) {
+	roles := db.Roles{Reader: tx}
 	var currentRole, source string
-	if err := o.db.DB.QueryRowContext(ctx,
+	if err := tx.QueryRowContext(ctx,
 		`SELECT role, role_source FROM users WHERE id = ?`, userID).Scan(&currentRole, &source); err != nil {
 		return nil, fmt.Errorf("fetch current role: %w", err)
 	}
@@ -907,7 +953,7 @@ func (o *OIDC) syncSSORole(ctx context.Context, userID int64, newRole string, ho
 	if currentRole == newRole {
 		out.Applied = true
 		if source == db.RoleSourceSSOPending {
-			if err := o.db.SetRoleSource(ctx, nil, userID, db.RoleSourceSSO); err != nil {
+			if err := o.db.SetRoleSource(ctx, tx, userID, db.RoleSourceSSO); err != nil {
 				return out, err
 			}
 			out.Result = resultUnchanged
@@ -916,17 +962,17 @@ func (o *OIDC) syncSSORole(ctx context.Context, userID int64, newRole string, ho
 	}
 
 	// A demotion that removes user management must not remove the last user-manager.
-	newGrantsManage, err := o.db.RoleGrantsUserManagement(ctx, newRole)
+	newGrantsManage, err := roles.RoleGrantsUserManagement(ctx, newRole)
 	if err != nil {
 		return out, fmt.Errorf("check target role: %w", err)
 	}
 	if !newGrantsManage {
-		managesNow, err := o.db.UserManagesUsers(ctx, userID)
+		managesNow, err := roles.UserManagesUsers(ctx, userID)
 		if err != nil {
 			return out, fmt.Errorf("check current role: %w", err)
 		}
 		if managesNow {
-			count, err := o.db.UserManagerCount(ctx)
+			count, err := roles.UserManagerCount(ctx)
 			if err != nil {
 				return out, fmt.Errorf("count user managers: %w", err)
 			}
@@ -938,12 +984,6 @@ func (o *OIDC) syncSSORole(ctx context.Context, userID int64, newRole string, ho
 		}
 	}
 
-	tx, err := o.db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return out, fmt.Errorf("begin: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE users SET role = ? WHERE id = ?`, newRole, userID); err != nil {
 		return out, fmt.Errorf("update role: %w", err)
@@ -953,9 +993,6 @@ func (o *OIDC) syncSSORole(ctx context.Context, userID int64, newRole string, ho
 	}
 	if err := o.db.SetClusterRoleBinding(ctx, tx, userID, scope.DefaultCluster, newRole); err != nil {
 		return out, err
-	}
-	if err := tx.Commit(); err != nil {
-		return out, fmt.Errorf("commit: %w", err)
 	}
 	out.Applied = true
 	out.Result = resultApplied
@@ -1053,7 +1090,7 @@ func (o *OIDC) fillFromUserInfo(ctx context.Context, tok *oauth2.Token, p *oidcP
 // refreshProfile brings an existing SSO user's email, display name and
 // (when it is still the raw subject) username up to date with the IdP's
 // claims. Empty claims never clear stored values. u is updated in place.
-func (o *OIDC) refreshProfile(ctx context.Context, u *User, issuer string, p oidcProfile) error {
+func refreshProfile(ctx context.Context, tx *sql.Tx, u *User, issuer string, p oidcProfile) (err error) {
 	newEmail, newName, newUsername := u.Email, u.DisplayName, u.Username
 	if p.Email != "" {
 		newEmail = p.Email
@@ -1065,11 +1102,17 @@ func (o *OIDC) refreshProfile(ctx context.Context, u *User, issuer string, p oid
 	if newEmail == u.Email && newName == u.DisplayName && !renaming {
 		return nil
 	}
-	tx, err := o.db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("begin: %w", err)
+	// A profile failure must not abort role synchronization on PostgreSQL or
+	// leave only one of the two profile rows updated.
+	if _, err := tx.ExecContext(ctx, "SAVEPOINT oidc_profile"); err != nil {
+		return fmt.Errorf("begin profile savepoint: %w", err)
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() {
+		if err != nil {
+			_, rollbackErr := tx.ExecContext(ctx, "ROLLBACK TO SAVEPOINT oidc_profile")
+			err = errors.Join(err, rollbackErr)
+		}
+	}()
 	if renaming {
 		newUsername, err = pickUniqueUsername(ctx, tx, p.baseUsername(), p.Sub)
 		if err != nil {
@@ -1090,8 +1133,8 @@ func (o *OIDC) refreshProfile(ctx context.Context, u *User, issuer string, p oid
 			return fmt.Errorf("update oidc link: %w", err)
 		}
 	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit: %w", err)
+	if _, err := tx.ExecContext(ctx, "RELEASE SAVEPOINT oidc_profile"); err != nil {
+		return fmt.Errorf("release profile savepoint: %w", err)
 	}
 	u.Username, u.Email, u.DisplayName = newUsername, newEmail, newName
 	return nil

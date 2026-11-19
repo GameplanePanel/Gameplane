@@ -157,6 +157,57 @@ func TestRegistry_UnknownDisabledLocal(t *testing.T) {
 	}
 }
 
+func TestRegistryPostgresCacheTracksProviderCredentialsAndRedirect(t *testing.T) {
+	s := newAuthDB(t)
+	seedExternalURL(t, s)
+	idp := newFakeIDP(t, "gameplane")
+	seedConfigRow(t, s, "auth", authRow(providerRow("corp", idp.issuer(), true)))
+	// The registry uses portable config queries. Select its PostgreSQL cache
+	// policy here so fake issuer discovery and credential rotation run in unit CI.
+	s.Driver = "postgres"
+	secrets := secretFor("corp")
+	registries := []*Registry{
+		NewRegistry(s, staticSecrets(secrets), nil, "", nil),
+		NewRegistry(s, staticSecrets(secrets), nil, "", nil),
+	}
+	resolve := func(reg *Registry) *OIDC {
+		t.Helper()
+		o, err := reg.OIDCFor(t.Context(), "corp")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return o
+	}
+	first, second := resolve(registries[0]), resolve(registries[1])
+	if resolve(registries[1]) != second {
+		t.Fatal("unchanged discovery was rebuilt")
+	}
+	secrets["gameplane-auth-corp"]["clientSecret"] = []byte("rotated")
+	for i, reg := range registries {
+		o := resolve(reg)
+		if o == first || o == second || o.oauth.ClientSecret != "rotated" {
+			t.Fatalf("replica %d used stale credentials", i)
+		}
+	}
+	seedConfigRow(t, s, "general", `{"externalURL":"https://new.example"}`)
+	for i, reg := range registries {
+		if resolve(reg).oauth.RedirectURL != "https://new.example/auth/oidc/corp/callback" {
+			t.Fatalf("replica %d used stale redirect", i)
+		}
+	}
+	delete(secrets, "gameplane-auth-corp")
+	if _, err := registries[1].OIDCFor(t.Context(), "corp"); err == nil {
+		t.Fatal("removed Secret reused cached issuer")
+	}
+	seedConfigRow(t, s, "auth", "malformed")
+	if registries[0].LocalEnabled(t.Context()) {
+		t.Fatal("malformed PostgreSQL policy enabled local login")
+	}
+	if _, err := registries[1].HelmRoleOverrides(t.Context()); err == nil {
+		t.Fatal("malformed PostgreSQL row removed Helm restrictions")
+	}
+}
+
 func TestRegistry_BuildErrorBacksOff(t *testing.T) {
 	s := newAuthDB(t)
 	seedExternalURL(t, s)

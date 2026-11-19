@@ -125,6 +125,8 @@ func TestAllow(t *testing.T) {
 		{RoleViewer, "POST", "/servers/foo/players/unban", scope.DefaultCluster, false},
 		{RoleOperator, "POST", "/servers/foo/players/unban", scope.DefaultCluster, true},
 		{RoleViewer, "GET", "/servers/foo/players/banned", scope.DefaultCluster, true},
+		{RoleViewer, "GET", "/servers/foo/players/operators", scope.DefaultCluster, true},
+		{RoleViewer, "POST", "/servers/foo/players/operators", scope.DefaultCluster, false},
 		{RoleViewer, "GET", "/servers/foo/players", scope.DefaultCluster, true},
 		// Module-declared actions run console commands → operator+. Status read.
 		{RoleViewer, "POST", "/servers/foo/actions/run", scope.DefaultCluster, false},

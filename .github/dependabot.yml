@@ -3,7 +3,7 @@
 
 version: 2
 updates:
-  # Go modules — 14 entries (one per module in go.work)
+  # Go modules — 12 entries (one per module in go.work)
   - package-ecosystem: "gomod"
     directory: "/agent"
     schedule:
@@ -30,34 +30,6 @@ updates:
     open-pull-requests-limit: 5
     groups:
       api-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "gomod"
-    directory: "/audit-syslog-bridge"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      audit-syslog-bridge-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "gomod"
-    directory: "/capture-sidecar"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      capture-sidecar-minor-patch:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "gomod"
@@ -103,20 +75,6 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "gomod"
-    directory: "/mcp-server"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      mcp-server-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "gomod"
     directory: "/netguard"
     schedule:
       interval: "weekly"
@@ -156,20 +114,6 @@ updates:
     open-pull-requests-limit: 5
     groups:
       sentinel-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "gomod"
-    directory: "/svcutil"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      svcutil-minor-patch:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "gomod"
@@ -228,35 +172,6 @@ updates:
       test-e2e-minor-patch:
         update-types: ["minor", "patch"]
 
-  - package-ecosystem: "gomod"
-    directory: "/tunnel"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      tunnel-minor-patch:
-        update-types: ["minor", "patch"]
-
-  # frpc build module (tunnel/Dockerfile.frp builds frpc from these pins)
-  - package-ecosystem: "gomod"
-    directory: "/tunnel/frpc"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      tunnel-frpc-minor-patch:
-        update-types: ["minor", "patch"]
-
   # npm — 1 entry (React dashboard)
   - package-ecosystem: "npm"
     directory: "/web"
@@ -272,7 +187,7 @@ updates:
       npm-minor-patch:
         update-types: ["minor", "patch"]
 
-  # Docker — 13 entries (base images and service containers)
+  # Docker — 9 entries (base images and service containers)
   - package-ecosystem: "docker"
     directory: "/agent"
     schedule:
@@ -302,34 +217,6 @@ updates:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
-    directory: "/audit-syslog-bridge"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      audit-syslog-bridge-docker-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "docker"
-    directory: "/capture-sidecar"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      capture-sidecar-docker-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "docker"
     directory: "/containers/common/steamcmd"
     schedule:
       interval: "weekly"
@@ -355,20 +242,6 @@ updates:
     open-pull-requests-limit: 5
     groups:
       nuclear-option-docker-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "docker"
-    directory: "/mcp-server"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      mcp-server-docker-minor-patch:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
@@ -425,20 +298,6 @@ updates:
     open-pull-requests-limit: 5
     groups:
       test-e2e-docker-minor-patch:
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "docker"
-    directory: "/tunnel"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    open-pull-requests-limit: 5
-    groups:
-      tunnel-docker-minor-patch:
         update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"

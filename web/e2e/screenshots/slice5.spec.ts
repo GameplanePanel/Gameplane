@@ -15,10 +15,9 @@ import { captureLocator } from "./capture";
 // (specs/done_014-heroui-web-rebuild/contracts/share-link-ui.md): five Settings ·
 // Share links frames (xCJlu, dQV9N, atqRh, VM7ro, S7SCDc) and five public
 // /share/$token page states (C2LQE4, q31B6w, qFLfB, EcoGD, epZO2).
-// qFLfB is a historical view-only design: server phase cannot establish
-// permission. Its former inferred-permission scenario now verifies recovery
-// against q31B6w. FBiMN captures the transient Start cooldown, keeping five
-// reachable public states under browser capture.
+// qFLfB is the historical view-only design. Public canStart now supplies the
+// permission independently of phase; functional coverage lives in specs/slice5.
+// FBiMN captures the transient Start cooldown.
 //
 // T179 mounted ShareLinksSection into Settings.tsx's SECTIONS ("Share
 // links" in the vertical Tabs nav). The two full-page Settings frames,
@@ -83,6 +82,7 @@ async function mockShareResolve(
           const steps = Array.isArray(entry) ? entry : [entry];
           const i = Math.min(calls[key] ?? 0, steps.length - 1);
           calls[key] = (calls[key] ?? 0) + 1;
+          if (!match[2]) document.documentElement.dataset.shareResolveCount = String(calls[key]);
           const step = steps[i];
           return Promise.resolve(
             new Response(step.body !== undefined ? JSON.stringify(step.body) : null, {
@@ -329,7 +329,7 @@ test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @scre
     await capture(page, "C2LQE4");
   });
 
-  test("q31B6w: Share page — Asleep, can start before and after a pending wake", async ({ page }) => {
+  test("q31B6w: Share page — Asleep before an accepted wake", async ({ page }) => {
     await mockShareResolve(page, {
       "shot-asleep-start": {
         status: 200,
@@ -344,17 +344,17 @@ test.describe("Slice 5: Share links — public page (Desktop — 1440x900) @scre
     const startButton = page.getByRole("button", { name: /start server/i });
     await expect(startButton).toBeVisible();
     await expect(startButton).toBeEnabled();
-    await startButton.click();
-    await expect(page.getByText(/starting up/i)).toBeVisible();
-    await expect(page.getByText("Asleep", { exact: true })).toBeVisible({ timeout: 15_000 });
-    await expect(startButton).toBeVisible();
-    await expect(startButton).toBeEnabled();
-    await expect(page.getByText(/check back later/i)).toHaveCount(0);
-    // The old qFLfB view-only scenario inferred permission from phase. A
-    // still-asleep poll must retain retry, matching the existing q31B6w
-    // reference. Capture once after recovery to avoid duplicate output IDs.
     await page.waitForTimeout(200);
     await capture(page, "q31B6w");
+    const resolvesBeforeWake = Number(await page.locator("html").getAttribute("data-share-resolve-count"));
+    await startButton.click();
+    await expect(page.getByText(/starting up/i)).toBeVisible();
+    await expect.poll(async () => Number(await page.locator("html").getAttribute("data-share-resolve-count")), { timeout: 15_000 }).toBeGreaterThan(resolvesBeforeWake);
+    // A completed poll still reports sleep, but the accepted wake remains in
+    // progress. Only the initial asleep view belongs to the q31B6w reference.
+    await expect(page.getByText(/starting up/i)).toBeVisible();
+    await expect(startButton).toHaveCount(0);
+    await expect(page.getByText(/check back later/i)).toHaveCount(0);
   });
 
   test("FBiMN: Share page — Asleep, Start cooldown", async ({ page }) => {

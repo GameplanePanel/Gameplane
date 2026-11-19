@@ -433,21 +433,13 @@ function makeShares(request: typeof api) {
   // POST /shares/{token}/start (public, no auth, rate-limited, only if canStart=true).
   // Wakes a sleeping server if the link permits it. Returns 202 Accepted on success.
   // Returns the same response for invalid/expired/revoked/no-permission states (FR-005).
-  // Transient failures propagate so callers can back off and offer a retry.
-  start: async (token: string, signal?: AbortSignal): Promise<void> => {
-    try {
-      return await api<void>(`/shares/${encodeURIComponent(token)}/start`, {
-        method: "POST",
-        signal,
-      });
-    } catch (err) {
-      if (err instanceof APIError && err.status === 404) {
-        // Keep invalid, expired, revoked and denied links indistinguishable.
-        return;
-      }
-      throw err;
-    }
-  },
+  // Rejections propagate: a neutral 404 is unavailable, not an accepted wake.
+  // The public page renders fixed copy without exposing error response details.
+  start: (token: string, signal?: AbortSignal): Promise<void> =>
+    api<void>(`/shares/${encodeURIComponent(token)}/start`, {
+      method: "POST",
+      signal,
+    }),
 };
 }
 

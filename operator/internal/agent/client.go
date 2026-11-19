@@ -120,22 +120,34 @@ func (c *Client) QuiesceEnabled() bool { return c != nil && !c.Disabled }
 // CheckPod verifies that the responding agent belongs to the selected Pod.
 // Older agents return 404; callers must not fall back to unbound mutations.
 func (c *Client) CheckPod(ctx context.Context, namespace, server, podUID string) error {
+	_, err := c.PodBackupMode(ctx, namespace, server, podUID)
+	return err
+}
+
+// PodBackupMode also accepts older v2 agents whose identity response has no
+// mode header. Those agents only implement the original pause/resume protocol.
+func (c *Client) PodBackupMode(ctx context.Context, namespace, server, podUID string) (string, error) {
 	if c.Disabled || podUID == "" {
-		return fmt.Errorf("agent: pod identity check requires an enabled client and pod UID")
+		return "", fmt.Errorf("agent: pod identity check requires an enabled client and pod UID")
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agentURL(namespace, server, "/v2/pods/"+url.PathEscape(podUID)+"/identity"), nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("agent: pod identity check: %w", err)
+		return "", fmt.Errorf("agent: pod identity check: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("agent: pod identity check: status %d", resp.StatusCode)
+		return "", fmt.Errorf("agent: pod identity check: status %d", resp.StatusCode)
 	}
-	return nil
+	return resp.Header.Get("Gameplane-Backup-Mode"), nil
+}
+
+// FlushPod checkpoints the game without changing its write policy.
+func (c *Client) FlushPod(ctx context.Context, namespace, server, podUID string) error {
+	return c.callPodQuiesce(ctx, namespace, server, podUID, "/flush", false)
 }
 
 // QuiescePod disables saving only on the selected Pod's agent.
@@ -204,6 +216,9 @@ func (c *Client) callQuiesce(ctx context.Context, namespace, server, path string
 		return fmt.Errorf("agent: %s: refused or contradictory acknowledgment", path)
 	}
 	want := "resumed"
+	if strings.HasSuffix(path, "/flush") {
+		want = "flushed"
+	}
 	if expectQuiesced {
 		want = "paused"
 	}

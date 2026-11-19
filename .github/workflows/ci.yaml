@@ -26,8 +26,6 @@ on:
       - "**/specs.md"
       - "README.md"
       - "docs/**"
-      - "audit-syslog-bridge/README.md"
-      - "mcp-server/README.md"
       - "telemetry-receiver/README.md"
       - "CHANGELOG.md"
       - "AGENTS.md"
@@ -189,16 +187,13 @@ jobs:
               - 'operator/**'
               - 'api/**'
               - 'agent/**'
-              - 'audit-syslog-bridge/**'
               - 'telemetry-receiver/**'
               - 'telemetryschema/**'
               - 'i18n/**'
               - 'sentinel/**'
-              - 'mcp-server/**'
-              - 'capture-sidecar/**'
-              - 'svcutil/**'
-              - 'tunnel/**'
               - 'gp-module/**'
+              # The capture-sidecar submodule (its pointer) gates capture-sidecar-setcap-proof.
+              - 'capture-sidecar'
               - 'test/e2e/**'
               - 'go.work'
               - 'go.work.sum'
@@ -237,6 +232,12 @@ jobs:
               - 'test/e2e/**'
               - 'deploy/kind/**'
               - 'containers/docker-bake.hcl'
+              # Component submodules (hack/submodules.sh, enforced by its
+              # `check` in submodule-freshness): a pointer bump changes an image the e2e loads.
+              - 'mcp-server'
+              - 'audit-syslog-bridge'
+              - 'tunnel'
+              - 'capture-sidecar'
               - 'hack/trivy-scan-images.sh'
               - 'hack/check-image-scan_test.sh'
             # Narrower than e2etree on purpose: this backs a job that only
@@ -256,7 +257,7 @@ jobs:
             # specs/done_007-capture-overhead-guard/OPEN-DECISIONS.md). Master pushes
             # run it through the e2e gate instead.
             capture_overhead:
-              - 'capture-sidecar/**'
+              - 'capture-sidecar'
               - 'operator/internal/controller/networkcapture*'
               - 'api/internal/handlers/capture*'
               - 'test/e2e/internal/minecraft-java/**'
@@ -266,6 +267,12 @@ jobs:
             submodules:
               - 'modules'
               - 'website'
+              - 'mcp-server'
+              - 'audit-syslog-bridge'
+              - 'tunnel'
+              - 'capture-sidecar'
+              - '.gitmodules'
+              - 'hack/submodules.sh'
               - 'hack/check-submodule-freshness.sh'
               - 'hack/check-submodule-freshness_test.sh'
             # Gate scope for codegen drift (spec 013 T007).
@@ -309,6 +316,10 @@ jobs:
               - 'hack/test-check-publish-edge-paths.sh'
               - 'hack/testdata/check-publish-edge-paths/**'
               - '**/Dockerfile*'
+              - 'mcp-server'
+              - 'audit-syslog-bridge'
+              - 'tunnel'
+              - 'capture-sidecar'
               - '.hadolint.yaml'
               - 'hack/check-hadolint_test.sh'
               - 'hack/testdata/hadolint/**'
@@ -340,8 +351,6 @@ jobs:
               - 'docs/roadmap.md'
               - 'docs/security.md'
               - 'docs/tunnels.md'
-              - 'audit-syslog-bridge/README.md'
-              - 'mcp-server/README.md'
               - 'telemetry-receiver/README.md'
               - 'docs/comparison-sources.md'
               - 'FEATURES.md'
@@ -520,6 +529,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init component submodules
+        run: ./hack/submodules.sh init
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: install libcap2-bin (getcap)
         run: |
@@ -699,7 +710,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: codegen-drift
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: regenerate deepcopy, CRDs, RBAC and chart CRD copies
         run: make generate manifests
       - name: go mod tidy across modules
@@ -709,8 +720,8 @@ jobs:
       - name: prove the gate fails on a stale types edit
         run: ./hack/check-codegen-drift_test.sh
 
-  # Spec 013 G6 (OD-1): the modules/ and website/ gitlinks must point at
-  # commits already on each submodule's main branch, so a pointer bump never
+  # Spec 013 G6 (OD-1): every submodule gitlink (modules/, website/ and the
+  # component submodules in .gitmodules) must point at commits already on its main branch, so a pointer bump never
   # lands before its submodule PR merges.
   submodule-freshness:
     name: submodule freshness
@@ -730,6 +741,8 @@ jobs:
         run: ./hack/check-submodule-freshness_test.sh
       - name: submodule pointers are on upstream main
         run: ./hack/check-submodule-freshness.sh
+      - name: component submodules are in the workflow path filters
+        run: ./hack/submodules.sh check
 
   # Spec 028: a PR that adds a move brief under specs/028-split-big-packages/briefs/ must
   # keep every test name and change test files only in the OD-6/OD-9 mechanical ways.
@@ -808,7 +821,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, audit-syslog-bridge, telemetry-receiver, mcp-server, capture-sidecar, svcutil, tunnel, gp-module, test/e2e]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, agent, api, sentinel, telemetry-receiver, gp-module, test/e2e]
         exclude: ${{ fromJSON(needs.changes.outputs.lint-exclude) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -894,7 +907,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, audit-syslog-bridge, telemetry-receiver, sentinel, mcp-server, capture-sidecar, svcutil, tunnel, gp-module]
+        module: [netguard, gameaction, gameproto, telemetryschema, i18n, operator, api, agent, telemetry-receiver, sentinel, gp-module]
         exclude: ${{ fromJSON(needs.changes.outputs.go-exclude) }}
         arch: [amd64, arm64]
     steps:
@@ -942,13 +955,6 @@ jobs:
           read -r -a packages <<<"$GO_PACKAGES"
           go test -covermode=atomic -coverpkg=./... \
             -coverprofile=coverage/unit.out "${packages[@]}"
-      - name: profile local UDP forwarding against direct echo
-        if: matrix.module == 'tunnel' && matrix.arch == 'amd64' && env.GO_PACKAGES != ''
-        working-directory: tunnel
-        run: |
-          go test -count=1 -v -run '^TestRelayLoadForwardingProfile$' -cpuprofile="$RUNNER_TEMP/relay.cpu" -memprofile="$RUNNER_TEMP/relay.mem" -o "$RUNNER_TEMP/relay.test" .
-          go tool pprof -top -cum -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.cpu"
-          go tool pprof -top -alloc_space -nodecount=12 -focus='forwarder' "$RUNNER_TEMP/relay.test" "$RUNNER_TEMP/relay.mem"
       - name: sentinel mixed-load regression measurements
         if: matrix.module == 'sentinel' && env.GO_PACKAGES != ''
         working-directory: sentinel
@@ -1226,7 +1232,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - run: helm lint charts/gameplane
       - name: evaluate monitoring rules
         run: bash charts/gameplane/tests/monitoring-rules.sh
@@ -1287,7 +1293,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - run: helm template gameplane charts/gameplane > /tmp/rendered.yaml
       - name: deterministic offline native chart and upgrade renders
         run: python3 charts/tests/check_argocd.py
@@ -1710,6 +1716,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: init component submodules
+        # check-publish-edge-paths.sh and its test read the component Dockerfiles.
+        run: ./hack/submodules.sh init
       - name: actionlint (download and verify)
         run: |
           set -euo pipefail
@@ -1789,6 +1798,9 @@ jobs:
       - name: unit test (probe protocols)
         working-directory: test/e2e
         run: go test ./...
+      - name: verify cold-start join evidence and lifecycle accounting
+        working-directory: test/e2e
+        run: python3 -m unittest test_wake_burst
 
   # The api's PostgreSQL backend (--db-driver=postgres) is compiled only
   # with -tags postgres, so the `go` matrix and `lint` never build it. This
@@ -1848,7 +1860,7 @@ jobs:
         working-directory: api
         env:
           GAMEPLANE_TEST_POSTGRES_DSN: postgres://postgres@localhost:5432/gameplane_test?sslmode=disable
-        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/...
+        run: go test -tags postgres -count=1 ./internal/db/... ./internal/controlplane/... ./cmd
 
   # ---------------------------------------------------------------------
   # kind e2e — one job per suite, each with its own throwaway cluster on
@@ -1993,7 +2005,7 @@ jobs:
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
       - name: install kind
         if: env.RUN_REGEX != '' || env.TAIL_REGEX != ''
@@ -2147,7 +2159,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2244,7 +2256,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2322,7 +2334,7 @@ jobs:
           key-suffix: e2e
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "24", cache: "npm", cache-dependency-path: web/package-lock.json }
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2431,7 +2443,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2451,6 +2463,8 @@ jobs:
       - name: bring up cluster + helm install
         run: ./deploy/kind/e2e.sh up "$CLUSTER" e2e
       - name: run go e2e (game bot)
+        env:
+          GAMEPLANE_E2E_WAKE_REPORTS: ${{ runner.temp }}/wake-burst-reports
         # Blocking. The bot runs as a Job inside the cluster and dials the game
         # Service directly, removing the `kubectl port-forward` hop this job's
         # flakiness was once blamed on. (That blame turned out to be wrong: the
@@ -2459,11 +2473,23 @@ jobs:
         # network path a real client uses.)
         run: |
           RUN_REGEX="^${BOT_TEST}$"
+          if [[ "$BOT_TEST" == TestColdWakeFleet_ConcurrentJoins ]]; then
+            docker build -t gameplane-test/wake-teeworlds:ci test/e2e/testdata/wake-burst
+            kind load docker-image --name "$CLUSTER" gameplane-test/wake-teeworlds:ci
+          fi
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             GAMEPLANE_E2E_GAME_BOT=1 \
             go test -tags=e2e -timeout 30m -v -run "$RUN_REGEX" ./...
+      - name: upload cold-join and node-pressure measurements
+        if: always() && matrix.test == 'TestColdWakeFleet_ConcurrentJoins'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wake-joins-and-pressure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/wake-burst-reports/*.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: dump cluster state on failure (e2e-game-bot)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
@@ -2501,7 +2527,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2542,9 +2568,8 @@ jobs:
 
   # Re-runs the api-auth, api-roles and api-rbac buckets against a
   # Postgres-backed API (spec 013 US5, OD-3). amd64 only. The API is restarted
-  # between buckets: its login rate limiter lives in memory and each bucket is
-  # sized to one fresh limiter's budget (see test/e2e/buckets.sh). The restart
-  # also means each later bucket runs on data the earlier ones left in Postgres.
+  # between buckets to check persistence. PostgreSQL owns login budgets,
+  # so independent suites wait for natural refill using the database clock.
   # A final serial bucket migrates the Deployment strategy and exercises a
   # PostgreSQL outage/recovery against that populated installation.
   e2e-postgres:
@@ -2552,7 +2577,7 @@ jobs:
     needs: [changes, build-images]
     if: (needs.changes.outputs.e2e == 'true') || contains(fromJSON(needs.changes.outputs.ci-jobs || '[]'), 'e2e-postgres')
     runs-on: ubuntu-latest
-    timeout-minutes: 75 # Boots PostgreSQL and runs auth, roles, RBAC, then availability.
+    timeout-minutes: 105 # Sequential singleton/PITR and isolated multi-worker failover drills.
     permissions:
       contents: read
     env:
@@ -2563,7 +2588,7 @@ jobs:
       - uses: ./.github/actions/go-cache
         with:
           key-suffix: e2e
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
       - name: install kind
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
@@ -2587,23 +2612,25 @@ jobs:
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 15m -v -parallel 4 -run "$RUN_REGEX" ./...
-      - name: restart the API (fresh login limiter)
+      - name: restart the API between suites
         run: |
           kubectl --context "$CTX" --namespace gameplane-system rollout restart deployment/gameplane-api
           kubectl --context "$CTX" --namespace gameplane-system rollout status deployment/gameplane-api --timeout=180s
       - name: run go e2e (api-roles on postgres)
         run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
           RUN_REGEX="$(./test/e2e/buckets.sh regex api-roles)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
             GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
             go test -tags=e2e -timeout 10m -v -parallel 3 -run "$RUN_REGEX" ./...
-      - name: restart the API again (fresh login limiter)
+      - name: restart the API again between suites
         run: |
           kubectl --context "$CTX" --namespace gameplane-system rollout restart deployment/gameplane-api
           kubectl --context "$CTX" --namespace gameplane-system rollout status deployment/gameplane-api --timeout=180s
       - name: run go e2e (api-rbac on postgres)
         run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
           RUN_REGEX="$(./test/e2e/buckets.sh regex api-rbac)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
@@ -2611,6 +2638,7 @@ jobs:
             go test -tags=e2e -timeout 10m -v -parallel 4 -run "$RUN_REGEX" ./...
       - name: run go e2e (PostgreSQL singleton upgrade and outage recovery)
         run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
           RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-availability)"
           cd test/e2e && \
             GAMEPLANE_E2E_REUSE_CLUSTER=1 \
@@ -2618,11 +2646,35 @@ jobs:
             go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: verify Secret-backed PostgreSQL configuration after upgrade
         run: bash deploy/kind/check-postgres-secret.sh "$CTX"
+      - name: run go e2e (postgres-pitr)
+        run: |
+          bash deploy/kind/wait-postgres-login-budget.sh "$CTX"
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-pitr)"
+          cd test/e2e
+          GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER="$CLUSTER" \
+            go test -tags=e2e -timeout 15m -v -parallel 1 -run "$RUN_REGEX" ./...
       - name: dump cluster state on failure (e2e-postgres)
         if: failure()
         uses: ./.github/actions/dump-cluster-state
         with:
           context: ${{ env.CTX }}
+          namespaces: "gameplane-system,gameplane-games"
+          include-previous-logs: "true"
+      - name: replace the PITR cluster with an isolated HA cluster
+        run: |
+          ./deploy/kind/e2e.sh down "$CLUSTER"
+          ./deploy/kind/e2e.sh up gameplane-postgres-ha e2e postgres-ha
+      - name: run go e2e (postgres-ha)
+        run: |
+          RUN_REGEX="$(./test/e2e/buckets.sh regex postgres-ha)"
+          cd test/e2e
+          GAMEPLANE_E2E_REUSE_CLUSTER=1 GAMEPLANE_E2E_CLUSTER=gameplane-postgres-ha \
+            go test -tags=e2e -timeout 20m -v -parallel 1 -run "$RUN_REGEX" ./...
+      - name: dump the HA cluster on failure
+        if: failure()
+        uses: ./.github/actions/dump-cluster-state
+        with:
+          context: kind-gameplane-postgres-ha
           namespaces: "gameplane-system,gameplane-games"
           include-previous-logs: "true"
 
@@ -3038,6 +3090,10 @@ jobs:
               if (/^e2e postgres \//.test(n) && Array.isArray(j.steps)) {
                 const availability = j.steps.find((s) => s.name === 'run go e2e (PostgreSQL singleton upgrade and outage recovery)');
                 if (availability && availability.conclusion === 'success') bucketSet.add('postgres-availability');
+                const pitr = j.steps.find((s) => s.name === 'run go e2e (postgres-pitr)');
+                if (pitr && pitr.conclusion === 'success') bucketSet.add('postgres-pitr');
+                const ha = j.steps.find((s) => s.name === 'run go e2e (postgres-ha)');
+                if (ha && ha.conclusion === 'success') bucketSet.add('postgres-ha');
               }
               // The ratelimit bucket runs as a trailing step inside the
               // api-auth job leg (deliberately, so it drains the shared

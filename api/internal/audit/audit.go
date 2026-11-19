@@ -357,14 +357,7 @@ func computeHash(prevHash string, e Event) string {
 // headConfigKey) in the same transaction, so the newest-row anchor Verify
 // checks against is never out of sync with what was actually committed.
 //
-// Single-writer assumption: the chain gate serializes the read-prev/compute/insert
-// sequence against other requests in this process. That's correct for a
-// single API replica — the only deployment topology this covers today (see
-// docs/architecture.md). A multi-replica deployment would let two processes
-// each read the same "previous row" concurrently and insert two rows
-// chained to the same prev_hash, silently forking the chain; making that
-// safe needs a DB-level serialization point (e.g. a Postgres advisory lock
-// keyed on the audit_events table) in addition to this in-process gate.
+// chainTransaction bounds local waiters and serializes PostgreSQL writers across API replicas.
 func (a *Auditor) insertChained(ctx context.Context, ts, actor, method, path, target, reason string, status int, ip string) error {
 	return a.chainTransaction(ctx, "insert", 2*time.Second, func(ctx context.Context, tx *sql.Tx) error {
 		return a.appendEvent(ctx, tx, Event{TS: ts, Actor: actor, Method: method, Path: path, Target: target, Status: status, IP: ip, Reason: reason})
@@ -468,10 +461,21 @@ type VerifyResult struct {
 // to complain about a missing successor), so after the walk it separately
 // checks audit.head — see verifyHead.
 func (a *Auditor) Verify(ctx context.Context) (VerifyResult, error) {
+	// Read the checkpoint, rows and head from the same point in time even
+	// when another replica is writing or pruning the chain.
+	var opts *sql.TxOptions
+	if a.db.Driver == "postgres" {
+		opts = &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true}
+	}
+	tx, err := a.db.DB.BeginTx(ctx, opts)
+	if err != nil {
+		return VerifyResult{}, fmt.Errorf("begin audit verification: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
 	expectedPrev := ""
 	var afterID int64
 
-	if raw, ok, err := a.db.ConfigValue(ctx, chainConfigKey); err != nil {
+	if raw, ok, err := db.ConfigValueTx(ctx, tx, chainConfigKey); err != nil {
 		return VerifyResult{}, fmt.Errorf("load audit checkpoint: %w", err)
 	} else if ok {
 		var cp chainCheckpoint
@@ -482,7 +486,7 @@ func (a *Auditor) Verify(ctx context.Context) (VerifyResult, error) {
 		afterID = cp.ID
 	}
 
-	rows, err := a.db.DB.QueryContext(ctx,
+	rows, err := tx.QueryContext(ctx,
 		`SELECT id, ts, actor, method, path, COALESCE(target,''), status, COALESCE(ip,''), COALESCE(reason,''), COALESCE(prev_hash,''), COALESCE(hash,'')
 		 FROM audit_events
 		 WHERE id > ? AND hash IS NOT NULL AND hash <> ''
@@ -518,16 +522,12 @@ func (a *Auditor) Verify(ctx context.Context) (VerifyResult, error) {
 	if err := rows.Err(); err != nil {
 		return VerifyResult{}, fmt.Errorf("iterate audit chain: %w", err)
 	}
-	// Release the connection before verifyHead issues its own query: sqlite
-	// is opened with SetMaxOpenConns(1) (see db.Open), so a second query
-	// while rows is still open would deadlock waiting for a connection the
-	// still-open rows is holding. Close is idempotent, so the deferred call
-	// above stays as a safety net for the early returns above.
+	// Finish reading before the next query on this transaction.
 	if err := rows.Close(); err != nil {
 		return VerifyResult{}, fmt.Errorf("close audit chain rows: %w", err)
 	}
 
-	if brk, err := a.verifyHead(ctx, afterID, checked); err != nil {
+	if brk, err := verifyHead(ctx, tx, afterID, checked); err != nil {
 		return VerifyResult{}, err
 	} else if brk != nil {
 		return *brk, nil
@@ -550,8 +550,8 @@ func (a *Auditor) Verify(ctx context.Context) (VerifyResult, error) {
 // row, so it is not treated as a break (this is what makes a full-table
 // prune, which deletes even the row the head points at, a non-event rather
 // than a false positive).
-func (a *Auditor) verifyHead(ctx context.Context, checkpointID, checked int64) (*VerifyResult, error) {
-	raw, ok, err := a.db.ConfigValue(ctx, headConfigKey)
+func verifyHead(ctx context.Context, tx *sql.Tx, checkpointID, checked int64) (*VerifyResult, error) {
+	raw, ok, err := db.ConfigValueTx(ctx, tx, headConfigKey)
 	if err != nil {
 		return nil, fmt.Errorf("load audit head: %w", err)
 	}
@@ -569,7 +569,7 @@ func (a *Auditor) verifyHead(ctx context.Context, checkpointID, checked int64) (
 	}
 
 	var hash string
-	err = a.db.DB.QueryRowContext(ctx,
+	err = tx.QueryRowContext(ctx,
 		`SELECT COALESCE(hash,'') FROM audit_events WHERE id = ?`, head.LastID,
 	).Scan(&hash)
 	switch {

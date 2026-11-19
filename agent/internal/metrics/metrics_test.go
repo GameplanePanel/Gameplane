@@ -24,6 +24,7 @@ func TestMetricsEmitsWhenKnown(t *testing.T) {
 		MemoryLimitKnown:   true,
 		DiskUsedBytes:      1024 * 1024 * 100,  // 100 MiB
 		DiskTotalBytes:     1024 * 1024 * 1024, // 1 GiB
+		DiskTotalKnown:     true,
 		DiskKnown:          true,
 		PlayersOnline:      5,
 		PlayersOnlineKnown: true,
@@ -257,6 +258,7 @@ func TestMetricsZeroValuesEmitted(t *testing.T) {
 		MemoryBytes:        0,
 		MemoryKnown:        true,
 		DiskUsedBytes:      0,
+		DiskTotalKnown:     true,
 		DiskKnown:          true,
 		PlayersOnline:      0,
 		PlayersOnlineKnown: true,
@@ -438,6 +440,7 @@ func TestMetricsDiskZeroTotal(t *testing.T) {
 	snap := Snapshot{
 		DiskUsedBytes:  0,
 		DiskTotalBytes: 0, // Edge case: zero total (e.g., mount failed)
+		DiskTotalKnown: true,
 		DiskKnown:      true,
 		ServerName:     "test-server",
 		Namespace:      "games",
@@ -592,6 +595,7 @@ func TestMetricsAllMetricsIndependent(t *testing.T) {
 		// Disk: known
 		DiskUsedBytes:  500 * 1024 * 1024,
 		DiskTotalBytes: 1024 * 1024 * 1024,
+		DiskTotalKnown: true,
 		DiskKnown:      true,
 		// Players: online known, max unknown
 		PlayersOnline:      8,
@@ -649,6 +653,31 @@ func TestMetricsAllMetricsIndependent(t *testing.T) {
 				t.Errorf("expected metric %q to not be present", name)
 			}
 		}
+	}
+}
+
+func TestMetricsDiskValuesIndependent(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		snapshot Snapshot
+		want     string
+	}{
+		{"usage only", Snapshot{DiskKnown: true}, "gameplane_agent_disk_used_bytes"},
+		{"capacity only", Snapshot{DiskTotalKnown: true, DiskTotalBytes: 4096}, "gameplane_agent_disk_total_bytes"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := prometheus.NewRegistry()
+			m := &Metrics{}
+			reg.MustRegister(m)
+			m.Update(tc.snapshot)
+			families, err := reg.Gather()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(families) != 1 || families[0].GetName() != tc.want {
+				t.Fatalf("expected only %s, got %v", tc.want, families)
+			}
+		})
 	}
 }
 

@@ -53,9 +53,11 @@ TestCRD_Validation_IdleRejectsBadValues
 TestCRD_Validation_TunnelServerAddrInvalid
 TestCRD_Validation_TunnelProxyNameInvalid
 TestCRD_Validation_TunnelServerAddrValid
+TestCRD_Validation_LoadBalancerClassNameLength
 TestGameServer_OperatorMaterializesChildren
 TestGameServer_SuspendScalesToZeroAndBack
 TestGameServer_IdleNeverSleepsWithoutAPlayerCount
+TestGameServer_A2SPlayerCountDrivesIdle
 TestGameServer_HeartbeatReachesRunning
 TestGameServer_PVCSurvivesPodDelete
 TestGameServer_InstallTimeDefaultApplies
@@ -64,8 +66,13 @@ TestGameServer_ExplicitStorageClassOverridesDefault
 TestGameServer_NonexistentStorageClassSurfacesError
 TestGameServer_VersionSwitch
 TestGameServer_TemplateOnRequestRetainsData
+TestGameServer_CorrectedImageRecoversFailedOrdinal
+TestGameServer_RestoredRolloutRehearsal
 TestGameServer_WipeReportsFailureOnPermissionDenied
 TestGameServer_CascadingDelete
+TestGameServer_LoadBalancerClassReplacesTheService
+TestGameServer_PortPoolAllocation
+TestGameServer_PortPoolServingAllocation
 TestGameServer_TunnelCredentialRefusalSurfaced
 TestGameServer_IngressNetworkPolicyShapeAndCascade
 TestGameServer_NetworkCaptureStartStopDownload
@@ -108,6 +115,7 @@ TestAddressPool_StatusVisibleInAddressAssignmentCondition
 TestAddressPool_ExplicitAddressRequest
 TestAddressPool_AddressInUseConflict
 TestAddressPool_PoolExhausted
+TestAddressPool_HostnameHolderKeepsAddress
 TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions
 TestAPI_I18n_LanguagePref
 TestAPI_I18n_NotifyLanguage
@@ -257,6 +265,7 @@ TestGameServer_TerrariaBot_Joined
 TestGameServer_GarrysModBot_Query
 TestGameServer_WakeOnConnect_PingDoesNotWake
 TestGameServer_WakeOnConnect_LoginWakes
+TestColdWakeFleet_ConcurrentJoins
 TestGameServer_WakeOnConnect_UnarmedNoSentinel
 EOF
 }
@@ -400,6 +409,9 @@ TestUpgrade_PostgresAvailability
 EOF
 }
 
+bucket_postgres_pitr() { printf '%s\n' TestPanel_PostgresPointInTimeRecovery; }
+bucket_postgres_ha() { printf '%s\n' TestPanel_PostgresActiveActiveFailover; }
+
 # One sequential lifecycle test that runs `helm upgrade --reuse-values` (1m
 # report interval, dashboard token, public summary, no per-source ingest
 # limit) on its own bucket cluster, so it must not share a cluster with other
@@ -475,7 +487,7 @@ bucket_network_isolation() {
 }
 
 bucket_names() {
-	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
+	printf '%s\n' operator api-auth api-roles api-rbac api-agent api-mods ratelimit bot-fast bot-heavy multicluster upgrade postgres-availability postgres-pitr postgres-ha telemetry capture-overhead optional-components restricted-workloads wake-hostport network-isolation management-placement backup-preparation monitoring recovery
 }
 
 list_bucket() {
@@ -492,6 +504,8 @@ list_bucket() {
 	multicluster) bucket_multicluster ;;
 	upgrade) bucket_upgrade ;;
 	postgres-availability) bucket_postgres_availability ;;
+	postgres-pitr) bucket_postgres_pitr ;;
+	postgres-ha) bucket_postgres_ha ;;
 	telemetry) bucket_telemetry ;;
 	capture-overhead) bucket_capture_overhead ;;
 	optional-components) bucket_optional_components ;;

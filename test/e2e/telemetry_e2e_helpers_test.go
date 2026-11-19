@@ -245,8 +245,8 @@ func tlDo(ctx context.Context, c *APIClient, method, path string, body any) (int
 		return 0, nil, fmt.Errorf("do %s %s: %w", method, path, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	rb, _ := io.ReadAll(resp.Body)
-	return resp.StatusCode, rb, nil
+	rb, err := io.ReadAll(resp.Body)
+	return resp.StatusCode, rb, err
 }
 
 // helmUpgradeReuse runs `helm upgrade --reuse-values` with the given --set

@@ -18,7 +18,7 @@ For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
 
 The chart and its images are published to the GitHub Container Registry (GHCR)
 as OCI artifacts — no `helm repo add` needed. Install a tagged release straight
-from the registry (replace `<version>` with a release, e.g. `0.4.0`):
+from the registry (replace `<version>` with a release, e.g. `0.4.1`):
 
 ```sh
 helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
@@ -37,6 +37,26 @@ and `capture-sidecar` — are only pulled when the optional component they
 belong to is enabled (and, for `sentinel` and `capture-sidecar`, only for
 GameServers that opt in). See each component's values block for its enable
 flag.
+
+The chart's default install renders the following objects, and each optional
+branch depends on the values shown:
+
+```mermaid
+flowchart TD
+  release["helm install or upgrade gameplane"] --> opq{"operator.enabled"}
+  release --> apiq{"api.enabled"}
+  release --> monq{"serviceMonitors, prometheusRules or grafanaDashboards"}
+  opq -- "true (default)" --> crds["gameplane-crds subchart (Helm crds/ phase)"]
+  opq -- "true (default)" --> op["Operator Deployment, RBAC and NetworkPolicies"]
+  opq -- "true (default)" --> vap["Admission policies and default ModuleSource"]
+  apiq -- "true (default)" --> api["API Deployment, Service and data PVC"]
+  apiq -- "web.enabled (default)" --> web["Web dashboard"]
+  apiq -- "ingress.enabled" --> ing["Ingress"]
+  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job"]
+  apiq -- "api.telemetry.receiver.enabled and empty endpoint" --> tr["Telemetry receiver"]
+  apiq -- "syslogBridge.enabled and empty webhook URL" --> asb["Audit syslog bridge"]
+  monq -- "opt-in" --> mon["ServiceMonitor, PodMonitor, PrometheusRule and dashboard ConfigMap"]
+```
 
 ### Edge channel (latest edge build)
 
@@ -81,8 +101,8 @@ helm upgrade --install gameplane ./charts/gameplane \
 ```
 
 > **Note:** GHCR packages are private on first publish. The maintainer makes the
-> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, and `charts/gameplane`
-> packages public once (GHCR → package → *Package settings* → *Change visibility*)
+> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, `charts/gameplane` and
+> `charts/gameplane-crds` packages public once (GHCR → package → *Package settings* → *Change visibility*)
 > so anonymous `helm install` / `docker pull` works. For a private install,
 > create a `kubernetes.io/dockerconfigjson` pull secret and set
 > `image.pullSecrets`.
@@ -260,7 +280,7 @@ Top-level knobs (see `values.yaml` for the full list):
   GameServer enters Pending with a `PVCProvisioningFailed` condition (visible in
   the dashboard); no pod starts until resolved. Example:
   `--set operator.gameDataStorage.storageClassName=fast-nvme`
-- `api.db.driver` — `sqlite` (default, production-tested) or `postgres` [experimental] (requires an api image built with `-tags postgres`; the published image is built without it). The CI `api (postgres)` job and the PostgreSQL E2E buckets, including `postgres-availability` (`TestUpgrade_PostgresAvailability`), exercise it.
+- `api.db.driver` — `sqlite` (default, production-tested) or `postgres` (experimental). The API image includes both drivers. Native PostgreSQL deployments can opt into multiple API replicas after the HA-capable image completes its singleton rollout. The CI `api (postgres)` job and the `postgres-availability`, `postgres-pitr` and `postgres-ha` E2E suites exercise this configuration.
 - `api.db.dsn` — connection string; SQLite default persists to a PVC
 - `api.db.existingSecret` and `api.db.secretKey` — name of a pre-provisioned Secret in the release namespace and the key holding the complete DSN (default key `dsn`). A Secret reference takes precedence over the literal DSN for both the API and `bootstrap-admin`. A missing Secret or key prevents the API container from starting.
 - `api.storage.existingClaim` — pre-existing PVC for the API's SQLite database (default `""`). PostgreSQL standalone deployments create no local database PVC or mount. The chart annotates `gameplane-api-data` with `helm.sh/resource-policy: keep` so switching to an existing claim preserves the previous PVC.
@@ -335,7 +355,7 @@ Top-level knobs (see `values.yaml` for the full list):
     - `backupEgress.ports` — TCP ports for repository connections (default 443, 22); unlike `gameEgress` there is no private-range exclusion, since the destination is an admin-configured repository Secret rather than an attacker-influenced URL, and is often itself private
 - `clusterOps.enabled` — credential-minting cluster operations (Add node, Download kubeconfig) in the dashboard's Cluster page (default off; grants powerful kube-system + CSR-approval RBAC)
   - `clusterOps.externalAddress` — external (node-routable) API server address, e.g. `1.2.3.4:6443` or `https://k8s.example.com:6443`, used in the join command and downloaded kubeconfig instead of the in-cluster ClusterIP; leave empty only when the in-cluster address is itself reachable from outside the cluster
-- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](../mcp-server/README.md)
+- `mcpServer.enabled` — optional strictly read-only MCP (Model Context Protocol) server [optional] for AI assistants to read cluster state and propose fixes (default off); see [mcp-server/README.md](https://github.com/GameplanePanel/mcp/blob/main/README.md)
   - `mcpServer.replicas` — MCP server replicas (default 1)
 - `updates.channel` — informational release-channel label (e.g., `stable`, `edge`) shown read-only in the dashboard's Admin Settings → Updates section; purely informational (Gameplane upgrades via Helm, not auto-update)
 - `podSecurity.enforceRestricted` — defaults to true on new installs. Enables the Restricted game/config-init profile and namespace admission. Templates require positive `security.runAsUser` and `security.fsGroup`; verify image compatibility and migrate existing file ownership before upgrading. Enabling it rolls existing Pods once.
@@ -389,6 +409,12 @@ Top-level knobs (see `values.yaml` for the full list):
 
   Any other value fails the operator at startup. The operator never writes the
   deprecated `service.spec.loadBalancerIP`.
+- `operator.portPools` — port pools: ranges of ports on one shared public
+  endpoint, each with the templates whose servers draw from it
+  (`[{name: edge, ports: "2456-2499", templates: [valheim, factorio]}]`).
+  Each server gets a contiguous block, kept for its life. Use it when servers
+  are reached through a relay or an edge that forwards ports, as games whose
+  clients send no hostname must be. See [Networking](networking.md#port-pools).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures
@@ -527,7 +553,7 @@ a slow or down sink never blocks or fails a request.
 - `api.audit.webhook.authSecretRef` — optional `Authorization` header for the
   webhook, sourced from a Secret (never a flag — see [security](security.md)).
 - `api.audit.webhook.syslogBridge.enabled` — deploy the bundled
-  [audit-syslog-bridge [optional]](../audit-syslog-bridge/README.md) and point the webhook
+  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md) and point the webhook
   at it automatically, so events are forwarded to a **syslog** collector. Set
   `syslogBridge.syslog.addr` to your collector `host:port` (required when
   enabled), and optionally `network` (`tcp`/`udp`), `tls`, `facility`, and
@@ -970,6 +996,17 @@ not run. A fresh install therefore never depends on pulling the hook's
 never owned or deleted by Helm here, so `helm uninstall` leaves your
 GameServers intact.
 
+With Helm 3, the hook's events on `helm install` depend on the live CRD stamp:
+
+```mermaid
+flowchart TD
+  start["helm install or helm upgrade"] --> up{"Release.IsUpgrade?"}
+  up -- yes --> pre["pre-upgrade hook: kubectl apply --server-side"]
+  up -- no --> live{"gameservers CRD present with a different stamp?"}
+  live -- "no: fresh cluster, stamps match" --> none["No hook Job; crds/ created the CRDs"]
+  live -- "yes: leftover CRDs" --> pi["pre-install and pre-upgrade hook applies crd-manifests/"]
+```
+
 **Helm 4** installs `crds/` with a server-side apply under the field manager
 `helm` instead of skipping existing CRDs, so a `helm install` over leftover
 CRDs updates them itself (stamp included) and the hook stays pre-upgrade
@@ -1025,6 +1062,15 @@ value, re-run it with `--reset-then-reuse-values`, or pass your values file
 explicitly with `-f`. Keeping a values file under version control and using
 `-f` is the sturdier habit.
 
+### Upgrading agents for per-server disk usage
+
+Older agents report usage and capacity for the whole filesystem, even in a
+fresh heartbeat. When multiple servers share a filesystem, each can show the
+same disk usage. If a GameTemplate pins `spec.agent.image`, update the pin to
+an agent release with per-server disk measurement or remove it to inherit the
+operator's updated `--agent-image`. Let each affected server adopt the template
+and roll out the new agent before relying on per-server readings.
+
 ### What upgrades are tested
 
 CI runs an end-to-end upgrade on every PR (`e2e upgrade`, on both amd64 and
@@ -1077,14 +1123,14 @@ and the existing database is used instead — no data loss.
 
 Nothing else needs to happen; the upgrade proceeds normally.
 
-### API upgrades (brief downtime)
+### API rollout and PostgreSQL availability
 
-Every API Deployment uses `Recreate`: the old pod terminates before its
-replacement starts. This includes combined and standalone installations with
-either SQLite or PostgreSQL. The chart rejects `api.replicas` other than `1`.
-Audit-chain and user-management locks are per-process; PostgreSQL and a shared
-standalone key do not make multiple API writers supported. Plan a brief panel
-outage on upgrade. Existing games and their operator continue independently.
+The default API deployment runs one Pod and uses `Recreate`. The old Pod
+terminates before its replacement starts. Plan a brief panel outage during a
+singleton upgrade. Existing games and their operator continue independently.
+SQLite requires one writer. Standalone installations also require one API:
+the panel encryption key defaults to a private file on its retained PVC, and
+standalone remote-cluster operation has only been qualified with one process.
 
 Upgrading an older combined PostgreSQL release now changes its default
 RollingUpdate strategy to Recreate. The existing pre-upgrade CRD hook also
@@ -1099,10 +1145,38 @@ kubectl --namespace gameplane-system patch deployment gameplane-api --type=merge
 
 Recreate controls normal Kubernetes rollouts; it does not fence a writer on a
 partitioned node after forced Pod deletion. Stop or fence that old process
-before allowing a replacement to access the database. Multi-replica API HA is
-a separate feature requiring database-level transaction serialization for
-audit append/prune and user-management invariants, plus coordinated background
-work and rate limiting.
+before allowing a replacement to access the database.
+
+For the native API with PostgreSQL, provision a shared writable PostgreSQL
+endpoint through `api.db.existingSecret`. Supply at least as many eligible
+worker nodes as API replicas. Back up PostgreSQL and test recovery before
+changing writers. To upgrade an existing release, perform two distinct syncs:
+
+1. Deploy the HA-capable chart and API image with `api.replicas=1` and
+   `api.postgresHA.enabled=false`. Wait for `kubectl -n gameplane-system
+   rollout status deployment/gameplane-api`. Check that the running Pod's
+   readiness probe is `/readyz/postgres-ha` and that the Pod is Ready. This
+   stage serializes the transition from an older single-writer binary. Helm
+   checks the live deployment during the second upgrade. Offline GitOps
+   renderers must enforce the two syncs and wait for health between them.
+2. Set `api.postgresHA.enabled=true` and `api.replicas=2` or higher. The
+   scheduler places each writer on a different hostname. A rolling upgrade
+   replaces one Pod at a time and needs no surge capacity. The API disruption
+   budget allows one unavailable replica. Keep a spare eligible worker if a
+   failed node must be replaced before it returns.
+
+Inspect `kubectl -n gameplane-system get pods -l app.kubernetes.io/name=gameplane-api
+-o wide` to confirm the node assignments. A database outage removes the API
+Pods from ready endpoints; liveness remains independent so they can reconnect
+when PostgreSQL returns. Replicating the API still requires a separate
+PostgreSQL failover and point-in-time recovery plan. To return to a single
+writer, first deploy the same HA-capable binary with `api.replicas=1` and
+`api.postgresHA.enabled=false`, then wait for the singleton rollout before
+changing the application version. HA Pods pass `--postgres-ha-protocol=1`;
+older images exit at flag parsing before connecting to the database. A Helm
+rollback reapplies the target revision's recorded manifests, including its own
+strategy and arguments. Complete the singleton transition and confirm all old
+HA Pods have terminated before rolling back to a chart that predates the flag.
 
 ### Moving a PostgreSQL DSN into a Secret
 

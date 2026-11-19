@@ -2,12 +2,15 @@ package status
 
 import (
 	"context"
+	"errors"
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
+	"github.com/GameplanePanel/gameplane/agent/internal/rcon"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -116,6 +119,21 @@ func TestPerformanceTimeoutBoundsOutstandingWorkAndDiscardsLateResult(t *testing
 	if calls.Load() != 1 {
 		t.Fatal("cancelled collector executed a command")
 	}
+}
+
+func TestStatusTimeoutCancelsQueuedCommand(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		transport := &fakeRcon{}
+		commands := rcon.NewCommands(transport)
+		source := New(commands, nil)
+		err := commands.Sequence(t.Context(), func(rcon.Executor) error {
+			return source.execute(t.Context(), "stats").err
+		})
+		synctest.Wait()
+		if !errors.Is(err, context.DeadlineExceeded) || transport.count() != 0 {
+			t.Fatalf("queued status after timeout: err=%v calls=%d", err, transport.count())
+		}
+	})
 }
 
 func TestPerformanceBoundsDirectCapabilitiesAndDeduplicatesIDs(t *testing.T) {

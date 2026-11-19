@@ -48,6 +48,25 @@ func (r *GameServerReconciler) hostportEndpointNode(ctx context.Context, gs *gam
 	return &node, nil
 }
 
+// An architecture change cannot silently move the address players use.
+// Missing, replaced and deleting nodes still follow the Hostport identity-loss fence.
+func (r *GameServerReconciler) validateHostportArchitecture(ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate) error {
+	required := tmpl.Spec.RequiredNodeArchitecture
+	if required == "" || gs.Spec.Networking.Expose != "Hostport" || gs.Annotations[hostportNodeAnnotation] == "" {
+		return nil
+	}
+	node, err := r.hostportEndpointNode(ctx, gs)
+	if err != nil || node == nil {
+		return err
+	}
+	if arch := node.Labels[corev1.LabelArchStable]; arch != required {
+		return workloadPolicyRejection{fmt.Errorf(
+			"recorded Hostport endpoint node %q has %s=%q but the template requires %q. Explicitly migrate the endpoint to a compatible worker",
+			node.Name, corev1.LabelArchStable, arch, required)}
+	}
+	return nil
+}
+
 func hostportNodeReady(node *corev1.Node) bool {
 	for _, condition := range node.Status.Conditions {
 		if condition.Type == corev1.NodeReady {

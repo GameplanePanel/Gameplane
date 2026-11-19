@@ -84,10 +84,10 @@ export function OverviewTab({
     typeof agent?.memoryLimitBytes === "number" ? (agent?.memoryLimitBytes as number) : 0;
   const memPct = memKnown && memLimit ? (memUsed / memLimit) * 100 : 0;
 
-  const diskKnown =
-    typeof agent?.diskUsedBytes === "number" && typeof agent?.diskTotalBytes === "number";
+  const diskKnown = typeof agent?.diskUsedBytes === "number";
   const diskUsed = diskKnown ? (agent?.diskUsedBytes as number) : 0;
-  const diskTotal = diskKnown ? (agent?.diskTotalBytes as number) : 0;
+  const diskTotal = agent?.diskTotalBytes ?? 0;
+  const requestedStorage = gs?.spec.storage?.size;
   const diskPct = diskKnown && diskTotal ? (diskUsed / diskTotal) * 100 : 0;
 
   // Player count is shown in the Players card (sidebar). null/undefined
@@ -165,7 +165,9 @@ export function OverviewTab({
               icon={<HardDrive className="h-4 w-4" />}
               value={diskKnown ? (diskTotal ? `${diskPct.toFixed(0)}%` : formatBytes(diskUsed)) : intl.formatMessage(OVERVIEW_TEXT.empty_value)}
               sub={
-                diskKnown ? intl.formatMessage({ id: "web.routes.tabs.overview.used_of_total", defaultMessage: "{used} / {total}", description: "Overview: memory or disk usage against its limit; {used} is the amount in use, {total} the limit" }, { used: formatBytes(diskUsed), total: diskTotal ? formatBytes(diskTotal) : intl.formatMessage(OVERVIEW_TEXT.empty_value) }) : undefined
+                diskKnown && diskTotal > 0 ? intl.formatMessage({ id: "web.routes.tabs.overview.used_of_total", defaultMessage: "{used} / {total}", description: "Overview: memory or disk usage against its limit; {used} is the amount in use, {total} the limit" }, { used: formatBytes(diskUsed), total: formatBytes(diskTotal) })
+                  : requestedStorage ? intl.formatMessage({ id: "web.routes.tabs.overview.storage_requested", defaultMessage: "{size} requested", description: "Requested size of the server data volume when measured capacity is unavailable" }, { size: requestedStorage })
+                  : undefined
               }
               progress={diskKnown && diskTotal ? diskPct : undefined}
               trend={diskKnown && diskTotal ? diskPct : undefined}

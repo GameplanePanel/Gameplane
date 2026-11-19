@@ -107,6 +107,9 @@ operator:
   # Required with multiple replicas and recommended during rolling upgrades.
   # Disabling it with one replica selects Recreate to prevent overlapping writers.
   leaderElect: true
+  # Size for the smallest available startup CPU, memory and I/O headroom
+  # following a worker loss. Zero preserves unlimited native idle wake.
+  wakeStartLimit: 0
   resources:
     requests: { cpu: 100m, memory: 64Mi }
     limits:   { cpu: 500m, memory: 256Mi }
@@ -153,6 +156,21 @@ operator:
   # MetalLB event. "metallb-system" is MetalLB's own install convention, not
   # a contract, hence configurable.
   metalLBNamespace: metallb-system
+  # Port pools: ranges of Service ports on one shared public endpoint, such
+  # as a relay or an edge that forwards ports to the cluster, for games whose
+  # clients send no hostname and so need ports of their own behind one
+  # address. Every server of a listed template gets a contiguous block of the
+  # pool, one port per advertised port, recorded in its
+  # gameplane.local/pool-ports annotation and kept for the server's life. A
+  # (protocol, port) pair goes to one server, whatever its template. Servers'
+  # explicit servicePort overrides are reserved too, and refused when another
+  # server holds the port. Shrinking a range leaves existing servers their
+  # ports; keep forwarding them. A template draws from at most one pool. See docs/networking.md#port-pools. Example:
+  #   portPools:
+  #     - name: edge
+  #       ports: "2456-2499"
+  #       templates: [valheim, factorio]
+  portPools: []
   # Tunnel provider images: relay binaries wrapped in OCI images for reaching
   # players through relay services when the cluster has no public IP or port-
   # forwarding. Each wraps a third-party relay binary (frpc, tailscaled, playit)
@@ -209,17 +227,18 @@ api:
   # unless operator.controlPlaneNamespace already names an external namespace.
   # An explicit namespace must already exist and be dedicated to these Secrets.
   credentialsNamespace: ""
-  # Must be 1 in every enabled API install, including PostgreSQL. Audit-chain
-  # and user-management locks are per-process. Recreate rollouts stop the old
-  # API before starting its replacement and accept a brief panel outage.
+  # One replica with Recreate unless native PostgreSQL HA is enabled.
   replicas: 1
+  postgresHA:
+    # Requires a Secret-backed PostgreSQL DSN, 2+ eligible workers and one
+    # API replica per worker. Stage the current image at one replica first.
+    enabled: false
   nodeSelector: {}
   tolerations: []
   affinity: {}
   topologySpreadConstraints: []
   priorityClassName: ""
-  # The API is a singleton: eviction causes downtime. A blocking budget would
-  # hang voluntary node drains, so only maxUnavailable: 1 is supported here.
+  # Optional for a singleton; HA always installs maxUnavailable: 1.
   pdb: { enabled: false, maxUnavailable: 1 }
   logLevel: info     # API log verbosity (debug|info|warn|error), passed as GAMEPLANE_LOG_LEVEL
   # Port of the API's Prometheus metrics listener. It is separate from the
@@ -247,8 +266,7 @@ api:
     driver: sqlite       # sqlite | postgres
     dsn: "file:/data/gameplane.db?_pragma=journal_mode(WAL)"
     # An existing Secret in the release namespace takes precedence over dsn.
-    # For postgres, store the connection string there and use an API image
-    # built with -tags postgres. Helm only needs the Secret name and key.
+    # For postgres, provision the full connection string there. The release API includes both drivers.
     existingSecret: ""
     secretKey: dsn
 
@@ -854,7 +872,7 @@ defaultModuleSource:
     # own cluster). Bump this ref only in lockstep with a chart release that
     # was actually tested against the matching module-repo tag. Set to
     # "main" explicitly if you want the bleeding edge instead.
-    ref: v0.4.0
+    ref: v0.4.1
     subPath: ""           # module directories live at the repo root
   oci:
     url: ghcr.io/gameplanepanel/gameplane-modules

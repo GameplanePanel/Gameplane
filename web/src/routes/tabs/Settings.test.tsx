@@ -1,5 +1,6 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import type { ReactElement } from "react";
+import * as media from "@/lib/media";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -24,6 +25,7 @@ beforeEach(() => {
 afterEach(() => {
   fetchMock.mockReset();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 
@@ -57,6 +59,36 @@ function stubTemplate() {
 }
 
 describe("SettingsTab", () => {
+  it.each([
+    { mobile: true, orientation: "horizontal", arrow: "{ArrowRight}" },
+    { mobile: false, orientation: "vertical", arrow: "{ArrowDown}" },
+  ])("uses $orientation keyboard navigation for settings sections", async ({ mobile, orientation, arrow }) => {
+    vi.spyOn(media, "useMediaQuery").mockReturnValue(mobile);
+    stubTemplate();
+    renderWithQuery(<SettingsTab gs={gs()} name="mc-survival" />);
+    expect(screen.getByRole("tablist")).toHaveAttribute("aria-orientation", orientation);
+    await userEvent.click(screen.getByRole("tab", { name: "General" }));
+    await userEvent.keyboard(arrow);
+    await waitFor(() => expect(screen.getByRole("tab", { name: "Resources" })).toHaveAttribute("aria-selected", "true"));
+  });
+
+  it("reads startup settings from the server's admitted revision", async () => {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.startsWith("/servers/mc-survival/template")) return jsonRes({
+        metadata: { name: "minecraft-java" },
+        spec: { game: "minecraft-java", image: "itzg/minecraft-server:java21", configSchema: [
+          { name: "MAX_MEMORY", type: "string", applyOnRestart: true },
+        ] },
+      });
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    const snapshot = gs({ metadata: { name: "mc-survival", annotations: { "gameplane.local/effective-template-revision": "pinned" } }, status: { phase: "Running", templateRevision: { running: "pinned" } } });
+    renderWithQuery(<SettingsTab gs={snapshot} name="mc-survival" />);
+    await userEvent.click(await screen.findByRole("tab", { name: "Game configuration" }));
+    expect(await screen.findByLabelText("MAX_MEMORY")).toBeVisible();
+    expect(screen.getByTestId("config-restart-note")).toHaveTextContent(/next container start/i);
+  });
+
   it("preserves share creation and its one-time token across server status refreshes", async () => {
     const link = { id: "share-id", token: "one-time-token", createdAt: new Date().toISOString(), expiresAt: null, canStart: false };
     fetchMock.mockImplementation(async (url: string, init?: FetchInit) => {

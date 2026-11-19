@@ -577,7 +577,7 @@ func recoveryGame(t *testing.T, suffix string) (string, string) {
 	t.Helper()
 	name := "recovery-game-" + suffix
 	applyBusyboxTemplate(t, name)
-	patch, err := json.Marshal(map[string]any{"spec": map[string]any{"command": []string{"sh", "-c", "echo retained > /data/recovery-marker; n=0; while true; do n=$((n+1)); echo $n > /data/recovery-counter.next; mv /data/recovery-counter.next /data/recovery-counter; sleep 1; done"}}})
+	patch, err := json.Marshal(map[string]any{"spec": map[string]any{"command": []string{"sh", "-c", "echo retained | tee /data/recovery-marker; n=0; while true; do n=$((n+1)); echo $n > /data/recovery-counter.next; mv /data/recovery-counter.next /data/recovery-counter; sleep 1; done"}}})
 	if err != nil {
 		t.Fatal(err)
 	}

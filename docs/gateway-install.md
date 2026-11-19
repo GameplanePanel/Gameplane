@@ -207,6 +207,18 @@ and API endpoint allowlists. It permits only:
 - TCP 8090 to game agents in the explicitly allowed namespaces.
 - TCP 9091 to capture sidecars in those same namespaces.
 
+The gateway's allowed flows are summarized below; the chart's policy lists the
+exact selectors.
+
+```mermaid
+flowchart LR
+    central["Central API<br/>peerCIDRs or peerSelectors"] -- "TCP 8443 mTLS" --> gw["Gateway Service"]
+    gw -- "TCP 443 and 6443" --> kapi["Local Kubernetes API<br/>apiServerCIDRs"]
+    gw -- "TCP and UDP 53" --> dns["DNS pods"]
+    gw -- "TCP 8090" --> agents["Game agents in allowed namespaces"]
+    gw -- "TCP 9091" --> sidecars["Capture sidecars in allowed namespaces"]
+```
+
 Use the source IPs the target cluster actually observes, accounting for private
 relay/SNAT behavior. `peerSelectors` identify pods **inside this cluster**, such
 as a relay; they cannot select pods by labels across clusters. Supply both a

@@ -76,15 +76,6 @@ target "e2e-tunnel-frp" {
   tags       = ["gameplane-test/tunnel-frp:e2e"]
 }
 
-# The API built with the "postgres" build tag (spec 013 US3). Baked on its own,
-# like gameprobe, so the default e2e group keeps its SQLite-only api image.
-target "e2e-api-postgres" {
-  context    = "."
-  dockerfile = "api/Dockerfile"
-  args       = { GO_TAGS = "postgres" }
-  tags       = ["gameplane-test/api:e2e-postgres"]
-}
-
 # The headless protocol bot the game-bot job runs inside the cluster. It is
 # deliberately outside the "e2e" group: only that one job needs it, and the
 # other e2e buckets shouldn't pay to build it.

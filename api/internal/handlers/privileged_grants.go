@@ -36,9 +36,9 @@ func isFullAdmin(u *auth.User) bool {
 }
 
 // roleIsPrivileged reports whether role grants a privileged permission.
-func roleIsPrivileged(ctx context.Context, store *db.Store, role string) (bool, error) {
+func roleIsPrivileged(ctx context.Context, q db.Reader, role string) (bool, error) {
 	var n int
-	if err := store.DB.QueryRowContext(ctx,
+	if err := q.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM role_permissions
 		 WHERE role_name = ? AND permission IN ('*', 'users:manage', 'roles:manage', 'config:manage', 'cluster:manage')`,
 		role).Scan(&n); err != nil {
@@ -49,9 +49,9 @@ func roleIsPrivileged(ctx context.Context, store *db.Store, role string) (bool, 
 
 // userIsPrivileged reports whether any role binding of the user grants a
 // privileged permission.
-func userIsPrivileged(ctx context.Context, store *db.Store, userID int64) (bool, error) {
+func userIsPrivileged(ctx context.Context, q db.Reader, userID int64) (bool, error) {
 	var n int
-	if err := store.DB.QueryRowContext(ctx,
+	if err := q.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM user_role_bindings b
 		 JOIN role_permissions rp ON rp.role_name = b.role_name
 		 WHERE b.user_id = ? AND rp.permission IN ('*', 'users:manage', 'roles:manage', 'config:manage', 'cluster:manage')`,
@@ -63,13 +63,13 @@ func userIsPrivileged(ctx context.Context, store *db.Store, userID int64) (bool,
 
 // addsPrivileged reports whether perms contains a privileged permission that
 // role does not grant yet.
-func addsPrivileged(ctx context.Context, store *db.Store, role string, perms []string) (bool, error) {
+func addsPrivileged(ctx context.Context, q db.Reader, role string, perms []string) (bool, error) {
 	for _, p := range perms {
 		if !isPrivilegedPermission(p) {
 			continue
 		}
 		var n int
-		if err := store.DB.QueryRowContext(ctx,
+		if err := q.QueryRowContext(ctx,
 			`SELECT COUNT(*) FROM role_permissions WHERE role_name = ? AND permission = ?`,
 			role, p).Scan(&n); err != nil {
 			return false, fmt.Errorf("check permission %q on role %q: %w", p, role, err)
@@ -83,11 +83,11 @@ func addsPrivileged(ctx context.Context, store *db.Store, role string, perms []s
 
 // allowRoleGrant answers 403 and returns false when a caller who is not a
 // full administrator tries to give someone a privileged role.
-func allowRoleGrant(w http.ResponseWriter, req *http.Request, store *db.Store, role string) bool {
+func allowRoleGrant(w http.ResponseWriter, req *http.Request, q db.Reader, role string) bool {
 	if isFullAdmin(auth.UserFromContext(req.Context())) {
 		return true
 	}
-	privileged, err := roleIsPrivileged(req.Context(), store, role)
+	privileged, err := roleIsPrivileged(req.Context(), q, role)
 	if err != nil {
 		httperr.Write(w, req, err)
 		return false
@@ -103,12 +103,12 @@ func allowRoleGrant(w http.ResponseWriter, req *http.Request, store *db.Store, r
 // full administrator tries to change another account that holds a privileged
 // permission. Callers may still change their own account; the self-demotion
 // guards apply there.
-func allowTargetChange(w http.ResponseWriter, req *http.Request, store *db.Store, targetID int64) bool {
+func allowTargetChange(w http.ResponseWriter, req *http.Request, q db.Reader, targetID int64) bool {
 	u := auth.UserFromContext(req.Context())
 	if isFullAdmin(u) || (u != nil && u.ID == targetID) {
 		return true
 	}
-	privileged, err := userIsPrivileged(req.Context(), store, targetID)
+	privileged, err := userIsPrivileged(req.Context(), q, targetID)
 	if err != nil {
 		httperr.Write(w, req, err)
 		return false

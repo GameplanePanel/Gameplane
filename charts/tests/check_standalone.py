@@ -43,7 +43,7 @@ def check_packaged_crds(example):
 
 
 def check_api_availability():
-    """All API modes stay singleton, migrate old strategies, and probe the DB."""
+    """Singleton upgrades and explicit native PostgreSQL HA."""
     for standalone in (False, True):
         for driver in ("sqlite", "postgres"):
             values = {"operator": {"enabled": not standalone},
@@ -54,8 +54,10 @@ def check_api_availability():
                 assert deployment["spec"]["replicas"] == 1
                 assert deployment["spec"]["strategy"] == {"type": "Recreate", "rollingUpdate": None}
                 container = next(c for c in deployment["spec"]["template"]["spec"]["containers"] if c["name"] == "api")
+                assert not any(a.startswith("--postgres-ha-protocol") for a in container["args"])
                 assert container["livenessProbe"]["httpGet"]["path"] == "/healthz"
-                assert container["readinessProbe"]["httpGet"]["path"] == "/readyz"
+                expected_probe = "/readyz/postgres-ha" if driver == "postgres" and not standalone else "/readyz"
+                assert container["readinessProbe"]["httpGet"]["path"] == expected_probe
                 assert container["readinessProbe"]["failureThreshold"] == 3
                 assert container["readinessProbe"]["periodSeconds"] == 5
                 assert container["readinessProbe"]["timeoutSeconds"] > 2
@@ -72,6 +74,26 @@ def check_api_availability():
                 render(values, failure="api requires api.replicas=1")
     # A remote installation with no API has no singleton requirement.
     render({"api": {"enabled": False, "replicas": 0}})
+    ha = {"replicas": 2, "postgresHA": {"enabled": True}, "db": {"driver": "postgres", "existingSecret": "panel-dsn"}}
+    for upgrade in (False, True):
+        objects = render({"api": ha}, upgrade=upgrade)
+        dep = one(objects, "Deployment", "gameplane-api")["spec"]
+        assert dep["strategy"] == {"type": "RollingUpdate", "rollingUpdate": {"maxSurge": 0, "maxUnavailable": 1}}
+        assert dep["minReadySeconds"] == 5
+        pod = dep["template"]["spec"]
+        container = next(c for c in pod["containers"] if c["name"] == "api")
+        assert container["lifecycle"]["preStop"]["sleep"]["seconds"] == 5
+        assert "--postgres-ha-protocol=1" in container["args"]
+        term = pod["affinity"]["podAntiAffinity"]["requiredDuringSchedulingIgnoredDuringExecution"][0]
+        assert term["topologyKey"] == "kubernetes.io/hostname"
+        assert term["labelSelector"]["matchLabels"]["app.kubernetes.io/name"] == "gameplane-api"
+        assert one(objects, "PodDisruptionBudget", "gameplane-api")["spec"]["maxUnavailable"] == 1
+        assert all("persistentVolumeClaim" not in volume for volume in pod["volumes"])
+    for driver in ("sqlite", "postgres"):
+        render({"api": {**ha, "db": {"driver": driver}}}, failure="requires native API mode")
+    render({"api": {**ha, "standalone": True}, "operator": {"enabled": False}}, failure="requires native API mode")
+    for replicas in (0, 1, -1, 1.5):
+        render({"api": {**ha, "replicas": replicas}}, failure="at least two integer")
 
 
 def check_native_permissions():

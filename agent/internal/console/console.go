@@ -54,19 +54,37 @@ func (h *handler) serve(w http.ResponseWriter, req *http.Request) {
 	}
 	defer func() { _ = conn.Close(websocket.StatusNormalClosure, "") }()
 
-	ctx := req.Context()
-	for {
-		var in Envelope
-		if err := wsjson.Read(ctx, conn, &in); err != nil {
-			if !errors.Is(err, context.Canceled) {
-				_ = conn.Close(websocket.StatusInternalError, err.Error())
+	ctx, cancel := context.WithCancel(req.Context())
+	defer cancel()
+	// Reading must continue while a command waits behind a backup, so a
+	// closed WebSocket cancels admission before the command can run.
+	input := make(chan string, 16)
+	go func() {
+		defer close(input)
+		defer cancel()
+		for {
+			var in Envelope
+			if err := wsjson.Read(ctx, conn, &in); err != nil {
+				return
 			}
+			if in.Kind != "cmd" || in.Body == "" {
+				continue
+			}
+			select {
+			case input <- in.Body:
+			default:
+				cancel()
+				_ = conn.Close(websocket.StatusPolicyViolation, "too many queued console commands")
+				return
+			}
+		}
+	}()
+	rc := rcon.WithContext(ctx, h.rcon)
+	for command := range input {
+		if ctx.Err() != nil {
 			return
 		}
-		if in.Kind != "cmd" || in.Body == "" {
-			continue
-		}
-		out, err := h.rcon.Exec(in.Body)
+		out, err := rc.Exec(command)
 		env := Envelope{Kind: "out", Body: out}
 		if err != nil {
 			errBody := "upstream unavailable"

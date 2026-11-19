@@ -19,8 +19,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,6 +31,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 
+	"github.com/GameplanePanel/gameplane/agent/internal/a2s"
 	"github.com/GameplanePanel/gameplane/agent/internal/caps"
 	"github.com/GameplanePanel/gameplane/agent/internal/metrics"
 	"github.com/GameplanePanel/gameplane/agent/internal/players"
@@ -59,7 +62,12 @@ type Config struct {
 	Usage        UsageReader
 	PlayerList   *caps.PlayerList
 	PlayerListRE *regexp.Regexp
-	Metrics      *metrics.Metrics
+	// PlayerQuery, when set, replaces the console player list as the
+	// source of player counts. QueryHost is where it is sent (loopback in
+	// the pod); empty means 127.0.0.1.
+	PlayerQuery *caps.PlayerQuery
+	QueryHost   string
+	Metrics     *metrics.Metrics
 }
 
 var gvr = schema.GroupVersionResource{
@@ -156,7 +164,7 @@ func sendOnce(ctx context.Context, dyn dynamic.Interface, cfg Config) error {
 	// with null clears any prior value. playersMax stays null when the game
 	// reports an online count but no maximum, so the dashboard shows "—"
 	// rather than a bogus cap of 0.
-	if online, maxN, err := queryPlayerCounts(cfg); err == nil {
+	if online, maxN, err := queryPlayerCounts(ctx, cfg); err == nil {
 		agent["playersOnline"] = online
 		// Status patch: playersMax is only emitted when maxN > 0 (a real
 		// finite limit). Unknown (maxN=0) and unlimited (maxN=-1) both patch
@@ -187,7 +195,7 @@ func sendOnce(ctx context.Context, dyn dynamic.Interface, cfg Config) error {
 		agent["memoryBytes"] = nullable(s.MemoryBytes, s.MemoryKnown)
 		agent["memoryLimitBytes"] = nullable(s.MemoryLimitBytes, s.MemoryLimitKnown)
 		agent["diskUsedBytes"] = nullable(s.DiskUsedBytes, s.DiskKnown)
-		agent["diskTotalBytes"] = nullable(s.DiskTotalBytes, s.DiskKnown)
+		agent["diskTotalBytes"] = nullable(s.DiskTotalBytes, s.DiskTotalKnown)
 		// Update metrics with usage data.
 		if cfg.Metrics != nil {
 			metricsSnap.CPUMillicores = s.CPUMillicores
@@ -199,8 +207,9 @@ func sendOnce(ctx context.Context, dyn dynamic.Interface, cfg Config) error {
 			metricsSnap.MemoryLimitBytes = s.MemoryLimitBytes
 			metricsSnap.MemoryLimitKnown = s.MemoryLimitKnown
 			metricsSnap.DiskUsedBytes = s.DiskUsedBytes
-			metricsSnap.DiskTotalBytes = s.DiskTotalBytes
 			metricsSnap.DiskKnown = s.DiskKnown
+			metricsSnap.DiskTotalKnown = s.DiskTotalKnown
+			metricsSnap.DiskTotalBytes = s.DiskTotalBytes
 		}
 	}
 
@@ -238,7 +247,10 @@ func nullable(v int64, known bool) any {
 // When EntryRegex is configured, the online count is the number of regex
 // matches. err is non-nil only when RCON fails or no online count can be
 // parsed at all.
-func queryPlayerCounts(cfg Config) (online, maxPlayers int, err error) {
+func queryPlayerCounts(ctx context.Context, cfg Config) (online, maxPlayers int, err error) {
+	if cfg.PlayerQuery != nil {
+		return queryPlayerCountsA2S(ctx, cfg)
+	}
 	cmd := "list"
 	if cfg.PlayerList != nil && cfg.PlayerList.Command != "" {
 		cmd = cfg.PlayerList.Command
@@ -271,6 +283,28 @@ func queryPlayerCounts(cfg Config) (online, maxPlayers int, err error) {
 		return n, maxPlayers, nil
 	}
 	return 0, maxPlayers, fmt.Errorf("no player count in %q", raw)
+}
+
+// a2sTimeout bounds one player-count query, well inside the heartbeat
+// interval.
+const a2sTimeout = 2 * time.Second
+
+// queryPlayerCountsA2S reads the player count over the declared query
+// protocol. Bots don't count as players, so a server with only bots on it
+// reports 0 and can sleep. A server limit of 0 is reported as unknown.
+func queryPlayerCountsA2S(ctx context.Context, cfg Config) (online, maxPlayers int, err error) {
+	if cfg.PlayerQuery.Protocol != "a2s" {
+		return 0, 0, fmt.Errorf("unsupported player query protocol %q", cfg.PlayerQuery.Protocol)
+	}
+	host := cfg.QueryHost
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	info, err := a2s.QueryInfo(ctx, net.JoinHostPort(host, strconv.Itoa(cfg.PlayerQuery.Port)), a2sTimeout)
+	if err != nil {
+		return 0, 0, fmt.Errorf("player query: %w", err)
+	}
+	return info.Humans(), info.MaxPlayers, nil
 }
 
 // readNamespace reads the SA-projected namespace file written into

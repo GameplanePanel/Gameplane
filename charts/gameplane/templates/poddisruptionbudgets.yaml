@@ -12,11 +12,13 @@
   (dict "name" "telemetry-receiver" "config" $receiver "enabled" (and $apiEnabled $receiver.enabled (not .Values.api.telemetry.endpoint))) -}}
 {{- range $components -}}
 {{- $pdb := .config.pdb | default dict -}}
-{{- if and .enabled $pdb.enabled -}}
+{{- $ha := and (eq .name "api") ($.Values.api.postgresHA | default dict).enabled -}}
+{{- if and .enabled (or $ha $pdb.enabled) -}}
 {{- $minimum := not (kindIs "invalid" $pdb.minAvailable) -}}
 {{- $maximum := not (kindIs "invalid" $pdb.maxUnavailable) -}}
 {{- if eq .name "api" -}}
 {{- if or $minimum (and $maximum (ne (toString $pdb.maxUnavailable) "1")) -}}
+{{- if $ha -}}{{- fail "api.postgresHA requires an API disruption budget of maxUnavailable: 1" -}}{{- end -}}
 {{- fail "api.pdb must allow the singleton API to be evicted: use maxUnavailable: 1 without minAvailable" -}}
 {{- end -}}
 {{- else if and $minimum $maximum -}}

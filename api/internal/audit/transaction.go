@@ -77,6 +77,13 @@ func (a *Auditor) chainTransaction(ctx context.Context, operation string, budget
 		return fmt.Errorf("begin audit %s: %w", operation, err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	// All replicas take this transaction-scoped lock before reading the head.
+	// Ordinary readers remain concurrent with appends and pruning.
+	if a.db.Driver == "postgres" {
+		if _, err := tx.ExecContext(txCtx, "LOCK TABLE audit_events IN SHARE ROW EXCLUSIVE MODE"); err != nil {
+			return fmt.Errorf("lock audit chain: %w", err)
+		}
+	}
 	if err := write(txCtx, tx); err != nil {
 		return err
 	}

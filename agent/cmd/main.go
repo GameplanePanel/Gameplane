@@ -166,9 +166,10 @@ func main() {
 		transport = rcon.New(rconHost, rconPort, rcon.PasswordFromFile(rconPassFile))
 	}
 
+	flushOnly := rconEnabled && capSpec != nil && capSpec.BackupFlush == "minecraft-save-all" && gameName == "minecraft-java" && capSpec.Quiesce == nil
 	commands := rcon.NewCommands(transport)
 	rconClient := transport
-	if quiesceSpec != nil {
+	if quiesceSpec != nil || flushOnly {
 		rconClient = commands
 	}
 	r := chi.NewRouter()
@@ -199,7 +200,7 @@ func main() {
 
 		protected.Group(func(bounded chi.Router) {
 			bounded.Use(middleware.Timeout(30 * time.Second))
-			players.Mount(bounded, rconClient, gameName, playerActions)
+			players.Mount(bounded, rconClient, gameName, playerActions, dataRoot)
 			quiesce.Mount(bounded, commands, gameName, quiesceSpec)
 			lifecycle.Mount(bounded, rconClient, gameName, lifecycleSpec)
 			actions.Mount(bounded, rconClient, gameName, actionSpecs)
@@ -219,9 +220,17 @@ func main() {
 	for _, version := range []string{"v1", "v2"} {
 		r.Route("/"+version+"/pods/{uid}", func(protected chi.Router) {
 			protected.Use(authCheck.Middleware, target.Guard(envOr("GAMEPLANE_POD_UID", "")), middleware.Timeout(30*time.Second))
-			protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
+			protected.Get("/identity", func(w http.ResponseWriter, _ *http.Request) {
+				if version == "v2" && flushOnly {
+					w.Header().Set("Gameplane-Backup-Mode", "flush-only")
+				}
+				w.WriteHeader(http.StatusNoContent)
+			})
 			if version == "v2" {
 				quiesce.MountVerified(protected, commands, gameName, quiesceSpec)
+				if flushOnly {
+					quiesce.MountMinecraftFlush(protected, commands)
+				}
 			} else {
 				quiesce.Mount(protected, commands, gameName, quiesceSpec)
 			}
@@ -244,6 +253,13 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+	usageReader := usage.New(usage.Config{
+		DataDir:            dataRoot,
+		ProcMode:           envOr("GAMEPLANE_USAGE_PROC", "") == "1",
+		CPULimitMillicores: envInt("GAMEPLANE_CPU_LIMIT_MILLICORES"),
+		MemLimitBytes:      envInt("GAMEPLANE_MEM_LIMIT_BYTES"),
+	})
+	go usageReader.MonitorDisk(ctx)
 
 	// Prometheus metrics for per-server resource usage and player counts.
 	// Registered with the default registry so promhttp.Handler() picks it up.
@@ -268,13 +284,15 @@ func main() {
 			}
 			return nil
 		}(),
-		Usage: usage.New(usage.Config{
-			DataDir:            dataRoot,
-			ProcMode:           envOr("GAMEPLANE_USAGE_PROC", "") == "1",
-			CPULimitMillicores: envInt("GAMEPLANE_CPU_LIMIT_MILLICORES"),
-			MemLimitBytes:      envInt("GAMEPLANE_MEM_LIMIT_BYTES"),
-		}),
-		Metrics: m,
+		PlayerQuery: func() *caps.PlayerQuery {
+			if playerActions != nil {
+				return playerActions.Query
+			}
+			return nil
+		}(),
+		QueryHost: rconHost,
+		Usage:     usageReader,
+		Metrics:   m,
 	})
 
 	go func() {

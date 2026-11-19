@@ -148,7 +148,7 @@ func (h *handler) run(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		raw, err := h.rc.Exec(cmd)
+		raw, err := rcon.WithContext(req.Context(), h.rc).Exec(cmd)
 		if errors.Is(err, rcon.ErrDisabled) {
 			httpjson.Error(w, http.StatusNotImplemented, fmt.Sprintf("not supported by %s (no RCON)", h.game))
 			return
