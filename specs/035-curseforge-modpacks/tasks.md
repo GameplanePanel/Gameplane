@@ -23,7 +23,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 **Purpose**: confirm the upstream facts the design rests on before changing types.
 
 - [ ] T001 Re-check research.md R1, R2 and R7 against the itzg image digests pinned in modules/minecraft-java/template.yaml (env names `AUTO_CURSEFORGE`, `CF_SLUG`, `CF_FILE_ID`, `CF_API_KEY_FILE`, `CF_DOWNLOADS_REPO`, `MODRINTH_VERSION`, `FTBA`, `FTB_MODPACK_ID`, `FTB_MODPACK_VERSION_ID`; manifest files `.modrinth-modpack-manifest.json`, `.curseforge-manifest.json`; `MODS_NEED_DOWNLOAD.txt`; built-in key present on java17/java21/java25 and absent on java8-multiarch); record any difference in specs/035-curseforge-modpacks/research.md and stop if one breaks the plan
-- [ ] T002 [P] Record recorded-response fixtures for the FTB API (search, pack detail, version detail) and a CurseForge modpack files response (class 4471) in api/internal/registry/testdata/ftb/ and api/internal/registry/testdata/curseforge/modpack-files.json
+- [X] T002 [P] Record recorded-response fixtures for the FTB API (search, pack detail, version detail) and a CurseForge modpack files response (class 4471) in api/internal/registry/testdata/ftb/ and api/internal/registry/testdata/curseforge/modpack-files.json
 
 ---
 
