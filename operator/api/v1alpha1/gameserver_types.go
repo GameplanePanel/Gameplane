@@ -42,6 +42,27 @@ const (
 	// has no free block, in which case the server has no Service. Absent
 	// when the template draws from no pool.
 	GameServerConditionPortAllocation = "PortAllocation"
+
+	// GameServerConditionModpackReady reports the progress of the current
+	// modpack change (spec.modpack): True once status.modpack.phase is
+	// Applied; False with Reason BackingUp, Applying or BackupFailed
+	// otherwise. Absent while the server has never had a managed modpack.
+	GameServerConditionModpackReady = "ModpackReady"
+)
+
+// Modpack annotations on a GameServer.
+const (
+	// ModpackAdoptedAnnotation ("true") is set by the API's legacy sweep on a
+	// server whose pre-spec.modpack pack was adopted into spec.modpack; the
+	// operator keeps rendering the legacy env until the next pod start it
+	// drives, then removes the annotation.
+	ModpackAdoptedAnnotation = "gameplane.local/modpack-adopted"
+
+	// ModpackRemoveAnnotation holds JSON {"requestId": string, "backupFirst":
+	// bool}. Set by the API on Remove, cleared by the operator once applied;
+	// kept with status.modpack.applied when the removal's backup fails so a
+	// retry (new requestId) runs it again.
+	ModpackRemoveAnnotation = "gameplane.local/modpack-remove"
 )
 
 // GameServerSpec is the desired state of a single game server instance.
@@ -166,6 +187,99 @@ type GameServerSpec struct {
 	// Capture configures optional packet-capture capability for this GameServer.
 	// +optional
 	Capture *CaptureConfiguration `json:"capture,omitempty"`
+
+	// Modpack is the modpack this server runs. Absent means no pack. The
+	// operator renders the pack's env from this field (it never lives in
+	// spec.env) and applies changes through status.modpack. Remove deletes
+	// this field and sets the gameplane.local/modpack-remove annotation.
+	// +optional
+	Modpack *GameServerModpackSpec `json:"modpack,omitempty"`
+}
+
+// ModpackRef identifies one modpack version from a registry.
+type ModpackRef struct {
+	// Provider names the registry (a provider of the template's registry
+	// list that declares modpacks), e.g. "modrinth", "curseforge", "ftb".
+	// The operator renders nothing for a provider the template does not
+	// declare with modpacks.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=32
+	// +kubebuilder:validation:Pattern=`^[a-z0-9-]+$`
+	Provider string `json:"provider"`
+
+	// Project is the pack's slug (Modrinth, CurseForge) or numeric id (FTB).
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=128
+	// +kubebuilder:validation:Pattern=`^[A-Za-z0-9._-]+$`
+	Project string `json:"project"`
+
+	// Version is the pinned pack version id. Empty only for adopted packs
+	// whose installed version could not be read ("Not pinned").
+	// +kubebuilder:validation:MaxLength=64
+	// +kubebuilder:validation:Pattern=`^[A-Za-z0-9._-]*$`
+	// +optional
+	Version string `json:"version,omitempty"`
+
+	// Title is the pack's display name; display only.
+	// +kubebuilder:validation:MaxLength=128
+	// +optional
+	Title string `json:"title,omitempty"`
+
+	// VersionName is the version's display name; display only.
+	// +kubebuilder:validation:MaxLength=128
+	// +optional
+	VersionName string `json:"versionName,omitempty"`
+}
+
+// GameServerModpackSpec is the desired modpack for a server.
+type GameServerModpackSpec struct {
+	ModpackRef `json:",inline"`
+
+	// BackupFirst asks for a backup before the change is applied. Honoured
+	// only when the server has a backup destination.
+	// +optional
+	BackupFirst bool `json:"backupFirst,omitempty"`
+}
+
+// ModpackPhase is the progress of the current modpack change.
+// +kubebuilder:validation:Enum=Pending;BackingUp;Applying;Applied;BackupFailed
+type ModpackPhase string
+
+// ModpackPhase constants.
+const (
+	ModpackPhasePending      ModpackPhase = "Pending"
+	ModpackPhaseBackingUp    ModpackPhase = "BackingUp"
+	ModpackPhaseApplying     ModpackPhase = "Applying"
+	ModpackPhaseApplied      ModpackPhase = "Applied"
+	ModpackPhaseBackupFailed ModpackPhase = "BackupFailed"
+)
+
+// GameServerModpackStatus is the observed state of spec.modpack.
+type GameServerModpackStatus struct {
+	// ObservedGeneration is the generation of the last change handled.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	// Phase is the progress of the current change.
+	// +optional
+	Phase ModpackPhase `json:"phase,omitempty"`
+
+	// Applied is the pack the pod renders now; nil when none.
+	// +optional
+	Applied *ModpackRef `json:"applied,omitempty"`
+
+	// BackupName is the Backup created for this change.
+	// +optional
+	BackupName string `json:"backupName,omitempty"`
+
+	// Message is a human-readable reason for BackupFailed.
+	// +kubebuilder:validation:MaxLength=512
+	// +optional
+	Message string `json:"message,omitempty"`
+
+	// KeyShared reports the pod currently mounts a shared CurseForge key.
+	// +optional
+	KeyShared bool `json:"keyShared,omitempty"`
 }
 
 // IdleSpec configures idle auto-sleep: the operator scales the server down
@@ -643,6 +757,11 @@ type GameServerStatus struct {
 	// +kubebuilder:validation:MaxItems=32
 	// +optional
 	TunnelEndpoints []GameServerEndpoint `json:"tunnelEndpoints,omitempty"`
+
+	// Modpack reports the progress and result of spec.modpack changes.
+	// Missing-download files are not stored here; the API reads them live.
+	// +optional
+	Modpack *GameServerModpackStatus `json:"modpack,omitempty"`
 }
 
 // IdleStatus is the observed state of idle auto-sleep. It is a read model:

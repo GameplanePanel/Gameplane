@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: f46b83a4e39db8e78fa5d9374dffaffcf62f548ad8dfe14255dcdbf7fa2381ba
+    gameplane.local/crd-bundle-sha256: 08c1b8497759d248f397bca91d7770af94fb2b79c7de31ed00abc493b5d52448
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
@@ -1308,6 +1308,55 @@ spec:
                   resolved from Version). Useful for pinning a specific build or
                   running a fork.
                 type: string
+              modpack:
+                description: |-
+                  Modpack is the modpack this server runs. Absent means no pack. The
+                  operator renders the pack's env from this field (it never lives in
+                  spec.env) and applies changes through status.modpack. Remove deletes
+                  this field and sets the gameplane.local/modpack-remove annotation.
+                properties:
+                  backupFirst:
+                    description: |-
+                      BackupFirst asks for a backup before the change is applied. Honoured
+                      only when the server has a backup destination.
+                    type: boolean
+                  project:
+                    description: Project is the pack's slug (Modrinth, CurseForge)
+                      or numeric id (FTB).
+                    maxLength: 128
+                    minLength: 1
+                    pattern: ^[A-Za-z0-9._-]+$
+                    type: string
+                  provider:
+                    description: |-
+                      Provider names the registry (a provider of the template's registry
+                      list that declares modpacks), e.g. "modrinth", "curseforge", "ftb".
+                      The operator renders nothing for a provider the template does not
+                      declare with modpacks.
+                    maxLength: 32
+                    minLength: 1
+                    pattern: ^[a-z0-9-]+$
+                    type: string
+                  title:
+                    description: Title is the pack's display name; display only.
+                    maxLength: 128
+                    type: string
+                  version:
+                    description: |-
+                      Version is the pinned pack version id. Empty only for adopted packs
+                      whose installed version could not be read ("Not pinned").
+                    maxLength: 64
+                    pattern: ^[A-Za-z0-9._-]*$
+                    type: string
+                  versionName:
+                    description: VersionName is the version's display name; display
+                      only.
+                    maxLength: 128
+                    type: string
+                required:
+                - project
+                - provider
+                type: object
               mods:
                 description: |-
                   Mods pins the mods this server loads, for games whose server downloads
@@ -2707,6 +2756,78 @@ spec:
                   successful backup of this server.
                 format: date-time
                 type: string
+              modpack:
+                description: |-
+                  Modpack reports the progress and result of spec.modpack changes.
+                  Missing-download files are not stored here; the API reads them live.
+                properties:
+                  applied:
+                    description: Applied is the pack the pod renders now; nil when
+                      none.
+                    properties:
+                      project:
+                        description: Project is the pack's slug (Modrinth, CurseForge)
+                          or numeric id (FTB).
+                        maxLength: 128
+                        minLength: 1
+                        pattern: ^[A-Za-z0-9._-]+$
+                        type: string
+                      provider:
+                        description: |-
+                          Provider names the registry (a provider of the template's registry
+                          list that declares modpacks), e.g. "modrinth", "curseforge", "ftb".
+                          The operator renders nothing for a provider the template does not
+                          declare with modpacks.
+                        maxLength: 32
+                        minLength: 1
+                        pattern: ^[a-z0-9-]+$
+                        type: string
+                      title:
+                        description: Title is the pack's display name; display only.
+                        maxLength: 128
+                        type: string
+                      version:
+                        description: |-
+                          Version is the pinned pack version id. Empty only for adopted packs
+                          whose installed version could not be read ("Not pinned").
+                        maxLength: 64
+                        pattern: ^[A-Za-z0-9._-]*$
+                        type: string
+                      versionName:
+                        description: VersionName is the version's display name; display
+                          only.
+                        maxLength: 128
+                        type: string
+                    required:
+                    - project
+                    - provider
+                    type: object
+                  backupName:
+                    description: BackupName is the Backup created for this change.
+                    type: string
+                  keyShared:
+                    description: KeyShared reports the pod currently mounts a shared
+                      CurseForge key.
+                    type: boolean
+                  message:
+                    description: Message is a human-readable reason for BackupFailed.
+                    maxLength: 512
+                    type: string
+                  observedGeneration:
+                    description: ObservedGeneration is the generation of the last
+                      change handled.
+                    format: int64
+                    type: integer
+                  phase:
+                    description: Phase is the progress of the current change.
+                    enum:
+                    - Pending
+                    - BackingUp
+                    - Applying
+                    - Applied
+                    - BackupFailed
+                    type: string
+                type: object
               observedGeneration:
                 format: int64
                 type: integer
