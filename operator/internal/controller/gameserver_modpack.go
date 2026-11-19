@@ -545,17 +545,26 @@ func (r *GameServerReconciler) createModpackBackup(
 // live spec.replicas == 0), otherwise only when the pack has a version and the
 // agent reports a known player count of 0. An unknown count never releases.
 func (r *GameServerReconciler) modpackHoldReleased(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
+	return r.modpackServerQuiet(ctx, gs, true)
+}
+
+// modpackServerQuiet reports whether a pod template change may roll the server
+// now (OD-8 B, OD-10 A): right away when stopped or asleep (no StatefulSet, or
+// live replicas 0), otherwise only on a known player count of 0. An unknown
+// count never counts as quiet. needVersion additionally requires the adopted
+// pack to have a version (OD-8 only).
+func (r *GameServerReconciler) modpackServerQuiet(ctx context.Context, gs *gameplanev1alpha1.GameServer, needVersion bool) (bool, error) {
 	var ss appsv1.StatefulSet
 	switch err := r.wipeReader().Get(ctx, client.ObjectKeyFromObject(gs), &ss); {
 	case apierrors.IsNotFound(err):
 		return true, nil
 	case err != nil:
-		return false, fmt.Errorf("get StatefulSet for modpack adoption of %s: %w", gs.Name, err)
+		return false, fmt.Errorf("get StatefulSet for modpack restart gate of %s: %w", gs.Name, err)
 	}
 	if ss.Spec.Replicas != nil && *ss.Spec.Replicas == 0 {
 		return true, nil
 	}
-	if gs.Spec.Modpack.Version == "" {
+	if needVersion && gs.Spec.Modpack.Version == "" {
 		return false, nil
 	}
 	a := gs.Status.Agent

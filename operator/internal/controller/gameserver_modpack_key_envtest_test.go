@@ -249,7 +249,9 @@ func TestGameServer_ModpackKeyShare_OnOff(t *testing.T) {
 		return true, ""
 	})
 
-	// Sharing off: copy and env go away.
+	// Sharing off: copy and env go away once the server is quiet (OD-10 A).
+	modpackReadyIs(t, ns, "keyed", "True")
+	setAgentPlayers(t, ns, "keyed", int32Ptr(0))
 	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { delete(sec.Annotations, curseforgeShareAnnotation) })
 	kickGameServer(t, ns, "keyed")
 	eventually(t, func() (bool, string) {
@@ -354,6 +356,7 @@ func TestGameServer_ModpackKeyShare_KeyDeletedAndPackRemoved(t *testing.T) {
 	eventually(t, copyPresent(true))
 
 	// The managed Secret is deleted: copy and env go away.
+	setAgentPlayers(t, ns, "dropkey", int32Ptr(0))
 	if err := k8sClient.Delete(context.Background(), managed); err != nil {
 		t.Fatalf("delete managed key Secret: %v", err)
 	}
@@ -420,4 +423,203 @@ func TestGameServer_ModpackKeyShare_NoPackNoCopy(t *testing.T) {
 	if _, found := keyCopyOf(t, ns, "nopack"); found {
 		t.Fatalf("key copy Secret created for a server with no modpack")
 	}
+}
+
+// keyShareStateIs reports whether the copy Secret, the secretKeyRef env and
+// status.modpack.keyShared all show sharing as want.
+func keyShareStateIs(t *testing.T, ns, name string, want bool) func() (bool, string) {
+	return func() (bool, string) {
+		if _, found := keyCopyOf(t, ns, name); found != want {
+			return false, fmt.Sprintf("key copy present=%v, want %v", found, want)
+		}
+		env, why := gameEnvOf(ns, name)
+		if why != "" {
+			return false, why
+		}
+		if (keyRefOf(env, "CF_API_KEY") != nil) != want {
+			return false, fmt.Sprintf("CF_API_KEY secretKeyRef present, want %v", want)
+		}
+		if keyShareStatus(t, ns, name) != want {
+			return false, fmt.Sprintf("status.modpack.keyShared, want %v", want)
+		}
+		return true, ""
+	}
+}
+
+// TestGameServer_ModpackKeyShare_ToggleWaitsForZeroPlayers covers spec 035
+// OD-10 A: turning sharing off on an applied CurseForge pack rolls the pod, so
+// it applies only at a known 0 players. While players are online or unknown the
+// copy, env and applied state stay put and the pod template does not move; at
+// 0 the change applies with exactly one rollout.
+func TestGameServer_ModpackKeyShare_ToggleWaitsForZeroPlayers(t *testing.T) {
+	ns := newNamespace(t)
+	ctrlNS := newNamespace(t)
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+
+	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
+		t.Fatalf("create managed key Secret: %v", err)
+	}
+	tmpl := buildModpackTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "waitkey", tmpl.Name)
+	gs.Spec.Version = "1.21.4-forge"
+	gs.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "6512345")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+	eventually(t, keyShareStateIs(t, ns, "waitkey", true))
+	modpackReadyIs(t, ns, "waitkey", "True")
+	setAgentPlayers(t, ns, "waitkey", int32Ptr(3))
+	before := ssOf(t, ns, "waitkey").Generation
+	podBefore := podTemplateJSON(t, ns, "waitkey")
+
+	held := func() (bool, string) {
+		if ok, why := keyShareStateIs(t, ns, "waitkey", true)(); !ok {
+			return false, why
+		}
+		if got := podTemplateJSON(t, ns, "waitkey"); got != podBefore {
+			return false, "pod template changed while the toggle waits"
+		}
+		return true, ""
+	}
+
+	// Sharing off with 3 players online: held.
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { delete(sec.Annotations, curseforgeShareAnnotation) })
+	kickGameServer(t, ns, "waitkey")
+	consistently(t, 2*time.Second, held)
+
+	// Unknown player count is never quiet: still held.
+	setAgentPlayers(t, ns, "waitkey", nil)
+	kickGameServer(t, ns, "waitkey")
+	consistently(t, 2*time.Second, held)
+
+	// Known 0 players: the toggle applies once.
+	setAgentPlayers(t, ns, "waitkey", int32Ptr(0))
+	kickGameServer(t, ns, "waitkey")
+	eventually(t, keyShareStateIs(t, ns, "waitkey", false))
+	if after := ssOf(t, ns, "waitkey").Generation; after != before+1 {
+		t.Fatalf("statefulset generation %d -> %d, want exactly one rollout", before, after)
+	}
+	consistently(t, time.Second, func() (bool, string) {
+		if g := ssOf(t, ns, "waitkey").Generation; g != before+1 {
+			return false, fmt.Sprintf("statefulset generation moved to %d after the toggle", g)
+		}
+		return true, ""
+	})
+}
+
+// TestGameServer_ModpackKeyShare_ShareOnWaitsForZeroPlayers covers OD-10 A for
+// turning sharing on: the copy Secret is created at once (nothing names it
+// yet), but the env and the applied state wait for a known 0 players.
+func TestGameServer_ModpackKeyShare_ShareOnWaitsForZeroPlayers(t *testing.T) {
+	ns := newNamespace(t)
+	ctrlNS := newNamespace(t)
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+
+	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", false)); err != nil {
+		t.Fatalf("create managed key Secret: %v", err)
+	}
+	tmpl := buildModpackTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "onwait", tmpl.Name)
+	gs.Spec.Version = "1.21.4-forge"
+	gs.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "6512345")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+	eventually(t, keyShareStateIs(t, ns, "onwait", false))
+	modpackReadyIs(t, ns, "onwait", "True")
+	setAgentPlayers(t, ns, "onwait", int32Ptr(4))
+	before := ssOf(t, ns, "onwait").Generation
+	podBefore := podTemplateJSON(t, ns, "onwait")
+
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { sec.Annotations[curseforgeShareAnnotation] = "true" })
+	kickGameServer(t, ns, "onwait")
+	eventually(t, func() (bool, string) {
+		if _, found := keyCopyOf(t, ns, "onwait"); !found {
+			return false, "share-on copy not created early"
+		}
+		return true, ""
+	})
+	consistently(t, 2*time.Second, func() (bool, string) {
+		if _, found := keyCopyOf(t, ns, "onwait"); !found {
+			return false, "share-on copy removed while players are online"
+		}
+		if keyShareStatus(t, ns, "onwait") {
+			return false, "status.modpack.keyShared true while players are online"
+		}
+		if keyRefOf(mustGameEnv(t, ns, "onwait"), "CF_API_KEY") != nil {
+			return false, "CF_API_KEY env rendered while players are online"
+		}
+		if got := podTemplateJSON(t, ns, "onwait"); got != podBefore {
+			return false, "pod template changed while the share-on waits"
+		}
+		return true, ""
+	})
+
+	setAgentPlayers(t, ns, "onwait", int32Ptr(0))
+	kickGameServer(t, ns, "onwait")
+	eventually(t, keyShareStateIs(t, ns, "onwait", true))
+	if after := ssOf(t, ns, "onwait").Generation; after != before+1 {
+		t.Fatalf("statefulset generation %d -> %d, want exactly one rollout", before, after)
+	}
+}
+
+// mustGameEnv returns the game container env, failing the test when unreadable.
+func mustGameEnv(t *testing.T, ns, name string) []corev1.EnvVar {
+	t.Helper()
+	env, why := gameEnvOf(ns, name)
+	if why != "" {
+		t.Fatalf("game env: %s", why)
+	}
+	return env
+}
+
+// TestGameServer_ModpackKeyShare_ToggleStoppedAppliesImmediately covers OD-10 A
+// with OD-8 B's stopped rule: a stopped (suspended) server applies a sharing
+// toggle at once, whatever the player count.
+func TestGameServer_ModpackKeyShare_ToggleStoppedAppliesImmediately(t *testing.T) {
+	ns := newNamespace(t)
+	ctrlNS := newNamespace(t)
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+
+	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
+		t.Fatalf("create managed key Secret: %v", err)
+	}
+	tmpl := buildModpackTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "stopkey", tmpl.Name)
+	gs.Spec.Version = "1.21.4-forge"
+	gs.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "6512345")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+	eventually(t, keyShareStateIs(t, ns, "stopkey", true))
+	modpackReadyIs(t, ns, "stopkey", "True")
+	setAgentPlayers(t, ns, "stopkey", int32Ptr(5))
+
+	mutateGameServer(t, ns, "stopkey", func(g *gameplanev1alpha1.GameServer) { g.Spec.Suspend = true })
+	eventually(t, func() (bool, string) {
+		ss := ssOf(t, ns, "stopkey")
+		if ss.Spec.Replicas == nil || *ss.Spec.Replicas != 0 {
+			return false, "statefulset not scaled to zero"
+		}
+		return true, ""
+	})
+
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { delete(sec.Annotations, curseforgeShareAnnotation) })
+	kickGameServer(t, ns, "stopkey")
+	eventually(t, keyShareStateIs(t, ns, "stopkey", false))
 }

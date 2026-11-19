@@ -16,11 +16,12 @@ import (
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
-// modpackKeyRecheck bounds how long a share toggle, key deletion or rotation on
-// the managed Secret takes to reach CurseForge modpack servers. The operator
+// modpackKeyRecheck bounds how long a rotation, key deletion or share toggle on
+// the managed Secret takes to be read by CurseForge modpack servers. The operator
 // cannot watch that Secret (resourceNames-scoped get only, spec 035 contract
 // item 7), so it reads the Secret on each reconcile and requeues at this
-// interval.
+// interval. A toggle that rolls the pod also waits for the server's quiet
+// moment (OD-10 A), which the status heartbeat watch re-checks.
 const modpackKeyRecheck = 60 * time.Second
 
 // modpackKeyRequeue is modpackKeyRecheck for a server with an applied
@@ -120,32 +121,78 @@ func (r *GameServerReconciler) reconcileModpackKey(
 	if err != nil {
 		return err
 	}
-	want := modpackKeyEnvName(gs, tmpl) != "" && shared
+	envName := modpackKeyEnvName(gs, tmpl)
+	desired := envName != "" && shared
+	applied := gs.Status.Modpack != nil && gs.Status.Modpack.KeyShared
+	want := desired
+	// OD-10 A: a share toggle adds or removes the env in the pod template, which
+	// rolls the pod, so it takes effect only when the server is quiet (same gate
+	// as OD-8 B) or a pack change is already rolling it. Rotation (desired ==
+	// applied) needs no restart and is not gated. Until the flip, the applied
+	// state and the env stay as they are.
+	if envName != "" && desired != applied {
+		quiet, err := r.modpackKeyFlipReady(ctx, gs)
+		if err != nil {
+			return err
+		}
+		if !quiet {
+			log.FromContext(ctx).V(1).Info("curseforge key share change waits for 0 players",
+				"server", gs.Name, "sharing", desired)
+			want = applied
+		}
+	}
 	sec := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: curseforgeKeySecretName(gs), Namespace: gs.Namespace},
 	}
-	if !want {
+	switch {
+	case desired:
+		// Also runs for a share-on change still pending: the copy is harmless
+		// before the env names it, and the env finds it the moment it flips.
+		err := r.upsertCurseForgeKeyCopy(ctx, gs, sec, key)
+		if err != nil {
+			return err
+		}
+	case want:
+		// Share-off change pending: keep the copy until the flip, so the running
+		// pod and any in-place container restart still resolve the env.
+	default:
 		if err := r.deleteIfControlledBy(ctx, gs, sec); err != nil {
 			return fmt.Errorf("delete curseforge key Secret %s/%s: %w", gs.Namespace, sec.Name, err)
-		}
-	} else {
-		_, err := controllerutil.CreateOrUpdate(ctx, r.Client, sec, func() error {
-			sec.Type = corev1.SecretTypeOpaque
-			if sec.Labels == nil {
-				sec.Labels = map[string]string{}
-			}
-			sec.Labels[curseforgeKeyCopyLabel] = "true"
-			sec.Data = map[string][]byte{curseforgeKeyDataKey: key}
-			return controllerutil.SetControllerReference(gs, sec, r.Scheme)
-		})
-		if err != nil {
-			return fmt.Errorf("reconcile curseforge key Secret %s/%s: %w", gs.Namespace, sec.Name, err)
 		}
 	}
 	if gs.Status.Modpack != nil && gs.Status.Modpack.KeyShared != want {
 		next := gs.Status.Modpack.DeepCopy()
 		next.KeyShared = want
 		return r.patchModpackStatus(ctx, gs, next)
+	}
+	return nil
+}
+
+// modpackKeyFlipReady reports whether a share toggle may roll the server now:
+// a pack change is already rolling it (phase not Applied), or the server is
+// quiet (OD-8 B gate, without the version requirement).
+func (r *GameServerReconciler) modpackKeyFlipReady(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
+	if gs.Status.Modpack != nil && gs.Status.Modpack.Phase != gameplanev1alpha1.ModpackPhaseApplied {
+		return true, nil
+	}
+	return r.modpackServerQuiet(ctx, gs, false)
+}
+
+// upsertCurseForgeKeyCopy creates or updates the per-server copy Secret with key.
+func (r *GameServerReconciler) upsertCurseForgeKeyCopy(
+	ctx context.Context, gs *gameplanev1alpha1.GameServer, sec *corev1.Secret, key []byte,
+) error {
+	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, sec, func() error {
+		sec.Type = corev1.SecretTypeOpaque
+		if sec.Labels == nil {
+			sec.Labels = map[string]string{}
+		}
+		sec.Labels[curseforgeKeyCopyLabel] = "true"
+		sec.Data = map[string][]byte{curseforgeKeyDataKey: key}
+		return controllerutil.SetControllerReference(gs, sec, r.Scheme)
+	})
+	if err != nil {
+		return fmt.Errorf("reconcile curseforge key Secret %s/%s: %w", gs.Namespace, sec.Name, err)
 	}
 	return nil
 }
