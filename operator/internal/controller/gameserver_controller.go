@@ -263,6 +263,7 @@ const (
 //
 // +kubebuilder:rbac:groups=gameplane.local,resources=gameservers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=gameplane.local,resources=gametemplates,verbs=get;list;watch
+// +kubebuilder:rbac:groups=gameplane.local,resources=backups,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch
@@ -386,7 +387,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	// Spec 035: start a modpack change before any pod template is built, so
 	// this pass already renders status.modpack.applied.
-	if err := r.reconcileModpackChange(ctx, &gs); err != nil {
+	if err := r.reconcileModpackChange(ctx, &gs, &tmpl); err != nil {
 		if apierrors.IsConflict(err) {
 			return requeueOnConflict(ctrl.Result{}, err)
 		}
@@ -567,6 +568,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile modpack rollout")
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileModpackAnnotations(ctx, &gs); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack annotations")
+		return ctrl.Result{}, err
+	}
 	var recoveryRetry time.Duration
 	if replicas == 1 && stopRequeue == 0 {
 		recoveryRetry, err = r.recoverObsoleteFailedPod(ctx, &gs)
@@ -672,6 +680,7 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.PersistentVolumeClaim{}).
 		Owns(&networkingv1.NetworkPolicy{}).
 		Owns(&gameplanev1alpha1.BackupSchedule{}).
+		Owns(&gameplanev1alpha1.Backup{}).
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.ServiceAccount{}).
@@ -2027,6 +2036,12 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 		}
 		// Volumes and InitContainers are assigned wholesale so removing
 		// configFiles from the template strips them on the next reconcile.
+		// Spec 035 R5: a removal empties the active loader's mods mount once
+		// (before the game starts); nil for every other state.
+		var initContainers []corev1.Container
+		if wipe := modpackWipeInit(r.ConfigInitImage, gs, tmpl, ver, r.AgentResources); wipe != nil {
+			initContainers = append(initContainers, *wipe)
+		}
 		if len(mc.files) > 0 {
 			items := make([]corev1.KeyToPath, 0, len(mc.files))
 			for _, f := range mc.files {
@@ -2041,10 +2056,9 @@ func (r *GameServerReconciler) reconcileStatefulSet(
 					},
 				},
 			})
-			ss.Spec.Template.Spec.InitContainers = []corev1.Container{buildConfigInitContainer(r.ConfigInitImage, tmpl, r.AgentResources)}
-		} else {
-			ss.Spec.Template.Spec.InitContainers = nil
+			initContainers = append(initContainers, buildConfigInitContainer(r.ConfigInitImage, tmpl, r.AgentResources))
 		}
+		ss.Spec.Template.Spec.InitContainers = initContainers
 		// Per-(version+loader) mod volume, nested at storage.mountPath/<path>
 		// so the game image reads mods from its usual dir while they persist
 		// on their own PVC. Assigned wholesale with the rest, so switching to
