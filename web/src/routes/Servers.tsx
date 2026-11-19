@@ -38,9 +38,6 @@ import { defineMessages, type MessageDescriptor } from "react-intl";
 
 type FilterKey = "all" | "running" | "stopped";
 
-// Namespace of the shared game-server namespace; a machine value, not copy.
-const DEFAULT_NAMESPACE = "gameplane-games";
-
 const RUNNING_SUB_LABELS = defineMessages({
   ofReturned: { id: "web.routes.servers.of_returned", defaultMessage: "of {count} returned", description: "Servers: sub-label on the Running card when the server list is partial; {count} is the number of returned servers" },
   ofTotal: { id: "web.routes.servers.of_total", defaultMessage: "of {count} total", description: "Servers: sub-label on the Running card; {count} is the total number of servers" },
@@ -222,7 +219,7 @@ export function ServersPage() {
             sub={inventory?.partial
               ? intl.formatMessage({ id: "web.routes.servers.returned_inventory_cores", defaultMessage: "returned inventory cores", description: "Servers: sub-label on the vCPUs card when the inventory is partial" })
               : intl.formatMessage({ id: "web.routes.servers.authorized_inventory_cores", defaultMessage: "authorized inventory cores", description: "Servers: sub-label on the vCPUs card" })}
-            accent="warning"
+            accent="violet"
           />
           <StatCard
             label={intl.formatMessage({ id: "web.routes.servers.storage_provisioned", defaultMessage: "Storage provisioned", description: "Servers: label of the summary card with the total provisioned storage; the line under it says whether it covers returned or all authorized inventory" })}
@@ -242,7 +239,7 @@ export function ServersPage() {
                 : inventory?.partial
                   ? intl.formatMessage({ id: "web.routes.servers.returned_nodes_only", defaultMessage: "returned nodes only", description: "Servers: sub-label on the inventory-nodes card when the inventory is partial" })
                   : intl.formatMessage({ id: "web.routes.servers.authorized_inventory_nodes", defaultMessage: "authorized inventory nodes", description: "Servers: sub-label on the inventory-nodes card" })}
-            accent="warning"
+            accent="violet"
           />
         </div>
       )}
@@ -410,9 +407,6 @@ export function ServersPage() {
                           {gs.metadata.name}
                         </Link>
                         <div className="truncate text-xs text-muted">{targetLabel(resourceTarget(gs))}</div>
-                        <div className="text-[11px] text-foreground/60">
-                          {gs.metadata.namespace ?? DEFAULT_NAMESPACE}
-                        </div>
                       </div>
                     </div>
                   </Table.Cell>

@@ -350,9 +350,16 @@ input:-webkit-autofill:focus {
 .tabs__tab,
 .tabs__indicator,
 .menu-item,
-.list-box-item,
-.select__trigger {
+.list-box-item {
   border-radius: 6px;
+}
+
+/* Gameplane/Input (D0cDM) and Gameplane/Select (AT7ya) use $radius/xl (12px)
+   on every screen, not only in dialogs. Pill-shaped search fields opt out
+   with .rounded-full. */
+.input:not(.rounded-full),
+.select__trigger {
+  border-radius: 12px;
 }
 
 .checkbox__control {
@@ -523,6 +530,28 @@ input:-webkit-autofill:focus {
   border-radius: 8px;
 }
 
+/* Selected tab fill (design Dx8S8: $segment fill, $foreground/segment text).
+   HeroUI 3.2 paints the selected background only through a Tabs.Indicator
+   element, which no tab list in the app renders, so selected tabs had no
+   pill. Horizontal lists only: the vertical Settings sub-nav (EV8mp) marks
+   the selected item by text colour alone. The scoped Users & RBAC and
+   Servers status filter rules below still override this. :where() keeps this at the same specificity as those scoped rules so they win. */
+.tabs__list:where(:not([data-orientation="vertical"])) .tabs__tab[data-selected="true"] {
+  background-color: var(--segment);
+  color: var(--segment-foreground);
+}
+
+/* Settings sub-nav (EV8mp): items sit straight on the nav panel, which owns
+   the $surface/secondary fill and right border; the list has no box of its own. */
+.tabs__list[data-orientation="vertical"] {
+  background-color: transparent;
+  padding: 0;
+}
+
+.tabs__list[data-orientation="vertical"] .tabs__tab[data-selected="true"] {
+  color: var(--foreground);
+}
+
 .tabs__list.w-fit {
   min-width: fit-content;
 }
@@ -611,6 +640,12 @@ input:-webkit-autofill:focus {
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
+}
+
+/* Table headers carry no column dividers in the design; HeroUI 3.2 draws a
+   short vertical line after every header cell. */
+.table__column::after {
+  content: none;
 }
 
 .table-root--primary .table__body tr:last-child td:last-child {
