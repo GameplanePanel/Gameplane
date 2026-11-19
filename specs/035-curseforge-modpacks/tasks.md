@@ -63,7 +63,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Implementation for US1
 
 - [X] T018 [US1] Make CurseForge `Versions` honour `type=modpack` (class 4471 files, game version + loader filter) and update the `ModpackDeps` comments in api/internal/registry/curseforge.go
-- [ ] T019 [US1] Add `modsBrowse` and `modpacksBlockedReason` to the providers listing (needsKeyImageTags vs the selected version's image tag and the share annotation) in api/internal/handlers/registry.go
+- [X] T019 [US1] Add `modsBrowse` and `modpacksBlockedReason` to the providers listing (needsKeyImageTags vs the selected version's image tag and the share annotation) in api/internal/handlers/registry.go
 - [ ] T020 [US1] Add `PUT/GET /admin/registries/curseforge/share` (annotation on the managed key Secret; 409 `server.registry.share_needs_managed_key` when only the startup flag holds a key) in api/internal/handlers/registry_secret.go and mount it with admin RBAC in api/cmd/main.go
 - [ ] T021 [US1] Implement key sharing (watch the managed key Secret in the control namespace, maintain the server-owned copy, mount, `apiKeyFileEnv`, `status.modpack.keyShared`, kept out of the config hash) per contracts/operator-modpack.md item 5 in operator/internal/controller/gameserver_modpack_key.go, with kubebuilder RBAC markers, then `make manifests`
 - [ ] T022 [P] [US1] Add the new API message ids (`server.modpack.*`, `server.registry.share_needs_managed_key`) to i18n/locales/en/app.json
@@ -94,8 +94,8 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 - [ ] T032 [US2] Add the backup step to the state machine (`BackingUp`, Backup CR creation and watch, `BackupFailed`) in operator/internal/controller/gameserver_modpack.go, with RBAC markers and `make manifests`
 - [ ] T033 [US2] Implement adopted-pack rendering (rule 2 of contracts/operator-modpack.md) in operator/internal/controller/gameserver_modpack.go
-- [ ] T034 [US2] Implement the legacy sweep at API startup plus the lazy retry on `GET /servers/{name}/modpack` (research R6) in new api/internal/handlers/modpack_adopt.go and wire it in api/cmd/main.go
-- [ ] T035 [US2] Validate `version` required, `backupFirst` vs destination, change-in-progress on POST in api/internal/handlers/registry.go
+- [X] T034 [US2] Implement the legacy sweep at API startup plus the lazy retry on `GET /servers/{name}/modpack` (research R6) in new api/internal/handlers/modpack_adopt.go and wire it in api/cmd/main.go
+- [X] T035 [US2] Validate `version` required, `backupFirst` vs destination, change-in-progress on POST in api/internal/handlers/registry.go
 - [ ] T036 [US2] Build version change, older-version marking, downgrade warning and the "Back up first" checkbox from the approved design in web/src/components/modpack-version-picker.tsx and web/src/components/modpack-confirm-dialog.tsx
 - [ ] T037 [P] [US2] vitest for downgrade warning and backup checkbox states (destination / no destination) in web/src/components/modpack-confirm-dialog.test.tsx
 
@@ -117,7 +117,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Implementation for US3
 
-- [ ] T041 [US3] Add `DELETE /servers/{name}/modpack?backupFirst=` per contracts/api-modpack.md in api/internal/handlers/registry.go
+- [X] T041 [US3] Add `DELETE /servers/{name}/modpack?backupFirst=` per contracts/api-modpack.md in api/internal/handlers/registry.go
 - [ ] T042 [US3] Implement removal handling (annotation consume, optional backup, wipe init step with marker, annotation cleared once applied) in operator/internal/controller/gameserver_modpack.go
 - [ ] T043 [US3] Build the Active modpack card (title, registry, version or "Not pinned", phase and message, Change version, Remove with the "every mod is deleted, including ones added by hand" confirmation) from the approved design in new web/src/components/modpack-active-card.tsx and web/src/routes/tabs/Modpacks.tsx
 - [ ] T044 [P] [US3] vitest for card states (Applied, BackingUp, Applying, BackupFailed, Not pinned, read-only) in web/src/components/modpack-active-card.test.tsx
@@ -139,7 +139,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Implementation for US4
 
-- [ ] T047 [US4] Implement the parser and fill `missingFiles` + `downloadsPath` from `missingFilesPath` via the agent files API in new api/internal/handlers/modpack_missing.go and api/internal/handlers/registry.go
+- [X] T047 [US4] Implement the parser and fill `missingFiles` + `downloadsPath` from `missingFilesPath` via the agent files API in new api/internal/handlers/modpack_missing.go and api/internal/handlers/registry.go
 - [ ] T048 [US4] Build the missing files notice from the approved design in new web/src/components/modpack-missing-files.tsx and web/src/routes/tabs/Modpacks.tsx
 - [ ] T049 [P] [US4] vitest for the notice in web/src/components/modpack-missing-files.test.tsx
 

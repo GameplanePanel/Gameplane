@@ -9,12 +9,15 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 	"github.com/GameplanePanel/gameplane/api/internal/registry"
 )
 
@@ -25,8 +28,9 @@ var errNoRegistry = errors.New("no mod registry for this server")
 
 // Install-body validation errors (400).
 var (
-	errModpackProject = errors.New("project (or ref) is required and may only contain letters, digits, '.', '_' and '-' (max 128)")
-	errModpackVersion = errors.New("version may only contain letters, digits, '.', '_' and '-' (max 64)")
+	errModpackProject     = errors.New("project (or ref) is required and may only contain letters, digits, '.', '_' and '-' (max 128)")
+	errModpackVersion     = errors.New("version may only contain letters, digits, '.', '_' and '-' (max 64)")
+	errModpackBackupFirst = errors.New("backupFirst must be true or false")
 )
 
 // registrySet is the subset of *registry.Set the handler needs, so tests
@@ -53,7 +57,29 @@ func MountRegistry(r chi.Router, k *kube.Client, reg registrySet) {
 // cluster. The provider set and its administrator-managed credentials remain
 // central; selecting a cluster never selects a different credential store.
 func MountRegistryWithRegistry(r chi.Router, clients *kube.Registry, reg registrySet) {
-	mountRegistry(r, &registryHandler{clients: clients, reg: reg})
+	MountRegistryWithOptions(r, clients, reg, RegistryOptions{})
+}
+
+// RegistryOptions carries the optional collaborators of the modpack routes.
+// The zero value is valid: no explicit audit rows, key sharing always reads as
+// off, and missing-file / legacy-adoption reads report "unknown".
+type RegistryOptions struct {
+	// Audit records one explicit row per modpack install/change/remove.
+	Audit *audit.Auditor
+	// Home is the control-plane client that holds the managed registry key
+	// Secret (central, never the selected cluster); ControlNS is its namespace.
+	Home      *kube.Client
+	ControlNS string
+	// Files reads small files from a server's data volume through its agent.
+	Files AgentFileReader
+}
+
+// MountRegistryWithOptions is MountRegistryWithRegistry plus RegistryOptions.
+func MountRegistryWithOptions(r chi.Router, clients *kube.Registry, reg registrySet, opts RegistryOptions) {
+	mountRegistry(r, &registryHandler{
+		clients: clients, reg: reg,
+		audit: opts.Audit, home: opts.Home, controlNS: opts.ControlNS, files: opts.Files,
+	})
 }
 
 func mountRegistry(r chi.Router, h *registryHandler) {
@@ -63,20 +89,27 @@ func mountRegistry(r chi.Router, h *registryHandler) {
 	r.Get("/servers/{name}/mods/registry/projects/{project}/modpack", h.modpackDeps)
 	r.Get("/servers/{name}/modpack", h.getModpack)
 	r.Post("/servers/{name}/modpack", h.installModpack)
+	r.Delete("/servers/{name}/modpack", h.removeModpack)
 }
 
 type registryHandler struct {
-	clients *kube.Registry
-	k       *kube.Client
-	reg     registrySet
+	clients   *kube.Registry
+	k         *kube.Client
+	reg       registrySet
+	audit     *audit.Auditor
+	home      *kube.Client
+	controlNS string
+	files     AgentFileReader
 }
 
 // providerInfo is one entry of the providers listing the dashboard uses to
 // build its provider switch.
 type providerInfo struct {
-	Provider  string `json:"provider"`
-	Available bool   `json:"available"`
-	Modpacks  bool   `json:"modpacks"`
+	Provider              string `json:"provider"`
+	Available             bool   `json:"available"`
+	Modpacks              bool   `json:"modpacks"`
+	ModsBrowse            bool   `json:"modsBrowse"`
+	ModpacksBlockedReason string `json:"modpacksBlockedReason"`
 }
 
 // providers lists the registries this server's template declares, marking
@@ -91,9 +124,11 @@ func (h *registryHandler) providers(w http.ResponseWriter, req *http.Request) {
 	out := make([]providerInfo, 0, len(declared))
 	for _, p := range declared {
 		out = append(out, providerInfo{
-			Provider:  p.provider,
-			Available: h.reg.Available(req.Context(), p.provider),
-			Modpacks:  p.modpacks != nil,
+			Provider:              p.provider,
+			Available:             h.reg.Available(req.Context(), p.provider),
+			Modpacks:              p.modpacks != nil,
+			ModsBrowse:            !p.modpacksOnly,
+			ModpacksBlockedReason: h.modpacksBlockedReason(req.Context(), target, p),
 		})
 	}
 	writeJSON(w, out)
@@ -183,8 +218,10 @@ func (h *registryHandler) modpackDeps(w http.ResponseWriter, req *http.Request) 
 // renders the pack env and rolls the server out (spec 035, core rule 10).
 // Deps-mode providers (no refEnv) are installed via modpackDeps +
 // /mods/install instead, so they get a 409 here. The body is either the new
-// {provider, project, version, title, versionName, backupFirst} or the legacy
-// {"ref"} with ?provider= (project = ref, no pinned version).
+// {provider, project, version, title, versionName, backupFirst} (version
+// required) or the legacy {"ref"} with ?provider= (project = ref, no pinned
+// version). 400s (shape, version, backup destination) come before the 409s
+// (key not shared, change in progress).
 func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Request) {
 	target, ok := loadModTarget(w, req, h.clients, h.k)
 	if !ok {
@@ -209,19 +246,47 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 			errors.New("this provider installs modpacks per dependency; install the resolved mods instead"))
 		return
 	}
+	legacy := strings.TrimSpace(body.Project) == "" && strings.TrimSpace(body.Ref) != ""
 	if !normalizeModpackBody(w, req, &body) {
 		return
+	}
+	if !legacy && body.Version == "" {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.version_required", nil))
+		return
+	}
+	if body.BackupFirst && !h.hasBackupDestination(req, target) {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.backup_unavailable", nil))
+		return
+	}
+	if h.modpacksBlockedReason(req.Context(), target, prov) != "" {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.key_required", nil))
+		return
+	}
+	if modpackChangeInProgress(target.server) {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.change_in_progress", nil))
+		return
+	}
+	action := "install"
+	if cur := currentModpack(target.server); cur != nil && cur.Provider == prov.provider && cur.Project == body.Project {
+		action = "change"
 	}
 	spec := modpackSpecFrom(prov.provider, body)
 	updated, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
 		// SetNestedMap only fails on a non-map parent; spec is always a map here.
 		_ = unstructured.SetNestedMap(current.Object, spec, "spec", "modpack")
+		// A removal whose backup failed leaves its request behind; installing
+		// a pack supersedes it.
+		if ann := current.GetAnnotations(); ann[modpackRemoveAnnotation] != "" {
+			delete(ann, modpackRemoveAnnotation)
+			current.SetAnnotations(ann)
+		}
 	})
 	if err != nil {
 		httperr.Write(w, req, err)
 		return
 	}
-	writeJSONStatus(w, http.StatusAccepted, h.modpackViewFor(req, target, updated))
+	h.auditModpack(req, target.server.GetName(), action, prov.provider, body.Project, body.Version)
+	writeJSONStatus(w, http.StatusAccepted, h.modpackViewFor(req, target, updated, false))
 }
 
 // resolve picks the requested provider from the selected server's template,
@@ -262,12 +327,25 @@ type providerCfg struct {
 	curseforgeGameID int32
 	githubOwner      string
 	githubRepo       string
+	modpacksOnly     bool
 	modpacks         *modpackCfg
 }
 
 type modpackCfg struct {
-	refEnv string
-	env    []envKV
+	refEnv            string
+	versionEnv        string
+	apiKeyEnv         string
+	needsKeyImageTags []string
+	missingFilesPath  string
+	adoptVersionFile  *adoptFileCfg
+	env               []envKV
+}
+
+// adoptFileCfg mirrors ModpackSpec.adoptVersionFile: a JSON file below the data
+// mount and the top-level field of it that holds the installed version.
+type adoptFileCfg struct {
+	path  string
+	field string
 }
 
 // registryProviders reads capabilities.mods.registry.providers[].
@@ -293,6 +371,7 @@ func registryProviders(tmpl *unstructured.Unstructured) []providerCfg {
 		cfg.community, _ = m["community"].(string)
 		cfg.steamAppID = nestedInt32(m["steamAppID"])
 		cfg.curseforgeGameID = nestedInt32(m["curseforgeGameID"])
+		cfg.modpacksOnly, _ = m["modpacksOnly"].(bool)
 		if gh, ok := m["github"].(map[string]any); ok {
 			cfg.githubOwner, _ = gh["owner"].(string)
 			cfg.githubRepo, _ = gh["repo"].(string)
@@ -300,6 +379,23 @@ func registryProviders(tmpl *unstructured.Unstructured) []providerCfg {
 		if mp, ok := m["modpacks"].(map[string]any); ok {
 			mc := &modpackCfg{}
 			mc.refEnv, _ = mp["refEnv"].(string)
+			mc.versionEnv, _ = mp["versionEnv"].(string)
+			mc.apiKeyEnv, _ = mp["apiKeyEnv"].(string)
+			mc.missingFilesPath, _ = mp["missingFilesPath"].(string)
+			if tags, ok := mp["needsKeyImageTags"].([]any); ok {
+				for _, t := range tags {
+					if s, ok := t.(string); ok && s != "" {
+						mc.needsKeyImageTags = append(mc.needsKeyImageTags, s)
+					}
+				}
+			}
+			if af, ok := mp["adoptVersionFile"].(map[string]any); ok {
+				p, _ := af["path"].(string)
+				f, _ := af["field"].(string)
+				if p != "" && f != "" {
+					mc.adoptVersionFile = &adoptFileCfg{path: p, field: f}
+				}
+			}
 			if envs, ok := mp["env"].([]any); ok {
 				for _, e := range envs {
 					if em, ok := e.(map[string]any); ok {
@@ -365,14 +461,16 @@ func pickProvider(tmpl *unstructured.Unstructured, name string) (providerCfg, bo
 	return providerCfg{}, false
 }
 
-// activeVersion mirrors the operator's version selection (and the web's
-// activeVersion): the entry whose id matches the server's selection, else
-// the default entry, else the first. Returns the entry's loader id and
-// clean game-version token. Both may be empty.
-func activeVersion(tmpl *unstructured.Unstructured, selected string) (loader, gameVersion string) {
+// activeVersionEntry mirrors the operator's version selection (and the web's
+// activeVersion): the entry whose id matches the server's selection, else the
+// default entry, else the first. Nil when the template has no versions.
+func activeVersionEntry(tmpl *unstructured.Unstructured, selected string) map[string]any {
+	if tmpl == nil {
+		return nil
+	}
 	versions, found, err := unstructured.NestedSlice(tmpl.Object, "spec", "versions")
 	if !found || err != nil {
-		return "", ""
+		return nil
 	}
 	var first, def map[string]any
 	for _, raw := range versions {
@@ -384,19 +482,26 @@ func activeVersion(tmpl *unstructured.Unstructured, selected string) (loader, ga
 			first = m
 		}
 		if id, _ := m["id"].(string); selected != "" && id == selected {
-			return loaderGameVersion(m)
+			return m
 		}
 		if d, _ := m["default"].(bool); d && def == nil {
 			def = m
 		}
 	}
-	switch {
-	case def != nil:
-		return loaderGameVersion(def)
-	case first != nil:
-		return loaderGameVersion(first)
+	if def != nil {
+		return def
 	}
-	return "", ""
+	return first
+}
+
+// activeVersion returns the selected entry's loader id and clean game-version
+// token. Both may be empty.
+func activeVersion(tmpl *unstructured.Unstructured, selected string) (loader, gameVersion string) {
+	m := activeVersionEntry(tmpl, selected)
+	if m == nil {
+		return "", ""
+	}
+	return loaderGameVersion(m)
 }
 
 func loaderGameVersion(m map[string]any) (loader, gameVersion string) {

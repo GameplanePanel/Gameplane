@@ -1,15 +1,24 @@
 package handlers
 
 import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"regexp"
+	"slices"
+	"strconv"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/GameplanePanel/gameplane/api/internal/audit"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 )
 
 // Spec 035: GameServer.spec.modpack is the only place the API records a pack;
@@ -28,6 +37,19 @@ var (
 	modpackVersionRe = regexp.MustCompile(`^[A-Za-z0-9._-]{0,64}$`)
 )
 
+// Phases written by the operator (status.modpack.phase). "Pending" is also
+// synthesised by modpackPhase for a change the operator has not seen yet.
+const (
+	modpackPhasePending      = "Pending"
+	modpackPhaseBackingUp    = "BackingUp"
+	modpackPhaseApplying     = "Applying"
+	modpackPhaseBackupFailed = "BackupFailed"
+)
+
+// blockedCurseForgeKeyNotShared is providerInfo.modpacksBlockedReason when the
+// selected version's image has no built-in CurseForge key and sharing is off.
+const blockedCurseForgeKeyNotShared = "curseforge_key_not_shared"
+
 // modpackInstallBody is the POST /servers/{name}/modpack request. Ref is the
 // pre-035 body ({"ref": "<slug>"} plus ?provider=); it is accepted as
 // project with no pinned version so the current dashboard keeps working until
@@ -42,6 +64,12 @@ type modpackInstallBody struct {
 	Ref         string `json:"ref"`
 }
 
+// modpackRemoveRequest is the JSON stored in the modpack-remove annotation.
+type modpackRemoveRequest struct {
+	RequestID   string `json:"requestId"`
+	BackupFirst bool   `json:"backupFirst"`
+}
+
 type modpackActive struct {
 	Provider       string `json:"provider"`
 	Project        string `json:"project"`
@@ -52,7 +80,7 @@ type modpackActive struct {
 	PendingRemoval bool   `json:"pendingRemoval,omitempty"`
 }
 
-// modpackMissingFile is one row of MODS_NEED_DOWNLOAD.txt (filled by a later task).
+// modpackMissingFile is one row of MODS_NEED_DOWNLOAD.txt (parsed in modpack_missing.go).
 type modpackMissingFile struct {
 	Mod          string `json:"mod"`
 	VersionName  string `json:"versionName"`
@@ -72,19 +100,21 @@ type modpackView struct {
 	BackupAvailable     bool                 `json:"backupAvailable"`
 }
 
-// getModpack serves GET /servers/{name}/modpack. Missing files stay empty
-// until the missing-files task reads them through the agent.
+// getModpack serves GET /servers/{name}/modpack. A legacy server (pack env in
+// spec.env, no spec.modpack) is adopted first (modpack_adopt.go, research R6).
 func (h *registryHandler) getModpack(w http.ResponseWriter, req *http.Request) {
 	target, ok := loadModTarget(w, req, h.clients, h.k)
 	if !ok {
 		return
 	}
-	writeJSON(w, h.modpackViewFor(req, target, target.server))
+	gs := h.adoptLegacy(req.Context(), target)
+	writeJSON(w, h.modpackViewFor(req, target, gs, true))
 }
 
 // modpackViewFor builds the GET body from a server object (the one just
-// written, for POST/DELETE responses).
-func (h *registryHandler) modpackViewFor(req *http.Request, target *modTarget, gs *unstructured.Unstructured) modpackView {
+// written, for POST/DELETE responses). withMissing reads MODS_NEED_DOWNLOAD.txt
+// through the agent (GET only; POST/DELETE skip the agent round trip).
+func (h *registryHandler) modpackViewFor(req *http.Request, target *modTarget, gs *unstructured.Unstructured, withMissing bool) modpackView {
 	view := modpackView{MissingFiles: []modpackMissingFile{}}
 	spec, hasSpec, _ := unstructured.NestedMap(gs.Object, "spec", "modpack")
 	st, _, _ := unstructured.NestedMap(gs.Object, "status", "modpack")
@@ -97,16 +127,62 @@ func (h *registryHandler) modpackViewFor(req *http.Request, target *modTarget, g
 	case hasApplied && removing:
 		view.Active = activeFrom(applied, true)
 	}
-	view.Phase, _, _ = unstructured.NestedString(st, "phase")
+	view.Phase = modpackPhase(gs)
 	view.Message, _, _ = unstructured.NestedString(st, "message")
 	view.BackupName, _, _ = unstructured.NestedString(st, "backupName")
 	view.KeyShared, _, _ = unstructured.NestedBool(st, "keyShared")
-	// Written but not yet picked up by the operator: spec and applied differ.
-	if (hasSpec && !samePack(spec, applied, hasApplied)) || (!hasSpec && hasApplied && removing) {
-		view.Phase = "Pending"
-	}
 	view.BackupAvailable = h.hasBackupDestination(req, target)
+	if withMissing {
+		h.fillMissingFiles(req, target, gs, &view)
+	}
 	return view
+}
+
+// modpackPhase is status.modpack.phase, except that a change the operator has
+// not picked up yet (spec.modpack differs from status.modpack.applied, or a
+// removal is requested while a pack is still applied) reads "Pending". The one
+// exception: BackupFailed for the generation that is current stays visible,
+// because the operator leaves spec unequal to applied after refusing it.
+func modpackPhase(gs *unstructured.Unstructured) string {
+	st, _, _ := unstructured.NestedMap(gs.Object, "status", "modpack")
+	phase, _, _ := unstructured.NestedString(st, "phase")
+	spec, hasSpec, _ := unstructured.NestedMap(gs.Object, "spec", "modpack")
+	applied, hasApplied, _ := unstructured.NestedMap(st, "applied")
+	removing := gs.GetAnnotations()[modpackRemoveAnnotation] != ""
+	waiting := (hasSpec && !samePack(spec, applied, hasApplied)) || (!hasSpec && hasApplied && removing)
+	if !waiting {
+		return phase
+	}
+	if phase == modpackPhaseBackupFailed {
+		if observed, _, _ := unstructured.NestedInt64(st, "observedGeneration"); observed == gs.GetGeneration() {
+			return phase
+		}
+	}
+	return modpackPhasePending
+}
+
+// modpackChangeInProgress reports that a previous change has not finished:
+// POST and DELETE answer 409 server.modpack.change_in_progress meanwhile.
+// Applied, BackupFailed (for the current generation) and "never managed" are
+// all free to change.
+func modpackChangeInProgress(gs *unstructured.Unstructured) bool {
+	switch modpackPhase(gs) {
+	case modpackPhasePending, modpackPhaseBackingUp, modpackPhaseApplying:
+		return true
+	}
+	return false
+}
+
+// currentModpack is the pack the server has now: spec.modpack, else the
+// applied pack of a removal still pending. Nil when none.
+func currentModpack(gs *unstructured.Unstructured) *modpackActive {
+	if spec, ok, _ := unstructured.NestedMap(gs.Object, "spec", "modpack"); ok {
+		return activeFrom(spec, false)
+	}
+	if applied, ok, _ := unstructured.NestedMap(gs.Object, "status", "modpack", "applied"); ok {
+		return activeFrom(applied, true)
+	}
+	return nil
 }
 
 func activeFrom(m map[string]any, pendingRemoval bool) *modpackActive {
@@ -145,6 +221,145 @@ func (h *registryHandler) hasBackupDestination(req *http.Request, target *modTar
 		Limit:         1,
 	})
 	return err == nil && len(list.Items) > 0
+}
+
+// modpacksBlockedReason is providerInfo.modpacksBlockedReason: non-empty when
+// the provider declares needsKeyImageTags, the server's selected version image
+// carries one of those tags, and the administrator has not enabled key
+// sharing. The Secret is read only when the first two hold.
+func (h *registryHandler) modpacksBlockedReason(ctx context.Context, target *modTarget, p providerCfg) string {
+	if p.modpacks == nil || len(p.modpacks.needsKeyImageTags) == 0 {
+		return ""
+	}
+	selected, _, _ := unstructured.NestedString(target.server.Object, "spec", "version")
+	entry := activeVersionEntry(target.template, selected)
+	if entry == nil {
+		return ""
+	}
+	image, _ := entry["image"].(string)
+	tag := imageTag(image)
+	if tag == "" || !slices.Contains(p.modpacks.needsKeyImageTags, tag) {
+		return ""
+	}
+	if h.keyShared(ctx) {
+		return ""
+	}
+	return blockedCurseForgeKeyNotShared
+}
+
+// keyShared reads the share annotation of the managed CurseForge key Secret
+// (registry_secret.go:curseforgeShareState). False with no home client.
+func (h *registryHandler) keyShared(ctx context.Context) bool {
+	share, _ := curseforgeShareState(ctx, h.home, h.controlNS)
+	return share
+}
+
+// imageTag returns the tag of an image reference: the part after the last ":"
+// of the last path element and before "@digest". "" when there is no tag.
+func imageTag(image string) string {
+	if i := strings.IndexByte(image, '@'); i >= 0 {
+		image = image[:i]
+	}
+	slash := strings.LastIndexByte(image, '/')
+	colon := strings.LastIndexByte(image, ':')
+	if colon > slash {
+		return image[colon+1:]
+	}
+	return ""
+}
+
+// removeModpack serves DELETE /servers/{name}/modpack?backupFirst=true|false.
+// It deletes spec.modpack and asks the operator (annotation) to remove the pack,
+// wipe the mods folder and optionally back up first. Allowed when spec.modpack is
+// set, when a removal failed (BackupFailed, annotation still present: the retry
+// replaces the annotation) or when only status.modpack.applied is left. 404 only
+// when neither spec.modpack nor status.modpack.applied is set.
+func (h *registryHandler) removeModpack(w http.ResponseWriter, req *http.Request) {
+	target, ok := loadModTarget(w, req, h.clients, h.k)
+	if !ok {
+		return
+	}
+	backupFirst := false
+	if raw := req.URL.Query().Get("backupFirst"); raw != "" {
+		v, err := strconv.ParseBool(raw)
+		if err != nil {
+			httperr.WriteCode(w, req, http.StatusBadRequest, errModpackBackupFirst)
+			return
+		}
+		backupFirst = v
+	}
+	gs := target.server
+	spec, hasSpec, _ := unstructured.NestedMap(gs.Object, "spec", "modpack")
+	applied, hasApplied, _ := unstructured.NestedMap(gs.Object, "status", "modpack", "applied")
+	if !hasSpec && !hasApplied {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.not_found", nil))
+		return
+	}
+	if backupFirst && !h.hasBackupDestination(req, target) {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.backup_unavailable", nil))
+		return
+	}
+	// A failed removal is retried by calling DELETE again; every other
+	// unfinished change blocks.
+	retry := !hasSpec && gs.GetAnnotations()[modpackRemoveAnnotation] != "" && modpackPhase(gs) == modpackPhaseBackupFailed
+	if !retry && modpackChangeInProgress(gs) {
+		httperr.WriteMessage(w, req, messages.New("server.modpack.change_in_progress", nil))
+		return
+	}
+	removed := activeFrom(applied, false)
+	if hasSpec {
+		removed = activeFrom(spec, false)
+	}
+	requestID, err := newModpackRequestID()
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	marker, err := json.Marshal(modpackRemoveRequest{RequestID: requestID, BackupFirst: backupFirst})
+	if err != nil {
+		httperr.Write(w, req, fmt.Errorf("encode modpack removal request: %w", err))
+		return
+	}
+	updated, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
+		unstructured.RemoveNestedField(current.Object, "spec", "modpack")
+		ann := current.GetAnnotations()
+		if ann == nil {
+			ann = map[string]string{}
+		}
+		ann[modpackRemoveAnnotation] = string(marker)
+		current.SetAnnotations(ann)
+	})
+	if err != nil {
+		httperr.Write(w, req, err)
+		return
+	}
+	h.auditModpack(req, gs.GetName(), "remove", removed.Provider, removed.Project, removed.Version)
+	writeJSONStatus(w, http.StatusAccepted, h.modpackViewFor(req, target, updated, false))
+}
+
+// newModpackRequestID returns a random 128-bit hex id for a removal request.
+func newModpackRequestID() (string, error) {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "", fmt.Errorf("generate modpack request id: %w", err)
+	}
+	return hex.EncodeToString(b[:]), nil
+}
+
+// auditModpack writes the explicit audit row of a modpack write (action is
+// install, change or remove). Provider, project and version are validated
+// slugs; the CurseForge key never reaches this code. A failed audit write is
+// logged and the generic audit middleware row stays as the fallback.
+func (h *registryHandler) auditModpack(req *http.Request, serverName, action, provider, project, version string) {
+	if h.audit == nil {
+		return
+	}
+	reason := fmt.Sprintf("server.modpack.%s provider=%s project=%s version=%s", action, provider, project, version)
+	if err := h.audit.WriteSync(req.Context(), req.Method, req.URL.Path, serverName, reason, http.StatusAccepted); err != nil {
+		slog.Warn("modpack audit write failed", "server", serverName, "action", action, "err", err)
+		return
+	}
+	audit.MarkRecorded(req.Context())
 }
 
 // modpackSpecFrom turns a validated install body into the spec.modpack map.
