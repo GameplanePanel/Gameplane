@@ -329,7 +329,9 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	// Snapshot resolution precedes config, images, init containers, storage,
 	// services and every other template-derived resource.
-	r.poolRolloutWaits.Delete(gs.UID)
+	// A rollout wait is only for this pass's status, so it is dropped when
+	// the pass ends, however it ends.
+	defer r.poolRolloutWaits.Delete(gs.UID)
 	effective, changed, err := r.reconcileTemplateRevision(ctx, &gs)
 	if err != nil {
 		var rejected workloadPolicyRejection
@@ -488,6 +490,17 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile pool ports")
 		return ctrl.Result{}, err
 	}
+	// A pooled server with no effective record publishes nothing, rather
+	// than its template's ports, which another server in the pool may hold.
+	// Its Service is removed before the tunnel steps, so a tunnel error
+	// can't leave it published.
+	unpublished := portAlloc.pooled && !portAlloc.published
+	if unpublished {
+		if err := r.deleteUnpublishedService(ctx, &gs); err != nil {
+			logger.Error(err, "remove unpublished Service")
+			return ctrl.Result{}, err
+		}
+	}
 
 	// planTunnel decides whether the tunnel pod should exist and what endpoints
 	// it will advertise. Like planSentinel, this is computed once per pass so
@@ -501,26 +514,21 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "reconcile tunnel")
 		return ctrl.Result{}, err
 	}
-	// A pooled server with no effective record publishes nothing, rather
-	// than its template's ports, which another server in the pool may hold.
-	// One with a record, even while a change waits, keeps its Service
-	// current: selectors (sleep and wake), ports and metadata.
+	// A pooled server with a record, even while a change waits, keeps its
+	// Service current: selectors (sleep and wake), ports and metadata.
 	//
 	// A Service being replaced for a loadBalancerClass change is a pending
 	// networking change, not a failure: lifecycle and status keep reconciling
 	// (so Stop works while the old load balancer cleans up), and the pass
 	// requeues until the new Service exists.
 	serviceReplacing := false
-	if portAlloc.pooled && !portAlloc.published {
-		if err := r.deleteUnpublishedService(ctx, &gs); err != nil {
-			logger.Error(err, "remove unpublished Service")
+	if !unpublished {
+		if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
+			serviceReplacing = true
+		} else if err != nil {
+			logger.Error(err, "reconcile Service")
 			return ctrl.Result{}, err
 		}
-	} else if err := r.reconcileService(ctx, &gs, &tmpl, plan.routeToSentinel); errors.Is(err, errServiceReplaced) {
-		serviceReplacing = true
-	} else if err != nil {
-		logger.Error(err, "reconcile Service")
-		return ctrl.Result{}, err
 	}
 
 	var replicas int32

@@ -269,10 +269,12 @@ func (r *GameServerReconciler) reconcileStatus(
 
 	// Endpoints: tunnel endpoints come first (when present) so the dashboard's
 	// Connection card reads the address players actually use.
+	unpublished := extra.portAllocation.pooled && !extra.portAllocation.published
 	switch {
-	case extra.portAllocation.pooled && !extra.portAllocation.published:
+	case unpublished:
 		// A pooled server with no record has no Service, so no address
-		// reaches it, even while its old Service is still being deleted.
+		// reaches it, a relay's included, even while its old Service is
+		// still being deleted.
 		gs.Status.Endpoints = nil
 	case svcExists:
 		gs.Status.Endpoints = withAdvertisedHostname(
@@ -288,7 +290,7 @@ func (r *GameServerReconciler) reconcileStatus(
 		}
 		gs.Status.Endpoints = retained
 	}
-	if tunnelPlan.wantTunnel && len(tunnelPlan.endpoints) > 0 &&
+	if tunnelPlan.wantTunnel && !unpublished && len(tunnelPlan.endpoints) > 0 &&
 		(gs.Spec.Networking.Tunnel.Provider != "tailscale" || meta.IsStatusConditionTrue(gs.Status.Conditions, "TunnelReady")) {
 		gs.Status.Endpoints = append(tunnelPlan.endpoints, gs.Status.Endpoints...)
 	}

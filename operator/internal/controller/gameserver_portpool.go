@@ -12,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -179,6 +180,7 @@ func parsePoolRecordAt(gs *gameplanev1alpha1.GameServer, key string) (poolRecord
 		return poolRecord{}, false
 	}
 	rec := poolRecord{pool: pool}
+	seen := map[poolPortKey]bool{}
 	for _, item := range strings.Split(list, ",") {
 		name, value, ok := strings.Cut(item, "=")
 		portStr, proto, ok2 := strings.Cut(value, "/")
@@ -193,6 +195,13 @@ func parsePoolRecordAt(gs *gameplanev1alpha1.GameServer, key string) (poolRecord
 		if protocol != corev1.ProtocolTCP && protocol != corev1.ProtocolUDP && protocol != corev1.ProtocolSCTP {
 			return poolRecord{}, false
 		}
+		// A Service can't publish one (protocol, port) twice, nor two ports
+		// of one name.
+		key := poolPortKey{protocol, int32(port)}
+		if _, dup := rec.entry(name); dup || seen[key] {
+			return poolRecord{}, false
+		}
+		seen[key] = true
 		rec.entries = append(rec.entries, poolPortEntry{name: name, protocol: protocol, port: int32(port)})
 	}
 	return rec, true
@@ -355,6 +364,11 @@ func planPoolPorts(
 		k := poolPortKey{p.protocol, p.fixed}
 		if holder, held := taken[k]; held {
 			return poolPlan{kept: -1, conflict: &poolConflict{port: p.fixed, protocol: p.protocol, holder: holder}}
+		}
+		if fixed[k] {
+			// Two of the server's own ports ask for one servicePort, which no
+			// Service can publish.
+			return poolPlan{kept: -1, conflict: &poolConflict{port: p.fixed, protocol: p.protocol, holder: gs.Namespace + "/" + gs.Name}}
 		}
 		fixed[k] = true
 	}
@@ -529,6 +543,10 @@ func (r *GameServerReconciler) publishedPoolPorts(
 	if err := reader.List(ctx, &svcs, client.MatchingLabels{PortPoolServiceLabel: pool.Name}); err != nil {
 		return nil, fmt.Errorf("list Services for port pool %s: %w", pool.Name, err)
 	}
+	byUID := make(map[types.UID]*gameplanev1alpha1.GameServer, len(servers))
+	for i := range servers {
+		byUID[servers[i].UID] = &servers[i]
+	}
 	var holders []poolHolder
 	for i := range svcs.Items {
 		svc := &svcs.Items[i]
@@ -537,13 +555,7 @@ func (r *GameServerReconciler) publishedPoolPorts(
 			(svc.Namespace == gs.Namespace && owner.Name == gs.Name) {
 			continue
 		}
-		var held *gameplanev1alpha1.GameServer
-		for j := range servers {
-			if servers[j].UID == owner.UID {
-				held = &servers[j]
-				break
-			}
-		}
+		held := byUID[owner.UID]
 		if held == nil {
 			held = &gameplanev1alpha1.GameServer{ObjectMeta: metav1.ObjectMeta{
 				Name: owner.Name, Namespace: svc.Namespace, UID: owner.UID, CreationTimestamp: svc.CreationTimestamp,
@@ -582,7 +594,10 @@ func (r *GameServerReconciler) reconcilePoolPorts(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) (portAllocation, error) {
 	pool, pooled := r.PortPools.forTemplate(tmpl.Name)
-	if !pooled {
+	demand := demandFor(gs, tmpl)
+	if !pooled || len(demand.ports) == 0 {
+		// A template that advertises no ports publishes none, so it takes
+		// nothing from its pool and is treated as outside it.
 		return portAllocation{}, r.setPoolRecords(ctx, gs, "", "")
 	}
 
@@ -595,7 +610,6 @@ func (r *GameServerReconciler) reconcilePoolPorts(
 
 	active, _ := parsePoolRecordAt(gs, PoolPortsAnnotation)
 	pending, _ := parsePoolRecordAt(gs, PendingPoolPortsAnnotation)
-	demand := demandFor(gs, tmpl)
 	out := portAllocation{pooled: true, pool: pool.Name, needed: demand.pooledCount()}
 	plan := planPoolPorts(gs, demand, pool, holders, []poolRecord{active, pending}, active)
 	// The pending record becomes the active one once it fits the effective
@@ -670,7 +684,7 @@ func (r *GameServerReconciler) reservePoolPortsForRollout(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, target *gameplanev1alpha1.GameTemplate,
 ) (bool, error) {
 	pool, pooled := r.PortPools.forTemplate(target.Name)
-	if !pooled {
+	if !pooled || len(demandFor(gs, target).ports) == 0 {
 		return true, nil
 	}
 	active, hasActive := parsePoolRecordAt(gs, PoolPortsAnnotation)

@@ -379,8 +379,9 @@ games keep running.
 Forward the whole range at the relay or edge, to the cluster's load
 balancer. When you shrink a pool, existing servers keep their ports, even
 ones outside the new range, and report `AllocatedOutsideRange` with those
-ports. Keep forwarding them until you move those servers; only new servers
-use the smaller range. Removing a template from its pool returns its servers
+ports. Keep forwarding them until you move those servers. New servers, and
+servers that need new ports, for example for a template update, are given
+ports from the smaller range. Removing a template from its pool returns its servers
 to the template's ports. The full rules, including template revisions and
 recovery, are in [spec 036](../specs/036-port-pools/spec.md).
 

@@ -107,7 +107,8 @@ func TestParsePoolRecord(t *testing.T) {
 	}
 	for _, bad := range []string{"", "edge", "edge:", ":game=1/UDP", "edge:game", "edge:game=1", "edge:=1/UDP",
 		"edge:game=x/UDP", "edge:game=0/UDP", "edge:game=70000/UDP", "edge:game=1/ICMP",
-		"Edge:game=1/UDP", "edge/a:game=1/UDP", strings.Repeat("e", 64) + ":game=1/UDP"} {
+		"Edge:game=1/UDP", "edge/a:game=1/UDP", strings.Repeat("e", 64) + ":game=1/UDP",
+		"edge:game=2456/UDP,query=2456/UDP", "edge:game=2456/UDP,game=2457/UDP"} {
 		gs := pooledServer("a", 0, bad)
 		if gs.Annotations == nil {
 			gs.Annotations = map[string]string{PoolPortsAnnotation: bad}
@@ -570,6 +571,41 @@ func TestReconcilePoolPorts_TerminatingServersStillHold(t *testing.T) {
 	}
 }
 
+// Two of a server's own ports can't share a servicePort: no Service can
+// publish them.
+func TestAllocatePoolPorts_RefusesADuplicateServicePort(t *testing.T) {
+	gs := pooledServer("a", 1, "")
+	gs.Spec.Networking.PortOverrides = []gameplanev1alpha1.PortOverride{
+		{Name: "game", ServicePort: 2460}, {Name: "query", ServicePort: 2460},
+	}
+	if got := allocate(t, gs, valheimTemplate()); got != "conflict 2460/UDP games/a" {
+		t.Errorf("got %s, want a conflict with itself", got)
+	}
+}
+
+// A template that advertises no ports takes nothing from its pool.
+func TestReconcilePoolPorts_NoAdvertisedPorts(t *testing.T) {
+	gs := pooledServer("a", 1, "edge:game=2456/UDP,query=2457/UDP")
+	r, c := poolReconciler(t, edgePools(t, "2456-2467"), nil, &gs)
+	tmpl := valheimTemplate()
+	for i := range tmpl.Spec.Ports {
+		tmpl.Spec.Ports[i].Advertise = false
+	}
+	alloc, err := r.reconcilePoolPorts(t.Context(), &gs, tmpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if alloc.pooled {
+		t.Errorf("allocation: %+v, want outside the pool", alloc)
+	}
+	if v, ok := storedPoolRecord(t, c, &gs); ok {
+		t.Errorf("stored: got %q, want no record", v)
+	}
+	if ok, err := r.reservePoolPortsForRollout(t.Context(), &gs, tmpl); err != nil || !ok {
+		t.Errorf("rollout: got %v, %v, want admitted", ok, err)
+	}
+}
+
 // Reordering a template's ports leaves each port its assignment.
 func TestAllocatePoolPorts_ReorderedPortsKeepTheirAssignments(t *testing.T) {
 	gs := pooledServer("a", 1, "edge:game=2460/UDP,query=2461/UDP")
@@ -888,8 +924,16 @@ func TestPortAllocationCondition(t *testing.T) {
 	if args := conditionArgsFor(&gs, c, conditionArgsInput{ports: portAllocation{pool: "edge"}}); args != nil {
 		t.Errorf("conflict without a holder: got %v", args)
 	}
-	if conds := portAllocationCondition(nil, &gs, portAllocation{}); meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation) != nil {
+	existing := []metav1.Condition{
+		{Type: gameplanev1alpha1.GameServerConditionPortAllocation, Status: metav1.ConditionTrue, Reason: "Allocated"},
+		{Type: "Ready", Status: metav1.ConditionTrue, Reason: "Running"},
+	}
+	conds := portAllocationCondition(existing, &gs, portAllocation{})
+	if meta.FindStatusCondition(conds, gameplanev1alpha1.GameServerConditionPortAllocation) != nil {
 		t.Error("want the condition removed outside a pool")
+	}
+	if meta.FindStatusCondition(conds, "Ready") == nil {
+		t.Error("want other conditions kept")
 	}
 }
 

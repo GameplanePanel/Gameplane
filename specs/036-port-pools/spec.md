@@ -55,7 +55,9 @@ this feature.
 
 A server's ports are recorded in annotations, in the format
 `<pool>:<name>=<port>/<protocol>,...`, with one entry per advertised port in
-template order, overridden ports included:
+template order, overridden ports included. A record that repeats a port
+name or a (protocol, port) pair, or names a pool that isn't a DNS label, is
+malformed and reads as none, so the server is placed again:
 
 - The **active record**, `gameplane.local/pool-ports`, is the server's
   effective allocation. Its main Service and relays publish exactly these
@@ -85,7 +87,9 @@ For a server whose template draws from pool P:
 
 1. **Demand.** The server's advertised ports from its effective template
    revision. A port with an explicit `portOverrides[].servicePort` is
-   **fixed** at that port; the others are **pooled**.
+   **fixed** at that port; the others are **pooled**. A template that
+   advertises no ports takes nothing from the pool and is treated as outside
+   it.
 2. **Reservations.** Every other server's active and pending records for P,
    and the ports every other server's main Service labeled for P publishes.
    A terminating server still holds its ports, since its Service can outlive
@@ -98,7 +102,9 @@ For a server whose template draws from pool P:
    name. The range isn't checked, so a pool that shrank leaves existing
    servers their ports (see Changes).
 4. **Overrides.** A fixed port another server's record holds is refused (see
-   Overrides); no new allocation is made.
+   Overrides), as is one the server's other fixed port already asks for,
+   since no Service can publish a (protocol, port) twice; no new allocation
+   is made.
 5. **Allocate.** Otherwise the pooled ports get one contiguous block, in the
    range and in template order, that no other server's record and none of the
    server's own fixed ports use: at the active record's first pooled port
@@ -111,8 +117,9 @@ For a server whose template draws from pool P:
    same protocols, and isn't contested **stays in effect**: its ports stay
    reserved and published, and the change is reported as pending. Otherwise
    the active record is removed and the server is **unpublished**: its main
-   Service is deleted, its status lists no endpoints, and it is never given
-   its template's ports instead.
+   Service is deleted, before the tunnel steps so a tunnel error can't keep
+   it, its status lists no endpoints, relay endpoints included, and it is
+   never given its template's ports instead.
    Retention never keeps a contested or unusable record.
 
 Contiguous blocks matter for games that derive one port from another, such
