@@ -23,18 +23,20 @@ Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
    the GameServer and named `<gs>-modpack-<generation>`.
 4. **Mods wipe** (R5): on a removal only (OD-7 B), add the one-shot
    init step for the active loader's mods mount, guarded by the marker file.
-5. **Key sharing** (R2, OD-9 A): read the managed key Secret `gameplane-modreg-curseforge`
+5. **Key sharing** (R2, OD-9 A, OD-10 A): read the managed key Secret `gameplane-modreg-curseforge`
    (control namespace) with an uncached get on every reconcile; the operator does not watch it, so
-   a CurseForge modpack server is requeued every 60s to pick up a share toggle, key deletion or
-   rotation. Maintain the server-owned `<gs>-curseforge-key` (key `apiKey`) only while
+   a CurseForge modpack server is requeued every 60s to re-read it. Maintain the server-owned `<gs>-curseforge-key` (key `apiKey`) only while
    sharing is on and the applied provider is curseforge. Set the game container env named by
    the module's `apiKeyEnv` (`CF_API_KEY` for minecraft-java) via `valueFrom.secretKeyRef` to
    that Secret. No volume or mount. The key value is never in the config hash (only the
    secretKeyRef is). Toggling sharing adds or removes the env var in the pod template, which rolls
-   the server's pod. Rotating the key alone changes only the copy Secret and leaves the pod
+   the server's pod; the operator applies a toggle only when the server has a known 0 players online, is stopped or
+   asleep, or a pack change is already rolling it (OD-10 A, same gate as OD-8 B), and meanwhile keeps
+   `status.modpack.keyShared` (the applied state) and the pod template as they are. A share-on copy Secret is
+   created at once; a share-off copy is deleted together with the env removal. Rotating the key alone changes only the copy Secret and leaves the pod
    template (and its hash) unchanged, because the secretKeyRef (name and key) is stable, so the
    new value applies at the next container start. The secretKeyRef is `optional: true`.
-   `status.modpack.keyShared` reflects whether the env is set.
+   `status.modpack.keyShared` reflects whether the env is set (the applied state, not the admin's setting).
 6. **Conditions**: `ModpackReady` True when `phase=Applied`; False with reason
    `BackingUp|Applying|BackupFailed`.
 7. **RBAC**: `get` only, resourceNames `gameplane-modreg-curseforge`, in the control namespace,

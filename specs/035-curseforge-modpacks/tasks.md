@@ -180,6 +180,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [X] T062 [P] Add a CHANGELOG entry for CurseForge and FTB modpacks in CHANGELOG.md (changelog/unreleased/035-curseforge-ftb-modpacks.md, slug-only name, PR number added when the PR opens)
 - [ ] T063 Bump the modules submodule pointer after the module PR merges (`submodule-bump` skill), in modules
 - [ ] T064 Walk quickstart.md scenarios 1–11 against the CI results and a dev cluster if valgul provides one; record results in specs/035-curseforge-modpacks/quickstart.md
+- [X] T065 Apply a CurseForge key-sharing toggle only when the server has 0 players online, is stopped or asleep, or a pack change is rolling it, reusing the OD-8 B gate (OD-10 A), in operator/internal/controller/gameserver_modpack_key.go, gameserver_modpack.go and gameserver_modpack_key_envtest_test.go
 
 ---
 

@@ -54,7 +54,7 @@ implementation task re-checks every itzg fact below against the image digests th
      (Secret name and key), never the value. A rotated key changes only the copy Secret, not the
      pod template, so it does not restart servers and applies at the next container start.
      Toggling share on/off adds or removes the env var, which changes the pod template and rolls
-     that server's pod (propagation within about 60s).
+     that server's pod. OD-10 A (valgul, 2026-11-19): a share toggle rolls the pod only when the server has 0 players online (or is stopped or asleep), reusing the OD-8 B gate; rotation needs no restart.
   5. The module marks images without a built-in key (`needsKeyImageTags: [java8-multiarch,
      java8]`). While sharing is off, the API hides CurseForge in the Modpacks registry switch
      for servers whose selected version uses such an image, and refuses install with 409.
