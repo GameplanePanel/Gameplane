@@ -88,8 +88,15 @@ func (r *GameServerReconciler) managedCurseForgeKey(ctx context.Context) ([]byte
 	}
 	var sec corev1.Secret
 	if err := reader.Get(ctx, client.ObjectKey{Namespace: r.ControlPlaneNamespace, Name: curseforgeManagedSecret}, &sec); err != nil {
-		if apierrors.IsNotFound(err) || apierrors.IsForbidden(err) {
+		if apierrors.IsNotFound(err) {
 			log.FromContext(ctx).V(1).Info("managed mod-registry key not shared",
+				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedSecret, "reason", string(apierrors.ReasonForError(err)))
+			return nil, false, nil
+		}
+		if apierrors.IsForbidden(err) {
+			// Info level: a forbidden read means the operator Role is missing or
+			// misconfigured, which an operator should see without debug logging.
+			log.FromContext(ctx).Info("managed mod-registry key read forbidden; treating as not shared",
 				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedSecret, "reason", string(apierrors.ReasonForError(err)))
 			return nil, false, nil
 		}
