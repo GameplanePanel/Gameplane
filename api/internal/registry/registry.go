@@ -105,10 +105,16 @@ type SearchQuery struct {
 func (q SearchQuery) modpack() bool { return q.ProjectType == "modpack" }
 
 // Filter narrows a Versions lookup to the active loader + game version.
+// ProjectType is "modpack" when the caller lists pack versions (the
+// handler forwards ?type=modpack); empty (or "mod") lists mod versions.
 type Filter struct {
 	Loader      string
 	GameVersion string
+	ProjectType string
 }
+
+// modpack reports whether this lookup targets modpack versions.
+func (f Filter) modpack() bool { return f.ProjectType == "modpack" }
 
 // KeyFunc returns the API key for a provider, or "" if unconfigured.
 type KeyFunc func(ctx context.Context, provider string) string

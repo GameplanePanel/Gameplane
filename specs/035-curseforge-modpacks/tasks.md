@@ -55,14 +55,14 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US1
 
-- [ ] T014 [P] [US1] Unit test CurseForge modpack versions filtered by game version and loader using the T002 fixture in api/internal/registry/curseforge_test.go
+- [X] T014 [P] [US1] Unit test CurseForge modpack versions filtered by game version and loader using the T002 fixture in api/internal/registry/curseforge_test.go
 - [ ] T015 [P] [US1] envtest: POST install writes `spec.modpack`, needs manage permission, writes an audit entry without the key, returns 409 `server.modpack.key_required` on a java8-multiarch version while sharing is off, in api/internal/handlers/registry_modpack_envtest_test.go
 - [ ] T016 [P] [US1] envtest: share on → `<gs>-curseforge-key` owned by the GameServer, mounted read-only at `/run/gameplane/curseforge/api-key` in the game container only, `CF_API_KEY_FILE` set, no key value in the pod spec, no config-hash change on key rotation; share off or key deleted → copy and mount removed, in operator/internal/controller/gameserver_modpack_key_envtest_test.go
 - [ ] T017 [US1] E2E: install a small CurseForge Fabric pack by slug + file id through the API (image built-in key, no browse key in CI), assert `Applied`, Running and the pack env; then install a Modrinth pack and assert no `CF_*` env remains (SC-004); one admin login; register in a bucket with login headroom per the comments in test/e2e/buckets.sh (not api-auth, api-roles, api-mods, api-rbac, api-agent) in test/e2e/modpack_e2e_test.go
 
 ### Implementation for US1
 
-- [ ] T018 [US1] Make CurseForge `Versions` honour `type=modpack` (class 4471 files, game version + loader filter) and update the `ModpackDeps` comments in api/internal/registry/curseforge.go
+- [X] T018 [US1] Make CurseForge `Versions` honour `type=modpack` (class 4471 files, game version + loader filter) and update the `ModpackDeps` comments in api/internal/registry/curseforge.go
 - [ ] T019 [US1] Add `modsBrowse` and `modpacksBlockedReason` to the providers listing (needsKeyImageTags vs the selected version's image tag and the share annotation) in api/internal/handlers/registry.go
 - [ ] T020 [US1] Add `PUT/GET /admin/registries/curseforge/share` (annotation on the managed key Secret; 409 `server.registry.share_needs_managed_key` when only the startup flag holds a key) in api/internal/handlers/registry_secret.go and mount it with admin RBAC in api/cmd/main.go
 - [ ] T021 [US1] Implement key sharing (watch the managed key Secret in the control namespace, maintain the server-owned copy, mount, `apiKeyFileEnv`, `status.modpack.keyShared`, kept out of the config hash) per contracts/operator-modpack.md item 5 in operator/internal/controller/gameserver_modpack_key.go, with kubebuilder RBAC markers, then `make manifests`
