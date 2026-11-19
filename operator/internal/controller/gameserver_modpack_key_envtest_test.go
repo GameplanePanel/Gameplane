@@ -10,23 +10,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
-	configv1 "sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+
+	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
 
 // Spec 035 key sharing envtest (rule 5). The managed key Secret lives in a
-// control-plane namespace separate from the game namespace, so these tests
-// use their own manager (startMgrKeyShare) whose cache covers both namespaces;
-// the shared startMgr only caches the game namespace.
+// control-plane namespace separate from the game namespace; it is read through the manager's API reader (uncached), and the operator does
+// not watch that Secret, so tests kickGameServer after changing it.
 
 // withGameServerReconcilerKeyShare is withGameServerReconciler with the
 // control-plane namespace set, so the reconciler reads the managed key there.
@@ -46,45 +43,23 @@ func withGameServerReconcilerKeyShare(t *testing.T, ns, ctrlNS string) setupReco
 	}
 }
 
-// startMgrKeyShare is startMgr with the Secret cache covering every listed
-// namespace (the game namespace and the control-plane namespace).
-func startMgrKeyShare(t *testing.T, namespaces []string, setups ...setupReconciler) {
+// kickGameServer forces a reconcile without waiting for the 60s key recheck
+// (the operator no longer watches the managed Secret): it bumps an annotation,
+// and the For(&GameServer{}) watch enqueues the server.
+func kickGameServer(t *testing.T, ns, name string) {
 	t.Helper()
-
-	defaults := map[string]cache.Config{}
-	for _, ns := range namespaces {
-		defaults[ns] = cache.Config{}
-	}
-	skip := true
-	mgr, err := manager.New(cfg, manager.Options{
-		Scheme:                 scheme,
-		Logger:                 logr.Discard(),
-		Cache:                  cache.Options{DefaultNamespaces: defaults},
-		Metrics:                metricsserver.Options{BindAddress: "0"},
-		HealthProbeBindAddress: "0",
-		Controller:             configv1.Controller{SkipNameValidation: &skip},
-	})
-	if err != nil {
-		t.Fatalf("manager.New: %v", err)
-	}
-	for _, s := range setups {
-		if err := s(mgr); err != nil {
-			t.Fatalf("setup reconciler: %v", err)
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var gs gameplanev1alpha1.GameServer
+		if err := k8sClient.Get(context.Background(), types.NamespacedName{Namespace: ns, Name: name}, &gs); err != nil {
+			return err
 		}
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
-	started := make(chan struct{})
-	go func() {
-		close(started)
-		if err := mgr.Start(ctx); err != nil && ctx.Err() == nil {
-			t.Errorf("mgr.Start: %v", err)
+		if gs.Annotations == nil {
+			gs.Annotations = map[string]string{}
 		}
-	}()
-	<-started
-	if !mgr.GetCache().WaitForCacheSync(ctx) {
-		t.Fatalf("cache did not sync")
+		gs.Annotations["test.gameplane.local/kick"] = fmt.Sprint(time.Now().UnixNano())
+		return k8sClient.Update(context.Background(), &gs)
+	}); err != nil {
+		t.Fatalf("kick GameServer: %v", err)
 	}
 }
 
@@ -174,7 +149,7 @@ func keyShareStatus(t *testing.T, ns, name string) bool {
 func TestGameServer_ModpackKeyShare_OnOff(t *testing.T) {
 	ns := newNamespace(t)
 	ctrlNS := newNamespace(t)
-	startMgrKeyShare(t, []string{ns, ctrlNS}, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
 
 	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
 		t.Fatalf("create managed key Secret: %v", err)
@@ -247,6 +222,7 @@ func TestGameServer_ModpackKeyShare_OnOff(t *testing.T) {
 	envBefore, _ := json.Marshal(ss.Spec.Template.Spec.Containers)
 
 	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { sec.Data["apiKey"] = []byte("key-two") })
+	kickGameServer(t, ns, "keyed")
 	eventually(t, func() (bool, string) {
 		sec, found := keyCopyOf(t, ns, "keyed")
 		if !found {
@@ -275,6 +251,7 @@ func TestGameServer_ModpackKeyShare_OnOff(t *testing.T) {
 
 	// Sharing off: copy and env go away.
 	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { delete(sec.Annotations, curseforgeShareAnnotation) })
+	kickGameServer(t, ns, "keyed")
 	eventually(t, func() (bool, string) {
 		if _, found := keyCopyOf(t, ns, "keyed"); found {
 			return false, "key copy Secret still present with sharing off"
@@ -296,13 +273,14 @@ func TestGameServer_ModpackKeyShare_OnOff(t *testing.T) {
 		return true, ""
 	})
 
-	// Sharing on again: the watch re-reconciles and restores copy and env.
+	// Sharing on again: a kicked reconcile re-reads the managed Secret and restores copy and env.
 	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) {
 		if sec.Annotations == nil {
 			sec.Annotations = map[string]string{}
 		}
 		sec.Annotations[curseforgeShareAnnotation] = "true"
 	})
+	kickGameServer(t, ns, "keyed")
 	eventually(t, func() (bool, string) {
 		sec, found := keyCopyOf(t, ns, "keyed")
 		if !found {
@@ -332,7 +310,7 @@ func TestGameServer_ModpackKeyShare_OnOff(t *testing.T) {
 func TestGameServer_ModpackKeyShare_KeyDeletedAndPackRemoved(t *testing.T) {
 	ns := newNamespace(t)
 	ctrlNS := newNamespace(t)
-	startMgrKeyShare(t, []string{ns, ctrlNS}, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
 
 	managed := buildManagedCFKey(ctrlNS, "key-one", true)
 	if err := k8sClient.Create(context.Background(), managed); err != nil {
@@ -379,12 +357,14 @@ func TestGameServer_ModpackKeyShare_KeyDeletedAndPackRemoved(t *testing.T) {
 	if err := k8sClient.Delete(context.Background(), managed); err != nil {
 		t.Fatalf("delete managed key Secret: %v", err)
 	}
+	kickGameServer(t, ns, "dropkey")
 	eventually(t, copyPresent(false))
 
 	// Recreated: copy and env come back.
 	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
 		t.Fatalf("recreate managed key Secret: %v", err)
 	}
+	kickGameServer(t, ns, "dropkey")
 	eventually(t, copyPresent(true))
 
 	// Pack moves off CurseForge: copy and env are removed.
@@ -413,7 +393,7 @@ func TestGameServer_ModpackKeyShare_KeyDeletedAndPackRemoved(t *testing.T) {
 func TestGameServer_ModpackKeyShare_NoPackNoCopy(t *testing.T) {
 	ns := newNamespace(t)
 	ctrlNS := newNamespace(t)
-	startMgrKeyShare(t, []string{ns, ctrlNS}, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
 
 	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
 		t.Fatalf("create managed key Secret: %v", err)
