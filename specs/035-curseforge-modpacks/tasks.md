@@ -85,8 +85,8 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US2
 
-- [X] T028 [P] [US2] envtest: `backupFirst` → Backup CR `<gs>-modpack-<generation>` owned by the GameServer, env unchanged until it succeeds; failed backup → `BackupFailed`, message set, env unchanged; a new change after `BackupFailed` restarts the flow, in operator/internal/controller/gameserver_modpack_envtest_test.go
-- [X] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll) while players are online; an adopted server with a version gets the pin with one restart once `status.agent.playersOnline` is 0, or right away when stopped or asleep (OD-8 B); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [X] T028 [P] [US2] envtest: `backupFirst` → Backup CR `<gs>-modpack-<generation>` owned by the GameServer, env unchanged until it succeeds; failed backup → `BackupFailed`, message set, env unchanged; a new change after `BackupFailed` restarts the flow, in operator/internal/controller/gameserver_modpack_backup_envtest_test.go
+- [X] T029 [P] [US2] envtest: adopted legacy server (annotation set, pod running) and a not-yet-swept legacy server (`refEnv` value in `spec.env`, no `spec.modpack`) both keep an identical pod template (no roll) while players are online; an adopted server with a version gets the pin with one restart once `status.agent.playersOnline` is 0, or right away when stopped or asleep (OD-8 B); after an operator-driven restart the pin env is rendered and the annotation removed, in operator/internal/controller/gameserver_modpack_adopt_envtest_test.go
 - [X] T030 [P] [US2] envtest: legacy sweep reads `versionId` through the agent and writes `spec.modpack` + adopted annotation; unreadable → no `version` and `pinned: false`; 400 `server.modpack.backup_unavailable`; 409 `server.modpack.change_in_progress`, in api/internal/handlers/modpack_adopt_envtest_test.go
 - [ ] T031 [US2] E2E: pinned version survives 3 restarts (read `.curseforge-manifest.json` `fileId` through the agent) in test/e2e/modpack_e2e_test.go
 
@@ -112,7 +112,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Tests for US3
 
 - [X] T038 [P] [US3] envtest: DELETE removes `spec.modpack`, sets the remove annotation with a request id, accepts a retry after a removal's backup failed, returns 404 only when neither `spec.modpack` nor `status.modpack.applied` is set, GET shows `pendingRemoval`, writes an audit entry, in api/internal/handlers/registry_modpack_envtest_test.go
-- [X] T039 [P] [US3] envtest: removal adds the one-shot wipe init step for the active loader's mods mount only, guarded by `.gameplane-mods-wiped-<generation>`; install of a different pack adds no wipe step, in operator/internal/controller/gameserver_modpack_envtest_test.go
+- [X] T039 [P] [US3] envtest: removal adds the one-shot wipe init step for the active loader's mods mount only, guarded by `.gameplane-mods-wiped-<generation>`; install of a different pack adds no wipe step, in operator/internal/controller/gameserver_modpack_remove_envtest_test.go
 - [ ] T040 [US3] E2E: remove the pack; mods folder empty, world folder unchanged, server Running as plain loader, in test/e2e/modpack_e2e_test.go
 
 ### Implementation for US3
