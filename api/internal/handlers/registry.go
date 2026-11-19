@@ -184,6 +184,7 @@ func (h *registryHandler) versions(w http.ResponseWriter, req *http.Request) {
 	res, err := p.Versions(req.Context(), chi.URLParam(req, "project"), registry.Filter{
 		Loader:      loader,
 		GameVersion: gameVersion,
+		ProjectType: req.URL.Query().Get("type"),
 	})
 	if err != nil {
 		httperr.WriteCode(w, req, http.StatusBadGateway, fmt.Errorf("mod registry versions failed: %w", err))
@@ -274,10 +275,12 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 	updated, err := updateModTarget(req.Context(), target, func(current *unstructured.Unstructured) {
 		// SetNestedMap only fails on a non-map parent; spec is always a map here.
 		_ = unstructured.SetNestedMap(current.Object, spec, "spec", "modpack")
-		// A removal whose backup failed leaves its request behind; installing
-		// a pack supersedes it.
-		if ann := current.GetAnnotations(); ann[modpackRemoveAnnotation] != "" {
+		// A removal whose backup failed leaves its request behind, and an
+		// adopted legacy pin would hold back the new pack; installing a pack
+		// supersedes both.
+		if ann := current.GetAnnotations(); ann[modpackRemoveAnnotation] != "" || ann[modpackAdoptedAnnotation] != "" {
 			delete(ann, modpackRemoveAnnotation)
+			delete(ann, modpackAdoptedAnnotation)
 			current.SetAnnotations(ann)
 		}
 	})
