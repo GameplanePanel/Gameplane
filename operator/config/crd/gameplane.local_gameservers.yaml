@@ -2805,8 +2805,10 @@ spec:
                     description: BackupName is the Backup created for this change.
                     type: string
                   keyShared:
-                    description: KeyShared reports the pod currently mounts a shared
-                      CurseForge key.
+                    description: |-
+                      KeyShared reports the game container currently gets a shared CurseForge
+                      key from the server-owned Secret through the template's apiKeyEnv
+                      (valueFrom.secretKeyRef).
                     type: boolean
                   message:
                     description: Message is a human-readable reason for BackupFailed.

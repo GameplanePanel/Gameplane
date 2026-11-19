@@ -53,7 +53,10 @@ type GameServerReconciler struct {
 	// WakeStartLimit caps simultaneous idle cold starts across managed namespaces.
 	WakeStartLimit     int
 	WakeStartNamespace string
-	Scheme             *runtime.Scheme
+	// ControlPlaneNamespace holds the managed mod-registry key Secret that
+	// modpack servers receive a CurseForge key from. Empty disables key sharing.
+	ControlPlaneNamespace string
+	Scheme                *runtime.Scheme
 
 	// AgentImage is the container image used for the sidecar agent
 	// injected into every game pod. Set from an operator flag so the
@@ -269,6 +272,8 @@ const (
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch
 // Secret reads/writes are granted only by namespace Roles in config/rbac and
 // the chart, matching cmd/main.go's per-object Secret cache namespace set.
+// Key sharing reads gameplane-modreg-curseforge from the control-plane
+// namespace (same namespace Role).
 // +kubebuilder:rbac:groups=core,resources=services;persistentvolumeclaims;configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods;pods/log,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=pods/ephemeralcontainers,verbs=get;list;watch
@@ -450,6 +455,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	if err := r.reconcileRCONSecret(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile rcon Secret")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileModpackKey(ctx, &gs, &tmpl); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack key Secret")
 		return ctrl.Result{}, err
 	}
 	// Idle policy runs before the replica computation so a sleep or wake
@@ -689,6 +701,7 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&corev1.Pod{}, handler.EnqueueRequestsFromMapFunc(r.mapPodToGameServer)).
 		Watches(&gameplanev1alpha1.GameTemplate{}, handler.EnqueueRequestsFromMapFunc(r.mapTemplateToGameServers),
 			builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.mapManagedKeyToGameServers)).
 		Complete(r)
 }
 
@@ -2610,6 +2623,9 @@ func buildGameContainer(
 	// (legacy servers are returned unchanged); see gameserver_modpack.go.
 	env = append(env, modpackSpecEnv(gs, tmpl)...)
 	env = append(env, modpackPackEnv(gs, tmpl)...)
+	if e := modpackKeyEnv(gs, tmpl); e != nil {
+		env = append(env, *e)
+	}
 	// The operator-managed RCON password wins, so the game and the agent
 	// sidecar always agree on it.
 	if e := rconGameEnv(gs, tmpl); e != nil {

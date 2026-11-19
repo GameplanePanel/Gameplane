@@ -277,7 +277,9 @@ type GameServerModpackStatus struct {
 	// +optional
 	Message string `json:"message,omitempty"`
 
-	// KeyShared reports the pod currently mounts a shared CurseForge key.
+	// KeyShared reports the game container currently gets a shared CurseForge
+	// key from the server-owned Secret through the template's apiKeyEnv
+	// (valueFrom.secretKeyRef).
 	// +optional
 	KeyShared bool `json:"keyShared,omitempty"`
 }
