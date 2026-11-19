@@ -333,3 +333,7 @@ frames (UdnBT, mrF6f) with matching screenshot fixtures.
 - `web/src/test/handlers.ts`: append `ROLES_WITH_CUSTOM_ROLE_FIXTURE` and `rolesWithCustomRoleHandler` after line 1939. No existing handler changes.
 - `web/src/test/screenshotData.ts` is not changed. Its `oidc`, `oidc-design` and `oidc-empty-mappings` variants still use the old `roleMappings` form;
   the UI reads them through the old-form path, so S-19 to S-28 work with them as they are.
+
+## Sign-off
+
+valgul signed off on 2026-11-19 and chose **option A** for every item (including S-11, S-21 to S-23 and S-25: delete those tests). Only the changes listed above may be made to existing tests.
