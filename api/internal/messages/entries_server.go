@@ -90,12 +90,6 @@ var serverEntries = []Entry{
 		Status:      http.StatusBadRequest,
 	},
 	{
-		ID:          "server.notifications.sink_name_not_dns_label",
-		English:     "sink name must be a DNS label (lowercase, digits, hyphens)",
-		Description: "API error from the notification sinks API (notifications.go:deleteSecret, notifications.go:putSecret).",
-		Status:      http.StatusUnprocessableEntity,
-	},
-	{
 		ID:          "server.modpack.backup_unavailable",
 		English:     "no backup destination is configured for this server",
 		Description: "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) when backupFirst is requested but the server has no backup destination.",
@@ -124,6 +118,12 @@ var serverEntries = []Entry{
 		English:     "version is required",
 		Description: "API error from the modpack API (registry.go:installModpack) when a modpack is installed without choosing a version.",
 		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.notifications.sink_name_not_dns_label",
+		English:     "sink name must be a DNS label (lowercase, digits, hyphens)",
+		Description: "API error from the notification sinks API (notifications.go:deleteSecret, notifications.go:putSecret).",
+		Status:      http.StatusUnprocessableEntity,
 	},
 	{
 		ID:          "server.ownership.invalid_request",
