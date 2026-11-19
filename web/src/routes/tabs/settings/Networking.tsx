@@ -88,6 +88,9 @@ export function NetworkingSection({ draft, onChange, onValidityChange }: Section
     if (next.sourceRanges && next.sourceRanges.length) {
       cleaned.sourceRanges = next.sourceRanges;
     }
+    // Not editable here; set through the API or kubectl, and kept so a save
+    // from this form doesn't remove it.
+    if (next.loadBalancerClass) cleaned.loadBalancerClass = next.loadBalancerClass;
     if (next.addressPool) cleaned.addressPool = next.addressPool;
     if (next.address) cleaned.address = next.address;
     if (next.tunnel) cleaned.tunnel = next.tunnel;

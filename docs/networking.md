@@ -302,6 +302,31 @@ created before the upgrade that introduced it. A hostname that doesn't
 resolve to its server would now be shown to players, so before upgrading,
 check each such hostname, or clear it where it isn't the name players use.
 
+## Choosing a Load-Balancer Implementation
+
+A cluster can run more than one load-balancer implementation, each handling
+Services of its own class: a cloud's, MetalLB, Tailscale's operator, or a
+custom one for game traffic. Set `spec.networking.loadBalancerClass` on a
+LoadBalancer server to pick one; it becomes the Service's
+`spec.loadBalancerClass`. Unset, the operator doesn't manage the class: a new
+Service has none, so the cluster's default implementation handles it, and an
+existing Service keeps any class something else gave it.
+
+Kubernetes doesn't allow changing a Service's class, or adding one to a
+LoadBalancer Service that has none, so when the field is set or changes, the
+operator deletes the Service and creates it again with the new class. The server keeps running, but its Service gets a new cluster IP and,
+usually, a new external address, so players reconnect. Removing the field
+leaves the Service's class as it is until the Service is next replaced. The
+class is a Kubernetes qualified name, such as `example.com/games`: the part
+after the slash is at most 63 characters. The dashboard doesn't edit the
+class, and keeps it when you save other networking settings; set it through
+the API or `kubectl`.
+
+An address pool or address (`addressPool`, `address`) is a request to the
+configured address manager; a Service of another class is outside that
+manager's control, so leave them unset with a class of another
+implementation.
+
 ## Related
 
 - [`install.md`](install.md) — Helm chart values for `operator.addressManager` and cluster prerequisites.

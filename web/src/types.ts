@@ -438,6 +438,8 @@ export interface GameServerNetworking {
   serviceAnnotations?: Record<string, string>;
   portOverrides?: PortOverride[];
   sourceRanges?: string[];
+  // The Service's loadBalancerClass; honored only for expose: LoadBalancer.
+  loadBalancerClass?: string;
   // Load-balancer address pool to allocate from; honored only for
   // expose: LoadBalancer, and only when the cluster runs a supported
   // address manager (MetalLB or Cilium LB-IPAM).

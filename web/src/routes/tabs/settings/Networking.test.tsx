@@ -136,6 +136,23 @@ describe("NetworkingSection", () => {
     expect(lastCall.spec.networking.sourceRanges).toEqual(["203.0.113.0/24"]);
   });
 
+  it("preserves an existing loadBalancerClass when editing another field", () => {
+    const draft = {
+      ...baseDraft,
+      spec: {
+        ...baseDraft.spec,
+        networking: { expose: "LoadBalancer" as const, loadBalancerClass: "example.com/games" },
+      },
+    };
+    const onChange = vi.fn();
+    renderWithQuery(<NetworkingSection draft={draft} onChange={onChange} />);
+    fireEvent.change(screen.getByPlaceholderText("mc.example.com"), {
+      target: { value: "mc.example.com" },
+    });
+    const lastCall = onChange.mock.calls.at(-1)![0];
+    expect(lastCall.spec.networking.loadBalancerClass).toBe("example.com/games");
+  });
+
   describe("AddressAssignment (T044, T047, T109)", () => {
     it("displays and edits address pool and address fields", () => {
       const onChange = vi.fn();
