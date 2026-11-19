@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/retry"
 
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
@@ -83,4 +88,90 @@ func (h registrySecretHandler) del(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// curseforgeShareAnnotation on the managed CurseForge key Secret turns on
+// sharing the key with game servers (the operator copies it into a Secret
+// owned by each server that runs a CurseForge pack).
+const curseforgeShareAnnotation = "gameplane.local/share-with-game-servers"
+
+var errNoManagedKey = errors.New("no managed CurseForge key")
+
+// MountRegistryShare exposes the admin "share the CurseForge key with game
+// servers" setting. RBAC: /admin/registries is config:manage in rbac.go.
+func MountRegistryShare(r chi.Router, k *kube.Client, controlNS string) {
+	h := registrySecretHandler{k: k, ns: controlNS}
+	r.Get("/admin/registries/curseforge/share", h.getShare)
+	r.Put("/admin/registries/curseforge/share", h.putShare)
+}
+
+type shareView struct {
+	Share      bool `json:"share"`
+	ManagedKey bool `json:"managedKey"`
+}
+
+// curseforgeShareState reads the managed key Secret of the control namespace:
+// managedKey is true when a Secret labelled for mod-registry keys holds a
+// non-empty apiKey (a key given only by the startup flag does not count);
+// share is true only then and with the annotation set to "true". Any read
+// failure (or a nil client) is (false, false).
+func curseforgeShareState(ctx context.Context, k *kube.Client, ns string) (share, managedKey bool) {
+	store := k.Secrets(ns)
+	if store == nil || ns == "" {
+		return false, false
+	}
+	sec, err := store.Get(ctx, registry.DefaultKeySecretName("curseforge"), metav1.GetOptions{})
+	if err != nil || sec.Labels[registry.RegistryKeySecretLabel] != "true" || len(sec.Data["apiKey"]) == 0 {
+		return false, false
+	}
+	return sec.Annotations[curseforgeShareAnnotation] == "true", true
+}
+
+func (h registrySecretHandler) getShare(w http.ResponseWriter, req *http.Request) {
+	share, managed := curseforgeShareState(req.Context(), h.k, h.ns)
+	writeJSON(w, shareView{Share: share, ManagedKey: managed})
+}
+
+func (h registrySecretHandler) putShare(w http.ResponseWriter, req *http.Request) {
+	var body struct {
+		Share *bool `json:"share"`
+	}
+	if err := json.NewDecoder(io.LimitReader(req.Body, 1<<10)).Decode(&body); err != nil || body.Share == nil {
+		httperr.WriteMessage(w, req, messages.New("server.common.invalid_json", nil))
+		return
+	}
+	want := *body.Share
+	store := h.k.Secrets(h.ns)
+	name := registry.DefaultKeySecretName("curseforge")
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		sec, err := store.Get(req.Context(), name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		if sec.Labels[registry.RegistryKeySecretLabel] != "true" || len(sec.Data["apiKey"]) == 0 {
+			return errNoManagedKey
+		}
+		if want {
+			if sec.Annotations == nil {
+				sec.Annotations = map[string]string{}
+			}
+			sec.Annotations[curseforgeShareAnnotation] = "true"
+		} else {
+			delete(sec.Annotations, curseforgeShareAnnotation)
+		}
+		_, err = store.Update(req.Context(), sec, metav1.UpdateOptions{})
+		return err
+	})
+	switch {
+	case err == nil:
+		writeJSON(w, shareView{Share: want, ManagedKey: true})
+	case errors.Is(err, errNoManagedKey) || apierrors.IsNotFound(err):
+		if !want {
+			writeJSON(w, shareView{})
+			return
+		}
+		httperr.WriteMessage(w, req, messages.New("server.registry.share_needs_managed_key", nil))
+	default:
+		httperr.Write(w, req, err)
+	}
 }

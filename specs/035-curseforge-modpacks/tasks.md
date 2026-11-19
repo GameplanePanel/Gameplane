@@ -64,7 +64,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 - [X] T018 [US1] Make CurseForge `Versions` honour `type=modpack` (class 4471 files, game version + loader filter) and update the `ModpackDeps` comments in api/internal/registry/curseforge.go
 - [X] T019 [US1] Add `modsBrowse` and `modpacksBlockedReason` to the providers listing (needsKeyImageTags vs the selected version's image tag and the share annotation) in api/internal/handlers/registry.go
-- [ ] T020 [US1] Add `PUT/GET /admin/registries/curseforge/share` (annotation on the managed key Secret; 409 `server.registry.share_needs_managed_key` when only the startup flag holds a key) in api/internal/handlers/registry_secret.go and mount it with admin RBAC in api/cmd/main.go
+- [X] T020 [US1] Add `PUT/GET /admin/registries/curseforge/share` (annotation on the managed key Secret; 409 `server.registry.share_needs_managed_key` when only the startup flag holds a key) in api/internal/handlers/registry_secret.go and mount it with admin RBAC in api/cmd/main.go
 - [ ] T021 [US1] Implement key sharing (watch the managed key Secret in the control namespace, maintain the server-owned copy, mount, `apiKeyFileEnv`, `status.modpack.keyShared`, kept out of the config hash) per contracts/operator-modpack.md item 5 in operator/internal/controller/gameserver_modpack_key.go, with kubebuilder RBAC markers, then `make manifests`
 - [ ] T022 [P] [US1] Add the new API message ids (`server.modpack.*`, `server.registry.share_needs_managed_key`) to i18n/locales/en/app.json
 - [ ] T023 [US1] Add `Servers.modpack`, `Servers.installModpack` (new body), `Admin.curseforgeShare` and the new types to web/src/lib/api.ts and web/src/types.ts
