@@ -1,0 +1,508 @@
+{
+  "type": "frame",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 375,
+  "height": 900,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "id": "iSA6R",
+  "x": 1640,
+  "y": 50750,
+  "name": "Screen/Mobile — Server Detail — Settings · Placement",
+  "context": "Below 768px (PR #1024) the settings section navigation becomes a horizontally scrolling tab row above the form, scrolled here to Placement. Each label stacks above its help text, with a 12px gap before the editor. The footer wraps.",
+  "children": [
+    {
+      "id": "fw4Op",
+      "type": "ref",
+      "ref": "fGbVF",
+      "name": "Mobile header",
+      "width": "fill_container",
+      "descendants": {
+        "WOloN": {
+          "content": "mc-survival",
+          "fontSize": 16
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "Fnc6S",
+      "name": "Server detail header",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": [
+        16,
+        16,
+        0,
+        16
+      ],
+      "children": [
+        {
+          "id": "1puFb",
+          "type": "ref",
+          "ref": "S4k0x",
+          "name": "Wrapped server header",
+          "width": "fill_container",
+          "layout": "vertical",
+          "alignItems": "start",
+          "padding": 0,
+          "gap": 16,
+          "descendants": {
+            "n3TKr": {
+              "width": "fill_container",
+              "gap": 12
+            },
+            "wMMwe": {
+              "width": 36,
+              "height": 36
+            },
+            "ZArrg": {
+              "width": "fill_container"
+            },
+            "UpnRk": {
+              "width": "fill_container",
+              "textGrowth": "fixed-width"
+            },
+            "Gdnjm": {
+              "type": "frame",
+              "id": "LAT1c",
+              "name": "Wrapped server actions",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jk1md",
+                  "name": "Lifecycle actions",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "id": "yard0",
+                      "type": "ref",
+                      "ref": "i6gfu",
+                      "name": "Restart",
+                      "descendants": {
+                        "FCYQ9": {
+                          "icon": "rotate-cw"
+                        },
+                        "GqVun": {
+                          "content": "Restart"
+                        }
+                      }
+                    },
+                    {
+                      "id": "H8Vek",
+                      "type": "ref",
+                      "ref": "i6gfu",
+                      "name": "Stop",
+                      "descendants": {
+                        "FCYQ9": {
+                          "icon": "square"
+                        },
+                        "GqVun": {
+                          "content": "Stop"
+                        }
+                      }
+                    },
+                    {
+                      "id": "FuDFO",
+                      "type": "ref",
+                      "ref": "J3iWV8",
+                      "name": "More",
+                      "descendants": {
+                        "xjGeb": {
+                          "icon": "ellipsis"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "sO1S1",
+                  "type": "ref",
+                  "ref": "cb4rt",
+                  "name": "Open console",
+                  "descendants": {
+                    "Xpn7K": {
+                      "icon": "terminal"
+                    },
+                    "U6q13B": {
+                      "content": "Open console"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "cPQXO",
+          "name": "Server tabs — scrolled to Settings",
+          "context": "The server tabs scroll independently; this state shows the selected Settings tab.",
+          "clip": true,
+          "width": "fill_container",
+          "height": 46,
+          "gap": 4,
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "afVOp",
+              "type": "ref",
+              "ref": "qAFbJ",
+              "name": "Backups tab",
+              "width": "fit_content",
+              "descendants": {
+                "VcxMI": {
+                  "content": "Backups"
+                }
+              }
+            },
+            {
+              "id": "uiB6H",
+              "type": "ref",
+              "ref": "qAFbJ",
+              "name": "Capture tab",
+              "width": "fit_content",
+              "descendants": {
+                "VcxMI": {
+                  "content": "Capture"
+                }
+              }
+            },
+            {
+              "id": "NZNlM",
+              "type": "ref",
+              "ref": "CEWo3",
+              "name": "Settings tab",
+              "width": "fit_content",
+              "descendants": {
+                "YUR8N": {
+                  "content": "Settings"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "0m39k",
+      "name": "Settings section tabs — scrolled to Placement",
+      "context": "Horizontal tab row (arrow keys move left/right). It scrolls on its own; the page never overflows horizontally.",
+      "clip": true,
+      "width": "fill_container",
+      "fill": "$surface/secondary",
+      "stroke": "$border/border",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "strokeAlignment": "inner",
+      "strokeLinejoin": "round",
+      "padding": 8,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "F1jsN",
+          "name": "snNetworkcapture",
+          "fill": "#00000000",
+          "cornerRadius": 6,
+          "padding": [
+            8,
+            12
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "wfhBk",
+              "fill": "$muted",
+              "content": "Network capture",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "3yqHr",
+          "name": "snPlacement",
+          "fill": "$surface/secondary",
+          "cornerRadius": 6,
+          "padding": [
+            8,
+            12
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "U24WU",
+              "fill": "$foreground/foreground",
+              "content": "Placement",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ftmLD",
+          "name": "snRBACaccess",
+          "fill": "#00000000",
+          "cornerRadius": 6,
+          "padding": [
+            8,
+            12
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "SgDFv",
+              "fill": "$muted",
+              "content": "RBAC & access",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "JAMVM",
+          "name": "snSharelinks",
+          "fill": "#00000000",
+          "cornerRadius": 6,
+          "padding": [
+            8,
+            12
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "chLBY",
+              "fill": "$muted",
+              "content": "Share links",
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "oQF7g",
+      "name": "Form Body",
+      "width": "fill_container",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "dhPff",
+          "name": "Field Tolerations",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "3H2yK",
+              "name": "lbl",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wI8Oi",
+                  "name": "t",
+                  "fill": "$foreground/foreground",
+                  "content": "Tolerations",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "BhVHG",
+                  "name": "h",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pod tolerations for Kubernetes node taints. Array of toleration objects (optional).",
+                  "lineHeight": 1.3333333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Mzfpn",
+              "name": "editor",
+              "clip": true,
+              "width": "fill_container",
+              "height": 136,
+              "fill": "#0D0D0D",
+              "cornerRadius": 6,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "padding": [
+                10,
+                12
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "j5RDK",
+                  "name": "code",
+                  "fill": "#D4D4D4",
+                  "content": "[]",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "1BRdB",
+          "name": "Field Affinity",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ftf3y",
+              "name": "lbl",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Lxqs4",
+                  "name": "t",
+                  "fill": "$foreground/foreground",
+                  "content": "Affinity",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "LKLaD",
+                  "name": "h",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Pod affinity/anti-affinity and node affinity constraints. JSON object (optional).",
+                  "lineHeight": 1.3333333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "3rkJv",
+              "name": "editor",
+              "clip": true,
+              "width": "fill_container",
+              "height": 136,
+              "fill": "#0D0D0D",
+              "cornerRadius": 6,
+              "stroke": "$border/border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "padding": [
+                10,
+                12
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "h93OG",
+                  "name": "code",
+                  "fill": "#D4D4D4",
+                  "content": "{}",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "bEH9R",
+      "name": "Form Footer",
+      "width": "fill_container",
+      "stroke": "$border/border",
+      "strokeWidth": {
+        "top": 1
+      },
+      "strokeAlignment": "inner",
+      "strokeLinejoin": "round",
+      "gap": 12,
+      "padding": [
+        12,
+        24
+      ],
+      "justifyContent": "end",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "09g9m",
+          "type": "ref",
+          "ref": "J09iP",
+          "name": "Btn Discard"
+        },
+        {
+          "id": "gFaVi",
+          "type": "ref",
+          "ref": "z9ShNE",
+          "name": "Btn Save Changes",
+          "descendants": {
+            "nWTJb": {
+              "enabled": false
+            },
+            "IVgQ8/U1xvSo": {
+              "content": "Save changes"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

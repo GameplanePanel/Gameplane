@@ -1,0 +1,553 @@
+{
+  "type": "frame",
+  "id": "nfMMj",
+  "x": 1640,
+  "y": 62632,
+  "name": "Screen/Backups — Restores (Empty)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "7Oj9K",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B": {
+          "fill": "#00000000"
+        },
+        "i8Z1B/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "i8Z1B/Ra9NK": {
+          "fill": "$foreground/foreground"
+        },
+        "sTSGR": {
+          "fill": "#00000000"
+        },
+        "sTSGR/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "sTSGR/Ra9NK": {
+          "fill": "$foreground/foreground"
+        },
+        "NADGL": {
+          "fill": "$accent/soft"
+        },
+        "NADGL/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "NADGL/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        },
+        "lZ6pP": {
+          "fill": "#00000000"
+        },
+        "lZ6pP/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "lZ6pP/Ra9NK": {
+          "fill": "$foreground/foreground"
+        },
+        "dNsbz": {
+          "fill": "#00000000"
+        },
+        "dNsbz/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "dNsbz/Ra9NK": {
+          "fill": "$foreground/foreground"
+        },
+        "uLhzP": {
+          "fill": "#00000000"
+        },
+        "uLhzP/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "uLhzP/Ra9NK": {
+          "fill": "$foreground/foreground"
+        },
+        "zV6Z5": {
+          "fill": "#00000000"
+        },
+        "zV6Z5/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "zV6Z5/Ra9NK": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB": {
+          "fill": "#00000000"
+        },
+        "ya5KB/Sr2Q5": {
+          "fill": "$foreground/foreground"
+        },
+        "ya5KB/Ra9NK": {
+          "fill": "$foreground/foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "KkVwr",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "rXot4",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Backups"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "o22fC",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "children": [
+            {
+              "id": "f4kCR",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Backups"
+                },
+                "VbHwU": {
+                  "content": "Snapshots, schedules, and restores across your authorized clusters."
+                },
+                "TgdLz": {
+                  "type": "frame",
+                  "id": "zLr1J",
+                  "name": "phActions",
+                  "height": 36,
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "ER3vy",
+                      "type": "ref",
+                      "ref": "cb4rt",
+                      "name": "Back Up Now Button",
+                      "descendants": {
+                        "U6q13B": {
+                          "content": "Back up now"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "iVP5b",
+              "type": "ref",
+              "ref": "oIJGu",
+              "name": "tabsBar"
+            },
+            {
+              "id": "4kJXn",
+              "type": "ref",
+              "ref": "wKe4F",
+              "name": "Filter Row",
+              "width": "fill_container",
+              "descendants": {
+                "g9iDB": {
+                  "content": "0 of 0 restores"
+                }
+              }
+            },
+            {
+              "id": "oHwCx",
+              "type": "ref",
+              "ref": "ECbbo",
+              "name": "Restores Table",
+              "width": "fill_container",
+              "children": [
+                {
+                  "id": "0xa3y",
+                  "type": "ref",
+                  "ref": "eafUs",
+                  "name": "Head Row",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "9X8jQ",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC NAME",
+                      "width": "fill_container",
+                      "descendants": {
+                        "SIu74": {
+                          "content": "NAME"
+                        }
+                      }
+                    },
+                    {
+                      "id": "GIwZX",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC BACKUP",
+                      "width": 220,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "BACKUP"
+                        }
+                      }
+                    },
+                    {
+                      "id": "9pA18",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC TARGET",
+                      "width": 160,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "TARGET"
+                        }
+                      }
+                    },
+                    {
+                      "id": "O1Kp2",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC PHASE",
+                      "width": 130,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "PHASE"
+                        }
+                      }
+                    },
+                    {
+                      "id": "3gSpC",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC COMPLETED",
+                      "width": 150,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "COMPLETED"
+                        }
+                      }
+                    },
+                    {
+                      "id": "Vja5L",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC MESSAGE",
+                      "width": 230,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "MESSAGE"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "jeG9M",
+                  "type": "ref",
+                  "ref": "GUHQo",
+                  "name": "Body",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "RvkWk",
+                      "type": "ref",
+                      "ref": "tDY4O",
+                      "name": "Empty Row",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "id": "gV7iA",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "Empty Cell",
+                          "width": "fill_container",
+                          "padding": [
+                            32,
+                            24
+                          ],
+                          "justifyContent": "center",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "No restores have been run.",
+                              "fill": "$muted",
+                              "fontSize": 14,
+                              "textAlign": "center",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "CtQv4",
+                      "type": "ref",
+                      "ref": "tDY4O",
+                      "name": "Row 1",
+                      "width": "fill_container",
+                      "alignItems": "center",
+                      "height": 64,
+                      "children": [
+                        {
+                          "id": "3bZqm",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "restore-mc-survival-4f2a",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fill": "$foreground/foreground"
+                            }
+                          }
+                        },
+                        {
+                          "id": "0QUbq",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 220,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "mc-survival-nightly-0712",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fill": "$foreground/foreground"
+                            }
+                          }
+                        },
+                        {
+                          "id": "XdtjN",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 160,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "mc-survival",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 14,
+                              "fill": "$foreground/foreground"
+                            }
+                          }
+                        },
+                        {
+                          "id": "0iSLk",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c4",
+                          "width": 130,
+                          "height": "fill_container",
+                          "children": [
+                            {
+                              "id": "MZ3eb",
+                              "type": "ref",
+                              "ref": "NUn6y",
+                              "name": "phase",
+                              "descendants": {
+                                "kAxyK": {
+                                  "content": "Succeeded"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "MzSLC",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 150,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "3h ago",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 14,
+                              "fill": "$muted"
+                            }
+                          }
+                        },
+                        {
+                          "id": "U13pP",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 230,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "—",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fill": "$muted"
+                            }
+                          }
+                        }
+                      ],
+                      "enabled": false
+                    },
+                    {
+                      "id": "E8hUw",
+                      "type": "ref",
+                      "ref": "tDY4O",
+                      "name": "Row 2",
+                      "width": "fill_container",
+                      "alignItems": "center",
+                      "height": 64,
+                      "children": [
+                        {
+                          "id": "2rCVr",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "restore-valheim-9b31",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fill": "$foreground/foreground"
+                            }
+                          }
+                        },
+                        {
+                          "id": "Zui8c",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 220,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "valheim-daily-0711",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fill": "$foreground/foreground"
+                            }
+                          }
+                        },
+                        {
+                          "id": "iIQhM",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 160,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "valheim-prod",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 14,
+                              "fill": "$foreground/foreground"
+                            }
+                          }
+                        },
+                        {
+                          "id": "7nfZw",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c4",
+                          "width": 130,
+                          "height": "fill_container",
+                          "children": [
+                            {
+                              "id": "1ES16",
+                              "type": "ref",
+                              "ref": "aRSiy",
+                              "name": "phase",
+                              "descendants": {
+                                "bJYeQ": {
+                                  "content": "Failed"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "7MDuk",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 150,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "1d ago",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 14,
+                              "fill": "$muted"
+                            }
+                          }
+                        },
+                        {
+                          "id": "hZHa3",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "c",
+                          "width": 230,
+                          "height": "fill_container",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "snapshot not found in repository",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 12,
+                              "fill": "$muted"
+                            }
+                          }
+                        }
+                      ],
+                      "enabled": false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": "Empty table state (PR #1025): the message sits in a 32px/24px padded, centred, muted 14px block that wraps and stays within the table viewport while wide headers scroll."
+}

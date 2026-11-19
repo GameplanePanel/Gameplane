@@ -1029,30 +1029,7 @@
                       ],
                       "justifyContent": "end",
                       "alignItems": "center",
-                      "children": [
-                        {
-                          "id": "orAkM",
-                          "type": "ref",
-                          "ref": "tpKRk",
-                          "name": "Btn Save Changes",
-                          "height": 36,
-                          "descendants": {
-                            "q58In": {
-                              "cornerRadius": 6,
-                              "padding": [
-                                0,
-                                16
-                              ]
-                            },
-                            "q58In/Xpn7K": {
-                              "enabled": false
-                            },
-                            "q58In/U6q13B": {
-                              "content": "Save changes"
-                            }
-                          }
-                        }
-                      ]
+                      "children": []
                     }
                   ]
                 }

@@ -1,7 +1,7 @@
 {
   "type": "frame",
   "id": "pnAbF",
-  "x": 1640,
+  "x": 3280,
   "y": 59782,
   "name": "Screen/Backups — Filters open",
   "context": "Implemented at 8e08a60f. Filter fields are drafts; Apply commits, Clear resets drafts, dismissal discards edits. Server choices retain location and namespace.",
@@ -253,14 +253,18 @@
                           "name": "Empty Cell",
                           "width": "fill_container",
                           "padding": [
-                            40,
-                            16
+                            32,
+                            24
                           ],
                           "justifyContent": "center",
                           "descendants": {
                             "HNAOu": {
                               "content": "No backups yet. Use “Back up now” to create the first one.",
-                              "fill": "$muted"
+                              "fill": "$muted",
+                              "fontSize": 14,
+                              "textAlign": "center",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container"
                             }
                           }
                         }
