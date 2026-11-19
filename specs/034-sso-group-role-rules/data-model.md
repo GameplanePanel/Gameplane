@@ -50,7 +50,7 @@ New fields: `roleRules: RoleRule[]` and `defaultRole: string`.
 
 ## User role source (database)
 
-Migration `api/internal/db/migrations/common/020_user_role_source.sql` (portable SQL):
+Migration `api/internal/db/migrations/common/022_user_role_source.sql` (portable SQL):
 
 ```sql
 ALTER TABLE users ADD COLUMN role_source TEXT NOT NULL DEFAULT 'manual';

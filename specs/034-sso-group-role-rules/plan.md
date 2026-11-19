@@ -22,7 +22,7 @@ Pencil first), docs and E2E. No CRD, operator or agent change. Decisions are in
 
 **Primary Dependencies**: `chi`, `coreos/go-oidc` and `golang.org/x/oauth2` (existing sign-in), `database/sql` with modernc SQLite and pgx; TanStack Query and HeroUI v3 on the dashboard. No new dependency.
 
-**Storage**: the API database (SQLite default, PostgreSQL experimental) through the portable `api/internal/db/migrations/common/` set; next file `020_user_role_source.sql`. Provider config stays in the existing `auth` config row (JSON).
+**Storage**: the API database (SQLite default, PostgreSQL experimental) through the portable `api/internal/db/migrations/common/` set; next file `022_user_role_source.sql`. Provider config stays in the existing `auth` config row (JSON).
 
 **Testing**: Go unit tests (`api/internal/auth`), envtest handler suites (`api/internal/handlers/*_envtest_test.go`), Vitest + MSW (`web/`), Kind E2E with the in-cluster fake IdP (`test/e2e/internal/fakeoidc`). All run in CI only (Principle VI).
 
@@ -80,7 +80,7 @@ api/
 │   └── oidc.go                          # decideRole, sign-in flow, role source, audit
 ├── internal/db/
 │   ├── rbac.go                          # role-source helpers next to RoleExists
-│   └── migrations/common/020_user_role_source.sql
+│   └── migrations/common/022_user_role_source.sql
 ├── internal/handlers/
 │   ├── config.go                        # auth validator with store access, roleRules, override
 │   ├── roles.go                         # in_use_by_sso delete guard

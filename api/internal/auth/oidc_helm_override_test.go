@@ -223,12 +223,12 @@ func TestRegistry_HelmPolicyOverrideReadsAllForms(t *testing.T) {
 	if *got.DefaultRole != "deny" {
 		t.Fatalf("defaultRole = %q, want deny", *got.DefaultRole)
 	}
-	if reg.HelmRoleOverrides(context.Background()) != nil {
-		t.Fatal("HelmRoleOverrides must be nil without roleMappings")
+	if m, err := reg.HelmRoleOverrides(context.Background()); err != nil || m != nil {
+		t.Fatalf("HelmRoleOverrides = %+v, %v; want nil without roleMappings", m, err)
 	}
 
 	seedConfigRow(t, s, "auth", `{"providers":[],"helmOverride":{"roleMappings":{"admin":["x"]}}}`)
-	if m := reg.HelmRoleOverrides(context.Background()); m == nil || !reflect.DeepEqual(m.Admin, []string{"x"}) {
+	if m, err := reg.HelmRoleOverrides(context.Background()); err != nil || m == nil || !reflect.DeepEqual(m.Admin, []string{"x"}) {
 		t.Fatalf("HelmRoleOverrides = %+v, want admin [x]", m)
 	}
 }

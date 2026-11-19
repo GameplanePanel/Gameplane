@@ -320,7 +320,7 @@ func TestConfigRoleRules_OldFormProviderLoadsUnchanged(t *testing.T) {
 	if corp.RoleMappings == nil || !reflect.DeepEqual(corp.RoleMappings.Admin, []string{"corp-admins"}) || corp.RoleRules != nil {
 		t.Fatalf("corp loaded as %+v, want the old roleMappings and no roleRules", corp)
 	}
-	if m := reg.HelmRoleOverrides(t.Context()); m == nil || !reflect.DeepEqual(m.Operator, []string{"ops"}) {
+	if m, err := reg.HelmRoleOverrides(t.Context()); err != nil || m == nil || !reflect.DeepEqual(m.Operator, []string{"ops"}) {
 		t.Fatalf("old helmOverride.roleMappings = %+v, want operator [ops]", m)
 	}
 }

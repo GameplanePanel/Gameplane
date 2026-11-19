@@ -7,7 +7,7 @@ import (
 )
 
 // migrateBefore applies, in order, every migration whose version sorts
-// before stop (e.g. "020") and leaves the rest pending, so a test can seed
+// before stop (e.g. "022") and leaves the rest pending, so a test can seed
 // rows the way an older release stored them and then run Migrate.
 func migrateBefore(t *testing.T, s *Store, stop string) {
 	t.Helper()
@@ -35,14 +35,14 @@ func migrateBefore(t *testing.T, s *Store, stop string) {
 	}
 }
 
-// checkRoleSourceMigration seeds users as a pre-020 database stores them,
-// runs migration 020 and checks OD-4: users with an oidc_links row become
+// checkRoleSourceMigration seeds users as a pre-022 database stores them,
+// runs migration 022 and checks OD-4: users with an oidc_links row become
 // sso, every other user manual, and no role changes. Users created after
 // the migration default to manual.
 func checkRoleSourceMigration(t *testing.T, s *Store) {
 	t.Helper()
 	ctx := t.Context()
-	migrateBefore(t, s, "020")
+	migrateBefore(t, s, "022")
 
 	insert := func(username, role string) int64 {
 		t.Helper()
@@ -95,7 +95,7 @@ func checkRoleSourceMigration(t *testing.T, s *Store) {
 	}
 }
 
-func TestMigration020_RoleSource_SQLite(t *testing.T) {
+func TestMigration022_RoleSource_SQLite(t *testing.T) {
 	s, err := Open(t.Context(), "sqlite", ":memory:")
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
