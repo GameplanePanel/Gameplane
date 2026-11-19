@@ -362,8 +362,10 @@ input:-webkit-autofill:focus {
   border-radius: 12px;
 }
 
+/* Checkbox (v6WNtR): a 16px rounded square at $radius/md, never a circle. */
 .checkbox__control {
   border: 1px solid var(--field-border);
+  border-radius: 6px;
 }
 
 .chip:not(.rounded-full) {
