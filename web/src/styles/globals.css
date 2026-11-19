@@ -539,6 +539,13 @@ input:-webkit-autofill:focus {
 .tabs__list:where(:not([data-orientation="vertical"])) .tabs__tab[data-selected="true"] {
   background-color: var(--segment);
   color: var(--segment-foreground);
+  border-radius: 999px; /* Tab/Active (CEWo3): $radius/3xl on a 32px tab = pill */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); /* CEWo3 effect */
+}
+
+/* Users & RBAC section tabs (Dpb9f) keep the 6px selected radius. */
+.users-rbac-tabs .tabs__tab[data-selected="true"] {
+  border-radius: 6px;
 }
 
 /* Settings sub-nav (EV8mp): items sit straight on the nav panel, which owns
@@ -546,6 +553,7 @@ input:-webkit-autofill:focus {
 .tabs__list[data-orientation="vertical"] {
   background-color: transparent;
   padding: 0;
+  width: 100%; /* the shared .tabs__list fit-content width left the items off-centre in the 224px panel */
 }
 
 .tabs__list[data-orientation="vertical"] .tabs__tab[data-selected="true"] {

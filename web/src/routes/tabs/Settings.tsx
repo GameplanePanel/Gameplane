@@ -281,7 +281,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   const readOnlyConfig = section === "config" && !access?.canWrite;
 
   return (
-    <div className="flex h-full min-h-0 flex-col md:flex-row">
+    <div className="flex h-full min-h-0 flex-col md:flex-row md:p-6">
       <nav className="min-w-0 shrink-0 overflow-x-auto border-b border-border bg-surface-secondary p-2 md:w-56 md:border-b-0 md:border-r">
         <Tabs
           selectedKey={section}
