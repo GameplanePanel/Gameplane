@@ -1937,3 +1937,16 @@ export function buildScreenshotHandlers() {
     }),
   ];
 }
+
+// Spec 034 (T025): /roles with a custom role next to the built-ins, for the
+// role rule editor tests. Opt in with server.use(rolesWithCustomRoleHandler).
+export const ROLES_WITH_CUSTOM_ROLE_FIXTURE = [
+  { name: "admin", description: "Full access to all resources, including users, roles, and global config.", builtin: true, permissions: ["*"] },
+  { name: "operator", description: "Manage game servers, backups, templates, and schedules.", builtin: true, permissions: ["servers:read", "servers:write"] },
+  { name: "viewer", description: "Read-only access across the control panel.", builtin: true, permissions: ["servers:read"] },
+  { name: "login-only", description: "Can sign in and see nothing else.", builtin: false, permissions: [] },
+];
+
+export const rolesWithCustomRoleHandler = http.get("/roles", () =>
+  HttpResponse.json(ROLES_WITH_CUSTOM_ROLE_FIXTURE),
+);
