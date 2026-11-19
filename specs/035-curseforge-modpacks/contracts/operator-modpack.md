@@ -2,11 +2,13 @@
 
 Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
 
-1. **Env rendering** (FR-003, FR-004): from the merged env (template < version < config <
-   `spec.env`), remove every env name that appears in any provider's `modpacks` block
-   (`refEnv`, `versionEnv`, `apiKeyFileEnv`, each `env[].name`). Then, if
-   `status.modpack.applied` is set, append that provider's fixed `env`, `refEnv=project`
-   and, when `version` is set, `versionEnv=version`.
+1. **Env rendering** (FR-003, FR-004): from `spec.env` only (not template, version or config
+   env), remove every env name declared in any provider's `modpacks` block (`refEnv`,
+   `versionEnv`, `apiKeyEnv`, each `env[].name`). Then, if `status.modpack.applied` is set,
+   append that provider's fixed `env`, `refEnv=project` and, when `version` is set,
+   `versionEnv=version` after `spec.env`, so the pack's values win on duplicate names
+   (kubelet last-wins). When no pack is applied, the version's own env (for example `TYPE`)
+   stays as rendered.
 2. **Legacy and adopted packs** (R6): a server is legacy when `spec.env` holds a value for
    any provider's `refEnv` and `spec.modpack` is absent (not yet swept), or adopted when
    annotation `gameplane.local/modpack-adopted` is set. For both, while the pod is running,
