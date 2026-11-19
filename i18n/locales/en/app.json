@@ -1039,6 +1039,26 @@
     "defaultMessage": "token not found",
     "description": "API error when a personal MCP token to revoke does not exist, is already revoked, or belongs to another user (mcp_tokens.go:writeMCPTokenErr)."
   },
+  "server.modpack.backup_unavailable": {
+    "defaultMessage": "no backup destination is configured for this server",
+    "description": "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) when backupFirst is requested but the server has no backup destination."
+  },
+  "server.modpack.change_in_progress": {
+    "defaultMessage": "a modpack change is already in progress; wait for it to finish",
+    "description": "API error from the modpack API (registry.go:installModpack, registry_modpack.go:removeModpack) while the previous modpack change is still pending, backing up or applying."
+  },
+  "server.modpack.key_required": {
+    "defaultMessage": "this modpack registry needs the CurseForge key to be shared with game servers; ask an administrator to turn on key sharing",
+    "description": "API error from the modpack API (registry.go:installModpack) when the server's game image has no built-in CurseForge key and the administrator has not enabled key sharing."
+  },
+  "server.modpack.not_found": {
+    "defaultMessage": "this server has no modpack",
+    "description": "API error from the modpack API (registry_modpack.go:removeModpack) when there is no modpack to remove."
+  },
+  "server.modpack.version_required": {
+    "defaultMessage": "version is required",
+    "description": "API error from the modpack API (registry.go:installModpack) when a modpack is installed without choosing a version."
+  },
   "server.namespace_forbidden": {
     "defaultMessage": "namespace not permitted",
     "description": "API error when the user's role does not cover the requested namespace."
@@ -1066,6 +1086,10 @@
   "server.registry.api_key_required": {
     "defaultMessage": "apiKey is required",
     "description": "API error from the mod-registry credentials API (registry_secret.go:put)."
+  },
+  "server.registry.share_needs_managed_key": {
+    "defaultMessage": "the CurseForge key must be saved in the panel before it can be shared with game servers",
+    "description": "API error from the mod-registry credentials API (registry_secret.go:putShare) when key sharing is turned on but the key comes only from a startup flag, not from a saved Secret."
   },
   "server.remote_cluster_not_implemented": {
     "defaultMessage": "not implemented: no cross-cluster agent yet; this route only serves the home cluster",
