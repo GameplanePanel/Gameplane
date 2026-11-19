@@ -623,3 +623,172 @@ func TestGameServer_ModpackKeyShare_ToggleStoppedAppliesImmediately(t *testing.T
 	kickGameServer(t, ns, "stopkey")
 	eventually(t, keyShareStateIs(t, ns, "stopkey", false))
 }
+
+// forceModpackPhase sets status.modpack.phase directly, for phases the
+// envtest cannot reach through the Backup controller in this suite.
+func forceModpackPhase(t *testing.T, ns, name string, phase gameplanev1alpha1.ModpackPhase) {
+	t.Helper()
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		gs := getGameServer(t, ns, name)
+		if gs.Status.Modpack == nil {
+			return fmt.Errorf("status.modpack is nil on %s", name)
+		}
+		gs.Status.Modpack.Phase = phase
+		return k8sClient.Status().Update(context.Background(), gs)
+	}); err != nil {
+		t.Fatalf("force phase %s: %v", phase, err)
+	}
+}
+
+// TestGameServer_ModpackKeyShare_BackupFailedHoldsToggle covers OD-10 A: a
+// share-off toggle on a server whose pack change failed its backup (no pod
+// roll is under way) stays held while players are online.
+func TestGameServer_ModpackKeyShare_BackupFailedHoldsToggle(t *testing.T) {
+	ns := newNamespace(t)
+	ctrlNS := newNamespace(t)
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+
+	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
+		t.Fatalf("create managed key Secret: %v", err)
+	}
+	tmpl := buildModpackTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "failheld", tmpl.Name)
+	gs.Spec.Version = "1.21.4-forge"
+	gs.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "6512345")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+	eventually(t, keyShareStateIs(t, ns, "failheld", true))
+	modpackReadyIs(t, ns, "failheld", "True")
+	setAgentPlayers(t, ns, "failheld", int32Ptr(3))
+	before := ssOf(t, ns, "failheld").Generation
+	podBefore := podTemplateJSON(t, ns, "failheld")
+
+	forceModpackPhase(t, ns, "failheld", gameplanev1alpha1.ModpackPhaseBackupFailed)
+	waitModpackPhase(t, ns, "failheld", gameplanev1alpha1.ModpackPhaseBackupFailed)
+
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { delete(sec.Annotations, curseforgeShareAnnotation) })
+	kickGameServer(t, ns, "failheld")
+	consistently(t, 2*time.Second, func() (bool, string) {
+		if ok, why := keyShareStateIs(t, ns, "failheld", true)(); !ok {
+			return false, why
+		}
+		if got := podTemplateJSON(t, ns, "failheld"); got != podBefore {
+			return false, "pod template changed while BackupFailed holds the toggle"
+		}
+		if g := ssOf(t, ns, "failheld").Generation; g != before {
+			return false, fmt.Sprintf("statefulset generation %d -> %d while held", before, g)
+		}
+		return true, ""
+	})
+}
+
+// TestGameServer_ModpackKeyShare_RotationWithPlayersOnline covers rule 5
+// rotation under load: a rotated managed key reaches the copy Secret at once
+// with 3 players online, and the StatefulSet generation does not move.
+func TestGameServer_ModpackKeyShare_RotationWithPlayersOnline(t *testing.T) {
+	ns := newNamespace(t)
+	ctrlNS := newNamespace(t)
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+
+	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
+		t.Fatalf("create managed key Secret: %v", err)
+	}
+	tmpl := buildModpackTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "rotateload", tmpl.Name)
+	gs.Spec.Version = "1.21.4-forge"
+	gs.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "6512345")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+	eventually(t, keyShareStateIs(t, ns, "rotateload", true))
+	modpackReadyIs(t, ns, "rotateload", "True")
+	setAgentPlayers(t, ns, "rotateload", int32Ptr(3))
+	before := ssOf(t, ns, "rotateload").Generation
+	podBefore := podTemplateJSON(t, ns, "rotateload")
+
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { sec.Data["apiKey"] = []byte("key-two") })
+	kickGameServer(t, ns, "rotateload")
+	eventually(t, func() (bool, string) {
+		sec, found := keyCopyOf(t, ns, "rotateload")
+		if !found {
+			return false, "key copy Secret missing after rotation"
+		}
+		if got := string(sec.Data["apiKey"]); got != "key-two" {
+			return false, fmt.Sprintf("copy apiKey=%q, want key-two", got)
+		}
+		return true, ""
+	})
+	consistently(t, 2*time.Second, func() (bool, string) {
+		if g := ssOf(t, ns, "rotateload").Generation; g != before {
+			return false, fmt.Sprintf("statefulset generation %d -> %d on rotation with players online", before, g)
+		}
+		if got := podTemplateJSON(t, ns, "rotateload"); got != podBefore {
+			return false, "pod template changed on rotation with players online"
+		}
+		return true, ""
+	})
+}
+
+// TestGameServer_ModpackKeyShare_OffOnThenZeroPlayers covers OD-10 A for a
+// toggle that is held, then reverted: share off with 3 players is held, share
+// on again matches the applied state, and reaching 0 players causes no rollout
+// and leaves the env in place.
+func TestGameServer_ModpackKeyShare_OffOnThenZeroPlayers(t *testing.T) {
+	ns := newNamespace(t)
+	ctrlNS := newNamespace(t)
+	startMgr(t, ns, withGameServerReconcilerKeyShare(t, ns, ctrlNS))
+
+	if err := k8sClient.Create(context.Background(), buildManagedCFKey(ctrlNS, "key-one", true)); err != nil {
+		t.Fatalf("create managed key Secret: %v", err)
+	}
+	tmpl := buildModpackTemplate(uniqueName("minecraft"))
+	if err := k8sClient.Create(context.Background(), tmpl); err != nil {
+		t.Fatalf("create template: %v", err)
+	}
+	deleteCleanup(t, tmpl)
+
+	gs := buildGameServer(ns, "offon", tmpl.Name)
+	gs.Spec.Version = "1.21.4-forge"
+	gs.Spec.Modpack = modpackSpecOf("curseforge", "all-the-mods-10", "6512345")
+	if err := k8sClient.Create(context.Background(), gs); err != nil {
+		t.Fatalf("create gameserver: %v", err)
+	}
+	eventually(t, keyShareStateIs(t, ns, "offon", true))
+	modpackReadyIs(t, ns, "offon", "True")
+	setAgentPlayers(t, ns, "offon", int32Ptr(3))
+	before := ssOf(t, ns, "offon").Generation
+
+	// Share off with 3 players: held.
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { delete(sec.Annotations, curseforgeShareAnnotation) })
+	kickGameServer(t, ns, "offon")
+	consistently(t, 2*time.Second, keyShareStateIs(t, ns, "offon", true))
+
+	// Share on again: the desired state equals the applied state, so nothing flips.
+	mutateManagedCFKey(t, ctrlNS, func(sec *corev1.Secret) { sec.Annotations[curseforgeShareAnnotation] = "true" })
+	kickGameServer(t, ns, "offon")
+	consistently(t, 2*time.Second, keyShareStateIs(t, ns, "offon", true))
+
+	// Reaching 0 players must not roll the pod for a toggle that was reverted.
+	setAgentPlayers(t, ns, "offon", int32Ptr(0))
+	kickGameServer(t, ns, "offon")
+	consistently(t, 2*time.Second, func() (bool, string) {
+		if ok, why := keyShareStateIs(t, ns, "offon", true)(); !ok {
+			return false, why
+		}
+		if g := ssOf(t, ns, "offon").Generation; g != before {
+			return false, fmt.Sprintf("statefulset generation %d -> %d after a reverted toggle", before, g)
+		}
+		return true, ""
+	})
+}
