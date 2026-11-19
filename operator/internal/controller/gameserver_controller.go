@@ -384,6 +384,16 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, r.setPhase(ctx, &gs, err.Error())
 	}
 
+	// Spec 035: start a modpack change before any pod template is built, so
+	// this pass already renders status.modpack.applied.
+	if err := r.reconcileModpackChange(ctx, &gs); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack change")
+		return ctrl.Result{}, err
+	}
+
 	if err := r.reconcilePVC(ctx, &gs, &tmpl); err != nil {
 		logger.Error(err, "reconcile PVC")
 		return ctrl.Result{}, err
@@ -548,6 +558,13 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			return requeueOnConflict(ctrl.Result{}, err)
 		}
 		logger.Error(err, "reconcile StatefulSet")
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileModpackRollout(ctx, &gs); err != nil {
+		if apierrors.IsConflict(err) {
+			return requeueOnConflict(ctrl.Result{}, err)
+		}
+		logger.Error(err, "reconcile modpack rollout")
 		return ctrl.Result{}, err
 	}
 	var recoveryRetry time.Duration
@@ -2574,7 +2591,11 @@ func buildGameContainer(
 	if e := modIDListEnv(tmpl, gs, env); e != nil {
 		env = append(env, *e)
 	}
-	env = append(env, gs.Spec.Env...)
+	// Spec 035: for a server with a managed modpack spec.env is stripped of
+	// every modpack-declared env name and the applied pack's env follows it
+	// (legacy servers are returned unchanged); see gameserver_modpack.go.
+	env = append(env, modpackSpecEnv(gs, tmpl)...)
+	env = append(env, modpackPackEnv(gs, tmpl)...)
 	// The operator-managed RCON password wins, so the game and the agent
 	// sidecar always agree on it.
 	if e := rconGameEnv(gs, tmpl); e != nil {
