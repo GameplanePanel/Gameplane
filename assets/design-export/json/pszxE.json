@@ -1,0 +1,383 @@
+{
+  "type": "frame",
+  "id": "pszxE",
+  "name": "Users & RBAC — Return to SSO control dialogs",
+  "theme": {
+    "semantic": "dark"
+  },
+  "fill": "$background/background",
+  "gap": 40,
+  "padding": 40,
+  "alignItems": "start",
+  "children": [
+    {
+      "id": "6Oxvk",
+      "type": "ref",
+      "ref": "WwNlX",
+      "name": "Confirm/Return to SSO control",
+      "descendants": {
+        "QARhG": {
+          "content": "Return bob to SSO control?"
+        },
+        "WKy74": {
+          "content": "Their role will follow your SSO rules again from their next sign-in. Until then they keep operator."
+        },
+        "Wa0YZ": {
+          "enabled": false
+        },
+        "aEe0m": {
+          "fill": "$accent/accent"
+        },
+        "tvH6d": {
+          "content": "Return to SSO control",
+          "fill": "$accent/foreground"
+        }
+      }
+    },
+    {
+      "id": "ycrYB",
+      "type": "ref",
+      "ref": "x3beP",
+      "name": "Gameplane/Dialog/Edit user — SSO user (Set by hand)",
+      "width": 480,
+      "context": "Spec 034: SSO user whose role was set by hand. The helper explains that a role change here marks the role as set by hand; Return to SSO control opens the confirm dialog.",
+      "descendants": {
+        "E7Whx": {
+          "content": "Edit user"
+        },
+        "qzcst": {
+          "enabled": true,
+          "content": "bob"
+        },
+        "Nht52": {
+          "type": "frame",
+          "id": "lvhsk",
+          "name": "mBody",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "jEuc2",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "6n6Xx",
+                  "fill": "$foreground/foreground",
+                  "content": "Display name",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "id": "0aeR4",
+                  "type": "ref",
+                  "ref": "D0cDM",
+                  "name": "Input",
+                  "width": "fill_container",
+                  "descendants": {
+                    "PJERm": {
+                      "content": "Server Operator",
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w4STz",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "EoTwx",
+                  "fill": "$foreground/foreground",
+                  "content": "Email",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "id": "S1j5p",
+                  "type": "ref",
+                  "ref": "D0cDM",
+                  "name": "Input",
+                  "width": "fill_container",
+                  "descendants": {
+                    "PJERm": {
+                      "content": "operator@gameplane-demo.local",
+                      "fill": "$foreground/foreground"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tiG4p",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xp7wz",
+                  "fill": "$foreground/foreground",
+                  "content": "Primary role (cluster-wide)",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "id": "I3nM8",
+                  "type": "ref",
+                  "ref": "AT7ya",
+                  "name": "Select",
+                  "width": "fill_container",
+                  "descendants": {
+                    "cFsFk": {
+                      "content": "operator",
+                      "fill": "$field/foreground"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "IjLql",
+                  "name": "roleSourceRow",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pNYCT",
+                      "fill": "$muted",
+                      "content": "Role source",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "3QsTT",
+                      "type": "ref",
+                      "ref": "R65Xyx",
+                      "name": "roleSourceBadge",
+                      "cornerRadius": 9999,
+                      "descendants": {
+                        "fz2Rp": {
+                          "icon": "hand"
+                        },
+                        "QHjWr": {
+                          "content": "Set by hand",
+                          "fontFamily": "$typography/font-mono"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "J5smb",
+                  "name": "roleSourceHelper",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Changing the role here marks it as set by hand. Sign-in will no longer change it.",
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "gdMvX",
+                  "type": "ref",
+                  "ref": "d5N3W3",
+                  "name": "btnReturnToSSO",
+                  "descendants": {
+                    "X3iEI": {
+                      "icon": "rotate-ccw"
+                    },
+                    "i3zB62/zMNkR": {
+                      "content": "Return to SSO control"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "4KipV",
+              "name": "Grants Divider",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "$border/border"
+            },
+            {
+              "type": "frame",
+              "id": "RJrN3",
+              "name": "Namespace Grants",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yCcd6",
+                  "name": "Section Label",
+                  "fill": "$muted",
+                  "content": "CLUSTER & NAMESPACE GRANTS",
+                  "lineHeight": 1.2727272727,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.55
+                },
+                {
+                  "type": "text",
+                  "id": "xdpby",
+                  "name": "Grant scope explanation",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "The primary role above manages local access. Additional grants apply only to their named cluster and namespace.",
+                  "lineHeight": 1.3333333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "wFeao",
+                  "name": "Cluster and role",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "id": "0Ww0o",
+                      "type": "ref",
+                      "ref": "AT7ya",
+                      "name": "Grant cluster",
+                      "width": "fill_container",
+                      "descendants": {
+                        "cFsFk": {
+                          "content": "Local cluster"
+                        }
+                      }
+                    },
+                    {
+                      "id": "Prn2n",
+                      "type": "ref",
+                      "ref": "AT7ya",
+                      "name": "Grant Role Select",
+                      "width": "fill_container",
+                      "height": 36,
+                      "descendants": {
+                        "cFsFk": {
+                          "content": "operator"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "1FJBX",
+                  "name": "Add Grant Row",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "u6kBG",
+                      "type": "ref",
+                      "ref": "D0cDM",
+                      "name": "Grant Namespace Input",
+                      "width": "fill_container",
+                      "height": 32,
+                      "descendants": {
+                        "PJERm": {
+                          "content": "namespace"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QKnOB",
+                      "name": "All namespaces button",
+                      "opacity": 0.5,
+                      "height": 32,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rHn3t",
+                          "name": "All namespaces label",
+                          "fill": "$foreground/foreground",
+                          "content": "All namespaces",
+                          "fontFamily": "$typography/font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "RnIxz",
+                      "type": "ref",
+                      "ref": "J09iP",
+                      "name": "Add Grant Button",
+                      "opacity": 0.5,
+                      "descendants": {
+                        "eWkIT/WtPjS": {
+                          "enabled": false
+                        },
+                        "eWkIT/r4VbAi": {
+                          "content": "Add"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "UQbVT",
+                  "name": "Remote inventory grant guidance",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "For remote node inventory, create a role in the Roles tab with “View nodes, version, and storage”, then grant it to all namespaces on that cluster.",
+                  "lineHeight": 1.3333333333,
+                  "fontFamily": "$typography/font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        "TZ7Ef": {
+          "content": "Save changes"
+        }
+      }
+    }
+  ],
+  "x": 4640,
+  "y": 66532
+}
