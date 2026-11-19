@@ -23,9 +23,13 @@ Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
    the GameServer and named `<gs>-modpack-<generation>`.
 4. **Mods wipe** (R5): on a removal only (OD-7 B), add the one-shot
    init step for the active loader's mods mount, guarded by the marker file.
-5. **Key sharing** (R2): watch the managed key Secret (control namespace); maintain
-   `<gs>-curseforge-key` and the read-only mount + `apiKeyFileEnv` only while sharing is on
-   and the applied provider is curseforge. Not part of the config hash.
+5. **Key sharing** (R2, OD-9 A): watch the managed key Secret `gameplane-modreg-curseforge`
+   (control namespace); maintain the server-owned `<gs>-curseforge-key` (key `apiKey`) only while
+   sharing is on and the applied provider is curseforge. Set the game container env named by
+   the module's `apiKeyEnv` (`CF_API_KEY` for minecraft-java) via `valueFrom.secretKeyRef` to
+   that Secret. No volume or mount. The key value is never in the config hash (only the
+   secretKeyRef is); a rotated key applies at the next container start. `status.modpack.keyShared`
+   reflects whether the env is set.
 6. **Conditions**: `ModpackReady` True when `phase=Applied`; False with reason
    `BackingUp|Applying|BackupFailed`.
 7. **RBAC**: get/list/watch on the one managed key Secret name in the control namespace

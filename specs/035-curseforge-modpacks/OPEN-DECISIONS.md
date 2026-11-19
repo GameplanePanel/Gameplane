@@ -1,6 +1,6 @@
 # Open decisions: spec 035 CurseForge modpacks
 
-OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. OD-9 was raised by T001 on 2026-11-19 and is open.
+OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. OD-9 was raised by T001 and answered by valgul on 2026-11-19.
 
 ## OD-1: How do game servers get a CurseForge key? (SETTLED: C, valgul 2026-11-11)
 
@@ -94,7 +94,11 @@ a newer pack version came out in that window).
   (Recommended: closes the window within hours without kicking players.)
 - C. Restart every adopted server once right after the upgrade.
 
-## OD-9: How does the shared CurseForge key reach java8 servers? (OPEN, raised by T001 2026-11-19)
+## OD-9: How does the shared CurseForge key reach java8 servers? (SETTLED: A, valgul 2026-11-19)
+
+**Ruling: option A** (valgul, 2026-11-19). Where an option below says "Recommended", that was the recommendation before the ruling, not the ruling.
+
+Raised by T001 on 2026-11-19.
 
 T001 found that the `java8` / `java8-multiarch` images pin mc-image-helper `1.51.7-java8`, which has
 `--api-key` (`CF_API_KEY`) but no `--api-key-file`; `CF_API_KEY_FILE` arrived in a later helper.

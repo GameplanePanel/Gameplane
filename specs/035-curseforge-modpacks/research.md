@@ -30,11 +30,13 @@ implementation task re-checks every itzg fact below against the image digests th
   (`--slug`, `--file-id`, `--downloads-repo`, `--missing-mods-filename` default
   `MODS_NEED_DOWNLOAD.txt`, `--api-key-file` = `CF_API_KEY_FILE`). The `java8` build matrix pins
   mc-image-helper `1.51.7-java8`, which has `--api-key` (`CF_API_KEY`) but **no** `--api-key-file`.
-  The file mount below is therefore not read on the images that need it: see OD-9.
+  A file mount would therefore not be read on the images that need the key. OD-9 A (valgul,
+  2026-11-19) replaces the file mount with an env var: see decision 3.
 
 - **Facts**: itzg Java 17+ tags include a CurseForge key in mc-image-helper; `java8`,
-  `java8-multiarch`, `java11`, `java16` do not (itzg `docs/versions/java.md`). The image reads
-  `CF_API_KEY_FILE`. The module uses `java8-multiarch` for Minecraft ≤1.16.5.
+  `java8-multiarch`, `java11`, `java16` do not (itzg `docs/versions/java.md`). Newer helpers read
+  `CF_API_KEY_FILE`; the pinned `java8` helper reads `CF_API_KEY`. The module uses
+  `java8-multiarch` for Minecraft ≤1.16.5.
 - **Decision**:
   1. Default: no key in the pod; the image's built-in key is used.
   2. Admin opt-in "Share the CurseForge key with game servers" is stored as an annotation on
@@ -42,12 +44,15 @@ implementation task re-checks every itzg fact below against the image digests th
      (`gameplane.local/share-with-game-servers: "true"`). The API sets/clears it from the
      admin registry settings; it is never readable or writable by server-scoped roles.
   3. The operator watches that Secret. For each GameServer whose active pack is CurseForge,
-     while sharing is on, it reconciles a server-owned Secret `<gs>-curseforge-key` (key
-     `apiKey`), mounts it read-only at `/run/gameplane/curseforge/api-key` in the game
-     container only (not the agent, not init containers), and sets `CF_API_KEY_FILE` to that
-     path. Sharing off or admin key deleted: the operator deletes the copy and drops the mount.
-  4. The key copy is NOT part of the config hash: kubelet refreshes mounted Secret files in
-     place and the image reads the key only at boot, so a rotation never restarts servers.
+     while sharing is on, it keeps a server-owned Secret `<gs>-curseforge-key` (key `apiKey`)
+     copied from the managed Secret `gameplane-modreg-curseforge`, and sets the game container
+     env named by the module's `providers.curseforge.apiKeyEnv` (`CF_API_KEY` for
+     minecraft-java) via `valueFrom.secretKeyRef` to that Secret. The env is set on the game
+     container only (not the agent, not init containers). Sharing off or admin key deleted: the
+     operator deletes the copy and drops the env.
+  4. The key value is NOT part of the config hash: the hash covers only the secretKeyRef
+     (Secret name and key), never the value. A rotated key therefore does not restart servers;
+     it applies at the next container start, which is when the image reads it today.
   5. The module marks images without a built-in key (`needsKeyImageTags: [java8-multiarch,
      java8]`). While sharing is off, the API hides CurseForge in the Modpacks registry switch
      for servers whose selected version uses such an image, and refuses install with 409.
@@ -56,7 +61,8 @@ implementation task re-checks every itzg fact below against the image digests th
      reason in that case.
 - **Rationale**: the operator stays the only writer of pod specs (core rule 10) and the copy
   is a server-owned Secret, so `validateServerEnvSources`/the ownership rule holds unchanged.
-  File mount instead of env keeps the key out of `kubectl describe pod` and the pod spec.
+  The env `valueFrom` keeps the key value out of the pod spec and `kubectl describe pod`
+  (only the Secret name shows) and works on every image tag, including the pinned `java8` helper.
 - **Alternatives**: env `valueFrom` the control-namespace Secret (cross-namespace refs are
   impossible and the ownership rule forbids it); API writes the copy (bypasses the
   operator); a key-injecting HTTP proxy (mc-image-helper has `--api-base-url`, but running a
