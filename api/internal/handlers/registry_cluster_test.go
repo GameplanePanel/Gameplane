@@ -105,8 +105,12 @@ func TestRegistryRemoteUsesSelectedTemplateAndWritesOnlySelectedServer(t *testin
 			router := mountClusterModRouter(modClusterClients(home, remote), set,
 				modRouteUser("remote", "servers:read", "servers:write"), nil)
 			response := do(t, router, route.method, route.path+"?cluster=remote", route.body)
-			if response.Code != http.StatusOK {
-				t.Fatalf("status = %d: %s", response.Code, response.Body)
+			wantStatus := http.StatusOK
+			if route.path == "/servers/alpha/modpack" && route.method == http.MethodPost {
+				wantStatus = http.StatusAccepted
+			}
+			if response.Code != wantStatus {
+				t.Fatalf("status = %d, want %d: %s", response.Code, wantStatus, response.Body)
 			}
 			if n := kubeClientCalls(t, home); n != 0 {
 				t.Fatalf("home client saw %d calls", n)
@@ -138,9 +142,11 @@ func TestRegistryRemoteUsesSelectedTemplateAndWritesOnlySelectedServer(t *testin
 					t.Fatal(err)
 				}
 				env, _, _ := unstructured.NestedSlice(gs.Object, "spec", "env")
-				want := []any{map[string]any{"name": "KEEP", "value": "remote"}, map[string]any{"name": "remote_PACK", "value": "pack"}}
-				if !reflect.DeepEqual(env, want) || gs.GetUID() != "remote-uid" || gs.GetResourceVersion() != "17" {
-					t.Fatalf("updated wrong server or fields: metadata=%v env=%v", gs.Object["metadata"], env)
+				wantEnv := []any{map[string]any{"name": "KEEP", "value": "remote"}}
+				mp, _, _ := unstructured.NestedMap(gs.Object, "spec", "modpack")
+				if !reflect.DeepEqual(env, wantEnv) || mp["provider"] != "modrinth" || mp["project"] != "pack" ||
+					gs.GetUID() != "remote-uid" || gs.GetResourceVersion() != "17" {
+					t.Fatalf("updated wrong server or fields: metadata=%v env=%v modpack=%v", gs.Object["metadata"], env, mp)
 				}
 			}
 		})
