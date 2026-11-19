@@ -228,8 +228,9 @@ the existing operator override for installations with a dedicated namespace. */ 
 {{- define "gameplane.operatorSecretNamespaces" -}}
 {{- $rbac := include "gameplane.nativeRBAC" . | fromJson -}}
 {{- $namespaces := include "gameplane.operatorGameNamespaces" . | fromJsonArray -}}
-{{- /* The control-plane namespace always holds the managed mod-registry key Secret (spec 035 key sharing). */ -}}
+{{- if $rbac.remoteClusters -}}
 {{- $namespaces = append $namespaces (include "gameplane.operatorClusterCredentialsNamespace" .) -}}
+{{- end -}}
 {{- range list (.Values.operator.agentCASecretNamespace | default .Release.Namespace) (.Values.operator.moduleNamespace | default .Release.Namespace) -}}
 {{- $namespaces = append $namespaces (include "gameplane.namespace" .) -}}
 {{- end -}}

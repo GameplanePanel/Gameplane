@@ -653,7 +653,7 @@ func (r *GameServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// the sleep deadline or the next wake window; take whichever comes first,
 	// or nothing fires the transition until an unrelated event happens to
 	// wake the reconciler.
-	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry}
+	hints := []time.Duration{stopRequeue, idleRequeue, recoveryRetry, modpackKeyRequeue(&gs)}
 	if _, held, _ := lifecycleOwner(&gs); held {
 		hints = append(hints, 5*time.Second)
 	}
@@ -701,7 +701,6 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&corev1.Pod{}, handler.EnqueueRequestsFromMapFunc(r.mapPodToGameServer)).
 		Watches(&gameplanev1alpha1.GameTemplate{}, handler.EnqueueRequestsFromMapFunc(r.mapTemplateToGameServers),
 			builder.WithPredicates(predicate.GenerationChangedPredicate{})).
-		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.mapManagedKeyToGameServers)).
 		Complete(r)
 }
 

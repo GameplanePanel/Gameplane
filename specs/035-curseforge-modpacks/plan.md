@@ -78,7 +78,7 @@ operator/
 ├── api/v1alpha1/gameserver_types.go       # spec.modpack, status.modpack
 ├── internal/controller/gameserver_modpack.go          # new: env rendering, state machine, wipe, key copy
 ├── internal/controller/gameserver_modpack_envtest_test.go
-├── internal/controller/gameserver_controller.go       # call sites, watch on managed key Secret
+├── internal/controller/gameserver_controller.go       # call sites, 60s requeue for CurseForge servers (managed key Secret is read, not watched)
 └── config/{crd,rbac}/ + charts/gameplane/{charts/gameplane-crds/crds,crd-manifests}/  # generated
 api/
 ├── internal/registry/ftb.go (+ _test.go, testdata/)   # new keyless engine

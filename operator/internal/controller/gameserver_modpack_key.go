@@ -3,17 +3,35 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
+
+// modpackKeyRecheck bounds how long a share toggle, key deletion or rotation on
+// the managed Secret takes to reach CurseForge modpack servers. The operator
+// cannot watch that Secret (resourceNames-scoped get only, spec 035 contract
+// item 7), so it reads the Secret on each reconcile and requeues at this
+// interval.
+const modpackKeyRecheck = 60 * time.Second
+
+// modpackKeyRequeue is modpackKeyRecheck for a server with an applied
+// CurseForge pack, else 0.
+func modpackKeyRequeue(gs *gameplanev1alpha1.GameServer) time.Duration {
+	if gs.Status.Modpack != nil && gs.Status.Modpack.Applied != nil &&
+		gs.Status.Modpack.Applied.Provider == "curseforge" {
+		return modpackKeyRecheck
+	}
+	return 0
+}
 
 // Spec 035 key sharing (rule 5, specs/035-curseforge-modpacks/contracts/
 // operator-modpack.md item 5/7, data-model.md "Secrets").
@@ -62,9 +80,17 @@ func (r *GameServerReconciler) managedCurseForgeKey(ctx context.Context) ([]byte
 	if r.ControlPlaneNamespace == "" {
 		return nil, false, nil
 	}
+	// Uncached read: the chart grants get on this one Secret name only, and the
+	// manager cache does not watch the credentials namespace.
+	reader := r.APIReader
+	if reader == nil {
+		reader = r.Client
+	}
 	var sec corev1.Secret
-	if err := r.Get(ctx, client.ObjectKey{Namespace: r.ControlPlaneNamespace, Name: curseforgeManagedSecret}, &sec); err != nil {
-		if apierrors.IsNotFound(err) {
+	if err := reader.Get(ctx, client.ObjectKey{Namespace: r.ControlPlaneNamespace, Name: curseforgeManagedSecret}, &sec); err != nil {
+		if apierrors.IsNotFound(err) || apierrors.IsForbidden(err) {
+			log.FromContext(ctx).V(1).Info("managed mod-registry key not shared",
+				"namespace", r.ControlPlaneNamespace, "name", curseforgeManagedSecret, "reason", string(apierrors.ReasonForError(err)))
 			return nil, false, nil
 		}
 		return nil, false, fmt.Errorf("get managed key Secret %s/%s: %w", r.ControlPlaneNamespace, curseforgeManagedSecret, err)
@@ -133,31 +159,10 @@ func modpackKeyEnv(gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.Gam
 			SecretKeyRef: &corev1.SecretKeySelector{
 				LocalObjectReference: corev1.LocalObjectReference{Name: curseforgeKeySecretName(gs)},
 				Key:                  curseforgeKeyDataKey,
+				// Optional: the pod still starts if the copy Secret is briefly
+				// missing during a share toggle.
+				Optional: ptr.To(true),
 			},
 		},
 	}
-}
-
-// mapManagedKeyToGameServers enqueues the CurseForge modpack servers when the
-// managed key Secret changes. Other Secrets map to nothing.
-func (r *GameServerReconciler) mapManagedKeyToGameServers(ctx context.Context, obj client.Object) []reconcile.Request {
-	if r.ControlPlaneNamespace == "" || obj.GetNamespace() != r.ControlPlaneNamespace || obj.GetName() != curseforgeManagedSecret {
-		return nil
-	}
-	var servers gameplanev1alpha1.GameServerList
-	if err := r.List(ctx, &servers); err != nil {
-		log.FromContext(ctx).Error(err, "list servers for mod-registry key change", "secret", obj.GetName())
-		return nil
-	}
-	var requests []reconcile.Request
-	for i := range servers.Items {
-		gs := &servers.Items[i]
-		specCF := gs.Spec.Modpack != nil && gs.Spec.Modpack.Provider == "curseforge"
-		appliedCF := gs.Status.Modpack != nil && gs.Status.Modpack.Applied != nil &&
-			gs.Status.Modpack.Applied.Provider == "curseforge"
-		if specCF || appliedCF {
-			requests = append(requests, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(gs)})
-		}
-	}
-	return requests
 }

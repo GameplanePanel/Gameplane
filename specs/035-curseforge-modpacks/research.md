@@ -43,7 +43,7 @@ implementation task re-checks every itzg fact below against the image digests th
      the managed key Secret `gameplane-modreg-curseforge` in the control namespace
      (`gameplane.local/share-with-game-servers: "true"`). The API sets/clears it from the
      admin registry settings; it is never readable or writable by server-scoped roles.
-  3. The operator watches that Secret. For each GameServer whose active pack is CurseForge,
+  3. The operator reads that Secret on each reconcile (60s requeue, no watch). For each GameServer whose active pack is CurseForge,
      while sharing is on, it keeps a server-owned Secret `<gs>-curseforge-key` (key `apiKey`)
      copied from the managed Secret `gameplane-modreg-curseforge`, and sets the game container
      env named by the module's `providers.curseforge.apiKeyEnv` (`CF_API_KEY` for
@@ -51,8 +51,10 @@ implementation task re-checks every itzg fact below against the image digests th
      container only (not the agent, not init containers). Sharing off or admin key deleted: the
      operator deletes the copy and drops the env.
   4. The key value is NOT part of the config hash: the hash covers only the secretKeyRef
-     (Secret name and key), never the value. A rotated key therefore does not restart servers;
-     it applies at the next container start, which is when the image reads it today.
+     (Secret name and key), never the value. A rotated key changes only the copy Secret, not the
+     pod template, so it does not restart servers and applies at the next container start.
+     Toggling share on/off adds or removes the env var, which changes the pod template and rolls
+     that server's pod (propagation within about 60s).
   5. The module marks images without a built-in key (`needsKeyImageTags: [java8-multiarch,
      java8]`). While sharing is off, the API hides CurseForge in the Modpacks registry switch
      for servers whose selected version uses such an image, and refuses install with 409.

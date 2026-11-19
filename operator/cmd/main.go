@@ -486,9 +486,10 @@ func main() {
 		probeIngressFromCIDR[i] = ipnet.String()
 	}
 
-	// The control-plane namespace always holds the managed mod-registry key
-	// Secret that game servers share CurseForge keys from (spec 035).
-	secretNamespaces := []string{agentCASecretNamespace, moduleNamespace, controlPlaneNamespace}
+	secretNamespaces := []string{agentCASecretNamespace, moduleNamespace}
+	if remoteClusters {
+		secretNamespaces = append(secretNamespaces, controlPlaneNamespace)
+	}
 	secretCache, err := secretscope.CacheOptions(gameNamespaces, secretNamespaces...)
 	if err != nil {
 		setupLog.Error(err, "invalid Secret namespace configuration")
