@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@heroui/react";
 import { defineMessages } from "react-intl";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { APIError } from "@/lib/api";
 import type { LogHistoryPage } from "@/lib/endpoints";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { useResourceClient, useResourceTarget } from "@/lib/resourceTarget";
+import { cn } from "@/lib/utils";
 
 const labels = defineMessages({
   open: { id: "web.logs.history.open", defaultMessage: "Earlier output", description: "Open a snapshot of older log output" },
@@ -59,12 +61,18 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
     setLoading(!open);
     setOpen(!open);
   };
-  return <section className="shrink-0 border-b border-border px-3 py-1.5">
+  return <section className={cn("shrink-0 border-border px-3 py-1.5", consoleView ? "border-t" : "border-b")}>
     <div className="flex flex-wrap items-center gap-2">
-      {consoleView && <span className="text-xs font-medium">{intl.formatMessage(labels.console)}</span>}
-      <Button size="sm" variant="ghost" aria-expanded={open} onPress={toggle}>
-        {intl.formatMessage(open ? labels.hide : labels.open)}
-      </Button>
+      {consoleView ? (
+        <Button size="sm" variant="ghost" aria-expanded={open} onPress={toggle} className="gap-1.5 px-1 text-xs font-medium">
+          {open ? <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" /> : <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />}
+          {intl.formatMessage(labels.console)}
+        </Button>
+      ) : (
+        <Button size="sm" variant="ghost" aria-expanded={open} onPress={toggle}>
+          {intl.formatMessage(open ? labels.hide : labels.open)}
+        </Button>
+      )}
       {open && page?.before && !error && <Button size="sm" variant="outline" isDisabled={loading} onPress={() => {
         setLoading(true);
         setBefore(page.before ?? "");
