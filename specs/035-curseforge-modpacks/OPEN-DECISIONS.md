@@ -1,6 +1,6 @@
 # Open decisions: spec 035 CurseForge modpacks
 
-OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. None are open.
+OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. OD-9 was raised by T001 on 2026-11-19 and is open.
 
 ## OD-1: How do game servers get a CurseForge key? (SETTLED: C, valgul 2026-11-11)
 
@@ -93,3 +93,18 @@ a newer pack version came out in that window).
   when it has no players online (or right away if it is stopped or asleep).
   (Recommended: closes the window within hours without kicking players.)
 - C. Restart every adopted server once right after the upgrade.
+
+## OD-9: How does the shared CurseForge key reach java8 servers? (OPEN, raised by T001 2026-11-19)
+
+T001 found that the `java8` / `java8-multiarch` images pin mc-image-helper `1.51.7-java8`, which has
+`--api-key` (`CF_API_KEY`) but no `--api-key-file`; `CF_API_KEY_FILE` arrived in a later helper.
+Those images are the only ones that need the shared key (Java 17+ images ship one), so the file
+mount in OD-1 C / research R2 would never be read.
+
+- A. Keep OD-1 C's server-owned Secret copy, but pass it as `CF_API_KEY` with `valueFrom.secretKeyRef`
+  instead of a file. The value stays out of the pod spec and `kubectl describe` (only the Secret
+  name shows); the module field becomes `apiKeyEnv: CF_API_KEY`. A rotated key applies at the next
+  restart, which is also when the image reads it today. (Recommended: works on every image tag.)
+- B. Keep the file mount and also set `LOAD_ENV_FROM_FILE` to a mounted env file holding
+  `CF_API_KEY=…`; relies on the image's start scripts supporting that variable in the pinned digest.
+- C. Drop key sharing: CurseForge packs only on Java 17+ images (Minecraft 1.17+).

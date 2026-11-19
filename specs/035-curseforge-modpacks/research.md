@@ -25,6 +25,13 @@ implementation task re-checks every itzg fact below against the image digests th
 
 ## R2: CurseForge key for game servers (OD-1 C)
 
+- **T001 re-check (2026-11-19)**: env names in R1 match itzg `master` scripts
+  (`start-deployAutoCF`, `start-deployModrinth`, `start-deployFTBA`) and mc-image-helper 1.78.2
+  (`--slug`, `--file-id`, `--downloads-repo`, `--missing-mods-filename` default
+  `MODS_NEED_DOWNLOAD.txt`, `--api-key-file` = `CF_API_KEY_FILE`). The `java8` build matrix pins
+  mc-image-helper `1.51.7-java8`, which has `--api-key` (`CF_API_KEY`) but **no** `--api-key-file`.
+  The file mount below is therefore not read on the images that need it: see OD-9.
+
 - **Facts**: itzg Java 17+ tags include a CurseForge key in mc-image-helper; `java8`,
   `java8-multiarch`, `java11`, `java16` do not (itzg `docs/versions/java.md`). The image reads
   `CF_API_KEY_FILE`. The module uses `java8-multiarch` for Minecraft ≤1.16.5.
