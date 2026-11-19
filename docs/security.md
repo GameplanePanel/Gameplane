@@ -711,6 +711,14 @@ machinery in the `netguard/` module; its package doc explains why the two
 policies (`IsAllowed` vs `IsPublic`) stay separately selectable rather than
 being collapsed into one.
 
+## Sharing the CurseForge key with game servers
+
+CurseForge modpacks on Java 17+ images use a key built into the image, so by default no CurseForge key ever reaches a game server. Images without a built-in key (the `java8` tags, Minecraft 1.16.5 and older) need the admin's key. An admin can opt in with **Share the CurseForge key with game servers** (`PUT /admin/registries/curseforge/share`, `config:manage`), which sets annotation `gameplane.local/share-with-game-servers` on the managed Secret `gameplane-modreg-curseforge`. Only a key stored through admin config can be shared; a key supplied only by the `--curseforge-api-key` flag cannot, and the toggle is disabled in that case. Server-scoped roles can neither read nor change the setting, and the key is never returned by the API or written to the audit log.
+
+**Residual risk.** While sharing is on, anything that runs inside the game container can read the key: every mod and plugin on a CurseForge server, and any console user who can run commands there. This is the reason sharing is off by default. Treat the shared key as exposed to all server owners and mod authors on the cluster: use a key dedicated to Gameplane, scoped and rate-limited by CurseForge, and rotate it if a server runs an untrusted mod. Turning sharing off (or deleting the admin key) removes the per-server copies.
+
+**Delivery design, pending OD-9.** This section is written for the design recommended in open decision OD-9 (`specs/035-curseforge-modpacks/OPEN-DECISIONS.md`) and is not yet implemented: the operator would keep a server-owned Secret `<server>-curseforge-key` and pass it to the game container as an env var (`apiKeyEnv`, for example `CF_API_KEY`) using `valueFrom.secretKeyRef`. The value then stays out of the pod spec and `kubectl describe`, but is visible in the container's process environment, which widens the risk above to anything that can read `/proc/<pid>/environ` in the container. Because the image reads the key only at start, a rotated key applies at the next restart. The earlier file-mount design (`CF_API_KEY_FILE`) is not used because the `java8` images cannot read it. If OD-9 is decided differently, update this section in the same change.
+
 ## Notifications
 
 Notification sinks ([docs](notifications.md)) are a third outbound-dial

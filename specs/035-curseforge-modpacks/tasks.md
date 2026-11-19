@@ -171,13 +171,13 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ## Phase 8: Polish & cross-cutting
 
-- [ ] T056 [P] Update operator/specs.md (spec.modpack rendering, state machine, wipe, key copies)
-- [ ] T057 [P] Update api/specs.md (modpack routes, FTB engine, adoption sweep, share toggle)
-- [ ] T058 [P] Update web/specs.md (Modpacks tab surfaces, admin share switch)
+- [X] T056 [P] Update operator/specs.md (spec.modpack rendering, state machine, wipe, key copies)
+- [X] T057 [P] Update api/specs.md (modpack routes, FTB engine, adoption sweep, share toggle)
+- [X] T058 [P] Update web/specs.md (Modpacks tab surfaces, admin share switch) (planned surfaces only; web code tasks pending)
 - [ ] T059 [P] Update modules/minecraft-java/specs.md and modules/minecraft-java/README.md (three registries, pinning, downloads folder, java8 key note) in the module repo
-- [ ] T060 [P] Document `versionEnv`, `apiKeyFileEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, `modpacksOnly` and `ftb` in docs/module-authoring.md
-- [ ] T061 [P] Add the shared-key residual risk (research R2) to docs/security.md
-- [ ] T062 [P] Add a CHANGELOG entry for CurseForge and FTB modpacks in CHANGELOG.md
+- [X] T060 [P] Document `versionEnv`, `apiKeyFileEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, `modpacksOnly` and `ftb` in docs/module-authoring.md
+- [X] T061 [P] Add the shared-key residual risk (research R2) to docs/security.md
+- [X] T062 [P] Add a CHANGELOG entry for CurseForge and FTB modpacks in CHANGELOG.md (changelog/unreleased/035-curseforge-ftb-modpacks.md, slug-only name, PR number added when the PR opens)
 - [ ] T063 Bump the modules submodule pointer after the module PR merges (`submodule-bump` skill), in modules
 - [ ] T064 Walk quickstart.md scenarios 1–11 against the CI results and a dev cluster if valgul provides one; record results in specs/035-curseforge-modpacks/quickstart.md
 
