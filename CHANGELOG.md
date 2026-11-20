@@ -10,12 +10,13 @@ Changes that are not released yet live in
 They are folded into this file when a version is released; see
 [`docs/contributing.md`](docs/contributing.md#changelog-entries).
 
-## [0.4.2] — RELDATE
+## [0.4.2] — 2026-11-20
 
 A pre-v1 patch release with every change merged since v0.4.1: port pools for
 servers behind one shared address, a load-balancer class per server, hostname
-endpoints, player counts over the Steam query, a separate CRD chart, dashboard
-fixes and the move of four optional components to their own repositories.
+endpoints, player counts over the Steam query, a separate CRD chart, OpenEBS
+thin-pool capacity, NodePort player addresses, dashboard fixes and the move of
+four optional components to their own repositories.
 Read the upgrade notes below first; two of them change behaviour.
 
 ### Upgrade Notes
@@ -84,6 +85,16 @@ Read the upgrade notes below first; two of them change behaviour.
   list comes from the server's `ops.json` file, works independently of live
   RCON player queries, and distinguishes an empty list from a failed read
   (PR #1022).
+- **OpenEBS game-data capacity:** cluster and fleet inventory can read an
+  administrator-selected OpenEBS LVM thin pool instead of the node's system
+  disk capacity. Storage cards use IEC units and name the capacity source while
+  still showing provisioned volume space rather than physical usage. Opt in
+  with a Node annotation, dedicated thin-provisioned storage classes and named
+  read-only LVMNode permissions; see the
+  [setup instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/gateway-install.md#optional-openebs-thin-pool-capacity).
+  Unconfigured clusters keep their existing calculation, and a configured
+  lookup that fails shows as unavailable instead of falling back to the system
+  disk (PR #1002).
 
 ### Changed
 
@@ -112,6 +123,9 @@ Read the upgrade notes below first; two of them change behaviour.
   installs: images, image names and chart values stay the same. If you build
   images or run `make dev-up` from a clone, run `hack/submodules.sh init`
   first (`make images` and `make dev-up` also do it for you) (PRs #993, #995).
+- **Recent console output opens at the newest lines:** the Console tab opens
+  Recent pod output at the bottom. Loading older history keeps the output
+  already loaded and the reader's position (PR #1015).
 
 ### Fixed
 
@@ -131,6 +145,27 @@ Read the upgrade notes below first; two of them change behaviour.
 - **Backup empty states:** the Backups, Schedules and Restores tables give
   empty-state messages consistent padding, centred alignment and
   viewport-width wrapping (PR #1025).
+- **Player address for NodePort servers:** the dashboard shows and copies the
+  game's hostname or its serving node's external IP together with the assigned
+  NodePort. If your nodes have no external IP, set the hostname players use in
+  **Settings → Networking**. See
+  [Connecting to a NodePort server](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#connecting-to-a-nodeport-server)
+  (PR #1034).
+- **Denied backup requests no longer repeat:** a server's Backups tab checks
+  permissions for its selected cluster and namespace before loading backups,
+  schedules, restores and destinations. Authorization failures stop automatic
+  retries and polling until access changes, and the tab shows an
+  access-denied message. Schedule creation and server backup settings apply the
+  same checks and tell denied access apart from missing configuration. Role
+  restrictions are unchanged (PR #1017).
+- **Saved instance name in the panel header:** the header uses the configured
+  instance name after saving general settings and after reloading. Unset or
+  blank names fall back to `gameplane` (PR #1021).
+- **Dashboard styling matches the design again:** selected tabs show their
+  pill again, and the Settings side menu, table headers, form fields and
+  selects, warning banners, login SSO buttons, Servers table and stat cards,
+  and checkboxes match the design. On the Console tab, Recent pod output now
+  sits under the terminal and folds away from its header (PR #1033).
 
 ## [0.4.1] — 2026-11-17
 

@@ -6,7 +6,7 @@ Default column: **on** (enabled by the chart or the product), **off** (opt-in, s
 
 Notification rows take effect once a notification sink is configured.
 
-Status date: RELDATE (v0.4.2, pre-v1).
+Status date: 2026-11-20 (v0.4.2, pre-v1).
 
 See [docs/roadmap.md](docs/roadmap.md) for what is planned and in progress.
 
