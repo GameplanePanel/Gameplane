@@ -2,34 +2,31 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/GameplanePanel/gameplane/api/internal/db"
-	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 )
 
 // MountInstallation exposes capabilities only through the authenticated router.
 func MountInstallation(r chi.Router, store *db.Store, standalone bool, version string) {
 	r.Get("/admin/installation", func(w http.ResponseWriter, req *http.Request) {
+		// The display name is optional: a config failure must not hide the
+		// static capabilities that the rest of the dashboard depends on.
+		name := "gameplane"
 		raw, found, err := store.ConfigValue(req.Context(), "general")
 		if err != nil {
-			httperr.Write(w, req, fmt.Errorf("read installation name: %w", err))
-			return
-		}
-		var general generalCfg
-		if found {
+			slog.Warn("installation name: read general config", "err", err)
+		} else if found {
+			var general generalCfg
 			if err := json.Unmarshal([]byte(raw), &general); err != nil {
-				httperr.Write(w, req, fmt.Errorf("decode installation name: %w", err))
-				return
+				slog.Warn("installation name: decode general config", "err", err)
+			} else if configuredName := strings.TrimSpace(general.InstanceName); configuredName != "" {
+				name = configuredName
 			}
-		}
-		name := strings.TrimSpace(general.InstanceName)
-		if name == "" {
-			name = "gameplane"
 		}
 		writeJSON(w, struct {
 			Standalone   bool   `json:"standalone"`

@@ -71,22 +71,68 @@ func TestInstallationNameRefreshesAfterConfigSave(t *testing.T) {
 	}
 }
 
-func TestInstallationNameErrorsDoNotExposeConfiguration(t *testing.T) {
-	for _, brokenDatabase := range []bool{false, true} {
-		store := newTestStore(t)
-		if brokenDatabase {
-			if err := store.Close(); err != nil {
-				t.Fatal(err)
+func TestInstallationNameErrorsPreserveCapabilities(t *testing.T) {
+	for _, standalone := range []bool{false, true} {
+		t.Run(map[bool]string{false: "combined", true: "standalone"}[standalone], func(t *testing.T) {
+			for _, tc := range []struct {
+				name, raw      string
+				brokenDatabase bool
+			}{
+				{name: "malformed config", raw: `{"instanceName":"private`},
+				{name: "partially decoded config", raw: `{"instanceName":"private","externalURL":42}`},
+				{name: "unavailable database", brokenDatabase: true},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					store := newTestStore(t)
+					if tc.brokenDatabase {
+						if err := store.Close(); err != nil {
+							t.Fatal(err)
+						}
+					} else if _, err := store.DB.ExecContext(t.Context(), "INSERT INTO config(key, value) VALUES ('general', ?)", tc.raw); err != nil {
+						t.Fatal(err)
+					}
+					router := chi.NewRouter()
+					MountInstallation(router, store, standalone, "v0.4.1")
+					response := httptest.NewRecorder()
+					router.ServeHTTP(response, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/installation", nil))
+					if response.Code != http.StatusOK {
+						t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+					}
+					var body map[string]any
+					if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+						t.Fatal(err)
+					}
+					if len(body) != 4 || body["standalone"] != standalone || body["localCluster"] != !standalone || body["version"] != "v0.4.1" || body["instanceName"] != "gameplane" {
+						t.Fatalf("unexpected fallback response: %v", body)
+					}
+					if strings.Contains(response.Body.String(), "private") {
+						t.Fatal("installation leaked general configuration")
+					}
+				})
 			}
-		} else if _, err := store.DB.ExecContext(t.Context(), "INSERT INTO config(key, value) VALUES ('general', ?)", `{"instanceName":"private`); err != nil {
+		})
+	}
+}
+
+func TestInstallationNameRecoversAfterConfigRepair(t *testing.T) {
+	store := newTestStore(t)
+	router := chi.NewRouter()
+	MountInstallation(router, store, false, "v0.4.1")
+	for _, tc := range []struct{ raw, want string }{
+		{raw: `{"instanceName":"private`, want: "gameplane"},
+		{raw: `{"instanceName":"Recovered instance"}`, want: "Recovered instance"},
+	} {
+		if _, err := store.DB.ExecContext(t.Context(), "INSERT INTO config(key, value) VALUES ('general', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", tc.raw); err != nil {
 			t.Fatal(err)
 		}
-		router := chi.NewRouter()
-		MountInstallation(router, store, false, "v0.4.1")
 		response := httptest.NewRecorder()
 		router.ServeHTTP(response, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/installation", nil))
-		if response.Code != http.StatusInternalServerError || response.Body.String() != "internal error\n" {
-			t.Fatalf("unexpected safe error: status=%d body=%s", response.Code, response.Body.String())
+		var body map[string]any
+		if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+			t.Fatal(err)
+		}
+		if response.Code != http.StatusOK || body["instanceName"] != tc.want {
+			t.Fatalf("status=%d name=%q want=%q", response.Code, body["instanceName"], tc.want)
 		}
 	}
 }

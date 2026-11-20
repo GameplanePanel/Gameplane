@@ -65,12 +65,10 @@ paths:
                     type: string
                   instanceName:
                     type: string
-                    description: Trimmed configured name; gameplane when unset or blank.
+                    description: Trimmed configured name; gameplane when unset, blank, unreadable, or malformed. Capabilities and version remain available when the name cannot be loaded.
                     example: gameplane
         '401':
           description: Authentication required
-        '500':
-          description: Installation configuration could not be read; no configuration details are returned.
   '/admin/notifications/sinks/{name}/secret':
     delete:
       responses:
