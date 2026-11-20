@@ -62782,14 +62782,39 @@
                   "type": "ref",
                   "ref": "LKMjc",
                   "name": "Stats",
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "descendants": {
+                    "yQQii/vj2Ru": {
+                      "content": "7"
+                    },
+                    "yQQii/h0n7zo": {
+                      "content": "of 10 total"
+                    },
+                    "rYuYJ/vj2Ru": {
+                      "content": "8"
+                    },
+                    "rYuYJ/h0n7zo": {
+                      "content": "2 server player counts unavailable"
+                    }
+                  }
                 },
                 {
                   "id": "W4O8m",
                   "type": "ref",
                   "ref": "gciHD",
                   "name": "Controls Row",
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "descendants": {
+                    "sbt1X/CrB7o": {
+                      "content": "10"
+                    },
+                    "Lg6Wq/nMiOH": {
+                      "content": "7"
+                    },
+                    "RsI3J/l8QUQt": {
+                      "content": "3"
+                    }
+                  }
                 },
                 {
                   "type": "frame",
@@ -63151,7 +63176,7 @@
                               "type": "text",
                               "id": "s7BXIp",
                               "fill": "$foreground/foreground",
-                              "content": "39%",
+                              "content": "38%",
                               "fontFamily": "JetBrains Mono",
                               "fontSize": 14,
                               "fontWeight": "normal"
@@ -63352,7 +63377,7 @@
                                   "type": "text",
                                   "id": "zHNXB",
                                   "fill": "$foreground/foreground",
-                                  "content": "mc-survival",
+                                  "content": "mc-test",
                                   "fontFamily": "JetBrains Mono",
                                   "fontSize": 14,
                                   "fontWeight": "normal"
@@ -63361,7 +63386,7 @@
                                   "type": "text",
                                   "id": "ikr7K",
                                   "fill": "$muted",
-                                  "content": "remote-lab / gameplane-games",
+                                  "content": "local / gameplane-games",
                                   "fontFamily": "Geist",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -63933,7 +63958,7 @@
                                   "type": "text",
                                   "id": "SHcDs",
                                   "fill": "$success/soft-foreground",
-                                  "content": "MI",
+                                  "content": "ME",
                                   "fontFamily": "JetBrains Mono",
                                   "fontSize": 12,
                                   "fontWeight": "normal"
@@ -63959,7 +63984,7 @@
                                   "type": "text",
                                   "id": "pwQIf",
                                   "fill": "$muted",
-                                  "content": "remote-lab / default",
+                                  "content": "local / default",
                                   "fontFamily": "Geist",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -64231,7 +64256,7 @@
                                   "type": "text",
                                   "id": "e3x1OF",
                                   "fill": "$success/soft-foreground",
-                                  "content": "MI",
+                                  "content": "ME",
                                   "fontFamily": "JetBrains Mono",
                                   "fontSize": 12,
                                   "fontWeight": "normal"
@@ -64257,7 +64282,7 @@
                                   "type": "text",
                                   "id": "nZQk9",
                                   "fill": "$muted",
-                                  "content": "gameplane-games",
+                                  "content": "local / gameplane-games",
                                   "fontFamily": "Geist",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -64529,7 +64554,7 @@
                                   "type": "text",
                                   "id": "RYMz0",
                                   "fill": "$success/soft-foreground",
-                                  "content": "MI",
+                                  "content": "ME",
                                   "fontFamily": "JetBrains Mono",
                                   "fontSize": 12,
                                   "fontWeight": "normal"
@@ -64555,7 +64580,7 @@
                                   "type": "text",
                                   "id": "Sdyxp",
                                   "fill": "$muted",
-                                  "content": "remote-lab / default",
+                                  "content": "local / default",
                                   "fontFamily": "Geist",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -64827,7 +64852,7 @@
                                   "type": "text",
                                   "id": "NcFOe",
                                   "fill": "$success/soft-foreground",
-                                  "content": "MI",
+                                  "content": "ME",
                                   "fontFamily": "JetBrains Mono",
                                   "fontSize": 12,
                                   "fontWeight": "normal"
@@ -64855,7 +64880,7 @@
                                   "type": "text",
                                   "id": "OkBvA",
                                   "fill": "$muted",
-                                  "content": "remote-lab / default",
+                                  "content": "local / default",
                                   "fontFamily": "Geist",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -65127,7 +65152,7 @@
                                   "type": "text",
                                   "id": "i7FL1",
                                   "fill": "$success/soft-foreground",
-                                  "content": "MI",
+                                  "content": "ME",
                                   "fontFamily": "JetBrains Mono",
                                   "fontSize": 12,
                                   "fontWeight": "normal"
@@ -65153,7 +65178,7 @@
                                   "type": "text",
                                   "id": "n2QgsP",
                                   "fill": "$muted",
-                                  "content": "remote-lab / default",
+                                  "content": "local / default",
                                   "fontFamily": "Geist",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
