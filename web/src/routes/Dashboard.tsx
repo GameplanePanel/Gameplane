@@ -161,7 +161,7 @@ export function DashboardPage() {
               sub={inventory?.partial
                 ? intl.formatMessage({ id: "web.routes.dashboard.returned_inventory_cores", defaultMessage: "returned inventory cores", description: "Dashboard: sub-label on the vCPUs card when the inventory is partial" })
                 : intl.formatMessage({ id: "web.routes.dashboard.authorized_inventory_cores", defaultMessage: "authorized inventory cores", description: "Dashboard: sub-label on the vCPUs card" })}
-              accent="warning"
+              accent="violet"
             />
             <StatCard
               label={intl.formatMessage({ id: "web.routes.dashboard.storage_provisioned", defaultMessage: "Storage provisioned", description: "Dashboard: label of the summary card with the total provisioned storage; the line under it says whether the figure covers returned or all authorized inventory" })}
@@ -185,7 +185,7 @@ export function DashboardPage() {
                     ? intl.formatMessage({ id: "web.routes.dashboard.all_healthy", defaultMessage: "all healthy", description: "Dashboard: sub-label on the Nodes ready card when every node is ready" })
                     : intl.formatMessage({ id: "web.routes.dashboard.nodes_need_attention", defaultMessage: "needs attention", description: "Dashboard: sub-label on the Nodes ready card when some nodes are not ready" })
               }
-              accent="warning"
+              accent="violet"
             />
           </div>
 
