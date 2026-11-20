@@ -536,45 +536,39 @@ func getPublicAddress(obj *unstructured.Unstructured) *shareAddr {
 		return nil
 	}
 
-	// First pass: prefer tunnel endpoints that are not private.
+	expose, _, _ := unstructured.NestedString(obj.Object, "spec", "networking", "expose")
+	var fallback *shareAddr
 	for _, ep := range endpoints {
 		epMap, ok := ep.(map[string]interface{})
 		if !ok {
+			continue
+		}
+		private, _, _ := unstructured.NestedBool(epMap, "private")
+		if private {
+			continue
+		}
+		host, _, _ := unstructured.NestedString(epMap, "host")
+		port := nestedPort(epMap)
+		if host == "" || port == 0 {
 			continue
 		}
 		provider, _, _ := unstructured.NestedString(epMap, "tunnelProvider")
-		if provider == "" {
-			continue
-		}
-		private, _, _ := unstructured.NestedBool(epMap, "private")
-		if private {
-			continue
-		}
-		host, _, _ := unstructured.NestedString(epMap, "host")
-		port := nestedPort(epMap)
-		if host != "" && port > 0 {
+		if provider != "" {
 			return &shareAddr{Host: host, Port: port}
 		}
-	}
-
-	// Second pass: fall back to any non-private endpoint (tunnel or service).
-	for _, ep := range endpoints {
-		epMap, ok := ep.(map[string]interface{})
-		if !ok {
-			continue
+		// Older operators published the Service ClusterIP as the NodePort
+		// host. A refreshed endpoint records the ClusterIP separately.
+		if expose == "NodePort" {
+			serviceAddress, _, _ := unstructured.NestedString(epMap, "serviceAddress")
+			if serviceAddress == "" || serviceAddress == host {
+				continue
+			}
 		}
-		private, _, _ := unstructured.NestedBool(epMap, "private")
-		if private {
-			continue
-		}
-		host, _, _ := unstructured.NestedString(epMap, "host")
-		port := nestedPort(epMap)
-		if host != "" && port > 0 {
-			return &shareAddr{Host: host, Port: port}
+		if fallback == nil {
+			fallback = &shareAddr{Host: host, Port: port}
 		}
 	}
-
-	return nil
+	return fallback
 }
 
 // nestedPort extracts the "port" field from an endpoint map as an int32.

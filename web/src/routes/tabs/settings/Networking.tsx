@@ -16,6 +16,7 @@ import type { Expose, GameServer, GameServerNetworking, GameServerTunnel, Remote
 import { PortOverridesEditor } from "@/components/server/PortOverridesEditor";
 
 import { errorTextIntl } from "@/lib/errors";
+import { assignmentAddress } from "@/lib/connectionAddress";
 import { Field } from "./Field";
 import type { SectionProps } from "./types";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -450,7 +451,12 @@ export function NetworkingSection({ draft, onChange, onValidityChange }: Section
         </div>
       </div>
 
-      <Field label={intl.formatMessage({ id: "web.routes.tabs.settings.networking.hostname", defaultMessage: "Hostname", description: "Networking: field label for an optional hostname, used for Tailscale or for ingress and external-dns annotations" })} hint={intl.formatMessage({ id: "web.routes.tabs.settings.networking.optional_dns_name_for_ingress_external", defaultMessage: "Optional DNS name for ingress / external-dns annotations.", description: "Networking: hint under the Hostname field of the general network settings, saying it is an optional DNS name for ingress or external-dns annotations" })}>
+      <Field
+        label={intl.formatMessage({ id: "web.routes.tabs.settings.networking.hostname", defaultMessage: "Hostname", description: "Networking: field label for an optional hostname, used for Tailscale or for ingress and external-dns annotations" })}
+        hint={net.expose === "NodePort"
+          ? intl.formatMessage({ id: "web.routes.tabs.settings.networking.nodeport_hostname_hint", defaultMessage: "Use a DNS name that points to a node players can reach. Leave blank to use a node’s external IP when available.", description: "Networking: explains how the optional hostname determines the address advertised for a NodePort server" })
+          : intl.formatMessage({ id: "web.routes.tabs.settings.networking.optional_dns_name_for_ingress_external", defaultMessage: "Optional DNS name for ingress / external-dns annotations.", description: "Networking: hint under the Hostname field of the general network settings, saying it is an optional DNS name for ingress or external-dns annotations" })}
+      >
         <Input
           value={net.hostname ?? ""}
           onChange={(e) => setNet({ ...net, hostname: e.target.value || undefined })}
@@ -532,7 +538,8 @@ function AddressAssignmentSection({
     (c) => c.type === "AddressAssignment",
   );
 
-  const currentAddress = draft.status?.endpoints?.[0];
+  const endpoint = status?.endpoints?.[0];
+  const currentAddress = assignmentAddress(endpoint, net.expose);
 
   // Locally-tracked field values, seeded from the spec and re-synced whenever
   // the underlying draft changes them (e.g. switching servers, a save
@@ -586,9 +593,9 @@ function AddressAssignmentSection({
         >
           <div className="rounded-md border border-border bg-surface px-3 py-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-fg">{currentAddress.host}</span>
-              {currentAddress.pool && (
-                <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.networking.from_pool_pool", defaultMessage: "from pool ''{pool}'", description: "Networking: sentence with pool in span" }, { pool: currentAddress.pool })}</span>
+              <span className="text-sm text-fg">{currentAddress}</span>
+              {endpoint?.pool && (
+                <span className="text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.networking.from_pool_pool", defaultMessage: "from pool ''{pool}'", description: "Networking: sentence with pool in span" }, { pool: endpoint.pool })}</span>
               )}
             </div>
           </div>

@@ -313,10 +313,9 @@ type GameServerNetworking struct {
 	// ingress / external-dns annotations on the Service. Must be an
 	// RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
 	// or hyphens, no leading/trailing hyphen, at most 253 characters
-	// total. The operator does not create the DNS record itself. On a
-	// LoadBalancer server, once the load balancer has an address, the
-	// hostname is also the address status.endpoints and the dashboard
-	// report, since it is the name players use.
+	// total. The operator does not create the DNS record itself.
+	// NodePort servers advertise this name with the assigned node port.
+	// LoadBalancer servers advertise it once the load balancer has an address.
 	// +kubebuilder:validation:MaxLength=253
 	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$`
 	// +optional
@@ -715,8 +714,8 @@ type CaptureStatus struct {
 // associated with a named template port.
 type GameServerEndpoint struct {
 	Name string `json:"name"`
-	// Host is the address players connect to: the Service's address, or on
-	// a LoadBalancer server with spec.networking.hostname, that hostname.
+	// Host is the connection hostname or IP. For NodePort it is the game
+	// hostname or a serving node's external IP, or empty while neither is known.
 	Host string `json:"host"`
 	Port int32  `json:"port"`
 

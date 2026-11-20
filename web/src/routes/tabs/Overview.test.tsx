@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithQuery } from "@/test/render";
 import { OverviewTab } from "./Overview";
 import type { GameServer, PlayersResp } from "@/types";
@@ -194,6 +195,63 @@ describe("OverviewTab players card", () => {
 });
 
 describe("OverviewTab endpoint rendering", () => {
+  it.each([
+    ["play.example.net", "play.example.net:31742"],
+    ["203.0.113.42", "203.0.113.42:31742"],
+    ["2001:db8::42", "[2001:db8::42]:31742"],
+  ])("shows and copies the assigned NodePort on %s", async (host, expected) => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(() => Promise.resolve(jsonRes([])));
+    const server = gs({
+      phase: "Starting",
+      endpoints: [{ name: "game", host, serviceAddress: "10.96.0.12", port: 31742 }],
+    });
+    server.spec.networking = { expose: "NodePort" };
+    renderWithQuery(<OverviewTab gs={server} name="s1" />);
+
+    expect(screen.getByText(expected)).toHaveAttribute("title", expected);
+    await user.click(screen.getByTitle("Copy"));
+    expect(await navigator.clipboard.readText()).toBe(expected);
+    expect(screen.queryByText(/10\.96\.0\.12/)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { host: "10.96.0.12", serviceAddress: "10.96.0.12", port: 31742 },
+    { host: "10.96.0.12", port: 31742 },
+    { host: "", serviceAddress: "10.96.0.12", port: 31742 },
+    { host: "play.example.net", serviceAddress: "10.96.0.12", port: 0 },
+    { host: "play.example.net", serviceAddress: "10.96.0.12", port: 65536 },
+    { host: "play.example.net:25565", serviceAddress: "10.96.0.12", port: 31742 },
+  ])("withholds a legacy or incomplete NodePort address ($host, $port)", (endpoint) => {
+    fetchMock.mockImplementation(() => Promise.resolve(jsonRes([])));
+    const server = gs({ phase: "Starting", endpoints: [{ name: "game", ...endpoint }] });
+    server.spec.networking = { expose: "NodePort", hostname: "play.example.net" };
+    renderWithQuery(<OverviewTab gs={server} name="s1" />);
+
+    expect(screen.queryByText(/10\.96\.0\.12|play\.example\.net/)).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Copy")).not.toBeInTheDocument();
+  });
+
+  it("copies the tunnel host and forwarded port for a tunneled NodePort server", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(() => Promise.resolve(jsonRes([])));
+    const server = gs({
+      phase: "Starting",
+      endpoints: [
+        { name: "game", host: "relay.example.net", port: 25565, tunnelProvider: "frp" },
+        { name: "game", host: "10.96.0.12", serviceAddress: "10.96.0.12", port: 31742 },
+      ],
+    });
+    server.spec.networking = { expose: "NodePort" };
+    renderWithQuery(<OverviewTab gs={server} name="s1" />);
+
+    const externalRow = screen.getByText("External Address").parentElement!;
+    expect(within(externalRow).getByText("relay.example.net:25565")).toBeInTheDocument();
+    await user.click(within(externalRow).getByTitle("Copy"));
+    expect(await navigator.clipboard.readText()).toBe("relay.example.net:25565");
+    expect(screen.queryByText(/10\.96\.0\.12/)).not.toBeInTheDocument();
+  });
+
   it("annotates the single address row with the pool it came from", async () => {
     fetchMock.mockImplementation(() =>
       Promise.resolve(jsonRes({ online: 0, max: 20, players: [], asOf: "now" })));

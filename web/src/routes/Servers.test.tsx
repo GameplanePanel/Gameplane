@@ -813,8 +813,10 @@ describe("ServersPage mobile layout", () => {
           items: [
             makeServer({
               metadata: { name: "mobile-alpha", namespace: "gameplane-games" },
+              spec: { networking: { expose: "NodePort" } },
               status: {
                 phase: "Running",
+                endpoints: [{ name: "game", host: "2001:db8::7", serviceAddress: "10.96.0.12", port: 31902 }],
                 agent: {
                   cpuMillicores: 500,
                   cpuLimitMillicores: 2000,
@@ -833,6 +835,7 @@ describe("ServersPage mobile layout", () => {
     await screen.findByText("mobile-alpha");
 
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getByText("[2001:db8::7]:31902")).toBeInTheDocument();
     expect(screen.getByText("3/10")).toBeInTheDocument();
     expect(screen.getByText("50%")).toBeInTheDocument();
     // CPU chip removed from mobile card

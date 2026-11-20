@@ -31,6 +31,7 @@ import { useMediaQuery } from "@/lib/media";
 import type { GameServer, GameServerPhase, GameTemplate } from "@/types";
 import { Servers, type LifecycleVerb } from "@/lib/endpoints";
 import { countByState } from "@/lib/servers";
+import { connectionAddress } from "@/lib/connectionAddress";
 import { useFleetLocation, Fleet, inventoryTotals, playerCoverage, templateKey, useFleetGameCodes, located, resourceTarget, targetKey, targetLabel, targetSearch, useFleetPlacements, useFleetServerSelection, useFleetServers, type FleetTarget, type Located } from "@/lib/fleet";
 import { FleetCoverage, FleetScopeFilter } from "@/components/FleetScope";
 import { useOptionalIntl } from "@/lib/i18n/format";
@@ -599,9 +600,8 @@ function ServerCard({
   const intl = useOptionalIntl();
   const { phase, asleep, memLabel, playersLabel } = serverRowData(intl, gs);
 
-  // Extract address from the first endpoint, if available
   const endpoint = gs.status?.endpoints?.[0];
-  const address = endpoint ? `${endpoint.host}:${endpoint.port}` : intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
+  const address = connectionAddress(endpoint, gs.spec.networking?.expose) ?? intl.formatMessage({ id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" });
 
   return (
     <Card className="border border-border bg-card p-3.5 shadow-none">

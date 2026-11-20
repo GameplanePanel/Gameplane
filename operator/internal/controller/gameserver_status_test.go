@@ -522,7 +522,7 @@ func TestEndpointsFromServicePool(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			eps := endpointsFromService(tc.svc, tc.plan)
+			eps := endpointsFromService(tc.svc, tc.plan, "")
 			if len(eps) != 1 {
 				t.Fatalf("got %d endpoints, want 1", len(eps))
 			}
@@ -542,7 +542,7 @@ func TestEndpointsFromServicePoolStampsEveryPort(t *testing.T) {
 		corev1.ServicePort{Name: "query", Port: 25565, Protocol: corev1.ProtocolUDP})
 	plan := addressPlan{Manager: addressManagerCilium, Pool: "games", Outcome: addressPlanTranslated}
 
-	eps := endpointsFromService(svc, plan)
+	eps := endpointsFromService(svc, plan, "")
 	if len(eps) != 2 {
 		t.Fatalf("got %d endpoints, want 2", len(eps))
 	}

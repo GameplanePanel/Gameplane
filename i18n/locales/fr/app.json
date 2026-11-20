@@ -7119,10 +7119,6 @@
         "defaultMessage": "gameplane",
         "description": "Share: product name above the shared server title on the public share page; a brand name, usually kept as is"
     },
-    "web.routes.share.host_port": {
-        "defaultMessage": "{host}:{port}",
-        "description": "Share: connect address shown as host:port; {host} is the server host name and {port} is its port number"
-    },
     "web.routes.share.link_not_available": {
         "defaultMessage": "Lien indisponible",
         "description": "Share: heading of the error page shown when the shared link is invalid or cannot be used"
@@ -8053,15 +8049,11 @@
     },
     "web.routes.tabs.overview.external_address": {
         "defaultMessage": "Adresse externe",
-        "description": "Overview tab: label of the row with the public address of the server, shown without a port"
+        "description": "Overview tab: label of the row with the public address of the server"
     },
     "web.routes.tabs.overview.host": {
         "defaultMessage": "Hôte",
         "description": "Overview tab: label of the host name row in an address group"
-    },
-    "web.routes.tabs.overview.host_port_suffix": {
-        "defaultMessage": ":{port}",
-        "description": "Overview: port shown after the host of an endpoint; {port} is the port number"
     },
     "web.routes.tabs.overview.length_listed": {
         "defaultMessage": "{length} affichés",
@@ -9098,6 +9090,10 @@
     "web.routes.tabs.settings.networking.no_address_manager_configured": {
         "defaultMessage": "Aucun gestionnaire d'adresses configuré",
         "description": "Networking: warning title shown when the cluster has no address manager; the line below says the pool and address preference will be saved but not applied"
+    },
+    "web.routes.tabs.settings.networking.nodeport_hostname_hint": {
+        "defaultMessage": "Utilisez un nom DNS qui pointe vers un nœud accessible aux joueurs. Laissez ce champ vide pour utiliser l’adresse IP externe d’un nœud si elle est disponible.",
+        "description": "Networking: explains how the optional hostname determines the address advertised for a NodePort server"
     },
     "web.routes.tabs.settings.networking.one_cidr_per_line_restricts_which": {
         "defaultMessage": "Un CIDR par ligne. Limite les clients qui peuvent atteindre le LoadBalancer ; vide autorise tous les clients.",
