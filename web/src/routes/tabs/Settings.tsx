@@ -20,6 +20,7 @@ import {
 
 import type { GameServer } from "@/types";
 import { APIError } from "@/lib/api";
+import { useMediaQuery } from "@/lib/media";
 import { errorTextIntl } from "@/lib/errors";
 import { mergeDraftOntoLatest, SettingsConflictError } from "@/lib/settingsMerge";
 import { settingsConfigErrors } from "@/lib/jvmStartup";
@@ -99,6 +100,7 @@ export interface SettingsTabProps {
 }
 
 export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
+  const mobile = useMediaQuery("(max-width: 767px)");
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const access = useResourceAccess();
@@ -279,16 +281,16 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   const readOnlyConfig = section === "config" && !access?.canWrite;
 
   return (
-    <div className="flex h-full">
-      <nav className="w-56 shrink-0 border-r border-border bg-surface/30 p-2">
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
+      <nav className="min-w-0 shrink-0 overflow-x-auto border-b border-border bg-surface/30 p-2 md:w-56 md:border-b-0 md:border-r">
         <Tabs
           selectedKey={section}
           onSelectionChange={(k) => {
             setSection(k as SectionKey);
           }}
-          orientation="vertical"
+          orientation={mobile ? "horizontal" : "vertical"}
         >
-          <Tabs.List>
+          <Tabs.List className="max-md:w-max">
             {sections.map((s) => (
               <Tabs.Tab key={s.key} id={s.key}>
                 {intl.formatMessage(s.label)}
@@ -298,7 +300,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
         </Tabs>
       </nav>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* Share dialogs own their state independently of the settings draft.
             A status refresh must not discard a newly issued, one-time token. */}
         <fieldset key={section === "sharelinks" ? "sharelinks" : draftRevision} disabled={save.isPending} inert={save.isPending} className="min-w-0 flex-1 overflow-auto border-0 p-6 scrollbar-thin">
@@ -327,7 +329,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
         </fieldset>
 
         {section !== "danger" && section !== "access" && section !== "sharelinks" && (
-          <footer className="flex items-center justify-between gap-4 border-t border-border bg-surface/30 px-6 py-3">
+          <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border bg-surface/30 px-6 py-3">
             <div className="min-w-0 text-xs">
               {conflict && !error && (
                 <span className="text-warning">{intl.formatMessage({ id: "web.routes.tabs.settings.server_changed_since_you_opened_this", defaultMessage: "Server changed since you opened this page.", description: "Settings tab: warning in the footer saying the server changed after the page was opened; followed by a Reload button and the sentence after it" })} <button onClick={() => void reload()} className="underline hover:text-fg">{intl.formatMessage({ id: "web.routes.tabs.settings.reload", defaultMessage: "Reload", description: "Settings tab: inline button in the footer warning that reloads the latest server settings; keep it short" })}</button> {intl.formatMessage({ id: "web.routes.tabs.settings.to_discard_your_edits_and_load_the", defaultMessage: "to discard your edits and load the latest.", description: "Settings tab: sentence after the Reload button in the footer warning, saying reloading discards edits and loads the latest settings" })}</span>

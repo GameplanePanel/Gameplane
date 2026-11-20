@@ -1,5 +1,6 @@
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import type { ReactElement } from "react";
+import * as media from "@/lib/media";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -24,6 +25,7 @@ beforeEach(() => {
 afterEach(() => {
   fetchMock.mockReset();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 
@@ -57,6 +59,19 @@ function stubTemplate() {
 }
 
 describe("SettingsTab", () => {
+  it.each([
+    { mobile: true, orientation: "horizontal", arrow: "{ArrowRight}" },
+    { mobile: false, orientation: "vertical", arrow: "{ArrowDown}" },
+  ])("uses $orientation keyboard navigation for settings sections", async ({ mobile, orientation, arrow }) => {
+    vi.spyOn(media, "useMediaQuery").mockReturnValue(mobile);
+    stubTemplate();
+    renderWithQuery(<SettingsTab gs={gs()} name="mc-survival" />);
+    expect(screen.getByRole("tablist")).toHaveAttribute("aria-orientation", orientation);
+    await userEvent.click(screen.getByRole("tab", { name: "General" }));
+    await userEvent.keyboard(arrow);
+    await waitFor(() => expect(screen.getByRole("tab", { name: "Resources" })).toHaveAttribute("aria-selected", "true"));
+  });
+
   it("reads startup settings from the server's admitted revision", async () => {
     fetchMock.mockImplementation(async (url: string) => {
       if (url.startsWith("/servers/mc-survival/template")) return jsonRes({

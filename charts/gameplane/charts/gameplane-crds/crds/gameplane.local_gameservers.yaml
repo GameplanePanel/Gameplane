@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 2baa2e6e380e574531191108c18a893841f7b89399fc8216fd13bc22d1a6caf8
+    gameplane.local/crd-bundle-sha256: 11dd82c4242b31a0d15e684de63c02fcf78f2a316feb2e8dd3ad2a51ff923037
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
@@ -1398,10 +1398,32 @@ spec:
                       ingress / external-dns annotations on the Service. Must be an
                       RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
                       or hyphens, no leading/trailing hyphen, at most 253 characters
-                      total. The operator does not create the DNS record itself.
+                      total. The operator does not create the DNS record itself. On a
+                      LoadBalancer server, once the load balancer has an address, the
+                      hostname is also the address status.endpoints and the dashboard
+                      report, since it is the name players use.
                     maxLength: 253
                     pattern: ^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$
                     type: string
+                  loadBalancerClass:
+                    description: |-
+                      LoadBalancerClass selects the load-balancer implementation for the
+                      fronting Service (service.spec.loadBalancerClass), for a cluster that
+                      runs more than one, or a custom one for game traffic. It only takes
+                      effect when Expose=LoadBalancer. Kubernetes doesn't allow changing a
+                      Service's class, so when this changes the operator replaces the
+                      Service, which gets a new cluster IP and, usually, a new external
+                      address. Unset leaves the Service's class as it is. The value is a
+                      Kubernetes qualified name: an optional DNS-subdomain prefix and a
+                      slash, then a name of at most 63 characters. The prefix is at most 253
+                      characters, so the whole value is at most 317.
+                    maxLength: 317
+                    pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?[A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?$
+                    type: string
+                    x-kubernetes-validations:
+                    - message: the loadBalancerClass prefix must be at most 253 characters
+                      rule: '!self.contains(''/'') || self.split(''/'')[0].size()
+                        <= 253'
                   portOverrides:
                     description: |-
                       PortOverrides lets the user pin a specific NodePort or override
@@ -2601,6 +2623,9 @@ spec:
                     associated with a named template port.
                   properties:
                     host:
+                      description: |-
+                        Host is the address players connect to: the Service's address, or on
+                        a LoadBalancer server with spec.networking.hostname, that hostname.
                       type: string
                     name:
                       type: string
@@ -2623,6 +2648,14 @@ spec:
                     protocol:
                       description: Protocol defines network protocols supported for
                         things like container ports.
+                      type: string
+                    serviceAddress:
+                      description: |-
+                        ServiceAddress is the address the backing Service was assigned (its
+                        load-balancer IP or hostname, or its cluster IP while none is
+                        published), kept apart from Host so an advertised hostname doesn't
+                        hide which address a server holds. Reconciler-owned; empty on tunnel
+                        endpoints and on status written by an operator that predates it.
                       type: string
                     tunnelProvider:
                       description: |-
@@ -2729,6 +2762,9 @@ spec:
                     associated with a named template port.
                   properties:
                     host:
+                      description: |-
+                        Host is the address players connect to: the Service's address, or on
+                        a LoadBalancer server with spec.networking.hostname, that hostname.
                       type: string
                     name:
                       type: string
@@ -2751,6 +2787,14 @@ spec:
                     protocol:
                       description: Protocol defines network protocols supported for
                         things like container ports.
+                      type: string
+                    serviceAddress:
+                      description: |-
+                        ServiceAddress is the address the backing Service was assigned (its
+                        load-balancer IP or hostname, or its cluster IP while none is
+                        published), kept apart from Host so an advertised hostname doesn't
+                        hide which address a server holds. Reconciler-owned; empty on tunnel
+                        endpoints and on status written by an operator that predates it.
                       type: string
                     tunnelProvider:
                       description: |-

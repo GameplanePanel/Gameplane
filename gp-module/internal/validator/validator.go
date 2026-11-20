@@ -168,6 +168,7 @@ func ValidateFiles(dirName string, files map[string][]byte, opts ValidateOptions
 			findings = append(findings, validateImageDigest(node, string(tmplBytes))...)
 			findings = append(findings, validatePorts(node)...)
 			findings = append(findings, validateConfigSchemaRules(node)...)
+			findings = append(findings, validatePlayerQuery(node)...)
 		}
 	}
 

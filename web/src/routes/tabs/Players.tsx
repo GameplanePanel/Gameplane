@@ -1,5 +1,5 @@
-import { useResourceClient, useResourceAccess, useResourceTarget, resourceKey } from "@/lib/resourceTarget";
-import { useState } from "react";
+import { useResourceClient, useResourceAccess, useResourceTarget, useResourcePermissions, resourceCan, resourceKey } from "@/lib/resourceTarget";
+import { useId, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
@@ -10,11 +10,13 @@ import {
   Ban,
   Undo2,
   ListChecks,
+  ShieldCheck,
 } from "lucide-react";
 
 import { Button, Input } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { APIError } from "@/lib/api";
 import { errorTextIntl } from "@/lib/errors";
 import { playerRows } from "@/lib/players";
 
@@ -40,11 +42,14 @@ const ACTION_WORDS: Record<Action | "unban" | "add" | "remove", MessageDescripto
 
 const PLAYERS_TEXT = defineMessages({
   empty_value: { id: "web.common.empty_value", defaultMessage: "—", description: "Shown in place of a value that is not set" },
+  operators: { id: "web.routes.tabs.players.operators", defaultMessage: "Operators", description: "Players: stat label and heading for the read-only configured operator list" },
 });
 
 export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
   const intl = useOptionalIntl();
-  const canControl = useResourceAccess()?.canControl === true;
+  const access = useResourceAccess();
+  const canControl = access?.canControl === true;
+  const canReadOperators = resourceCan(useResourcePermissions(), "servers:read") || access?.isOwner === true || access?.isCollaborator === true;
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const resourceClient = useResourceClient(resourceTarget);
   const { Players: PlayersAPI } = resourceClient;
@@ -53,10 +58,12 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
   const [reason, setReason] = useState("");
   const [showBanned, setShowBanned] = useState(false);
   const [showWhitelist, setShowWhitelist] = useState(false);
+  const [showOperators, setShowOperators] = useState(true);
+  const operatorsRegionId = useId();
   const [wlName, setWlName] = useState("");
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
-  const { data, refetch, isFetching } = useQuery({
+  const { data, error: snapshotError, refetch, isFetching } = useQuery({
     queryKey: resourceKey(resourceTarget, "players", name, ns),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Players.snapshot(name, ns),
     refetchInterval: 5_000,
@@ -67,16 +74,41 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
   // Banned + whitelist are fetched whenever the game supports them so the
   // summary tiles always have counts; the sections below just toggle the
   // list's visibility, not the fetch.
-  const { data: banned, isFetching: bannedFetching } = useQuery({
+  const { data: banned, isFetching: bannedFetching, refetch: refetchBanned } = useQuery({
     queryKey: resourceKey(resourceTarget, "banned", name, ns),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Players.banned(name, ns),
     enabled: caps?.unban ?? false,
   });
-  const { data: whitelist, isFetching: whitelistFetching } = useQuery({
+  const { data: whitelist, isFetching: whitelistFetching, refetch: refetchWhitelist } = useQuery({
     queryKey: resourceKey(resourceTarget, "whitelist", name, ns),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Players.whitelist(name, ns),
     enabled: caps?.whitelist ?? false,
   });
+
+  // Configured operators are independent of live RCON. If the first snapshot
+  // fails, ask the read-only endpoint to discover support instead of hiding it.
+  // Authorization failures never trigger a fallback read.
+  const snapshotDenied = snapshotError instanceof APIError && [401, 403].includes(snapshotError.status);
+  const readOperators = canReadOperators && !snapshotDenied &&
+    (caps?.operators === true || (!data && snapshotError !== null));
+  const { data: operatorData, error: operatorsError, isFetching: operatorsFetching, refetch: refetchOperators } = useQuery({
+    queryKey: resourceKey(resourceTarget, "operators", name, ns),
+    queryFn: ({ signal }) => resourceClient.withSignal(signal).Players.operators(name, ns),
+    enabled: (query) => readOperators && !(query.state.error instanceof APIError && [401, 403, 404, 501].includes(query.state.error.status)),
+    retry: false,
+  });
+  const operatorsUnsupported = operatorsError instanceof APIError && [404, 501].includes(operatorsError.status);
+  const hasOperators = readOperators && !operatorsUnsupported;
+  const operators = operatorsError ? undefined : operatorData;
+  const refreshing = isFetching || bannedFetching || whitelistFetching || operatorsFetching;
+  const refreshPlayers = () => {
+    void Promise.all([
+      refetch(),
+      ...(caps?.unban ? [refetchBanned()] : []),
+      ...(caps?.whitelist ? [refetchWhitelist()] : []),
+      ...(readOperators ? [refetchOperators()] : []),
+    ]);
+  };
 
   const moderate = useMutation<ModResp, unknown, { action: Action | "unban"; player: string; reason?: string }>({
     mutationFn: (vars) =>
@@ -121,7 +153,9 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className={cn("grid grid-cols-2 gap-3", hasOperators
+        ? caps?.whitelist && caps?.unban ? "sm:grid-cols-4" : caps?.whitelist || caps?.unban ? "sm:grid-cols-3" : "sm:grid-cols-2"
+        : "sm:grid-cols-3")}>
         <StatCard
           label={intl.formatMessage({ id: "web.routes.tabs.players.online", defaultMessage: "Online", description: "Players tab: stat card label for the number of online players; keep it short" })}
           value={data && data.online >= 0 ? (data.max >= 0 ? intl.formatMessage({ id: "web.routes.tabs.players.online_of_max", defaultMessage: "{online} / {max}", description: "Players: online player count against the server maximum; {online} is the current count, {max} the maximum" }, { online: String(data.online), max: String(data.max) }) : String(data.online)) : intl.formatMessage(PLAYERS_TEXT.empty_value)}
@@ -133,6 +167,9 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
         {caps?.unban && (
           <StatCard label={intl.formatMessage({ id: "web.routes.tabs.players.banned", defaultMessage: "Banned", description: "Players tab: stat card label for banned players and heading of the collapsible banned list, followed by a count; keep it short" })} value={banned?.length ?? intl.formatMessage(PLAYERS_TEXT.empty_value)} accent="danger" />
         )}
+        {hasOperators && (
+          <StatCard label={intl.formatMessage(PLAYERS_TEXT.operators)} value={operators?.length ?? intl.formatMessage(PLAYERS_TEXT.empty_value)} accent="warning" />
+        )}
       </div>
 
       <header className="flex items-center justify-between">
@@ -143,18 +180,20 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
               : data.max >= 0
                 ? intl.formatMessage({ id: "web.routes.tabs.players.online_of_max_heading", defaultMessage: "{online} / {max} online", description: "Players: heading with the online count and the player slot limit; {online} is the number of players online and {max} the slot limit" }, { online: data.online, max: data.max })
                 : intl.formatMessage({ id: "web.routes.tabs.players.online_count", defaultMessage: "{online} online", description: "Players: heading with the online player count; {online} is the number of players online" }, { online: data.online })
-            : intl.formatMessage({ id: "web.routes.tabs.players.loading", defaultMessage: "Loading…", description: "Players: shown while the player list is loading" })}
+            : snapshotError
+              ? intl.formatMessage({ id: "web.routes.tabs.players.unavailable", defaultMessage: "Player information is unavailable.", description: "Players: shown when live player information could not be loaded" })
+              : intl.formatMessage({ id: "web.routes.tabs.players.loading", defaultMessage: "Loading…", description: "Players: shown while the player list is loading" })}
         </h2>
         <Button
           isIconOnly
           variant="ghost"
           size="sm"
-          onClick={() => refetch()}
-          isDisabled={isFetching}
+          onClick={refreshPlayers}
+          isDisabled={refreshing}
           aria-label={intl.formatMessage({ id: "web.routes.tabs.players.refresh_players", defaultMessage: "Refresh players", description: "Players tab: icon-only button that reloads the player list; read by screen readers; keep it short" })}
         >
           <span title={intl.formatMessage({ id: "web.routes.tabs.players.refresh", defaultMessage: "Refresh", description: "Players tab: tooltip on the refresh icon, same action as the Refresh players button" })}>
-            <RotateCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            <RotateCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
           </span>
         </Button>
       </header>
@@ -249,6 +288,42 @@ export function PlayersTab({ name, ns }: { name: string; ns?: string }) {
             })
           }
         />
+      )}
+
+      {hasOperators && (
+        <section>
+          <button
+            onClick={() => setShowOperators((value) => !value)}
+            aria-expanded={showOperators}
+            aria-controls={operatorsRegionId}
+            className="flex items-center gap-1 text-sm text-muted hover:text-fg"
+          >
+            {showOperators ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <ShieldCheck className="h-4 w-4" /> {intl.formatMessage(PLAYERS_TEXT.operators)} {operators ? intl.formatMessage({ id: "web.routes.tabs.players.count_in_parens", defaultMessage: "({count})", description: "Players: entry count shown in parentheses after a list heading; {count} is the number of entries" }, { count: operators.length }) : ""}
+          </button>
+          {showOperators && (
+            <div id={operatorsRegionId} role="region" aria-label={intl.formatMessage(PLAYERS_TEXT.operators)} className="mt-2 space-y-2">
+              {operatorsError ? (
+                <ErrorBanner err={intl.formatMessage({ id: "web.routes.tabs.players.operators_unavailable", defaultMessage: "Could not load operators. Refresh to try again.", description: "Players: error when the configured operator list cannot be read" })} />
+              ) : operators ? (
+                operators.length === 0 ? (
+                  <p className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.players.no_operators", defaultMessage: "No operators configured.", description: "Players: empty state for the configured operator list" })}</p>
+                ) : (
+                  <ul className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                    {operators.map((operator, index) => (
+                      <li key={`${operator.uuid ?? operator.name}-${index}`} className="min-w-0 rounded border border-border bg-surface/30 px-3 py-2 font-mono text-sm">
+                        <div className="break-all">{operator.name.trim() || operator.uuid}</div>
+                        {operator.name.trim() && operator.uuid && <div className="mt-1 break-all text-xs text-muted">{operator.uuid}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : (
+                <p role="status" className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.players.loading_operators", defaultMessage: "Loading operators…", description: "Players: loading state for the configured operator list" })}</p>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       {caps?.whitelist && (

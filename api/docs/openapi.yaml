@@ -539,6 +539,17 @@ paths:
       responses:
         '200':
           description: OK
+  '/servers/{name}/players/operators':
+    get:
+      summary: Read configured Minecraft Java operator identities
+      description: Requires servers:read for the target server; proxies the fixed-path agent reader.
+      responses:
+        '200':
+          description: Names and optional UUIDs; empty when ops.json is absent
+        '501':
+          description: Operator list unsupported by the configured game or data root
+        '502':
+          description: Operator list unavailable
   '/servers/{name}/players/whitelist':
     get:
       responses:
@@ -672,14 +683,29 @@ paths:
           description: OK
   '/shares/{token}':
     get:
+      summary: Resolve the public status for a shared server
       responses:
         '200':
-          description: OK
+          description: Public server status, including manuallyStopped and effective canStart booleans
+        '404':
+          description: Link unavailable
   '/shares/{token}/start':
     post:
+      summary: Request an idle wake through a shared link
       responses:
-        '200':
-          description: OK
+        '202':
+          description: Wake requested; status may remain asleep until reconciliation observes it
+        '404':
+          description: Link unavailable or does not permit waking
+        '409':
+          description: Owner manually stopped the server; no wake request is recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error]
+                properties:
+                  error: { type: string, const: server stopped }
   '/templates':
     get:
       responses:

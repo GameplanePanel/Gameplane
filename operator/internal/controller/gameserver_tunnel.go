@@ -155,7 +155,7 @@ func (r *GameServerReconciler) planTunnel(
 			ep := gameplanev1alpha1.GameServerEndpoint{
 				Name:           p.Name,
 				Host:           hostname,
-				Port:           p.ContainerPort,
+				Port:           backingPort(p, []map[string]int32{relayBackingPorts(tmpl, gs)}),
 				Protocol:       p.Protocol,
 				Private:        true, // Tailscale is always private (tailnet-only)
 				TunnelProvider: "tailscale",
@@ -321,7 +321,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 				{Name: "FRP_SERVER_ADDR", Value: tunnel.Frp.ServerAddr},
 				{Name: "FRP_SERVER_PORT", Value: fmt.Sprintf("%d", serverPort)},
 				{Name: "BACKING_SERVICE_DNS", Value: backingServiceDNS},
-				{Name: "BACKING_SERVICE_PORT", Value: buildFrpRemotePortsConfig(tunnel.Frp, tmpl)},
+				{Name: "BACKING_SERVICE_PORT", Value: buildFrpRemotePortsConfig(tunnel.Frp, tmpl, relayBackingPorts(tmpl, gs))},
 			}
 
 		case "tailscale":
@@ -356,7 +356,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 				{Name: "TAILSCALE_HOSTNAME", Value: hostname},
 				{Name: "TAILSCALE_TAGS", Value: tagsStr},
 				{Name: "BACKING_SERVICE_DNS", Value: backingServiceDNS},
-				{Name: "BACKING_SERVICE_PORTS", Value: buildTailscalePortsConfig(tmpl)},
+				{Name: "BACKING_SERVICE_PORTS", Value: buildTailscalePortsConfig(tmpl, relayBackingPorts(tmpl, gs))},
 			}
 			if r.TailscaleMaxSessions > 0 {
 				envVars = append(envVars, corev1.EnvVar{Name: "TAILSCALE_MAX_SESSIONS", Value: strconv.Itoa(r.TailscaleMaxSessions)})
@@ -386,7 +386,7 @@ func (r *GameServerReconciler) reconcileTunnel(
 				{Name: "TUNNEL_TYPE", Value: "playit"},
 				{Name: "PLAYIT_TUNNEL_NAME", Value: tunnelName},
 				{Name: "BACKING_SERVICE_DNS", Value: backingServiceDNS},
-				{Name: "BACKING_SERVICE_PORTS", Value: buildPlayitPortsConfig(tmpl)},
+				{Name: "BACKING_SERVICE_PORTS", Value: buildPlayitPortsConfig(tmpl, relayBackingPorts(tmpl, gs))},
 			}
 		}
 
@@ -704,6 +704,28 @@ func (r *GameServerReconciler) deleteTunnel(ctx context.Context, namespace, gsNa
 	return client.IgnoreNotFound(r.Delete(ctx, dep, &client.DeleteOptions{PropagationPolicy: &policy}))
 }
 
+// relayBackingPorts maps each advertised port name to the main Service's
+// port for it, which is where a relay dials: a pool port or servicePort
+// override when the server has one, else the container port.
+func relayBackingPorts(tmpl *gameplanev1alpha1.GameTemplate, gs *gameplanev1alpha1.GameServer) map[string]int32 {
+	out := map[string]int32{}
+	for _, sp := range svcPortsFromTemplate(tmpl, gs) {
+		out[sp.Name] = sp.Port
+	}
+	return out
+}
+
+// backingPort is the port a relay dials on the main Service for p: from
+// backing (relayBackingPorts) when given and known, else p's container port.
+func backingPort(p gameplanev1alpha1.GamePort, backing []map[string]int32) int32 {
+	if len(backing) != 0 {
+		if port, ok := backing[0][p.Name]; ok && port != 0 {
+			return port
+		}
+	}
+	return p.ContainerPort
+}
+
 // buildFrpRemotePortsConfig constructs the BACKING_SERVICE_PORT env var for
 // frp. Format: "port_name:local_port:remote_port:protocol,..." e.g.
 // "game:34197:30000:udp". local_port and protocol come from the matching
@@ -715,7 +737,9 @@ func (r *GameServerReconciler) deleteTunnel(ctx context.Context, namespace, gsNa
 // only when a user's remotePort happened to equal the Service port and the
 // game used TCP (F-052). A RemotePorts mapping whose Name has no matching
 // advertised template port is skipped, same as before.
-func buildFrpRemotePortsConfig(frp *gameplanev1alpha1.FrpTunnelSpec, tmpl *gameplanev1alpha1.GameTemplate) string {
+func buildFrpRemotePortsConfig(
+	frp *gameplanev1alpha1.FrpTunnelSpec, tmpl *gameplanev1alpha1.GameTemplate, backing ...map[string]int32,
+) string {
 	if frp == nil || tmpl == nil {
 		return ""
 	}
@@ -729,7 +753,7 @@ func buildFrpRemotePortsConfig(frp *gameplanev1alpha1.FrpTunnelSpec, tmpl *gamep
 			if protocol == "" {
 				protocol = "tcp"
 			}
-			entries = append(entries, fmt.Sprintf("%s:%d:%d:%s", mapping.Name, p.ContainerPort, mapping.RemotePort, protocol))
+			entries = append(entries, fmt.Sprintf("%s:%d:%d:%s", mapping.Name, backingPort(p, backing), mapping.RemotePort, protocol))
 			break
 		}
 	}
@@ -748,7 +772,7 @@ func buildFrpRemotePortsConfig(frp *gameplanev1alpha1.FrpTunnelSpec, tmpl *gamep
 
 // buildTailscalePortsConfig constructs the BACKING_SERVICE_PORTS env var for Tailscale.
 // Format: "port_name:port:protocol,..." e.g. "java:25565:tcp,bedrock:19133:udp".
-func buildTailscalePortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
+func buildTailscalePortsConfig(tmpl *gameplanev1alpha1.GameTemplate, backing ...map[string]int32) string {
 	var entries []string
 	for _, p := range tmpl.Spec.Ports {
 		if !p.Advertise {
@@ -758,7 +782,7 @@ func buildTailscalePortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
 		if protocol == "" {
 			protocol = "tcp"
 		}
-		entries = append(entries, fmt.Sprintf("%s:%d:%s", p.Name, p.ContainerPort, protocol))
+		entries = append(entries, fmt.Sprintf("%s:%d:%s", p.Name, backingPort(p, backing), protocol))
 	}
 	if len(entries) == 0 {
 		return ""
@@ -775,13 +799,13 @@ func buildTailscalePortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
 
 // buildPlayitPortsConfig constructs the BACKING_SERVICE_PORTS env var for Playit.
 // Format: "port_name:port,..." e.g. "java:25565,bedrock:19133"
-func buildPlayitPortsConfig(tmpl *gameplanev1alpha1.GameTemplate) string {
+func buildPlayitPortsConfig(tmpl *gameplanev1alpha1.GameTemplate, backing ...map[string]int32) string {
 	var entries []string
 	for _, p := range tmpl.Spec.Ports {
 		if !p.Advertise {
 			continue
 		}
-		entries = append(entries, fmt.Sprintf("%s:%d", p.Name, p.ContainerPort))
+		entries = append(entries, fmt.Sprintf("%s:%d", p.Name, backingPort(p, backing)))
 	}
 	if len(entries) == 0 {
 		return ""

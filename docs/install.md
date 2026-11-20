@@ -38,6 +38,26 @@ belong to is enabled (and, for `sentinel` and `capture-sidecar`, only for
 GameServers that opt in). See each component's values block for its enable
 flag.
 
+The chart's default install renders the following objects, and each optional
+branch depends on the values shown:
+
+```mermaid
+flowchart TD
+  release["helm install or upgrade gameplane"] --> opq{"operator.enabled"}
+  release --> apiq{"api.enabled"}
+  release --> monq{"serviceMonitors, prometheusRules or grafanaDashboards"}
+  opq -- "true (default)" --> crds["gameplane-crds subchart (Helm crds/ phase)"]
+  opq -- "true (default)" --> op["Operator Deployment, RBAC and NetworkPolicies"]
+  opq -- "true (default)" --> vap["Admission policies and default ModuleSource"]
+  apiq -- "true (default)" --> api["API Deployment, Service and data PVC"]
+  apiq -- "web.enabled (default)" --> web["Web dashboard"]
+  apiq -- "ingress.enabled" --> ing["Ingress"]
+  release -- "not api.standalone and crds.autoApply.enabled" --> hook["CRD apply hook Job"]
+  apiq -- "api.telemetry.receiver.enabled and empty endpoint" --> tr["Telemetry receiver"]
+  apiq -- "syslogBridge.enabled and empty webhook URL" --> asb["Audit syslog bridge"]
+  monq -- "opt-in" --> mon["ServiceMonitor, PodMonitor, PrometheusRule and dashboard ConfigMap"]
+```
+
 ### Edge channel (latest edge build)
 
 Every push to `master` publishes rolling `:edge` images. To track them, install
@@ -81,8 +101,8 @@ helm upgrade --install gameplane ./charts/gameplane \
 ```
 
 > **Note:** GHCR packages are private on first publish. The maintainer makes the
-> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, and `charts/gameplane`
-> packages public once (GHCR → package → *Package settings* → *Change visibility*)
+> `gameplane/operator`, `gameplane/api`, `gameplane/agent`, `charts/gameplane` and
+> `charts/gameplane-crds` packages public once (GHCR → package → *Package settings* → *Change visibility*)
 > so anonymous `helm install` / `docker pull` works. For a private install,
 > create a `kubernetes.io/dockerconfigjson` pull secret and set
 > `image.pullSecrets`.
@@ -389,6 +409,12 @@ Top-level knobs (see `values.yaml` for the full list):
 
   Any other value fails the operator at startup. The operator never writes the
   deprecated `service.spec.loadBalancerIP`.
+- `operator.portPools` — port pools: ranges of ports on one shared public
+  endpoint, each with the templates whose servers draw from it
+  (`[{name: edge, ports: "2456-2499", templates: [valheim, factorio]}]`).
+  Each server gets a contiguous block, kept for its life. Use it when servers
+  are reached through a relay or an edge that forwards ports, as games whose
+  clients send no hostname must be. See [Networking](networking.md#port-pools).
 - `capture.enabled` — the optional network packet capture sidecar [optional] for GameServers
   (default `false`). When enabled cluster-wide, admins can opt individual GameServers
   into live AF_PACKET capture with BPF filtering and download PCAPNG files. Captures
@@ -527,7 +553,7 @@ a slow or down sink never blocks or fails a request.
 - `api.audit.webhook.authSecretRef` — optional `Authorization` header for the
   webhook, sourced from a Secret (never a flag — see [security](security.md)).
 - `api.audit.webhook.syslogBridge.enabled` — deploy the bundled
-  [audit-syslog-bridge [optional]](../audit-syslog-bridge/README.md) and point the webhook
+  [audit-syslog-bridge [optional]](https://github.com/GameplanePanel/audit-syslog-bridge/blob/main/README.md) and point the webhook
   at it automatically, so events are forwarded to a **syslog** collector. Set
   `syslogBridge.syslog.addr` to your collector `host:port` (required when
   enabled), and optionally `network` (`tcp`/`udp`), `tls`, `facility`, and
@@ -969,6 +995,17 @@ not run. A fresh install therefore never depends on pulling the hook's
 `crds.autoApply.image` if you reinstall on an air-gapped cluster. CRDs are
 never owned or deleted by Helm here, so `helm uninstall` leaves your
 GameServers intact.
+
+With Helm 3, the hook's events on `helm install` depend on the live CRD stamp:
+
+```mermaid
+flowchart TD
+  start["helm install or helm upgrade"] --> up{"Release.IsUpgrade?"}
+  up -- yes --> pre["pre-upgrade hook: kubectl apply --server-side"]
+  up -- no --> live{"gameservers CRD present with a different stamp?"}
+  live -- "no: fresh cluster, stamps match" --> none["No hook Job; crds/ created the CRDs"]
+  live -- "yes: leftover CRDs" --> pi["pre-install and pre-upgrade hook applies crd-manifests/"]
+```
 
 **Helm 4** installs `crds/` with a server-side apply under the field manager
 `helm` instead of skipping existing CRDs, so a `helm install` over leftover

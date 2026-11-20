@@ -8,6 +8,7 @@ import type {
   BackupDestination,
   BackupSchedule,
   BannedPlayer,
+  ServerOperator,
   CatalogEntry,
   ClusterInfo,
   ClusterRegistry,
@@ -917,6 +918,8 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
     snapshot: (server: string, ns?: string) => api<PlayersResp>(withNS(`/servers/${server}/players`, ns)),
     banned: (server: string, ns?: string) =>
       api<BannedPlayer[]>(withNS(`/servers/${server}/players/banned`, ns)),
+    operators: (server: string, ns?: string) =>
+      api<ServerOperator[]>(withNS(`/servers/${server}/players/operators`, ns)),
     moderate: (
       server: string,
       action: ModerateAction,

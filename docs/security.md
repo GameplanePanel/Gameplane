@@ -12,6 +12,41 @@ point. Assume:
 - a dashboard user with only `servers:read` must not be able to read game passwords (RCON, admin or server passwords) out of a GameServer,
 - a usage-telemetry receiver is reachable by anyone on the internet, so it must stay safe when fed hostile or invented reports, and must never reveal figures to an unauthenticated viewer (see [Telemetry](#telemetry)).
 
+The main trust boundaries, and the outbound dials that pass a dial-time address guard, are:
+
+```mermaid
+flowchart LR
+  subgraph Internet["Untrusted"]
+    Browser["Dashboard user browser"]
+    Players["Scanners and game players"]
+    Hosts["Mod download hosts"]
+    Steam["api.steampowered.com"]
+    Sinks["Notification sinks (HTTP, SMTP)"]
+    Sources["Module sources (git, http, OCI)"]
+  end
+  subgraph Cluster["Gameplane cluster"]
+    Ingress["Ingress and web (nginx)"]
+    API["API (chi gateway)"]
+    Operator["Operator (controller-runtime)"]
+    K8s["Kubernetes API server"]
+    subgraph Game["Game pod (low-trust)"]
+      Agent["Agent sidecar :8090"]
+      Server["Game process"]
+    end
+  end
+  Browser -->|"HTTPS, session cookie and CSRF header"| Ingress
+  Ingress --> API
+  Players -->|"advertised ports only (NetworkPolicy)"| Server
+  API -->|"ServiceAccount, Kubernetes RBAC"| K8s
+  Operator -->|"reconciles CRDs"| K8s
+  API -->|"mTLS client cert"| Agent
+  Operator -->|"mTLS, agent CA"| Agent
+  Agent -->|"IsPublic guard"| Hosts
+  API -->|"IsPublic guard"| Steam
+  API -->|"IsAllowed guard"| Sinks
+  Operator -->|"IsAllowed guard"| Sources
+```
+
 ## Authentication
 
 ### Snapshot data and namespace storage trust
@@ -55,8 +90,10 @@ Two modes, configurable independently:
   State validated through a short-lived cookie; `id_token` signature
   verified against the provider's JWKS.
 
-On first OIDC login for a subject, Gameplane creates a user row with
-role `viewer`. Admins must promote new OIDC users manually.
+On first OIDC login for a subject, Gameplane creates a user row. Without
+role mappings the role is `viewer` and admins must promote new OIDC users
+manually; with role mappings the role comes from the user's IdP groups (see
+[Install-Time OIDC Role Mappings](#install-time-oidc-role-mappings)).
 
 ### Dashboard-managed providers
 
@@ -108,6 +145,20 @@ loopback and private ranges `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`,
 `192.168.0.0/16`, `169.254.0.0/16`, `::1/128`, `fc00::/7`, `fe80::/10`).
 
 The API applies these rules in order (`api/internal/auth/clientip.go`):
+
+```mermaid
+flowchart TD
+  A["TCP peer address"] --> B{"Peer in api.trustedProxies?"}
+  B -- no --> C["Client = peer, X-Forwarded-For ignored"]
+  B -- yes --> D{"Any X-Forwarded-For entry left?"}
+  D -- no --> E["Client = leftmost address reached"]
+  D -- yes --> F["Take the rightmost unread entry"]
+  F --> G{"Entry is an IP address?"}
+  G -- no --> H["Client = last address reached"]
+  G -- yes --> I{"Entry in api.trustedProxies?"}
+  I -- no --> J["Client = this entry"]
+  I -- yes --> D
+```
 
 1. A TCP peer outside `api.trustedProxies` is the client. Any
    `X-Forwarded-For` header on its request is ignored.
@@ -213,6 +264,24 @@ named set of permissions, and a user is bound to roles **per namespace**.
   The API does this itself rather than relying on foreign-key cascades,
   which the shipped SQLite DSN leaves off. An SSO user who is deleted and
   signs in again is provisioned as a new user.
+
+The middleware decides each request as follows:
+
+```mermaid
+flowchart TD
+  A["Authenticated request"] --> B{"Route in the permission table?"}
+  B -- no --> X["Refused (fail closed)"]
+  B -- yes --> C{"Route needs no permission?"}
+  C -- yes --> OK["Allowed"]
+  C -- no --> D["Resolve cluster (cluster selector) and namespace"]
+  D --> E{"Permission namespaced?"}
+  E -- no --> F{"Cluster-wide binding on any cluster?"}
+  E -- yes --> G{"Cluster-wide or same-namespace binding grants it?"}
+  F -- yes --> OK
+  F -- no --> X
+  G -- yes --> OK
+  G -- no --> X
+```
 
 ### Per-GameServer access (owner + collaborators)
 
@@ -812,10 +881,11 @@ termination is not clean.
 Default timeout budget is ≤30 minutes. Documented exceptions with inline
 justification comments:
 
-- The five e2e jobs in ci.yaml run at 60 minutes (the `e2e-go` job uses a
-  `job_timeout` matrix value; `e2e-multicluster`, `e2e-upgrade`, `e2e-web-live`,
-  `e2e-game-bot` set it directly). E2E test suites on kind clusters are
-  inherently slow; 60 minutes is measured from prior runs.
+- The e2e jobs in ci.yaml run at 45 to 105 minutes: most buckets at 60 or 75 minutes (the `e2e-go` jobs use a
+  `job_timeout` matrix value), `e2e-upgrade` at 85 and `e2e-postgres` at 105.
+  E2E test suites on kind clusters are inherently slow; the budgets are measured
+  from prior runs.
+- **release.yaml**: the `images` job runs at 45 minutes.
 - **publish-edge.yaml**: the `images` job runs at 35 minutes (measured 31-minute
   historical max for full image build and push across all components).
 
@@ -842,8 +912,7 @@ by matching known patterns:
 An important limitation: **redaction is pattern-based and therefore best-effort.**
 A credential in an unrecognised shape — a long hex string, a custom token format,
 or a value buried in a JSON log without a recognisable key — may not be caught.
-No Kubernetes Secret object is ever collected into dumps (`for obj in deployments
-statefulsets daemonsets jobs configmaps`), so high-entropy database passwords and
+No Kubernetes Secret object is ever collected into dumps (the action only runs `kubectl get all -A`, `get jobs`, `describe pods`, pod and container queries, and `logs`, plus `helm history gameplane` when `include-helm-history` is true; none of these read Secrets, but reviewers should inspect the Helm history output like the rest of the dump), so high-entropy database passwords and
 OIDC secrets bound to the pod via Secrets are outside the dump scope entirely.
 
 Operators should: treat CI artifacts as sensitive (not suitable for sharing with
@@ -907,8 +976,8 @@ Anyone can therefore post reports. Defences:
 - only daily aggregates and expiring activity records are stored; raw
   reports and source addresses are never written to disk
 
-`GET /v1/summary` is off unless `PUBLIC_SUMMARY=true`. It returns five
-fixed counts and nothing else: no breakdown, no per-day series, no install
+`GET /v1/summary` is off unless `PUBLIC_SUMMARY=true`. It returns four
+fixed counts plus an as-of timestamp and nothing else: no breakdown, no per-day series, no install
 ID. It is cached and rate-limited so public polling can't degrade ingest.
 
 What this does not stop: someone can invent installs and send fabricated

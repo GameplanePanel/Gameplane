@@ -21,6 +21,17 @@ the key type cosign generates by default, so it works cleanly with Rekor.
 | [`signing/2026-07-24-cosign-legacy.pub`](../signing/2026-07-24-cosign-legacy.pub) | Ed25519 | Retired key. Verifies releases published **before** the rotation, and the cross-signature below. |
 | [`signing/cosign.pub.legacy-sig`](../signing/cosign.pub.legacy-sig) | — | The old key's signature over the new `signing/cosign.pub` (trust continuity). |
 
+The retired key vouches for the current one, and each key verifies a different release range:
+
+```mermaid
+flowchart LR
+  Legacy["Retired Ed25519 key<br/>signing/2026-07-24-cosign-legacy.pub"]
+  Current["Current ECDSA P-256 key<br/>signing/cosign.pub"]
+  Legacy -->|"cross-signature over cosign.pub<br/>cosign.pub.legacy-sig"| Current
+  Legacy -->|"verifies releases before rotation"| Old["Pre-rotation artifacts (keyed, unlogged)"]
+  Current -->|"verifies releases from rotation onward"| New["Post-rotation artifacts (recorded in Rekor)"]
+```
+
 ## Verify the cross-signature
 
 Confirm the retired key endorsed the current key. With openssl (portable):

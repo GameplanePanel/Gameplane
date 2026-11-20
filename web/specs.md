@@ -169,8 +169,8 @@ This rule was enforced by lint and review throughout the rebuild: any rebuilt fi
    - Passes `theme` and `setTheme` as props to Sidebar
    - Sidebar renders `AppearanceToggle` with `value` and `onChange` callbacks
    - On toggle, AppearanceToggle calls the `onChange` callback (wired to `setTheme`)
-   - `setTheme` syncs to localStorage; `useAppearance()` calls `applyTheme()` via useEffect on every theme change
-   - `applyTheme()` (web/src/components/AppLayout.tsx lines 48–57) explicitly sets both `document.documentElement.classList` (adds/removes dark/light) and `document.documentElement.dataset.theme = resolved`, ensuring consistent theme application without requiring a separate hook from HeroUI
+   - `setTheme` syncs to localStorage; `useAppearance()` calls `applyThemePreferences()` (web/src/lib/useThemePreferences.ts) via useEffect on every theme change
+   - `applyThemePreferences()` (web/src/lib/useThemePreferences.ts) explicitly sets both `document.documentElement.classList` (adds/removes dark/light) and `document.documentElement.dataset.theme = resolved`, ensuring consistent theme application without requiring a separate hook from HeroUI
 
 **Shipped default:** `<html class="dark" data-theme="dark">` in markup (dark theme as the no-JavaScript fallback; overridden by boot script if a stored preference exists).
 
@@ -207,7 +207,7 @@ Spec: `specs/done_016-user-theme-customization/`. Both the non-UI plumbing and t
 - `enforceUnauthenticatedTheme()` (`web/src/lib/enforceUnauthenticatedTheme.ts`) pins `data-theme-preset="pink"`, `data-theme-type="preset"`, `data-custom-css="off"` on `<html>` and strips `#gameplane-custom-css` / `#gameplane-custom-theme-vars` for the route's lifetime, via a `MutationObserver` that reverts any flip (covers residue from a previously logged-in session on the same browser). Light/dark state is deliberately untouched
 - Mounted by `Login.tsx` and `Share.tsx` as a route-level `useEffect(() => enforceUnauthenticatedTheme(), [])`; complements the boot-time guard in `index.html`, which only covers the pre-paint window
 
-**Client endpoints:** `Users.getPreferences` / `Users.updatePreferences` / `Users.resetPreferences` (Layer 2 above); `Users.me()` returns `preferences` embedded (types.ts `User.preferences`)
+**Client endpoints:** `Users.updatePreferences` / `Users.resetPreferences` (Layer 2 above); `Users.me()` returns `preferences` embedded (types.ts `User.preferences`)
 
 ### Test Count Rule (FR-010)
 
@@ -296,6 +296,7 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - LoadingCard during template resolution (line 28); ErrorCard if no console available (line 35)
    - Uses ui/ LoadingCard, ErrorCard only (lines 4–5); console I/O engine unchanged
    - Recent pod output opens at the newest line after the snapshot renders. Loading older history prepends it without discarding the current snapshot or moving the reader away from the currently visible output; closing or changing the resource resets history. Combined pages retain all source-container names and any clipped-history warning.
+   - RCON text replies normalize LF and CRLF to terminal CRLF, preserving indentation and content so each line starts in column zero. PTY output retains its raw terminal line endings and control sequences.
    - Command bar under the terminal (`ConsoleShell.tsx`): Send or Enter submits; ArrowUp/ArrowDown recall the last 100 commands sent from this tab (consecutive repeats collapsed), and ArrowDown past the newest restores the unsent line. History lives per mount and is not persisted
 
 4. **Logs** (`web/src/routes/tabs/Logs.tsx`, 299 lines)
@@ -318,8 +319,9 @@ Six of the nine ServerDetail tabs are rebuilt in this slice:
    - Check one or more paths to download a ZIP, create a ZIP in the current directory, or confirm deletion. The file manager identifies failed paths and keeps them selected.
    - New file uses POST `/files/create` with the encoded path, namespace/cluster scope, credentials and CSRF headers. The agent atomically refuses existing entries with 409; a conflict or unsupported older agent/gateway keeps the prompt open, shows the error and does not select a file or invalidate the list. Never fall back to `/files/write`; editor saves and uploads retain overwrite behavior.
 
-6. **Players** (`web/src/routes/tabs/Players.tsx`, 386 lines)
-   - Online player snapshot, ban list, whitelist management
+6. **Players** (`web/src/routes/tabs/Players.tsx`)
+   - Online player snapshot, ban list, whitelist management, and a read-only configured Operators list with its own count. Operators show names and optional UUIDs, including offline entries; loading, empty, and failed reads are distinct. Refresh reloads the snapshot and all supported lists. Failed operator reads hide previously loaded identities until a successful refresh.
+   - Operators require scoped `servers:read`, owner, or collaborator access and the agent's capability. When the initial RCON snapshot fails without an authorization error, the operator endpoint can discover support independently; 404/501 hide unsupported older agents or games until an explicit Refresh probes again. Authorization failures do not trigger discovery, and operator reads do not retry automatically.
    - Rows come from `playerRows()` (`web/src/lib/players.ts`): when the snapshot carries `entries` (Nuclear Option), each row shows the display name, or the raw Steam ID in muted text when none resolved, plus a faction chip; otherwise rows render the flat `players` strings unchanged. The Overview `PlayersCard` uses the same rows (label only, no faction).
    - Kick/ban always send the row's Steam ID, never the rendered display name
    - Player count summary via ui/ StatCard (line 15)
@@ -504,6 +506,7 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 
 3. **Backups Management Page** (`web/src/routes/Backups.tsx`, 18,395 bytes)
    - Tabbed interface with three sub-views: Backups (index), Schedules, Restores
+   - All three table empty states use consistent horizontal and vertical padding, centered muted text, and wrapping for longer messages, including filtered and unavailable-data states. Empty messages use the table scroll viewport width and remain visible while wide column headers scroll horizontally.
    - **Backups tab:** List all Backup CRs (manual + scheduled); filter by server/status; view backup metadata (size, created/expires); select row to open detail drawer, or restore — no inline delete action on the row
    - **Schedules tab:** List BackupSchedule CRs; create (per-server, no edit mode) and suspend/delete schedules; plain cron-expression input (no daily/weekly template pickers); retention policy form
    - **Restores tab:** List Restore operations in progress and completed; view status, source backup, destination server; no row actions (no view-details drawer, no cancel-restore)
@@ -730,8 +733,8 @@ src/
                             # Settings sub-sections: General, Version, Resources, Networking,
                             # Environment, Lifecycle, Backups (scheduled), Placement, Access (RBAC), Danger
   components/
-    ui/                     # Gameplane compositions over HeroUI (@heroui/react): button, card, input,
-                            # select, tabs, switch, slider, textarea, dialog, confirm-dialog, stat, etc.
+    ui/                     # Gameplane compositions over HeroUI (@heroui/react): AppShell, Sidebar, TopBar, StatCard, PhaseChip,
+                            # ConfirmDialog, DropdownMenu, FilterPopover, ErrorBanner, Meter, Sparkline, GameIcon, etc.
     server/                 # Server-detail helpers: ServerActionsMenu, tab components
     backups/                # Backup-flow components: restore wizard, destination selector
     modules/                # Module catalog, install flow, upload preview
@@ -787,7 +790,7 @@ package.json                # @gameplane/web v0.4.1; dev: vite, npm scripts for 
 
 ## Routing & Pages
 
-**Router:** TanStack Router v1.75 in `src/router/tree.tsx` defines a two-level structure:
+**Router:** TanStack Router v1.170 in `src/router/tree.tsx` defines a two-level structure:
 - Root route → `<Outlet>`
 - Login route (`/login`) → public, unauthenticated
 - App layout (`/app-layout`) → contains all authenticated pages
@@ -861,6 +864,21 @@ package.json                # @gameplane/web v0.4.1; dev: vite, npm scripts for 
      changes for a retry. A row added or removed but never saved leaves its Secret as it was. Secrets the section
      didn't create (a user-set `configRef`) are never removed.
 
+### Immediate registry persistence
+
+`useModRegistrySave` implements an immediate save for keyed mod registries. It
+reads current configuration before writing, rejects a changed selected provider,
+and preserves other providers' current entries. A key save stores its managed
+Secret before the config row. Removal stores the row deletion before deleting
+only the API-owned Secret. Errors remain visible to the caller; the query cache
+retains a committed config write even if Secret cleanup fails. Set, replace and
+remove actions persist immediately without a second section-level Save button.
+The key form remains open and retains its write-only input on failure. Pending
+saves disable the field, cancel and provider actions, with an event-level guard
+against duplicate submissions. Only confirmed success closes the form and
+clears the key; reopening Replace always starts empty. Configured badges reflect
+committed configuration, including after leaving or reloading settings.
+
 ### Install-Time Settings Display & OIDC Role Mapping Overrides (AdminSettings & Cluster split)
 
 **Pattern:** Install-time cluster configuration (set via Helm values at deploy time) is read-only in the dashboard. These settings are **never dashboard-editable**; they originate from `installTimeSettings` injected via the API's `GET /admin/config` response.
@@ -925,7 +943,7 @@ When no role mappings exist (neither overridden nor Helm-seeded), the card displ
 Mapping users to the admin role grants full cluster control. The dashboard enforces a two-step confirmation:
 
 - **Read-only Helm-seeded path (HelmOIDCProviderCard):** If Helm-seeded role mappings include admin mappings, show a warning banner (no confirm step; the admin already made this decision at deploy time)
-- **Editable override path (RoleMappingOverridesCard):** When a user tries to **add** an admin role mapping via the overrides editor, show `AdminMappingConfirmDialog`
+- **Editable override path (RoleMappingOverridesCard):** When a user tries to **add** an admin role mapping via the overrides editor, show `ConfirmAdminMappingDialog`
 
 The confirm dialog displays:
 - A fixed warning banner with exact copy: "Mapping users to the admin role grants full cluster control. Ensure the mapped group contains only authorized personnel. Anyone in these groups gets full admin access from their next login."
@@ -954,8 +972,9 @@ The warning is shown regardless of how many groups are being added (single or mu
     - Public, unauthenticated, no sidebar or top bar
     - Resolves a share link token to its public view (server name, status, address, player count if exposed)
     - Rate-limited; invalid links and auth failures show neutral "Link not available" copy per FR-005, without raw error detail
-    - Starting polls wait at least five seconds after each completed request, with one request in flight. Transient 429/5xx/network failures retain the last public Starting view (or loading spinner during initial resolve) and retry with 10/20/40/60-second bounded backoff; a larger Retry-After (seconds or HTTP date) is honored. Successful Starting/Pending responses reset the delay; Running, asleep, or neutral invalid responses stop polling. Token changes/unmount abort requests and ignore stale completions. `Shares.resolve` propagates transient errors with `APIError.retryAfter`, while invalid/expired/revoked 404s remain the same neutral response.
-    - Five states: loading (spinner), up (server online), asleep-start (sleeping, can start), asleep-viewonly (sleeping, view-only), starting ("starting up" copy, shown both after a visitor's Start and for an ordinary start), invalid (link unavailable)
+    - Public responses include `manuallyStopped` and effective `canStart` booleans; clients tolerate their absence from older API versions. `Shares.start` propagates rejected requests, including uniform 404 and manually-stopped 409 responses, so only an accepted response begins wake polling. The page never displays raw response details. A manual stop takes precedence over stale observed phases, including Running, and shows Stopped with owner-must-start copy and no public action. A 409 from Start enters the same stopped state. An idle-asleep response with `canStart: false` shows the view-only card; missing fields retain compatibility with older APIs.
+    - Starting polls wait at least five seconds after each completed request, with one request in flight. Transient 429/5xx/network failures retain the last public Starting view (or loading spinner during initial resolve) and retry with 10/20/40/60-second bounded backoff; a larger Retry-After (seconds or HTTP date) is honored. Successful polling responses reset the delay. After an accepted wake, stale Stopped/Suspended phases keep the Starting card and continue polling; no second Start is offered. Running, a manual stop, or a neutral invalid response stops polling. Every Starting session has a separate five-minute deadline that stops scheduled polls and aborts an outstanding request even during long Retry-After backoffs, then shows Still unavailable with check-back/owner-help copy. An observed start without a locally accepted wake may return to an asleep card. Token changes/unmount abort requests and ignore stale completions. `Shares.resolve` propagates transient errors with `APIError.retryAfter`, while invalid/expired/revoked 404s remain the same neutral response.
+    - States: loading (spinner), up (server online), asleep-start (sleeping, can start), asleep-viewonly (sleeping, view-only), starting ("starting up" copy, shown both after a visitor's Start and for an ordinary start), stopped (owner must start), timed-out (startup wait ended), invalid (link unavailable)
     - Respects stored appearance preference (light/dark/system); no theme toggle shown
     - Uses HeroUI Card, Button, Chip, Spinner; brand header with ShieldCheck icon; address copy button
     - Built directly from HeroUI primitives; no ui/ atom components
@@ -971,9 +990,9 @@ Visible tab set depends on server template + active version:
 5. **Files** — Browser and editor for server data files (config, save games, logs)
 6. **Mods** — List/install/remove mods; browse by registry provider (Modrinth, CurseForge, etc.) if template declares one
 7. **Modpacks** — Install modpacks (only if template + active version supports loader with modpack capability)
-8. **Players** — Online player snapshot, ban list, whitelist, kick/ban/unban actions
+8. **Players** — Online player snapshot, configured operator identities, ban list, whitelist, kick/ban/unban actions
 9. **Backups** — Per-server backup list, schedule management, restore trigger; reads backup repository URL from Secret `key: "repo"`
-10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:127-175`) and router/tab wiring (`ServerDetail.tsx:278`) are implemented in `web/src`.
+10. **Capture** — a `CaptureWidget` component driving start/stop of packet captures and a table of past captures for this server, gated on the `captures:manage` permission. Sits between the Backups and Settings tabs per `assets/design-export/json` node `O08uaD`/`b4eaUf` (start-capture modal) and `m5kOm4` (capture list). `CaptureWidget.tsx` with `Captures` client namespace (`web/src/lib/api.ts:207-261`) and router/tab wiring (`web/src/routes/ServerDetail.tsx:387`) are implemented in `web/src`.
 11. **Settings** — Grouped form with sub-sections (below); changes are draft-until-save; conflict detection on reload
 
 On narrow screens, server actions wrap and the detail tab strip scrolls inside its navigation container. Selecting a tab keeps that tab visible without horizontally scrolling the page or moving the panel controls off-screen.
@@ -990,7 +1009,7 @@ namespace, name and UID before providing access through `ResourceTargetProvider`
 
 ## ServerDetail Settings Sub-sections
 
-Settings tab (`SettingsTab`, `web/src/routes/tabs/Settings.tsx`) displays 12 sections in a left sidebar (`SECTIONS` array; a 13th, Game configuration, is inserted after Version when the template declares a `configSchema`):
+Settings tab (`SettingsTab`, `web/src/routes/tabs/Settings.tsx`) displays up to 13 sections in a left sidebar (`SECTIONS` array; Version only when the template has versions, Game configuration only when the template declares a `configSchema` or the server carries config keys; Share links is described after the list):
 
 Save fetches the latest server and applies only the changes from the original baseline to the draft (`web/src/lib/settingsMerge.ts`). Untouched spec fields, labels, annotations, status and resourceVersion survive concurrent edits. Nested object keys merge independently; arrays are atomic. Divergent changes to the same field, including deleting a concurrently modified field, show the existing reload prompt before any PUT. Clearing config/label/annotation maps removes baseline keys while preserving concurrently added keys. Save waits for the template and validates the entire draft's game configuration regardless of the selected section; section-reported editor validity is retained across navigation. Discard, reload and successful save reset editor state and validity.
 
@@ -998,12 +1017,12 @@ Save fetches the latest server and applies only the changes from the original ba
 2. **Version** — Template version selector (triggers container restart)
 2a. **Game configuration** — `GameConfigSection` (`web/src/routes/tabs/settings/GameConfig.tsx`), key `config`, shown only when `template.spec.configSchema` has entries (or the server still carries `spec.config` keys, so stray keys can be removed). Edits `draft.spec.config` through the tab's shared draft/Save footer; renders fields with the shared `ConfigFields` (`web/src/components/server/ConfigFields.tsx`, variant `settings`). An unset key means the template default (or the auto value); a value equal to the schema default removes the key, and an emptied map is written as `undefined` (never `{}`). Client validation (`validateConfig`, `web/src/lib/validation.ts`): required, enum, int (whole number, min/max), bool, string/password length; failures show inline and disable Save through `onValidityChange` (the operator stays authoritative; the API does not validate against the schema). Password fields are write-only: the API returns the marker `__gameplane_redacted__` for a stored password, the input is empty with the placeholder "Unchanged — type to replace" and a "Write-only" note, the marker is never rendered, stays in the draft until the user types (the PUT then keeps the stored value) and typing replaces it. A stored OPTIONAL password also shows a "Remove password" button (spec 021 OD-2): pressing it drops the key from the draft (the API deletes an optional password whose key is absent) and shows "Password will be removed" with an Undo button; the state is derived from `storedConfig` (the saved `gs.spec.config` marker) so it survives section switches, Undo restores the key in its saved position, required passwords and read-only sessions get no button, and emptying a typed value still returns to "unchanged". `target: file` fields carry a "Written to file" note. Keys present in `spec.config` but absent from the schema are listed with a "Remove" button ("No longer in the template") because the operator rejects unknown keys. The notice follows the edited fields in the effective schema. Startup-only edits apply at the next container start. Ordinary configuration edits can restart the server. Minecraft Java groups supported startup options and previews the independently resolved heap sizes for the itzg launcher. When `status.conditions[type=Ready].message` starts with `invalid config:` a danger alert shows it. Without `servers:write` (`access.canWrite`) the fields are disabled, the alert is hidden and the footer shows "You need permission to change this server's settings." instead of Discard/Save.
 3. **Resources** — `ResourcesSection` (`web/src/routes/tabs/settings/Resources.tsx`): CPU and memory (`spec.resources`), storage size and StorageClass. The CPU and memory fields show the saved limit (falling back to the request, then the 2 cores / 4Gi dashboard default). By default each field writes the same value to the request and the limit (Guaranteed QoS). The "Reserve less than the limit" switch (Burstable QoS) is not stored: it is on when a saved request differs from its limit, or once the user turns it on. While it is on, the CPU and memory fields are the limits and "Reserved CPU" / "Reserved memory (GiB)" (`ResourceInput` with its `label` prop) are the requests, from 0 (reserve nothing) up to the saved limit (uncapped when there is no saved limit). Lowering a limit below a saved request lowers that request to the new limit, since Kubernetes rejects a request above its limit. Each control writes only its own value, so an absent limit or request stays absent: the displayed fallbacks are never written back. Switching off copies each saved limit onto its request; a resource without a saved limit keeps its request.
-4. **Networking** — Service type (ClusterIP/NodePort/LoadBalancer), LoadBalancer hostname, address pool / explicit address request, port overrides. Tunnel validation (`tunnel.enabled`, provider-specific config, credentials) is computed during render and reported via `onValidityChange` callback in an effect; local field state for `addressPool` and `address` is held in `useState` — so consecutive edits within one render are cumulative rather than each recomputing against the same stale `net` snapshot — and is re-seeded from props by two complementary mechanisms: on identity change, via a parent `key` remount; and in-render, whenever the incoming values differ by value from the last synced pair (so a save round-trip or a reload that returns changed values for the *same* server is picked up).
+4. **Networking** — Service type (ClusterIP/NodePort/LoadBalancer), LoadBalancer hostname, address pool / explicit address request, port overrides. `spec.networking.loadBalancerClass` is not editable in this form (it is set through the API or kubectl); a settings save keeps it as it is. Tunnel validation (`tunnel.enabled`, provider-specific config, credentials) is computed during render and reported via `onValidityChange` callback in an effect; local field state for `addressPool` and `address` is held in `useState` — so consecutive edits within one render are cumulative rather than each recomputing against the same stale `net` snapshot — and is re-seeded from props by two complementary mechanisms: on identity change, via a parent `key` remount; and in-render, whenever the incoming values differ by value from the last synced pair (so a save round-trip or a reload that returns changed values for the *same* server is picked up).
 5. **Environment** — Custom env var key=value pairs
 6. **Lifecycle** — Pre/post-start/stop scripts, quiesce grace period
 7. **Scheduled backups** — `BackupsSection` (`web/src/routes/tabs/settings/Backups.tsx`): a single inline toggle (enable/disable) and form editing `spec.backupPolicy` on the server draft — cron-expression input (no daily/weekly picker), destination picker, retention fields, and a suspend switch; not a separate CRUD list
 8. **Network capture** — `NetworkCaptureSection` (`web/src/routes/tabs/settings/NetworkCapture.tsx`). Enable/disable switch for `spec.capture.enabled` (the opt-in ephemeral-container sidecar); states plainly that disabling stops new captures immediately but the already-injected sidecar container stays in the pod, idle, until the pod is next recreated (Kubernetes has no API to remove an ephemeral container); admin-access + unredacted-data warning; a Retention Window control (numeric value + seconds/minutes/hours/days unit select) writing `spec.capture.retentionSeconds`, validated client-side against the cluster ceiling of 604,800 seconds (7 days — a storage-limitation-informed engineering default, explicitly not a legal requirement) mirroring the CRD's `+kubebuilder:validation:Maximum=604800` on `CaptureConfiguration.RetentionSeconds` (`operator/api/v1alpha1/gameserver_types.go`). Controls are disabled, with an explanatory note, for a session lacking the `captures:manage` permission (`api/internal/rbac/catalog.go`) — the API is still the real enforcer (FR-005: non-admin capture operations get 403).
-9. **Placement** — Raw-JSON Monaco editors for `spec.tolerations` (array) and `spec.affinity` (object), each with inline parse-error feedback; no node-selector builder UI (`web/src/routes/tabs/settings/Placement.tsx`)
+9. **Placement** — Raw-JSON Monaco editors for `spec.tolerations` (array) and `spec.affinity` (object), each with inline parse-error feedback. Each label and its helper description stack vertically, with a separate gap before the editor on narrow screens. Below 768px, settings navigation becomes a horizontally scrollable tab row with horizontal keyboard navigation, leaving the editors and save controls the full content width; no node-selector builder UI (`web/src/routes/tabs/settings/Placement.tsx`)
 10. **RBAC & access** — Server owner + collaborator list, permission inheritance. The `setCollaborators` mutation runs unconditionally at component render (not gated by an early return), so hook invocation order is consistent. The mutation's namespace is derived from the GameServer's `metadata.namespace` (or `gameplane-games` as fallback); when no server is loaded, the mutation returns early without calling the API. On success, the mutation invalidates the `["server", gs.metadata.name]` query cache, clears input state, and resets errors; on error, it sets a locally-rendered error message and does not clear input, allowing retry.
 11. **Danger zone** — Wipe world data (confirm-dialog), transfer ownership (confirm-dialog), delete server (confirm-dialog); no Clone action (`web/src/routes/tabs/settings/Danger.tsx`)
 
@@ -1011,7 +1030,7 @@ Save fetches the latest server and applies only the changes from the original ba
 
 **Configurable expiry (feature 017, `ShareLinks.tsx`):** The expiry selector offers exactly six choices — 15 days, 30 days, 60 days, 90 days, No expiry, Custom (date picker) — with 30 days pre-selected, replacing the old fixed 24h/7d/30d/90d menu and its "Maximum 90 days" help text. Selecting "No expiry" shows the warning "This link works until you revoke it." and sends `neverExpires: true`. Selecting "Custom" shows a date picker restricted to dates strictly after today (no maximum); choosing a date 365 days or more out additionally shows "Long-lived link — it stays valid for over a year unless you revoke it." Presets and the custom date are converted client-side to an absolute RFC3339 instant (a custom date is valid through 23:59:59 in the owner's local time) and sent as `expiresAt`; the dialog never sends the deprecated `expiresIn`. The Expires column renders "Never" for a link with `expiresAt: null`, and such a link is never shown as "Expired".
 
-**Capture types (`src/types.ts`, built):** `CaptureConfiguration` (`{ enabled?, retentionSeconds? }`, mirrors `spec.capture` — `retentionSeconds` is bounded by the CRD's authoritative `+kubebuilder:validation:Minimum=1 / Maximum=604800` on `operator/api/v1alpha1/gameserver_types.go`'s `CaptureConfiguration.RetentionSeconds`, omit to use cluster default (86400)), `CaptureStatus` (mirrors `status.capture`: `ready`, `activeCapture`/`lastCaptureTime` typed nullable since the API's `formatOptionalTime` never omits the key), `CapturePhase` (`"Pending" | "Running" | "Completed" | "Failed" | "Expired"`), `NetworkCapture` (one capture record — merges the API's start/stop/list/get response shapes) and `NetworkCaptureList` (the `:captures` list envelope). All are implemented in the tree; the `CaptureWidget` component and `Captures` endpoint namespace are live (see Tabs and API Client sections above).
+**Capture types (`src/types.ts`, built):** `CaptureConfiguration` (`{ enabled?, retentionSeconds? }`, mirrors `spec.capture` — `retentionSeconds` is bounded by the CRD's authoritative `+kubebuilder:validation:Minimum=60 / Maximum=604800` on `operator/api/v1alpha1/gameserver_types.go`'s `CaptureConfiguration.RetentionSeconds`, omit to use cluster default (86400)), `CaptureStatus` (mirrors `status.capture`: `ready`, `activeCapture`/`lastCaptureTime` typed nullable since the API's `formatOptionalTime` never omits the key), `CapturePhase` (`"Pending" | "Running" | "Completed" | "Failed" | "Expired"`), `NetworkCapture` (one capture record — merges the API's start/stop/list/get response shapes) and `NetworkCaptureList` (the `:captures` list envelope). All are implemented in the tree; the `CaptureWidget` component and `Captures` endpoint namespace are live (see Tabs and API Client sections above).
 
 ## External Interface / API Client
 
@@ -1050,15 +1069,15 @@ Each namespace is an object of typed functions building and fetching URLs:
 
 - **Backups** — `list()`, `get(name)`, `create(opts)`, `remove(name)`
 
-- **Schedules** — `list()`, `get(name)`, `create(opts)`, `patchSpec(name, patch)` (suspend toggle), `remove(name)`
+- **Schedules** — `list()`, `create(opts)`, `patchSpec(name, patch)` (suspend toggle), `remove(name)`
 
-- **Restores** — `list()`, `create(opts)`, `remove(name)`
+- **Restores** — `list()`, `create(opts)`
 
 - **BackupDestinations** — `list()`, `get(name)`, `upsert(body)` (POST), `remove(name)`
 
 - **Players** — `snapshot(server, ns?)`, `banned(server, ns?)`, `moderate(server, action, body, ns?)` (kick/ban/unban), `whitelist(server, ns?)`, `whitelistAdd(server, name, ns?)`, `whitelistRemove(server, name, ns?)`
 
-- **Users** — `me()`, `list()`, `create(body)`, `update(id, body)`, `remove(id)`, `resetPassword(id, password)`, `bindings(id)`, `addBinding(id, body)`, `removeBinding(id, roleName, namespace)`, `getPreferences()` (GET `/users/me/preferences`), `updatePreferences(body)` (PUT `/users/me/preferences`; optional custom fields omitted, never null — server-side FR-012 retention keeps stored customs), `resetPreferences(body?)` (POST `/users/me/preferences/reset`, the only operation that clears customs)
+- **Users** — `me()`, `list()`, `create(body)`, `update(id, body)`, `remove(id)`, `resetPassword(id, password)`, `bindings(id)`, `addBinding(id, body)`, `removeBinding(id, roleName, namespace)`, `updatePreferences(body)` (PUT `/users/me/preferences`; optional custom fields omitted, never null — server-side FR-012 retention keeps stored customs), `resetPreferences(body?)` (POST `/users/me/preferences/reset`, the only operation that clears customs)
 
 - **Roles** — `list()`, `catalog()` (permission groups), `create(body)`, `update(name, body)`, `remove(name)`
 
@@ -1076,17 +1095,19 @@ Each namespace is an object of typed functions building and fetching URLs:
 
 - **Logs** — `downloadURL(server, ns?)`, `fileStreamPath(server, ns?)` (WebSocket), `podStreamPath(server, ns?)` (WebSocket)
 
-- **Modules** — `catalog()`, `list()`, `get(name)`, `install(body)`, `upgrade(name, version)`, `uninstall(name)`
+- **Modules** — `catalog()`, `list()`, `install(body)`, `upgrade(name, version)`, `uninstall(name)`
 
 - **ModuleSources** — `list()`, `create(name, spec)`, `update(name, spec)`, `remove(name)`, `upload(source, file, opts?)` (blob), `removeUpload(source, module)`
 
 - **ModuleBuilder** — `scaffold(body)`, `validate(body)`, `preview(body)`, `installToCluster(body)`, `downloadArchive(body)`
 
-- **Captures** (`web/src/lib/api.ts:127-175`) — wraps the 8 REST routes `api/internal/handlers/capture.go` mounts under `MountCapture` (all gated by the `captures:manage` permission, `api/internal/rbac/catalog.go`): `POST /servers/{name}:capture-enable`, `POST /servers/{name}:capture-disable`, `POST /servers/{name}:capture-start`, `POST /servers/{name}:capture-stop`, `GET /servers/{name}:captures` (list), `GET /servers/{name}:capture?id=` (status), `GET /servers/{name}:capture-file?id=` (download), `DELETE /servers/{name}:capture?id=`. Per `specs/done_003-network-capture-sidecar/research.md`'s "Decision 1: Download Path" (T007, resolved): the download handler streams directly from the capture sidecar's `:9091 GET /captures/{id}/file` through the existing `<gs>-agent` ClusterIP Service's second port — not proxied through the agent's general `/files/*` file-browser surface (which is single-rooted at `--data-root` and cannot serve the capture emptyDir). The dashboard API client is expected to call through that one `:capture-file` indirection point rather than reconstructing the sidecar path itself.
+- **Captures** (`web/src/lib/api.ts:207-261`) — wraps the 10 REST routes `api/internal/handlers/capture.go` mounts under `MountCapture` (all gated by the `captures:manage` permission, `api/internal/rbac/catalog.go`): `POST /servers/{name}:capture-enable`, `POST /servers/{name}:capture-disable`, `POST /servers/{name}:capture-node-enable`, `POST /servers/{name}:capture-node-disable`, `POST /servers/{name}:capture-start`, `POST /servers/{name}:capture-stop`, `GET /servers/{name}:captures` (list), `GET /servers/{name}:capture?id=` (status), `GET /servers/{name}:capture-file?id=` (download), `DELETE /servers/{name}:capture?id=`. Per `specs/done_003-network-capture-sidecar/research.md`'s "Decision 1: Download Path" (T007, resolved): the download handler streams directly from the capture sidecar's `:9091 GET /captures/{id}/file` through the existing `<gs>-agent` ClusterIP Service's second port — not proxied through the agent's general `/files/*` file-browser surface (which is single-rooted at `--data-root` and cannot serve the capture emptyDir). The dashboard API client is expected to call through that one `:capture-file` indirection point rather than reconstructing the sidecar path itself.
 
 **Helpers:** `withNS(path, ns?)` appends `?namespace=<ns>` when provided; `withCluster(path, clusterId)` uses an explicit cluster, defaulting to local. `createRequestClient` binds requests to a cluster and namespace; `createResourceClient` adds the target resource identity.
 
 ### Layer 3: Domain Helpers (`lib/*.ts`)
+
+`Players.operators(server, namespace?)` reads configured operator identities through the resource client's captured cluster and namespace. Its optional `capabilities.operators` flag is provided by the agent; the dashboard does not infer support from game names or read arbitrary game files. The method accepts the resource client's cancellation signal.
 
 - **capabilities.ts** — `resolveConsoleMode(template)`, `serverHasMods(template, server)`, `serverHasModpacks(template, server)` — drive tab visibility
 - **useThemePreferences.ts** — theme preferences plumbing (feature 016; full behavior documented under "User Theme Customization" above): `useThemePreferences(me?, opts?)` reconciles the backend `preferences` from `/users/me` over the `gameplane-theme-prefs` localStorage cache (backend wins on drift), exposes `preferences` + an optimistic `updatePreferences(patch)` mutation (DOM + cache first, PUT via `Users.updatePreferences`, revert-and-report on failure, replay-on-`online` after connectivity loss), and keeps the DOM attributes (`class`/`data-theme`, `data-theme-preset`, `data-theme-type`, `data-custom-css`) and the `#gameplane-custom-css` overlay (always last in `<head>`; unmounted on logout and on `/login`/`/share/:token`) in sync. Plain helpers exported for routes and the boot script's post-boot path: `isSafeModeActive()` (`?safe-mode=1` or the `gameplane-safe-mode` sessionStorage flag — suspends only the overlay), `readThemePreferences` / `writeThemePreferences`, `normalizeThemePreferences`, `themePreferencesEqual`, `applyThemePreferences`, `unmountCustomCssOverlay`, plus the storage keys/element ids and the `gameplane-theme-error` window event. The inline `theme-boot` script in `index.html` applies the same cache synchronously pre-paint and is the authoritative boot path (never applies cached prefs on `/login` or `/share/:token`).
@@ -1183,38 +1204,38 @@ openEventStream(opts: EventStreamOptions)
 ## Dependencies
 
 **Runtime:**
-- `react@18.3.1` — React library
-- `react-dom@18.3.1` — DOM renderer
-- `@tanstack/react-router@1.75.0` — file-based routing (via tree.tsx)
-- `@tanstack/react-query@5.59.0` — data fetching, caching, invalidation
-- `@tanstack/react-virtual@3.10.8` — virtualized lists for large tables
-- `@heroui/react@3.2.4` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
+- `react@19.3.1` — React library
+- `react-dom@19.3.1` — DOM renderer
+- `@tanstack/react-router@1.170.46` — file-based routing (via tree.tsx)
+- `@tanstack/react-query@5.107.1` — data fetching, caching, invalidation
+- `@tanstack/react-virtual@3.14.26` — virtualized lists for large tables
+- `@heroui/react@3.2.7` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
 - `@heroui/styles` — HeroUI's semantic token / theme layer, mapped to Gameplane brand tokens (see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md`)
 - `clsx@2.1.1` — conditional classNames
 - `tailwind-merge@2.5.2` — Tailwind class conflict resolution
-- `tailwindcss@3.4.13` — utility-first CSS framework
-- `lucide-react@0.445.0` — SVG icon library
-- `@monaco-editor/react@4.6.0` — code editor (lazy-loaded, file/config edit tabs)
-- `@xterm/xterm@5.5.0` — terminal emulator (Console tab)
-- `@xterm/addon-fit@0.10.0` — xterm fit-to-container addon
+- `tailwindcss@^4.3.3` — utility-first CSS framework
+- `lucide-react@^1.72.0` — SVG icon library
+- `@monaco-editor/react@^4.7.0` — code editor (lazy-loaded, file/config edit tabs)
+- `@xterm/xterm@^6.0.0` — terminal emulator (Console tab)
+- `@xterm/addon-fit@^0.11.0` — xterm fit-to-container addon
 
 **Dev:**
 - `typescript@7.0.2` — strict type checking
-- `vite@5.4.8` — build + dev server
-- `@vitejs/plugin-react@4.3.1` — React JSX transform + fast refresh
-- `vitest@2.1.1` — unit test runner (Jest-like API, Vite-integrated)
+- `vite@^8.3.8` — build + dev server
+- `@vitejs/plugin-react@^6.3.0` — React JSX transform + fast refresh
+- `vitest@^5.0.0` — unit test runner (Jest-like API, Vite-integrated)
 - `@vitest/coverage-v8@2.1.1` — V8 coverage reporter
 - `@testing-library/react@16.0.1` — component test utilities
 - `@testing-library/jest-dom@6.5.0` — DOM matchers
 - `@testing-library/user-event@14.6.1` — user interaction simulation
-- `msw@2.14.4` — Mock Service Worker for request interception (e2e mock mode)
+- `msw@^3.0.5` — Mock Service Worker for request interception (e2e mock mode)
 - `vitest-websocket-mock@0.4.0` — WebSocket mock for unit tests
-- `@playwright/test@1.59.1` — browser e2e testing (mock + live modes)
-- `jsdom@25.0.1` — DOM implementation for unit tests
+- `@playwright/test@^1.65.0` — browser e2e testing (mock + live modes)
+- `jsdom@^31.0.0` — DOM implementation for unit tests
 - `eslint@10.14.0` and `@babel/eslint-parser` — lint JavaScript, TypeScript and TSX
 - `eslint-plugin-react-hooks@7.1.1` — React Hooks and compiler diagnostics
 - `oxlint` and `oxlint-tsgolint` — React rules and type-aware TypeScript linting
-- `tailwindcss@3.4.13` + `postcss@8.4.47` + `autoprefixer@10.4.20` — CSS processing
+- `tailwindcss@^4.3.3` + `postcss@^8.5.32` + `autoprefixer@^10.6.2` — CSS processing
 - `@tanstack/router-devtools@1.75.0` — TanStack Router dev tools (optional, for debugging)
 
 ## Security considerations
@@ -1227,7 +1248,7 @@ openEventStream(opts: EventStreamOptions)
 
 ## Testing & Coverage
 
-**Framework:** Vitest 2.1 + Testing Library (React) + jsdom
+**Framework:** Vitest 5 + Testing Library (React) + jsdom
 
 **Test files:** Co-located with source (`src/**/*.test.tsx`, `src/**/*.test.ts`)
 

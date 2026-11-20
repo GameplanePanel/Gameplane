@@ -238,16 +238,8 @@ EOF
             if [ "${img}" = tunnel-frp ]; then
                 dockerfile="${REPO}/tunnel/Dockerfile.frp"
             fi
-            if [ "${img}" = mcp-server ] && [ ! -f "${dockerfile}" ]; then
-                echo "  mcp-server submodule not initialised — running git submodule update --init mcp-server"
-                git -C "${REPO}" submodule update --init mcp-server
-            elif [ "${img}" = mcp-server ]; then
-                expected=$(git -C "${REPO}" rev-parse "HEAD:mcp-server")
-                actual=$(git -C "${REPO}/mcp-server" rev-parse HEAD)
-                if [ "${expected}" != "${actual}" ]; then
-                    echo "  warning: mcp-server checkout ${actual} differs from the recorded gitlink ${expected}; run git submodule update mcp-server" >&2
-                fi
-            fi
+            # Component images build from a submodule (hack/submodules.sh).
+            "${REPO}/hack/submodules.sh" ensure "$(basename "$(dirname "${dockerfile}")")"
             docker build -t "gameplane-test/${img}:${TAG}" -f "${dockerfile}" "${REPO}"
         fi
         kind load docker-image "gameplane-test/${img}:${TAG}" --name "${CLUSTER}"
@@ -424,6 +416,7 @@ EOF
     # CI or dev installs reach the project provider (spec 022 R17).
     # The legacy fixtures exercise Hostport, in-pod capture and root init.
     # The restricted-workloads bucket upgrades this same installation to PSA.
+    # The port pool serves TestGameServer_PortPool* (port_pool_e2e_test.go).
     helm upgrade --install gameplane "${CHART_DIR}" \
         --namespace gameplane-system --create-namespace \
         --set "image.registry=gameplane-test" \
@@ -443,6 +436,13 @@ EOF
         --set "api.oidc.roleMappings.admin[0]=gameplane-e2e-oidc-admins" \
         --set "operator.leaderElect=false" \
         --set "operator.addressManager=metallb" \
+        --set "operator.portPools[0].name=e2e-pool" \
+        --set "operator.portPools[0].ports=31000-31005" \
+        --set "operator.portPools[0].templates[0]=e2e-portpool-a" \
+        --set "operator.portPools[0].templates[1]=e2e-portpool-b" \
+        --set "operator.portPools[1].name=e2e-pool-serving" \
+        --set "operator.portPools[1].ports=31010-31012" \
+        --set "operator.portPools[1].templates[0]=e2e-portpool-c" \
         --set "operator.gameDataStorage.storageClassName=gameplane-e2e-install-default" \
         --set "defaultModuleSource.enabled=false" \
         --set "api.telemetry.receiver.enabled=true" \

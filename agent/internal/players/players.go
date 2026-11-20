@@ -37,9 +37,10 @@ type Rcon interface {
 }
 
 type handler struct {
-	rcon Rcon
-	cmdr commander
-	game string
+	rcon          Rcon
+	cmdr          commander
+	game          string
+	operatorsRoot string
 
 	listCmd string         // RCON command to fetch online players
 	listRE  *regexp.Regexp // optional regex to parse entry output
@@ -56,6 +57,7 @@ type Capabilities struct {
 	Ban       bool `json:"ban"`
 	Unban     bool `json:"unban"`
 	Whitelist bool `json:"whitelist"`
+	Operators bool `json:"operators"`
 }
 
 // Entry is one structured player-list record for games whose list command
@@ -86,9 +88,13 @@ type BannedPlayer struct {
 // Mount wires the player endpoints. actions carries the module's
 // declared moderation commands (nil when the template declares none, in
 // which case moderation is reported unsupported). game is retained only
-// for log/error context.
-func Mount(r chi.Router, rc Rcon, game string, actions *caps.PlayerActions) {
+// for protocol selection and log/error context. When supplied, dataRoot enables
+// the fixed ops.json reader for Minecraft Java, independently of RCON.
+func Mount(r chi.Router, rc Rcon, game string, actions *caps.PlayerActions, dataRoot ...string) {
 	h := &handler{rcon: rc, cmdr: pickCommander(actions), game: game}
+	if game == "minecraft-java" && len(dataRoot) > 0 {
+		h.operatorsRoot = dataRoot[0]
+	}
 
 	// Configure the list command and optional regex.
 	h.listCmd = "list"
@@ -109,6 +115,7 @@ func Mount(r chi.Router, rc Rcon, game string, actions *caps.PlayerActions) {
 
 	r.Get("/players", h.serve)
 	r.Get("/players/banned", h.banned)
+	r.Get("/players/operators", h.operators)
 	r.Post("/players/kick", h.kick)
 	r.Post("/players/ban", h.ban)
 	r.Post("/players/unban", h.unban)
@@ -133,10 +140,11 @@ func (h *handler) serve(w http.ResponseWriter, req *http.Request) {
 		// dashboard contract is a valid snapshot with online=-1, not an
 		// error — there is no upstream to be unavailable.
 		httpjson.Write(w, http.StatusOK, Snapshot{
-			Online:  -1,
-			Max:     -1,
-			Players: []string{},
-			AsOf:    time.Now().UTC().Format(time.RFC3339),
+			Online:       -1,
+			Max:          -1,
+			Players:      []string{},
+			AsOf:         time.Now().UTC().Format(time.RFC3339),
+			Capabilities: Capabilities{Operators: h.operatorsRoot != ""},
 		})
 		return
 	}
@@ -147,7 +155,7 @@ func (h *handler) serve(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 		return
 	}
-	result.Capabilities = h.cmdr.Capabilities()
+	result.Capabilities = h.capabilities()
 	httpjson.Write(w, http.StatusOK, result)
 }
 

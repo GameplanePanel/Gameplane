@@ -438,6 +438,8 @@ export interface GameServerNetworking {
   serviceAnnotations?: Record<string, string>;
   portOverrides?: PortOverride[];
   sourceRanges?: string[];
+  // The Service's loadBalancerClass; honored only for expose: LoadBalancer.
+  loadBalancerClass?: string;
   // Load-balancer address pool to allocate from; honored only for
   // expose: LoadBalancer, and only when the cluster runs a supported
   // address manager (MetalLB or Cilium LB-IPAM).
@@ -548,7 +550,10 @@ export interface InlineBackupPolicy {
 
 export interface GameServerEndpoint {
   name: string;
+  // The address players connect to: the Service's, or the server's hostname.
   host: string;
+  // The address the Service was assigned, when host is an advertised hostname.
+  serviceAddress?: string;
   port: number;
   protocol?: string;
   // Tailscale endpoints are tailnet-private only, not reachable from the internet.
@@ -949,6 +954,7 @@ export interface PlayerCapabilities {
   ban: boolean;
   unban: boolean;
   whitelist?: boolean;
+  operators?: boolean;
 }
 
 export interface PlayerEntry {
@@ -967,6 +973,11 @@ export interface PlayersResp {
   entries?: PlayerEntry[];
   asOf: string;
   capabilities: PlayerCapabilities;
+}
+
+export interface ServerOperator {
+  name: string;
+  uuid?: string;
 }
 
 export interface BannedPlayer {
@@ -1189,6 +1200,10 @@ export interface ShareAddr {
 export interface ShareLinkPublic {
   serverName: string;
   status: string; // e.g. "Running", "Asleep", "Failed"
+  /** Explicit owner stop; optional for older API versions. */
+  manuallyStopped?: boolean;
+  /** This link permits waking and the server is not manually stopped. */
+  canStart?: boolean;
   address?: ShareAddr; // undefined if no public endpoint is exposed
   playersOnline?: number; // undefined if not exposed by the game
 }

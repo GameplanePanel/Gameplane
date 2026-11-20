@@ -70,7 +70,6 @@
       "paths": ["hack/ci_scope.py", ".github/workflows/ci.yaml", "test/e2e/buckets.sh", "test/e2e/suite-components.json"] }
   ],
   "unexercised": [
-    { "component": "svcutil", "reason": "library only; the suites of every service that imports it run through the module closure" },
     { "component": "test/e2e", "reason": "the e2e suite itself; a changed test file selects its own tests and the tests that use its helpers" },
     { "component": "web", "reason": "dashboard; exercised by e2e web live (Playwright), not by a Go e2e test" }
   ]

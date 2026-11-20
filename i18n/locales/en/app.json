@@ -379,6 +379,38 @@
     "defaultMessage": "Module translations could not be stored.",
     "description": "LocalesValid condition on a GameTemplate when the translations ConfigMap could not be written. The message holds the English error."
   },
+  "condition.portallocation.allocated": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''.",
+    "description": "PortAllocation condition once a server has Service ports from its port pool. ports lists them as port/protocol."
+  },
+  "condition.portallocation.allocatedoutsiderange": {
+    "defaultMessage": "Ports {ports} assigned from port pool ''{pool}''. Ports {outside} are outside the pool's range and stay in use until the server is moved; keep forwarding them.",
+    "description": "PortAllocation condition when the pool shrank and the server keeps ports outside the new range. outside lists them as port/protocol."
+  },
+  "condition.portallocation.changepending": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for the requested change, so the server keeps ports {ports} until one frees up.",
+    "description": "PortAllocation condition when a change to the server's ports waits for pool capacity. count is how many pooled ports the change needs."
+  },
+  "condition.portallocation.poolexhausted": {
+    "defaultMessage": "Port pool ''{pool}'' has no free block of {count} ports for this server, so it has no Service until a block frees up.",
+    "description": "PortAllocation condition when the server's port pool is full. count is how many ports the server needs."
+  },
+  "condition.portallocation.rolloutpending": {
+    "defaultMessage": "The template update waits for {count} free ports in port pool ''{pool}''; the server keeps its current revision on ports {ports}.",
+    "description": "PortAllocation condition when a template revision needs other ports and the pool can't reserve them yet."
+  },
+  "condition.portallocation.rolloutportconflict": {
+    "defaultMessage": "The template update waits for Service port {port}, held by {holder} in port pool ''{pool}''; the server keeps its current revision on ports {ports}.",
+    "description": "PortAllocation condition when a template revision's servicePort override names a port another server holds. holder is that server as namespace/name."
+  },
+  "condition.portallocation.serviceportconflict": {
+    "defaultMessage": "Service port {port} is held by {holder} in port pool ''{pool}'', so the server keeps ports {ports} until it is free.",
+    "description": "PortAllocation condition when a servicePort override names a port another server holds. holder is that server as namespace/name; ports are the ones the server keeps."
+  },
+  "condition.portallocation.serviceportconflictunpublished": {
+    "defaultMessage": "Service port {port} is held by {holder} in port pool ''{pool}'', so the server has no Service until it is free.",
+    "description": "PortAllocation condition when a servicePort override names a port another server holds and the server has no ports yet. holder is that server as namespace/name."
+  },
   "condition.progressing.containercreating": {
     "defaultMessage": "Creating the container.",
     "description": "Progressing detail while the kubelet creates the container."
@@ -7923,6 +7955,10 @@
     "defaultMessage": "Online",
     "description": "Share: status badge under the server name on the share page, shown when the server is running; keep it short"
   },
+  "web.routes.share.owner_must_start": {
+    "defaultMessage": "This server was stopped by its owner. Ask the server owner to start it.",
+    "description": "Share: a manually stopped server cannot be started through a public wake-only link"
+  },
   "web.routes.share.players": {
     "defaultMessage": "PLAYERS",
     "description": "Share: small label above the players-online line on the share page"
@@ -7939,6 +7975,14 @@
     "defaultMessage": "Start server",
     "description": "Share: button label that starts the shared server"
   },
+  "web.routes.share.start_timed_out": {
+    "defaultMessage": "The server is taking longer than expected to start. Check back later, or ask the server owner for help.",
+    "description": "Share: startup polling stopped after five minutes; the visitor can check later or ask the owner"
+  },
+  "web.routes.share.start_timeout": {
+    "defaultMessage": "Still unavailable",
+    "description": "Share: status badge after waiting five minutes for a server to start"
+  },
   "web.routes.share.starting": {
     "defaultMessage": "Starting...",
     "description": "Share: status badge with a spinner under the server name while the server is starting; keep it short"
@@ -7946,6 +7990,10 @@
   "web.routes.share.starting_ellipsis": {
     "defaultMessage": "Starting...",
     "description": "Share: start button label while the start request is in flight"
+  },
+  "web.routes.share.stopped": {
+    "defaultMessage": "Stopped",
+    "description": "Share: status badge when the owner has manually stopped the server"
   },
   "web.routes.share.the_server_is_starting_up_this_usually": {
     "defaultMessage": "The server is starting up. This usually takes a minute or two — this page updates on its own.",
@@ -9067,6 +9115,14 @@
     "defaultMessage": "Loading…",
     "description": "Players: shown while the player list is loading"
   },
+  "web.routes.tabs.players.loading_operators": {
+    "defaultMessage": "Loading operators…",
+    "description": "Players: loading state for the configured operator list"
+  },
+  "web.routes.tabs.players.no_operators": {
+    "defaultMessage": "No operators configured.",
+    "description": "Players: empty state for the configured operator list"
+  },
   "web.routes.tabs.players.nobody_is_banned": {
     "defaultMessage": "Nobody is banned.",
     "description": "Players tab: empty-state text in the banned section when no player is banned"
@@ -9090,6 +9146,14 @@
   "web.routes.tabs.players.online_of_max_heading": {
     "defaultMessage": "{online} / {max} online",
     "description": "Players: heading with the online count and the player slot limit; {online} is the number of players online and {max} the slot limit"
+  },
+  "web.routes.tabs.players.operators": {
+    "defaultMessage": "Operators",
+    "description": "Players: stat label and heading for the read-only configured operator list"
+  },
+  "web.routes.tabs.players.operators_unavailable": {
+    "defaultMessage": "Could not load operators. Refresh to try again.",
+    "description": "Players: error when the configured operator list cannot be read"
   },
   "web.routes.tabs.players.player_id_in_parens": {
     "defaultMessage": "({playerId})",
@@ -9126,6 +9190,10 @@
   "web.routes.tabs.players.source_reason_separator": {
     "defaultMessage": "·",
     "description": "Players: separator between the ban source and the ban reason"
+  },
+  "web.routes.tabs.players.unavailable": {
+    "defaultMessage": "Player information is unavailable.",
+    "description": "Players: shown when live player information could not be loaded"
   },
   "web.routes.tabs.players.unban": {
     "defaultMessage": "Unban",

@@ -4,12 +4,25 @@ Use the chart’s Argo CD values for a combined API and operator installation. T
 
 ## One owner for each resource
 
-Pin both Applications to the same Gameplane Git commit. Sync the CRD Application first and wait for its definitions to be Established before syncing the workload Application.
+Pin both Applications to the same Gameplane release, or the same Git commit. Sync the CRD Application first and wait for its definitions to be Established before syncing the workload Application.
 
 | Application | Source | Settings |
 | --- | --- | --- |
-| CRDs | Plain directory `charts/gameplane/charts/gameplane-crds/crds` | Use `ServerSideApply=true` for the large schemas. Keep automated pruning off and sync this Application without prune. For Application deletion, preserve its resources by using non-cascading deletion. |
+| CRDs | Helm chart `oci://ghcr.io/gameplanepanel/charts/gameplane-crds`, at the same version as the workload chart. Or the plain directory `charts/gameplane/charts/gameplane-crds/crds`. | Use `ServerSideApply=true` for the large schemas. Keep automated pruning off and sync this Application without prune. For Application deletion, preserve its resources by using non-cascading deletion. |
 | Workload | Helm chart `charts/gameplane` | Set `spec.source.helm.skipCrds: true` and include `examples/argocd-values.yaml` in `spec.source.helm.valueFiles`. The profile disables the CRD apply hook. Set the release name to `gameplane` and the destination namespace to `gameplane-system`. |
+
+The two Applications share one commit, and the CRD Application must finish first:
+
+```mermaid
+flowchart TD
+  commit["One pinned Gameplane commit"] --> crdapp["CRD Application: crds/ directory, ServerSideApply, no prune"]
+  commit --> wlapp["Workload Application: charts/gameplane with skipCrds and argocd-values.yaml"]
+  crdapp --> est["Wait until the CRDs are Established"]
+  est --> wlapp
+  sec["External CA and client Secrets, pre-created and versioned"] --> wlapp
+  caps["Destination serves ValidatingAdmissionPolicy and Binding v1"] --> wlapp
+  wlapp --> live["Release gameplane in gameplane-system"]
+```
 
 Provision the release namespace, CA and client Secret before syncing. Keep ownership of the release namespace and external Secrets outside the workload Application. The example expects `gameplane-external-ca-v1` with `ca.crt` and `ca.key`, and a different Secret named `gameplane-external-client-v1` with `tls.crt` and `tls.key`. Use immutable, versioned Secret names. The operator signs per-game serving certificates with this CA, and the API and operator present the client certificate to the agents.
 
