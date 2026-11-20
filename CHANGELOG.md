@@ -10,6 +10,21 @@ Changes that are not released yet live in
 They are folded into this file when a version is released; see
 [`docs/contributing.md`](docs/contributing.md#changelog-entries).
 
+## [0.4.3] — 2026-11-21
+
+A pre-v1 patch release that publishes [0.4.2](#042--2026-11-20). The v0.4.2 tag
+was pushed, but its release run stopped when the image scan found a HIGH
+vulnerability in the dashboard (`web`) image, so no 0.4.2 release was
+published. Version 0.4.3 ships every 0.4.2 change plus the fix below. Read the
+[0.4.2 upgrade notes](https://github.com/GameplanePanel/Gameplane/blob/v0.4.3/CHANGELOG.md#042--2026-11-20)
+before you upgrade from 0.4.1; two of them change behaviour.
+
+### Security
+
+- **Dashboard image libxml2 update:** the `web` image now upgrades libxml2 to
+  2.13.9-r3, which fixes CVE-2026-86144 in the nginx base image.
+  [PR #1037](https://github.com/GameplanePanel/Gameplane/pull/1037)
+
 ## [0.4.2] — 2026-11-20
 
 A pre-v1 patch release with every change merged since v0.4.1: port pools for
@@ -1765,6 +1780,7 @@ testing. Not yet recommended for unattended production workloads — see
   runner (retry + longer readiness window), eliminating a cascade of flaky
   API e2e failures.
 
+[0.4.3]: https://github.com/GameplanePanel/gameplane/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/GameplanePanel/gameplane/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/GameplanePanel/gameplane/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0...v0.4.0
