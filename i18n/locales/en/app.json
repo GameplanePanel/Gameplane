@@ -4543,13 +4543,13 @@
     "defaultMessage": "in {count}s",
     "description": "Relative time until a future event in seconds; {count} is a number of seconds"
   },
-  "web.lib.utils.storage_of_physical": {
-    "defaultMessage": "of {total} physical",
-    "description": "Storage capacity line: provisioned storage out of node physical disk; {total} is a formatted size such as 40 GB"
+  "web.lib.utils.storage_capacity": {
+    "defaultMessage": "of {total} {source, select, pool {game-data capacity} mixed {combined capacity} other {system storage}}",
+    "description": "Provisioned storage compared with capacity; total is an IEC size such as 320 GiB. Source distinguishes game-data pools, mixed sources, and legacy node system storage."
   },
-  "web.lib.utils.storage_overcommitted": {
-    "defaultMessage": "of {total} physical — overcommitted",
-    "description": "Storage capacity line when provisioned storage exceeds physical disk; {total} is a formatted size such as 40 GB"
+  "web.lib.utils.storage_capacity_overcommitted": {
+    "defaultMessage": "of {total} {source, select, pool {game-data capacity} mixed {combined capacity} other {system storage}} — overcommitted",
+    "description": "Provisioned storage exceeds capacity; total is an IEC size such as 320 GiB. Source distinguishes game-data pools, mixed sources, and legacy node system storage."
   },
   "web.lib.utils.uptime_days_hours": {
     "defaultMessage": "{days}d {hours}h",

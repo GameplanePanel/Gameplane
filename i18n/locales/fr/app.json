@@ -4107,14 +4107,6 @@
         "defaultMessage": "dans {count} s",
         "description": "Relative time until a future event in seconds; {count} is a number of seconds"
     },
-    "web.lib.utils.storage_of_physical": {
-        "defaultMessage": "sur {total} physiques",
-        "description": "Storage capacity line: provisioned storage out of node physical disk; {total} is a formatted size such as 40 GB"
-    },
-    "web.lib.utils.storage_overcommitted": {
-        "defaultMessage": "sur {total} physiques — surallocation",
-        "description": "Storage capacity line when provisioned storage exceeds physical disk; {total} is a formatted size such as 40 GB"
-    },
     "web.lib.utils.uptime_days_hours": {
         "defaultMessage": "{days} j {hours} h",
         "description": "Server uptime in days and hours, e.g. 2d 5h; {days} and {hours} are numbers"

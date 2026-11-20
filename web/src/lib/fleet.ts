@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { Templates } from "@/lib/endpoints";
 import { assignGameCodesForTemplates } from "@/lib/gameIcon";
 import { useOptionalIntl } from "@/lib/i18n/format";
-import type { Backup, BackupSchedule, ClusterNode, ClusterStats, ClusterView, GameServer, GameTemplate, Restore } from "@/types";
+import type { Backup, BackupSchedule, ClusterNode, ClusterStats, ClusterView, GameServer, GameTemplate, Restore, StorageCapacitySource } from "@/types";
 
 export interface FleetTarget {
   cluster: string;
@@ -166,12 +166,17 @@ export function inventoryTotals(items: FleetInventory[]) {
   const nodes = items.flatMap((item) => (item.view.nodes ?? []).map((node) => ({ ...node, name: `${item.cluster} / ${node.name}` })));
   const storageKnown = items.length > 0 && items.every((item) =>
     typeof item.stats.usedStorageBytes === "number" && typeof item.stats.totalStorageBytes === "number" && item.stats.totalStorageBytes > 0);
+  const storageSources = new Set(items.map((item) => item.stats.storageCapacitySource ?? "node-ephemeral"));
+  const storageCapacitySource: StorageCapacitySource | "mixed" | undefined = storageKnown
+    ? storageSources.size > 1 ? "mixed" : storageSources.values().next().value
+    : undefined;
   return {
     nodes,
     ready: items.reduce((sum, item) => sum + (item.view.ready ?? 0), 0),
     total: items.reduce((sum, item) => sum + (item.view.total ?? item.view.nodes?.length ?? 0), 0),
     usedStorageBytes: storageKnown ? items.reduce((sum, item) => sum + (item.stats.usedStorageBytes ?? 0), 0) : undefined,
     totalStorageBytes: storageKnown ? items.reduce((sum, item) => sum + (item.stats.totalStorageBytes ?? 0), 0) : undefined,
+    storageCapacitySource,
   };
 }
 
