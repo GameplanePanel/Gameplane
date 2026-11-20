@@ -4395,6 +4395,10 @@
     "defaultMessage": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
     "description": "Settings: the independently resolved initial Java heap is larger than the maximum heap"
   },
+  "web.lib.destinations.access_denied": {
+    "defaultMessage": "You do not have permission to view backup destinations in this cluster and namespace.",
+    "description": "Backup destination lookup: access denied message for the selected cluster and namespace"
+  },
   "web.lib.errors.request_failed": {
     "defaultMessage": "request failed",
     "description": "Fallback error text when a failed request has no usable message"
@@ -8035,6 +8039,10 @@
     "defaultMessage": "Backups",
     "description": "Backups tab: stat card label for the number of backups; also the section heading above the backup list"
   },
+  "web.routes.tabs.backups.backups_access_denied": {
+    "defaultMessage": "You do not have permission to view backups in this cluster and namespace.",
+    "description": "Backups tab: access denied message for the selected server's backups"
+  },
   "web.routes.tabs.backups.backups_table": {
     "defaultMessage": "Backups table",
     "description": "Backups tab: accessible label of the backups table, read by screen readers; not shown as text"
@@ -8087,9 +8095,17 @@
     "defaultMessage": "· {time}",
     "description": "Backups: restore row suffix; {time} is how long ago the restore completed"
   },
+  "web.routes.tabs.backups.restores_access_denied": {
+    "defaultMessage": "You do not have permission to view restores in this cluster and namespace.",
+    "description": "Backups tab: access denied message for the selected server's restores"
+  },
   "web.routes.tabs.backups.schedules": {
     "defaultMessage": "Schedules",
     "description": "Backups tab: section heading above the list of backup schedules for this server"
+  },
+  "web.routes.tabs.backups.schedules_access_denied": {
+    "defaultMessage": "You do not have permission to view schedules in this cluster and namespace.",
+    "description": "Backups tab: access denied message for the selected server's schedules"
   },
   "web.routes.tabs.backups.size": {
     "defaultMessage": "Size",

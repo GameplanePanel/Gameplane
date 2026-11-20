@@ -1008,6 +1008,19 @@ namespace, name and UID before providing access through `ResourceTargetProvider`
 
 **Other permission checks:** The `can(me, permission, namespace?, cluster?)` helper (`web/src/lib/auth.ts`) mirrors the server's RBAC logic. With `permissionsByCluster`, namespaced callers pass the explicit target cluster; only that cluster or the `*` wildcard cluster can supply a cluster-wide (`*` namespace) or exact namespace grant. Control-plane callers omit both namespace and cluster and accept a cluster-wide grant on any cluster. When `permissionsByCluster` is absent, `can` retains the legacy flat `permissions` fallback. Server resource controls use their verified target access instead of a global cluster selector. The API enforces authorization independently of UI visibility.
 
+The server Backups tab gates backups and restores on the selected target's
+`backups:read` permission, schedules on `schedules:read`, and destination lookup
+on `destinations:read`. Each query includes a stable scoped permission fingerprint
+in its cache key. HTTP 401/403 disables retries, polling, focus/reconnect and
+invalidation refetches for that query until access changes. Reopening a backup
+surface allows one fresh read of retained authorization failures, so access restored
+while a standalone drawer was unmounted can recover. Existing error banners show
+an access-denied message, and previously cached denied data is hidden. The shared
+destination hook applies the same scoped permission gate and cache key to the
+Backups tab, schedule form, and server backup settings. Configuration hints appear
+only after successful empty destination responses, never for denied or failed reads.
+The API remains authoritative; no role or server-side authorization rule changes.
+
 ## ServerDetail Settings Sub-sections
 
 Settings tab (`SettingsTab`, `web/src/routes/tabs/Settings.tsx`) displays up to 13 sections in a left sidebar (`SECTIONS` array; Version only when the template has versions, Game configuration only when the template declares a `configSchema` or the server carries config keys; Share links is described after the list):

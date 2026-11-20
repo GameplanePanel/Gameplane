@@ -33,7 +33,7 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
   const { Schedules } = resourceClient;
   const permissions = useResourcePermissions(explicitPermissions);
   const qc = useQueryClient();
-  const { data: destinations = [] } = useBackupDestinations(resourceTarget);
+  const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations(resourceTarget, permissions);
   const [form, setForm] = useState({
     schedule: "0 */6 * * *",
     strategy: "restic-snapshot" as "restic-snapshot" | "volume-snapshot",
@@ -120,6 +120,7 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
             {!isVolumeSnapshot && (
               <div className="space-y-2">
                 <Select
+                  isDisabled={Boolean(destinationError)}
                   value={form.repoName}
                   onChange={(v) => setForm({ ...form, repoName: v as string })}
                 >
@@ -130,7 +131,7 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
                   </Select.Trigger>
                   <Select.Popover className="rounded border border-border">
                     <ListBox aria-label={intl.formatMessage({ id: "web.components.backups.schedule_form.destination", defaultMessage: "Destination", description: "Schedule form: label above the dropdown that picks the backup destination" })}>
-                      {destinations.length === 0 ? (
+                      {destinationsLoaded && destinations.length === 0 ? (
                         <ListBoxItem id="" isDisabled>{intl.formatMessage({ id: "web.components.backups.schedule_form.no_destinations_configured", defaultMessage: "No destinations configured", description: "Schedule form: disabled option in the destination dropdown shown when no backup destinations have been set up" })}</ListBoxItem>
                       ) : (
                         destinations.map((d) => (
@@ -162,6 +163,7 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
           </div>
         </div>
 
+        {!isVolumeSnapshot && destinationError && <ErrorBanner err={destinationError} />}
         {create.error && <ErrorBanner err={create.error} />}
 
         <div className="flex justify-end gap-2 pt-2">
@@ -169,7 +171,7 @@ export function ScheduleForm({ serverName, ns, onClose, target: explicitTarget, 
           <Button
             onPress={() => create.mutate()}
             isDisabled={
-              !resourceCan(permissions, "schedules:write") || !form.schedule || (!isVolumeSnapshot && !form.repoName) || create.isPending
+              !resourceCan(permissions, "schedules:write") || !form.schedule || (!isVolumeSnapshot && (!form.repoName || Boolean(destinationError))) || create.isPending
             }
             size="sm"
           >
