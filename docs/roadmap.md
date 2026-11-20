@@ -2,7 +2,7 @@
 
 ## Current release
 
-- **Version:** `v0.4.2` (pre-v1), released 2026-11-20. See the [changelog](../CHANGELOG.md).
+- **Version:** `v0.4.3` (pre-v1), released 2026-11-21. See the [changelog](../CHANGELOG.md).
 - **Status as of 2026-11-10:** The CRDs, operator, API, agent, and dashboard are
   feature-complete for the v1 scope and stabilized for external testing, but the
   project is not yet recommended for unattended production. This page tracks what

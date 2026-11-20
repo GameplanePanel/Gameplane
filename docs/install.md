@@ -18,7 +18,7 @@ For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
 
 The chart and its images are published to the GitHub Container Registry (GHCR)
 as OCI artifacts — no `helm repo add` needed. Install a tagged release straight
-from the registry (replace `<version>` with a release, e.g. `0.4.2`):
+from the registry (replace `<version>` with a release, e.g. `0.4.3`):
 
 ```sh
 helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \

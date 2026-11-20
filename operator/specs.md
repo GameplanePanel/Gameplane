@@ -1,6 +1,6 @@
 # operator — Specification
 
-**Status:** pre-v1 (v0.4.2)  
+**Status:** pre-v1 (v0.4.3)  
 **Module / package:** github.com/GameplanePanel/gameplane/operator  
 **Go version:** 1.27.0
 
