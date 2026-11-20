@@ -195,12 +195,15 @@ describe("OverviewTab players card", () => {
 });
 
 describe("OverviewTab endpoint rendering", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it.each([
     ["play.example.net", "play.example.net:31742"],
     ["203.0.113.42", "203.0.113.42:31742"],
     ["2001:db8::42", "[2001:db8::42]:31742"],
   ])("shows and copies the assigned NodePort on %s", async (host, expected) => {
     const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText");
     fetchMock.mockImplementation(() => Promise.resolve(jsonRes([])));
     const server = gs({
       phase: "Starting",
@@ -211,7 +214,7 @@ describe("OverviewTab endpoint rendering", () => {
 
     expect(screen.getByText(expected)).toHaveAttribute("title", expected);
     await user.click(screen.getByTitle("Copy"));
-    expect(await navigator.clipboard.readText()).toBe(expected);
+    expect(writeText).toHaveBeenCalledExactlyOnceWith(expected);
     expect(screen.queryByText(/10\.96\.0\.12/)).not.toBeInTheDocument();
   });
 
@@ -234,6 +237,7 @@ describe("OverviewTab endpoint rendering", () => {
 
   it("copies the tunnel host and forwarded port for a tunneled NodePort server", async () => {
     const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText");
     fetchMock.mockImplementation(() => Promise.resolve(jsonRes([])));
     const server = gs({
       phase: "Starting",
@@ -248,7 +252,7 @@ describe("OverviewTab endpoint rendering", () => {
     const externalRow = screen.getByText("External Address").parentElement!;
     expect(within(externalRow).getByText("relay.example.net:25565")).toBeInTheDocument();
     await user.click(within(externalRow).getByTitle("Copy"));
-    expect(await navigator.clipboard.readText()).toBe("relay.example.net:25565");
+    expect(writeText).toHaveBeenCalledExactlyOnceWith("relay.example.net:25565");
     expect(screen.queryByText(/10\.96\.0\.12/)).not.toBeInTheDocument();
   });
 
