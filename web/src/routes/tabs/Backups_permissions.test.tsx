@@ -43,6 +43,8 @@ describe("BackupsTab scoped read access", () => {
     expect(screen.getByText("You do not have permission to view backups in this cluster and namespace.")).toBeInTheDocument();
     expect(screen.getByText("You do not have permission to view schedules in this cluster and namespace.")).toBeInTheDocument();
     expect(screen.getByText("You do not have permission to view restores in this cluster and namespace.")).toBeInTheDocument();
+    expect(screen.getByText("You do not have permission to view backup destinations in this cluster and namespace.")).toBeInTheDocument();
+    expect(screen.queryByText(/No backup destination configured/)).not.toBeInTheDocument();
     await act(() => client.invalidateQueries());
     expect(requests).toEqual([]);
     expect(screen.getByRole("button", { name: /Back up now/i })).toBeDisabled();
@@ -67,6 +69,7 @@ describe("BackupsTab scoped read access", () => {
     ["backups", 401], ["backups", 403],
     ["schedules", 401], ["schedules", 403],
     ["restores", 401], ["restores", 403],
+    ["backup-destinations", 401], ["backup-destinations", 403],
   ] as const)("stops automatic requests after %s returns %i until access changes", async (kind, status) => {
     let requests = 0;
     let denied = true;
@@ -75,7 +78,7 @@ describe("BackupsTab scoped read access", () => {
       return denied ? HttpResponse.text("Forbidden", { status }) : HttpResponse.json({ items: [] });
     }));
     const rendered = renderWithQuery(view(readPermissions), { client: new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 300000 } } }) });
-    const message = `You do not have permission to view ${kind} in this cluster and namespace.`;
+    const message = `You do not have permission to view ${kind === "backup-destinations" ? "backup destinations" : kind} in this cluster and namespace.`;
     expect(await screen.findByText(message)).toBeInTheDocument();
     expect(requests).toBe(1);
     vi.useFakeTimers();
@@ -112,6 +115,8 @@ describe("BackupsTab scoped read access", () => {
     denied = true;
     await act(() => client.invalidateQueries({ queryKey: ["resource", "east", "games", "collection", "backup-destinations"] }));
     await waitFor(() => expect(button).toBeDisabled());
+    expect(screen.getByText("You do not have permission to view backup destinations in this cluster and namespace.")).toBeInTheDocument();
+    expect(screen.queryByText(/No backup destination configured/)).not.toBeInTheDocument();
     expect(requests).toBe(2);
     await act(() => client.invalidateQueries({ queryKey: ["resource", "east", "games", "collection", "backup-destinations"] }));
     expect(requests).toBe(2);
@@ -160,6 +165,49 @@ describe("BackupsTab scoped read access", () => {
     rerender(drawer(["*"]));
     expect(await screen.findByText("private-snapshot-value")).toBeInTheDocument();
     expect(requests).toBe(3);
+  });
+
+  it("recovers a standalone drawer after access is restored while it is unmounted", async () => {
+    let denied = true;
+    let requests = 0;
+    server.use(http.get("/backups/reopened", () => {
+      requests++;
+      return denied ? HttpResponse.text("Forbidden", { status: 403 }) : HttpResponse.json(makeBackup({ status: { phase: "Succeeded", snapshotID: "restored-snapshot" } }));
+    }));
+    const drawer = <BackupDetailDrawer name="reopened" permissions={["*"]} onClose={() => {}} onRestore={() => {}} />;
+    const { client, rerender } = renderWithQuery(drawer, { client: new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 300000 } } }) });
+    expect(await screen.findByText("Forbidden")).toBeInTheDocument();
+    expect(requests).toBe(1);
+    rerender(<></>);
+    denied = false;
+    rerender(drawer);
+    expect(await screen.findByText("restored-snapshot")).toBeInTheDocument();
+    expect(requests).toBe(2);
+    denied = true;
+    await act(() => client.invalidateQueries());
+    expect(await screen.findByText("Forbidden")).toBeInTheDocument();
+    await act(() => client.invalidateQueries());
+    expect(requests).toBe(3);
+  });
+
+  it("shows the destination configuration hint only after a successful empty response", async () => {
+    let resolve!: () => void;
+    const pending = new Promise<void>((done) => { resolve = done; });
+    server.use(http.get("/backup-destinations", async () => {
+      await pending;
+      return HttpResponse.json({ items: [] });
+    }));
+    renderWithQuery(view(readPermissions));
+    expect(screen.queryByText(/No backup destination configured/)).not.toBeInTheDocument();
+    resolve();
+    expect(await screen.findByText(/No backup destination configured/)).toBeInTheDocument();
+  });
+
+  it("shows a failed destination lookup without claiming configuration is empty", async () => {
+    server.use(http.get("/backup-destinations", () => HttpResponse.text("Destination lookup failed", { status: 500 })));
+    renderWithQuery(view(readPermissions), { client: new QueryClient({ defaultOptions: { queries: { retryDelay: 0 } } }) });
+    expect(await screen.findByText("Destination lookup failed")).toBeInTheDocument();
+    expect(screen.queryByText(/No backup destination configured/)).not.toBeInTheDocument();
   });
 
   it("hides cached backup rows when access is revoked", async () => {

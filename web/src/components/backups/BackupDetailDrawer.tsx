@@ -29,7 +29,7 @@ export function BackupDetailDrawer({ name, ns, onClose, onRestore, target: expli
   const { Backups } = resourceClient;
   const permissions = useResourcePermissions(explicitPermissions);
   const qc = useQueryClient();
-  const accessKey = useBackupAccessKey(resourceTarget, permissions);
+  const accessKey = useBackupAccessKey(resourceTarget, permissions, "backup");
   const open = name !== null && resourceCan(permissions, "backups:read");
   const { data: backupData, error } = useQuery({
     queryKey: [...resourceKey(resourceTarget, "backup", name, ns), "access", accessKey],

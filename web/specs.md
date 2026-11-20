@@ -991,9 +991,14 @@ The server Backups tab gates backups and restores on the selected target's
 `backups:read` permission, schedules on `schedules:read`, and destination lookup
 on `destinations:read`. Each query includes a stable scoped permission fingerprint
 in its cache key. HTTP 401/403 disables retries, polling, focus/reconnect and
-invalidation refetches for that query until access changes. Existing error banners
-show an access-denied message, and previously cached denied data is hidden. The
-API remains authoritative; no role or server-side authorization rule changes.
+invalidation refetches for that query until access changes. Reopening a backup
+surface allows one fresh read of retained authorization failures, so access restored
+while a standalone drawer was unmounted can recover. Existing error banners show
+an access-denied message, and previously cached denied data is hidden. The shared
+destination hook applies the same scoped permission gate and cache key to the
+Backups tab, schedule form, and server backup settings. Configuration hints appear
+only after successful empty destination responses, never for denied or failed reads.
+The API remains authoritative; no role or server-side authorization rule changes.
 
 ## ServerDetail Settings Sub-sections
 

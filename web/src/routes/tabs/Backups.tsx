@@ -7,6 +7,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 
 import { APIError } from "@/lib/api";
+import { useBackupDestinations } from "@/lib/destinations";
 import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "@/lib/backupReadOptions";
 import { formatBytes, formatRelative, formatRelativeFuture, parseQuantityToBytes } from "@/lib/utils";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
@@ -29,7 +30,6 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
   const accessKey = useBackupAccessKey(resourceTarget, permissions);
   const canReadBackups = resourceCan(permissions, "backups:read");
   const canReadSchedules = resourceCan(permissions, "schedules:read");
-  const canReadDestinations = resourceCan(permissions, "destinations:read");
   const [creatingSchedule, setCreatingSchedule] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState<Backup | null>(null);
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
@@ -49,12 +49,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
     ...backupReadOptions(canReadBackups, 5000),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Restores.list(ns),
   });
-  const { data: destinationData, error: destinationError } = useQuery({
-    queryKey: [...resourceKey(resourceTarget, "backup-destinations"), "access", accessKey],
-    ...backupReadOptions(canReadDestinations, false),
-    queryFn: ({ signal }) => resourceClient.withSignal(signal).BackupDestinations.list(),
-  });
-  const destinations = canReadDestinations && !isAuthorizationError(destinationError) ? destinationData?.items ?? [] : [];
+  const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations(resourceTarget, permissions);
   const backupsDenied = !canReadBackups || isAuthorizationError(backupRequestError);
   const schedulesDenied = !canReadSchedules || isAuthorizationError(scheduleRequestError);
   const restoresDenied = !canReadBackups || isAuthorizationError(restoreRequestError);
@@ -87,7 +82,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
 
   const backupNowDisabled = !resourceCan(permissions, "backups:write") || !lone || createNow.isPending;
   const backupNowHint =
-    destinations.length === 0
+    destinationsLoaded && destinations.length === 0
       ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_no_destination", defaultMessage: "No backup destination configured. Add one in admin settings.", description: "Backups tab: hint under the Back up now button when no backup destination exists; points to admin settings" })
       : destinations.length > 1
         ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_many_destinations", defaultMessage: "Multiple destinations configured — use the Backups page to pick one.", description: "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one" })
@@ -119,6 +114,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
       {backupsError && <ErrorBanner err={backupsError} />}
       {schedulesError && <ErrorBanner err={schedulesError} />}
       {restoresError && <ErrorBanner err={restoresError} />}
+      {destinationError && <ErrorBanner err={destinationError} />}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
           label={intl.formatMessage({ id: "web.routes.tabs.backups.last_backup", defaultMessage: "Last backup", description: "Backups tab: stat card label for the time of the most recent backup; the value shows that time relative to now, or Unavailable" })}
