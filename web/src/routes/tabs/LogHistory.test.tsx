@@ -57,8 +57,9 @@ describe("LogHistory scroll position", () => {
     const { container } = render(<LogHistory name="alpha" source="pod" console />);
     await screen.findByText(/latest/);
     container.querySelector("pre")!.scrollTop = 0;
-    await userEvent.click(screen.getByRole("button", { name: "Hide history" }));
-    await userEvent.click(screen.getByRole("button", { name: "Earlier output" }));
+    // The console view toggles history from its "Recent pod output" header (#1033).
+    await userEvent.click(screen.getByRole("button", { name: "Recent pod output" }));
+    await userEvent.click(screen.getByRole("button", { name: "Recent pod output" }));
     await waitFor(() => expect(container.querySelector("pre")?.scrollTop).toBe(40));
   });
 
