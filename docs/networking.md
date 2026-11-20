@@ -290,8 +290,8 @@ ports. Players then see the name instead of an IP.
 The operator doesn't create the DNS record. With external-dns watching
 Services, the record is created from the hint and follows the load balancer
 if it hands out a new IP. A record you keep yourself must be updated by hand
-when that happens, or players reach the old address. A ClusterIP or NodePort
-server keeps reporting its own address.
+when that happens, or players reach the old address. A ClusterIP server
+keeps reporting its cluster address.
 
 The load balancer's address stays in `status.endpoints[].serviceAddress`, and
 address-conflict checks for `spec.networking.address` compare against it, so
@@ -301,6 +301,23 @@ This applies to every LoadBalancer server with a hostname, including ones
 created before the upgrade that introduced it. A hostname that doesn't
 resolve to its server would now be shown to players, so before upgrading,
 check each such hostname, or clear it where it isn't the name players use.
+
+### Connecting to a NodePort server
+
+The dashboard's **External Address** shows and copies the game host and
+the NodePort Kubernetes assigned, for example `play.example.net:31042`.
+Set **Settings → Networking → Hostname** (`spec.networking.hostname`) to a
+name that players can resolve and reach on that port. With no hostname,
+Gameplane uses a Kubernetes `ExternalIP` on the node serving the game or
+its wake proxy. IPv6 addresses appear in brackets, as in
+`[2001:db8::42]:31042`.
+
+If no external IP is available, set the game hostname to publish an
+address. On a cluster behind a router, point that name at the router
+and forward the advertised NodePort. If the router exposes a different
+public port, players need that port from the router configuration.
+The chart's `ingress.host` routes HTTP to the panel and can point to
+a different machine.
 
 ## Choosing a Load-Balancer Implementation
 

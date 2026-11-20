@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    gameplane.local/crd-bundle-sha256: 11dd82c4242b31a0d15e684de63c02fcf78f2a316feb2e8dd3ad2a51ff923037
+    gameplane.local/crd-bundle-sha256: f46b83a4e39db8e78fa5d9374dffaffcf62f548ad8dfe14255dcdbf7fa2381ba
     controller-gen.kubebuilder.io/version: v0.22.0
   name: gameservers.gameplane.local
 spec:
@@ -1398,10 +1398,9 @@ spec:
                       ingress / external-dns annotations on the Service. Must be an
                       RFC 1123 hostname: dotted labels of 1-63 alphanumeric characters
                       or hyphens, no leading/trailing hyphen, at most 253 characters
-                      total. The operator does not create the DNS record itself. On a
-                      LoadBalancer server, once the load balancer has an address, the
-                      hostname is also the address status.endpoints and the dashboard
-                      report, since it is the name players use.
+                      total. The operator does not create the DNS record itself.
+                      NodePort servers advertise this name with the assigned node port.
+                      LoadBalancer servers advertise it once the load balancer has an address.
                     maxLength: 253
                     pattern: ^([a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*$
                     type: string
@@ -2624,8 +2623,8 @@ spec:
                   properties:
                     host:
                       description: |-
-                        Host is the address players connect to: the Service's address, or on
-                        a LoadBalancer server with spec.networking.hostname, that hostname.
+                        Host is the connection hostname or IP. For NodePort it is the game
+                        hostname or a serving node's external IP, or empty while neither is known.
                       type: string
                     name:
                       type: string
@@ -2763,8 +2762,8 @@ spec:
                   properties:
                     host:
                       description: |-
-                        Host is the address players connect to: the Service's address, or on
-                        a LoadBalancer server with spec.networking.hostname, that hostname.
+                        Host is the connection hostname or IP. For NodePort it is the game
+                        hostname or a serving node's external IP, or empty while neither is known.
                       type: string
                     name:
                       type: string

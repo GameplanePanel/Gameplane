@@ -159,7 +159,11 @@ describe("SharePage", () => {
       });
     });
 
-    it("T182: copy address button copies address to clipboard", async () => {
+    it.each([
+      ["example.com", "example.com:8080"],
+      ["[2001:db8::8]", "[2001:db8::8]:8080"],
+      ["2001:db8::8", "[2001:db8::8]:8080"],
+    ])("T182: shows and copies the connection address for %s", async (host, expected) => {
       const mockClipboard = vi.fn().mockResolvedValue(undefined);
       Object.defineProperty(navigator, "clipboard", {
         value: { writeText: mockClipboard },
@@ -169,19 +173,19 @@ describe("SharePage", () => {
       vi.mocked(Shares.resolve).mockResolvedValue({
         serverName: "test-server",
         status: "Running",
-        address: { host: "example.com", port: 8080 },
+        address: { host, port: 8080 },
       });
 
       renderWithRouter("test-token");
 
       await waitFor(() => {
-        expect(screen.getByText("example.com:8080")).toBeInTheDocument();
+        expect(screen.getByText(expected)).toBeInTheDocument();
       });
 
       const copyBtn = screen.getByRole("button", { name: /copy/i });
       fireEvent.click(copyBtn);
 
-      expect(mockClipboard).toHaveBeenCalledWith("example.com:8080");
+      expect(mockClipboard).toHaveBeenCalledWith(expected);
     });
   });
 
