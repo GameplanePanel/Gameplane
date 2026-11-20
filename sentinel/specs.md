@@ -1,6 +1,6 @@
 # sentinel — Specification
 
-**Status:** pre-v1 (v0.4.1)  
+**Status:** pre-v1 (v0.4.2)  
 **Module / command:** `github.com/GameplanePanel/gameplane/sentinel`  
 **Dependencies:** Kubernetes `client-go` (dynamic client, in-cluster config), `k8s.io/apimachinery`, gameproto
 

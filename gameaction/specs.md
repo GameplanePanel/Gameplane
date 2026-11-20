@@ -1,6 +1,6 @@
 # gameaction — Specification
 
-**Status:** pre-v1 (v0.4.1)  
+**Status:** pre-v1 (v0.4.2)  
 **Module / package:** `github.com/GameplanePanel/gameplane/gameaction`  
 **Dependencies:** stdlib only (Go 1.27+)
 
