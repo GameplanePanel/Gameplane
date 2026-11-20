@@ -13,7 +13,7 @@ func TestInstallationReportsPanelVersionWithoutWorkloadCluster(t *testing.T) {
 	for _, standalone := range []bool{false, true} {
 		t.Run(map[bool]string{false: "combined", true: "standalone"}[standalone], func(t *testing.T) {
 			r := chi.NewRouter()
-			MountInstallation(r, standalone, "v0.2.3-review")
+			MountInstallation(r, newTestStore(t), standalone, "v0.2.3-review")
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/installation", nil))
 			if rr.Code != http.StatusOK {

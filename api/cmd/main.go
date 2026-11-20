@@ -415,7 +415,7 @@ func main() {
 		} else {
 			handlers.MountClusters(p, reg, nil, credentialsNS)
 		}
-		handlers.MountInstallation(p, cfg.standalone, Version)
+		handlers.MountInstallation(p, store, cfg.standalone, Version)
 		handlers.MountEvents(p, reg)
 		handlers.MountDestinations(p, reg)
 		handlers.MountTunnelCredentials(p, reg)
