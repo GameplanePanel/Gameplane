@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -276,9 +277,22 @@ func (r *GameServerReconciler) reconcileStatus(
 		// reaches it, a relay's included, even while its old Service is
 		// still being deleted.
 		gs.Status.Endpoints = nil
+	case gs.Spec.Networking.Expose == "NodePort" && (!svcExists || svc.Spec.Type != corev1.ServiceTypeNodePort):
+		// During creation or an exposure change, old status and the previous
+		// Service type cannot establish which node ports are allocated.
+		gs.Status.Endpoints = nil
 	case svcExists:
-		gs.Status.Endpoints = withAdvertisedHostname(
-			endpointsFromService(&svc, addrPlan), &svc, gs.Spec.Networking.Hostname)
+		host := gs.Spec.Networking.Hostname
+		if svc.Spec.Type == corev1.ServiceTypeNodePort && host == "" {
+			var err error
+			host, err = r.nodePortExternalIP(ctx, &svc)
+			if err != nil {
+				// Publish the allocated ports and retry discovery on the normal
+				// status requeue, even when the node can't be read this pass.
+				log.FromContext(ctx).Error(err, "discover NodePort address")
+			}
+		}
+		gs.Status.Endpoints = endpointsFromService(&svc, addrPlan, host)
 	default:
 		// A deleted/replacing Service must not preserve a stale tailnet endpoint
 		// when the forwarding deployment has since lost readiness.
@@ -1332,32 +1346,10 @@ func loadBalancerAddress(svc *corev1.Service) string {
 	return ing.IP
 }
 
-// withAdvertisedHostname reports a LoadBalancer server's
-// spec.networking.hostname as its address, in place of the load balancer's
-// own. The hostname is the DNS name advertised for the Service (through
-// external-dns, or a record the admin keeps), so it is the address players
-// should use, and a name survives the load balancer handing out a new IP.
-// It applies only once the load balancer has published an address, since
-// until then the name has nothing to point at, and never to ClusterIP or
-// NodePort Services, whose endpoints are not the name's target. Only Host
-// changes: ServiceAddress keeps the load balancer's address, which address
-// conflict detection compares against (candidateHoldsAddress).
-func withAdvertisedHostname(
-	eps []gameplanev1alpha1.GameServerEndpoint, svc *corev1.Service, hostname string,
-) []gameplanev1alpha1.GameServerEndpoint {
-	if hostname == "" || loadBalancerAddress(svc) == "" {
-		return eps
-	}
-	for i := range eps {
-		eps[i].Host = hostname
-	}
-	return eps
-}
-
-// endpointsFromService lists the per-port externally reachable address
-// for a Service. For ClusterIP we report the cluster IP; for NodePort
-// we report the Service's declared port (the node IP is left to the API
-// layer since the operator doesn't know which node a user will hit).
+// endpointsFromService keeps the Service's assigned address separate from
+// the host players use. A LoadBalancer can advertise a hostname once it has
+// ingress. A NodePort reports only allocated node ports and leaves Host empty
+// until an advertised hostname or a selected node's external IP is known.
 //
 // plan supplies the pool each endpoint's address was drawn from. That name is
 // the pool the operator *requested*, not one the address manager confirmed:
@@ -1372,28 +1364,39 @@ func withAdvertisedHostname(
 // was configured to act on, or for one ignored because the expose mode is not
 // LoadBalancer.
 func endpointsFromService(
-	svc *corev1.Service, plan addressPlan,
+	svc *corev1.Service, plan addressPlan, advertisedHost string,
 ) []gameplanev1alpha1.GameServerEndpoint {
-	out := make([]gameplanev1alpha1.GameServerEndpoint, 0, len(svc.Spec.Ports))
-	host := svc.Spec.ClusterIP
+	var out []gameplanev1alpha1.GameServerEndpoint
+	serviceAddress := svc.Spec.ClusterIP
+	host := serviceAddress
 	pool := ""
 	if addr := loadBalancerAddress(svc); addr != "" {
+		serviceAddress = addr
 		host = addr
+		if advertisedHost != "" {
+			host = advertisedHost
+		}
 		if plan.Outcome == addressPlanTranslated {
 			pool = plan.Pool
 		}
+	} else if svc.Spec.Type == corev1.ServiceTypeNodePort {
+		host = advertisedHost
 	}
 	for _, p := range svc.Spec.Ports {
+		port := p.Port
+		if svc.Spec.Type == corev1.ServiceTypeNodePort {
+			if p.NodePort == 0 {
+				continue
+			}
+			port = p.NodePort
+		}
 		ep := gameplanev1alpha1.GameServerEndpoint{
 			Name:           p.Name,
 			Host:           host,
-			ServiceAddress: host,
-			Port:           p.Port,
+			ServiceAddress: serviceAddress,
+			Port:           port,
 			Protocol:       p.Protocol,
 			Pool:           pool,
-		}
-		if svc.Spec.Type == corev1.ServiceTypeNodePort && p.NodePort != 0 {
-			ep.Port = p.NodePort
 		}
 		out = append(out, ep)
 	}

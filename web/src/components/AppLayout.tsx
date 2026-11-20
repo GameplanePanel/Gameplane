@@ -231,6 +231,7 @@ export function AppLayout() {
         sidebar={
           <Sidebar
             navItems={navItems}
+            instanceName={installation.data?.instanceName}
             clusterName={centralManagement ? intl.formatMessage({ id: "web.components.app_layout.central_management", defaultMessage: "Central management", description: "Sidebar: cluster name shown on central-management pages" }) : "Gameplane"}
             user={me}
             variant="fixed"
@@ -269,6 +270,7 @@ export function AppLayout() {
           confusing the accessibility tree in source order too. */}
       <Sidebar
         navItems={navItems}
+        instanceName={installation.data?.instanceName}
         clusterName={centralManagement ? intl.formatMessage({ id: "web.components.app_layout.central_management", defaultMessage: "Central management", description: "Sidebar: cluster name shown on central-management pages" }) : "Gameplane"}
         user={me}
         variant="drawer"

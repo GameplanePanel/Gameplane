@@ -6,7 +6,9 @@ import { Button, Chip, Table } from "@heroui/react";
 import { StatCard } from "@/components/ui/StatCard";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 
+import { APIError } from "@/lib/api";
 import { useBackupDestinations } from "@/lib/destinations";
+import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "@/lib/backupReadOptions";
 import { formatBytes, formatRelative, formatRelativeFuture, parseQuantityToBytes } from "@/lib/utils";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
@@ -23,25 +25,44 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
   const { Backups } = resourceClient;
   const qc = useQueryClient();
   const permissions = useResourcePermissions();
+  // The access snapshot belongs to the selected cluster and namespace. Keep
+  // denied results isolated from later grants and from other resource scopes.
+  const accessKey = useBackupAccessKey(resourceTarget, permissions);
+  const canReadBackups = resourceCan(permissions, "backups:read");
+  const canReadSchedules = resourceCan(permissions, "schedules:read");
   const [creatingSchedule, setCreatingSchedule] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState<Backup | null>(null);
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
 
-  const { data: backups, error: backupsError } = useQuery({
-    queryKey: resourceKey(resourceTarget, "backups", ns),
+  const { data: backupsData, error: backupRequestError } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "backups"), "access", accessKey],
+    ...backupReadOptions(canReadBackups, 5000),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Backups.list(ns),
-    refetchInterval: 5000,
   });
-  const { data: schedules, error: schedulesError } = useQuery({
-    queryKey: resourceKey(resourceTarget, "schedules", ns),
+  const { data: schedulesData, error: scheduleRequestError } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "schedules"), "access", accessKey],
+    ...backupReadOptions(canReadSchedules, false),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Schedules.list(ns),
   });
-  const { data: restores, error: restoresError } = useQuery({
-    queryKey: resourceKey(resourceTarget, "restores", ns),
+  const { data: restoresData, error: restoreRequestError } = useQuery({
+    queryKey: [...resourceKey(resourceTarget, "restores"), "access", accessKey],
+    ...backupReadOptions(canReadBackups, 5000),
     queryFn: ({ signal }) => resourceClient.withSignal(signal).Restores.list(ns),
-    refetchInterval: 5000,
   });
-  const { data: destinations = [] } = useBackupDestinations();
+  const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations(resourceTarget, permissions);
+  const backupsDenied = !canReadBackups || isAuthorizationError(backupRequestError);
+  const schedulesDenied = !canReadSchedules || isAuthorizationError(scheduleRequestError);
+  const restoresDenied = !canReadBackups || isAuthorizationError(restoreRequestError);
+  const backupDenied = intl.formatMessage({ id: "web.routes.tabs.backups.backups_access_denied", defaultMessage: "You do not have permission to view backups in this cluster and namespace.", description: "Backups tab: access denied message for the selected server's backups" });
+  const scheduleDenied = intl.formatMessage({ id: "web.routes.tabs.backups.schedules_access_denied", defaultMessage: "You do not have permission to view schedules in this cluster and namespace.", description: "Backups tab: access denied message for the selected server's schedules" });
+  const restoreDenied = intl.formatMessage({ id: "web.routes.tabs.backups.restores_access_denied", defaultMessage: "You do not have permission to view restores in this cluster and namespace.", description: "Backups tab: access denied message for the selected server's restores" });
+  const backupsError = backupsDenied ? new APIError(403, backupDenied) : backupRequestError;
+  const schedulesError = schedulesDenied ? new APIError(403, scheduleDenied) : scheduleRequestError;
+  const restoresError = restoresDenied ? new APIError(403, restoreDenied) : restoreRequestError;
+  // A denied refetch must not keep displaying a previous successful response.
+  const backups = backupsDenied ? undefined : backupsData;
+  const schedules = schedulesDenied ? undefined : schedulesData;
+  const restores = restoresDenied ? undefined : restoresData;
 
   // Multi-destination picking is handled on the dashboard's Backups page;
   // here we only act when there's exactly one configured destination.
@@ -61,7 +82,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
 
   const backupNowDisabled = !resourceCan(permissions, "backups:write") || !lone || createNow.isPending;
   const backupNowHint =
-    destinations.length === 0
+    destinationsLoaded && destinations.length === 0
       ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_no_destination", defaultMessage: "No backup destination configured. Add one in admin settings.", description: "Backups tab: hint under the Back up now button when no backup destination exists; points to admin settings" })
       : destinations.length > 1
         ? intl.formatMessage({ id: "web.routes.tabs.backups.backup_now_hint_many_destinations", defaultMessage: "Multiple destinations configured — use the Backups page to pick one.", description: "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one" })
@@ -93,6 +114,7 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
       {backupsError && <ErrorBanner err={backupsError} />}
       {schedulesError && <ErrorBanner err={schedulesError} />}
       {restoresError && <ErrorBanner err={restoresError} />}
+      {destinationError && <ErrorBanner err={destinationError} />}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
           label={intl.formatMessage({ id: "web.routes.tabs.backups.last_backup", defaultMessage: "Last backup", description: "Backups tab: stat card label for the time of the most recent backup; the value shows that time relative to now, or Unavailable" })}
@@ -249,13 +271,13 @@ export function BackupsTab({ name, ns }: { name: string; ns?: string }) {
       </section>
 
       <RestoreDialog
-        backup={restoringBackup}
+        backup={backupsDenied ? null : restoringBackup}
         defaultServer={name}
         ns={ns}
         onClose={() => setRestoringBackup(null)}
       />
       <BackupDetailDrawer
-        name={selectedBackup}
+        name={backupsDenied ? null : selectedBackup}
         ns={ns}
         onClose={() => setSelectedBackup(null)}
         onRestore={(b) => {

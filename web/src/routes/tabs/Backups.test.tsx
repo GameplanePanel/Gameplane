@@ -36,7 +36,7 @@ describe("BackupsTab", () => {
     renderWithQuery(<BackupsTab name="alpha" />);
     const btn = await screen.findByRole("button", { name: /back up now/i });
     await waitFor(() => expect(btn).toBeDisabled());
-    expect(btn.closest("[title]")?.getAttribute("title")).toMatch(/No backup destination/i);
+    await waitFor(() => expect(btn.closest("[title]")?.getAttribute("title")).toMatch(/No backup destination/i));
   });
 
   it("disables 'Back up now' with a multi-destination hint", async () => {

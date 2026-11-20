@@ -69,7 +69,7 @@ describe("LogsTab", () => {
     await userEvent.click(screen.getByRole("button", { name: "Earlier output" }));
     expect(await screen.findByText("recent row")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Load older" }));
-    expect(await screen.findByText("oldest row")).toBeInTheDocument();
+    expect(await screen.findByText("oldest row recent row")).toBeInTheDocument();
     expect(requests).toEqual(["", "stable-boundary"]);
     expect(sockets[0].close).not.toHaveBeenCalled();
   });

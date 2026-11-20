@@ -281,8 +281,8 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   const readOnlyConfig = section === "config" && !access?.canWrite;
 
   return (
-    <div className="flex h-full min-h-0 flex-col md:flex-row">
-      <nav className="min-w-0 shrink-0 overflow-x-auto border-b border-border bg-surface/30 p-2 md:w-56 md:border-b-0 md:border-r">
+    <div className="flex h-full min-h-0 flex-col md:flex-row md:p-6">
+      <nav className="min-w-0 shrink-0 overflow-x-auto border-b border-border bg-surface-secondary p-2 md:w-56 md:border-b-0 md:border-r">
         <Tabs
           selectedKey={section}
           onSelectionChange={(k) => {
@@ -292,7 +292,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
         >
           <Tabs.List className="max-md:w-max">
             {sections.map((s) => (
-              <Tabs.Tab key={s.key} id={s.key}>
+              <Tabs.Tab key={s.key} id={s.key} className={s.key === "danger" ? "text-danger" : undefined}>
                 {intl.formatMessage(s.label)}
               </Tabs.Tab>
             ))}

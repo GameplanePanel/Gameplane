@@ -1,0 +1,3 @@
+# Show configured OpenEBS game-data capacity
+
+Cluster and fleet inventory can read an administrator-selected OpenEBS LVM thin pool instead of the node's system disk capacity. Storage cards use IEC units and identify the capacity source while continuing to show provisioned volume space rather than physical usage. Administrators can opt in with a Node annotation, dedicated thin-provisioned storage classes and named read-only LVMNode permissions; see the [setup instructions](../../docs/gateway-install.md#optional-openebs-thin-pool-capacity). Unconfigured clusters retain their existing calculation, and configured lookup failures remain unavailable instead of falling back to the system disk. [PR #1002](https://github.com/GameplanePanel/Gameplane/pull/1002)

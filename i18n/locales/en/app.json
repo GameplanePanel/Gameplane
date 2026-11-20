@@ -4395,6 +4395,10 @@
     "defaultMessage": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
     "description": "Settings: the independently resolved initial Java heap is larger than the maximum heap"
   },
+  "web.lib.destinations.access_denied": {
+    "defaultMessage": "You do not have permission to view backup destinations in this cluster and namespace.",
+    "description": "Backup destination lookup: access denied message for the selected cluster and namespace"
+  },
   "web.lib.errors.request_failed": {
     "defaultMessage": "request failed",
     "description": "Fallback error text when a failed request has no usable message"
@@ -4543,13 +4547,13 @@
     "defaultMessage": "in {count}s",
     "description": "Relative time until a future event in seconds; {count} is a number of seconds"
   },
-  "web.lib.utils.storage_of_physical": {
-    "defaultMessage": "of {total} physical",
-    "description": "Storage capacity line: provisioned storage out of node physical disk; {total} is a formatted size such as 40 GB"
+  "web.lib.utils.storage_capacity": {
+    "defaultMessage": "of {total} {source, select, pool {game-data capacity} mixed {combined capacity} other {system storage}}",
+    "description": "Provisioned storage compared with capacity; total is an IEC size such as 320 GiB. Source distinguishes game-data pools, mixed sources, and legacy node system storage."
   },
-  "web.lib.utils.storage_overcommitted": {
-    "defaultMessage": "of {total} physical — overcommitted",
-    "description": "Storage capacity line when provisioned storage exceeds physical disk; {total} is a formatted size such as 40 GB"
+  "web.lib.utils.storage_capacity_overcommitted": {
+    "defaultMessage": "of {total} {source, select, pool {game-data capacity} mixed {combined capacity} other {system storage}} — overcommitted",
+    "description": "Provisioned storage exceeds capacity; total is an IEC size such as 320 GiB. Source distinguishes game-data pools, mixed sources, and legacy node system storage."
   },
   "web.lib.utils.uptime_days_hours": {
     "defaultMessage": "{days}d {hours}h",
@@ -7939,10 +7943,6 @@
     "defaultMessage": "gameplane",
     "description": "Share: product name above the shared server title on the public share page; a brand name, usually kept as is"
   },
-  "web.routes.share.host_port": {
-    "defaultMessage": "{host}:{port}",
-    "description": "Share: connect address shown as host:port; {host} is the server host name and {port} is its port number"
-  },
   "web.routes.share.link_not_available": {
     "defaultMessage": "Link not available",
     "description": "Share: heading of the error page shown when the shared link is invalid or cannot be used"
@@ -8035,6 +8035,10 @@
     "defaultMessage": "Backups",
     "description": "Backups tab: stat card label for the number of backups; also the section heading above the backup list"
   },
+  "web.routes.tabs.backups.backups_access_denied": {
+    "defaultMessage": "You do not have permission to view backups in this cluster and namespace.",
+    "description": "Backups tab: access denied message for the selected server's backups"
+  },
   "web.routes.tabs.backups.backups_table": {
     "defaultMessage": "Backups table",
     "description": "Backups tab: accessible label of the backups table, read by screen readers; not shown as text"
@@ -8087,9 +8091,17 @@
     "defaultMessage": "· {time}",
     "description": "Backups: restore row suffix; {time} is how long ago the restore completed"
   },
+  "web.routes.tabs.backups.restores_access_denied": {
+    "defaultMessage": "You do not have permission to view restores in this cluster and namespace.",
+    "description": "Backups tab: access denied message for the selected server's restores"
+  },
   "web.routes.tabs.backups.schedules": {
     "defaultMessage": "Schedules",
     "description": "Backups tab: section heading above the list of backup schedules for this server"
+  },
+  "web.routes.tabs.backups.schedules_access_denied": {
+    "defaultMessage": "You do not have permission to view schedules in this cluster and namespace.",
+    "description": "Backups tab: access denied message for the selected server's schedules"
   },
   "web.routes.tabs.backups.size": {
     "defaultMessage": "Size",
@@ -8937,15 +8949,11 @@
   },
   "web.routes.tabs.overview.external_address": {
     "defaultMessage": "External Address",
-    "description": "Overview tab: label of the row with the public address of the server, shown without a port"
+    "description": "Overview tab: label of the row with the public address of the server"
   },
   "web.routes.tabs.overview.host": {
     "defaultMessage": "Host",
     "description": "Overview tab: label of the host name row in an address group"
-  },
-  "web.routes.tabs.overview.host_port_suffix": {
-    "defaultMessage": ":{port}",
-    "description": "Overview: port shown after the host of an endpoint; {port} is the port number"
   },
   "web.routes.tabs.overview.length_listed": {
     "defaultMessage": "{length} listed",
@@ -10006,6 +10014,10 @@
   "web.routes.tabs.settings.networking.no_address_manager_configured": {
     "defaultMessage": "No address manager configured",
     "description": "Networking: warning title shown when the cluster has no address manager; the line below says the pool and address preference will be saved but not applied"
+  },
+  "web.routes.tabs.settings.networking.nodeport_hostname_hint": {
+    "defaultMessage": "Use a DNS name that points to a node players can reach. Leave blank to use a node’s external IP when available.",
+    "description": "Networking: explains how the optional hostname determines the address advertised for a NodePort server"
   },
   "web.routes.tabs.settings.networking.one_cidr_per_line_restricts_which": {
     "defaultMessage": "One CIDR per line. Restricts which clients reach the LoadBalancer; empty allows all.",
