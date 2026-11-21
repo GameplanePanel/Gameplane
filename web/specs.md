@@ -595,12 +595,12 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 **UploadModuleDialog.tsx:**
 - File drag-drop or file picker for OCI bundle upload
 - Module source selector (which ModuleSource to upload to)
-- Upload button → multipart POST to `/modules/sources/:source/upload`
+- Upload button → POST of the raw `.tar.gz` or `.zip` bundle as the request body to `/modules/sources/:source/upload`
 
 **SourceDialog.tsx (ModuleSource CRUD):**
 - Modal form for create/edit ModuleSource (git URL, HTTP URL, local upload)
 - Source name, type picker, credentials/auth fields as needed
-- Add/Update button → POST/PUT to `/modules/sources`
+- Add button → POST to `/modules/sources`; Update button → PUT to `/modules/sources/:name`
 
 ### Backups Management Surface
 
