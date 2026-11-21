@@ -39,9 +39,9 @@ Gates a first PR trips on:
 - Unsigned commits: every commit needs `git commit -s`.
 - Missing labels: one `type:` and one `area:` label on every PR.
 - Local test or lint runs: only compile checks locally; CI is the verifier.
-- UI without design: dashboard changes start in `design.pen` (Pencil), see
+- UI without design: dashboard changes start in `design.fig`, see
   [Design first for UI changes](#design-first-for-ui-changes). Never hand-edit
-  `.pen` files.
+  `.fig` or `.pen` files.
 - Submodule work in the wrong repo: `modules/`, `website/` and the component submodules
   (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) changes go to
   their own repos first, then a pointer bump PR here.
@@ -99,12 +99,14 @@ Reopen the container with one of the named profiles (or `full`) and run the targ
 ## Design first for UI changes
 
 **Any change to the web dashboard's visual surface starts in
-`design.pen` (Pencil), not in code.** Open `design.pen`, update the
-relevant screen, review with the maintainers, *then* translate to
-React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
+`design.fig`, not in code.** Open `design.fig` in
+[OpenPencil](https://github.com/ValgulNecron/open-pencil) or Figma, update the
+relevant screen, regenerate the export with `hack/design/fig-export.ts` (see
+`assets/design-export/MANIFEST.md`), review with the maintainers, *then*
+translate to React. This keeps the 84 designed screens (`assets/design-export/MANIFEST.md`, re-measured 2026-09-12) the source of truth and
 prevents the dashboard from drifting into code-led redesigns.
 
-Backend/operator/API changes do not need a Pencil pass.
+Backend/operator/API changes do not need a design pass.
 
 ## UI components
 
@@ -314,7 +316,7 @@ and test gates below.
 
 1. Fork + feature branch
 2. **Do not run `make test` or `make lint` locally.** A quick compile check (`go build ./...` or `tsc --noEmit`) is fine to avoid pushing obviously-broken code, but the full test and lint suites run only on CI (GitHub Actions) — that is where they are gated and where failures surface. The exception is workflow changes: if you modify `.github/workflows/` or `.github/actions/`, run `actionlint` and `zizmor` locally before pushing (see CI and workflows section above).
-3. For UI work, include the Pencil node id(s) touched in the PR description
+3. For UI work, include the `design.fig` screen id(s) touched in the PR description
 4. Sign commits (`git commit -s`)
 5. **PR labels**: every PR must carry at least one `type:` and one `area:` label. CodeRabbit (see Code review below) applies them automatically, and the `auto-label` workflow (`hack/auto_label.py`, every 15 minutes) fills in a missing `type:` from the conventional-commit title prefix and a missing `area:` from the changed paths; `type: security` is never derived. You are responsible for verifying they are correct. The `type:` taxonomy is `feature` / `fix` / `refactor` / `test` / `ci` / `chore` / `docs` / `security`. The `area:` taxonomy is `operator` / `api` / `agent` / `web` / `modules` / `chart` / `e2e` / `specs` / `shared` / `optional-components`. A breaking CRD, API, or chart-value change also takes `breaking`. The `status:` labels (`blocked`, `needs-maintainer`, `in-progress`) are optional. A PR spanning several components takes several `area:` labels rather than being left unlabelled.
 6. **Changelog entry**: if the change matters to people who run Gameplane, add

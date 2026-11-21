@@ -50,10 +50,12 @@ reviews:
     ignore_usernames: []
 
   # Path filters: exclude design-source files from review
-  # .pen files are multi-megabyte machine-generated JSON design sources (CLAUDE.md rule 2)
-  # and should be reviewed visually in Pencil, not textually by code review.
+  # .fig (binary) and .pen (multi-megabyte machine-generated JSON) are design sources
+  # (CLAUDE.md rule 2). Review them through their exports (assets/design-export/json and
+  # screenshots), not textually.
   path_filters:
     - "!**/*.pen"
+    - "!**/*.fig"
 
   # Path-specific review instructions encoding project rules
   path_instructions:
@@ -117,20 +119,21 @@ reviews:
 
         Reference: CLAUDE.md rule 10, Constitution Principle IV (spec-driven).
 
-    # Dashboard routes: visual changes require design.pen + export updates
+    # Dashboard routes: visual changes require design.fig + export updates
     - path: "web/src/routes/**"
       instructions: |
         CRITICAL: Any visual change to a dashboard screen MUST be preceded by a design update.
         Flag if:
-        - The route file (*.tsx) shows visual changes but no matching design.pen update in the PR
-        - design.pen or website.pen was touched but assets/design-export/ or website-export/ was not updated
-          with fresh JSON dumps and screenshots of the changed frames
+        - The route file (*.tsx) shows visual changes but no matching design.fig update in the PR
+        - design.fig was touched but assets/design-export/ was not regenerated with
+          hack/design/fig-export.ts (per-screen .fig, JSON and screenshots), or website.pen was
+          touched but website-export/ was not updated
 
         Visual change means: added/changed components, layout shifts, color/style updates, new pages.
         Backend-only logic changes do not require a design pass.
 
         The assets/design-export/ snapshot is critical: a stale export actively misleads future agents.
-        Both design.pen AND the export must be committed in the same change.
+        Both design.fig AND the export must be committed in the same change.
 
         Reference: CLAUDE.md rule 1, Constitution Principle II.
 

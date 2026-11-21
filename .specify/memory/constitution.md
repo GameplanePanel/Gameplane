@@ -1,5 +1,12 @@
 <!--
 Sync Impact Report
+- 2.2.1 → 2.3.0 (MINOR). Principle II moves the dashboard and telemetry designs from
+  Pencil `.pen` files to `.fig` files (`design.fig`, `telemetry-dashboard.fig`) edited
+  through OpenPencil or Figma, and the snapshot becomes a full per-screen export
+  (standalone `.fig`, JSON, screenshot) written by `hack/design/fig-export.ts`. The
+  website keeps `website.pen` and Pencil MCP. CLAUDE.md rules 1, 2 and 17 changed to match.
+
+Previous report (2.2.0 → 2.2.1)
 - 2.2.0 → 2.2.1 (PATCH). Principle III names the Oxlint rules that enforce the existing
   explicit-any and floating-promise requirements in the TypeScript 7 dashboard.
   The corresponding configuration lives in `web/.oxlintrc.json`.
@@ -88,31 +95,30 @@ is deferred execution, never deferred authorship.
 
 ### II. Design-First for User-Facing Change
 Any change to the web dashboard's visual surface, and any change to the public website's
-screens, MUST be designed first in the relevant Pencil source (`design.pen` for the
-dashboard, `website.pen` for the public website's screens) via the `pencil` MCP server,
-and translated to React only after the design is committed. Backend-only, API-only, and operator-only changes are exempt. The `.pen`
-files are Pencil-owned design sources and MUST NOT be read, hand-edited, or deleted with
-generic file tools (`Read`, `Grep`, `sed`, `cat`, `rm`) — they MUST be accessed and
-modified through the `pencil` MCP server only. They are multi-megabyte machine-generated
-JSON documents: hand-editing risks structural corruption Pencil cannot recover, and
-reading one floods an agent's context while revealing nothing useful about the design,
-for which `get_screenshot` and `export_nodes` are the correct tools.
-Every design edit — a new screen or a change to an existing one, in either `.pen` file —
-MUST be followed, in the same change, by re-exporting the touched object(s) to the
-matching plain-file snapshot: `assets/design-export/{json,screenshots}/` for `design.pen`,
-`website/website-export/{json,screenshots}/` for `website.pen`. The export is produced
-via the `pencil` MCP server (a JSON dump per touched node and a screenshot per touched
-node), scoped to what changed, not a full re-run of every screen. A design change without
-a matching export update is incomplete.
-Rationale: the `.pen` files are the source of truth for the product's designed screens.
+screens, MUST be designed first in the relevant design source (`design.fig` for the
+dashboard, `telemetry-receiver/telemetry-dashboard.fig` for the telemetry dashboard,
+`website.pen` for the public website's screens) and translated to React only after the
+design is committed. Backend-only, API-only, and operator-only changes are exempt.
+Design sources MUST NOT be read, hand-edited, or deleted with generic file tools
+(`Read`, `Grep`, `sed`, `cat`, `rm`): a `.fig` file is binary and is changed only through
+OpenPencil (desktop app, its MCP server, or its CLI) or Figma; a `.pen` file is a
+multi-megabyte machine-generated JSON document changed only through the `pencil` MCP
+server. Hand-editing either risks corruption the tools cannot recover, and reading one
+reveals nothing useful about the design.
+Every design edit — a new screen or a change to an existing one — MUST be followed, in
+the same change, by regenerating the matching plain-file snapshot:
+`assets/design-export/{fig,json,screenshots}/` and `screens.json` for `design.fig`
+(and `telemetry-receiver/design-export/` for the telemetry design), written by
+`hack/design/fig-export.ts`; `website/website-export/{json,screenshots}/` for
+`website.pen`, exported through the `pencil` MCP server. A design change without a
+matching export update is incomplete.
+Rationale: the design files are the source of truth for the product's designed screens.
 Code-led redesigns bypass that source of truth, drift from it silently, and have been
-reverted before. They are large, complex machine-generated JSON structures where
-uncontrolled hand-edits risk corruption that Pencil's recovery mechanisms cannot undo.
-The export snapshot exists because the `.pen` format cannot be read directly (Principle
-II above) and the Pencil MCP server's own whole-document read tools have proven
-unreliable for bulk enumeration — a git-tracked, plain-file mirror is what lets any
-agent or human inspect the current design state without a live Pencil session, and a
-stale mirror actively misleads, so it cannot be allowed to drift from the source.
+reverted before. The export snapshot exists because the design files cannot be read
+directly — a git-tracked, plain-file mirror (one standalone `.fig`, one JSON dump and
+one screenshot per screen) is what lets any agent or human inspect and review the
+current design state without opening a design tool, and a stale mirror actively
+misleads, so it cannot be allowed to drift from the source.
 
 ### III. Language & Ecosystem Best Practice
 Code MUST follow the idioms of its language and the project's established tooling
@@ -289,7 +295,8 @@ per-module coverage gates defined in each module's `.testcoverage.yml` (and
 ## Development Workflow
 
 1. Constitution and spec artifacts govern before implementation begins (Principle IV).
-2. UI/design work is designed in Pencil before code is written (Principle II).
+2. UI/design work is designed in its design source (`design.fig`, or `website.pen` for
+   the website) before code is written (Principle II).
 3. Implementation is delegated and fanned out to subagents per Principle V, with
    tier-appropriate model escalation and mandatory tier-up review before acceptance.
 4. Every logical unit of work is committed separately and signed (`git commit -s`),
@@ -317,4 +324,4 @@ explicitly in the plan's Complexity Tracking section or the change MUST be redes
 to comply. Use `CLAUDE.md` for the day-to-day runtime guidance this constitution
 intentionally leaves at a higher level of abstraction.
 
-**Version**: 2.2.1 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-11-11
+**Version**: 2.3.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-11-21

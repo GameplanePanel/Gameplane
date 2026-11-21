@@ -37,7 +37,7 @@ class AreaForPath(unittest.TestCase):
             "api/cmd/main.go": "area: api",
             "agent/internal/files/a.go": "area: agent",
             "web/src/routes/Share.tsx": "area: web",
-            "design.pen": "area: web",
+            "design.fig": "area: web",
             "assets/design-export/json/a.json": "area: web",
             "modules": "area: modules",
             "docs/module-authoring.md": "area: modules",

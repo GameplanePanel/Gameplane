@@ -1,15 +1,22 @@
 ---
 name: pen-canvas-layout
-description: "How design.pen (and the other .pen files) is organised on the canvas: components on boards at the top, one row per page below in app navigation order, variants left to right. Use whenever you add, move or rename a screen, component or note in a .pen file, or when the canvas looks disorganised."
+description: "How design.fig (and the other design files) is organised on the canvas: components on boards at the top, one row per page below in app navigation order, variants left to right. Use whenever you add, move or rename a screen, component or note in design.fig, telemetry-dashboard.fig or website.pen, or when the canvas looks disorganised."
 ---
 
 ## Scope
 
-- Binding for `design.pen` (dashboard). `website/website.pen` and `telemetry-receiver/telemetry-dashboard.pen`
-  follow the same two-zone principle (components on top, one row per page, variants to the right), with
-  their own page order (site navigation / dashboard views). The canonical row list below is for `design.pen` only.
-- All access through Pencil: the Pencil MCP (`mcp__pencil__execute`) or the Pen CLI (`execute({ input })` in `pen interactive`; see the `design-export` skill). Never Read, grep or edit `.pen` files (CLAUDE.md core rule 2).
-- Saving: Pencil does not autosave, so with the MCP ask the user to save in the Pencil UI before committing. With the CLI, end the run with `save()`.
+- Binding for `design.fig` (dashboard, page `Dashboard`). `website/website.pen` and
+  `telemetry-receiver/telemetry-dashboard.fig` follow the same two-zone principle (components on top, one row
+  per page, variants to the right), with their own page order (site navigation / dashboard views). The canonical
+  row list below is for `design.fig` only.
+- `.fig` files: apply the layout through OpenPencil (app, `openpencil-mcp`, or `openpencil eval -w` with the
+  Figma plugin API: `figma.currentPage.children`, `node.x`/`node.y`, `node.parent`) or Figma. The `execute`
+  snippets and `check-layout.js` below run on `.pen` files only (the website); for `.fig`, check the same
+  rules with an `openpencil eval` script that reads the page's top-level nodes.
+- `.pen` files: all access through Pencil, the Pencil MCP (`mcp__pencil__execute`) or the Pen CLI
+  (`execute({ input })` in `pen interactive`; see the `design-export` skill). With the MCP ask the user to save in
+  the Pencil UI before committing; with the CLI, end the run with `save()`.
+- Never Read, grep or edit `.fig` or `.pen` files (CLAUDE.md core rule 2).
 
 ## Two zones
 
@@ -57,7 +64,7 @@ description: "How design.pen (and the other .pen files) is organised on the canv
 - Nothing else at the document root: no loose text, icons, buttons or sample instances. Anything without a
   home goes into the last row, `Unsorted — needs a home`, and is reported to the user.
 
-## Canonical row order (design.pen)
+## Canonical row order (design.fig)
 
 Rows follow the dashboard's navigation. Source of truth: `web/src/components/AppLayout.tsx` (sidebar),
 `web/src/routes/ServerDetail.tsx` (tabs), `web/src/routes/tabs/Settings.tsx` `SECTIONS` (server settings),
@@ -123,10 +130,10 @@ L.sort((a,b)=>a.y-b.y).forEach((l,i)=>{const k=String(i+1).padStart(2,"0")+" · 
 - items are top-aligned at x = 0 with 200 px gaps
 - at least 400 px between rows
 
-**E. Exports.** Moving a node changes `x`/`y` in its `assets/design-export/json/<id>.json`
-(`website/website-export/json/` for the site). Patch only those two values, in the same commit as the
-`.pen` change (design-export skill). Screenshots do not change when a node only moves. Record the move in
-`assets/design-export/MANIFEST.md`.
+**E. Exports.** `design.fig`: re-run `hack/design/fig-export.ts` (design-export skill); a move changes only
+`x`/`y` in the JSON. Website: moving a node changes `x`/`y` in its `website/website-export/json/<id>.json`;
+patch only those two values, in the same commit as the `.pen` change. Screenshots do not change when a node
+only moves.
 
 ## When the canvas is disorganised
 

@@ -1,9 +1,15 @@
 ---
 name: pen-componentize
-description: "Run when a design pass in design.pen (or website/website.pen) is finished, before design-export and commit: finds UI that recreates an existing component or repeats across screens, promotes repeated parts to reusable components and replaces every copy with an instance. Also use when asked to 'make everything a component' or to check that screens reuse components."
+description: "Run when a design pass in design.fig (or website/website.pen) is finished, before design-export and commit: finds UI that recreates an existing component or repeats across screens, promotes repeated parts to reusable components and replaces every copy with an instance. Also use when asked to 'make everything a component' or to check that screens reuse components."
 ---
 
-## Componentize .pen screens
+## Componentize design screens
+
+The goal and the triage below hold for `design.fig` and `website/website.pen` alike. The `audit.js` and
+`promote.js` helpers and the `Get`/`Export` steps run on `.pen` files only (Pencil). For `design.fig`, do the
+same audit and promotion with an `openpencil eval -w` script (Figma plugin API: `node.type === 'INSTANCE'`,
+`figma.createComponentFromNode`, `component.createInstance()`), compare renders before and after with
+`hack/design/fig-export.ts` into a scratch folder, and finish with the `design-export` skill.
 
 ### Goal
 

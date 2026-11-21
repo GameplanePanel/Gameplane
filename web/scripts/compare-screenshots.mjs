@@ -4,7 +4,7 @@
  * Visual regression comparison script for Gameplane dashboard.
  *
  * Compares Playwright browser captures (web/e2e/screenshots/*.png) against
- * reference baseline screenshots exported from Pencil (assets/design-export/screenshots/*.png).
+ * reference baseline screenshots rendered from design.fig (assets/design-export/screenshots/*.png, written by hack/design/fig-export.ts).
  *
  * Key features:
  * - Scale normalization: when a capture's width differs from its reference's width

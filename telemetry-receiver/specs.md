@@ -51,7 +51,7 @@ telemetry-receiver/
 ├── go.mod / go.sum     # Dependencies: prometheus/client_golang, modernc.org/sqlite, telemetryschema (+ transitives)
 ├── .testcoverage.yml   # Coverage gate: 70% total
 ├── Dockerfile          # Multi-stage: build→distroless:nonroot, CGO_ENABLED=0
-├── telemetry-dashboard.pen, design-export/  # dashboard designs and their export
+├── telemetry-dashboard.fig, design-export/  # dashboard designs and their export
 ├── README.md           # User-facing: behavior, configuration, run examples
 └── .gitignore          # Standard Go ignores
 ```
