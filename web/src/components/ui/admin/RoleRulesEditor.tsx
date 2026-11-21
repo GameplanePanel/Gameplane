@@ -90,10 +90,14 @@ export function effectiveOverrideFallback(ov: HelmRoleOverride | undefined, helm
   return ov?.defaultRole ?? helm?.defaultRole ?? "";
 }
 
+// An old-form mapping that lists no group still has mapping on (the fallback,
+// "deny" included, applies to everyone), but an empty roleRules list turns
+// mapping off (oidc.go MappingOn). Such a mapping stays in the old form.
 function providerToRuleForm(p: AuthProvider): AuthProvider {
   if (p.roleMappings === undefined || p.roleRules !== undefined) return p;
   const { roleMappings, ...rest } = p;
-  return { ...rest, roleRules: rulesFromMappings(roleMappings) };
+  const rules = rulesFromMappings(roleMappings);
+  return rules.length > 0 ? { ...rest, roleRules: rules } : p;
 }
 
 /**
@@ -108,29 +112,44 @@ export function normalizeAuthForSave(cfg: AuthCfg, helm?: OIDCHelmProvider): Aut
   if (!isOverrideActive(ov)) {
     delete next.helmOverride;
   } else if (ov.roleRules === undefined) {
-    next.helmOverride = {
-      roleRules: effectiveOverrideRules(ov, helm),
-      ...(ov.defaultRole !== undefined ? { defaultRole: ov.defaultRole } : {}),
-    };
+    // An old-form override that leaves no rule (it cleared the last mapped
+    // group) keeps mapping on with the fallback; as roleRules: [] it would
+    // turn mapping off, so it stays in the old form (see providerToRuleForm).
+    const rules = effectiveOverrideRules(ov, helm);
+    if (rules.length > 0) {
+      next.helmOverride = {
+        roleRules: rules,
+        ...(ov.defaultRole !== undefined ? { defaultRole: ov.defaultRole } : {}),
+      };
+    }
   }
   return next;
 }
 
+/** Each group's effective role: the role of the first rule naming it. */
+function firstMatchRoles(rules: AuthRoleRule[]): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const r of rules) {
+    const group = r.group.trim();
+    if (group && !out.has(group)) out.set(group, r.role);
+  }
+  return out;
+}
+
 /**
  * Groups a save would newly grant admin through the Helm override (FR-015):
- * admin rules of the draft override whose group the stored config (its
- * override, or the Helm rules when it has none) does not already map to admin.
+ * groups whose first matching rule in the draft override grants admin, while
+ * their first matching rule in the stored config (its override, or the Helm
+ * rules when it has none) did not. A rule shadowed by an earlier rule for the
+ * same group grants nothing, so moving it up is a new grant.
  */
 export function addedOverrideAdminGroups(draft: AuthCfg, stored: AuthCfg, helm?: OIDCHelmProvider): string[] {
   if (!isOverrideActive(draft.helmOverride)) return [];
-  const before = isOverrideActive(stored.helmOverride)
-    ? effectiveOverrideRules(stored.helmOverride, helm)
-    : helmRules(helm);
-  const known = new Set(before.filter((r) => r.role === "admin").map((r) => r.group.trim()));
-  const added = effectiveOverrideRules(draft.helmOverride, helm)
-    .filter((r) => r.role === "admin" && !known.has(r.group.trim()))
-    .map((r) => r.group.trim());
-  return [...new Set(added)];
+  const before = firstMatchRoles(
+    isOverrideActive(stored.helmOverride) ? effectiveOverrideRules(stored.helmOverride, helm) : helmRules(helm),
+  );
+  const after = firstMatchRoles(effectiveOverrideRules(draft.helmOverride, helm));
+  return [...after].filter(([group, role]) => role === "admin" && before.get(group) !== "admin").map(([group]) => group);
 }
 
 /** Role names for the rule and fallback dropdowns; the built-ins until /roles loads. */
