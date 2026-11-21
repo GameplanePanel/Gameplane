@@ -118,7 +118,6 @@ connection, so `tls: none` only works for unauthenticated relays.
     "namespace": "gameplane-games",
     "message": "restic exited with code 1",
     "instance": "prod",
-    "test": false,
     "language": "en",
     "title": "[prod] backup failed: gameplane-games/nightly",
     "text": "[prod] backup failed: gameplane-games/nightly — restic exited with code 1"

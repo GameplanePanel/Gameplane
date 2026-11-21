@@ -48,7 +48,7 @@ The API is a **UX layer only** — it reads and writes CRDs but does **not** con
 ```
 api/
 ├── cmd/
-│   ├── main.go           # entry point; subcommands: serve (default) + bootstrap-admin
+│   ├── main.go           # entry point; subcommands: serve (default), bootstrap-admin, gateway, rotate-panel-key
 │   ├── bootstrap.go      # bootstrap-admin implementation
 │   └── bootstrap_test.go
 ├── internal/
@@ -89,7 +89,7 @@ api/
 
 ### Entry point: api/cmd/main.go
 
-Two subcommands:
+Subcommands (`gateway` is covered under "Optional private agent gateway" and `rotate-panel-key` further down):
 
 1. **`serve` (default)** — starts the HTTP server
    - **Core flags:** `--addr`, `--metrics-addr`, `--db-driver`, `--db-dsn`, `--log-level`
@@ -632,7 +632,7 @@ Verify from `/api/go.mod`.
 - Existing rows retain NULL `reason`; the audit hash-chain boundary preserves backward compatibility (see below)
 
 **008_captures_rbac.sql:** (Phase 2 Foundational: capture permissions)
-- Seeds `captures:manage` permission to admin role via `INSERT INTO role_permissions(role_name, permission) VALUES ('admin', 'captures:manage')`
+- Does not insert `captures:manage` into `role_permissions`; the file only documents the decision (the `captures:manage` catalog entry lives in `api/internal/rbac/catalog.go`). Admin holds the permission through the `*` wildcard seeded in `003_roles.sql`; an explicit grant would break the `['*']` admin-set test
 - Only admin role grants capture access in Phase 2 Foundational; future phases determine operator role grantability
 
 **009_share_links_cluster.sql:** (multi-cluster share links)

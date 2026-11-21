@@ -820,7 +820,7 @@ Forgetting codegen leaves the YAML out of sync with types — CI's `make manifes
 | github.com/prometheus/client_golang | v1.25.0 | Prometheus metrics registration & exposition. |
 | github.com/robfig/cron/v3 | v3.0.1 | Cron expression parsing (BackupSchedule). |
 | github.com/sigstore/cosign/v3 | v3.1.4 | cosign signature verification (module bundles). |
-| github.com/sigstore/sigstore | v1.11.1 | sigstore primitives (Fulcio roots, certificate chains). |
+| github.com/sigstore/sigstore-go | v1.4.0 | Sigstore trusted-root (TUF) loading for keyless verification (Fulcio roots, certificate chains). |
 | golang.org/x/crypto | v0.59.0 | Cryptographic primitives (TLS, X.509). |
 | golang.org/x/mod | v0.43.0 | Semantic versioning (semver package). |
 | oras.land/oras-go/v2 | v2.7.0 | OCI artifact pull (module bundles). |
