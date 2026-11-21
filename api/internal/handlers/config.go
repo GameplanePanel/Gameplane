@@ -145,10 +145,8 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 		groups string
 	}
 	if section == "auth" {
-		// Role names are open-ended (any role, OD-7), so whether each rule
-		// and fallback names an existing role is checked against the
-		// database here, after the pure validator (research R-5).
-		if err := h.checkAuthRoles(req.Context(), canon); err != nil {
+		auditEvents = h.detectAuthAuditEvents(req.Context(), canon)
+		if err := h.saveAuth(req.Context(), canon); err != nil {
 			var m *httperr.Message
 			if errors.As(err, &m) {
 				httperr.WriteMessage(w, req, m)
@@ -157,10 +155,7 @@ func (h *configHandler) put(w http.ResponseWriter, req *http.Request) {
 			httperr.Write(w, req, err)
 			return
 		}
-		auditEvents = h.detectAuthAuditEvents(req.Context(), canon)
-	}
-
-	if section == "telemetry" {
+	} else if section == "telemetry" {
 		// The telemetry section's post-save hook runs in the same
 		// transaction as the config write (see saveTelemetry).
 		if err := h.saveTelemetry(req.Context(), canon); err != nil {
@@ -419,13 +414,45 @@ func formatGroupsForAudit(groups *[]string) string {
 	return strings.Join(*groups, ",")
 }
 
+// saveAuth checks the auth section's role names and writes it in one
+// user-management transaction, the one role deletion uses for its "named by
+// an SSO rule" check (roles.go del). A role deleted between the check and the
+// write would otherwise leave a saved rule that refuses its users at sign-in.
+func (h *configHandler) saveAuth(ctx context.Context, canon json.RawMessage) error {
+	tx, err := h.db.BeginUserManagement(ctx)
+	if err != nil {
+		return fmt.Errorf("begin auth config save: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	// Role names are open-ended (any role, OD-7), so whether each rule and
+	// fallback names an existing role is checked against the database here,
+	// after the pure validator (research R-5).
+	if err := h.checkAuthRoles(ctx, tx, canon); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`INSERT INTO config(key, value, updated_at)
+		 VALUES (?, ?, ?)
+		 ON CONFLICT(key) DO UPDATE SET
+		     value      = excluded.value,
+		     updated_at = excluded.updated_at`,
+		"auth", string(canon), db.NowTimestamp(),
+	); err != nil {
+		return fmt.Errorf("write auth config: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit auth config: %w", err)
+	}
+	return nil
+}
+
 // checkAuthRoles refuses an auth section whose role rules or fallbacks name a
 // role that does not exist (FR-007, OD-2): every provider's and the Helm
 // override's roleRules roles, and every defaultRole other than "" (viewer)
 // and "deny". validateAuth stays a pure function of the body; this is the
 // part that needs the database (research R-5). The refusal is a 400
 // server.config.auth_role_unknown naming the role.
-func (h *configHandler) checkAuthRoles(ctx context.Context, canon json.RawMessage) error {
+func (h *configHandler) checkAuthRoles(ctx context.Context, q db.Reader, canon json.RawMessage) error {
 	var c authCfg
 	if err := json.Unmarshal(canon, &c); err != nil {
 		return fmt.Errorf("decode auth config: %w", err)
@@ -460,7 +487,7 @@ func (h *configHandler) checkAuthRoles(ctx context.Context, canon json.RawMessag
 			continue
 		}
 		checked[name] = true
-		ok, err := h.db.RoleExists(ctx, name)
+		ok, err := (db.Roles{Reader: q}).RoleExists(ctx, name)
 		if err != nil {
 			return fmt.Errorf("check role %q: %w", name, err)
 		}
