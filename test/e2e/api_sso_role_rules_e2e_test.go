@@ -14,19 +14,19 @@ import (
 	"time"
 )
 
-// ssoRulesFakeIdPRedirect is the one redirect_uri the in-cluster fake IdP
+// ssoRulesFakeIDPRedirect is the one redirect_uri the in-cluster fake IdP
 // accepts (deploy/kind/e2e.sh, REDIRECT_URI on gameplane-test-fakeoidc). The
 // dashboard provider of this test derives a different callback URL from the
 // External URL, so ssoRulesLogin swaps the authorize request's redirect_uri
 // for this value; the fake IdP's /token never checks it.
-const ssoRulesFakeIdPRedirect = "https://gameplane.e2e.invalid/auth/oidc/helm/callback"
+const ssoRulesFakeIDPRedirect = "https://gameplane.e2e.invalid/auth/oidc/helm/callback"
 
-// ssoRulesFakeIdPClientID is the audience the fake IdP puts in every ID token
+// ssoRulesFakeIDPClientID is the audience the fake IdP puts in every ID token
 // (CLIENT_ID on the same Deployment), so the dashboard provider must use it.
-const ssoRulesFakeIdPClientID = "gameplane-e2e-helm-oidc"
+const ssoRulesFakeIDPClientID = "gameplane-e2e-helm-oidc"
 
-// ssoRulesFakeIdPIssuer is the in-cluster issuer URL the API pod dials.
-const ssoRulesFakeIdPIssuer = "http://gameplane-test-fakeoidc.gameplane-system.svc.cluster.local:8080"
+// ssoRulesFakeIDPIssuer is the in-cluster issuer URL the API pod dials.
+const ssoRulesFakeIDPIssuer = "http://gameplane-test-fakeoidc.gameplane-system.svc.cluster.local:8080"
 
 // ssoRulesLoginResult is one finished SSO round trip.
 type ssoRulesLoginResult struct {
@@ -90,7 +90,7 @@ func ssoRulesLoginOnce(t *testing.T, apiBase, idpBase, provider, sub, email stri
 	authorizeURL.Scheme = idpURL.Scheme
 	authorizeURL.Host = idpURL.Host
 	q := authorizeURL.Query()
-	q.Set("redirect_uri", ssoRulesFakeIdPRedirect)
+	q.Set("redirect_uri", ssoRulesFakeIDPRedirect)
 	q.Set("sub", sub)
 	q.Set("email", email)
 	q.Set("groups", strings.Join(groups, ","))
@@ -152,6 +152,7 @@ func ssoRulesListUsers(t *testing.T, admin *APIClient) []ssoRulesUser {
 	if err != nil || resp.StatusCode != http.StatusOK {
 		t.Fatalf("list users: err=%v body=%s", err, string(body))
 	}
+	_ = resp.Body.Close()
 	var users []ssoRulesUser
 	if err := json.Unmarshal(body, &users); err != nil {
 		t.Fatalf("decode users: %v\n%s", err, string(body))
@@ -244,34 +245,37 @@ func TestAPI_SSORoleRules(t *testing.T) {
 		grpB     = "e2e-ssorr grp b"
 		grpOther = "e2e-ssorr-unmapped"
 	)
-	closeBody := func(r *http.Response) {
-		if r != nil {
-			_ = r.Body.Close()
-		}
-	}
 
 	// Cleanups run last-in first: users, then the auth config that names the
 	// roles, then the Secret, then the roles themselves.
 	for _, role := range []string{roleA, roleB} {
 		t.Cleanup(func() {
 			r, _, _ := admin.Delete("/roles/" + role)
-			closeBody(r)
+			if r != nil {
+				_ = r.Body.Close()
+			}
 		})
 	}
 	t.Cleanup(func() {
 		r, _, _ := admin.Do(http.MethodDelete, "/admin/auth/providers/"+provider+"/secret", nil)
-		closeBody(r)
+		if r != nil {
+			_ = r.Body.Close()
+		}
 	})
 	localOnly := []map[string]any{{"name": "local", "kind": "local", "enabled": true}}
 	t.Cleanup(func() {
 		r, _, _ := admin.Do(http.MethodPut, "/admin/config/auth", map[string]any{"providers": localOnly})
-		closeBody(r)
+		if r != nil {
+			_ = r.Body.Close()
+		}
 	})
 	var userIDs []int64
 	t.Cleanup(func() {
 		for _, id := range userIDs {
 			r, _, _ := admin.Delete(fmt.Sprintf("/users/%d", id))
-			closeBody(r)
+			if r != nil {
+				_ = r.Body.Close()
+			}
 		}
 	})
 
@@ -287,6 +291,7 @@ func TestAPI_SSORoleRules(t *testing.T) {
 		if err != nil || resp.StatusCode != http.StatusCreated {
 			t.Fatalf("create role %s: err=%v body=%s", c.name, err, string(body))
 		}
+		_ = resp.Body.Close()
 	}
 
 	// The provider's redirect URL derives from General -> External URL. Only
@@ -294,10 +299,13 @@ func TestAPI_SSORoleRules(t *testing.T) {
 	// test's values are never overwritten. GET /admin/config returns every
 	// section keyed by name; there is no per-section GET.
 	var sections map[string]json.RawMessage
-	if resp, body, err := admin.Get("/admin/config"); err != nil || resp.StatusCode != http.StatusOK {
-		t.Fatalf("get config: err=%v body=%s", err, string(body))
-	} else if err := json.Unmarshal(body, &sections); err != nil {
-		t.Fatalf("decode config: %v\n%s", err, string(body))
+	cfgResp, cfgBody, err := admin.Get("/admin/config")
+	if err != nil || cfgResp.StatusCode != http.StatusOK {
+		t.Fatalf("get config: err=%v body=%s", err, string(cfgBody))
+	}
+	_ = cfgResp.Body.Close()
+	if err := json.Unmarshal(cfgBody, &sections); err != nil {
+		t.Fatalf("decode config: %v\n%s", err, string(cfgBody))
 	}
 	general := map[string]any{}
 	if raw, ok := sections["general"]; ok {
@@ -314,6 +322,7 @@ func TestAPI_SSORoleRules(t *testing.T) {
 		if err != nil || resp.StatusCode != http.StatusOK {
 			t.Fatalf("set general config: err=%v body=%s", err, string(body))
 		}
+		_ = resp.Body.Close()
 	}
 
 	resp, body, err := admin.Do(http.MethodPut, "/admin/auth/providers/"+provider+"/secret",
@@ -321,6 +330,7 @@ func TestAPI_SSORoleRules(t *testing.T) {
 	if err != nil || resp.StatusCode != http.StatusOK {
 		t.Fatalf("put provider secret: err=%v body=%s", err, string(body))
 	}
+	_ = resp.Body.Close()
 
 	// save PUTs the auth section: local login plus this provider with the
 	// given ordered rules and fallback. It returns the raw status and problem
@@ -330,7 +340,7 @@ func TestAPI_SSORoleRules(t *testing.T) {
 		status, msgID, _ := ssoRulesProblem(t, admin, http.MethodPut, "/admin/config/auth", map[string]any{
 			"providers": append(append([]map[string]any{}, localOnly...), map[string]any{
 				"name": provider, "kind": "oidc", "displayName": "E2E rules", "enabled": true,
-				"issuer": ssoRulesFakeIdPIssuer, "clientID": ssoRulesFakeIdPClientID,
+				"issuer": ssoRulesFakeIDPIssuer, "clientID": ssoRulesFakeIDPClientID,
 				"groupsClaim": "groups", "roleRules": rules, "defaultRole": fallback,
 			}),
 		})
@@ -447,6 +457,7 @@ func TestAPI_SSORoleRules(t *testing.T) {
 		if err != nil || resp.StatusCode != http.StatusOK {
 			t.Fatalf("set role by hand: err=%v body=%s", err, string(body))
 		}
+		_ = resp.Body.Close()
 		if u := ssoRulesUserByID(t, admin, user1); u.Role != roleB || u.RoleSource != "manual" {
 			t.Fatalf("after PATCH user = %+v, want role %s from manual", u, roleB)
 		}
@@ -486,6 +497,7 @@ func TestAPI_SSORoleRules(t *testing.T) {
 		if err != nil || resp.StatusCode != http.StatusOK {
 			t.Fatalf("return to sso control: err=%v body=%s", err, string(body))
 		}
+		_ = resp.Body.Close()
 		if u := ssoRulesUserByID(t, admin, user1); u.Role != roleB || u.RoleSource != "sso_pending" {
 			t.Fatalf("after return user = %+v, want role %s kept, source sso_pending", u, roleB)
 		}
