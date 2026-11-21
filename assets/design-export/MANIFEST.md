@@ -2892,3 +2892,16 @@ The running Overview (`EZFW0`) shows measured data usage alongside the requested
 | --- | --- |
 | `KJdxg` | Saved JVM options apply on the next start. Both heap arguments appear below the fields. |
 | `ZUAq1` | A 4 GiB limit and a 2G maximum make the automatic 3072M initial heap invalid. The adoption notice and disabled Save button are visible. |
+
+## SSO role rules and role source (spec 034)
+
+Made in a cloud session by scripted JSON edits to `design.pen` and checked with OpenPencil renders, at valgul's request (2026-11-19). Existing nodes are unchanged, except `zqzr4` (see below). Each new root has a JSON export and a 2× PNG rendered by OpenPencil.
+
+| Node | State |
+| --- | --- |
+| `UdnBT` | Admin Settings → Authentication with the ordered role-rule editor in the provider form: priority, group, role select, move up and down, remove, and Add rule. Rule 3 shows the duplicate-group warning. The fallback select is set to "Refuse sign-in". The Helm card lists the seeded rules read-only, and the override card is active, with "Reset to Helm default" and a rule whose role no longer exists. |
+| `mrF6f` | Panel states: the provider rule editor with no rules, and the override card before an override (Helm rules greyed, an "Override" button). |
+| `rJt1I` | Users & RBAC with role-source badges: From SSO, Set by hand, and From SSO (applies at next sign-in). Local users have no badge. The row menu is open on a hand-set SSO user, showing "Return to SSO control". |
+| `pszxE` | The "Return to SSO control" confirm dialog, and the Edit user dialog for a hand-set SSO user with the role-source badge, the helper text and the return action. |
+
+**`zqzr4` redrawn for PR #1040 (valgul, 2026-11-21).** The page this frame is captured against now shows the rule editor, so the visual diff failed at 4.56% (limit 4%). The Add provider form's Role mapping header, the Admin/Operator/Viewer group fields, the inline admin warning (`u0KXn`) and the Default role select were replaced with the rule editor: rule 1 `ops-leads` → admin, and the fallback set to viewer. The Helm OIDC Provider Card (`nM038`) and the Role Mapping Overrides Card (`m9v8ym`) were removed, because the page shows them only when a Helm provider exists. `UdnBT` and `mrF6f` carry both cards in the new form. JSON re-exported and PNG re-rendered with OpenPencil (2880×4976).

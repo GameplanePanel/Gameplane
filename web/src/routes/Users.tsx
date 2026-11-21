@@ -34,15 +34,19 @@ import {
   ListBoxItem,
 } from "@heroui/react";
 import {
+  Clock,
+  Hand,
   KeyRound,
   MoreHorizontal,
   Pencil,
   Plus,
+  RotateCcw,
   ScrollText,
   Search,
   Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { RoleEditorModal } from "@/components/ui/RoleEditorModal";
 import { InviteUserDialog } from "@/components/ui/admin/InviteUserDialog";
 import { EditUserDialog } from "@/components/ui/admin/EditUserDialog";
@@ -84,6 +88,40 @@ function useRolesQuery() {
   return useQuery({ queryKey: ["roles"], queryFn: () => RolesAPI.list() });
 }
 
+// Spec 034: where a user's role comes from is shown only for users who do not
+// sign in with a local account (contracts/users-api.md).
+function showsRoleSource(u: ExtendedUser): boolean {
+  return u.roleSource !== undefined && u.provider !== undefined && u.provider !== "local";
+}
+
+// "Return to SSO control" applies only to an SSO-linked user whose role was
+// set by hand; the API refuses it for users with no SSO link.
+function canReturnToSso(u: ExtendedUser): boolean {
+  return u.provider === "oidc" && u.roleSource === "manual";
+}
+
+function RoleSourceBadge({ user }: { user: ExtendedUser }) {
+  const intl = useOptionalIntl();
+  if (!showsRoleSource(user)) return null;
+  const base = "inline-flex w-fit items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[10px]";
+  if (user.roleSource === "sso") {
+    return (
+      <span className={`${base} bg-primary/10 text-primary`}>
+        <KeyRound className="h-3 w-3" />{intl.formatMessage({ id: "web.routes.users.role_source_sso", defaultMessage: "From SSO", description: "Users: badge next to a role that sign-in sets from the SSO group rules; keep it short" })}</span>
+    );
+  }
+  if (user.roleSource === "sso_pending") {
+    return (
+      <span className={`${base} bg-warning/15 text-warning`}>
+        <Clock className="h-3 w-3" />{intl.formatMessage({ id: "web.routes.users.role_source_sso_pending", defaultMessage: "From SSO (applies at next sign-in)", description: "Users: badge next to a role that was returned to SSO control; the SSO rules set it at the user's next sign-in" })}</span>
+    );
+  }
+  return (
+    <span className={`${base} text-foreground/70 ring-1 ring-border`}>
+      <Hand className="h-3 w-3" />{intl.formatMessage({ id: "web.routes.users.role_source_manual", defaultMessage: "Set by hand", description: "Users: badge next to a role an admin set by hand, which sign-in no longer changes; keep it short" })}</span>
+  );
+}
+
 export function UsersPage() {
   const intl = useOptionalIntl();
   const qc = useQueryClient();
@@ -95,6 +133,7 @@ export function UsersPage() {
   const [editing, setEditing] = useState<ExtendedUser | null>(null);
   const [resetting, setResetting] = useState<ExtendedUser | null>(null);
   const [deleting, setDeleting] = useState<ExtendedUser | null>(null);
+  const [returning, setReturning] = useState<ExtendedUser | null>(null);
 
   const { data: users = [], error } = useQuery({
     queryKey: ["users"],
@@ -144,6 +183,16 @@ export function UsersPage() {
     mutationFn: ({ id, password }: { id: number; password: string }) =>
       UsersAPI.resetPassword(id, password),
     onSuccess: () => setResetting(null),
+  });
+  // OD-6: the role stays as it is until the user's next sign-in; the source
+  // becomes sso_pending, so an open edit dialog shows the pending badge.
+  const returnToSso = useMutation({
+    mutationFn: (id: number) => UsersAPI.update(id, { roleSource: "sso" }),
+    onSuccess: (_data, id) => {
+      invalidate();
+      setReturning(null);
+      setEditing((cur) => (cur && cur.id === id ? { ...cur, roleSource: "sso_pending" } : cur));
+    },
   });
 
   return (
@@ -249,9 +298,12 @@ export function UsersPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase ${roleColor[u.role] ?? "bg-muted/20 text-muted"}`}>
-                        {u.role}
-                      </span>
+                      <div className="flex flex-col items-start gap-1">
+                        <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase ${roleColor[u.role] ?? "bg-muted/20 text-muted"}`}>
+                          {u.role}
+                        </span>
+                        <RoleSourceBadge user={u} />
+                      </div>
                     </Table.Cell>
                     <Table.Cell>
                       <span className="rounded px-2 py-0.5 text-[10px] uppercase text-foreground/60 ring-1 ring-border">
@@ -282,6 +334,15 @@ export function UsersPage() {
                               <div className="flex items-center gap-2">
                                 <Pencil className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.edit_user", defaultMessage: "Edit user", description: "Users: menu item that opens the edit dialog for a user; keep it short" })}</div>
                             </DropdownItem>
+                            {canReturnToSso(u) && (
+                              <DropdownItem
+                                key="return-sso"
+                                onPress={() => setReturning(u)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <RotateCcw className="h-4 w-4" />{intl.formatMessage({ id: "web.routes.users.return_to_sso_control", defaultMessage: "Return to SSO control", description: "Users: menu item, edit-dialog button and confirm button that let the SSO rules set a hand-set user's role again; keep it short" })}</div>
+                              </DropdownItem>
+                            )}
                             <DropdownItem
                               key="reset"
                               isDisabled={u.provider === "oidc"}
@@ -374,6 +435,24 @@ export function UsersPage() {
           isLoading={save.isPending}
           apiError={apiErrorText(save.error, intl)}
           contactFieldsOptional
+          roleFooter={showsRoleSource(editing) ? (
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center gap-2 text-xs text-muted">
+                {intl.formatMessage({ id: "web.routes.users.role_source", defaultMessage: "Role source", description: "Users: label in the edit-user dialog before the badge saying where the user's role comes from; keep it short" })}
+                <RoleSourceBadge user={editing} />
+              </div>
+              <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.users.role_source_helper", defaultMessage: "Changing the role here marks it as set by hand. Sign-in will no longer change it.", description: "Users: helper under the role dropdown of an SSO user in the edit-user dialog" })}</p>
+              {canReturnToSso(editing) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-[13px] font-medium"
+                  onPress={() => setReturning(editing)}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />{intl.formatMessage({ id: "web.routes.users.return_to_sso_control", defaultMessage: "Return to SSO control", description: "Users: menu item, edit-dialog button and confirm button that let the SSO rules set a hand-set user's role again; keep it short" })}</Button>
+              )}
+            </div>
+          ) : undefined}
           extraContent={<NamespaceGrants userId={editing.id} roles={roles} />}
           onSave={(displayName, email, role) => {
             const dirty: UserUpdate = {};
@@ -400,6 +479,27 @@ export function UsersPage() {
           apiError={apiErrorText(reset.error, intl)}
           submitLabel={intl.formatMessage({ id: "web.routes.users.set_new_password", defaultMessage: "Set new password", description: "Users: submit button label in the reset-password dialog" })}
           onReset={(password) => reset.mutate({ id: resetting.id, password })}
+        />
+      )}
+      {returning && (
+        <ConfirmDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setReturning(null);
+              returnToSso.reset();
+            }
+          }}
+          title={intl.formatMessage({ id: "web.routes.users.return_to_sso_title", defaultMessage: "Return {username} to SSO control?", description: "Users: title of the dialog confirming that a user's role goes back to the SSO rules; {username} is the user name" }, { username: returning.username })}
+          description={
+            <>
+              {intl.formatMessage({ id: "web.routes.users.return_to_sso_body", defaultMessage: "Their role will follow your SSO rules again from their next sign-in. Until then they keep {role}.", description: "Users: text of the Return to SSO control dialog; {role} is the user's current role name" }, { role: returning.role })}
+              <ErrorLine error={returnToSso.error} />
+            </>
+          }
+          confirmLabel={intl.formatMessage({ id: "web.routes.users.return_to_sso_control", defaultMessage: "Return to SSO control", description: "Users: menu item, edit-dialog button and confirm button that let the SSO rules set a hand-set user's role again; keep it short" })}
+          busy={returnToSso.isPending}
+          onConfirm={() => returnToSso.mutate(returning.id)}
         />
       )}
       {deleting && (

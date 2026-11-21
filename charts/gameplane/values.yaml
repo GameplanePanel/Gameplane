@@ -496,11 +496,25 @@ api:
     # if empty or omitted. Examples: "groups", "roles", "membership",
     # "department".
     groupsClaim: ""
-    # Default role when no group matches. Helm-only, no dashboard override
-    # path exists for this field. Accepted values: "" (default to "viewer"),
-    # "viewer", "operator", "admin", "deny". "deny" = reject login (no user
-    # created/updated). Only meaningful if roleMappings is set.
+    # Fallback when no group rule matches (only meaningful when roleRules or
+    # roleMappings is set). Helm-only for this value unless an admin sets a
+    # dashboard override. "" = viewer, "deny" = reject the login (no user
+    # created or updated), or the name of any role, built-in or custom. The
+    # role is looked up at sign-in; a missing role refuses the login.
     defaultRole: ""
+    # Ordered group-to-role rules for the synthetic "helm" provider. The first
+    # rule whose group the user is in decides the role. Group names are
+    # matched exactly (case-sensitive) and may contain spaces or commas.
+    # role is any role name, built-in or custom. Cannot be combined with
+    # roleMappings below: setting both fails the render. Passed to the API as
+    # one JSON flag, --oidc-role-rules.
+    # Example:
+    #   - group: gameplane-admins
+    #     role: admin
+    #   - group: gameplane login only
+    #     role: login-only
+    roleRules: []
+    # Old per-role form (kept for one release; prefer roleRules above).
     # Group-to-role mapping, seeded at install/upgrade time. Defines which
     # IdP groups map to which dashboard roles for the synthetic "helm"
     # provider. If omitted/empty, role mapping is disabled (new OIDC users
