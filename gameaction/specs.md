@@ -35,7 +35,9 @@ Both call the validation and rendering functions independently; each is its own 
 ```
 gameaction/
 ├── action.go           # Core API: Param, Resolve, Command, Compile, Render, CheckText, ErrControlChar, ErrMetaChar
-└── action_test.go      # Unit tests (91% coverage gate)
+├── action_test.go      # Unit tests (91% coverage gate)
+├── fuzz_test.go        # Fuzz target for Resolve
+└── testdata/fuzz/FuzzResolve/corpus/  # Fuzz seed corpus
 ```
 
 Source is a single file (action.go). Tests are action_test.go and fuzz_test.go; the fuzz corpus lives under testdata/fuzz/. Part of the Go workspace (`go.work`) with netguard, operator, api, agent, and other modules.
@@ -131,6 +133,7 @@ Executes the compiled template with the resolved parameters.
 - `strconv` — integer parsing
 - `strings` — trimming, splitting, contains checks
 - `text/template` — command template compilation and rendering
+- `unicode/utf8` — rune counting for the 512-character cap
 - `errors` — CheckText sentinel errors
 
 No external modules.
@@ -170,4 +173,4 @@ No external modules.
 - **API usage:** `api/internal/ws/actions.go` — WebSocket action execution
 - **Agent usage:** `agent/internal/actions/actions.go` — RCON action execution
 - **Module authoring:** `docs/module-authoring.md` — defines the `actions` field in `template.yaml`
-- **CLAUDE.md:** "The operator is authoritative" + "both importers call it independently"
+- **CLAUDE.md:** repository map entry for `gameaction/` ("console-injection guard + command renderer (api, agent)")
