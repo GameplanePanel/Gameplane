@@ -42,6 +42,7 @@ gameproto/
 ├── terraria_test.go          # Terraria codec tests (+ classifier tests)
 ├── classifier_golden_test.go # Golden/characterization tests locking in Classify() output across input scenarios
 ├── demo_test.go              # DemoClassifier stub tests
+├── fuzz_test.go              # Fuzz tests for the handshake parsers
 ├── gameproto_test.go         # Kind.String() unit test
 ├── registry_test.go          # Protocol Registry tests
 ├── go.mod                    # (module, stdlib-only)
