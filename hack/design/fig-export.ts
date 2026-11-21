@@ -14,6 +14,11 @@
 // <out>/screens.json, which keeps the IDs screens had in the old design.pen; a new screen is named
 // after its .fig ID. JSON holds the layout, paints, text and the variables each layer binds; an
 // instance lists the text it shows instead of its component's layers.
+//
+// <out>/parts.json lists layers below screen level that the browser visual diff
+// (web/scripts/compare-screenshots.mjs) compares against, such as one dialog or one badge. Each
+// entry names its file and the layer's exact name; the layer is exported the same way as a screen,
+// and the script fills in its ID and size. A name that matches no layer, or more than one, stops it.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -185,10 +190,7 @@ const fileByFigId = new Map(previous.map((entry) => [entry.figId, entry.file]))
 
 for (const folder of ['fig', 'json', 'screenshots']) await mkdir(join(outDir, folder), { recursive: true })
 
-const screens: ScreenEntry[] = []
-for (const node of graph.getChildren(page.id)) {
-  if ((node.type !== 'FRAME' && node.type !== 'INSTANCE') || EXCLUDED.test(node.name)) continue
-  const name = fileByFigId.get(node.id) ?? node.id.replace(':', '-')
+async function exportNode(node: SceneNode, name: string): Promise<ScreenEntry> {
   const target = { scope: 'node' as const, nodeId: node.id }
   const json = { file: name, ...(dump(graph, node, true) as { [key: string]: Json }) }
   await writeFile(join(outDir, 'json', `${name}.json`), `${format(json)}\n`)
@@ -196,8 +198,40 @@ for (const node of graph.getChildren(page.id)) {
   await writeFile(join(outDir, 'screenshots', `${name}.png`), png.data)
   const fig = await io.exportContent('fig', { graph, target, fileName: `${name}.fig` }, { renderThumbnail: true })
   await writeFile(join(outDir, 'fig', `${name}.fig`), fig.data)
-  screens.push({ file: name, figId: node.id, name: node.name, width: round(node.width), height: round(node.height) })
   console.log(`${name}  ${node.name}`)
+  return { file: name, figId: node.id, name: node.name, width: round(node.width), height: round(node.height) }
+}
+
+const screens: ScreenEntry[] = []
+for (const node of graph.getChildren(page.id)) {
+  if ((node.type !== 'FRAME' && node.type !== 'INSTANCE') || EXCLUDED.test(node.name)) continue
+  screens.push(await exportNode(node, fileByFigId.get(node.id) ?? node.id.replace(':', '-')))
 }
 await writeFile(listPath, `${JSON.stringify(screens, null, 2)}\n`)
 console.log(`${screens.length} screens`)
+
+/** Every layer on the page that is not inside an instance, so each name has one owner. */
+function ownLayers(id: string, out: SceneNode[] = []): SceneNode[] {
+  for (const child of graph.getChildren(id)) {
+    out.push(child)
+    if (child.type !== 'INSTANCE') ownLayers(child.id, out)
+  }
+  return out
+}
+
+const partsPath = join(outDir, 'parts.json')
+const wanted: Pick<ScreenEntry, 'file' | 'name'>[] = await readFile(partsPath, 'utf8')
+  .then((text) => JSON.parse(text) as ScreenEntry[])
+  .catch(() => [])
+if (wanted.length) {
+  const layers = ownLayers(page.id).filter((node) => node.type !== 'INSTANCE')
+  const parts: ScreenEntry[] = []
+  for (const { file: name, name: layerName } of wanted) {
+    const matches = layers.filter((node) => node.name === layerName)
+    if (matches.length !== 1)
+      throw new Error(`parts.json: ${matches.length} layers are named ${JSON.stringify(layerName)}`)
+    parts.push(await exportNode(matches[0] as SceneNode, name))
+  }
+  await writeFile(partsPath, `${JSON.stringify(parts, null, 2)}\n`)
+  console.log(`${parts.length} parts`)
+}

@@ -1,0 +1,337 @@
+{
+  "file": "E9EEv0",
+  "id": "1:10360",
+  "name": "Gameplane/Dialog/Restore Backup",
+  "type": "FRAME",
+  "x": 3288,
+  "y": 5341,
+  "width": 480,
+  "height": 389,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 122,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Restore backup",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 45,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [5, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 5,
+          "width": 440,
+          "height": 40,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "The target server will be suspended, the volume restored from the snapshot, then resumed.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:10361",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 89,
+      "width": 440,
+      "height": 228,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10362",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 60,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:10363",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 85,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Source backup",
+              "font": ["Geist", 500, 12],
+              "lineHeight": {"value": 166.6700005531311, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:10364",
+              "name": "Input",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 26,
+              "width": 440,
+              "height": 34,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["mc-survival-nightly-0713"]
+            }
+          ]
+        },
+        {
+          "id": "1:10365",
+          "name": "frame",
+          "type": "FRAME",
+          "x": 0,
+          "y": 92,
+          "width": 440,
+          "height": 64,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:10366",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 109,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Target game server",
+              "font": ["Geist", 500, 12],
+              "lineHeight": {"value": 166.6700005531311, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:10367",
+              "name": "Target server select",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 26,
+              "width": 440,
+              "height": 38,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["Select a server…"]
+            }
+          ]
+        },
+        {
+          "id": "1:10368",
+          "name": "Restore warning",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 172,
+          "width": 440,
+          "height": 56,
+          "component": "Alert/Danger",
+          "componentId": "1:5614",
+          "fills": [{"type": "SOLID", "color": "#F8DDE9"}],
+          "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [12, 16, 12, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/secondary"},
+          "texts": [
+            "This will overwrite all data on the target server. Players will be disconnected during the restore."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 317,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 298,
+          "y": 20,
+          "width": 65,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12.5,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 371,
+          "y": 20,
+          "width": 69,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DC2828"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {"fills/0/color": "danger/danger"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12.5,
+              "y": 8,
+              "width": 44,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FCFCFC"}],
+              "text": "Restore",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/foreground"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

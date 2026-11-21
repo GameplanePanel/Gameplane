@@ -1,0 +1,49 @@
+{
+  "file": "R65Xyx",
+  "id": "1:3547",
+  "name": "Gameplane/Provenance Badge/Overridden",
+  "type": "COMPONENT",
+  "x": 3620,
+  "y": 3906,
+  "width": 169,
+  "height": 17,
+  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "cornerRadius": 9999,
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 5,
+    "padding": [2, 8, 2, 8],
+    "primary": "MIN",
+    "counter": "CENTER",
+    "sizing": ["HUG", "HUG"]
+  },
+  "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+  "children": [
+    {
+      "id": "1:3548",
+      "name": "pbIcon",
+      "type": "INSTANCE",
+      "x": 8,
+      "y": 3.5,
+      "width": 10,
+      "height": 10,
+      "component": "lucide/pencil/10x10",
+      "variables": {"fills/0/color": "foreground/muted"}
+    },
+    {
+      "id": "1:3549",
+      "name": "pbLabel",
+      "type": "TEXT",
+      "x": 23,
+      "y": 2,
+      "width": 138,
+      "height": 13,
+      "fills": [{"type": "SOLID", "color": "#6E5262"}],
+      "text": "Overridden in dashboard",
+      "font": ["JetBrains Mono", 500, 10],
+      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/muted"}
+    }
+  ]
+}

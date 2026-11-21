@@ -1,0 +1,68 @@
+{
+  "file": "XL5ZU",
+  "id": "1:3553",
+  "name": "Gameplane/Removable Group Chip/Orange",
+  "type": "COMPONENT",
+  "x": 4300,
+  "y": 3906,
+  "width": 83,
+  "height": 23,
+  "fills": [{"type": "SOLID", "color": "#FEF3C7"}],
+  "cornerRadius": 9999,
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 4,
+    "padding": [6, 6, 6, 8],
+    "primary": "MIN",
+    "counter": "CENTER",
+    "sizing": ["HUG", "HUG"]
+  },
+  "variables": {"fills/0/color": "warning/soft"},
+  "children": [
+    {
+      "id": "1:3554",
+      "name": "chipLabel",
+      "type": "TEXT",
+      "x": 8,
+      "y": 6,
+      "width": 54,
+      "height": 11,
+      "fills": [{"type": "SOLID", "color": "#92400E"}],
+      "text": "ops-leads",
+      "font": ["JetBrains Mono", 500, 10],
+      "lineHeight": {"value": 114.28571939468384, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "warning/soft-foreground"}
+    },
+    {
+      "id": "1:3556",
+      "name": "chipRemove",
+      "type": "FRAME",
+      "x": 66,
+      "y": 6,
+      "width": 11,
+      "height": 11,
+      "cornerRadius": 9999,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "children": [
+        {
+          "id": "1:3555",
+          "name": "chipRemoveIcon",
+          "type": "INSTANCE",
+          "x": 1.5,
+          "y": 1.5,
+          "width": 8,
+          "height": 8,
+          "component": "lucide/x/8x8",
+          "variables": {"fills/0/color": "warning/soft-foreground"}
+        }
+      ]
+    }
+  ]
+}

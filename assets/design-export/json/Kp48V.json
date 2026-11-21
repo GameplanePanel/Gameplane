@@ -1,0 +1,534 @@
+{
+  "file": "Kp48V",
+  "id": "1:10453",
+  "name": "Gameplane/Dialog/Confirm Admin Mapping",
+  "type": "FRAME",
+  "x": 3736,
+  "y": 6274,
+  "width": 440,
+  "height": 320,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "id": "1:10454",
+      "name": "cdTitleRow",
+      "type": "FRAME",
+      "x": 20,
+      "y": 20,
+      "width": 400,
+      "height": 40,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10455",
+          "name": "icon",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 40,
+          "height": 40,
+          "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
+          "cornerRadius": 9999,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {"fills/0/color": "danger/soft"},
+          "children": [
+            {
+              "id": "1:10456",
+              "name": "icon",
+              "type": "FRAME",
+              "x": 10,
+              "y": 10,
+              "width": 20,
+              "height": 20,
+              "variables": {"fills/0/color": "danger/soft-foreground"},
+              "children": [
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 1.67,
+                  "y": 1.67,
+                  "width": 16.67,
+                  "height": 16.67,
+                  "strokes": [{"type": "SOLID", "color": "#EF4444"}],
+                  "strokeWeight": 1.67
+                },
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 10,
+                  "y": 6.67,
+                  "width": 0.01,
+                  "height": 6.67,
+                  "strokes": [{"type": "SOLID", "color": "#EF4444"}],
+                  "strokeWeight": 1.67
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1:10457",
+          "name": "cdTitle",
+          "type": "TEXT",
+          "x": 52,
+          "y": 9.5,
+          "width": 226,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "text": "Confirm admin role mapping?",
+          "font": ["Geist", 600, 16],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        }
+      ]
+    },
+    {
+      "id": "1:10458",
+      "name": "cdDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 60,
+      "width": 400,
+      "height": 188,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10459",
+          "name": "warningBox",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 400,
+          "height": 108,
+          "fills": [{"type": "SOLID", "color": "#FEF3C7"}],
+          "strokes": [{"type": "SOLID", "color": "#92400E"}],
+          "strokeWeight": 1,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [12, 12, 12, 12],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "warning/soft", "strokes/0/color": "warning/soft-foreground"},
+          "children": [
+            {
+              "id": "1:10460",
+              "name": "warningIcon",
+              "type": "FRAME",
+              "x": 12,
+              "y": 12,
+              "width": 16,
+              "height": 18,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [2, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:10461",
+                  "name": "icon",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 2,
+                  "width": 16,
+                  "height": 16,
+                  "variables": {"fills/0/color": "warning/soft-foreground"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 1.32,
+                      "y": 1.99,
+                      "width": 13.35,
+                      "height": 12.01,
+                      "strokes": [{"type": "SOLID", "color": "#92400E"}],
+                      "strokeWeight": 1.33
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:10462",
+              "name": "warningContent",
+              "type": "FRAME",
+              "x": 40,
+              "y": 12,
+              "width": 348,
+              "height": 84,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 4,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "children": [
+                {
+                  "id": "1:10463",
+                  "name": "warningTitle",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 101,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#92400E"}],
+                  "text": "Full admin access",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
+                },
+                {
+                  "id": "1:10464",
+                  "name": "warningDesc",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 20,
+                  "width": 348,
+                  "height": 64,
+                  "fills": [{"type": "SOLID", "color": "#92400E"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Mapping users to the admin role grants full cluster control.\nEnsure the mapped group contains only authorized\npersonnel. Anyone in these groups gets full admin access\nfrom their next login.",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1:10465",
+          "name": "groupSection",
+          "type": "FRAME",
+          "x": 0,
+          "y": 140,
+          "width": 400,
+          "height": 48,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:10466",
+              "name": "groupLabel",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 183,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Group(s) being mapped to admin:",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            },
+            {
+              "id": "1:10467",
+              "name": "chipRow",
+              "type": "FRAME",
+              "x": 0,
+              "y": 24,
+              "width": 71,
+              "height": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "HUG"]
+              },
+              "children": [
+                {
+                  "id": "1:10468",
+                  "name": "Chip ops-leads",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 71,
+                  "height": 24,
+                  "fills": [{"type": "SOLID", "color": "#94949426", "opacity": 0.15}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [4, 8, 4, 8],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:10469",
+                      "name": "chipLabel",
+                      "type": "TEXT",
+                      "x": 8,
+                      "y": 4,
+                      "width": 55,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                      "text": "ops-leads",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cdPhrase",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 100,
+      "height": 72,
+      "visible": false,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 4,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "cdPhraseRow",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 170,
+          "height": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "children": [
+            {
+              "name": "cdPhraseType",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 26,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Type",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
+            },
+            {
+              "name": "cdPhraseValue",
+              "type": "TEXT",
+              "x": 30,
+              "y": 0,
+              "width": 80,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "mc-survival",
+              "font": ["JetBrains Mono", 400, 12],
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "name": "cdPhraseConfirm",
+              "type": "TEXT",
+              "x": 114,
+              "y": 0,
+              "width": 56,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "to confirm",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
+            }
+          ]
+        },
+        {
+          "name": "cdInput",
+          "type": "FRAME",
+          "x": 0,
+          "y": 36,
+          "width": 100,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/md",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "field/border"
+          },
+          "children": [
+            {
+              "name": "cdInputValue",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8.5,
+              "width": 0,
+              "height": 19,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "field/foreground"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cdFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 248,
+      "width": 400,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 180,
+          "y": 20,
+          "width": 70,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"cornerRadius": "radius/md"},
+          "children": [
+            {
+              "name": "cdCancelLabel",
+              "type": "TEXT",
+              "x": 12,
+              "y": 7,
+              "width": 46,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnConfirm",
+          "type": "FRAME",
+          "x": 258,
+          "y": 20,
+          "width": 142,
+          "height": 32,
+          "fills": [{"type": "SOLID", "color": "#DC2828"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {"cornerRadius": "radius/md", "fills/0/color": "danger/danger"},
+          "children": [
+            {
+              "name": "cdConfirmLabel",
+              "type": "TEXT",
+              "x": 11.5,
+              "y": 7,
+              "width": 119,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#FCFCFC"}],
+              "text": "Map to admin role",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/foreground"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
