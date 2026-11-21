@@ -23,6 +23,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { BUILTIN_IO_FORMATS, IORegistry } from '@open-pencil/core/io'
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import type { SceneGraph, SceneNode } from '@open-pencil/scene-graph'
 
 import { loadDocument, populateWholeDocument } from '#cli/headless'
@@ -32,6 +33,8 @@ import { applyExportFontPolicy } from './src/commands/export/font-policy'
 const EXCLUDED =
   /^(Note —|Row \d+ ·|HeroUI: Design System Components$|Gameplane: App Components$|Shared Components Band$|Reference frame$|dashboard-utility$)/
 const SCALE = 2
+/** Fixed time for the exported .fig archives, so an unchanged screen gives identical bytes. */
+const FIXED_TIME = '1980-01-01T00:00:00.000Z'
 /** Layers inside an instance get a fresh ID on each load; only saved records keep theirs. */
 const SAVED_ID = /^[01]:\d+$/
 
@@ -49,6 +52,17 @@ const [file, outDir] = process.argv.slice(2)
 if (!file || !outDir) throw new Error('usage: bun fig-export.ts <design.fig> <export dir>')
 
 const round = (value: number) => Math.round(value * 100) / 100
+
+/** The .fig archive with a fixed `exported_at` and fixed zip entry times. */
+function stableFig(bytes: Uint8Array): Uint8Array {
+  const entries = unzipSync(bytes)
+  const meta = entries['meta.json']
+  if (meta) {
+    const json = JSON.parse(strFromU8(meta)) as { [key: string]: unknown }
+    entries['meta.json'] = strToU8(JSON.stringify({ ...json, exported_at: FIXED_TIME }))
+  }
+  return zipSync(entries, { mtime: new Date(FIXED_TIME) })
+}
 
 function hex(color: { r: number; g: number; b: number; a: number }): string {
   const channels = [color.r, color.g, color.b, ...(color.a < 1 ? [color.a] : [])]
@@ -197,7 +211,7 @@ async function exportNode(node: SceneNode, name: string): Promise<ScreenEntry> {
   const png = await io.exportContent('png', { graph, target, fileName: `${name}.png` }, { format: 'PNG', scale: SCALE })
   await writeFile(join(outDir, 'screenshots', `${name}.png`), png.data)
   const fig = await io.exportContent('fig', { graph, target, fileName: `${name}.fig` }, { renderThumbnail: true })
-  await writeFile(join(outDir, 'fig', `${name}.fig`), fig.data)
+  await writeFile(join(outDir, 'fig', `${name}.fig`), stableFig(fig.data))
   console.log(`${name}  ${node.name}`)
   return { file: name, figId: node.id, name: node.name, width: round(node.width), height: round(node.height) }
 }
