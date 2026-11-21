@@ -1,183 +1,541 @@
 {
-  "type": "frame",
-  "id": "GR1G9",
+  "file": "GR1G9",
+  "id": "1:9081",
+  "name": "Screen/Dashboard Home — Telemetry notice (bundled)",
+  "type": "FRAME",
   "x": 6560,
   "y": 12822,
-  "name": "Screen/Dashboard Home — Telemetry notice (bundled)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 1380,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "O7GOL",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:9082",
       "name": "App Sidebar",
-      "height": "fill_container"
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1380,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "q8Uej",
+      "id": "1:9083",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1380,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "F9uobE",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:9084",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gb27k": {
-              "fontFamily": "$typography/font-sans"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Dashboard", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "RrWXd",
+          "id": "1:9085",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 32,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 1316,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [32, 32, 32, 32],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "rj03O",
-              "type": "ref",
-              "ref": "lh8p8",
+              "id": "1:9086",
               "name": "Telemetry Notice",
-              "width": "fill_container",
-              "descendants": {
-                "dzZwq": {
-                  "content": "gameplane-telemetry-receiver.gameplane.svc",
-                  "name": "host (SAMPLE)"
-                },
-                "jCJTc": {
-                  "content": ", the receiver bundled with this install. Reports stay inside your cluster."
-                }
-              }
+              "type": "INSTANCE",
+              "x": 32,
+              "y": 32,
+              "width": 1116,
+              "height": 216,
+              "component": "Gameplane/Telemetry Notice Banner",
+              "componentId": "1:9002",
+              "fills": [{"type": "SOLID", "color": "#2C1926"}],
+              "strokes": [{"type": "SOLID", "color": "#FF8AC4"}],
+              "strokeWeight": 1,
+              "cornerRadius": 8,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "accent/soft", "strokes/0/color": "accent/soft-foreground"},
+              "texts": [
+                "Anonymous usage metrics are on for this install.",
+                "Reports are sent to",
+                "gameplane-telemetry-receiver.gameplane.svc",
+                ", the receiver bundled with this install. Reports stay inside your cluster.",
+                "Basic metrics",
+                "Gameplane version, number of servers, number of templates.",
+                "Extended metrics",
+                "Kubernetes version, distribution, CPU architecture and node-count band; servers per official game module (others counted as custom); which optional features are in use; and a random install ID.",
+                "Keep sharing",
+                "Turn off extended",
+                "Turn off all",
+                "Open Telemetry settings",
+                "·",
+                "Data-handling statement"
+              ]
             },
             {
-              "id": "VyEYQ",
-              "type": "ref",
-              "ref": "xCDF7",
+              "id": "1:9087",
               "name": "Page Header",
-              "width": "fill_container",
-              "descendants": {
-                "VbHwU": {
-                  "content": "Your game servers and resources across authorized clusters."
-                },
-                "TgdLz": {
-                  "children": [
-                    {
-                      "id": "bI3je",
-                      "type": "ref",
-                      "ref": "tpKRk",
-                      "name": "Create Server Button",
-                      "descendants": {
-                        "q58In/Xpn7K": {
-                          "library": "lucide",
-                          "icon": "plus"
-                        },
-                        "q58In/U6q13B": {
-                          "content": "Create server"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "Dc5TC",
-              "type": "ref",
-              "ref": "AT7ya",
-              "name": "Dashboard location filter",
-              "width": 240,
-              "context": "Optional location filter; All locations combines authorized inventory.",
-              "descendants": {
-                "cFsFk": {
-                  "content": "All clusters",
-                  "fill": "$foreground/foreground"
-                }
-              }
-            },
-            {
-              "id": "A5HcX",
-              "type": "ref",
-              "ref": "YF85x",
-              "name": "Stats Row",
-              "width": "fill_container",
-              "descendants": {
-                "m20CHt/QdcEm": {
-                  "fill": "#000000"
-                },
-                "pkvT2/QdcEm": {
-                  "fill": "$chart/stat"
-                },
-                "FlXsH/QdcEm": {
-                  "fill": "$chart/stat"
-                }
-              }
-            },
-            {
-              "type": "frame",
-              "id": "Z6jyj",
-              "name": "Row2",
-              "width": "fill_container",
-              "gap": 24,
+              "type": "FRAME",
+              "x": 32,
+              "y": 272,
+              "width": 1116,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "id": "qyMsC",
-                  "type": "ref",
-                  "ref": "rYAg3",
-                  "name": "Fleet Status Card",
-                  "width": "fill_container"
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 386,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 125,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Dashboard",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 386,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Your game servers and resources across authorized clusters.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
                 },
                 {
-                  "id": "qEIU7",
-                  "type": "ref",
-                  "ref": "Y96CaE",
-                  "name": "Cluster Resources Card",
-                  "width": "fill_container",
-                  "descendants": {
-                    "RD2NC": {
-                      "content": "View nodes"
+                  "name": "phActions",
+                  "type": "FRAME",
+                  "x": 976,
+                  "y": 6.5,
+                  "width": 140,
+                  "height": 40,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MAX",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:9088",
+                      "name": "Create Server Button",
+                      "type": "INSTANCE",
+                      "x": -5,
+                      "y": 2,
+                      "width": 145,
+                      "height": 36,
+                      "component": "Gameplane/Button/Default",
+                      "componentId": "1:306",
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "texts": ["Create server"]
                     }
-                  }
+                  ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "sW8cJ",
-              "name": "Row3",
-              "width": "fill_container",
-              "gap": 24,
+              "id": "1:9089",
+              "name": "Dashboard location filter",
+              "type": "INSTANCE",
+              "x": 32,
+              "y": 349,
+              "width": 240,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["All clusters"]
+            },
+            {
+              "id": "1:9090",
+              "name": "Stats Row",
+              "type": "INSTANCE",
+              "x": 32,
+              "y": 409,
+              "width": 1116,
+              "height": 115,
+              "component": "Gameplane/Dashboard Stats Row",
+              "componentId": "1:315",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 16,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "texts": [
+                "RUNNING",
+                "1",
+                "of 1 total",
+                "PLAYERS ONLINE",
+                "0",
+                "peak 0",
+                "VCPUS",
+                "12",
+                "authorized inventory cores",
+                "STORAGE PROVISIONED",
+                "22 GB",
+                "of 86 GB",
+                "NODES READY",
+                "3/3",
+                "all healthy"
+              ]
+            },
+            {
+              "id": "1:9091",
+              "name": "Row2",
+              "type": "FRAME",
+              "x": 32,
+              "y": 548,
+              "width": 1116,
+              "height": 372,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "yTaGo",
-                  "type": "ref",
-                  "ref": "DlNh6",
-                  "name": "Central audit activity",
-                  "width": "fill_container"
+                  "id": "1:9092",
+                  "name": "Fleet Status Card",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 546,
+                  "height": 372,
+                  "component": "Gameplane/Fleet Status Card",
+                  "componentId": "1:328",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/3xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": [
+                    "Fleet status",
+                    "1 servers",
+                    "Running 1",
+                    "Stopped 0",
+                    "Failed 0",
+                    "NEEDS ATTENTION",
+                    "Everything looks healthy."
+                  ]
                 },
                 {
-                  "id": "spX4E",
-                  "type": "ref",
-                  "ref": "Vl96v",
+                  "id": "1:9093",
+                  "name": "Cluster Resources Card",
+                  "type": "INSTANCE",
+                  "x": 570,
+                  "y": 0,
+                  "width": 546,
+                  "height": 317,
+                  "component": "Gameplane/Cluster Resources Card",
+                  "componentId": "1:351",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/3xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": [
+                    "Cluster resources",
+                    "View nodes",
+                    "CPU",
+                    "0%",
+                    "0 / 12 cores",
+                    "Memory",
+                    "0%",
+                    "0 B / 41 GB",
+                    "Storage",
+                    "25%",
+                    "NODES",
+                    "kubelab-control",
+                    "0 pods · cpu 0%",
+                    "kubelab-worker-1",
+                    "0 pods · cpu 0%",
+                    "kubelab-worker-2",
+                    "0 pods · cpu 0%"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:9094",
+              "name": "Row3",
+              "type": "FRAME",
+              "x": 32,
+              "y": 944,
+              "width": 1116,
+              "height": 353,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:9095",
+                  "name": "Central audit activity",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 546,
+                  "height": 320,
+                  "component": "Gameplane/Central Audit Activity Card",
+                  "componentId": "1:393",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "texts": [
+                    "Central Gameplane audit activity",
+                    "Recent activity",
+                    "View all",
+                    "anonymous created",
+                    "POST /auth/login",
+                    "4h ago",
+                    "admin created",
+                    "POST /servers",
+                    "18h ago",
+                    "anonymous created",
+                    "POST /auth/login",
+                    "22h ago",
+                    "anonymous created",
+                    "POST /auth/login",
+                    "1d ago",
+                    "anonymous created",
+                    "POST /auth/login",
+                    "1d ago"
+                  ]
+                },
+                {
+                  "id": "1:9096",
                   "name": "Recent Backups Card",
-                  "width": "fill_container"
+                  "type": "INSTANCE",
+                  "x": 570,
+                  "y": 0,
+                  "width": 546,
+                  "height": 353,
+                  "component": "Gameplane/Recent Backups Card",
+                  "componentId": "1:436",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/3xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["Recent backups", "View all", "No backups yet."]
                 }
               ]
             }

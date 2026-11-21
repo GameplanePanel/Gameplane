@@ -1,209 +1,433 @@
 {
-  "type": "frame",
-  "id": "J8GzM9",
+  "file": "J8GzM9",
+  "id": "1:11073",
+  "name": "Screen/Cluster Details — Nodes",
+  "type": "FRAME",
   "x": 14760,
   "y": 63932,
-  "name": "Screen/Cluster Details — Nodes",
-  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "Q0pqx",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:11074",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "lZ6pP": {
-          "fill": "$accent/soft"
-        },
-        "lZ6pP/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "lZ6pP/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "S1Pit",
+      "id": "1:11075",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "v7q5NI",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:11076",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Clusters  ›  Local  ›  Nodes"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Clusters  ›  Local  ›  Nodes", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "bAyuY",
+          "id": "1:11077",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "k1ONI",
-              "type": "ref",
-              "ref": "xCDF7",
+              "id": "1:11078",
               "name": "Page Header",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "Local"
-                },
-                "VbHwU": {
-                  "content": "local · Built-in cluster"
-                },
-                "TgdLz": {
-                  "id": "ZrORy",
-                  "type": "ref",
-                  "ref": "cb4rt",
-                  "name": "Add node",
-                  "descendants": {
-                    "U6q13B": {
-                      "content": "Add node"
-                    }
-                  }
-                }
-              }
-            },
-            {
-              "type": "frame",
-              "id": "enFs0",
-              "name": "Cluster detail tabs",
-              "width": "fill_container",
-              "stroke": "$separator/separator",
-              "strokeWidth": {
-                "bottom": 1
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
               },
-              "gap": 4,
-              "padding": [
-                0,
-                0,
-                12,
-                0
-              ],
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "id": "KFwE8",
-                  "type": "ref",
-                  "ref": "qAFbJ",
-                  "name": "Overview tab",
-                  "descendants": {
-                    "VcxMI": {
-                      "content": "Overview"
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 135,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 63,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Local",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 135,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "local · Built-in cluster",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
-                  }
+                  ]
                 },
                 {
-                  "id": "R9kSft",
-                  "type": "ref",
-                  "ref": "CEWo3",
-                  "name": "Nodes tab",
-                  "descendants": {
-                    "YUR8N": {
-                      "content": "Nodes"
-                    }
-                  }
-                },
-                {
-                  "id": "C4iex",
-                  "type": "ref",
-                  "ref": "qAFbJ",
-                  "name": "Configuration tab",
-                  "descendants": {
-                    "VcxMI": {
-                      "content": "Configuration"
-                    }
-                  }
+                  "id": "1:11079",
+                  "name": "Add node",
+                  "type": "INSTANCE",
+                  "x": 1013,
+                  "y": 8.5,
+                  "width": 119,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Add node"]
                 }
               ]
             },
             {
-              "id": "FBDxe",
-              "type": "ref",
-              "ref": "b2JF52",
+              "id": "1:11080",
+              "name": "Cluster detail tabs",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 44,
+              "strokes": [{"type": "SOLID", "color": "#232227"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 4,
+                "padding": [0, 0, 12, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "separator/separator"},
+              "children": [
+                {
+                  "id": "1:11081",
+                  "name": "Overview tab",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 94,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Overview"]
+                },
+                {
+                  "id": "1:11082",
+                  "name": "Nodes tab",
+                  "type": "INSTANCE",
+                  "x": 98,
+                  "y": 0,
+                  "width": 75,
+                  "height": 32,
+                  "component": "Tab/Active",
+                  "componentId": "1:965",
+                  "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["Nodes"]
+                },
+                {
+                  "id": "1:11083",
+                  "name": "Configuration tab",
+                  "type": "INSTANCE",
+                  "x": 177,
+                  "y": 0,
+                  "width": 121,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Configuration"]
+                }
+              ]
+            },
+            {
+              "id": "1:11084",
               "name": "Search and Filters — fixed Local cluster",
-              "width": "fill_container",
-              "context": "Popover contains Status only. Cluster: Local is fixed and does not count as an active filter.",
-              "descendants": {
-                "LMf8L": {
-                  "enabled": true
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 169,
+              "width": 1132,
+              "height": 36,
+              "component": "Gameplane/Nodes Search and Filters Row",
+              "componentId": "1:11038",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "texts": ["Search nodes…", "Cluster: Local", "Filter"]
             },
             {
-              "type": "text",
-              "id": "odI4L",
+              "id": "1:11085",
               "name": "Cluster node total",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "2 / 3 nodes ready · 3 nodes shown",
-              "lineHeight": 1.45,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 14,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 24,
+              "y": 229,
+              "width": 1132,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "2 / 3 nodes ready · 3 nodes shown",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "C6ZG2",
-              "type": "ref",
-              "ref": "I38x1",
+              "id": "1:11086",
               "name": "Shared inventory table scoped to Local",
-              "width": "fill_container",
-              "descendants": {
-                "LUWVT": {
-                  "enabled": false,
-                  "width": 1124
-                },
-                "g269sj": {
-                  "enabled": false,
-                  "width": 1124
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 273,
+              "width": 1132,
+              "height": 240,
+              "component": "Gameplane/Node Inventory Table",
+              "componentId": "1:10976",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "cornerRadius": 20,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 4, 4, 4],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "clips": true,
+              "variables": {"fills/0/color": "surface/secondary"},
+              "texts": [
+                "Node ↑",
+                "Cluster ↕",
+                "Status ↕",
+                "CPU ↕",
+                "Memory ↕",
+                "Pods ↕",
+                "Uptime ↕",
+                "kubelab-control",
+                "Local",
+                "Ready",
+                "24% · 1.9 / 8",
+                "42% · 6.7 / 16 GiB",
+                "18 / 110",
+                "12d 4h",
+                "kubelab-worker-1",
+                "Local",
+                "Ready",
+                "56% · 4.5 / 8",
+                "65% · 10.4 / 16 GiB",
+                "24 / 110",
+                "12d 4h",
+                "kubelab-worker-2",
+                "Local",
+                "NotReady",
+                "Unknown",
+                "Unknown",
+                "Unknown",
+                "Unknown"
+              ]
             },
             {
-              "id": "gxSZu",
-              "type": "ref",
-              "ref": "i6gfu",
+              "id": "1:11087",
               "name": "View all nodes",
-              "descendants": {
-                "FCYQ9": {
-                  "enabled": false
-                },
-                "GqVun": {
-                  "content": "View all nodes"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 537,
+              "width": 127,
+              "height": 36,
+              "component": "Button/Outline/MD",
+              "componentId": "1:1794",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["View all nodes"]
             }
           ]
         }

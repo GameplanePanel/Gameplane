@@ -1,245 +1,425 @@
 {
-  "type": "frame",
-  "id": "akr4I",
+  "file": "akr4I",
+  "id": "1:8197",
+  "name": "Screen/Server Detail — Capture (No access)",
+  "type": "FRAME",
   "x": 9840,
   "y": 36870,
-  "name": "Screen/Server Detail \u2014 Capture (No access)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "kkHQN",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:8198",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "qp6fk",
+      "id": "1:8199",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "IEX1T",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:8200",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "tqpk7",
+          "id": "1:8201",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "XoYmW",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:8202",
               "name": "Detail Header",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "JCqIc",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:8203",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "XcBPc": {
-                  "fill": "$segment"
-                },
-                "XcBPc/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "wAwnE",
+              "id": "1:8204",
               "name": "Capture Content",
-              "width": "fill_container",
-              "height": "fill_container",
-              "fill": "$background/background",
-              "layout": "vertical",
-              "justifyContent": "center",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 614,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "type": "frame",
-                  "id": "Z32iJZ",
+                  "id": "1:8205",
                   "name": "No Access Card",
+                  "type": "FRAME",
+                  "x": 326,
+                  "y": 200.5,
                   "width": 480,
-                  "fill": "$surface/surface",
+                  "height": 213,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
                   "cornerRadius": 10,
-                  "stroke": "$border/border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 16,
-                  "padding": 32,
-                  "alignItems": "center",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 16,
+                    "padding": [32, 32, 32, 32],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "NETBB",
+                      "id": "1:8206",
                       "name": "Icon Wrap",
+                      "type": "FRAME",
+                      "x": 212,
+                      "y": 32,
                       "width": 56,
                       "height": 56,
-                      "fill": "#94949426",
+                      "fills": [{"type": "SOLID", "color": "#94949426", "opacity": 0.15}],
                       "cornerRadius": 999,
-                      "justifyContent": "center",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
                       "children": [
                         {
-                          "type": "icon",
-                          "id": "MjN9V",
+                          "id": "1:8207",
                           "name": "Lock Icon",
+                          "type": "FRAME",
+                          "x": 14,
+                          "y": 14,
                           "width": 28,
                           "height": 28,
-                          "icon": "lock",
-                          "library": "lucide",
-                          "fill": "$muted"
+                          "variables": {"fills/0/color": "muted"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 3.5,
+                              "y": 12.83,
+                              "width": 21,
+                              "height": 12.83,
+                              "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "strokeWeight": 2.33
+                            },
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 8.17,
+                              "y": 2.33,
+                              "width": 11.67,
+                              "height": 10.5,
+                              "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "strokeWeight": 2.33
+                            }
+                          ]
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "Ry1vi",
+                      "id": "1:8208",
                       "name": "Status",
-                      "fill": "$foreground/foreground",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "You don't have access to packet capture on this server.",
-                      "textAlign": "center",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 16,
-                      "fontWeight": "500"
+                      "type": "TEXT",
+                      "x": 32,
+                      "y": 104,
+                      "width": 416,
+                      "height": 21,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "You don't have access to packet capture on this server.",
+                      "font": ["Geist", 500, 16],
+                      "align": "CENTER",
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "text",
-                      "id": "bhgvO",
+                      "id": "1:8209",
                       "name": "Info",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Viewing, starting and downloading captures requires capture access for this server. Ask an administrator if you need it.",
-                      "lineHeight": 1.5,
-                      "textAlign": "center",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 32,
+                      "y": 141,
+                      "width": 416,
+                      "height": 40,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Viewing, starting and downloading captures requires capture access for this server. Ask an administrator if you need it.",
+                      "font": ["Geist", 400, 13],
+                      "lineHeight": {"value": 150, "unit": "PERCENT"},
+                      "align": "CENTER",
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "type": "frame",
-                      "id": "fCDLJ",
+                      "id": "1:8210",
+                      "name": "Btn Row",
+                      "type": "FRAME",
                       "x": 161.5,
                       "y": 217,
-                      "name": "Btn Row",
-                      "enabled": false,
-                      "padding": [
-                        8,
-                        0,
-                        0,
-                        0
-                      ],
+                      "width": 157,
+                      "height": 44,
+                      "visible": false,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "c4rYo",
-                          "type": "ref",
-                          "ref": "cb4rt",
+                          "id": "1:8211",
                           "name": "Btn Enable Capture",
-                          "descendants": {
-                            "Xpn7K": {
-                              "icon": "power"
-                            },
-                            "U6q13B": {
-                              "content": "Enable Capture"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 8,
+                          "width": 157,
+                          "height": 36,
+                          "component": "Button/Primary/MD",
+                          "componentId": "1:1094",
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "cornerRadius": 24,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 8,
+                            "padding": [8, 16, 8, 16],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "variables": {
+                            "itemSpacing": "spacing/2",
+                            "cornerRadius": "radius/3xl",
+                            "paddingRight": "spacing/4",
+                            "paddingLeft": "spacing/4",
+                            "fills/0/color": "accent/accent"
+                          },
+                          "texts": ["Enable Capture"]
                         }
                       ]
                     },
                     {
-                      "id": "PSxaT",
-                      "type": "ref",
-                      "ref": "igj2U",
-                      "enabled": false,
+                      "id": "1:8212",
                       "name": "Cluster Disabled Error",
-                      "width": "fill_container(416)",
-                      "descendants": {
-                        "Xsw9m": {
-                          "content": "Capture is disabled by cluster configuration."
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 1404,
+                      "y": 4125,
+                      "width": 416,
+                      "height": 44,
+                      "visible": false,
+                      "component": "Gameplane/Error Banner",
+                      "componentId": "1:4577",
+                      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 6,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [12, 12, 12, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {
+                        "cornerRadius": "radius/md",
+                        "fills/0/color": "surface/surface",
+                        "strokes/0/color": "border/border"
+                      },
+                      "texts": ["Capture is disabled by cluster configuration."]
                     },
                     {
-                      "type": "text",
-                      "id": "n0Ct2",
+                      "id": "1:8213",
+                      "name": "Admin Hint",
+                      "type": "TEXT",
                       "x": 32,
                       "y": 337,
-                      "name": "Admin Hint",
-                      "enabled": false,
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container(416)",
-                      "content": "To enable cluster-wide capture, set capture.enabled: true in your Helm values and upgrade the release.",
-                      "lineHeight": 1.4,
-                      "textAlign": "center",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "width": 416,
+                      "height": 34,
+                      "visible": false,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "To enable cluster-wide capture, set capture.enabled: true in your Helm values and upgrade the release.",
+                      "font": ["Geist", 400, 12],
+                      "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                      "align": "CENTER",
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
                   ]
                 }

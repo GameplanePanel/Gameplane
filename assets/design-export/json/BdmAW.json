@@ -1,247 +1,504 @@
 {
-  "type": "frame",
-  "id": "BdmAW",
+  "file": "BdmAW",
+  "id": "1:11025",
+  "name": "Screen/Nodes — All clusters",
+  "type": "FRAME",
   "x": 11480,
   "y": 63932,
-  "name": "Screen/Nodes — All clusters",
-  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "grYDZ",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:11026",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "VqyiS": {
-          "fill": "$accent/soft"
-        },
-        "VqyiS/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "VqyiS/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "gVOTp",
+      "id": "1:11027",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "r4xdRg",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:11028",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Nodes"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Nodes", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "q7GH0",
+          "id": "1:11029",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "ofhIo",
-              "type": "ref",
-              "ref": "xCDF7",
+              "id": "1:11030",
               "name": "Page Header",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "Nodes"
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "children": [
+                {
+                  "name": "Title Col",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 334,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "name": "phTitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 74,
+                      "height": 31,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "Nodes",
+                      "font": ["Geist", 600, 24],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "phSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 35,
+                      "width": 334,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Health and capacity across your authorized clusters.",
+                      "font": ["Geist", 400, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
                 },
-                "VbHwU": {
-                  "content": "Health and capacity across your authorized clusters."
-                },
-                "TgdLz": {
-                  "id": "kEFDn",
-                  "type": "ref",
-                  "ref": "cb4rt",
+                {
+                  "id": "1:11031",
                   "name": "Add node",
-                  "descendants": {
-                    "U6q13B": {
-                      "content": "Add node"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 1013,
+                  "y": 8.5,
+                  "width": 119,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Add node"]
                 }
-              }
+              ]
             },
             {
-              "type": "frame",
-              "id": "F9AoB3",
+              "id": "1:11032",
               "name": "Node inventory totals",
-              "width": "fill_container",
-              "gap": 12,
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 115,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "eMCSg",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:11033",
                   "name": "NODES READY",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "NODES READY"
-                    },
-                    "QdcEm": {
-                      "icon": "server"
-                    },
-                    "vj2Ru": {
-                      "content": "4 / 5"
-                    },
-                    "h0n7zo": {
-                      "content": "returned nodes"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 274,
+                  "height": 115,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["NODES READY", "4 / 5", "returned nodes"]
                 },
                 {
-                  "id": "Xs472",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:11034",
                   "name": "CLUSTERS REPORTING",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "CLUSTERS REPORTING"
-                    },
-                    "QdcEm": {
-                      "icon": "network"
-                    },
-                    "vj2Ru": {
-                      "content": "2 / 3"
-                    },
-                    "h0n7zo": {
-                      "content": "one cluster unavailable"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 286,
+                  "y": 0,
+                  "width": 274,
+                  "height": 115,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["CLUSTERS REPORTING", "2 / 3", "one cluster unavailable"]
                 },
                 {
-                  "id": "OOeYI",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:11035",
                   "name": "CPU USAGE",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "CPU USAGE"
-                    },
-                    "QdcEm": {
-                      "icon": "cpu"
-                    },
-                    "vj2Ru": {
-                      "content": "32%"
-                    },
-                    "h0n7zo": {
-                      "content": "4 nodes reporting"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 572,
+                  "y": 0,
+                  "width": 274,
+                  "height": 115,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["CPU USAGE", "32%", "4 nodes reporting"]
                 },
                 {
-                  "id": "Jk6tu",
-                  "type": "ref",
-                  "ref": "ZWcwn",
+                  "id": "1:11036",
                   "name": "MEMORY USAGE",
-                  "width": "fill_container",
-                  "descendants": {
-                    "Nd4Wf": {
-                      "content": "MEMORY USAGE"
-                    },
-                    "QdcEm": {
-                      "icon": "memory-stick"
-                    },
-                    "vj2Ru": {
-                      "content": "43%"
-                    },
-                    "h0n7zo": {
-                      "content": "4 nodes reporting"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 858,
+                  "y": 0,
+                  "width": 274,
+                  "height": 115,
+                  "component": "Gameplane/Stat Card",
+                  "componentId": "1:1205",
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 12,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 8,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {
+                    "cornerRadius": "radius/xl",
+                    "fills/0/color": "surface/surface",
+                    "strokes/0/color": "border/border"
+                  },
+                  "texts": ["MEMORY USAGE", "43%", "4 nodes reporting"]
                 }
               ]
             },
             {
-              "id": "f42Iv",
-              "type": "ref",
-              "ref": "b2JF52",
+              "id": "1:11037",
               "name": "Search and Filters",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 240,
+              "width": 1132,
+              "height": 36,
+              "component": "Gameplane/Nodes Search and Filters Row",
+              "componentId": "1:11038",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "texts": ["Search nodes…", "Filter"]
             },
             {
-              "type": "frame",
-              "id": "otKLx",
+              "id": "1:11048",
               "name": "Partial inventory notice",
-              "width": "fill_container",
-              "fill": "$warning/soft",
+              "type": "FRAME",
+              "x": 24,
+              "y": 300,
+              "width": 1132,
+              "height": 44,
+              "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
               "cornerRadius": 12,
-              "padding": [
-                12,
-                16
-              ],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [12, 16, 12, 16],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "warning/soft"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "y4htvj",
+                  "id": "1:11049",
                   "name": "Coverage warning",
-                  "fill": "$warning/soft-foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Partial inventory · West is unavailable. Showing 5 returned nodes from 2 clusters.",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 16,
+                  "y": 12,
+                  "width": 1100,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#F7B750"}],
+                  "layoutGrow": 1,
+                  "text": "Partial inventory · West is unavailable. Showing 5 returned nodes from 2 clusters.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/soft-foreground"}
                 }
               ]
             },
             {
-              "id": "oIZu6",
-              "type": "ref",
-              "ref": "I38x1",
+              "id": "1:11050",
               "name": "All authorized nodes",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 368,
+              "width": 1132,
+              "height": 368,
+              "component": "Gameplane/Node Inventory Table",
+              "componentId": "1:10976",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "cornerRadius": 20,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 4, 4, 4],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "clips": true,
+              "variables": {"fills/0/color": "surface/secondary"},
+              "texts": [
+                "Node ↑",
+                "Cluster ↕",
+                "Status ↕",
+                "CPU ↕",
+                "Memory ↕",
+                "Pods ↕",
+                "Uptime ↕",
+                "kubelab-control",
+                "Local",
+                "Ready",
+                "24% · 1.9 / 8",
+                "42% · 6.7 / 16 GiB",
+                "18 / 110",
+                "12d 4h",
+                "kubelab-worker-1",
+                "Local",
+                "Ready",
+                "56% · 4.5 / 8",
+                "65% · 10.4 / 16 GiB",
+                "24 / 110",
+                "12d 4h",
+                "kubelab-worker-2",
+                "Local",
+                "NotReady",
+                "Unknown",
+                "Unknown",
+                "Unknown",
+                "Unknown",
+                "remote-worker-1",
+                "Remote lab",
+                "Ready",
+                "31% · 2.5 / 8",
+                "28% · 4.5 / 16 GiB",
+                "14 / 110",
+                "5d 2h",
+                "remote-worker-2",
+                "Remote lab",
+                "Ready",
+                "18% · 1.4 / 8",
+                "36% · 5.8 / 16 GiB",
+                "12 / 110",
+                "5d 2h"
+              ]
             },
             {
-              "type": "text",
-              "id": "dpgR1",
+              "id": "1:11051",
               "name": "Inventory count",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "5 nodes shown · Select a cluster name to open its details.",
-              "lineHeight": 1.45,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 24,
+              "y": 760,
+              "width": 1132,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "5 nodes shown · Select a cluster name to open its details.",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }

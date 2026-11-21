@@ -1,153 +1,353 @@
 {
-  "type": "frame",
-  "id": "NKiqf",
+  "file": "NKiqf",
+  "id": "1:8718",
+  "name": "Screen/Mobile — Backups filters open",
+  "type": "FRAME",
   "x": 4920,
   "y": 59782,
-  "name": "Screen/Mobile — Backups filters open",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 375,
   "height": 844,
-  "fill": "$background/background",
-  "layout": "vertical",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "iU4T2",
-      "type": "ref",
-      "ref": "fGbVF",
+      "id": "1:8719",
       "name": "Mobile Backups header",
-      "width": "fill_container",
-      "descendants": {
-        "WOloN": {
-          "content": "Backups"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 375,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["Backups", "AD"]
     },
     {
-      "type": "frame",
-      "id": "BzPSu",
+      "id": "1:8720",
       "name": "Backups content",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 16,
-      "padding": 16,
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 375,
+      "height": 364,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "text",
-          "id": "F5Y8NW",
+          "id": "1:8721",
           "name": "Backups title",
-          "fill": "$foreground/foreground",
-          "content": "Backups",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 24,
-          "fontWeight": "600"
+          "type": "TEXT",
+          "x": 16,
+          "y": 16,
+          "width": 101,
+          "height": 31,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "Backups",
+          "font": ["Geist", 600, 24],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "type": "text",
-          "id": "tCRwh",
+          "id": "1:8722",
           "name": "Backups subtitle",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "Snapshots, schedules, and restores across your authorized clusters.",
-          "lineHeight": 1.4,
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 14,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 16,
+          "y": 63,
+          "width": 343,
+          "height": 40,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "Snapshots, schedules, and restores across your authorized clusters.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "tVVfu",
-          "type": "ref",
-          "ref": "cb4rt",
+          "id": "1:8723",
           "name": "Create backup",
-          "descendants": {
-            "Xpn7K": {
-              "icon": "plus"
-            },
-            "U6q13B": {
-              "content": "Create backup"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 119,
+          "width": 153,
+          "height": 36,
+          "component": "Button/Primary/MD",
+          "componentId": "1:1094",
+          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [8, 16, 8, 16],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {
+            "itemSpacing": "spacing/2",
+            "cornerRadius": "radius/3xl",
+            "paddingRight": "spacing/4",
+            "paddingLeft": "spacing/4",
+            "fills/0/color": "accent/accent"
+          },
+          "texts": ["Create backup"]
         },
         {
-          "id": "Am7fv",
-          "type": "ref",
-          "ref": "oIJGu",
+          "id": "1:8724",
           "name": "Backups tabs",
-          "width": "fill_container"
-        },
-        {
-          "id": "QLIo2",
-          "type": "ref",
-          "ref": "Lmaf1",
-          "name": "Backup search",
-          "width": "fill_container",
-          "descendants": {
-            "EJMtX": {
-              "content": "Search by name or server…"
-            }
-          }
-        },
-        {
-          "type": "frame",
-          "id": "t7nl7",
-          "name": "Result count and filter",
-          "width": "fill_container",
-          "gap": 12,
-          "justifyContent": "end",
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 16,
+          "y": 171,
+          "width": 343,
+          "height": 40,
+          "fills": [{"type": "SOLID", "color": "#232128"}],
+          "cornerRadius": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [4, 4, 4, 4],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "default/default"},
           "children": [
             {
-              "type": "text",
-              "id": "RSl9W",
-              "name": "Count",
-              "fill": "$muted",
-              "content": "0 of 0 backups",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:8725",
+              "name": "tabBackups",
+              "type": "INSTANCE",
+              "x": 4,
+              "y": 4,
+              "width": 90,
+              "height": 32,
+              "component": "Tab/Active",
+              "componentId": "1:965",
+              "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+              "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+              "texts": ["Backups"]
             },
             {
-              "id": "IOhpx",
-              "type": "ref",
-              "ref": "i6gfu",
-              "name": "Filter button",
-              "descendants": {
-                "FCYQ9": {
-                  "icon": "list-filter"
-                },
-                "GqVun": {
-                  "content": "Filter"
-                }
-              }
+              "id": "1:8726",
+              "name": "tabSchedules",
+              "type": "INSTANCE",
+              "x": 94,
+              "y": 4,
+              "width": 101,
+              "height": 32,
+              "component": "Tab/Inactive",
+              "componentId": "1:967",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Schedules"]
+            },
+            {
+              "id": "1:8727",
+              "name": "tabRestores",
+              "type": "INSTANCE",
+              "x": 195,
+              "y": 4,
+              "width": 91,
+              "height": 32,
+              "component": "Tab/Inactive",
+              "componentId": "1:967",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Restores"]
             }
           ]
         },
         {
-          "type": "text",
-          "id": "eo3Do",
+          "id": "1:8728",
+          "name": "Backup search",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 227,
+          "width": 343,
+          "height": 36,
+          "component": "Gameplane/Search Input",
+          "componentId": "1:975",
+          "fills": [{"type": "SOLID", "color": "#17151A"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 6,
+            "padding": [0, 12, 0, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/xl",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "field/border"
+          },
+          "texts": ["Search by name or server…"]
+        },
+        {
+          "id": "1:8729",
+          "name": "Result count and filter",
+          "type": "FRAME",
+          "x": 16,
+          "y": 279,
+          "width": 343,
+          "height": 36,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [0, 0, 0, 0],
+            "primary": "MAX",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:8730",
+              "name": "Count",
+              "type": "TEXT",
+              "x": 157,
+              "y": 10,
+              "width": 84,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "0 of 0 backups",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            },
+            {
+              "id": "1:8731",
+              "name": "Filter button",
+              "type": "INSTANCE",
+              "x": 253,
+              "y": 0,
+              "width": 90,
+              "height": 36,
+              "component": "Button/Outline/MD",
+              "componentId": "1:1794",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["Filter"]
+            }
+          ]
+        },
+        {
+          "id": "1:8732",
           "name": "Empty results",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "No backups match the current filters.",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 16,
+          "y": 331,
+          "width": 343,
+          "height": 17,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "No backups match the current filters.",
+          "font": ["Geist", 400, 13],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         }
       ]
     },
     {
-      "id": "U2JI1",
-      "type": "ref",
-      "ref": "rCQaM",
+      "id": "1:8733",
       "name": "Open backup filters",
-      "layoutPosition": "absolute",
+      "type": "INSTANCE",
       "x": 79,
       "y": 387,
-      "width": 280
+      "width": 280,
+      "height": 268,
+      "component": "Gameplane/Backups Filter Popover",
+      "componentId": "1:8419",
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 12,
+        "padding": [12, 12, 12, 12],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "absolute": true,
+      "variables": {
+        "cornerRadius": "radius/3xl",
+        "fills/0/color": "surface/surface",
+        "strokes/0/color": "border/border"
+      },
+      "texts": ["Cluster", "All clusters", "Server", "All servers", "Phase", "All phases", "Clear", "Apply"]
     }
   ]
 }

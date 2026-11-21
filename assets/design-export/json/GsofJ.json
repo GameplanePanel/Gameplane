@@ -1,112 +1,210 @@
 {
-  "type": "frame",
-  "id": "GsofJ",
+  "file": "GsofJ",
+  "id": "1:10584",
+  "name": "Screen/Login — Language menu open",
+  "type": "FRAME",
   "x": 6560,
   "y": 10222,
-  "name": "Screen/Login — Language menu open",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "dnFzb",
-      "type": "ref",
-      "ref": "fjQjb",
+      "id": "1:10585",
       "name": "loginL",
-      "width": "fill_container",
-      "height": "fill_container",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [80, 80, 80, 80],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "C3wPmq",
-          "type": "ref",
-          "ref": "S0P4bl",
-          "name": "loginCard"
+          "id": "1:10586",
+          "name": "loginCard",
+          "type": "INSTANCE",
+          "x": 150,
+          "y": 136,
+          "width": 420,
+          "height": 628,
+          "component": "Gameplane/Login Card With Language",
+          "componentId": "1:6",
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "texts": [
+            "gameplane",
+            "game server control panel",
+            "Sign in",
+            "Welcome to Gameplane.",
+            "Email or username",
+            "valgul",
+            "Password",
+            "Forgot?",
+            "••••••••••••",
+            "Sign in →",
+            "or",
+            "Continue with Keycloak",
+            "Sign in with safe mode (custom styling disabled)",
+            "AGPL-3.0 licensed",
+            "English"
+          ]
         }
       ]
     },
     {
-      "id": "Z1Dlq",
-      "type": "ref",
-      "ref": "T8Hug",
+      "id": "1:10587",
       "name": "loginR",
-      "width": "fill_container",
-      "height": "fill_container"
+      "type": "INSTANCE",
+      "x": 720,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "component": "Gameplane/Login Hero Panel",
+      "componentId": "1:53",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [48, 224, 48, 48],
+        "primary": "CENTER",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary"},
+      "texts": [
+        "AGPL-3.0",
+        "Kubernetes-native\ngame server\nhosting.",
+        "An open-source alternative to proprietary game panels — CRDs, Operators, and StatefulSets all the way down.",
+        "Deploy any game. Minecraft, Valheim, Factorio, Palworld, ARK, CS2, Terraria, and more.",
+        "Scale from single-node k3s to multi-node bare metal or cloud.",
+        "Backups, auto-restart, rolling upgrades, RBAC. Production-grade defaults.",
+        "GitOps-friendly. kubectl get gameservers just works."
+      ]
     },
     {
-      "type": "frame",
-      "id": "Xdxg9",
-      "layoutPosition": "absolute",
+      "id": "1:10588",
+      "name": "langMenu",
+      "type": "FRAME",
       "x": 388,
       "y": 184,
-      "name": "langMenu",
       "width": 170,
-      "fill": "$surface/surface",
-      "cornerRadius": "$radius/md",
-      "stroke": "$border/border",
-      "strokeWidth": 1,
-      "strokeAlignment": "inner",
-      "effect": {
-        "type": "shadow",
-        "shadowType": "outer",
-        "color": "#00000059",
-        "offset": {
-          "x": 0,
-          "y": 4
-        },
-        "blur": 12
+      "height": 116,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 12, "visible": true}],
+      "cornerRadius": 6,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [4, 4, 4, 4],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
       },
-      "layout": "vertical",
-      "padding": 4,
+      "absolute": true,
+      "variables": {
+        "cornerRadius": "radius/md",
+        "fills/0/color": "surface/surface",
+        "strokes/0/color": "border/border"
+      },
       "children": [
         {
-          "id": "Wh2w2",
-          "type": "ref",
-          "ref": "B5sYje",
+          "id": "1:10589",
           "name": "langItemEnglish",
-          "width": "fill_container",
-          "descendants": {
-            "ghUsw": {
-              "icon": "check"
-            },
-            "bpSQ7": {
-              "content": "English",
-              "fontFamily": "$typography/font-sans"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 4,
+          "y": 4,
+          "width": 162,
+          "height": 36,
+          "component": "Menu Item/Active",
+          "componentId": "1:2391",
+          "fills": [{"type": "SOLID", "color": "#232128"}],
+          "cornerRadius": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [6, 8, 6, 8],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+          "texts": ["English"]
         },
         {
-          "id": "FxQal",
-          "type": "ref",
-          "ref": "W8XiN",
+          "id": "1:10590",
           "name": "langItemFrancais",
-          "width": "fill_container",
-          "descendants": {
-            "Sr2Q5": {
-              "opacity": 0
-            },
-            "Ra9NK": {
-              "content": "Français"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 4,
+          "y": 40,
+          "width": 162,
+          "height": 36,
+          "component": "Menu Item/Default",
+          "componentId": "1:2393",
+          "cornerRadius": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [6, 8, 6, 8],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/2xl"},
+          "texts": ["Français"]
         },
         {
-          "id": "XwrsI",
-          "type": "ref",
-          "ref": "W8XiN",
+          "id": "1:10591",
           "name": "langItemDeutsch",
-          "width": "fill_container",
-          "descendants": {
-            "Sr2Q5": {
-              "opacity": 0
-            },
-            "Ra9NK": {
-              "content": "Deutsch"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 4,
+          "y": 76,
+          "width": 162,
+          "height": 36,
+          "component": "Menu Item/Default",
+          "componentId": "1:2393",
+          "cornerRadius": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [6, 8, 6, 8],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/2xl"},
+          "texts": ["Deutsch"]
         }
       ]
     }

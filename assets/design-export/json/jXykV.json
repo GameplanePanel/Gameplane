@@ -1,63 +1,91 @@
 {
-  "type": "frame",
-  "id": "jXykV",
+  "file": "jXykV",
+  "id": "1:7405",
+  "name": "J5pjJ3 states/Alerts",
+  "type": "FRAME",
   "x": 10540,
   "y": 43530,
-  "name": "J5pjJ3 states/Alerts",
-  "theme": {
-    "semantic": "dark"
-  },
   "width": 700,
-  "fill": "$surface/surface",
-  "layout": "vertical",
-  "gap": 12,
-  "padding": 20,
+  "height": 246,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 12,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {"fills/0/color": "surface/surface"},
   "children": [
     {
-      "type": "text",
-      "id": "NbcRI",
+      "id": "1:7406",
       "name": "AlertStatesCaption",
-      "fill": "$muted",
-      "content": "These conditions mean the preference is saved but never applied:",
-      "fontFamily": "$typography/font-sans",
-      "fontSize": 11,
-      "fontWeight": "normal"
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 329,
+      "height": 14,
+      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+      "text": "These conditions mean the preference is saved but never applied:",
+      "font": ["Geist", 400, 11],
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
     },
     {
-      "id": "q1zaXx",
-      "type": "ref",
-      "ref": "uJ3KZ",
+      "id": "1:7407",
       "name": "Alert Ignored For Exposure Mode",
-      "width": "fill_container",
-      "descendants": {
-        "JvjWQ": {
-          "icon": "megaphone"
-        },
-        "xzGxP": {
-          "content": "Address preference ignored"
-        },
-        "yLGJ9": {
-          "content": "Expose is set to NodePort. Address pool and requested address only take effect when Expose (above) is set to LoadBalancer."
-        }
-      }
+      "type": "INSTANCE",
+      "x": 20,
+      "y": 46,
+      "width": 660,
+      "height": 84,
+      "component": "Alert/Warning Simple",
+      "componentId": "1:5629",
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 16,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+      "texts": [
+        "Address preference ignored",
+        "Expose is set to NodePort. Address pool and requested address only take effect when Expose (above) is set to LoadBalancer."
+      ]
     },
     {
-      "id": "MLrud",
-      "type": "ref",
-      "ref": "uJ3KZ",
+      "id": "1:7408",
       "name": "Alert No Address Manager Configured",
-      "width": "fill_container",
-      "descendants": {
-        "JvjWQ": {
-          "icon": "megaphone"
-        },
-        "xzGxP": {
-          "content": "No address manager configured"
-        },
-        "yLGJ9": {
-          "content": "This cluster has no MetalLB or Cilium address manager. Your pool and address preference will be saved but never applied."
-        }
-      }
+      "type": "INSTANCE",
+      "x": 20,
+      "y": 142,
+      "width": 660,
+      "height": 84,
+      "component": "Alert/Warning Simple",
+      "componentId": "1:5629",
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 16,
+        "padding": [12, 16, 12, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+      "texts": [
+        "No address manager configured",
+        "This cluster has no MetalLB or Cilium address manager. Your pool and address preference will be saved but never applied."
+      ]
     }
   ]
 }

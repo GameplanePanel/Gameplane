@@ -1,26 +1,57 @@
 {
-  "type": "frame",
-  "id": "C2LQE4",
+  "file": "C2LQE4",
+  "id": "1:4505",
+  "name": "Screen/Share Link — Up",
+  "type": "FRAME",
   "x": 0,
   "y": 91528,
-  "name": "Screen/Share Link — Up",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
-  "layout": "vertical",
-  "justifyContent": "center",
-  "alignItems": "center",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "CENTER",
+    "counter": "CENTER",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "Mbzm6",
-      "type": "ref",
-      "ref": "HKEl2",
+      "id": "1:4506",
       "name": "shareCard",
-      "width": 440
+      "type": "INSTANCE",
+      "x": 500,
+      "y": 259,
+      "width": 440,
+      "height": 382,
+      "component": "Gameplane/Share Card",
+      "componentId": "1:4507",
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 24,
+        "padding": [36, 36, 36, 36],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "shared server link",
+        "mc-survival",
+        "Online",
+        "CONNECT AT",
+        "play.gameplane.example:25565",
+        "3 players online",
+        "English"
+      ]
     }
   ]
 }

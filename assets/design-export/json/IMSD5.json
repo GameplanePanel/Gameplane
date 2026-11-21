@@ -1,394 +1,646 @@
 {
-  "type": "frame",
-  "id": "IMSD5",
+  "file": "IMSD5",
+  "id": "1:8223",
+  "name": "Screen/Server Detail — Settings · Danger zone (Owner-only)",
+  "type": "FRAME",
   "x": 3280,
   "y": 54650,
-  "name": "Screen/Server Detail \u2014 Settings \u00b7 Danger zone (Owner-only)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "gwKpZ",
-      "type": "ref",
-      "ref": "kKFX9",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "id": "1:8224",
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "zwvxK",
+      "id": "1:8225",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "AS03l",
-          "type": "ref",
-          "ref": "gu5WY",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "id": "1:8226",
+          "name": "Gameplane/Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "Q2fYf",
+          "id": "1:8227",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "MNZfA",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:8228",
               "name": "Detail Header",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "ULr4h",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:8229",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "Y4QES": {
-                  "fill": "$segment"
-                },
-                "Y4QES/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "GLdAX",
+              "id": "1:8230",
               "name": "Settings Content",
-              "width": "fill_container",
-              "height": "fill_container",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 614,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "zcNy1",
-                  "type": "ref",
-                  "ref": "EV8mp",
+                  "id": "1:8231",
                   "name": "Settings Sub Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
                   "width": 224,
-                  "height": "fill_container",
-                  "descendants": {
-                    "axMXL": {
-                      "fill": "#00000000"
-                    },
-                    "QrhqW": {
-                      "fill": "#00000000"
-                    },
-                    "WLobW": {
-                      "fill": "$surface/secondary"
-                    }
-                  }
+                  "height": 614,
+                  "component": "Gameplane/Server Settings Sub Nav",
+                  "componentId": "1:1289",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [8, 8, 8, 8],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                  "texts": [
+                    "General",
+                    "Version",
+                    "Game configuration",
+                    "Resources",
+                    "Networking",
+                    "Environment",
+                    "Lifecycle",
+                    "Scheduled backups",
+                    "Network capture",
+                    "Placement",
+                    "RBAC & access",
+                    "Share links",
+                    "Danger zone"
+                  ]
                 },
                 {
-                  "type": "frame",
-                  "id": "R23J5",
+                  "id": "1:8232",
                   "name": "Settings Panel Wrap",
-                  "width": "fill_container",
-                  "height": "fill_container",
-                  "layout": "vertical",
+                  "type": "FRAME",
+                  "x": 224,
+                  "y": 0,
+                  "width": 908,
+                  "height": 614,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "rI0lg",
+                      "id": "1:8233",
                       "name": "Settings Form",
-                      "width": "fill_container",
-                      "height": "fill_container",
-                      "layout": "vertical",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 908,
+                      "height": 614,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "bEkbT",
+                          "id": "1:8234",
                           "name": "Form Body",
-                          "width": "fill_container",
-                          "height": "fill_container",
-                          "layout": "vertical",
-                          "gap": 20,
-                          "padding": 24,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 908,
+                          "height": 558,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 20,
+                            "padding": [24, 24, 24, 24],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "id": "wYjHi",
-                              "type": "ref",
-                              "ref": "CEGPG",
+                              "id": "1:8235",
                               "name": "Owner-only Notice",
-                              "width": "fill_container",
-                              "descendants": {
-                                "upZAA": {
-                                  "icon": "lock"
-                                },
-                                "nJnfr": {
-                                  "content": "Owner-only actions"
-                                },
-                                "zD5GP": {
-                                  "content": "Only the server owner or an admin can wipe, transfer or delete this server."
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 24,
+                              "y": 24,
+                              "width": 860,
+                              "height": 66,
+                              "component": "Alert/Default",
+                              "componentId": "1:5590",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 16,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+                              "texts": [
+                                "Owner-only actions",
+                                "Only the server owner or an admin can wipe, transfer or delete this server."
+                              ]
                             },
                             {
-                              "type": "frame",
-                              "id": "o0ii1J",
+                              "id": "1:8236",
                               "name": "Wipe World Card",
-                              "width": "fill_container",
-                              "fill": "$surface/surface",
-                              "cornerRadius": "$radius/3xl",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "effect": {
-                                "type": "shadow",
-                                "shadowType": "outer",
-                                "color": "#0000000A",
-                                "offset": {
-                                  "x": 0,
-                                  "y": 2
-                                },
-                                "blur": 4
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 110,
+                              "width": 860,
+                              "height": 119,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 8,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
                               },
-                              "layout": "vertical",
-                              "gap": 8,
-                              "padding": 16,
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "fills/0/color": "surface/surface",
+                                "strokes/0/color": "border/border"
+                              },
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "UWixD",
-                                  "fill": "$foreground/foreground",
-                                  "content": "Wipe world data",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 16,
-                                  "fontWeight": "500"
+                                  "id": "1:8237",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 122,
+                                  "height": 21,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Wipe world data",
+                                  "font": ["Geist", 500, 16],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "V5jvF",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Deletes everything on the data volume and restarts the server on a fresh world. Take a backup first.",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "id": "1:8238",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 45,
+                                  "width": 828,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Deletes everything on the data volume and restarts the server on a fresh world. Take a backup first.",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "GliDc",
-                                  "type": "ref",
-                                  "ref": "J09iP",
+                                  "id": "1:8239",
+                                  "name": "Gameplane/Button/Small/Ghost",
+                                  "type": "INSTANCE",
+                                  "x": 16,
+                                  "y": 71,
+                                  "width": 116,
+                                  "height": 32,
                                   "opacity": 0.5,
-                                  "descendants": {
-                                    "eWkIT/r4VbAi": {
-                                      "content": "Wipe world\u2026"
-                                    }
-                                  }
+                                  "component": "Gameplane/Button/Small/Ghost",
+                                  "componentId": "1:1124",
+                                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "texts": ["Wipe world…"]
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "zrlAQ",
+                              "id": "1:8240",
                               "name": "Transfer Ownership Card",
-                              "width": "fill_container",
-                              "fill": "$surface/surface",
-                              "cornerRadius": "$radius/3xl",
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "effect": {
-                                "type": "shadow",
-                                "shadowType": "outer",
-                                "color": "#0000000A",
-                                "offset": {
-                                  "x": 0,
-                                  "y": 2
-                                },
-                                "blur": 4
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 249,
+                              "width": 860,
+                              "height": 119,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 8,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
                               },
-                              "layout": "vertical",
-                              "gap": 8,
-                              "padding": 16,
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "fills/0/color": "surface/surface",
+                                "strokes/0/color": "border/border"
+                              },
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "Dg2eP",
-                                  "fill": "$foreground/foreground",
-                                  "content": "Transfer ownership",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 16,
-                                  "fontWeight": "500"
+                                  "id": "1:8241",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 144,
+                                  "height": 21,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Transfer ownership",
+                                  "font": ["Geist", 500, 16],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "fwK0S",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Hand this server to another user. You keep access only if you stay a collaborator.",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "id": "1:8242",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 45,
+                                  "width": 828,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Hand this server to another user. You keep access only if you stay a collaborator.",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "coL2C",
-                                  "type": "ref",
-                                  "ref": "J09iP",
+                                  "id": "1:8243",
+                                  "name": "Gameplane/Button/Small/Ghost",
+                                  "type": "INSTANCE",
+                                  "x": 16,
+                                  "y": 71,
+                                  "width": 97,
+                                  "height": 32,
                                   "opacity": 0.5,
-                                  "descendants": {
-                                    "eWkIT/r4VbAi": {
-                                      "content": "Transfer\u2026"
-                                    }
-                                  }
+                                  "component": "Gameplane/Button/Small/Ghost",
+                                  "componentId": "1:1124",
+                                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "texts": ["Transfer…"]
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "h6273j",
+                              "id": "1:8244",
                               "name": "Delete Server Card",
-                              "width": "fill_container",
-                              "fill": "$surface/surface",
-                              "cornerRadius": "$radius/3xl",
-                              "stroke": "$danger/danger",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "effect": {
-                                "type": "shadow",
-                                "shadowType": "outer",
-                                "color": "#0000000A",
-                                "offset": {
-                                  "x": 0,
-                                  "y": 2
-                                },
-                                "blur": 4
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 388,
+                              "width": 860,
+                              "height": 123,
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "strokes": [{"type": "SOLID", "color": "#E0304F"}],
+                              "strokeWeight": 1,
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 8,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
                               },
-                              "layout": "vertical",
-                              "gap": 8,
-                              "padding": 16,
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {
+                                "cornerRadius": "radius/3xl",
+                                "fills/0/color": "surface/surface",
+                                "strokes/0/color": "danger/danger"
+                              },
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "HPXbs",
-                                  "fill": "$foreground/foreground",
-                                  "content": "Delete server",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 16,
-                                  "fontWeight": "500"
+                                  "id": "1:8245",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 101,
+                                  "height": 21,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Delete server",
+                                  "font": ["Geist", 500, 16],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "R8YW0",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Removes the GameServer and its persistent volume. This cannot be undone.",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "id": "1:8246",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 45,
+                                  "width": 828,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "layoutAlignSelf": "STRETCH",
+                                  "text": "Removes the GameServer and its persistent volume. This cannot be undone.",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "id": "Tp91o",
-                                  "type": "ref",
-                                  "ref": "XoX7L",
+                                  "id": "1:8247",
+                                  "name": "Gameplane/Button/Danger",
+                                  "type": "INSTANCE",
+                                  "x": 16,
+                                  "y": 71,
+                                  "width": 100,
+                                  "height": 36,
                                   "opacity": 0.5,
-                                  "descendants": {
-                                    "C8QRt/t8p1M2": {
-                                      "content": "Delete"
-                                    }
-                                  }
+                                  "component": "Gameplane/Button/Danger",
+                                  "componentId": "1:3975",
+                                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "CENTER",
+                                    "counter": "CENTER",
+                                    "sizing": ["HUG", "HUG"]
+                                  },
+                                  "texts": ["Delete"]
                                 }
                               ]
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "t2PD1",
+                          "id": "1:8248",
                           "name": "Form Footer",
-                          "width": "fill_container",
-                          "stroke": "$border/border",
-                          "strokeWidth": {
-                            "top": 1
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 558,
+                          "width": 908,
+                          "height": 56,
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [12, 24, 12, 24],
+                            "primary": "MAX",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
                           },
-                          "strokeAlignment": "inner",
-                          "strokeLinejoin": "round",
-                          "gap": 12,
-                          "padding": [
-                            12,
-                            24
-                          ],
-                          "justifyContent": "end",
-                          "alignItems": "center",
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "naSgA",
-                              "type": "ref",
-                              "ref": "J09iP",
+                              "id": "1:8249",
                               "name": "Btn Discard",
-                              "descendants": {
-                                "eWkIT/WtPjS": {
-                                  "icon": "plus"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 681,
+                              "y": 12,
+                              "width": 86,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Ghost",
+                              "componentId": "1:1124",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Discard"]
                             },
                             {
-                              "id": "pJUfF",
-                              "type": "ref",
-                              "ref": "z9ShNE",
+                              "id": "1:8250",
                               "name": "Btn Save Changes",
-                              "descendants": {
-                                "nWTJb": {
-                                  "enabled": false
-                                },
-                                "IVgQ8/U1xvSo": {
-                                  "content": "Save changes"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 779,
+                              "y": 12,
+                              "width": 105,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Default",
+                              "componentId": "1:709",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Save changes"]
                             }
                           ]
                         }

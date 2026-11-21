@@ -1,298 +1,677 @@
 {
-  "type": "frame",
-  "id": "SUtGZ",
+  "file": "SUtGZ",
+  "id": "1:8607",
+  "name": "Screen/Mobile — Remote server Capture",
+  "type": "FRAME",
   "x": 12840,
   "y": 36870,
-  "name": "Screen/Mobile — Remote server Capture",
-  "context": "375px viewport. Server actions wrap. The tab navigation is independently scrolled to Capture; the page itself never overflows horizontally.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 375,
   "height": 900,
-  "fill": "$background/background",
-  "layout": "vertical",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "PG6TL",
-      "type": "ref",
-      "ref": "fGbVF",
+      "id": "1:8608",
       "name": "Mobile header",
-      "width": "fill_container",
-      "descendants": {
-        "WOloN": {
-          "content": "mc-survival",
-          "fontSize": 16
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 375,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["mc-survival", "AD"]
     },
     {
-      "type": "frame",
-      "id": "c1DWYm",
+      "id": "1:8609",
       "name": "Server detail content",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 16,
-      "padding": 16,
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 375,
+      "height": 786,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "ugcDR",
-          "type": "ref",
-          "ref": "S4k0x",
+          "id": "1:8610",
           "name": "Wrapped server header",
-          "width": "fill_container",
-          "layout": "vertical",
-          "alignItems": "start",
-          "padding": 0,
-          "gap": 16,
-          "descendants": {
-            "n3TKr": {
-              "width": "fill_container",
-              "gap": 12
-            },
-            "wMMwe": {
-              "width": 36,
-              "height": 36
-            },
-            "ZArrg": {
-              "width": "fill_container"
-            },
-            "UpnRk": {
-              "width": "fill_container",
-              "textGrowth": "fixed-width"
-            },
-            "Gdnjm": {
-              "type": "frame",
-              "id": "U2Q6SI",
-              "name": "Wrapped server actions",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 8,
+          "type": "FRAME",
+          "x": 16,
+          "y": 16,
+          "width": 343,
+          "height": 166,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 16,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
+          "children": [
+            {
+              "name": "srvLeft",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 343,
+              "height": 70,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "EG3f8",
-                  "name": "Lifecycle actions",
-                  "gap": 8,
+                  "name": "gameIcon",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 17,
+                  "width": 36,
+                  "height": 36,
+                  "fills": [{"type": "SOLID", "color": "#5B9A3E33", "opacity": 0.2}],
+                  "cornerRadius": 6,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
                   "children": [
                     {
-                      "id": "f8fKz",
-                      "type": "ref",
-                      "ref": "i6gfu",
-                      "name": "Restart",
-                      "descendants": {
-                        "FCYQ9": {
-                          "icon": "rotate-cw"
-                        },
-                        "GqVun": {
-                          "content": "Restart"
-                        }
-                      }
-                    },
-                    {
-                      "id": "rpUKG",
-                      "type": "ref",
-                      "ref": "i6gfu",
-                      "name": "Stop",
-                      "descendants": {
-                        "FCYQ9": {
-                          "icon": "square"
-                        },
-                        "GqVun": {
-                          "content": "Stop"
-                        }
-                      }
-                    },
-                    {
-                      "id": "P9Fun",
-                      "type": "ref",
-                      "ref": "J3iWV8",
-                      "name": "More",
-                      "descendants": {
-                        "xjGeb": {
-                          "icon": "ellipsis"
-                        }
-                      }
+                      "name": "gameIconLabel",
+                      "type": "TEXT",
+                      "x": 8,
+                      "y": 7.5,
+                      "width": 20,
+                      "height": 21,
+                      "fills": [{"type": "SOLID", "color": "#5B9A3E"}],
+                      "text": "MI",
+                      "font": ["JetBrains Mono", 700, 16],
+                      "variables": {"fontFamily": "typography/font-mono"}
                     }
                   ]
                 },
                 {
-                  "id": "EqH6i",
-                  "type": "ref",
-                  "ref": "cb4rt",
-                  "name": "Open console",
-                  "descendants": {
-                    "Xpn7K": {
-                      "icon": "terminal"
+                  "name": "srvTitle",
+                  "type": "FRAME",
+                  "x": 48,
+                  "y": 0,
+                  "width": 295,
+                  "height": 70,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 6,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "srvNameRow",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 221,
+                      "height": 32,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 10,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "children": [
+                        {
+                          "name": "srvName",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 159,
+                          "height": 32,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "mc-survival",
+                          "font": ["JetBrains Mono", 600, 24],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+                        },
+                        {
+                          "name": "statusBadge",
+                          "type": "INSTANCE",
+                          "x": 169,
+                          "y": 7.5,
+                          "width": 52,
+                          "height": 17,
+                          "component": "Chip/Soft/Success/SM",
+                          "componentId": "1:1790",
+                          "fills": [{"type": "SOLID", "color": "#17C964", "opacity": 0.15}],
+                          "cornerRadius": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 2,
+                            "padding": [2, 4, 2, 4],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "texts": ["Running"]
+                        }
+                      ]
                     },
-                    "U6q13B": {
-                      "content": "Open console"
+                    {
+                      "name": "srvSubtitle",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 38,
+                      "width": 295,
+                      "height": 32,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     }
-                  }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "1:8611",
+              "name": "Wrapped server actions",
+              "type": "FRAME",
+              "x": 0,
+              "y": 86,
+              "width": 343,
+              "height": 80,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "children": [
+                {
+                  "id": "1:8612",
+                  "name": "Lifecycle actions",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 244,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "children": [
+                    {
+                      "id": "1:8613",
+                      "name": "Restart",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 105,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Restart"]
+                    },
+                    {
+                      "id": "1:8614",
+                      "name": "Stop",
+                      "type": "INSTANCE",
+                      "x": 113,
+                      "y": 0,
+                      "width": 87,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Stop"]
+                    },
+                    {
+                      "id": "1:8615",
+                      "name": "More",
+                      "type": "INSTANCE",
+                      "x": 208,
+                      "y": 0,
+                      "width": 36,
+                      "height": 36,
+                      "component": "Button/Outline/Icon/MD",
+                      "componentId": "1:774",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"cornerRadius": "radius/3xl", "strokes/0/color": "border-2"}
+                    }
+                  ]
+                },
+                {
+                  "id": "1:8616",
+                  "name": "Open console",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 44,
+                  "width": 146,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Open console"]
                 }
               ]
             }
-          }
+          ]
         },
         {
-          "type": "frame",
-          "id": "t1ytI",
+          "id": "1:8617",
           "name": "Server tabs — scrolled to Capture",
-          "context": "Other tabs remain accessible by horizontal navigation; this state shows the selected Capture tab.",
-          "clip": true,
-          "width": "fill_container",
+          "type": "FRAME",
+          "x": 16,
+          "y": 198,
+          "width": 343,
           "height": 46,
-          "gap": 4,
-          "alignItems": "center",
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "clips": true,
           "children": [
             {
-              "id": "yWJZR",
-              "type": "ref",
-              "ref": "qAFbJ",
+              "id": "1:8618",
               "name": "Backups tab",
-              "width": "fit_content",
-              "descendants": {
-                "VcxMI": {
-                  "content": "Backups"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 7,
+              "width": 90,
+              "height": 32,
+              "component": "Tab/Inactive",
+              "componentId": "1:967",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Backups"]
             },
             {
-              "id": "K1EcXj",
-              "type": "ref",
-              "ref": "CEWo3",
+              "id": "1:8619",
               "name": "Capture tab",
-              "width": "fit_content",
-              "descendants": {
-                "YUR8N": {
-                  "content": "Capture"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 94,
+              "y": 7,
+              "width": 85,
+              "height": 32,
+              "component": "Tab/Active",
+              "componentId": "1:965",
+              "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+              "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+              "texts": ["Capture"]
             },
             {
-              "id": "yRFj3",
-              "type": "ref",
-              "ref": "qAFbJ",
+              "id": "1:8620",
               "name": "Settings tab",
-              "width": "fit_content",
-              "descendants": {
-                "VcxMI": {
-                  "content": "Settings"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 183,
+              "y": 7,
+              "width": 87,
+              "height": 32,
+              "component": "Tab/Inactive",
+              "componentId": "1:967",
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 16, 0, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"cornerRadius": "radius/3xl"},
+              "texts": ["Settings"]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "zxJGz",
+          "id": "1:8621",
           "name": "Capture status",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 8,
+          "type": "FRAME",
+          "x": 16,
+          "y": 260,
+          "width": 343,
+          "height": 41,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "h8ET5",
-              "type": "ref",
-              "ref": "UOoQW",
+              "id": "1:8622",
               "name": "Ready chip",
-              "descendants": {
-                "YXoPG": {
-                  "content": "Ready"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 41,
+              "height": 17,
+              "component": "Chip/Soft/Success/SM",
+              "componentId": "1:1790",
+              "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+              "cornerRadius": 16,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 2,
+                "padding": [2, 4, 2, 4],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+              "texts": ["Ready"]
             },
             {
-              "type": "text",
-              "id": "wvebb",
+              "id": "1:8623",
               "name": "Selected site retention",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Captures will auto-delete after 24 hours",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 25,
+              "width": 343,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Captures will auto-delete after 24 hours",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "Dr3oL",
+          "id": "1:8624",
           "name": "Capture actions",
-          "width": "fill_container",
-          "gap": 8,
+          "type": "FRAME",
+          "x": 16,
+          "y": 317,
+          "width": 343,
+          "height": 36,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "c00Fy5",
-              "type": "ref",
-              "ref": "i6gfu",
+              "id": "1:8625",
               "name": "Disable Capture",
-              "descendants": {
-                "FCYQ9": {
-                  "enabled": false
-                },
-                "GqVun": {
-                  "content": "Disable Capture"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 138,
+              "height": 36,
+              "component": "Button/Outline/MD",
+              "componentId": "1:1794",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["Disable Capture"]
             },
             {
-              "id": "jiSTZ",
-              "type": "ref",
-              "ref": "cb4rt",
+              "id": "1:8626",
               "name": "Start Capture",
-              "descendants": {
-                "Xpn7K": {
-                  "enabled": false
-                },
-                "U6q13B": {
-                  "content": "Start Capture"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 146,
+              "y": 0,
+              "width": 122,
+              "height": 36,
+              "component": "Button/Primary/MD",
+              "componentId": "1:1094",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "accent/accent"
+              },
+              "texts": ["Start Capture"]
             }
           ]
         },
         {
-          "id": "bH7v8",
-          "type": "ref",
-          "ref": "f0s9zG",
+          "id": "1:8627",
           "name": "Capture privacy warning",
-          "width": "fill_container"
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 369,
+          "width": 343,
+          "height": 281,
+          "component": "Gameplane/Capture Warning Banner",
+          "componentId": "1:4598",
+          "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [16, 16, 16, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "warning/soft"},
+          "texts": [
+            "Caution: network packet captures contain real player data",
+            "•  Player IP addresses and port numbers",
+            "•  Network timing and game protocol messages",
+            "•  For some games, in-band credentials (passwords, tokens, session keys)",
+            "Captures are not redacted or sanitized. Access is restricted to administrators only. Captures are automatically deleted after the configured retention window (currently 24 hours).",
+            "Dismiss"
+          ]
         },
         {
-          "type": "text",
-          "id": "iCYu3",
+          "id": "1:8628",
           "name": "Capture history heading",
-          "fill": "$foreground/foreground",
-          "content": "Captures",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 18,
-          "fontWeight": "600"
+          "type": "TEXT",
+          "x": 16,
+          "y": 666,
+          "width": 80,
+          "height": 23,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "Captures",
+          "font": ["Geist", 600, 18],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "type": "frame",
-          "id": "mzEqa",
+          "id": "1:8629",
           "name": "Empty capture history",
-          "width": "fill_container",
-          "fill": "$surface/surface",
-          "cornerRadius": "$radius/3xl",
-          "layout": "vertical",
-          "padding": 24,
+          "type": "FRAME",
+          "x": 16,
+          "y": 705,
+          "width": 343,
+          "height": 65,
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
           "children": [
             {
-              "type": "text",
-              "id": "xnovb",
+              "id": "1:8630",
               "name": "Empty history text",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "No captures yet.",
-              "textAlign": "center",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 24,
+              "y": 24,
+              "width": 295,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "No captures yet.",
+              "font": ["Geist", 400, 13],
+              "align": "CENTER",
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }

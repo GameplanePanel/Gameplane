@@ -1,298 +1,652 @@
 {
-  "id": "aMU7O",
-  "type": "ref",
-  "ref": "x3beP",
+  "file": "aMU7O",
+  "id": "1:9851",
   "name": "Gameplane/Dialog/Edit user — Standalone (No target)",
+  "type": "FRAME",
   "x": 1640,
   "y": 66532,
-  "theme": {
-    "semantic": "dark"
-  },
   "width": 480,
-  "context": "PR #630. Only registered remotes appear as workload grant targets. Primary binding is panel access. workload-viewer is a sample role containing workload permissions only. All namespaces must reject roles containing central administration permissions; Add is disabled for unknown or missing targets.",
-  "descendants": {
-    "E7Whx": {
-      "content": "Edit user"
+  "height": 643,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 68,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+      "text": "Edit user",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
-    "qzcst": {
-      "content": "operator-01"
-    },
-    "Nht52": {
-      "type": "frame",
-      "id": "yHFNV",
-      "name": "User fields and remote grants",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 12,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 25,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "dHAV6",
-          "name": "Display name field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
-          "children": [
-            {
-              "type": "text",
-              "id": "u7sEw",
-              "name": "Display name label",
-              "fill": "$foreground/foreground",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Display name",
-              "lineHeight": 1.5,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
-            },
-            {
-              "id": "pPOJS",
-              "type": "ref",
-              "ref": "D0cDM",
-              "name": "Display name value",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "Server Operator",
-                  "fill": "$foreground/foreground"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "xUDS9",
-          "name": "Email field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
-          "children": [
-            {
-              "type": "text",
-              "id": "k4bn3",
-              "name": "Email label",
-              "fill": "$foreground/foreground",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Email",
-              "lineHeight": 1.5,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
-            },
-            {
-              "id": "qCJUr",
-              "type": "ref",
-              "ref": "D0cDM",
-              "name": "Email value",
-              "width": "fill_container",
-              "descendants": {
-                "PJERm": {
-                  "content": "operator@example.test",
-                  "fill": "$foreground/foreground"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "jkYvt",
-          "name": "Primary role (cluster-wide) field",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
-          "children": [
-            {
-              "type": "text",
-              "id": "PioTM",
-              "name": "Primary role (cluster-wide) label",
-              "fill": "$foreground/foreground",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Primary role (cluster-wide)",
-              "lineHeight": 1.5,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
-            },
-            {
-              "id": "tWpbc",
-              "type": "ref",
-              "ref": "AT7ya",
-              "name": "Primary role (cluster-wide) value",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "operator",
-                  "fill": "$foreground/foreground"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "KesHu",
-          "name": "Grant separator",
-          "width": "fill_container",
-          "height": 1,
-          "fill": "$border/border"
-        },
-        {
-          "type": "text",
-          "id": "lByLy",
-          "name": "Grant heading",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "CLUSTER & NAMESPACE GRANTS",
-          "lineHeight": 1.5,
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 11,
-          "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "cMoFK",
-          "name": "Grant scope explanation",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "The primary role above manages panel access. Additional grants apply only to their named cluster and namespace.",
-          "lineHeight": 1.5,
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "kCgJB",
-          "name": "Primary panel binding",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "operator in all namespaces on panel\nPrimary role (managed above)",
-          "lineHeight": 1.5,
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
-        },
-        {
-          "type": "frame",
-          "id": "iiSDM",
-          "name": "Remote target and role",
-          "width": "fill_container",
-          "gap": 8,
-          "children": [
-            {
-              "id": "dqqi3",
-              "type": "ref",
-              "ref": "AT7ya",
-              "name": "Grant cluster",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "Select a workload cluster"
-                }
-              }
-            },
-            {
-              "id": "tInht",
-              "type": "ref",
-              "ref": "AT7ya",
-              "name": "Grant role",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "workload-viewer"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "lmxYz",
-          "name": "Namespace grant actions",
-          "width": "fill_container",
-          "gap": 8,
-          "alignItems": "center",
-          "children": [
-            {
-              "id": "hJb3f",
-              "type": "ref",
-              "ref": "D0cDM",
-              "name": "Grant namespace",
-              "width": "fill_container",
-              "height": 32,
-              "descendants": {
-                "PJERm": {
-                  "content": "namespace"
-                }
-              }
-            },
-            {
-              "id": "F0krw",
-              "type": "ref",
-              "ref": "i6gfu",
-              "name": "All namespaces",
-              "opacity": 0.5,
-              "descendants": {
-                "FCYQ9": {
-                  "enabled": false
-                },
-                "GqVun": {
-                  "content": "All namespaces"
-                }
-              }
-            },
-            {
-              "id": "g1QLQ",
-              "type": "ref",
-              "ref": "i6gfu",
-              "name": "Add",
-              "opacity": 0.5,
-              "descendants": {
-                "FCYQ9": {
-                  "enabled": false
-                },
-                "GqVun": {
-                  "content": "Add"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "id": "wT2ls",
-          "name": "Inventory grant guidance",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "For remote node inventory, create a role in the Roles tab with “View nodes, version, and storage”, then grant it to all namespaces on that cluster.",
-          "lineHeight": 1.5,
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutGrow": 1,
+          "text": "operator-01",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         }
       ]
     },
-    "V7HYp": {
-      "opacity": 1
+    {
+      "id": "1:9852",
+      "name": "User fields and remote grants",
+      "type": "FRAME",
+      "x": 20,
+      "y": 69,
+      "width": 440,
+      "height": 502,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 12,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:9853",
+          "name": "Display name field",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 60,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:9854",
+              "name": "Display name label",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 440,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Display name",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:9855",
+              "name": "Display name value",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 24,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["Server Operator"]
+            }
+          ]
+        },
+        {
+          "id": "1:9856",
+          "name": "Email field",
+          "type": "FRAME",
+          "x": 0,
+          "y": 88,
+          "width": 440,
+          "height": 60,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:9857",
+              "name": "Email label",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 440,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Email",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:9858",
+              "name": "Email value",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 24,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["operator@example.test"]
+            }
+          ]
+        },
+        {
+          "id": "1:9859",
+          "name": "Primary role (cluster-wide) field",
+          "type": "FRAME",
+          "x": 0,
+          "y": 160,
+          "width": 440,
+          "height": 60,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:9860",
+              "name": "Primary role (cluster-wide) label",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 440,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Primary role (cluster-wide)",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:9861",
+              "name": "Primary role (cluster-wide) value",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 24,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["operator"]
+            }
+          ]
+        },
+        {
+          "id": "1:9862",
+          "name": "Grant separator",
+          "type": "FRAME",
+          "x": 0,
+          "y": 232,
+          "width": 440,
+          "height": 1,
+          "fills": [{"type": "SOLID", "color": "#2C2932"}],
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "border/border"}
+        },
+        {
+          "id": "1:9863",
+          "name": "Grant heading",
+          "type": "TEXT",
+          "x": 0,
+          "y": 245,
+          "width": 440,
+          "height": 17,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "CLUSTER & NAMESPACE GRANTS",
+          "font": ["Geist", 400, 11],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        },
+        {
+          "id": "1:9864",
+          "name": "Grant scope explanation",
+          "type": "TEXT",
+          "x": 0,
+          "y": 274,
+          "width": 440,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "The primary role above manages panel access. Additional grants apply only to their named cluster and namespace.",
+          "font": ["Geist", 400, 12],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        },
+        {
+          "id": "1:9865",
+          "name": "Primary panel binding",
+          "type": "TEXT",
+          "x": 0,
+          "y": 322,
+          "width": 440,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "operator in all namespaces on panel\nPrimary role (managed above)",
+          "font": ["Geist", 400, 12],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        },
+        {
+          "id": "1:9866",
+          "name": "Remote target and role",
+          "type": "FRAME",
+          "x": 0,
+          "y": 370,
+          "width": 440,
+          "height": 36,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:9867",
+              "name": "Grant cluster",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 0,
+              "width": 216,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["Select a workload cluster"]
+            },
+            {
+              "id": "1:9868",
+              "name": "Grant role",
+              "type": "INSTANCE",
+              "x": 224,
+              "y": 0,
+              "width": 216,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["workload-viewer"]
+            }
+          ]
+        },
+        {
+          "id": "1:9869",
+          "name": "Namespace grant actions",
+          "type": "FRAME",
+          "x": 0,
+          "y": 418,
+          "width": 440,
+          "height": 36,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:9870",
+              "name": "Grant namespace",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 2,
+              "width": 229,
+              "height": 32,
+              "component": "Gameplane/Input",
+              "componentId": "1:706",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["namespace"]
+            },
+            {
+              "id": "1:9871",
+              "name": "All namespaces",
+              "type": "INSTANCE",
+              "x": 237,
+              "y": 0,
+              "width": 136,
+              "height": 36,
+              "opacity": 0.5,
+              "component": "Button/Outline/MD",
+              "componentId": "1:1794",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["All namespaces"]
+            },
+            {
+              "id": "1:9872",
+              "name": "Add",
+              "type": "INSTANCE",
+              "x": 381,
+              "y": 0,
+              "width": 59,
+              "height": 36,
+              "opacity": 0.5,
+              "component": "Button/Outline/MD",
+              "componentId": "1:1794",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["Add"]
+            }
+          ]
+        },
+        {
+          "id": "1:9873",
+          "name": "Inventory grant guidance",
+          "type": "TEXT",
+          "x": 0,
+          "y": 466,
+          "width": 440,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "For remote node inventory, create a role in the Roles tab with “View nodes, version, and storage”, then grant it to all namespaces on that cluster.",
+          "font": ["Geist", 400, 12],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
     },
-    "TZ7Ef": {
-      "content": "Save changes"
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 571,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 265,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 337,
+          "y": 20,
+          "width": 103,
+          "height": 32,
+          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 79,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Save changes",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
+      ]
     }
-  }
+  ]
 }
-

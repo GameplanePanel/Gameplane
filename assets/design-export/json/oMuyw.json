@@ -1,60 +1,238 @@
 {
-  "id": "oMuyw",
-  "type": "ref",
-  "ref": "JLaGB",
+  "file": "oMuyw",
+  "id": "1:8759",
   "name": "Gameplane/Dialog/New File (Invalid name)",
+  "type": "FRAME",
   "x": 1640,
   "y": 30370,
-  "descendants": {
-    "q9QPFd": {
-      "type": "frame",
-      "id": "hNGjw",
-      "name": "mBody",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 6,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+  "width": 440,
+  "height": 310,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 63,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "New file",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 400,
+      "height": 100,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "text",
-          "id": "EgYe0",
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 20,
+          "height": 378,
+          "visible": false,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "Run a one-off snapshot outside any schedule.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:8760",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 144,
+      "width": 400,
+      "height": 94,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 6,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:8761",
           "name": "Label",
-          "fill": "$muted",
-          "content": "File name",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 0,
+          "y": 16,
+          "width": 54,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "text": "File name",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "nhs80",
-          "type": "ref",
-          "ref": "D0cDM",
+          "id": "1:8762",
           "name": "Input",
-          "width": "fill_container",
-          "stroke": "$danger/danger",
-          "descendants": {
-            "PJERm": {
-              "content": "../escape.txt",
-              "fill": "$field/foreground"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 38,
+          "width": 400,
+          "height": 36,
+          "component": "Gameplane/Input",
+          "componentId": "1:706",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#DC2828"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [8, 12, 8, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/xl",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "danger/danger"
+          },
+          "texts": ["../escape.txt"]
         },
         {
-          "type": "text",
-          "id": "ZIf7a",
+          "id": "1:8763",
           "name": "Field Error",
-          "fill": "$danger/danger",
-          "content": "Names can't contain \"/\" or be \".\" or \"..\".",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 11,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 0,
+          "y": 80,
+          "width": 190,
+          "height": 14,
+          "fills": [{"type": "SOLID", "color": "#DC2828"}],
+          "text": "Names can't contain \"/\" or be \".\" or \"..\".",
+          "font": ["Geist", 400, 11],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
+        }
+      ]
+    },
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 238,
+      "width": 400,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 266,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 338,
+          "y": 20,
+          "width": 62,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 38,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Create",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
         }
       ]
     }
-  }
+  ]
 }

@@ -1,572 +1,835 @@
 {
-  "type": "frame",
-  "id": "ZUAq1",
+  "file": "ZUAq1",
+  "id": "1:11357",
+  "name": "Screen/Server Detail — Settings · Minecraft JVM heap validation",
+  "type": "FRAME",
   "x": 11280,
   "y": 40770,
-  "name": "Screen/Server Detail — Settings · Minecraft JVM heap validation",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 980,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "cbpYZ",
-      "type": "ref",
-      "ref": "kKFX9",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "id": "1:11358",
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 980,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "sP4Mp",
+      "id": "1:11359",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 980,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "DIdDB",
-          "type": "ref",
-          "ref": "gu5WY",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            }
-          }
+          "id": "1:11360",
+          "name": "Gameplane/Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "Sr0hy",
+          "id": "1:11361",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 916,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "MvP6f",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:11362",
               "name": "Detail Header",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "RER4g",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:11363",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "Y4QES": {
-                  "fill": "$segment"
-                },
-                "Y4QES/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "Thzp3",
+              "id": "1:11364",
               "name": "Settings Content",
-              "width": "fill_container",
-              "height": "fill_container",
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 694,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "Q8YcZN",
-                  "type": "ref",
-                  "ref": "EV8mp",
+                  "id": "1:11365",
                   "name": "Settings Sub Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
                   "width": 224,
-                  "height": "fill_container",
-                  "descendants": {
-                    "oXEaP": {
-                      "fill": "#00000000"
-                    },
-                    "K2QiS9": {
-                      "fill": "#000000"
-                    },
-                    "KfnMt": {
-                      "fill": "$muted"
-                    },
-                    "axMXL": {
-                      "fill": "#00000000"
-                    },
-                    "P8u2Kj": {
-                      "fill": "$muted"
-                    },
-                    "VQPTx": {
-                      "fill": "$muted"
-                    },
-                    "p3HCVj": {
-                      "fill": "$surface/secondary"
-                    },
-                    "nbQNd": {
-                      "fill": "$foreground/foreground"
-                    },
-                    "nnoXy": {
-                      "fill": "#00000000"
-                    },
-                    "F1IWTf": {
-                      "fill": "$muted"
-                    },
-                    "bHNH0": {
-                      "fill": "$muted"
-                    },
-                    "QrhqW": {
-                      "fill": "#00000000"
-                    },
-                    "b0WSG": {
-                      "fill": "$muted"
-                    },
-                    "J4128": {
-                      "fill": "$muted"
-                    },
-                    "DnXAN": {
-                      "fill": "#00000000"
-                    },
-                    "RK6jY": {
-                      "fill": "$muted"
-                    },
-                    "rWM9D": {
-                      "fill": "$muted"
-                    },
-                    "tv3iR": {
-                      "fill": "#00000000"
-                    },
-                    "nfFt4": {
-                      "fill": "$muted"
-                    },
-                    "Y2PGH": {
-                      "fill": "$muted"
-                    },
-                    "bLFiu": {
-                      "fill": "#00000000"
-                    },
-                    "S7IwYB": {
-                      "fill": "$muted"
-                    },
-                    "IUddK": {
-                      "fill": "$muted"
-                    },
-                    "hNpsj": {
-                      "fill": "#00000000"
-                    },
-                    "lU1pD": {
-                      "fill": "$muted"
-                    },
-                    "Fkfhz": {
-                      "fill": "$muted"
-                    },
-                    "faW0l": {
-                      "fill": "#00000000"
-                    },
-                    "dDJ3f": {
-                      "fill": "$muted"
-                    },
-                    "v3XCDT": {
-                      "fill": "$muted"
-                    },
-                    "LktID": {
-                      "fill": "#00000000"
-                    },
-                    "OdmLx": {
-                      "fill": "$muted"
-                    },
-                    "paOZA": {
-                      "fill": "$muted"
-                    },
-                    "JlFDJ": {
-                      "fill": "#00000000"
-                    },
-                    "Hw7vh": {
-                      "fill": "$muted"
-                    },
-                    "Qbxnz": {
-                      "fill": "$muted"
-                    },
-                    "WLobW": {
-                      "fill": "#00000000"
-                    },
-                    "zpxa4": {
-                      "fill": "$danger/danger"
-                    },
-                    "xlVdh": {
-                      "fill": "$danger/danger"
-                    }
-                  }
+                  "height": 694,
+                  "component": "Gameplane/Server Settings Sub Nav",
+                  "componentId": "1:1289",
+                  "fills": [{"type": "SOLID", "color": "#17151A"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [8, 8, 8, 8],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+                  "texts": [
+                    "General",
+                    "Version",
+                    "Game configuration",
+                    "Resources",
+                    "Networking",
+                    "Environment",
+                    "Lifecycle",
+                    "Scheduled backups",
+                    "Network capture",
+                    "Placement",
+                    "RBAC & access",
+                    "Share links",
+                    "Danger zone"
+                  ]
                 },
                 {
-                  "type": "frame",
-                  "id": "x4sGE",
+                  "id": "1:11366",
                   "name": "Settings Panel Wrap",
-                  "width": "fill_container",
-                  "height": "fill_container",
-                  "layout": "vertical",
+                  "type": "FRAME",
+                  "x": 224,
+                  "y": 0,
+                  "width": 908,
+                  "height": 694,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "T8eOy2",
+                      "id": "1:11367",
                       "name": "Settings Form",
-                      "width": "fill_container",
-                      "height": "fill_container",
-                      "layout": "vertical",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 908,
+                      "height": 694,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "zjzIl",
+                          "id": "1:11368",
                           "name": "Form Body",
-                          "width": "fill_container",
-                          "height": "fill_container",
-                          "layout": "vertical",
-                          "gap": 20,
-                          "padding": 24,
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
+                          "width": 908,
+                          "height": 638,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 20,
+                            "padding": [24, 24, 24, 24],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "layoutGrow": 1,
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "type": "frame",
-                              "id": "Q8tg6o",
+                              "id": "1:11369",
                               "name": "Section Header",
-                              "width": "fill_container",
-                              "layout": "vertical",
-                              "gap": 4,
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 24,
+                              "width": 860,
+                              "height": 44,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 4,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "YrXRN",
+                                  "id": "1:11370",
                                   "name": "Section Title",
-                                  "fill": "$foreground/foreground",
-                                  "content": "Game configuration",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 18,
-                                  "fontWeight": "600"
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 170,
+                                  "height": 23,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "Game configuration",
+                                  "font": ["Geist", 600, 18],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "OvbzJ",
+                                  "id": "1:11371",
                                   "name": "Section Description",
-                                  "fill": "$muted",
-                                  "content": "Settings from this server's game template.",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 13,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 27,
+                                  "width": 251,
+                                  "height": 17,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Settings from this server's game template.",
+                                  "font": ["Geist", 400, 13],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 }
                               ]
                             },
                             {
-                              "id": "IdvNa",
-                              "type": "ref",
-                              "ref": "uJ3KZ",
+                              "id": "1:11372",
                               "name": "Restart Alert",
-                              "width": "fill_container",
-                              "descendants": {
-                                "xzGxP": {
-                                  "content": "The server may restart once when it adopts these startup settings."
-                                },
-                                "yLGJ9": {
-                                  "enabled": false,
-                                  "width": 240
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 24,
+                              "y": 88,
+                              "width": 860,
+                              "height": 48,
+                              "component": "Alert/Warning Simple",
+                              "componentId": "1:5629",
+                              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                              "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                              "cornerRadius": 24,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 16,
+                                "padding": [12, 16, 12, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
+                              "texts": ["The server may restart once when it adopts these startup settings."]
                             },
                             {
-                              "type": "frame",
-                              "id": "Ai0ep",
+                              "id": "1:11373",
                               "name": "JVM startup settings",
-                              "width": "fill_container",
+                              "type": "FRAME",
+                              "x": 24,
+                              "y": 156,
+                              "width": 860,
+                              "height": 363,
+                              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                              "strokeWeight": 1,
                               "cornerRadius": 12,
-                              "stroke": "$border/border",
-                              "strokeWidth": 1,
-                              "layout": "vertical",
-                              "gap": 14,
-                              "padding": 16,
+                              "layout": {
+                                "mode": "VERTICAL",
+                                "gap": 14,
+                                "padding": [16, 16, 16, 16],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["HUG", "FIXED"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
+                              "variables": {"strokes/0/color": "border/border"},
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "wWVuf",
+                                  "id": "1:11374",
                                   "name": "Startup section title",
-                                  "fill": "$foreground/foreground",
-                                  "content": "JVM startup",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 16,
-                                  "fontWeight": "600"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 16,
+                                  "width": 96,
+                                  "height": 21,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "JVM startup",
+                                  "font": ["Geist", 600, 16],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "O6oAHX",
+                                  "id": "1:11375",
                                   "name": "JVM max heap",
-                                  "width": "fill_container",
-                                  "gap": 16,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 51,
+                                  "width": 828,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 16,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "U7Bjg",
+                                      "id": "1:11376",
                                       "name": "JVM max heap label",
-                                      "fill": "$foreground/foreground",
-                                      "textGrowth": "fixed-width",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 9,
                                       "width": 180,
-                                      "content": "JVM max heap",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "normal"
+                                      "height": 18,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "JVM max heap",
+                                      "font": ["Geist", 400, 14],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "Q18G7",
-                                      "type": "ref",
-                                      "ref": "D0cDM",
+                                      "id": "1:11377",
                                       "name": "JVM max heap control",
-                                      "width": "fill_container",
-                                      "descendants": {
-                                        "PJERm": {
-                                          "content": "2G"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 196,
+                                      "y": 0,
+                                      "width": 632,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["2G"]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "dx3Hq",
+                                  "id": "1:11378",
                                   "name": "JVM initial heap",
-                                  "width": "fill_container",
-                                  "gap": 16,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 101,
+                                  "width": 828,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 16,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "lwnsm",
+                                      "id": "1:11379",
                                       "name": "JVM initial heap label",
-                                      "fill": "$foreground/foreground",
-                                      "textGrowth": "fixed-width",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 9,
                                       "width": 180,
-                                      "content": "JVM initial heap",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "normal"
+                                      "height": 18,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "JVM initial heap",
+                                      "font": ["Geist", 400, 14],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "EFCOd",
-                                      "type": "ref",
-                                      "ref": "D0cDM",
+                                      "id": "1:11380",
                                       "name": "JVM initial heap control",
-                                      "width": "fill_container",
-                                      "descendants": {
-                                        "PJERm": {
-                                          "content": "Automatic",
-                                          "fill": "$field/placeholder"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 196,
+                                      "y": 0,
+                                      "width": 632,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["Automatic"]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "x8uhMt",
+                                  "id": "1:11381",
                                   "name": "Initial heap validation error",
-                                  "fill": "$danger/danger",
-                                  "content": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 151,
+                                  "width": 487,
+                                  "height": 16,
+                                  "fills": [{"type": "SOLID", "color": "#E0304F"}],
+                                  "text": "The initial heap exceeds the maximum heap. Lower the initial heap or raise the maximum.",
+                                  "font": ["Geist", 400, 12],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "pTPiO",
+                                  "id": "1:11382",
                                   "name": "Extra JVM options",
-                                  "width": "fill_container",
-                                  "gap": 16,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 181,
+                                  "width": 828,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 16,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "TFGAI",
+                                      "id": "1:11383",
                                       "name": "Extra JVM options label",
-                                      "fill": "$foreground/foreground",
-                                      "textGrowth": "fixed-width",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 9,
                                       "width": 180,
-                                      "content": "Additional JVM options",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "normal"
+                                      "height": 18,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Additional JVM options",
+                                      "font": ["Geist", 400, 14],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "dutXY",
-                                      "type": "ref",
-                                      "ref": "D0cDM",
+                                      "id": "1:11384",
                                       "name": "Extra JVM options control",
-                                      "width": "fill_container",
-                                      "descendants": {
-                                        "PJERm": {
-                                          "content": "-Dexample=true"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 196,
+                                      "y": 0,
+                                      "width": 632,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["-Dexample=true"]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "HKnqx",
+                                  "id": "1:11385",
                                   "name": "Extra JVM -XX options",
-                                  "width": "fill_container",
-                                  "gap": 16,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 231,
+                                  "width": 828,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 16,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "Th6la",
+                                      "id": "1:11386",
                                       "name": "Extra JVM -XX options label",
-                                      "fill": "$foreground/foreground",
-                                      "textGrowth": "fixed-width",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 0,
                                       "width": 180,
-                                      "content": "Additional JVM tuning options",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "normal"
+                                      "height": 36,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Additional JVM tuning options",
+                                      "font": ["Geist", 400, 14],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "BxJ9b",
-                                      "type": "ref",
-                                      "ref": "D0cDM",
+                                      "id": "1:11387",
                                       "name": "Extra JVM -XX options control",
-                                      "width": "fill_container",
-                                      "descendants": {
-                                        "PJERm": {
-                                          "content": ""
-                                        }
+                                      "type": "INSTANCE",
+                                      "x": 196,
+                                      "y": 0,
+                                      "width": 632,
+                                      "height": 36,
+                                      "component": "Gameplane/Input",
+                                      "componentId": "1:706",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
                                       }
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "HboUw",
+                                  "id": "1:11388",
                                   "name": "Use Aikar’s flags",
-                                  "width": "fill_container",
-                                  "gap": 16,
-                                  "alignItems": "center",
+                                  "type": "FRAME",
+                                  "x": 16,
+                                  "y": 281,
+                                  "width": 828,
+                                  "height": 36,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 16,
+                                    "padding": [0, 0, 0, 0],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutAlignSelf": "STRETCH",
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "jf14n",
+                                      "id": "1:11389",
                                       "name": "Use Aikar’s flags label",
-                                      "fill": "$foreground/foreground",
-                                      "textGrowth": "fixed-width",
+                                      "type": "TEXT",
+                                      "x": 0,
+                                      "y": 9,
                                       "width": 180,
-                                      "content": "Use Aikar’s flags",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 14,
-                                      "fontWeight": "normal"
+                                      "height": 18,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "Use Aikar’s flags",
+                                      "font": ["Geist", 400, 14],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     },
                                     {
-                                      "id": "WVVYM",
-                                      "type": "ref",
-                                      "ref": "AT7ya",
+                                      "id": "1:11390",
                                       "name": "Use Aikar’s flags control",
-                                      "width": "fill_container",
-                                      "descendants": {
-                                        "cFsFk": {
-                                          "content": "false"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 196,
+                                      "y": 0,
+                                      "width": 632,
+                                      "height": 36,
+                                      "component": "Gameplane/Select",
+                                      "componentId": "1:311",
+                                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                                      "strokeWeight": 1,
+                                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                                      "cornerRadius": 12,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 0,
+                                        "padding": [8, 12, 8, 12],
+                                        "primary": "SPACE_BETWEEN",
+                                        "counter": "CENTER",
+                                        "sizing": ["FIXED", "FIXED"]
+                                      },
+                                      "layoutGrow": 1,
+                                      "variables": {
+                                        "cornerRadius": "radius/xl",
+                                        "fills/0/color": "field/background",
+                                        "strokes/0/color": "field/border"
+                                      },
+                                      "texts": ["false"]
                                     }
                                   ]
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "Hulio",
+                                  "id": "1:11391",
                                   "name": "Heap argument preview",
-                                  "fill": "$muted",
-                                  "content": "Heap options before additional JVM arguments: -Xms3072M -Xmx2G",
-                                  "fontFamily": "$typography/font-mono",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
+                                  "type": "TEXT",
+                                  "x": 16,
+                                  "y": 331,
+                                  "width": 447,
+                                  "height": 16,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Heap options before additional JVM arguments: -Xms3072M -Xmx2G",
+                                  "font": ["JetBrains Mono", 400, 12],
+                                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                                 }
                               ]
                             }
                           ]
                         },
                         {
-                          "type": "frame",
-                          "id": "Y5gkTT",
+                          "id": "1:11392",
                           "name": "Form Footer",
-                          "width": "fill_container",
-                          "stroke": "$border/border",
-                          "strokeWidth": {
-                            "top": 1
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 638,
+                          "width": 908,
+                          "height": 56,
+                          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 12,
+                            "padding": [12, 24, 12, 24],
+                            "primary": "MAX",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "HUG"]
                           },
-                          "strokeAlignment": "inner",
-                          "strokeLinejoin": "round",
-                          "gap": 12,
-                          "padding": [
-                            12,
-                            24
-                          ],
-                          "justifyContent": "end",
-                          "alignItems": "center",
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"strokes/0/color": "border/border"},
                           "children": [
                             {
-                              "id": "axDSN",
-                              "type": "ref",
-                              "ref": "J09iP",
+                              "id": "1:11393",
                               "name": "Btn Discard",
-                              "descendants": {
-                                "eWkIT/WtPjS": {
-                                  "icon": "pencil"
-                                }
-                              }
+                              "type": "INSTANCE",
+                              "x": 681,
+                              "y": 12,
+                              "width": 86,
+                              "height": 32,
+                              "component": "Gameplane/Button/Small/Ghost",
+                              "componentId": "1:1124",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Discard"]
                             },
                             {
-                              "id": "ElsA3",
-                              "type": "ref",
-                              "ref": "z9ShNE",
+                              "id": "1:11394",
                               "name": "Btn Save Changes",
+                              "type": "INSTANCE",
+                              "x": 779,
+                              "y": 12,
+                              "width": 105,
+                              "height": 32,
                               "opacity": 0.45,
-                              "descendants": {
-                                "nWTJb": {
-                                  "enabled": false
-                                },
-                                "IVgQ8/U1xvSo": {
-                                  "content": "Save changes"
-                                }
-                              }
+                              "component": "Gameplane/Button/Small/Default",
+                              "componentId": "1:709",
+                              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "CENTER",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
+                              "texts": ["Save changes"]
                             }
                           ]
                         }

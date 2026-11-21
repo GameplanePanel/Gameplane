@@ -1,40 +1,112 @@
 {
-  "type": "frame",
-  "id": "N1GkB",
+  "file": "N1GkB",
+  "id": "1:3",
+  "name": "Screen/Login",
+  "type": "FRAME",
   "x": 0,
   "y": 10222,
-  "name": "Screen/Login",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "sUdzl",
-      "type": "ref",
-      "ref": "fjQjb",
+      "id": "1:4",
       "name": "loginL",
-      "width": "fill_container",
-      "height": "fill_container",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [80, 80, 80, 80],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "eAPaq",
-          "type": "ref",
-          "ref": "S0P4bl",
-          "name": "loginCard"
+          "id": "1:5",
+          "name": "loginCard",
+          "type": "INSTANCE",
+          "x": 150,
+          "y": 136,
+          "width": 420,
+          "height": 628,
+          "component": "Gameplane/Login Card With Language",
+          "componentId": "1:6",
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "texts": [
+            "gameplane",
+            "game server control panel",
+            "Sign in",
+            "Welcome to Gameplane.",
+            "Email or username",
+            "valgul",
+            "Password",
+            "Forgot?",
+            "••••••••••••",
+            "Sign in →",
+            "or",
+            "Continue with Keycloak",
+            "Sign in with safe mode (custom styling disabled)",
+            "AGPL-3.0 licensed",
+            "English"
+          ]
         }
       ]
     },
     {
-      "id": "X7z8B",
-      "type": "ref",
-      "ref": "T8Hug",
+      "id": "1:52",
       "name": "loginR",
-      "width": "fill_container",
-      "height": "fill_container"
+      "type": "INSTANCE",
+      "x": 720,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "component": "Gameplane/Login Hero Panel",
+      "componentId": "1:53",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [48, 224, 48, 48],
+        "primary": "CENTER",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary"},
+      "texts": [
+        "AGPL-3.0",
+        "Kubernetes-native\ngame server\nhosting.",
+        "An open-source alternative to proprietary game panels — CRDs, Operators, and StatefulSets all the way down.",
+        "Deploy any game. Minecraft, Valheim, Factorio, Palworld, ARK, CS2, Terraria, and more.",
+        "Scale from single-node k3s to multi-node bare metal or cloud.",
+        "Backups, auto-restart, rolling upgrades, RBAC. Production-grade defaults.",
+        "GitOps-friendly. kubectl get gameservers just works."
+      ]
     }
   ]
 }

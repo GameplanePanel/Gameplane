@@ -1,158 +1,254 @@
 {
-  "type": "frame",
-  "id": "ZlLf0",
+  "file": "ZlLf0",
+  "id": "1:9394",
+  "name": "Screen/Standalone — Modules (Permission denied)",
+  "type": "FRAME",
   "x": 3280,
   "y": 55950,
-  "name": "Screen/Standalone — Modules (Permission denied)",
-  "context": "PR #630. Selection is explicit and only registered remotes are listed. No implicit local target; no workload requests until installation and selected target are known.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "CRRpO",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:9395",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "BuhAS": {
-          "content": "Gameplane"
-        },
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "sTSGR": {
-          "fill": "$accent/soft"
-        },
-        "sTSGR/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "sTSGR/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "Gameplane",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "s8SIBZ",
+      "id": "1:9396",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "kk86p",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:9397",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Modules"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Modules", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "k2PQ8",
+          "id": "1:9398",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "f4IRRz",
+              "id": "1:9399",
               "name": "Workload cluster selector",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 215,
               "height": 36,
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "gap": 6,
-              "padding": [
-                6,
-                12
-              ],
-              "alignItems": "center",
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 6,
+                "padding": [6, 12, 6, 12],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
               "children": [
                 {
-                  "type": "ellipse",
-                  "id": "J1bAjI",
+                  "id": "1:9400",
                   "name": "API status",
-                  "fill": "$success/success",
+                  "type": "ELLIPSE",
+                  "x": 12,
+                  "y": 14,
                   "width": 8,
-                  "height": 8
+                  "height": 8,
+                  "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                  "variables": {"fills/0/color": "success/success"}
                 },
                 {
-                  "type": "text",
-                  "id": "mA8Ze",
+                  "id": "1:9401",
                   "name": "Selector label",
-                  "fill": "$muted",
-                  "content": "Cluster:",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 26,
+                  "y": 9,
+                  "width": 50,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "Cluster:",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "type": "text",
-                  "id": "RRBRI",
+                  "id": "1:9402",
                   "name": "Selected workload cluster",
-                  "fill": "$foreground/foreground",
-                  "content": "East production",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 82,
+                  "y": 9,
+                  "width": 101,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "East production",
+                  "font": ["Geist", 400, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "icon",
-                  "id": "r0ll2C",
+                  "id": "1:9403",
                   "name": "Open cluster choices",
+                  "type": "FRAME",
+                  "x": 189,
+                  "y": 11,
                   "width": 14,
                   "height": 14,
-                  "icon": "chevron-down",
-                  "library": "lucide",
-                  "fill": "$muted"
+                  "variables": {"fills/0/color": "muted"},
+                  "children": [
+                    {
+                      "name": "path",
+                      "type": "VECTOR",
+                      "x": 3.5,
+                      "y": 5.25,
+                      "width": 7,
+                      "height": 3.5,
+                      "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "strokeWeight": 1.17
+                    }
+                  ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "l9iRNt",
+              "id": "1:9404",
               "name": "No module access",
-              "width": "fill_container",
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "layout": "vertical",
-              "gap": 8,
-              "padding": 24,
+              "type": "FRAME",
+              "x": 24,
+              "y": 84,
+              "width": 1132,
+              "height": 69,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [24, 24, 24, 24],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "BYqDc",
+                  "id": "1:9405",
                   "name": "Permission error",
-                  "fill": "$danger/danger",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "You don't have permission to view modules on this cluster.",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 24,
+                  "y": 24,
+                  "width": 1084,
+                  "height": 21,
+                  "fills": [{"type": "SOLID", "color": "#E0304F"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "You don't have permission to view modules on this cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 150, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/danger"}
                 }
               ]
             }
@@ -162,4 +258,3 @@
     }
   ]
 }
-

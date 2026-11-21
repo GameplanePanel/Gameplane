@@ -1,609 +1,1146 @@
 {
-  "type": "frame",
-  "id": "O08uaD",
+  "file": "O08uaD",
+  "id": "1:4751",
+  "name": "Screen/Server Detail — Capture — Start capture",
+  "type": "FRAME",
   "x": 6560,
   "y": 36870,
-  "name": "Screen/Server Detail — Capture — Start capture",
-  "context": "Start Capture for remote-lab. Values illustrate that selected site: defaults and ceilings come from its capability response, independently of central settings.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "lw1E0",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:4752",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground",
-          "fontFamily": "$typography/font-sans"
-        },
-        "i8Z1B": {
-          "fill": "$accent/soft"
-        },
-        "i8Z1B/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "i8Z1B/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "HZwZH",
+      "id": "1:4753",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "hG8JT",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:4754",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "mc-survival"
-            },
-            "ZGIQD": {
-              "fill": "#000000"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "mc-survival", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "nlD4E",
+          "id": "1:4755",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "fill": "$background/background",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background"},
           "children": [
             {
-              "id": "zkJk4",
-              "type": "ref",
-              "ref": "S4k0x",
+              "id": "1:4756",
               "name": "Detail Header",
-              "width": "fill_container"
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 86,
+              "component": "Gameplane/Server Detail Header",
+              "componentId": "1:447",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [16, 24, 16, 24],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": [
+                "MI",
+                "mc-survival",
+                "Running",
+                "site: remote-lab · minecraft-java · 1.21.4-fabric · ns: gameplane-games",
+                "Restart",
+                "Stop",
+                "Open console"
+              ]
             },
             {
-              "id": "z9y0ii",
-              "type": "ref",
-              "ref": "I9kvlZ",
+              "id": "1:4757",
               "name": "Tabs Bar",
-              "width": "fill_container",
-              "padding": [
-                0,
-                0,
-                0,
-                24
-              ],
-              "descendants": {
-                "Wp6q1": {
-                  "fill": "#00000000"
-                },
-                "Wp6q1/YUR8N": {
-                  "fill": "$muted"
-                },
-                "XcBPc": {
-                  "fill": "$segment"
-                },
-                "XcBPc/VcxMI": {
-                  "fill": "$foreground/segment"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 134,
+              "width": 1132,
+              "height": 40,
+              "component": "Gameplane/Server Detail Tabs",
+              "componentId": "1:466",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 24],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+              "texts": [
+                "Overview",
+                "Events",
+                "Console",
+                "Logs",
+                "Files",
+                "Mods",
+                "Modpacks",
+                "Players",
+                "Backups",
+                "Capture",
+                "Settings"
+              ]
             },
             {
-              "type": "frame",
-              "id": "f6fKvK",
+              "id": "1:4758",
               "name": "Capture Content",
-              "width": "fill_container",
-              "height": "fill_container",
-              "fill": "$background/background",
-              "layout": "vertical",
-              "gap": 20,
+              "type": "FRAME",
+              "x": 24,
+              "y": 198,
+              "width": 1132,
+              "height": 614,
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 20,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
               "children": [
                 {
-                  "type": "frame",
-                  "id": "wla5H",
+                  "id": "1:4759",
                   "name": "Header Row",
-                  "width": "fill_container",
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 1132,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "nfD7G",
+                      "id": "1:4760",
                       "name": "Left",
-                      "gap": 12,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 9.5,
+                      "width": 421,
+                      "height": 17,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 12,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "X6jQJ",
-                          "type": "ref",
-                          "ref": "UOoQW",
+                          "id": "1:4761",
                           "name": "Status Badge",
-                          "descendants": {
-                            "YXoPG": {
-                              "content": "Ready"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 41,
+                          "height": 17,
+                          "component": "Chip/Soft/Success/SM",
+                          "componentId": "1:1790",
+                          "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                          "cornerRadius": 16,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 2,
+                            "padding": [2, 4, 2, 4],
+                            "primary": "MIN",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                          "texts": ["Ready"]
                         },
                         {
-                          "type": "text",
-                          "id": "Eig96",
+                          "id": "1:4762",
                           "name": "Retention",
-                          "fill": "$muted",
-                          "content": "Captures will auto-delete after 24 hours",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 53,
+                          "y": 0,
+                          "width": 238,
+                          "height": 17,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Captures will auto-delete after 24 hours",
+                          "font": ["Geist", 400, 13],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         },
                         {
-                          "type": "text",
-                          "id": "hRMWW",
+                          "id": "1:4763",
                           "name": "Configure Retention Link",
-                          "fill": "$accent/accent",
-                          "content": "Configure retention",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 13,
-                          "fontWeight": "500"
+                          "type": "TEXT",
+                          "x": 303,
+                          "y": 0,
+                          "width": 118,
+                          "height": 17,
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                          "text": "Configure retention",
+                          "font": ["Geist", 500, 13],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/accent"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "JNytW",
+                      "id": "1:4764",
                       "name": "Right",
-                      "gap": 8,
+                      "type": "FRAME",
+                      "x": 837,
+                      "y": 0,
+                      "width": 295,
+                      "height": 36,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "id": "wd2Z6",
-                          "type": "ref",
-                          "ref": "rNhll",
+                          "id": "1:4765",
                           "name": "Btn Disable Capture",
-                          "descendants": {
-                            "wDXFJ/K8d1zg": {
-                              "icon": "power-off",
-                              "library": "lucide"
-                            },
-                            "wDXFJ/zMNkR": {
-                              "content": "Disable Capture"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 0,
+                          "y": 0,
+                          "width": 141,
+                          "height": 32,
+                          "component": "Gameplane/Button/Outline",
+                          "componentId": "1:770",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Disable Capture"]
                         },
                         {
-                          "id": "DLdbt",
-                          "type": "ref",
-                          "ref": "tpKRk",
+                          "id": "1:4766",
                           "name": "Btn Start Capture",
-                          "descendants": {
-                            "q58In/Xpn7K": {
-                              "icon": "circle-play"
-                            },
-                            "q58In/U6q13B": {
-                              "content": "Start Capture"
-                            }
-                          }
+                          "type": "INSTANCE",
+                          "x": 149,
+                          "y": 0,
+                          "width": 146,
+                          "height": 36,
+                          "component": "Gameplane/Button/Default",
+                          "componentId": "1:306",
+                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["HUG", "HUG"]
+                          },
+                          "texts": ["Start Capture"]
                         }
                       ]
                     }
                   ]
                 },
                 {
-                  "id": "AqAVb",
-                  "type": "ref",
-                  "ref": "f0s9zG",
+                  "id": "1:4767",
                   "name": "Warning Banner",
-                  "width": "fill_container",
-                  "fill": "$warning/soft",
-                  "descendants": {
-                    "V2qyB2": {
-                      "fill": "$warning/soft-foreground"
-                    },
-                    "ByRyb": {
-                      "fill": "$warning/soft-foreground"
-                    },
-                    "P4tKs1": {
-                      "fill": "$warning/soft-foreground"
-                    },
-                    "UwGYI": {
-                      "fill": "$warning/soft-foreground"
-                    },
-                    "b7XsxE": {
-                      "fill": "$warning/soft-foreground"
-                    },
-                    "u7Ier": {
-                      "fill": "$warning/soft-foreground"
-                    },
-                    "g7C3Nm": {
-                      "fill": "$warning/soft-foreground"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 56,
+                  "width": 1132,
+                  "height": 169,
+                  "component": "Gameplane/Capture Warning Banner",
+                  "componentId": "1:4598",
+                  "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
+                  "variables": {"fills/0/color": "warning/soft"},
+                  "texts": [
+                    "Caution: network packet captures contain real player data",
+                    "•  Player IP addresses and port numbers",
+                    "•  Network timing and game protocol messages",
+                    "•  For some games, in-band credentials (passwords, tokens, session keys)",
+                    "Captures are not redacted or sanitized. Access is restricted to administrators only. Captures are automatically deleted after the configured retention window (currently 24 hours).",
+                    "Dismiss"
+                  ]
                 },
                 {
-                  "type": "frame",
-                  "id": "pft0k",
+                  "id": "1:4768",
                   "name": "Captures Section",
-                  "width": "fill_container",
-                  "height": "fill_container",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 245,
+                  "width": 1132,
+                  "height": 369,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "DtI20",
+                      "id": "1:4769",
                       "name": "Section Head",
-                      "width": "fill_container",
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 1132,
+                      "height": 18,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "text",
-                          "id": "ccbnw",
+                          "id": "1:4770",
                           "name": "Section Title",
-                          "fill": "$muted",
-                          "content": "Captures",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 59,
+                          "height": 18,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Captures",
+                          "font": ["Geist", 400, 14],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         }
                       ]
                     },
                     {
-                      "id": "LFioB",
-                      "type": "ref",
-                      "ref": "ECbbo",
+                      "id": "1:4771",
                       "name": "Captures Table",
-                      "width": "fill_container",
-                      "height": "fit_content",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 30,
+                      "width": 1132,
+                      "height": 196,
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "cornerRadius": 20,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 0,
+                        "padding": [0, 4, 4, 4],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "clips": true,
+                      "variables": {"fills/0/color": "surface/secondary"},
                       "children": [
                         {
-                          "id": "znYwY",
-                          "type": "ref",
-                          "ref": "eafUs",
+                          "id": "1:4772",
                           "name": "Head Row",
-                          "width": "fill_container",
+                          "type": "FRAME",
+                          "x": 4,
+                          "y": 0,
+                          "width": 1124,
+                          "height": 36,
+                          "fills": [{"type": "SOLID", "color": "#17151A"}],
+                          "strokes": [{"type": "SOLID", "color": "#232227"}],
+                          "strokeWeight": 1,
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["FIXED", "HUG"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "separator/separator"},
                           "children": [
                             {
-                              "id": "GYjRZ",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4773",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 0,
+                              "y": 0,
                               "width": 140,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "ID"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["ID"]
                             },
                             {
-                              "id": "z1p5q",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4774",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 140,
+                              "y": 0,
                               "width": 90,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "STATUS"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["STATUS"]
                             },
                             {
-                              "id": "j8mEI",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4775",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 230,
+                              "y": 0,
                               "width": 90,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "SIZE"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["SIZE"]
                             },
                             {
-                              "id": "oy7FF",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4776",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 320,
+                              "y": 0,
                               "width": 90,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "PACKETS"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["PACKETS"]
                             },
                             {
-                              "id": "U94Dzn",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4777",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 410,
+                              "y": 0,
                               "width": 90,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "DURATION"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["DURATION"]
                             },
                             {
-                              "id": "fyz2C",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4778",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 500,
+                              "y": 0,
                               "width": 140,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "COMPLETED AT"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["COMPLETED AT"]
                             },
                             {
-                              "id": "Z90tO",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4779",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 640,
+                              "y": 0,
                               "width": 140,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "EXPIRES IN"
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["EXPIRES IN"]
                             },
                             {
-                              "id": "GeWDD",
-                              "type": "ref",
-                              "ref": "DYYKO",
-                              "width": "fill_container",
-                              "descendants": {
-                                "SIu74": {
-                                  "content": "FILTER"
-                                }
-                              }
+                              "id": "1:4780",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 780,
+                              "y": 0,
+                              "width": 234,
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutGrow": 1,
+                              "variables": {"fills/0/color": "surface/secondary"},
+                              "texts": ["FILTER"]
                             },
                             {
-                              "id": "DJGNb",
-                              "type": "ref",
-                              "ref": "DYYKO",
+                              "id": "1:4781",
+                              "name": "Table Column",
+                              "type": "INSTANCE",
+                              "x": 1014,
+                              "y": 0,
                               "width": 110,
-                              "descendants": {
-                                "SIu74": {
-                                  "content": ""
-                                }
-                              }
+                              "height": 36,
+                              "component": "Table Column",
+                              "componentId": "1:1264",
+                              "fills": [{"type": "SOLID", "color": "#17151A"}],
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [10, 16, 10, 16],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "variables": {"fills/0/color": "surface/secondary"}
                             }
                           ]
                         },
                         {
-                          "id": "rvwyq",
-                          "type": "ref",
-                          "ref": "GUHQo",
+                          "id": "1:4782",
                           "name": "Body",
-                          "width": "fill_container",
+                          "type": "FRAME",
+                          "x": 4,
+                          "y": 36,
+                          "width": 1124,
+                          "height": 156,
+                          "cornerRadius": 16,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
+                          "clips": true,
+                          "variables": {"cornerRadius": "radius/2xl"},
                           "children": [
                             {
-                              "id": "VtboE",
-                              "type": "ref",
-                              "ref": "tDY4O",
+                              "id": "1:4783",
                               "name": "Row cap-8f7d3c1a",
-                              "width": "fill_container",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 1124,
+                              "height": 52,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "xmMix",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4784",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 40,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "R17wm",
-                                      "fill": "$foreground/foreground",
-                                      "content": "cap-8f7d3c1a",
-                                      "fontFamily": "$typography/font-mono",
-                                      "fontSize": 12,
-                                      "fontWeight": "normal"
+                                      "id": "1:4785",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 87,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "cap-8f7d3c1a",
+                                      "font": ["JetBrains Mono", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "L7mJ2K",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4786",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 140,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "F7SHj",
-                                      "type": "ref",
-                                      "ref": "UOoQW",
+                                      "id": "1:4787",
                                       "name": "Badge",
-                                      "descendants": {
-                                        "YXoPG": {
-                                          "content": "Completed"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 66,
+                                      "height": 17,
+                                      "component": "Chip/Soft/Success/SM",
+                                      "componentId": "1:1790",
+                                      "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 4, 2, 4],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                                      "texts": ["Completed"]
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "oIBgS",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4788",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 230,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "fg8RI",
-                                      "fill": "$foreground/foreground",
-                                      "content": "524 KB",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4789",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 44,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "524 KB",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "F3EPD",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4790",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 320,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "Cv2Rp",
-                                      "fill": "$foreground/foreground",
-                                      "content": "1,024",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4791",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 32,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "1,024",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "RWGfU",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4792",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 410,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "ZDDWL",
-                                      "fill": "$foreground/foreground",
-                                      "content": "1m 5s",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4793",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 35,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "1m 5s",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "V217l",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4794",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 500,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "q2f3TI",
-                                      "fill": "$muted",
-                                      "content": "Aug 23, 12:31 PM",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4795",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 101,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "Aug 23, 12:31 PM",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "b9OOd",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4796",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 640,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "BK5T4",
-                                      "type": "ref",
-                                      "ref": "KmZnF",
+                                      "id": "1:4797",
                                       "name": "Badge",
-                                      "descendants": {
-                                        "xZ9ah": {
-                                          "content": "21h"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 26,
+                                      "height": 17,
+                                      "component": "Chip/Soft/Default/SM",
+                                      "componentId": "1:1002",
+                                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 4, 2, 4],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                                      "texts": ["21h"]
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "BqB3f",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
-                                  "width": "fill_container",
+                                  "id": "1:4798",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 780,
+                                  "y": 0,
+                                  "width": 234,
+                                  "height": 40,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "GSwr9",
-                                      "fill": "$muted",
-                                      "content": "tcp port 8080",
-                                      "fontFamily": "$typography/font-mono",
-                                      "fontSize": 12,
-                                      "fontWeight": "normal"
+                                      "id": "1:4799",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 94,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "tcp port 8080",
+                                      "font": ["JetBrains Mono", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "ysUMl",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4800",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 1014,
+                                  "y": 0,
                                   "width": 110,
+                                  "height": 52,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "kN9GX",
+                                      "id": "1:4801",
                                       "name": "Actions",
-                                      "gap": 4,
+                                      "type": "FRAME",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 274,
+                                      "height": 28,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 4,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "id": "VgW9I",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4802",
                                           "name": "Btn Download",
+                                          "type": "INSTANCE",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 116,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "download"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": "Download"
-                                            }
-                                          }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
+                                          },
+                                          "texts": ["Download"]
                                         },
                                         {
-                                          "id": "L1T97O",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4803",
                                           "name": "Btn View",
+                                          "type": "INSTANCE",
+                                          "x": 120,
+                                          "y": 0,
+                                          "width": 95,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "trash-2"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": "Delete"
-                                            }
-                                          }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
+                                          },
+                                          "texts": ["Delete"]
                                         },
                                         {
-                                          "id": "UNBfl",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4804",
                                           "name": "Btn Delete",
+                                          "type": "INSTANCE",
+                                          "x": 219,
+                                          "y": 0,
+                                          "width": 55,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "more-horizontal"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": ""
-                                            }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
                                           }
                                         }
                                       ]
@@ -613,219 +1150,430 @@
                               ]
                             },
                             {
-                              "id": "Q9MYa",
-                              "type": "ref",
-                              "ref": "tDY4O",
+                              "id": "1:4805",
                               "name": "Row cap-3ba91e02",
-                              "width": "fill_container",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 52,
+                              "width": 1124,
+                              "height": 52,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "kp5vB",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4806",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 40,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "aEskh",
-                                      "fill": "$foreground/foreground",
-                                      "content": "cap-3ba91e02",
-                                      "fontFamily": "$typography/font-mono",
-                                      "fontSize": 12,
-                                      "fontWeight": "normal"
+                                      "id": "1:4807",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 87,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "cap-3ba91e02",
+                                      "font": ["JetBrains Mono", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "wO4VA",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4808",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 140,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "E8f5pH",
-                                      "type": "ref",
-                                      "ref": "UOoQW",
+                                      "id": "1:4809",
                                       "name": "Badge",
-                                      "descendants": {
-                                        "YXoPG": {
-                                          "content": "Completed"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 66,
+                                      "height": 17,
+                                      "component": "Chip/Soft/Success/SM",
+                                      "componentId": "1:1790",
+                                      "fills": [{"type": "SOLID", "color": "#17C96426", "opacity": 0.15}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 4, 2, 4],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "success/soft"},
+                                      "texts": ["Completed"]
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "nF0wV",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4810",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 230,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "aIPtl",
-                                      "fill": "$foreground/foreground",
-                                      "content": "11.2 MB",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4811",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 44,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "11.2 MB",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "dxCd7",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4812",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 320,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "RQm57",
-                                      "fill": "$foreground/foreground",
-                                      "content": "18,402",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4813",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 40,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "18,402",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "WeDUa",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4814",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 410,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "V8xmCt",
-                                      "fill": "$foreground/foreground",
-                                      "content": "4m 58s",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4815",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 46,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "4m 58s",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "Q9bjFe",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4816",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 500,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "LynGh",
-                                      "fill": "$muted",
-                                      "content": "Aug 22, 6:43 PM",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4817",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 99,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "Aug 22, 6:43 PM",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "LjdTi",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4818",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 640,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "vQFco",
-                                      "type": "ref",
-                                      "ref": "eg3vM",
+                                      "id": "1:4819",
                                       "name": "Badge",
-                                      "descendants": {
-                                        "S2JwD": {
-                                          "content": "3h 12m"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 46,
+                                      "height": 17,
+                                      "component": "Chip/Soft/Warning/SM",
+                                      "componentId": "1:3082",
+                                      "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 4, 2, 4],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                                      "texts": ["3h 12m"]
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "e31Rc2",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
-                                  "width": "fill_container",
+                                  "id": "1:4820",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 780,
+                                  "y": 0,
+                                  "width": 234,
+                                  "height": 40,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "F0Xz4",
-                                      "fill": "$muted",
-                                      "content": "default",
-                                      "fontFamily": "$typography/font-mono",
-                                      "fontSize": 12,
-                                      "fontWeight": "normal"
+                                      "id": "1:4821",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 51,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "default",
+                                      "font": ["JetBrains Mono", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "mI8fk",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4822",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 1014,
+                                  "y": 0,
                                   "width": 110,
+                                  "height": 52,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "oLqQa",
+                                      "id": "1:4823",
                                       "name": "Actions",
-                                      "gap": 4,
+                                      "type": "FRAME",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 274,
+                                      "height": 28,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 4,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "id": "kdaRS",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4824",
                                           "name": "Btn Download",
+                                          "type": "INSTANCE",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 116,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "download"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": "Download"
-                                            }
-                                          }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
+                                          },
+                                          "texts": ["Download"]
                                         },
                                         {
-                                          "id": "JR40j",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4825",
                                           "name": "Btn View",
+                                          "type": "INSTANCE",
+                                          "x": 120,
+                                          "y": 0,
+                                          "width": 95,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "trash-2"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": "Delete"
-                                            }
-                                          }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
+                                          },
+                                          "texts": ["Delete"]
                                         },
                                         {
-                                          "id": "V8Vix",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4826",
                                           "name": "Btn Delete",
+                                          "type": "INSTANCE",
+                                          "x": 219,
+                                          "y": 0,
+                                          "width": 55,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "more-horizontal"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": ""
-                                            }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
                                           }
                                         }
                                       ]
@@ -835,219 +1583,430 @@
                               ]
                             },
                             {
-                              "id": "S3Vcwu",
-                              "type": "ref",
-                              "ref": "tDY4O",
+                              "id": "1:4827",
                               "name": "Row cap-e40cd971",
-                              "width": "fill_container",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 104,
+                              "width": 1124,
+                              "height": 52,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 0,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "MIN",
+                                "sizing": ["FIXED", "HUG"]
+                              },
+                              "layoutAlignSelf": "STRETCH",
                               "children": [
                                 {
-                                  "id": "kMiU7",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4828",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 0,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 40,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "lrGP3",
-                                      "fill": "$foreground/foreground",
-                                      "content": "cap-e40cd971",
-                                      "fontFamily": "$typography/font-mono",
-                                      "fontSize": 12,
-                                      "fontWeight": "normal"
+                                      "id": "1:4829",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 87,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "cap-e40cd971",
+                                      "font": ["JetBrains Mono", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "MIZZ3",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4830",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 140,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "MwvMt",
-                                      "type": "ref",
-                                      "ref": "Yeemi",
+                                      "id": "1:4831",
                                       "name": "Badge",
-                                      "descendants": {
-                                        "fRdhX": {
-                                          "content": "Failed"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 40,
+                                      "height": 17,
+                                      "component": "Chip/Soft/Danger/SM",
+                                      "componentId": "1:760",
+                                      "fills": [{"type": "SOLID", "color": "#2E1317"}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 4, 2, 4],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                                      "texts": ["Failed"]
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "RlcUb",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4832",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 230,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "uuXR3",
-                                      "fill": "$foreground/foreground",
-                                      "content": "12 KB",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4833",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 34,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "12 KB",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "d4B8j",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4834",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 320,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "kKp1Q",
-                                      "fill": "$foreground/foreground",
-                                      "content": "9",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4835",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 8,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "9",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "M9cW5t",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4836",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 410,
+                                  "y": 0,
                                   "width": 90,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "ZWcNx",
-                                      "fill": "$foreground/foreground",
-                                      "content": "0m 4s",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4837",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 39,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                      "text": "0m 4s",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "GwvXL",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4838",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 500,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "WdQ34",
-                                      "fill": "$muted",
-                                      "content": "Aug 22, 3:49 PM",
-                                      "fontFamily": "$typography/font-sans",
-                                      "fontSize": 13,
-                                      "fontWeight": "normal"
+                                      "id": "1:4839",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 99,
+                                      "height": 17,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "Aug 22, 3:49 PM",
+                                      "font": ["Geist", 400, 13],
+                                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "l0O4qr",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4840",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 640,
+                                  "y": 0,
                                   "width": 140,
+                                  "height": 41,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "id": "oUZiN",
-                                      "type": "ref",
-                                      "ref": "Yeemi",
+                                      "id": "1:4841",
                                       "name": "Badge",
-                                      "descendants": {
-                                        "fRdhX": {
-                                          "content": "18m"
-                                        }
-                                      }
+                                      "type": "INSTANCE",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 30,
+                                      "height": 17,
+                                      "component": "Chip/Soft/Danger/SM",
+                                      "componentId": "1:760",
+                                      "fills": [{"type": "SOLID", "color": "#2E1317"}],
+                                      "cornerRadius": 16,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 2,
+                                        "padding": [2, 4, 2, 4],
+                                        "primary": "MIN",
+                                        "counter": "CENTER",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
+                                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "danger/soft"},
+                                      "texts": ["18m"]
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "RqVbK",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
-                                  "width": "fill_container",
+                                  "id": "1:4842",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 780,
+                                  "y": 0,
+                                  "width": 234,
+                                  "height": 40,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "layoutGrow": 1,
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "text",
-                                      "id": "s99jL",
-                                      "fill": "$muted",
-                                      "content": "host 192.168.1.5",
-                                      "fontFamily": "$typography/font-mono",
-                                      "fontSize": 12,
-                                      "fontWeight": "normal"
+                                      "id": "1:4843",
+                                      "name": "text",
+                                      "type": "TEXT",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 116,
+                                      "height": 16,
+                                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                      "text": "host 192.168.1.5",
+                                      "font": ["JetBrains Mono", 400, 12],
+                                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "muted"}
                                     }
                                   ]
                                 },
                                 {
-                                  "id": "q3lQd",
-                                  "type": "ref",
-                                  "ref": "TDRJE",
+                                  "id": "1:4844",
+                                  "name": "Table Cell",
+                                  "type": "FRAME",
+                                  "x": 1014,
+                                  "y": 0,
                                   "width": 110,
+                                  "height": 52,
+                                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                                  "strokes": [{"type": "SOLID", "color": "#232227"}],
+                                  "strokeWeight": 1,
+                                  "layout": {
+                                    "mode": "HORIZONTAL",
+                                    "gap": 0,
+                                    "padding": [12, 16, 12, 16],
+                                    "primary": "MIN",
+                                    "counter": "CENTER",
+                                    "sizing": ["FIXED", "HUG"]
+                                  },
+                                  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "separator/separator"},
                                   "children": [
                                     {
-                                      "type": "frame",
-                                      "id": "DrHcv",
+                                      "id": "1:4845",
                                       "name": "Actions",
-                                      "gap": 4,
+                                      "type": "FRAME",
+                                      "x": 16,
+                                      "y": 12,
+                                      "width": 274,
+                                      "height": 28,
+                                      "layout": {
+                                        "mode": "HORIZONTAL",
+                                        "gap": 4,
+                                        "padding": [0, 0, 0, 0],
+                                        "primary": "MIN",
+                                        "counter": "MIN",
+                                        "sizing": ["HUG", "HUG"]
+                                      },
                                       "children": [
                                         {
-                                          "id": "HF7jf",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4846",
                                           "name": "Btn Download",
+                                          "type": "INSTANCE",
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 116,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "download"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": "Download"
-                                            }
-                                          }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
+                                          },
+                                          "texts": ["Download"]
                                         },
                                         {
-                                          "id": "fclKd",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4847",
                                           "name": "Btn View",
+                                          "type": "INSTANCE",
+                                          "x": 120,
+                                          "y": 0,
+                                          "width": 95,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "trash-2"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": "Delete"
-                                            }
-                                          }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
+                                          },
+                                          "texts": ["Delete"]
                                         },
                                         {
-                                          "id": "CbuHt",
-                                          "type": "ref",
-                                          "ref": "J09iP",
+                                          "id": "1:4848",
                                           "name": "Btn Delete",
+                                          "type": "INSTANCE",
+                                          "x": 219,
+                                          "y": 0,
+                                          "width": 55,
                                           "height": 28,
-                                          "padding": [
-                                            0,
-                                            8
-                                          ],
-                                          "descendants": {
-                                            "eWkIT/WtPjS": {
-                                              "icon": "more-horizontal"
-                                            },
-                                            "eWkIT/r4VbAi": {
-                                              "content": ""
-                                            }
+                                          "component": "Gameplane/Button/Small/Ghost",
+                                          "componentId": "1:1124",
+                                          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                                          "layout": {
+                                            "mode": "HORIZONTAL",
+                                            "gap": 0,
+                                            "padding": [0, 8, 0, 8],
+                                            "primary": "CENTER",
+                                            "counter": "CENTER",
+                                            "sizing": ["HUG", "FIXED"]
                                           }
                                         }
                                       ]
@@ -1061,26 +2020,35 @@
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "kCbOO",
+                      "id": "1:4849",
                       "name": "Table Footer",
-                      "width": "fill_container",
-                      "padding": [
-                        8,
-                        0,
-                        0,
-                        0
-                      ],
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 238,
+                      "width": 1132,
+                      "height": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "HUG"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
                       "children": [
                         {
-                          "type": "text",
-                          "id": "XFP3B",
+                          "id": "1:4850",
                           "name": "Footer Text",
-                          "fill": "$muted",
-                          "content": "Showing 3 of 3 captures",
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 8,
+                          "width": 135,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "text": "Showing 3 of 3 captures",
+                          "font": ["Geist", 400, 12],
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         }
                       ]
                     }
@@ -1093,315 +2061,709 @@
       ]
     },
     {
-      "type": "rectangle",
-      "id": "vURGH",
-      "layoutPosition": "absolute",
+      "id": "1:4851",
+      "name": "Dim Overlay",
+      "type": "RECTANGLE",
       "x": 0,
       "y": 0,
-      "name": "Dim Overlay",
-      "fill": "#000000CC",
       "width": 1440,
-      "height": 900
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#000000CC", "opacity": 0.8}],
+      "absolute": true
     },
     {
-      "id": "ZSLXq",
-      "type": "ref",
-      "ref": "x3beP",
+      "id": "1:4852",
       "name": "Start Capture Modal",
+      "type": "FRAME",
       "x": 460,
       "y": 80,
       "width": 520,
-      "layoutPosition": "absolute",
-      "descendants": {
-        "E7Whx": {
-          "content": "Start Capture"
+      "height": 563,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+      "cornerRadius": 12,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [20, 20, 20, 20],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "absolute": true,
+      "variables": {
+        "cornerRadius": "radius/xl",
+        "fills/0/color": "surface/surface",
+        "strokes/0/color": "border/border"
+      },
+      "children": [
+        {
+          "name": "mTitle",
+          "type": "TEXT",
+          "x": 20,
+          "y": 20,
+          "width": 105,
+          "height": 24,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "Start Capture",
+          "font": ["Geist", 600, 16],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
-        "qzcst": {
-          "content": "Records raw network traffic on this server's advertised ports (or a custom filter) for later download."
-        },
-        "Nht52": {
-          "type": "frame",
-          "id": "szV98",
-          "name": "mBody",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 18,
-          "padding": [
-            16,
-            0,
-            0,
-            0
-          ],
+        {
+          "name": "mDescWrap",
+          "type": "FRAME",
+          "x": 20,
+          "y": 44,
+          "width": 480,
+          "height": 46,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [4, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "x1oBbY",
+              "name": "mDesc",
+              "type": "TEXT",
+              "x": 0,
+              "y": 4,
+              "width": 480,
+              "height": 42,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutGrow": 1,
+              "text": "Records raw network traffic on this server's advertised ports (or a custom filter) for later download.",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 150, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            }
+          ]
+        },
+        {
+          "id": "1:4853",
+          "name": "mBody",
+          "type": "FRAME",
+          "x": 20,
+          "y": 90,
+          "width": 480,
+          "height": 401,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 18,
+            "padding": [16, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:4854",
               "name": "Field Filter",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 16,
+              "width": 480,
+              "height": 94,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "n7W9kn",
-                  "fill": "$foreground/foreground",
-                  "content": "Packet Filter",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "500"
+                  "id": "1:4855",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 71,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Packet Filter",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "frame",
-                  "id": "GlC5c",
+                  "id": "1:4856",
                   "name": "Filter Row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 22,
+                  "width": 480,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "MZF0V",
-                      "type": "ref",
-                      "ref": "D0cDM",
+                      "id": "1:4857",
                       "name": "Filter Input",
-                      "width": "fill_container",
-                      "descendants": {
-                        "PJERm": {
-                          "content": "tcp port 25565",
-                          "fill": "$foreground/foreground",
-                          "fontFamily": "$typography/font-mono"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
+                      "width": 454,
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutGrow": 1,
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["tcp port 25565"]
                     },
                     {
-                      "type": "icon",
-                      "id": "QfmSe",
+                      "id": "1:4858",
                       "name": "Valid Check",
+                      "type": "FRAME",
+                      "x": 462,
+                      "y": 9,
                       "width": 18,
                       "height": 18,
-                      "icon": "circle-check-big",
-                      "library": "lucide",
-                      "fill": "#000000"
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 1.5,
+                          "y": 1.5,
+                          "width": 15,
+                          "height": 15,
+                          "strokes": [{"type": "SOLID", "color": "#000000"}],
+                          "strokeWeight": 1.5
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 6.75,
+                          "y": 3,
+                          "width": 9.75,
+                          "height": 7.5,
+                          "strokes": [{"type": "SOLID", "color": "#000000"}],
+                          "strokeWeight": 1.5
+                        }
+                      ]
                     }
                   ]
                 },
                 {
-                  "type": "text",
-                  "id": "RMa5i",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Optional. Use pcap-filter syntax (e.g. \"tcp port 8080\", \"host 192.168.1.5\"). Leave blank to capture only on this server's game ports.",
-                  "lineHeight": 1.4,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "id": "1:4859",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 64,
+                  "width": 480,
+                  "height": 30,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Optional. Use pcap-filter syntax (e.g. \"tcp port 8080\", \"host 192.168.1.5\"). Leave blank to capture only on this server's game ports.",
+                  "font": ["Geist", 400, 11],
+                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "LoJKg",
+              "id": "1:4860",
               "name": "Field Duration",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 128,
+              "width": 480,
+              "height": 79,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "kp5Cy",
-                  "fill": "$foreground/foreground",
-                  "content": "Max Duration *",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "500"
+                  "id": "1:4861",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 83,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Max Duration *",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "frame",
-                  "id": "CuyNu",
+                  "id": "1:4862",
                   "name": "row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 22,
+                  "width": 480,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "gg1UZ",
-                      "type": "ref",
-                      "ref": "D0cDM",
+                      "id": "1:4863",
                       "name": "Input",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
                       "width": 140,
-                      "descendants": {
-                        "PJERm": {
-                          "content": "300",
-                          "fill": "$foreground/foreground"
-                        }
-                      }
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["300"]
                     },
                     {
-                      "id": "xhAse",
-                      "type": "ref",
-                      "ref": "AT7ya",
+                      "id": "1:4864",
                       "name": "Unit Select",
+                      "type": "INSTANCE",
+                      "x": 148,
+                      "y": 0,
                       "width": 140,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "seconds"
-                        }
-                      }
+                      "height": 36,
+                      "component": "Gameplane/Select",
+                      "componentId": "1:311",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["seconds"]
                     }
                   ]
                 },
                 {
-                  "type": "text",
-                  "id": "JHVG9",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "How long the capture runs before auto-stopping. Range 1–3600 seconds.",
-                  "lineHeight": 1.4,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "id": "1:4865",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 64,
+                  "width": 480,
+                  "height": 15,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "How long the capture runs before auto-stopping. Range 1–3600 seconds.",
+                  "font": ["Geist", 400, 11],
+                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "o7a19",
+              "id": "1:4866",
               "name": "Field Size",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 225,
+              "width": 480,
+              "height": 79,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "eug5J",
-                  "fill": "$foreground/foreground",
-                  "content": "Max Size *",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "500"
+                  "id": "1:4867",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 60,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Max Size *",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "frame",
-                  "id": "iH4KY",
+                  "id": "1:4868",
                   "name": "row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 22,
+                  "width": 480,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "IyykQ",
-                      "type": "ref",
-                      "ref": "D0cDM",
+                      "id": "1:4869",
                       "name": "Input",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
                       "width": 140,
-                      "descendants": {
-                        "PJERm": {
-                          "content": "5120",
-                          "fill": "$foreground/foreground"
-                        }
-                      }
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["5120"]
                     },
                     {
-                      "id": "Nkenr",
-                      "type": "ref",
-                      "ref": "AT7ya",
+                      "id": "1:4870",
                       "name": "Unit Select",
+                      "type": "INSTANCE",
+                      "x": 148,
+                      "y": 0,
                       "width": 140,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "MB"
-                        }
-                      }
+                      "height": 36,
+                      "component": "Gameplane/Select",
+                      "componentId": "1:311",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["MB"]
                     }
                   ]
                 },
                 {
-                  "type": "text",
-                  "id": "GnNOR",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Maximum file size: 5 GB. Capture stops when reached.",
-                  "lineHeight": 1.4,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "id": "1:4871",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 64,
+                  "width": 480,
+                  "height": 15,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Maximum file size: 5 GB. Capture stops when reached.",
+                  "font": ["Geist", 400, 11],
+                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "NxHyw",
+              "id": "1:4872",
               "name": "Field Retention",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
+              "type": "FRAME",
+              "x": 0,
+              "y": 322,
+              "width": 480,
+              "height": 79,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 6,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "HBMaT",
-                  "fill": "$foreground/foreground",
-                  "content": "Retention",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "500"
+                  "id": "1:4873",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 55,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Retention",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "frame",
-                  "id": "g6AhU",
+                  "id": "1:4874",
                   "name": "row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 22,
+                  "width": 480,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "id": "V8gU80",
-                      "type": "ref",
-                      "ref": "D0cDM",
+                      "id": "1:4875",
                       "name": "Input",
+                      "type": "INSTANCE",
+                      "x": 0,
+                      "y": 0,
                       "width": 140,
-                      "descendants": {
-                        "PJERm": {
-                          "content": "24",
-                          "fill": "$foreground/foreground"
-                        }
-                      }
+                      "height": 36,
+                      "component": "Gameplane/Input",
+                      "componentId": "1:706",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["24"]
                     },
                     {
-                      "id": "G4CCr",
-                      "type": "ref",
-                      "ref": "AT7ya",
+                      "id": "1:4876",
                       "name": "Unit Select",
+                      "type": "INSTANCE",
+                      "x": 148,
+                      "y": 0,
                       "width": 140,
-                      "descendants": {
-                        "cFsFk": {
-                          "content": "hours"
-                        }
-                      }
+                      "height": 36,
+                      "component": "Gameplane/Select",
+                      "componentId": "1:311",
+                      "fills": [{"type": "SOLID", "color": "#17151A"}],
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+                      "cornerRadius": 12,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [8, 12, 8, 12],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {
+                        "cornerRadius": "radius/xl",
+                        "fills/0/color": "field/background",
+                        "strokes/0/color": "field/border"
+                      },
+                      "texts": ["hours"]
                     }
                   ]
                 },
                 {
-                  "type": "text",
-                  "id": "lQtBx",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "How long the capture is retained before auto-delete. Maximum: 24h.",
-                  "lineHeight": 1.4,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "id": "1:4877",
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 64,
+                  "width": 480,
+                  "height": 15,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "How long the capture is retained before auto-delete. Maximum: 24h.",
+                  "font": ["Geist", 400, 11],
+                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             }
           ]
         },
-        "TZ7Ef": {
-          "content": "Start Capture"
+        {
+          "name": "mFooter",
+          "type": "FRAME",
+          "x": 20,
+          "y": 491,
+          "width": 480,
+          "height": 52,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [20, 0, 0, 0],
+            "primary": "MAX",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "name": "btnCancel",
+              "type": "FRAME",
+              "x": 307,
+              "y": 20,
+              "width": 64,
+              "height": 32,
+              "cornerRadius": 6,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 12, 0, 12],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "children": [
+                {
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 12,
+                  "y": 8,
+                  "width": 40,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Cancel",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                }
+              ]
+            },
+            {
+              "name": "btnPrimary",
+              "type": "FRAME",
+              "x": 379,
+              "y": 20,
+              "width": 101,
+              "height": 32,
+              "opacity": 0.5,
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "cornerRadius": 6,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 12, 0, 12],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {"fills/0/color": "accent/accent"},
+              "children": [
+                {
+                  "name": "text",
+                  "type": "TEXT",
+                  "x": 12,
+                  "y": 8,
+                  "width": 77,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "text": "Start Capture",
+                  "font": ["Geist", 500, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+                }
+              ]
+            }
+          ]
         }
-      }
+      ]
     }
   ]
 }

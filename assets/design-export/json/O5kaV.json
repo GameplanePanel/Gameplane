@@ -1,691 +1,1057 @@
 {
-  "type": "frame",
-  "id": "O5kaV",
+  "file": "O5kaV",
+  "id": "1:7070",
+  "name": "Screen/Dialog/Build Module — Step 2 (Container & Ports)",
+  "type": "FRAME",
   "x": 1000,
   "y": 58400,
-  "name": "Screen/Dialog/Build Module — Step 2 (Container & Ports)",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 800,
-  "fill": "$surface/surface",
+  "height": 546,
+  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+  "strokeWeight": 1,
   "cornerRadius": 16,
-  "stroke": "$border/border",
-  "strokeWidth": 1,
-  "strokeAlignment": "inner",
-  "layout": "vertical",
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
   "children": [
     {
-      "type": "frame",
-      "id": "DZHTs",
+      "id": "1:7071",
       "name": "ModalHeader",
-      "width": "fill_container",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "bottom": 1
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 800,
+      "height": 83,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [20, 28, 20, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
       },
-      "padding": [
-        20,
-        28
-      ],
-      "justifyContent": "space_between",
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "type": "frame",
-          "id": "appQJ",
+          "id": "1:7072",
           "name": "TitleGroup",
-          "layout": "vertical",
-          "gap": 4,
+          "type": "FRAME",
+          "x": 28,
+          "y": 20,
+          "width": 179,
+          "height": 43,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "text",
-              "id": "xHww1",
+              "id": "1:7073",
               "name": "Title",
-              "fill": "$foreground/foreground",
-              "content": "Create game module",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 18,
-              "fontWeight": "600"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 179,
+              "height": 23,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Create game module",
+              "font": ["Geist", 600, 18],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "text",
-              "id": "PSvP7",
+              "id": "1:7074",
               "name": "Subtitle",
-              "fill": "$muted",
-              "content": "Step 2 of 3 · Container & Ports",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 0,
+              "y": 27,
+              "width": 166,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Step 2 of 3 · Container & Ports",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "icon",
-          "id": "qIZTB",
+          "id": "1:7075",
           "name": "CloseIcon",
+          "type": "FRAME",
+          "x": 754,
+          "y": 32.5,
           "width": 18,
           "height": 18,
-          "icon": "x",
-          "library": "lucide",
-          "fill": "$muted"
+          "variables": {"fills/0/color": "muted"},
+          "children": [
+            {
+              "name": "path",
+              "type": "VECTOR",
+              "x": 4.5,
+              "y": 4.5,
+              "width": 9,
+              "height": 9,
+              "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+              "strokeWeight": 1.5
+            }
+          ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "COiMD",
+      "id": "1:7076",
       "name": "Stepper",
-      "width": "fill_container",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "bottom": 1
+      "type": "FRAME",
+      "x": 0,
+      "y": 83,
+      "width": 800,
+      "height": 44,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [12, 28, 12, 28],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
       },
-      "gap": 12,
-      "padding": [
-        12,
-        28
-      ],
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "type": "frame",
-          "id": "sFQf5",
+          "id": "1:7077",
           "name": "Step1_Done",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 28,
+          "y": 12,
+          "width": 138,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "frame",
-              "id": "D0ln7",
+              "id": "1:7078",
               "name": "Badge",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 20,
               "height": 20,
-              "fill": "$surface-alt",
+              "fills": [{"type": "SOLID", "color": "#2E2A27"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 999,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"fills/0/color": "surface-alt", "strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "yA5TM",
+                  "id": "1:7079",
                   "name": "Num",
-                  "fill": "$foreground/foreground",
-                  "content": "✓",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 5,
+                  "y": 3.5,
+                  "width": 10,
+                  "height": 13,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "✓",
+                  "font": ["Geist", 400, 11],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "hFhlD",
+              "id": "1:7080",
               "name": "Label",
-              "fill": "$foreground/foreground",
-              "content": "Preset & Metadata",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 28,
+              "y": 1.5,
+              "width": 110,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Preset & Metadata",
+              "font": ["Geist", 400, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             }
           ]
         },
         {
-          "type": "text",
-          "id": "LlPOV",
+          "id": "1:7081",
           "name": "Sep1",
-          "fill": "$muted",
-          "content": "·",
-          "fontFamily": "Inter",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 178,
+          "y": 14,
+          "width": 4,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "·",
+          "font": ["Inter", 400, 13],
+          "variables": {"fills/0/color": "muted"}
         },
         {
-          "type": "frame",
-          "id": "nwpBK",
+          "id": "1:7082",
           "name": "Step2_Active",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 194,
+          "y": 12,
+          "width": 135,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "frame",
-              "id": "CXtGS",
+              "id": "1:7083",
               "name": "Badge",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 20,
               "height": 20,
-              "fill": "$accent/accent",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
               "cornerRadius": 999,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"fills/0/color": "accent/accent"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "HlTJg",
+                  "id": "1:7084",
                   "name": "Num",
-                  "fill": "#ffffff",
-                  "content": "2",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 6,
+                  "y": 3,
+                  "width": 8,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                  "text": "2",
+                  "font": ["Geist", 600, 11],
+                  "variables": {"fontFamily": "typography/font-sans"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "TTYc6",
+              "id": "1:7085",
               "name": "Label",
-              "fill": "$foreground/foreground",
-              "content": "Container & Ports",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "500"
+              "type": "TEXT",
+              "x": 28,
+              "y": 1.5,
+              "width": 107,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Container & Ports",
+              "font": ["Geist", 500, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             }
           ]
         },
         {
-          "type": "text",
-          "id": "qim7o",
+          "id": "1:7086",
           "name": "Sep2",
-          "fill": "$muted",
-          "content": "·",
-          "fontFamily": "Inter",
-          "fontSize": 13,
-          "fontWeight": "normal"
+          "type": "TEXT",
+          "x": 341,
+          "y": 14,
+          "width": 4,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "text": "·",
+          "font": ["Inter", 400, 13],
+          "variables": {"fills/0/color": "muted"}
         },
         {
-          "type": "frame",
-          "id": "cGYKl",
+          "id": "1:7087",
           "name": "Step3_Inactive",
-          "gap": 8,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 357,
+          "y": 12,
+          "width": 125,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "type": "frame",
-              "id": "xcPBM",
+              "id": "1:7088",
               "name": "Badge",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
               "width": 20,
               "height": 20,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 999,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "justifyContent": "center",
-              "alignItems": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "u8yjli",
+                  "id": "1:7089",
                   "name": "Num",
-                  "fill": "$muted",
-                  "content": "3",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 6.5,
+                  "y": 3,
+                  "width": 7,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "text": "3",
+                  "font": ["Geist", 400, 11],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "gsJcB",
+              "id": "1:7090",
               "name": "Label",
-              "fill": "$muted",
-              "content": "Review & Export",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 28,
+              "y": 1.5,
+              "width": 97,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "text": "Review & Export",
+              "font": ["Geist", 400, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "Htf8D",
+      "id": "1:7091",
       "name": "Body",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 20,
-      "padding": [
-        24,
-        28
-      ],
+      "type": "FRAME",
+      "x": 0,
+      "y": 127,
+      "width": 800,
+      "height": 351,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 20,
+        "padding": [24, 28, 24, 28],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "hCAHA",
+          "id": "1:7092",
           "name": "ImageGroup",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 28,
+          "y": 24,
+          "width": 744,
+          "height": 61,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "XANIF",
+              "id": "1:7093",
               "name": "ImageLabelRow",
-              "width": "fill_container",
-              "justifyContent": "space_between",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 744,
+              "height": 17,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "dldm8",
+                  "id": "1:7094",
                   "name": "Label",
-                  "fill": "$foreground/foreground",
-                  "content": "Container Image",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 13,
-                  "fontWeight": "500"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 101,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Container Image",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "U1NhyH",
+                  "id": "1:7095",
                   "name": "DigestBadge",
-                  "fill": "$success/success",
-                  "content": "✓ Pinned by digest (@sha256:...)",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 581,
+                  "y": 1.5,
+                  "width": 163,
+                  "height": 14,
+                  "fills": [{"type": "SOLID", "color": "#21C45D"}],
+                  "text": "✓ Pinned by digest (@sha256:...)",
+                  "font": ["Geist", 400, 11],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "success/success"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "qmn2B",
+              "id": "1:7096",
               "name": "InputBox",
-              "width": "fill_container",
+              "type": "FRAME",
+              "x": 0,
+              "y": 23,
+              "width": 744,
               "height": 38,
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
               "cornerRadius": 6,
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "padding": [
-                0,
-                12
-              ],
-              "justifyContent": "center",
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 12, 0, 12],
+                "primary": "CENTER",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "border/border"},
               "children": [
                 {
-                  "type": "text",
-                  "id": "NQ8y0",
+                  "id": "1:7097",
                   "name": "Val",
-                  "fill": "$foreground/foreground",
-                  "content": "cm2network/steamcmd:root@sha256:4d830b0475b8719f96b9978ba57404434bb3da3f260388d75cfb373cf5889ea8",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 44.5,
+                  "y": 0,
+                  "width": 655,
+                  "height": 16,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "cm2network/steamcmd:root@sha256:4d830b0475b8719f96b9978ba57404434bb3da3f260388d75cfb373cf5889ea8",
+                  "font": ["Geist", 400, 12],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 }
               ]
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "c9ZZBh",
+          "id": "1:7098",
           "name": "PortsSection",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 10,
+          "type": "FRAME",
+          "x": 28,
+          "y": 105,
+          "width": 744,
+          "height": 122,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "g7dCzc",
+              "id": "1:7099",
               "name": "PortsHeaderRow",
-              "width": "fill_container",
-              "justifyContent": "space_between",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 744,
+              "height": 32,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "text",
-                  "id": "hLVfg",
+                  "id": "1:7100",
                   "name": "Title",
-                  "fill": "$foreground/foreground",
-                  "content": "Port Mappings",
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 13,
-                  "fontWeight": "500"
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 7.5,
+                  "width": 89,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "text": "Port Mappings",
+                  "font": ["Geist", 500, 13],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "id": "v4gqr",
-                  "type": "ref",
-                  "ref": "FIB65",
+                  "id": "1:7101",
                   "name": "AddPortButton",
-                  "descendants": {
-                    "K8d1zg": {
-                      "enabled": true,
-                      "icon": "plus"
-                    },
-                    "zMNkR": {
-                      "content": "Add Port"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 647,
+                  "y": 0,
+                  "width": 97,
+                  "height": 32,
+                  "component": "Button/Outline/SM",
+                  "componentId": "1:633",
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 5,
+                    "padding": [8, 12, 8, 12],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/3",
+                    "paddingLeft": "spacing/3",
+                    "strokes/0/color": "border-2"
+                  },
+                  "texts": ["Add Port"]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "W1X1aY",
+              "id": "1:7102",
               "name": "PortsList",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 8,
+              "type": "FRAME",
+              "x": 0,
+              "y": 42,
+              "width": 744,
+              "height": 80,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "J8en8",
+                  "id": "1:7103",
                   "name": "PortRow_1",
-                  "width": "fill_container",
-                  "gap": 10,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 744,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 10,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "udsme",
+                      "id": "1:7104",
                       "name": "PortName",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
                       "width": 160,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "CENTER",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "f4U7oU",
+                          "id": "1:7105",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "game",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 62.5,
+                          "y": 0,
+                          "width": 35,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "game",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "VdHTy",
+                      "id": "1:7106",
                       "name": "PortNum",
+                      "type": "FRAME",
+                      "x": 170,
+                      "y": 0,
                       "width": 120,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "CENTER",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "b4CUxa",
+                          "id": "1:7107",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "27015",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 41.5,
+                          "y": 0,
+                          "width": 37,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "27015",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "n3ANi4",
+                      "id": "1:7108",
                       "name": "ProtocolSelect",
+                      "type": "FRAME",
+                      "x": 300,
+                      "y": 0,
                       "width": 110,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "bcGo3",
+                          "id": "1:7109",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "UDP",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 10,
+                          "y": 10,
+                          "width": 28,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "UDP",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "type": "icon",
-                          "id": "Hmhzm",
+                          "id": "1:7110",
                           "name": "Chevron",
+                          "type": "FRAME",
+                          "x": 86,
+                          "y": 11,
                           "width": 14,
                           "height": 14,
-                          "icon": "chevron-down",
-                          "library": "lucide",
-                          "fill": "$muted"
+                          "variables": {"fills/0/color": "muted"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 3.5,
+                              "y": 5.25,
+                              "width": 7,
+                              "height": 3.5,
+                              "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "strokeWeight": 1.17
+                            }
+                          ]
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "BbLdt",
+                      "id": "1:7111",
                       "name": "AdvertiseCheckbox",
-                      "gap": 6,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 420,
+                      "y": 10,
+                      "width": 77,
+                      "height": 16,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "EZrgP",
+                          "id": "1:7112",
                           "name": "Box",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
                           "width": 16,
                           "height": 16,
-                          "fill": "$accent/accent",
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
                           "cornerRadius": 4,
-                          "justifyContent": "center",
-                          "alignItems": "center",
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "accent/accent"},
                           "children": [
                             {
-                              "type": "text",
-                              "id": "V7r3N",
+                              "id": "1:7113",
                               "name": "Check",
-                              "fill": "#ffffff",
-                              "content": "✓",
-                              "fontFamily": "Inter",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 3,
+                              "y": 1.5,
+                              "width": 10,
+                              "height": 13,
+                              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                              "text": "✓",
+                              "font": ["Inter", 400, 11]
                             }
                           ]
                         },
                         {
-                          "type": "text",
-                          "id": "D2zt7a",
+                          "id": "1:7114",
                           "name": "Label",
-                          "fill": "$foreground/foreground",
-                          "content": "Advertise",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 22,
+                          "y": 0.5,
+                          "width": 55,
+                          "height": 15,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Advertise",
+                          "font": ["Inter", 400, 12],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "id": "IbUiY",
-                      "type": "ref",
-                      "ref": "J09iP",
+                      "id": "1:7115",
                       "name": "PortRow1_Delete",
-                      "descendants": {
-                        "eWkIT/WtPjS": {
-                          "icon": "trash-2",
-                          "opacity": 1
-                        },
-                        "eWkIT/r4VbAi": {
-                          "opacity": 1,
-                          "content": ""
-                        }
+                      "type": "INSTANCE",
+                      "x": 507,
+                      "y": 2,
+                      "width": 39,
+                      "height": 32,
+                      "component": "Gameplane/Button/Small/Ghost",
+                      "componentId": "1:1124",
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
                       }
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "qMFie",
+                  "id": "1:7116",
                   "name": "PortRow_2",
-                  "width": "fill_container",
-                  "gap": 10,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 44,
+                  "width": 744,
+                  "height": 36,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 10,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "h8KfV",
+                      "id": "1:7117",
                       "name": "PortName",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
                       "width": 160,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "CENTER",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "hXnTl",
+                          "id": "1:7118",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "query",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 62,
+                          "y": 0,
+                          "width": 36,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "query",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "n6TRnb",
+                      "id": "1:7119",
                       "name": "PortNum",
+                      "type": "FRAME",
+                      "x": 170,
+                      "y": 0,
                       "width": 120,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "CENTER",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "prNFB",
+                          "id": "1:7120",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "27016",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 41.5,
+                          "y": 0,
+                          "width": 37,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "27016",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "TKmo6",
+                      "id": "1:7121",
                       "name": "ProtocolSelect",
+                      "type": "FRAME",
+                      "x": 300,
+                      "y": 0,
                       "width": 110,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "SPACE_BETWEEN",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "evKQq",
+                          "id": "1:7122",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "UDP",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 10,
+                          "y": 10,
+                          "width": 28,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "UDP",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "type": "icon",
-                          "id": "RYAZ5",
+                          "id": "1:7123",
                           "name": "Chevron",
+                          "type": "FRAME",
+                          "x": 86,
+                          "y": 11,
                           "width": 14,
                           "height": 14,
-                          "icon": "chevron-down",
-                          "library": "lucide",
-                          "fill": "$muted"
+                          "variables": {"fills/0/color": "muted"},
+                          "children": [
+                            {
+                              "name": "path",
+                              "type": "VECTOR",
+                              "x": 3.5,
+                              "y": 5.25,
+                              "width": 7,
+                              "height": 3.5,
+                              "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                              "strokeWeight": 1.17
+                            }
+                          ]
                         }
                       ]
                     },
                     {
-                      "type": "frame",
-                      "id": "zvTk9",
+                      "id": "1:7124",
                       "name": "AdvertiseCheckbox",
-                      "gap": 6,
-                      "alignItems": "center",
+                      "type": "FRAME",
+                      "x": 420,
+                      "y": 10,
+                      "width": 77,
+                      "height": 16,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 6,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "AmIhQ",
+                          "id": "1:7125",
                           "name": "Box",
+                          "type": "FRAME",
+                          "x": 0,
+                          "y": 0,
                           "width": 16,
                           "height": 16,
-                          "fill": "$accent/accent",
+                          "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
                           "cornerRadius": 4,
-                          "justifyContent": "center",
-                          "alignItems": "center",
+                          "layout": {
+                            "mode": "HORIZONTAL",
+                            "gap": 0,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "CENTER",
+                            "counter": "CENTER",
+                            "sizing": ["FIXED", "FIXED"]
+                          },
+                          "variables": {"fills/0/color": "accent/accent"},
                           "children": [
                             {
-                              "type": "text",
-                              "id": "SBDAp",
+                              "id": "1:7126",
                               "name": "Check",
-                              "fill": "#ffffff",
-                              "content": "✓",
-                              "fontFamily": "Inter",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
+                              "type": "TEXT",
+                              "x": 3,
+                              "y": 1.5,
+                              "width": 10,
+                              "height": 13,
+                              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+                              "text": "✓",
+                              "font": ["Inter", 400, 11]
                             }
                           ]
                         },
                         {
-                          "type": "text",
-                          "id": "bTk9B",
+                          "id": "1:7127",
                           "name": "Label",
-                          "fill": "$foreground/foreground",
-                          "content": "Advertise",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 22,
+                          "y": 0.5,
+                          "width": 55,
+                          "height": 15,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "Advertise",
+                          "font": ["Inter", 400, 12],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "id": "YEmrb",
-                      "type": "ref",
-                      "ref": "J09iP",
+                      "id": "1:7128",
                       "name": "PortRow2_Delete",
-                      "descendants": {
-                        "eWkIT/WtPjS": {
-                          "icon": "trash-2",
-                          "opacity": 1
-                        },
-                        "eWkIT/r4VbAi": {
-                          "opacity": 1,
-                          "content": ""
-                        }
+                      "type": "INSTANCE",
+                      "x": 507,
+                      "y": 2,
+                      "width": 39,
+                      "height": 32,
+                      "component": "Gameplane/Button/Small/Ghost",
+                      "componentId": "1:1124",
+                      "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
                       }
                     }
                   ]
@@ -695,119 +1061,189 @@
           ]
         },
         {
-          "type": "frame",
-          "id": "QDnAn",
+          "id": "1:7129",
           "name": "StorageSection",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 10,
+          "type": "FRAME",
+          "x": 28,
+          "y": 247,
+          "width": 744,
+          "height": 80,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 10,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "ax35q",
+              "id": "1:7130",
               "name": "Title",
-              "fill": "$foreground/foreground",
-              "content": "Persistent Storage",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 13,
-              "fontWeight": "500"
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 113,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Persistent Storage",
+              "font": ["Geist", 500, 13],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "frame",
-              "id": "mpj9M",
+              "id": "1:7131",
               "name": "StorageRow",
-              "width": "fill_container",
-              "gap": 12,
+              "type": "FRAME",
+              "x": 0,
+              "y": 27,
+              "width": 744,
+              "height": 53,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "FLzws",
+                  "id": "1:7132",
                   "name": "SizeGroup",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 4,
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 366,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
                   "children": [
                     {
-                      "type": "text",
-                      "id": "w2zuO",
+                      "id": "1:7133",
                       "name": "Lbl",
-                      "fill": "$muted",
-                      "content": "Volume Size",
-                      "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 64,
+                      "height": 13,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Volume Size",
+                      "font": ["Inter", 400, 11],
+                      "variables": {"fills/0/color": "muted"}
                     },
                     {
-                      "type": "frame",
-                      "id": "N8Y6D",
+                      "id": "1:7134",
                       "name": "Box",
-                      "width": "fill_container",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 17,
+                      "width": 366,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "CENTER",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "IVUPC",
+                          "id": "1:7135",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "20Gi",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 168.5,
+                          "y": 0,
+                          "width": 29,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "20Gi",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "ipru7",
+                  "id": "1:7136",
                   "name": "PathGroup",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 4,
+                  "type": "FRAME",
+                  "x": 378,
+                  "y": 0,
+                  "width": 366,
+                  "height": 53,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 4,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
                   "children": [
                     {
-                      "type": "text",
-                      "id": "EBZaC",
+                      "id": "1:7137",
                       "name": "Lbl",
-                      "fill": "$muted",
-                      "content": "Mount Path",
-                      "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 60,
+                      "height": 13,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "text": "Mount Path",
+                      "font": ["Inter", 400, 11],
+                      "variables": {"fills/0/color": "muted"}
                     },
                     {
-                      "type": "frame",
-                      "id": "s3upyi",
+                      "id": "1:7138",
                       "name": "Box",
-                      "width": "fill_container",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 17,
+                      "width": 366,
                       "height": 36,
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
                       "cornerRadius": 6,
-                      "stroke": "$border/border",
-                      "strokeWidth": 1,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 10, 0, 10],
+                        "primary": "CENTER",
+                        "counter": "MIN",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "variables": {"strokes/0/color": "border/border"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "q96ywV",
+                          "id": "1:7139",
                           "name": "Val",
-                          "fill": "$foreground/foreground",
-                          "content": "/serverdata",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 147.5,
+                          "y": 0,
+                          "width": 71,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "/serverdata",
+                          "font": ["Inter", 400, 13],
+                          "variables": {"fills/0/color": "foreground/foreground"}
                         }
                       ]
                     }
@@ -820,69 +1256,129 @@
       ]
     },
     {
-      "type": "frame",
-      "id": "ukFJM",
+      "id": "1:7140",
       "name": "ModalFooter",
-      "width": "fill_container",
-      "stroke": "$border/border",
-      "strokeWidth": {
-        "top": 1
+      "type": "FRAME",
+      "x": 0,
+      "y": 478,
+      "width": 800,
+      "height": 68,
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 28, 16, 28],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
       },
-      "padding": [
-        16,
-        28
-      ],
-      "justifyContent": "space_between",
-      "alignItems": "center",
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
       "children": [
         {
-          "id": "nTQrt",
-          "type": "ref",
-          "ref": "FIB65",
+          "id": "1:7141",
           "name": "BackButton",
-          "descendants": {
-            "K8d1zg": {
-              "enabled": false
-            },
-            "zMNkR": {
-              "content": "← Back"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 28,
+          "y": 18,
+          "width": 69,
+          "height": 32,
+          "component": "Button/Outline/SM",
+          "componentId": "1:633",
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 5,
+            "padding": [8, 12, 8, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {
+            "cornerRadius": "radius/3xl",
+            "paddingRight": "spacing/3",
+            "paddingLeft": "spacing/3",
+            "strokes/0/color": "border-2"
+          },
+          "texts": ["← Back"]
         },
         {
-          "type": "frame",
-          "id": "CcjXJ",
+          "id": "1:7142",
           "name": "ButtonsRow",
-          "gap": 12,
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 460,
+          "y": 16,
+          "width": 312,
+          "height": 36,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
           "children": [
             {
-              "id": "Uqnwy",
-              "type": "ref",
-              "ref": "FIB65",
+              "id": "1:7143",
               "name": "CancelButton",
-              "descendants": {
-                "K8d1zg": {
-                  "enabled": false
-                },
-                "zMNkR": {
-                  "content": "Cancel"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 2,
+              "width": 67,
+              "height": 32,
+              "component": "Button/Outline/SM",
+              "componentId": "1:633",
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 5,
+                "padding": [8, 12, 8, 12],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/3",
+                "paddingLeft": "spacing/3",
+                "strokes/0/color": "border-2"
+              },
+              "texts": ["Cancel"]
             },
             {
-              "id": "ni4Ru",
-              "type": "ref",
-              "ref": "cb4rt",
+              "id": "1:7144",
               "name": "NextButton",
-              "descendants": {
-                "Xpn7K": {
-                  "enabled": false
-                },
-                "U6q13B": {
-                  "content": "Continue to Review & Export →"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 79,
+              "y": 0,
+              "width": 233,
+              "height": 36,
+              "component": "Button/Primary/MD",
+              "componentId": "1:1094",
+              "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 8,
+                "padding": [8, 16, 8, 16],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "variables": {
+                "itemSpacing": "spacing/2",
+                "cornerRadius": "radius/3xl",
+                "paddingRight": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "accent/accent"
+              },
+              "texts": ["Continue to Review & Export →"]
             }
           ]
         }

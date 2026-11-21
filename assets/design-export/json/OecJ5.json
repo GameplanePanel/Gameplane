@@ -1,412 +1,657 @@
 {
-  "type": "frame",
-  "id": "OecJ5",
+  "file": "OecJ5",
+  "id": "1:11088",
+  "name": "Screen/Cluster Details — Configuration — Local",
+  "type": "FRAME",
   "x": 16400,
   "y": 63932,
-  "name": "Screen/Cluster Details — Configuration — Local",
-  "context": "Canonical cluster and nodes navigation redesign. Authorized implementation.",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 1060,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "d4Ky9",
-      "type": "ref",
-      "ref": "kKFX9",
+      "id": "1:11089",
       "name": "App Sidebar",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "lZ6pP": {
-          "fill": "$accent/soft"
-        },
-        "lZ6pP/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "lZ6pP/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 1060,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "Ydtdl",
+      "id": "1:11090",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 1060,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "id": "aBWaW",
-          "type": "ref",
-          "ref": "gu5WY",
+          "id": "1:11091",
           "name": "Top Bar",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Clusters  ›  Local  ›  Configuration"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Clusters  ›  Local  ›  Configuration", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "OP0f5",
+          "id": "1:11092",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 996,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "oBQbJ",
-              "type": "ref",
-              "ref": "xCDF7",
+              "id": "1:11093",
               "name": "Page Header",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "Local"
-                },
-                "VbHwU": {
-                  "content": "local · Built-in cluster"
-                },
-                "TgdLz": {
-                  "enabled": false
-                }
-              }
-            },
-            {
-              "type": "frame",
-              "id": "sR7uz",
-              "name": "Cluster detail tabs",
-              "width": "fill_container",
-              "stroke": "$separator/separator",
-              "strokeWidth": {
-                "bottom": 1
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
               },
-              "gap": 4,
-              "padding": [
-                0,
-                0,
-                12,
-                0
-              ],
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": ["Local", "local · Built-in cluster"]
+            },
+            {
+              "id": "1:11094",
+              "name": "Cluster detail tabs",
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 44,
+              "strokes": [{"type": "SOLID", "color": "#232227"}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 4,
+                "padding": [0, 0, 12, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"strokes/0/color": "separator/separator"},
               "children": [
                 {
-                  "id": "U25Za",
-                  "type": "ref",
-                  "ref": "qAFbJ",
+                  "id": "1:11095",
                   "name": "Overview tab",
-                  "descendants": {
-                    "VcxMI": {
-                      "content": "Overview"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
+                  "width": 94,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Overview"]
                 },
                 {
-                  "id": "o9q64K",
-                  "type": "ref",
-                  "ref": "qAFbJ",
+                  "id": "1:11096",
                   "name": "Nodes tab",
-                  "descendants": {
-                    "VcxMI": {
-                      "content": "Nodes"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 98,
+                  "y": 0,
+                  "width": 75,
+                  "height": 32,
+                  "component": "Tab/Inactive",
+                  "componentId": "1:967",
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl"},
+                  "texts": ["Nodes"]
                 },
                 {
-                  "id": "gjz7s",
-                  "type": "ref",
-                  "ref": "CEWo3",
+                  "id": "1:11097",
                   "name": "Configuration tab",
-                  "descendants": {
-                    "YUR8N": {
-                      "content": "Configuration"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 177,
+                  "y": 0,
+                  "width": 121,
+                  "height": 32,
+                  "component": "Tab/Active",
+                  "componentId": "1:965",
+                  "fills": [{"type": "SOLID", "color": "#1D1B22"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 3, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 16, 0, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "segment"},
+                  "texts": ["Configuration"]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "VzNfk",
+              "id": "1:11098",
               "name": "Access",
-              "width": "fill_container",
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "layout": "vertical",
-              "gap": 12,
-              "padding": 20,
+              "type": "FRAME",
+              "x": 24,
+              "y": 169,
+              "width": 1132,
+              "height": 172,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
               "children": [
                 {
-                  "type": "text",
-                  "id": "p5wOE",
+                  "id": "1:11099",
                   "name": "Access heading",
-                  "fill": "$foreground/foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Access",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 16,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Access",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "kOhUH",
+                  "id": "1:11100",
                   "name": "Access description",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Download a kubeconfig for this cluster.",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Download a kubeconfig for this cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "id": "a3VJJN",
-                  "type": "ref",
-                  "ref": "i6gfu",
+                  "id": "1:11101",
                   "name": "Download kubeconfig",
-                  "descendants": {
-                    "FCYQ9": {
-                      "icon": "download"
-                    },
-                    "GqVun": {
-                      "content": "Download kubeconfig"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 20,
+                  "y": 87,
+                  "width": 199,
+                  "height": 36,
+                  "component": "Button/Outline/MD",
+                  "componentId": "1:1794",
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "strokes/0/color": "border-2"
+                  },
+                  "texts": ["Download kubeconfig"]
                 },
                 {
-                  "type": "text",
-                  "id": "MU5Tb",
+                  "id": "1:11102",
                   "name": "Enrollment link",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "To join a machine, use Add node on the Nodes tab.",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 135,
+                  "width": 1092,
+                  "height": 17,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "To join a machine, use Add node on the Nodes tab.",
+                  "font": ["Geist", 400, 12],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "LgatB",
+              "id": "1:11103",
               "name": "Storage",
-              "width": "fill_container",
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "layout": "vertical",
-              "gap": 12,
-              "padding": 20,
+              "type": "FRAME",
+              "x": 24,
+              "y": 365,
+              "width": 1132,
+              "height": 127,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
               "children": [
                 {
-                  "type": "text",
-                  "id": "A9tT3",
+                  "id": "1:11104",
                   "name": "Storage heading",
-                  "fill": "$foreground/foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Storage",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 16,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Storage",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "zYT9I",
+                  "id": "1:11105",
                   "name": "Storage description",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Set at install time. These values are read-only.",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Set at install time. These values are read-only.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "type": "frame",
-                  "id": "iXn3F",
+                  "id": "1:11106",
                   "name": "Storage class row",
-                  "width": "fill_container",
-                  "gap": 24,
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 20,
+                  "y": 87,
+                  "width": 1092,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 24,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "SPACE_BETWEEN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "text",
-                      "id": "B6kNt",
+                      "id": "1:11107",
                       "name": "Storage class label",
-                      "fill": "$foreground/foreground",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Game data storage class",
-                      "lineHeight": 1.45,
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 1016,
+                      "height": 20,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutGrow": 1,
+                      "text": "Game data storage class",
+                      "font": ["Geist", 400, 14],
+                      "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "text",
-                      "id": "Q3dDF",
+                      "id": "1:11108",
                       "name": "Storage class value",
-                      "fill": "$foreground/foreground",
-                      "content": "fast-nvme",
-                      "fontFamily": "$typography/font-mono",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
+                      "type": "TEXT",
+                      "x": 1016,
+                      "y": 1,
+                      "width": 76,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "fast-nvme",
+                      "font": ["JetBrains Mono", 400, 14],
+                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                     }
                   ]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "WegCt",
+              "id": "1:11109",
               "name": "Backup destinations",
-              "width": "fill_container",
-              "fill": "$surface/surface",
-              "cornerRadius": "$radius/3xl",
-              "stroke": "$border/border",
-              "strokeWidth": 1,
-              "layout": "vertical",
-              "gap": 12,
-              "padding": 20,
+              "type": "FRAME",
+              "x": 24,
+              "y": 516,
+              "width": 1132,
+              "height": 196,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 24,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 12,
+                "padding": [20, 20, 20, 20],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/3xl",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
               "children": [
                 {
-                  "type": "text",
-                  "id": "ySXQv",
+                  "id": "1:11110",
                   "name": "Backup destinations heading",
-                  "fill": "$foreground/foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Backup destinations",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 16,
-                  "fontWeight": "600"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 20,
+                  "width": 1092,
+                  "height": 23,
+                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Backup destinations",
+                  "font": ["Geist", 600, 16],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                 },
                 {
-                  "type": "text",
-                  "id": "cijZ0",
+                  "id": "1:11111",
                   "name": "Backup destinations description",
-                  "fill": "$muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Repositories used by servers running on this cluster.",
-                  "lineHeight": 1.45,
-                  "fontFamily": "$typography/font-sans",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
+                  "type": "TEXT",
+                  "x": 20,
+                  "y": 55,
+                  "width": 1092,
+                  "height": 20,
+                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "Repositories used by servers running on this cluster.",
+                  "font": ["Geist", 400, 14],
+                  "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 },
                 {
-                  "type": "frame",
-                  "id": "XPTLB",
+                  "id": "1:11112",
                   "name": "Backup destination row",
-                  "width": "fill_container",
-                  "gap": 16,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 20,
+                  "y": 87,
+                  "width": 1092,
+                  "height": 41,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 16,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "C0j1T",
+                      "id": "1:11113",
                       "name": "Repository details",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 4,
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 1000,
+                      "height": 41,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutGrow": 1,
                       "children": [
                         {
-                          "type": "text",
-                          "id": "hnKtC",
+                          "id": "1:11114",
                           "name": "Repository name",
-                          "fill": "$foreground/foreground",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "nightly-backups",
-                          "lineHeight": 1.45,
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 14,
-                          "fontWeight": "500"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 0,
+                          "width": 1000,
+                          "height": 20,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "nightly-backups",
+                          "font": ["Geist", 500, 14],
+                          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                         },
                         {
-                          "type": "text",
-                          "id": "CoDeX",
+                          "id": "1:11115",
                           "name": "Repository URL",
-                          "fill": "$muted",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "s3:s3.example.com/gameplane",
-                          "lineHeight": 1.45,
-                          "fontFamily": "$typography/font-sans",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 24,
+                          "width": 1000,
+                          "height": 17,
+                          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "layoutAlignSelf": "STRETCH",
+                          "text": "s3:s3.example.com/gameplane",
+                          "font": ["Geist", 400, 12],
+                          "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+                          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                         }
                       ]
                     },
                     {
-                      "id": "QHmLE",
-                      "type": "ref",
-                      "ref": "i6gfu",
+                      "id": "1:11116",
                       "name": "Delete destination",
-                      "descendants": {
-                        "FCYQ9": {
-                          "enabled": false
-                        },
-                        "GqVun": {
-                          "content": "Delete"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 1016,
+                      "y": 2.5,
+                      "width": 76,
+                      "height": 36,
+                      "component": "Button/Outline/MD",
+                      "componentId": "1:1794",
+                      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                      "strokeWeight": 1,
+                      "cornerRadius": 24,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 8,
+                        "padding": [8, 16, 8, 16],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "variables": {
+                        "itemSpacing": "spacing/2",
+                        "cornerRadius": "radius/3xl",
+                        "paddingRight": "spacing/4",
+                        "paddingLeft": "spacing/4",
+                        "strokes/0/color": "border-2"
+                      },
+                      "texts": ["Delete"]
                     }
                   ]
                 },
                 {
-                  "id": "b4j6s",
-                  "type": "ref",
-                  "ref": "cb4rt",
+                  "id": "1:11117",
                   "name": "Add backup destination",
-                  "descendants": {
-                    "U6q13B": {
-                      "content": "Add destination"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 20,
+                  "y": 140,
+                  "width": 159,
+                  "height": 36,
+                  "component": "Button/Primary/MD",
+                  "componentId": "1:1094",
+                  "fills": [{"type": "SOLID", "color": "#FF4FA3"}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 8,
+                    "padding": [8, 16, 8, 16],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "variables": {
+                    "itemSpacing": "spacing/2",
+                    "cornerRadius": "radius/3xl",
+                    "paddingRight": "spacing/4",
+                    "paddingLeft": "spacing/4",
+                    "fills/0/color": "accent/accent"
+                  },
+                  "texts": ["Add destination"]
                 }
               ]
             },
             {
-              "type": "text",
-              "id": "M0m68N",
+              "id": "1:11118",
               "name": "Built-in cluster removal",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "The built-in local cluster cannot be removed.",
-              "lineHeight": 1.45,
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 24,
+              "y": 736,
+              "width": 1132,
+              "height": 17,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "The built-in local cluster cannot be removed.",
+              "font": ["Geist", 400, 12],
+              "lineHeight": {"value": 145.00000476837158, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }

@@ -1,1 +1,320 @@
-{"id":"tr6cE","type":"ref","ref":"x3beP","name":"Screen/Share links — Create link (No expiry)","x":3280,"y":53350,"descendants":{"E7Whx":{"content":"Create share link for mc-survival"},"qzcst":{"content":"Anyone with this link can check the server's status and connection address without signing in."},"Nht52":{"type":"frame","id":"npdLj","name":"mBody","width":"fill_container","layout":"vertical","gap":16,"padding":[16,0,0,0],"children":[{"type":"frame","id":"qQuWO","name":"fExpiry","width":"fill_container","layout":"vertical","gap":4,"children":[{"type":"text","id":"owzfC","name":"labelExpiry","fill":"$foreground/foreground","content":"Expires in","fontFamily":"$typography/font-sans","fontSize":12,"fontWeight":"500"},{"id":"NGuon","type":"ref","ref":"AT7ya","name":"Select","width":"fill_container","descendants":{"cFsFk":{"content":"No expiry"}}},{"type":"text","id":"oB60N","name":"warningNoExpiry","fill":"$warning/warning","content":"This link works until you revoke it.","fontFamily":"$typography/font-sans","fontSize":12,"fontWeight":"normal"}]},{"type":"frame","id":"Pjy1j","name":"fCanStart","width":"fill_container","gap":12,"justifyContent":"space_between","alignItems":"center","children":[{"id":"Sjm8y","type":"ref","ref":"rh2QH","name":"canStartSwitch","width":40},{"type":"frame","id":"HzOd6","name":"canStartText","width":"fill_container","layout":"vertical","children":[{"type":"text","id":"Mywn6","name":"canStartTitle","fill":"$foreground/foreground","content":"Allow starting the server","fontFamily":"$typography/font-sans","fontSize":14,"fontWeight":"500"},{"type":"text","id":"NRqHN","name":"canStartDesc","fill":"$muted","textGrowth":"fixed-width","width":"fill_container","content":"The link holder can wake mc-survival from asleep. Without this, they can only view its status.","lineHeight":1.4,"fontFamily":"$typography/font-sans","fontSize":12,"fontWeight":"normal"}]}]}]},"GCwAF":{"type":"frame","id":"YqOBW","name":"mFooter","width":"fill_container","gap":8,"padding":[20,0,0,0],"justifyContent":"end","alignItems":"center","children":[{"id":"eay4r","type":"ref","ref":"rkF0p","name":"btnCancel","cornerRadius":6,"descendants":{"WtPjS":{"enabled":false},"r4VbAi":{"content":"Cancel","fontSize":13}}},{"id":"I54mdI","type":"ref","ref":"j9c5W","name":"btnPrimary","cornerRadius":6,"descendants":{"n8Hmwk":{"icon":"link","width":14,"height":14},"U1xvSo":{"content":"Create link","fontSize":13}}}]}}}
+{
+  "file": "tr6cE",
+  "id": "1:7409",
+  "name": "Screen/Share links — Create link (No expiry)",
+  "type": "FRAME",
+  "x": 3280,
+  "y": 53350,
+  "width": 480,
+  "height": 322,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 251,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Create share link for mc-survival",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+    },
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 46,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 42,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "Anyone with this link can check the server's status and connection address without signing in.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:7410",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 90,
+      "width": 440,
+      "height": 160,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:7411",
+          "name": "fExpiry",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 440,
+          "height": 76,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:7412",
+              "name": "labelExpiry",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 55,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Expires in",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "id": "1:7413",
+              "name": "Select",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 20,
+              "width": 440,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["No expiry"]
+            },
+            {
+              "id": "1:7414",
+              "name": "warningNoExpiry",
+              "type": "TEXT",
+              "x": 0,
+              "y": 60,
+              "width": 184,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#F59E0B"}],
+              "text": "This link works until you revoke it.",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "warning/warning"}
+            }
+          ]
+        },
+        {
+          "id": "1:7415",
+          "name": "fCanStart",
+          "type": "FRAME",
+          "x": 0,
+          "y": 108,
+          "width": 440,
+          "height": 52,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [0, 0, 0, 0],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "id": "1:7416",
+              "name": "canStartSwitch",
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 16,
+              "width": 40,
+              "height": 20,
+              "component": "Gameplane/Switch/Off",
+              "componentId": "1:1470",
+              "fills": [{"type": "SOLID", "color": "#EFC3D6"}],
+              "cornerRadius": 24,
+              "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "border/border"}
+            },
+            {
+              "id": "1:7417",
+              "name": "canStartText",
+              "type": "FRAME",
+              "x": 40,
+              "y": 0,
+              "width": 400,
+              "height": 52,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "children": [
+                {
+                  "id": "1:7418",
+                  "name": "canStartTitle",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 0,
+                  "width": 162,
+                  "height": 18,
+                  "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+                  "text": "Allow starting the server",
+                  "font": ["Geist", 500, 14],
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                },
+                {
+                  "id": "1:7419",
+                  "name": "canStartDesc",
+                  "type": "TEXT",
+                  "x": 0,
+                  "y": 18,
+                  "width": 400,
+                  "height": 34,
+                  "fills": [{"type": "SOLID", "color": "#6E5262"}],
+                  "layoutAlignSelf": "STRETCH",
+                  "text": "The link holder can wake mc-survival from asleep. Without this, they can only view its status.",
+                  "font": ["Geist", 400, 12],
+                  "lineHeight": {"value": 139.9999976158142, "unit": "PERCENT"},
+                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:7420",
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 250,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:7421",
+          "name": "btnCancel",
+          "type": "INSTANCE",
+          "x": 263,
+          "y": 20,
+          "width": 63,
+          "height": 32,
+          "component": "Button/Ghost/SM",
+          "componentId": "1:1092",
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 5,
+            "padding": [8, 10, 8, 10],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"cornerRadius": "radius/3xl"},
+          "texts": ["Cancel"]
+        },
+        {
+          "id": "1:7422",
+          "name": "btnPrimary",
+          "type": "INSTANCE",
+          "x": 334,
+          "y": 20,
+          "width": 106,
+          "height": 32,
+          "component": "Button/Primary/SM",
+          "componentId": "1:629",
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 24,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 5,
+            "padding": [8, 10, 8, 10],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "accent/accent"},
+          "texts": ["Create link"]
+        }
+      ]
+    }
+  ]
+}
