@@ -1,0 +1,80 @@
+{
+  "type": "frame",
+  "id": "LYPXU",
+  "x": 8200,
+  "y": 91528,
+  "name": "Screen/Share Link — Stopped by owner",
+  "context": "PR #1019: the owner stopped the server (manuallyStopped), or Start returned 409. The visitor cannot start it; no Start button.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "justifyContent": "center",
+  "alignItems": "center",
+  "children": [
+    {
+      "id": "GEI2E",
+      "type": "ref",
+      "ref": "HKEl2",
+      "name": "shareCard",
+      "width": 440,
+      "descendants": {
+        "rb5C1": {
+          "id": "VYKXR",
+          "type": "ref",
+          "ref": "KmZnF",
+          "name": "statusBadge",
+          "fill": "#8B5CF633",
+          "stroke": "#A78BFA99",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "padding": [
+            2,
+            4,
+            2,
+            20
+          ],
+          "descendants": {
+            "xZ9ah": {
+              "content": "Stopped",
+              "fill": "$focus",
+              "fontFamily": "$typography/font-mono"
+            }
+          }
+        },
+        "d3tVD6": {
+          "fill": "#000000"
+        },
+        "erSFt": {
+          "type": "frame",
+          "id": "QaVTq",
+          "name": "messageBlock",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "qkL3j",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "This server was stopped by its owner. Ask the server owner to start it.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        "XziyA": {
+          "enabled": false
+        }
+      }
+    }
+  ]
+}

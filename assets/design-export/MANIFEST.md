@@ -2892,3 +2892,23 @@ The running Overview (`EZFW0`) shows measured data usage alongside the requested
 | --- | --- |
 | `KJdxg` | Saved JVM options apply on the next start. Both heap arguments appear below the fields. |
 | `ZUAq1` | A 4 GiB limit and a 2G maximum make the automatic 3072M initial heap invalid. The adoption notice and disabled Save button are visible. |
+
+## Design pass for merged UI PRs (issue #1030)
+
+Brings `design.pen` in line with the dashboard changes merged in #1019, #1022, #1023, #1024 and #1025, which shipped with the Pencil pass waived. #1018 changed no layout. The other PRs in the issue were still open and are not covered.
+
+| Node | Exported change |
+| --- | --- |
+| `9dBXM` | New Backups Index empty state: padded (32/24), centred, wrapping muted message (#1025). |
+| `vtExV` | New Backups Schedules empty state: "No schedules configured yet." (#1025). |
+| `nfMMj` | New Backups Restores empty state: "No restores have been run." (#1025). |
+| `DPrYX`, `pnAbF` | Their hidden empty row uses the same padded, centred, wrapping style (no visible change; PNGs unchanged). |
+| `iSA6R` | New mobile Settings · Placement: section navigation becomes a horizontally scrolling tab row; label stacks over help text with a 12 px gap before the editor; footer wraps (#1024). |
+| `Wj0V4` | Mod registries card has no Save changes button; keys save immediately (#1023). |
+| `i4L0M` | New Mod registries state showing the footer save status "Saved" after a key was stored (#1023). |
+| `dPP50`, `U9xSg` | Players tab adds an Operators stat card (shield-check, warning accent) and an expanded Operators list with name and UUID (#1022). |
+| `LYPXU` | New Share Link state: stopped by the owner (#1019). |
+| `B57dG` | New Share Link state: still unavailable after the five-minute start deadline (#1019). |
+| `NKiqf`, `Cb3eC`, `fbBqA`, `qFLfB` | Moved right to make room for the new variants; only `x` changed. |
+
+Edited with a JSON script and checked with OpenPencil renders (master + open-pencil#2172 + local fixes), as approved by the maintainer for this pass, because no Pencil session was available. JSON exports are the node subtrees as stored in `design.pen` (same shape as Pencil `Get`); PNGs are 2× OpenPencil renders.

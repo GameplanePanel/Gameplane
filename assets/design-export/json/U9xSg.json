@@ -181,6 +181,30 @@
                       "enabled": false
                     }
                   }
+                },
+                {
+                  "id": "ZVsvw",
+                  "type": "ref",
+                  "ref": "ZWcwn",
+                  "name": "Stat Operators",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Nd4Wf": {
+                      "content": "OPERATORS"
+                    },
+                    "QdcEm": {
+                      "icon": "shield-check",
+                      "fill": "$warning/warning",
+                      "library": "lucide",
+                      "enabled": false
+                    },
+                    "vj2Ru": {
+                      "content": "2"
+                    },
+                    "h0n7zo": {
+                      "enabled": false
+                    }
+                  }
                 }
               ]
             },
@@ -446,6 +470,158 @@
                           "fill": "$muted"
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZCkfg",
+              "name": "Operators Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "context": "PR #1022: configured operators for Minecraft Java, read from ops.json; expanded by default.",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "4eD0Y",
+                  "name": "Operators Header",
+                  "width": "fill_container",
+                  "stroke": "$border/border",
+                  "strokeAlignment": "inner",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "AJaXg",
+                      "name": "Operators Chevron",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "chevron-down",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "rgazC",
+                      "name": "Operators Icon",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "shield-check",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "4Pylj",
+                      "name": "Operators Label",
+                      "fill": "$muted",
+                      "content": "Operators (2)",
+                      "fontFamily": "$typography/font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "lA6hy",
+                  "name": "Operators List",
+                  "context": "Three-column grid on wide screens (two on medium, one on small). Each entry shows the name and, below it, the UUID in muted text.",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "3eHHS",
+                      "name": "Operator — Pilot_Vance",
+                      "width": "fill_container",
+                      "fill": "$surface/secondary",
+                      "cornerRadius": 4,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "T1g4z",
+                          "name": "Operator name",
+                          "fill": "$foreground/foreground",
+                          "content": "Pilot_Vance",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cYgGG",
+                          "name": "Operator UUID",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "3f2a9c1e-7b4d-4e8a-9c2f-1d6b8e0a5c47",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ETnG0",
+                      "name": "Operator — Corvus",
+                      "width": "fill_container",
+                      "fill": "$surface/secondary",
+                      "cornerRadius": 4,
+                      "stroke": "$border/border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rizH4",
+                          "name": "Operator name",
+                          "fill": "$foreground/foreground",
+                          "content": "Corvus",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "9Yn2L",
+                          "name": "Operator UUID",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "a81d4c6f-2e9b-4f13-8a5d-7c0e3b9f6d21",
+                          "fontFamily": "$typography/font-mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dseLi",
+                      "name": "Empty grid column",
+                      "width": "fill_container",
+                      "height": 1
                     }
                   ]
                 }

@@ -1,0 +1,80 @@
+{
+  "type": "frame",
+  "id": "B57dG",
+  "x": 9840,
+  "y": 91528,
+  "name": "Screen/Share Link — Start timed out",
+  "context": "PR #1019: shown when the Starting state has not reached Running within five minutes of the accepted Start.",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "layout": "vertical",
+  "justifyContent": "center",
+  "alignItems": "center",
+  "children": [
+    {
+      "id": "InwBs",
+      "type": "ref",
+      "ref": "HKEl2",
+      "name": "shareCard",
+      "width": 440,
+      "descendants": {
+        "rb5C1": {
+          "id": "KY3FX",
+          "type": "ref",
+          "ref": "KmZnF",
+          "name": "statusBadge",
+          "fill": "#8B5CF633",
+          "stroke": "#A78BFA99",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "padding": [
+            2,
+            4,
+            2,
+            20
+          ],
+          "descendants": {
+            "xZ9ah": {
+              "content": "Still unavailable",
+              "fill": "$focus",
+              "fontFamily": "$typography/font-mono"
+            }
+          }
+        },
+        "d3tVD6": {
+          "fill": "#000000"
+        },
+        "erSFt": {
+          "type": "frame",
+          "id": "G7PNw",
+          "name": "messageBlock",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "lSQOg",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "The server is taking longer than expected to start. Check back later, or ask the server owner for help.",
+              "lineHeight": 1.5,
+              "fontFamily": "$typography/font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        "XziyA": {
+          "enabled": false
+        }
+      }
+    }
+  ]
+}

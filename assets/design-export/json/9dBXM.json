@@ -1,0 +1,452 @@
+{
+  "type": "frame",
+  "id": "9dBXM",
+  "x": 1640,
+  "y": 59782,
+  "name": "Screen/Backups — Index (Empty)",
+  "theme": {
+    "semantic": "dark"
+  },
+  "clip": true,
+  "width": 1440,
+  "height": 900,
+  "fill": "$background/background",
+  "children": [
+    {
+      "id": "kP1m8",
+      "type": "ref",
+      "ref": "kKFX9",
+      "name": "App Sidebar",
+      "height": "fill_container",
+      "descendants": {
+        "iTbd8": {
+          "fill": "#00000000"
+        },
+        "iTbd8/ghUsw": {
+          "fill": "$foreground/foreground"
+        },
+        "iTbd8/bpSQ7": {
+          "fill": "$foreground/foreground"
+        },
+        "NADGL": {
+          "fill": "$accent/soft"
+        },
+        "NADGL/Sr2Q5": {
+          "fill": "$accent/soft-foreground"
+        },
+        "NADGL/Ra9NK": {
+          "fill": "$accent/soft-foreground"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "8C83G",
+      "name": "Main",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$background/background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "83zWe",
+          "type": "ref",
+          "ref": "gu5WY",
+          "name": "Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "Gl7AY": {
+              "content": "Backups"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "CQjZm",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$background/background",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "children": [
+            {
+              "id": "a5Ljk",
+              "type": "ref",
+              "ref": "xCDF7",
+              "name": "Page Header",
+              "width": "fill_container",
+              "descendants": {
+                "spCmk": {
+                  "content": "Backups"
+                },
+                "VbHwU": {
+                  "content": "Snapshots, schedules, and restores across your authorized clusters."
+                },
+                "TgdLz": {
+                  "type": "frame",
+                  "id": "aW12t",
+                  "name": "phActions",
+                  "height": 36,
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "2WXxB",
+                      "type": "ref",
+                      "ref": "tpKRk",
+                      "name": "Back Up Now Button",
+                      "descendants": {
+                        "q58In/Xpn7K": {
+                          "library": "lucide",
+                          "icon": "plus"
+                        },
+                        "q58In/U6q13B": {
+                          "content": "Back up now"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "SsBdO",
+              "type": "ref",
+              "ref": "oIJGu",
+              "name": "tabsBar"
+            },
+            {
+              "id": "xz5WY",
+              "type": "ref",
+              "ref": "wKe4F",
+              "name": "Filter Row",
+              "width": "fill_container",
+              "descendants": {
+                "g9iDB": {
+                  "content": "0 of 0 backups"
+                }
+              }
+            },
+            {
+              "id": "pcXij",
+              "type": "ref",
+              "ref": "ECbbo",
+              "name": "Backups Table",
+              "width": "fill_container",
+              "height": "fit_content",
+              "children": [
+                {
+                  "id": "yuKCz",
+                  "type": "ref",
+                  "ref": "eafUs",
+                  "name": "Head Row",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "wykWY",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC NAME",
+                      "width": "fill_container",
+                      "descendants": {
+                        "SIu74": {
+                          "content": "NAME",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.55
+                        }
+                      }
+                    },
+                    {
+                      "id": "RcWRk",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC SERVER",
+                      "width": 216,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "SERVER",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.55
+                        }
+                      }
+                    },
+                    {
+                      "id": "Wyp08",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC PHASE",
+                      "width": 196,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "PHASE",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.55
+                        }
+                      }
+                    },
+                    {
+                      "id": "5xfNN",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC SIZE",
+                      "width": 160,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "SIZE",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.55
+                        }
+                      }
+                    },
+                    {
+                      "id": "Flc8u",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC COMPLETED",
+                      "width": 288,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "COMPLETED",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.55
+                        }
+                      }
+                    },
+                    {
+                      "id": "8aArP",
+                      "type": "ref",
+                      "ref": "DYYKO",
+                      "name": "HC ACTIONS",
+                      "width": 88,
+                      "descendants": {
+                        "SIu74": {
+                          "content": "",
+                          "fontSize": 11,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.55
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "WFwtK",
+                  "type": "ref",
+                  "ref": "GUHQo",
+                  "name": "Body",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "id": "PDjyW",
+                      "type": "ref",
+                      "ref": "tDY4O",
+                      "name": "Empty Row",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "id": "GdEbK",
+                          "type": "ref",
+                          "ref": "TDRJE",
+                          "name": "Empty Cell",
+                          "width": "fill_container",
+                          "padding": [
+                            32,
+                            24
+                          ],
+                          "justifyContent": "center",
+                          "descendants": {
+                            "HNAOu": {
+                              "content": "No backups yet. Use “Back up now” to create the first one.",
+                              "fill": "$muted",
+                              "fontSize": 14,
+                              "textAlign": "center",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RpXdt",
+                      "name": "Completed Restic backup",
+                      "width": "fill_container",
+                      "height": 54,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YaD9Z",
+                          "name": "Backup name",
+                          "width": "fill_container",
+                          "height": 48,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "TLwXV",
+                              "name": "Backup name",
+                              "fill": "$foreground/foreground",
+                              "content": "survival-nightly",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "KUAwZ",
+                          "name": "Server",
+                          "width": 216,
+                          "height": 48,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "7Nrzw",
+                              "name": "Server",
+                              "fill": "$foreground/foreground",
+                              "content": "mc-survival",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "C4USl",
+                          "name": "Phase",
+                          "width": 196,
+                          "height": 48,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "xmYKj",
+                              "name": "Phase",
+                              "fill": "$foreground/foreground",
+                              "content": "Succeeded",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "R5VK7",
+                          "name": "Logical size and packed bytes added",
+                          "width": 160,
+                          "layout": "vertical",
+                          "gap": 2,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Dztr0",
+                              "name": "Logical size",
+                              "fill": "$foreground/foreground",
+                              "content": "1434Mi",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "SOHZb",
+                              "name": "Packed bytes added",
+                              "fill": "$muted",
+                              "content": "14 KB added",
+                              "fontFamily": "$typography/font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ahYHn",
+                          "name": "Completed",
+                          "width": 288,
+                          "height": 48,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "2Tsng",
+                              "name": "Completed",
+                              "fill": "$foreground/foreground",
+                              "content": "3h ago",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cC70g",
+                          "name": "Action",
+                          "width": 88,
+                          "height": 48,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "kVT7w",
+                              "name": "Action",
+                              "fill": "$foreground/foreground",
+                              "content": "Restore",
+                              "fontFamily": "$typography/font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ],
+                      "enabled": false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "context": "Empty table state (PR #1025): the message sits in a 32px/24px padded, centred, muted 14px block that wraps and stays within the table viewport while wide headers scroll."
+}
