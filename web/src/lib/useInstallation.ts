@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 export interface Installation {
+  instanceName?: string;
   version: string;
   standalone: boolean;
   localCluster: boolean;

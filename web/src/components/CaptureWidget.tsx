@@ -12,12 +12,14 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CircleCheckBig,
+  CirclePlay,
   CircleX,
   Download,
   Eye,
   Inbox,
   Loader2,
   Lock,
+  PowerOff,
   Trash2,
 } from "lucide-react";
 import {
@@ -336,12 +338,12 @@ export function CaptureWidget({ name, ns, gs }: Props) {
               size="sm"
               onPress={() => disableMut.mutate()}
               isDisabled={!canManage || disableMut.isPending}
-            >{intl.formatMessage({ id: "web.components.capture_widget.disable_capture", defaultMessage: "Disable Capture", description: "Capture widget: button that turns capture off for this server; keep it short" })}</Button>
+            ><PowerOff className="h-4 w-4" aria-hidden="true" />{intl.formatMessage({ id: "web.components.capture_widget.disable_capture", defaultMessage: "Disable Capture", description: "Capture widget: button that turns capture off for this server; keep it short" })}</Button>
             <Button
               variant="primary"
               size="sm"
               isDisabled={!canStartCapture} onPress={() => setShowStartModal(true)}
-            >{intl.formatMessage({ id: "web.components.capture_widget.start_capture", defaultMessage: "Start Capture", description: "Capture widget: label of the button that starts a capture" })}</Button>
+            ><CirclePlay className="h-4 w-4" aria-hidden="true" />{intl.formatMessage({ id: "web.components.capture_widget.start_capture", defaultMessage: "Start Capture", description: "Capture widget: label of the button that starts a capture" })}</Button>
           </div>
         )}
       </div>

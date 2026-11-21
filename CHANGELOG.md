@@ -10,6 +10,178 @@ Changes that are not released yet live in
 They are folded into this file when a version is released; see
 [`docs/contributing.md`](docs/contributing.md#changelog-entries).
 
+## [0.4.3] — 2026-11-21
+
+A pre-v1 patch release that publishes [0.4.2](#042--2026-11-20). The v0.4.2 tag
+was pushed, but its release run stopped when the image scan found a HIGH
+vulnerability in the dashboard (`web`) image, so no 0.4.2 release was
+published. Version 0.4.3 ships every 0.4.2 change plus the fix below. Read the
+[0.4.2 upgrade notes](https://github.com/GameplanePanel/Gameplane/blob/v0.4.3/CHANGELOG.md#042--2026-11-20)
+before you upgrade from 0.4.1; two of them change behaviour.
+
+### Security
+
+- **Dashboard image libxml2 update:** the `web` image now upgrades libxml2 to
+  2.13.9-r3, which fixes CVE-2026-86144 in the nginx base image.
+  [PR #1037](https://github.com/GameplanePanel/Gameplane/pull/1037)
+
+## [0.4.2] — 2026-11-20
+
+A pre-v1 patch release with every change merged since v0.4.1: port pools for
+servers behind one shared address, a load-balancer class per server, hostname
+endpoints, player counts over the Steam query, a separate CRD chart, OpenEBS
+thin-pool capacity, NodePort player addresses, dashboard fixes and the move of
+four optional components to their own repositories.
+Read the upgrade notes below first; two of them change behaviour.
+
+### Upgrade Notes
+
+- **Breaking: LoadBalancer servers show their hostname as their address:**
+  after upgrading, every LoadBalancer server that already has
+  `spec.networking.hostname` set reports that hostname as its address in
+  `status.endpoints` and the dashboard, in place of the load balancer's IP,
+  once the load balancer has published one. Check that each such hostname
+  resolves to its server before upgrading, or clear it on servers where it
+  doesn't. The assigned address stays in the new
+  `status.endpoints[].serviceAddress`. Servers without a hostname, and
+  ClusterIP or NodePort servers, are unchanged. See
+  [A hostname as the server's address](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#a-hostname-as-the-servers-address)
+  (PR #999).
+- **Breaking: default git module source moves to the v0.4.1 module tag:** the
+  chart's `defaultModuleSource.git.ref` now points at the module repository's
+  `v0.4.1` tag instead of `v0.4.0`. This only affects installs that set
+  `defaultModuleSource.type: git`; the default `oci` source is unaffected. A
+  git source serves one version per module, so these modules change version:
+  ark-survival-ascended 1.0.9, ark-survival-evolved 2.0.2, minecraft-java
+  2.12.0, mount-and-blade-2-bannerlord 1.1.1, nuclear-option 1.1.1, palworld
+  1.3.0, project-zomboid 1.0.6, squad 1.1.1 and the-isle 1.1.1. Before
+  upgrading the chart on a git-source install, repin each installed Module of
+  these games to the new version, or it goes `Failed` with
+  `VersionUnavailable`. ark-survival-evolved 2.0 is itself a breaking module
+  change; see its module README (PR #997).
+
+### Added
+
+- **Port pools for servers behind one public address:** `operator.portPools`
+  defines ranges of ports on a shared endpoint, such as a relay or an edge
+  that forwards ports, and the templates whose servers draw from each. Every
+  such server gets a contiguous block of Service ports of its own, kept for
+  its life, even when the pool later shrinks, and shown by the new
+  `PortAllocation` condition. Servers whose games send no hostname no longer
+  need their ports set by hand behind one address. A full pool never takes
+  ports from a server that has them: new servers wait, and template updates
+  that need more ports wait on the current version. See
+  [Port pools](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#port-pools)
+  (PR #1001).
+- **Choose a server's load-balancer implementation:** a LoadBalancer server
+  can set `spec.networking.loadBalancerClass` to pick which load-balancer
+  implementation handles its Service, for a cluster that runs more than one.
+  Changing it replaces the Service, since Kubernetes doesn't allow changing a
+  Service's class in place, and the server usually gets a new external
+  address. See
+  [Choosing a Load-Balancer Implementation](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#choosing-a-load-balancer-implementation)
+  (PR #1000).
+- **Player counts from the Steam server query:** a module can read its player
+  count over Valve's A2S query instead of the console, with
+  `capabilities.players.query` (`protocol: a2s` and the UDP query port).
+  Games without a console that lists players, such as Valheim, which has no
+  RCON, can then show a player count and sleep when empty (PR #991).
+- **The CRDs are published as their own Helm chart:** each release now also
+  publishes the CRDs alone, as the OCI chart
+  `oci://ghcr.io/gameplanepanel/charts/gameplane-crds`, at the same version as
+  the `gameplane` chart. An Argo CD install can point its CRD Application at
+  that chart instead of the `crds` directory in Git; see
+  [One owner for each resource](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/argocd.md#one-owner-for-each-resource).
+  Existing installs need no change: the `gameplane` chart still ships the
+  CRDs (PR #990).
+- **Minecraft operators in Players:** the Players tab shows the count and
+  identities of configured Minecraft Java operators, including offline
+  operators, and refreshes them with the player information. The read-only
+  list comes from the server's `ops.json` file, works independently of live
+  RCON player queries, and distinguishes an empty list from a failed read
+  (PR #1022).
+- **OpenEBS game-data capacity:** cluster and fleet inventory can read an
+  administrator-selected OpenEBS LVM thin pool instead of the node's system
+  disk capacity. Storage cards use IEC units and name the capacity source while
+  still showing provisioned volume space rather than physical usage. Opt in
+  with a Node annotation, dedicated thin-provisioned storage classes and named
+  read-only LVMNode permissions; see the
+  [setup instructions](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/gateway-install.md#optional-openebs-thin-pool-capacity).
+  Unconfigured clusters keep their existing calculation, and a configured
+  lookup that fails shows as unavailable instead of falling back to the system
+  disk (PR #1002).
+
+### Changed
+
+- **Share links distinguish stopped and sleeping servers:** public share links
+  show manually stopped servers as stopped and explain that the owner must
+  start them. Shared start actions wake idle-asleep servers without
+  overriding a manual stop, and the page keeps observing an accepted wake
+  until the server starts or a five-minute wait times out. View-only links no
+  longer offer Start server, and a manual stop that races a wake request
+  shows the same owner-must-start message (PR #1019).
+- **API registry keys save immediately:** setting, replacing and removing a
+  mod registry API key now saves without a second Save changes button. Failed
+  saves keep the entered key available for retry, pending saves prevent
+  duplicate actions, and the configured status reflects the saved setting
+  after reopening the page (PR #1023).
+- **Folders sort before files:** the Files tab lists folders first, then
+  files, each group sorted alphabetically, also inside expanded folders and
+  after refreshing the listing (PR #1016).
+- **MCP server, audit syslog bridge, tunnel clients and capture sidecar moved
+  to their own repositories:** their code now lives in
+  [GameplanePanel/mcp](https://github.com/GameplanePanel/mcp),
+  [GameplanePanel/audit-syslog-bridge](https://github.com/GameplanePanel/audit-syslog-bridge),
+  [GameplanePanel/tunnel](https://github.com/GameplanePanel/tunnel) and
+  [GameplanePanel/capture-sidecar](https://github.com/GameplanePanel/capture-sidecar),
+  checked out here as submodules at the same paths. Nothing changes for
+  installs: images, image names and chart values stay the same. If you build
+  images or run `make dev-up` from a clone, run `hack/submodules.sh init`
+  first (`make images` and `make dev-up` also do it for you) (PRs #993, #995).
+- **Recent console output opens at the newest lines:** the Console tab opens
+  Recent pod output at the bottom. Loading older history keeps the output
+  already loaded and the reader's position (PR #1015).
+
+### Fixed
+
+- **`bootstrap-admin` no longer fails with "database is locked" on SQLite:**
+  running `bootstrap-admin` while the API was serving could fail at once with
+  `database is locked (SQLITE_BUSY)`, even with the busy timeout set. SQLite
+  read-write transactions now take the write lock when they begin, so they
+  wait for the lock instead of failing (PR #1028).
+- **Console output line spacing:** multiline Minecraft and other RCON replies
+  start each output line at the left edge instead of progressively indenting
+  the text. Existing indentation and PTY terminal output are preserved
+  (PR #1018).
+- **Placement labels and helper text:** Tolerations and Affinity descriptions
+  sit beneath their labels with consistent spacing, and server settings use a
+  scrollable tab row on narrow screens so the placement editors and save
+  controls remain usable (PR #1024).
+- **Backup empty states:** the Backups, Schedules and Restores tables give
+  empty-state messages consistent padding, centred alignment and
+  viewport-width wrapping (PR #1025).
+- **Player address for NodePort servers:** the dashboard shows and copies the
+  game's hostname or its serving node's external IP together with the assigned
+  NodePort. If your nodes have no external IP, set the hostname players use in
+  **Settings → Networking**. See
+  [Connecting to a NodePort server](https://github.com/GameplanePanel/Gameplane/blob/v0.4.2/docs/networking.md#connecting-to-a-nodeport-server)
+  (PR #1034).
+- **Denied backup requests no longer repeat:** a server's Backups tab checks
+  permissions for its selected cluster and namespace before loading backups,
+  schedules, restores and destinations. Authorization failures stop automatic
+  retries and polling until access changes, and the tab shows an
+  access-denied message. Schedule creation and server backup settings apply the
+  same checks and tell denied access apart from missing configuration. Role
+  restrictions are unchanged (PR #1017).
+- **Saved instance name in the panel header:** the header uses the configured
+  instance name after saving general settings and after reloading. Unset or
+  blank names fall back to `gameplane` (PR #1021).
+- **Dashboard styling matches the design again:** selected tabs show their
+  pill again, and the Settings side menu, table headers, form fields and
+  selects, warning banners, login SSO buttons, Servers table and stat cards,
+  and checkboxes match the design. On the Console tab, Recent pod output now
+  sits under the terminal and folds away from its header (PR #1033).
+
 ## [0.4.1] — 2026-11-17
 
 A pre-v1 patch release with every change merged since v0.4.0: the security
@@ -1608,6 +1780,8 @@ testing. Not yet recommended for unattended production workloads — see
   runner (retry + longer readiness window), eliminating a cascade of flaky
   API e2e failures.
 
+[0.4.3]: https://github.com/GameplanePanel/gameplane/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/GameplanePanel/gameplane/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/GameplanePanel/gameplane/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/GameplanePanel/gameplane/compare/v0.3.0-rc.1...v0.3.0

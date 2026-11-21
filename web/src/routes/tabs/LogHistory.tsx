@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@heroui/react";
 import { defineMessages } from "react-intl";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { APIError } from "@/lib/api";
 import type { LogHistoryPage } from "@/lib/endpoints";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { useResourceClient, useResourceTarget } from "@/lib/resourceTarget";
+import { cn } from "@/lib/utils";
 
 const labels = defineMessages({
   open: { id: "web.logs.history.open", defaultMessage: "Earlier output", description: "Open a snapshot of older log output" },
@@ -33,17 +35,40 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
   const client = useResourceClient(target);
   const [open, setOpen] = useState(consoleView);
   const [before, setBefore] = useState("");
-  const [page, setPage] = useState<LogHistoryPage>();
+  const [page, setPage] = useState<LogHistoryPage & { sources: string[] }>();
   const [error, setError] = useState<"changed" | "failed">();
   const [loading, setLoading] = useState(consoleView);
   const output = useRef<HTMLPreElement>(null);
+  const pendingScroll = useRef<{ top: number; height: number } | "initial" | undefined>(undefined);
+  useLayoutEffect(() => {
+    const element = output.current;
+    const position = pendingScroll.current;
+    if (!element || !position) return;
+    element.scrollTop = position === "initial"
+      ? (consoleView ? element.scrollHeight : 0)
+      : position.top + element.scrollHeight - position.height;
+    pendingScroll.current = undefined;
+  }, [page, consoleView]);
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
     void client.withSignal(controller.signal).Logs.history(name, source, before, ns).then((result) => {
       if (controller.signal.aborted) return;
-      setPage(result);
-      if (output.current) output.current.scrollTop = 0;
+      const element = output.current;
+      pendingScroll.current = before && element
+        ? { top: element.scrollTop, height: element.scrollHeight }
+        : "initial";
+      setPage((previous) => {
+        const sources = result.source ? [result.source] : [];
+        if (!before || !previous) return { ...result, sources };
+        const separator = result.text && previous.text && !result.text.endsWith("\n") ? "\n" : "";
+        return {
+          ...result,
+          text: result.text + separator + previous.text,
+          limited: result.limited || previous.limited,
+          sources: [...new Set([...sources, ...previous.sources])],
+        };
+      });
     }).catch((cause: unknown) => {
       if (!controller.signal.aborted) setError(cause instanceof APIError && cause.status === 409 ? "changed" : "failed");
     }).finally(() => {
@@ -53,25 +78,32 @@ function History({ name, ns, source, console: consoleView = false }: Props) {
   }, [open, before, name, ns, source, client]);
 
   const toggle = () => {
+    pendingScroll.current = undefined;
     setPage(undefined);
     setError(undefined);
     setBefore("");
     setLoading(!open);
     setOpen(!open);
   };
-  return <section className="shrink-0 border-b border-border px-3 py-1.5">
+  return <section className={cn("shrink-0 border-border px-3 py-1.5", consoleView ? "border-t" : "border-b")}>
     <div className="flex flex-wrap items-center gap-2">
-      {consoleView && <span className="text-xs font-medium">{intl.formatMessage(labels.console)}</span>}
-      <Button size="sm" variant="ghost" aria-expanded={open} onPress={toggle}>
-        {intl.formatMessage(open ? labels.hide : labels.open)}
-      </Button>
+      {consoleView ? (
+        <Button size="sm" variant="ghost" aria-expanded={open} onPress={toggle} className="gap-1.5 px-1 text-xs font-medium">
+          {open ? <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" /> : <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />}
+          {intl.formatMessage(labels.console)}
+        </Button>
+      ) : (
+        <Button size="sm" variant="ghost" aria-expanded={open} onPress={toggle}>
+          {intl.formatMessage(open ? labels.hide : labels.open)}
+        </Button>
+      )}
       {open && page?.before && !error && <Button size="sm" variant="outline" isDisabled={loading} onPress={() => {
         setLoading(true);
         setBefore(page.before ?? "");
       }}>
         {intl.formatMessage(labels.older)}
       </Button>}
-      {open && page?.source && <span className="font-mono text-xs text-muted">{page.source}</span>}
+      {open && !!page?.sources.length && <span className="font-mono text-xs text-muted">{page.sources.join(", ")}</span>}
     </div>
     {open && <div className="space-y-1 text-xs">
       {consoleView && <p className="text-muted">{intl.formatMessage(labels.boundary)}</p>}

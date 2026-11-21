@@ -1,6 +1,6 @@
 # web — Specification
 
-**Status:** pre-v1 (v0.4.1)  
+**Status:** pre-v1 (v0.4.3)  
 **Module / package:** @gameplane/web  
 **Build:** Vite 8.3 + React 19.3 + TypeScript 7.0 (strict)
 
@@ -26,7 +26,7 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 
 ### Standalone panel installations
 
-- Authenticated `GET /admin/installation` reports `standalone`, `localCluster`, and the central API build `version`. About displays that panel version even without local Kubernetes metadata. The dashboard waits for this capability response before making local infrastructure or module requests; a failed capability request does not imply a local cluster.
+- Authenticated `GET /admin/installation` reports `standalone`, `localCluster`, the central API build `version`, and the saved `instanceName`. Both desktop and mobile sidebar headers show the saved instance name, trim surrounding whitespace, and fall back to gameplane for a missing or blank name. Unreadable or malformed general configuration also falls back to gameplane without disabling installation capabilities. Long names truncate within the header and retain the full text in a tooltip. A successful general-settings save invalidates the installation metadata immediately; failed saves retain the previous metadata. About displays that panel version even without local Kubernetes metadata. The dashboard waits for this capability response before making local infrastructure or module requests; a failed capability request does not imply a local cluster.
 - Module catalog/source background refresh failures retain the last loaded data and open drafts, with an inline Retry error. Initial load failures use the full error state. Failed identity loading has its own Retry state and is distinct from permission denial.
 - Successful removal clears the currently selected registration to an explicit empty selection, preserved across reload, without selecting another workload. Removal errors stay inside the confirmation dialog and reset on dismissal/reopening. Remote Deploy labels use the cluster display name while navigation retains its registration ID.
 - Standalone `/clusters` may be empty. The UI must not synthesize a local registration or fetch local inventory, templates, or module catalogs in that state. Existing fleet pages continue to render their empty states.
@@ -64,6 +64,7 @@ retains a separate inventory selection. `design.pen` and the
 - `createRequestClient`, `createResourceClient` and `ResourceTargetProvider` bind JSON requests, raw file/download paths, dialogs, chained mutations and WebSocket URLs to the original scope. Detail waits for matching resource/access identity before mounting actionable children. Instance query keys include UID; the current server-object lookup and namespace collections use stable scope keys so a replacement object can be detected and forms remounted.
 - Server controls consume `/servers/{name}/access` capabilities and exact named permissions. Owner/collaborator operations remain distinct from full-object writes, owner/admin management, strictly owner-only share links, backup permissions and capture management. The API remains authoritative.
 - Fleet totals visibly distinguish complete, partial, failed and truncated reads. CPU/memory percentages use summed measured usage divided by matching capacity; missing measurements are unknown. Fleet storage totals report provisioned capacity. Player totals indicate missing server readings.
+- Storage cards retain the Bound-PersistentVolume provisioned numerator and use IEC units. The optional stats `storageCapacitySource` selects the capacity caption: `openebs-lvm` is game-data capacity, `node-ephemeral` (or an omitted legacy field) is system storage, and combined inventory with different sources is combined capacity. Configured-pool read failures retain unavailable/partial inventory behavior without substituting system capacity or zero. Card layout, overcommit handling and non-storage byte formatting are unchanged.
 - The Disk card on a server's Overview shows a percentage when the agent reports both usage and a positive capacity. With usage alone it shows bytes used, including zero. An em dash means usage is unknown. When a percentage is unavailable, the subtitle shows the requested volume size if configured, labeled as a request.
 - Cluster registration and node selection remain in infrastructure administration; ordinary pages have no global cluster switcher. Accounts, roles, modules, audit and installation settings retain central ownership.
 - Creation uses eligible placements and templates supplied by `/fleet/placements`. An initial placement is captured once, changing placement resets the draft, and losing that placement does not automatically choose another. All creation follow-ups and success navigation retain the captured target. This adds no cross-cluster scheduler or data migration.
@@ -237,7 +238,7 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
 
 ### Screens and Routes
 
-1. **Servers Page** (`web/src/routes/Servers.tsx`, 651 lines)
+1. **Servers Page** (`web/src/routes/Servers.tsx`, 674 lines)
    - List all GameServers in a responsive table (desktop ≥768px) or stacked cards (mobile <768px)
    - Renders server phase, game icon, player count, resource usage, and uptime via StatCard compositions
    - Filter by phase (Running/Stopped/Pending/Failed), game template, and namespace via FilterPopover
@@ -245,10 +246,10 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
    - Server count summary via StatCard at the top; search box using HeroUI Input
    - Action menu (clone, transfer, wipe, delete) via ServerActionsMenu composition (uses DropdownMenu)
 
-2. **ServerDetail Page** (`web/src/routes/ServerDetail.tsx`, 289 lines)
+2. **ServerDetail Page** (`web/src/routes/ServerDetail.tsx`, 407 lines)
    - Full server view with header showing phase chip, uptime, player count, and action buttons
    - Both the header and Overview offer Stop during Pending and Starting to users with control access to that server.
-   - Tabbed interface (HeroUI Tabs) routing to nine sub-views: Overview, Events, Console, Logs, Files, Mods, Modpacks, Players, Backups, Capture, Settings
+   - Tabbed interface (HeroUI Tabs) routing to eleven sub-views: Overview, Events, Console, Logs, Files, Mods, Modpacks, Players, Backups, Capture, Settings
    - Phase chip from ui/PhaseChip; game icon from ui/GameIcon
    - Lifecycle action buttons (start/stop/restart) gated by phase state
 
@@ -281,31 +282,32 @@ The old Radix-based `ui/` components that shipped before this rebuild — `butto
 
 Six of the nine ServerDetail tabs are rebuilt in this slice:
 
-1. **Overview** (`web/src/routes/tabs/Overview.tsx`, 411 lines)
+1. **Overview** (`web/src/routes/tabs/Overview.tsx`, 439 lines)
    - Composes `ServerStatusCard`, `ServerSleepCard`, `ServerActionsCard`, `EventList` (imports at lines 9–12) for status, sleep state, lifecycle actions, and recent pod events
    - Live metrics: CPU %, memory %, disk % via StatCard + Sparkline (`Sparkline` used at line 332)
    - Uses HeroUI Card/CardHeader/CardTitle/CardContent/CardFooter/Alert (line 6); ui/ StatCard, Sparkline (lines 7–8)
 
-2. **Events** (`web/src/routes/tabs/Events.tsx`, 86 lines)
+2. **Events** (`web/src/routes/tabs/Events.tsx`, 97 lines)
    - Kubernetes events (image pull, scheduling, crash-loops, agent startup) rendered via `EventList` (`web/src/components/server/EventList.tsx`, imported line 6)
    - Filter state (all/info/warnings) via HeroUI Button
    - Uses HeroUI Button, Card (line 3)
 
-3. **Console** (`web/src/routes/tabs/Console.tsx`, 157 lines)
+3. **Console** (`web/src/routes/tabs/Console.tsx`, 175 lines)
    - Interactive RCON/PTY terminal (xterm.js, lazy-loaded, NOT rebuilt — uses existing engine)
    - LoadingCard during template resolution (line 28); ErrorCard if no console available (line 35)
    - Uses ui/ LoadingCard, ErrorCard only (lines 4–5); console I/O engine unchanged
+   - Recent pod output opens at the newest line after the snapshot renders. Loading older history prepends it without discarding the current snapshot or moving the reader away from the currently visible output; closing or changing the resource resets history. Combined pages retain all source-container names and any clipped-history warning.
    - RCON text replies normalize LF and CRLF to terminal CRLF, preserving indentation and content so each line starts in column zero. PTY output retains its raw terminal line endings and control sequences.
    - Command bar under the terminal (`ConsoleShell.tsx`): Send or Enter submits; ArrowUp/ArrowDown recall the last 100 commands sent from this tab (consecutive repeats collapsed), and ArrowDown past the newest restores the unsent line. History lives per mount and is not persisted
 
-4. **Logs** (`web/src/routes/tabs/Logs.tsx`, 299 lines)
+4. **Logs** (`web/src/routes/tabs/Logs.tsx`, 288 lines)
    - Pod stdout or configured game log file stream (WebSocket, NOT rebuilt — uses existing engine)
    - Requests last 500 lines of history via `?tail=500` query parameter before streaming new output
    - Search/filter input via HeroUI Input; download button
    - Virtualized log viewer (TanStack Virtual, NOT rebuilt)
    - Uses HeroUI Button, Input only (line 4); log streaming engine unchanged
 
-5. **Files** (`web/src/routes/tabs/Files.tsx`, 602 lines)
+5. **Files** (`web/src/routes/tabs/Files.tsx`, 657 lines)
    - File browser and editor (Monaco, lazy-loaded, NOT rebuilt)
    - Create folder/file dialogs via HeroUI Modal/ModalBackdrop/ModalContainer/ModalDialog/ModalHeader/ModalBody/ModalFooter (lines 9–19)
    - Delete confirmation via ui/ ConfirmDialog (line 35, used at line 408)
@@ -342,16 +344,16 @@ Console input/output and Logs streaming use existing bidirectional WebSocket (co
 
 **Slice 2a adds/updates helper components in `web/src/components/server/`** (line counts are the file's current total, since internal structure shifts with every edit and precision there is not load-bearing):
 
-- **ServerActionsMenu.tsx** (116 lines) — Dropdown menu context menu (clone/transfer/wipe/delete) using ui/ DropdownMenu (import lines 12–17, usage lines 48–86); wires the four dialogs below
-- **CloneServerDialog.tsx** (138 lines) — Clone form (name, description, template selector) built directly from HeroUI `Modal`/`ModalBackdrop`/`ModalContainer`/`ModalDialog`/`ModalHeader`/`ModalHeading`/`ModalBody`/`ModalFooter`/`Button`/`Input`/`Label`/`Description`/`FieldError` (import lines 4–17) — not ui/ConfirmDialog
-- **TransferServerDialog.tsx** (143 lines) — Transfer form (destination picker) from the HeroUI `Modal` family plus `ListBox`/`ListBoxItem`/`Popover`/`PopoverTrigger`/`PopoverContent` (import lines 3–16) — not ui/ConfirmDialog
-- **WipeServerDialog.tsx** (123 lines) — Wipe-world confirmation from the HeroUI `AlertDialog` family plus `Checkbox` (import lines 3–14) — not ui/ConfirmDialog
-- **DeleteServerDialog.tsx** (52 lines) — Delete server confirmation via ui/ ConfirmDialog (line 2)
-- **ServerStatusCard.tsx** (73 lines) — Status summary card in Overview tab, built on HeroUI Card (line 3); displays "—" when the agent reports no game version instead of falling back to template name
-- **ServerActionsCard.tsx** (487 lines) — Lifecycle action card in Overview tab; HeroUI Button/Card/CardHeader/CardContent/Modal family/Input/Label/Select/ListBox/ListBoxItem/Checkbox/Description/FieldError (import lines 20–39). A param with `currentFrom` is pre-filled from that status metric's live reading (shared `server-status` query; enum options match case-insensitively), falling back to `default`; the user's edits always take precedence. A button is enabled by its action's resolved transport (mirroring the API): stdin actions (explicit `transport: stdin`, or no transport on a game without RCON) only need an attachable console (`consoleMode` not `none`), rcon actions need RCON; when some action is blocked a hint says why
-- **ServerSleepCard.tsx** (170 lines) — Server sleep/idle state summary; HeroUI Card/Alert (line 2) plus a `Chip` re-exported from ui/PhaseChip (line 6)
-- **EventList.tsx** (43 lines) — Kubernetes event list renderer, used from both Events.tsx (line 6) and Overview.tsx (line 12)
-- **PortOverridesEditor.tsx** (80 lines) — Port configuration helper; HeroUI Input/Button (line 1) (Settings tab, deferred)
+- **ServerActionsMenu.tsx** (123 lines) — Dropdown menu context menu (clone/transfer/wipe/delete) using ui/ DropdownMenu (import lines 12–17, usage lines 48–86); wires the four dialogs below
+- **CloneServerDialog.tsx** (141 lines) — Clone form (name, description, template selector) built directly from HeroUI `Modal`/`ModalBackdrop`/`ModalContainer`/`ModalDialog`/`ModalHeader`/`ModalHeading`/`ModalBody`/`ModalFooter`/`Button`/`Input`/`Label`/`Description`/`FieldError` (import lines 4–17) — not ui/ConfirmDialog
+- **TransferServerDialog.tsx** (150 lines) — Transfer form (destination picker) from the HeroUI `Modal` family plus `ListBox`/`ListBoxItem`/`Popover`/`PopoverTrigger`/`PopoverContent` (import lines 3–16) — not ui/ConfirmDialog
+- **WipeServerDialog.tsx** (126 lines) — Wipe-world confirmation from the HeroUI `AlertDialog` family plus `Checkbox` (import lines 3–14) — not ui/ConfirmDialog
+- **DeleteServerDialog.tsx** (58 lines) — Delete server confirmation via ui/ ConfirmDialog (line 2)
+- **ServerStatusCard.tsx** (125 lines) — Status summary card in Overview tab, built on HeroUI Card (line 3); displays "—" when the agent reports no game version instead of falling back to template name
+- **ServerActionsCard.tsx** (659 lines) — Lifecycle action card in Overview tab; HeroUI Button/Card/CardHeader/CardContent/Modal family/Input/Label/Select/ListBox/ListBoxItem/Checkbox/Description/FieldError (import lines 20–39). A param with `currentFrom` is pre-filled from that status metric's live reading (shared `server-status` query; enum options match case-insensitively), falling back to `default`; the user's edits always take precedence. A button is enabled by its action's resolved transport (mirroring the API): stdin actions (explicit `transport: stdin`, or no transport on a game without RCON) only need an attachable console (`consoleMode` not `none`), rcon actions need RCON; when some action is blocked a hint says why
+- **ServerSleepCard.tsx** (158 lines) — Server sleep/idle state summary; HeroUI Card/Alert (line 2) plus a `Chip` re-exported from ui/PhaseChip (line 6)
+- **EventList.tsx** (54 lines) — Kubernetes event list renderer, used from both Events.tsx (line 6) and Overview.tsx (line 12)
+- **PortOverridesEditor.tsx** (82 lines) — Port configuration helper; HeroUI Input/Button (line 1) (Settings tab, deferred)
 - **ConfigFields.tsx** — `ConfigFieldInput`/`ConfigFields`: schema-driven config field renderer shared by the Create wizard (variant `wizard`, stacked) and Settings > Game configuration (variant `settings`: label-left rows, required marker, write-only passwords with Remove/Undo via `removing`/`onRemove`/`onUndo`, file note, inline errors); native selects for enum and bool, text input with numeric keyboard for int
 
 ### Design Import Rule (FR-012)
@@ -389,7 +391,7 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
 
 ### Screens and Routes
 
-1. **Mods Tab** (`web/src/routes/tabs/Mods.tsx`, 1206 lines)
+1. **Mods Tab** (`web/src/routes/tabs/Mods.tsx`, 1291 lines)
    - Browse installed mods (idList or file-based, per template capability)
    - Install from registry or upload custom mods via dialogs
    - Per-mod actions: upgrade, reinstall, uninstall using HeroUI Button + Dropdown
@@ -397,18 +399,18 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Rendering strategy differs by game: ARK/Project Zomboid use idList editor; others show file list
    - Uses HeroUI Button, Input, Chip; ui/ ConfirmDialog (for destructive actions)
 
-2. **Modpacks Tab** (`web/src/routes/tabs/Modpacks.tsx`, 230 lines)
+2. **Modpacks Tab** (`web/src/routes/tabs/Modpacks.tsx`, 175 lines)
    - Modpack-capable games render a selector/browser
    - Select active pack, view pack contents, toggle mods within a pack
    - Uses HeroUI Select, Table, Button, Chip
 
-3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 209 lines)
+3. **Backups Tab** (`web/src/routes/tabs/Backups.tsx`, 290 lines)
    - Per-server backup list (snapshots created via the /backups page or on-demand)
    - Table columns: backup name, phase (Pending/Succeeded/Failed), size, completion time, actions
    - Open backup detail drawer, trigger restore dialog, delete backup
    - Uses HeroUI Table, Button, Modal (restore trigger), ui/ PhaseChip
 
-4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 289 lines)
+4. **Settings Tab** (`web/src/routes/tabs/Settings.tsx`, 396 lines)
    - Sub-section navigation tabs (11 sections below) via HeroUI Tabs
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
@@ -486,7 +488,7 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 
 ### Screens and Routes
 
-1. **Create Server Wizard** (`web/src/routes/CreateServer.tsx`, 52,147 bytes)
+1. **Create Server Wizard** (`web/src/routes/CreateServer.tsx`, 99,594 bytes)
    - Multi-step form guiding server creation through five steps; each step has validation, back/next navigation, and error display
    - Step 1: Server name and template selection (game type pick)
    - Step 2: Version selection (pick released/beta/unstable version per template)
@@ -496,14 +498,14 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
    - Form state and validation managed per-step via React state; back button returns to previous step without data loss
    - Tunnel credentials saved to a Kubernetes Secret after server creation if tunnel is enabled (error chain preserved if secret-save fails)
 
-2. **Modules Catalog Page** (`web/src/routes/Modules.tsx`, 11,410 bytes)
+2. **Modules Catalog Page** (`web/src/routes/Modules.tsx`, 17,651 bytes)
    - Browse available game modules (templates) from all registered ModuleSources
    - Module cards display game icon, name, description, version, install status
    - Actions: install from catalog, manage installed versions, bulk upload, add/edit ModuleSource
    - Filter by game type or source; search by name
    - InstallDialog, UploadModuleDialog, SourceDialog (add/edit module source) for workflow UI
 
-3. **Backups Management Page** (`web/src/routes/Backups.tsx`, 18,395 bytes)
+3. **Backups Management Page** (`web/src/routes/Backups.tsx`, 43,135 bytes)
    - Tabbed interface with three sub-views: Backups (index), Schedules, Restores
    - All three table empty states use consistent horizontal and vertical padding, centered muted text, and wrapping for longer messages, including filtered and unavailable-data states. Empty messages use the table scroll viewport width and remain visible while wide column headers scroll horizontally.
    - **Backups tab:** List all Backup CRs (manual + scheduled); filter by server/status; view backup metadata (size, created/expires); select row to open detail drawer, or restore — no inline delete action on the row
@@ -593,12 +595,12 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 **UploadModuleDialog.tsx:**
 - File drag-drop or file picker for OCI bundle upload
 - Module source selector (which ModuleSource to upload to)
-- Upload button → multipart POST to `/modules/:source/upload`
+- Upload button → POST of the raw `.tar.gz` or `.zip` bundle as the request body to `/modules/sources/:source/upload`
 
 **SourceDialog.tsx (ModuleSource CRUD):**
 - Modal form for create/edit ModuleSource (git URL, HTTP URL, local upload)
 - Source name, type picker, credentials/auth fields as needed
-- Add/Update button → POST/PUT to `/module-sources`
+- Add button → POST to `/modules/sources`; Update button → PUT to `/modules/sources/:name`
 
 ### Backups Management Surface
 
@@ -647,21 +649,21 @@ Every file in slice 2b imports **only** from `@heroui/react` and `@/components/u
 
 ### Backup-Related Components (`web/src/components/backups/`)
 
-- **BackupRow.tsx** (32 lines) — Single table row rendering one Backup CR; ID, server, phase chip, size, timestamps
-- **BackupDetailDrawer.tsx** (129 lines) — Slide-out detail panel for backup metadata
-- **BackupFilters.tsx** (74 lines) — Filter controls (search box, server picker, phase filter — no date-range filter)
-- **RestoreDialog.tsx** (228 lines) — Modal form for restore workflow (source backup, destination server, confirm)
-- **ScheduleForm.tsx** (172 lines) — Inline (non-modal) form for creating a schedule (cron expression, retention) — no edit mode
-- **RetentionFields.tsx** (106 lines) — Sub-component with a numeric count input per retention bucket (keep last/hourly/daily/weekly/monthly/yearly)
-- **ErrorBanner.tsx** (14 lines) — Error display for backup/schedule operations
+- **BackupRow.tsx** (49 lines) — Single table row rendering one Backup CR; ID, server, phase chip, size, timestamps
+- **BackupDetailDrawer.tsx** (169 lines) — Slide-out detail panel for backup metadata
+- **BackupFilters.tsx** (145 lines) — Filter controls (search box, server picker, phase filter — no date-range filter)
+- **RestoreDialog.tsx** (221 lines) — Modal form for restore workflow (source backup, destination server, confirm)
+- **ScheduleForm.tsx** (184 lines) — Inline (non-modal) form for creating a schedule (cron expression, retention) — no edit mode
+- **RetentionFields.tsx** (107 lines) — Sub-component with a numeric count input per retention bucket (keep last/hourly/daily/weekly/monthly/yearly)
+- **ErrorBanner.tsx** (15 lines) — Error display for backup/schedule operations
 
 ### Modules-Related Components (`web/src/components/modules/`)
 
-- **ModuleCard.tsx** (358 lines) — Card displaying module metadata, install/manage actions
-- **InstallDialog.tsx** (174 lines) — Modal for module installation (source, destination, version selection)
-- **UploadModuleDialog.tsx** (181 lines) — Modal for bulk module file upload
-- **SourceDialog.tsx** (531 lines) — Modal for ModuleSource creation/edit (git URL, HTTP, local)
-- **ModuleSourcesPanel.tsx** (246 lines) — Panel for managing module sources (CRUD operations)
+- **ModuleCard.tsx** (332 lines) — Card displaying module metadata, install/manage actions
+- **InstallDialog.tsx** (201 lines) — Modal for module installation (source, destination, version selection)
+- **UploadModuleDialog.tsx** (186 lines) — Modal for bulk module file upload
+- **SourceDialog.tsx** (573 lines) — Modal for ModuleSource creation/edit (git URL, HTTP, local)
+- **ModuleSourcesPanel.tsx** (239 lines) — Panel for managing module sources (CRUD operations)
 
 ### Design Import Rule (FR-012)
 
@@ -773,7 +775,7 @@ src/
     browser-msw.ts          # MSW request handlers for mock e2e tests
     [*.test.tsx]            # Co-located unit + integration tests
 e2e/
-  [*.spec.ts]               # Playwright tests (mock mode and live mode)
+  [*.spec.ts]               # Playwright tests in e2e/specs/ (mock mode and live mode)
   globalSetup.ts            # Live mode: spawn kubectl port-forward, bootstrap admin, save auth state
   globalTeardown.ts         # Live mode: kill port-forward
   .auth/storage.json        # Session + CSRF cookies persisted for live-mode tests
@@ -784,7 +786,7 @@ vitest.config.ts            # Coverage gates (lines 92 / functions 76 / branches
 playwright.config.ts        # Mock + live test modes, serial execution (login state is shared)
 eslint.config.js            # JavaScript, React Hooks and FormatJS rules
 .oxlintrc.json              # React and TypeScript rules, including type-aware promise checks
-package.json                # @gameplane/web v0.4.1; dev: vite, npm scripts for build/test/lint
+package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for build/test/lint
 ```
 
 ## SSO Role Rules and Role Source (spec 034) — pending dashboard build
@@ -1030,6 +1032,19 @@ namespace, name and UID before providing access through `ResourceTargetProvider`
 
 **Other permission checks:** The `can(me, permission, namespace?, cluster?)` helper (`web/src/lib/auth.ts`) mirrors the server's RBAC logic. With `permissionsByCluster`, namespaced callers pass the explicit target cluster; only that cluster or the `*` wildcard cluster can supply a cluster-wide (`*` namespace) or exact namespace grant. Control-plane callers omit both namespace and cluster and accept a cluster-wide grant on any cluster. When `permissionsByCluster` is absent, `can` retains the legacy flat `permissions` fallback. Server resource controls use their verified target access instead of a global cluster selector. The API enforces authorization independently of UI visibility.
 
+The server Backups tab gates backups and restores on the selected target's
+`backups:read` permission, schedules on `schedules:read`, and destination lookup
+on `destinations:read`. Each query includes a stable scoped permission fingerprint
+in its cache key. HTTP 401/403 disables retries, polling, focus/reconnect and
+invalidation refetches for that query until access changes. Reopening a backup
+surface allows one fresh read of retained authorization failures, so access restored
+while a standalone drawer was unmounted can recover. Existing error banners show
+an access-denied message, and previously cached denied data is hidden. The shared
+destination hook applies the same scoped permission gate and cache key to the
+Backups tab, schedule form, and server backup settings. Configuration hints appear
+only after successful empty destination responses, never for denied or failed reads.
+The API remains authoritative; no role or server-side authorization rule changes.
+
 ## ServerDetail Settings Sub-sections
 
 Settings tab (`SettingsTab`, `web/src/routes/tabs/Settings.tsx`) displays up to 13 sections in a left sidebar (`SECTIONS` array; Version only when the template has versions, Game configuration only when the template declares a `configSchema` or the server carries config keys; Share links is described after the list):
@@ -1040,7 +1055,7 @@ Save fetches the latest server and applies only the changes from the original ba
 2. **Version** — Template version selector (triggers container restart)
 2a. **Game configuration** — `GameConfigSection` (`web/src/routes/tabs/settings/GameConfig.tsx`), key `config`, shown only when `template.spec.configSchema` has entries (or the server still carries `spec.config` keys, so stray keys can be removed). Edits `draft.spec.config` through the tab's shared draft/Save footer; renders fields with the shared `ConfigFields` (`web/src/components/server/ConfigFields.tsx`, variant `settings`). An unset key means the template default (or the auto value); a value equal to the schema default removes the key, and an emptied map is written as `undefined` (never `{}`). Client validation (`validateConfig`, `web/src/lib/validation.ts`): required, enum, int (whole number, min/max), bool, string/password length; failures show inline and disable Save through `onValidityChange` (the operator stays authoritative; the API does not validate against the schema). Password fields are write-only: the API returns the marker `__gameplane_redacted__` for a stored password, the input is empty with the placeholder "Unchanged — type to replace" and a "Write-only" note, the marker is never rendered, stays in the draft until the user types (the PUT then keeps the stored value) and typing replaces it. A stored OPTIONAL password also shows a "Remove password" button (spec 021 OD-2): pressing it drops the key from the draft (the API deletes an optional password whose key is absent) and shows "Password will be removed" with an Undo button; the state is derived from `storedConfig` (the saved `gs.spec.config` marker) so it survives section switches, Undo restores the key in its saved position, required passwords and read-only sessions get no button, and emptying a typed value still returns to "unchanged". `target: file` fields carry a "Written to file" note. Keys present in `spec.config` but absent from the schema are listed with a "Remove" button ("No longer in the template") because the operator rejects unknown keys. The notice follows the edited fields in the effective schema. Startup-only edits apply at the next container start. Ordinary configuration edits can restart the server. Minecraft Java groups supported startup options and previews the independently resolved heap sizes for the itzg launcher. When `status.conditions[type=Ready].message` starts with `invalid config:` a danger alert shows it. Without `servers:write` (`access.canWrite`) the fields are disabled, the alert is hidden and the footer shows "You need permission to change this server's settings." instead of Discard/Save.
 3. **Resources** — `ResourcesSection` (`web/src/routes/tabs/settings/Resources.tsx`): CPU and memory (`spec.resources`), storage size and StorageClass. The CPU and memory fields show the saved limit (falling back to the request, then the 2 cores / 4Gi dashboard default). By default each field writes the same value to the request and the limit (Guaranteed QoS). The "Reserve less than the limit" switch (Burstable QoS) is not stored: it is on when a saved request differs from its limit, or once the user turns it on. While it is on, the CPU and memory fields are the limits and "Reserved CPU" / "Reserved memory (GiB)" (`ResourceInput` with its `label` prop) are the requests, from 0 (reserve nothing) up to the saved limit (uncapped when there is no saved limit). Lowering a limit below a saved request lowers that request to the new limit, since Kubernetes rejects a request above its limit. Each control writes only its own value, so an absent limit or request stays absent: the displayed fallbacks are never written back. Switching off copies each saved limit onto its request; a resource without a saved limit keeps its request.
-4. **Networking** — Service type (ClusterIP/NodePort/LoadBalancer), LoadBalancer hostname, address pool / explicit address request, port overrides. `spec.networking.loadBalancerClass` is not editable in this form (it is set through the API or kubectl); a settings save keeps it as it is. Tunnel validation (`tunnel.enabled`, provider-specific config, credentials) is computed during render and reported via `onValidityChange` callback in an effect; local field state for `addressPool` and `address` is held in `useState` — so consecutive edits within one render are cumulative rather than each recomputing against the same stale `net` snapshot — and is re-seeded from props by two complementary mechanisms: on identity change, via a parent `key` remount; and in-render, whenever the incoming values differ by value from the last synced pair (so a save round-trip or a reload that returns changed values for the *same* server is picked up).
+4. **Networking** — Service type (ClusterIP/NodePort/LoadBalancer), game hostname for LoadBalancer and NodePort connections, address pool / explicit address request, port overrides. `spec.networking.loadBalancerClass` is not editable in this form (it is set through the API or kubectl); a settings save keeps it as it is. Tunnel validation (`tunnel.enabled`, provider-specific config, credentials) is computed during render and reported via `onValidityChange` callback in an effect; local field state for `addressPool` and `address` is held in `useState` — so consecutive edits within one render are cumulative rather than each recomputing against the same stale `net` snapshot — and is re-seeded from props by two complementary mechanisms: on identity change, via a parent `key` remount; and in-render, whenever the incoming values differ by value from the last synced pair (so a save round-trip or a reload that returns changed values for the *same* server is picked up).
 5. **Environment** — Custom env var key=value pairs
 6. **Lifecycle** — Pre/post-start/stop scripts, quiesce grace period
 7. **Scheduled backups** — `BackupsSection` (`web/src/routes/tabs/settings/Backups.tsx`): a single inline toggle (enable/disable) and form editing `spec.backupPolicy` on the server draft — cron-expression input (no daily/weekly picker), destination picker, retention fields, and a suspend switch; not a separate CRUD list
@@ -1187,7 +1202,7 @@ openWS(path: string, opts: WSOptions)
 **Used by:**
 - Console tab: streams RCON/stdin input/output (bidirectional)
 - Logs tab: streams container stdout and/or game log file (read-only)
-- **Earlier output** opens a bounded historical page independently of the live connection. **Load older** follows the source cursor, including across completed init containers. Console shows recent pod output separately from the interactive PTY or RCON session. Live attachment begins immediately. The two transports can overlap or have a gap.
+- **Earlier output** opens a bounded historical page independently of the live connection. **Load older** follows the source cursor, including across completed init containers. Console shows recent pod output separately from the interactive PTY or RCON session, in a panel under the terminal that is open by default; its "Recent pod output" header (chevron and label) collapses and expands it. Live attachment begins immediately. The two transports can overlap or have a gap.
 
 **Cluster routing:** WebSocket paths retain the open server's cluster and namespace. Pod startup/stdout logs and PTY attach use that cluster's Kubernetes client; remote RCON and game-file logs use its authenticated gateway. Reconnects retain the original target. Leaving the server view closes its streams; infrastructure selection cannot retarget them.
 
@@ -1235,9 +1250,9 @@ openEventStream(opts: EventStreamOptions)
 - `@heroui/react@3.2.7` — component library (Button, Card, Modal, Table, Tabs, etc.); underlies every atom in `web/src/components/ui/`
 - `@heroui/styles` — HeroUI's semantic token / theme layer, mapped to Gameplane brand tokens (see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md`)
 - `clsx@2.1.1` — conditional classNames
-- `tailwind-merge@2.5.2` — Tailwind class conflict resolution
+- `tailwind-merge@3.7.0` — Tailwind class conflict resolution
 - `tailwindcss@^4.3.3` — utility-first CSS framework
-- `lucide-react@^1.72.0` — SVG icon library
+- `lucide-react@^1.73.0` — SVG icon library
 - `@monaco-editor/react@^4.7.0` — code editor (lazy-loaded, file/config edit tabs)
 - `@xterm/xterm@^6.0.0` — terminal emulator (Console tab)
 - `@xterm/addon-fit@^0.11.0` — xterm fit-to-container addon
@@ -1247,19 +1262,19 @@ openEventStream(opts: EventStreamOptions)
 - `vite@^8.3.8` — build + dev server
 - `@vitejs/plugin-react@^6.3.0` — React JSX transform + fast refresh
 - `vitest@^5.0.0` — unit test runner (Jest-like API, Vite-integrated)
-- `@vitest/coverage-v8@2.1.1` — V8 coverage reporter
-- `@testing-library/react@16.0.1` — component test utilities
-- `@testing-library/jest-dom@6.5.0` — DOM matchers
-- `@testing-library/user-event@14.6.1` — user interaction simulation
+- `@vitest/coverage-v8@5.1.0` — V8 coverage reporter
+- `@testing-library/react@16.3.3` — component test utilities
+- `@testing-library/jest-dom@7.0.1` — DOM matchers
+- `@testing-library/user-event@14.6.10` — user interaction simulation
 - `msw@^3.0.5` — Mock Service Worker for request interception (e2e mock mode)
-- `vitest-websocket-mock@0.4.0` — WebSocket mock for unit tests
+- `vitest-websocket-mock@0.8.0` — WebSocket mock for unit tests
 - `@playwright/test@^1.65.0` — browser e2e testing (mock + live modes)
 - `jsdom@^31.0.0` — DOM implementation for unit tests
-- `eslint@10.14.0` and `@babel/eslint-parser` — lint JavaScript, TypeScript and TSX
+- `eslint@10.15.0` and `@babel/eslint-parser` — lint JavaScript, TypeScript and TSX
 - `eslint-plugin-react-hooks@7.1.1` — React Hooks and compiler diagnostics
 - `oxlint` and `oxlint-tsgolint` — React rules and type-aware TypeScript linting
 - `tailwindcss@^4.3.3` + `postcss@^8.5.32` + `autoprefixer@^10.6.2` — CSS processing
-- `@tanstack/router-devtools@1.75.0` — TanStack Router dev tools (optional, for debugging)
+- `@tanstack/router-devtools@1.167.3` — TanStack Router dev tools (optional, for debugging)
 
 ## Security considerations
 
@@ -1275,7 +1290,7 @@ openEventStream(opts: EventStreamOptions)
 
 **Test files:** Co-located with source (`src/**/*.test.tsx`, `src/**/*.test.ts`)
 
-**Mock server:** MSW 2 in mock e2e mode (Playwright); real API in live e2e mode
+**Mock server:** MSW 3 in mock e2e mode (Playwright); real API in live e2e mode
 
 **Coverage thresholds** (`vitest.config.ts`):
 - Lines: 92%

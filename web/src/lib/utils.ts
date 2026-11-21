@@ -3,6 +3,7 @@ import { defineMessages, type IntlShape } from "react-intl";
 import { twMerge } from "tailwind-merge";
 
 import { englishIntl } from "@/lib/i18n/format";
+import type { StorageCapacitySource } from "@/types";
 
 // Descriptors with placeholders are passed inline to formatMessage (typed values).
 const MESSAGES = defineMessages({
@@ -137,34 +138,42 @@ export interface StorageReading {
   overcommitted: boolean;
 }
 
-// describeStorageProvisioned turns the cluster stats' {usedStorageBytes,
-// totalStorageBytes} pair into copy that's honest about what they measure:
-// usedStorageBytes is PersistentVolume capacity *provisioned* to workloads,
-// not disk usage, and totalStorageBytes is node *physical* disk — with
-// networked storage (Ceph, EBS, …) provisioned can legitimately exceed
-// physical. Flags that case as `overcommitted` so callers can present it as
-// an explicit state rather than a >100% bar.
+// Keep IEC labels local to storage readings; other byte displays retain their
+// existing formatting.
+function formatStorageBytes(n: number): string {
+  if (!n) return "0 B";
+  const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB"];
+  const i = Math.min(units.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
+  const v = n / Math.pow(1024, i);
+  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
+// Provisioned bytes are Bound PersistentVolume capacity, not physical usage.
+// The denominator is configured game-data pools or legacy node ephemeral
+// storage. Thin or networked storage can legitimately exceed that capacity.
 export function describeStorageProvisioned(
   usedBytes?: number,
   totalBytes?: number,
   intl: IntlShape = englishIntl,
+  source: StorageCapacitySource | "mixed" = "node-ephemeral",
 ): StorageReading {
   const used = usedBytes ?? 0;
   const total = totalBytes ?? 0;
   const overcommitted = total > 0 && used > total;
-  const valueText = formatBytes(used);
+  const valueText = formatStorageBytes(used);
   if (!total) return { valueText, overcommitted: false };
+  const presentationSource = source === "openebs-lvm" ? "pool" : source;
   const subText = overcommitted
     ? intl.formatMessage({
-      id: "web.lib.utils.storage_overcommitted",
-      defaultMessage: "of {total} physical — overcommitted",
-      description: "Storage capacity line when provisioned storage exceeds physical disk; {total} is a formatted size such as 40 GB",
-    }, { total: formatBytes(total) })
+      id: "web.lib.utils.storage_capacity_overcommitted",
+      defaultMessage: "of {total} {source, select, pool {game-data capacity} mixed {combined capacity} other {system storage}} — overcommitted",
+      description: "Provisioned storage exceeds capacity; total is an IEC size such as 320 GiB. Source distinguishes game-data pools, mixed sources, and legacy node system storage.",
+    }, { total: formatStorageBytes(total), source: presentationSource })
     : intl.formatMessage({
-      id: "web.lib.utils.storage_of_physical",
-      defaultMessage: "of {total} physical",
-      description: "Storage capacity line: provisioned storage out of node physical disk; {total} is a formatted size such as 40 GB",
-    }, { total: formatBytes(total) });
+      id: "web.lib.utils.storage_capacity",
+      defaultMessage: "of {total} {source, select, pool {game-data capacity} mixed {combined capacity} other {system storage}}",
+      description: "Provisioned storage compared with capacity; total is an IEC size such as 320 GiB. Source distinguishes game-data pools, mixed sources, and legacy node system storage.",
+    }, { total: formatStorageBytes(total), source: presentationSource });
   return { valueText, subText, overcommitted };
 }
 

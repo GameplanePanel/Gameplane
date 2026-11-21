@@ -40,18 +40,18 @@ were added and verified on **2026-09-26**.
 | `gameaction/` | Go | 0 (stdlib only) | Shared console-injection guard + command-template renderer used by the agent and API |
 | `gameproto/` | Go | 0 (stdlib only) | Shared Minecraft/Terraria handshake classifier used by sentinel |
 | `telemetryschema/` | Go | 0 (stdlib only) | Shared telemetry report contract (types, strict decoder, official module catalog, report signing) used by the API reporter and the telemetry receiver |
-| `operator/` | Go | 19 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
-| `api/` | Go | 17 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
+| `operator/` | Go | 21 | controller-runtime reconciler for the 9 CRDs (`operator/api/v1alpha1/*_types.go`); module OCI pull/verify, git/OCI fetch, restic-backup scheduling |
+| `api/` | Go | 21 | chi REST + WebSocket gateway: auth (local + OIDC), RBAC, K8s client, SQLite/Postgres persistence, notifications |
 | `agent/` | Go | 6 | In-pod sidecar: RCON/WebRcon console, chi HTTP surface, heartbeat status patch, disk usage stats |
 | `audit-syslog-bridge/` (submodule) | Go | 0 (stdlib only) | Standalone HTTP-JSON → syslog relay for the audit webhook sink |
 | `telemetry-receiver/` | Go | 3 | Standalone collector for the API's usage telemetry (daily counts; extended reports add a random install ID and its public key; on by default for new installs; `api.telemetry.enabled=false` turns it off) |
 | `sentinel/` | Go | 2 | Wake-on-connect listener holding ports for sleeping pods |
-| `capture-sidecar/` (submodule) | Go | 3 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
+| `capture-sidecar/` (submodule) | Go | 4 | Ephemeral AF_PACKET packet capture sidecar with BPF filtering |
 | `tunnel/` (submodule) | Go | 1 (`tailscale.com`) | Relay client supervisor for frp/Tailscale/playit |
 | `gp-module/` | Go | 2 | Module authoring CLI: scaffold, offline validate, dry-run preview, OCI package |
 | `mcp-server/` (submodule) | Go | 5 | Standalone, strictly read-only MCP server for AI-assisted cluster diagnostics |
-| `test/e2e/` | Go | 4 | kind + Helm + real-component end-to-end suite |
-| `web/` | TypeScript/React | 18 runtime + 26 dev | Dashboard: routing, data fetching, UI primitives, console/file editors, tests |
+| `test/e2e/` | Go | 6 | kind + Helm + real-component end-to-end suite |
+| `web/` | TypeScript/React | 24 runtime + 36 dev | Dashboard: routing, data fetching, UI primitives, console/file editors, tests |
 
 ## Shared Go modules
 
@@ -106,6 +106,7 @@ string from the sanitized params (`Compile`/`Render`).
 
 Imported by:
 - `agent/internal/actions/actions.go` — the RCON quick-action transport.
+- `agent/internal/players/players.go` — also imports gameaction.
 - `api/internal/ws/actions.go` — the stdin pod-attach quick-action transport.
 
 Both importers call `Resolve` independently before rendering, since each
@@ -163,7 +164,7 @@ BackupSchedule, Restore, Module, and ModuleSource. Direct deps from
 | `oras.land/oras-go/v2` | v2.7.0 | `internal/oci/client.go` — pulls Module OCI bundle artifacts from the registry (`registry/remote.Repository` + retry transport) | direct-runtime |
 | `github.com/opencontainers/image-spec` | v1.1.1 | `internal/oci/client.go` — `ocispec.Manifest`/`ocispec.Descriptor` types for parsing OCI manifests when pulling module bundles | direct-runtime |
 | `github.com/sigstore/cosign/v3` | v3.1.4 | `internal/verify/verify.go` — `cosign.VerifyImageSignatures`/`CheckOpts` verify Module OCI bundle signatures, keyed (against `cosign.pub`) or keyless (Fulcio/Rekor) | direct-runtime |
-| `github.com/sigstore/sigstore` | v1.11.1 | `internal/verify/verify.go` — `pkg/fulcioroots` supplies Fulcio root certs for keyless cosign verification | direct-runtime |
+| `github.com/sigstore/sigstore-go` | v1.4.0 | `internal/verify/verify.go` — `pkg/root` and `pkg/tuf` load the Sigstore trusted root for keyless cosign verification (replaces the old `sigstore/pkg/fulcioroots` path) | direct-runtime |
 | `golang.org/x/mod` | v0.43.0 | `semver.Compare`/`semver.IsValid` in `internal/controller/semver.go`, `module_controller.go`, `internal/modsrc/oci.go`, `internal/oci/client.go` — sorts/validates Module version tags | direct-runtime | <!-- doc-versions: dependency -->
 | `sigs.k8s.io/yaml` | v1.6.0 | `internal/modsrc/bundle.go` parses `module.yaml`; `internal/controller/module_controller.go` parses the bundled `template.yaml` into JSON-tagged Go structs | direct-runtime |
 | `github.com/robfig/cron/v3` | v3.0.1 | `internal/controller/backupschedule_controller.go` — parses a BackupSchedule's cron expression and computes the next run time | direct-runtime |
@@ -194,7 +195,7 @@ chi-based REST + WebSocket gateway. Direct deps from `api/go.mod`
 | `github.com/coreos/go-oidc/v3` | v3.21.0 | `internal/auth/oidc.go` — `oidc.NewProvider` + `IDTokenVerifier` for OIDC discovery and ID-token verification in the login flow | direct-runtime |
 | `golang.org/x/oauth2` | v0.38.0 | `internal/auth/oidc.go` — `oauth2.Config` drives the OIDC authorization-code exchange | direct-runtime | <!-- doc-versions: dependency -->
 | `golang.org/x/crypto` | v0.59.0 | `internal/auth/password.go` — `argon2.IDKey` hashes/verifies local-login passwords (argon2id), plus a constant-time dummy-verify path to avoid a user-enumeration timing leak | direct-runtime | <!-- doc-versions: dependency -->
-| `k8s.io/api`, `k8s.io/apimachinery`, `k8s.io/client-go` | v0.37.0 | `internal/kube/*.go` (client wrapper, kubeconfig loading, watches, exec streaming), `internal/handlers/*.go`, `internal/notify/sinks.go`, `internal/rbac/rbac.go` — reading/writing CRDs and core objects | direct-runtime | <!-- doc-versions: dependency -->
+| `k8s.io/api`, `k8s.io/apimachinery`, `k8s.io/client-go` | v0.37.2 | `internal/kube/*.go` (client wrapper, kubeconfig loading, watches, exec streaming), `internal/handlers/*.go`, `internal/notify/sinks.go`, `internal/rbac/rbac.go` — reading/writing CRDs and core objects | direct-runtime | <!-- doc-versions: dependency -->
 | `sigs.k8s.io/controller-runtime` | v0.25.2 | `cmd/main.go` — only `ctrl.GetConfig()` is used, to load the kubeconfig/in-cluster `*rest.Config` at startup; not the manager/reconciler machinery (that's the operator's job — see rule "the operator is authoritative"). `envtest.Environment` in `internal/handlers/suite_envtest_test.go` is test-only | direct-runtime (minimal) | <!-- doc-versions: dependency -->
 | `sigs.k8s.io/yaml` | v1.6.0 | `internal/handlers/module_upload.go` — parses `module.yaml` metadata and `template.yaml` from uploaded module bundles | direct-runtime |
 | `github.com/minio/minio-go/v7` | v7.4.1 | `internal/audit/s3.go` — S3-compatible client (`minio.New`, `PutObject`) backing the S3 audit-log sink | direct-runtime |
@@ -352,7 +353,7 @@ package a game module before publishing it. Direct deps from
 ### web
 
 React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
-`0.4.1`, matching the repo version):
+`0.4.3`, matching the repo version):
 
 **Framework / core**
 - `react` `^19.3.1`, `react-dom` `^19.3.1` — base UI framework, rendered via `createRoot` in `src/main.tsx`, used throughout every component.
@@ -367,7 +368,7 @@ React 19 + TypeScript strict + Vite dashboard (`web/package.json` version
 - `@heroui/react` `3.2.7` — foundational component library (Button, Input, Select, Modal, Table, etc.); composed and themed in `src/components/ui/` (Gameplane's composition layer over HeroUI).
 - `@heroui/styles` `3.2.7` — companion style package with semantic token infrastructure for light/dark modes and brand customization; `@heroui/styles` is imported in `src/styles/globals.css` for global theme setup.
 - `clsx` `^2.1.1` + `tailwind-merge` `^3.7.0` — combined into the `cn()` helper in `src/lib/utils.ts`, used app-wide for conditional/merged Tailwind classes and with HeroUI's theme tokens.
-- `lucide-react` `^1.72.0` — icon set, imported in roughly 35 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
+- `lucide-react` `^1.73.0` — icon set, imported in roughly 83 files (`AppLayout`, `Dashboard`, `Login`, dialogs, etc.).
 - `react-aria` — peer dependency of HeroUI, providing accessibility primitives (via `react-aria-components`) used by HeroUI atoms.
 
 **Editors / terminals**

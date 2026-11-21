@@ -136,7 +136,7 @@ With the policy enabled, a game Pod passes through these checks before it can ru
 ```mermaid
 flowchart TD
   op["Operator sets pool nodeSelector and exact toleration"] --> sts["Game StatefulSet Pod"]
-  sts --> vap["game-worker-admission ValidatingAdmissionPolicy"]
+  sts --> vap["release.namespace.game-workers ValidatingAdmissionPolicy"]
   vap --> p1{"Selects the configured pool and has no nodeName on create?"}
   p1 -- no --> deny["Rejected"]
   p1 -- yes --> p2{"Resource requests and memory limit within bounds?"}

@@ -46,10 +46,10 @@ export function ConsoleTab({ name, ns }: { name: string; ns?: string }) {
     );
   }
   return <div className="flex h-full min-h-0 flex-col">
-    <LogHistory name={name} ns={ns} source="pod" console />
     <div className="min-h-0 flex-1">
       {mode === "pty" ? <PtyConsole key={JSON.stringify(target)} name={name} ns={ns} /> : <RconConsole key={JSON.stringify(target)} name={name} ns={ns} />}
     </div>
+    <LogHistory name={name} ns={ns} source="pod" console />
   </div>;
 }
 

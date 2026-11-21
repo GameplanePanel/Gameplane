@@ -491,6 +491,15 @@ describe("NetworkingSection", () => {
       expect(screen.getByText("from pool 'pool-us-west'")).toBeInTheDocument();
     });
 
+    it("shows the player address and assigned NodePort in the current assignment", () => {
+      const draft = makeServer({
+        spec: { networking: { expose: "NodePort" } },
+        status: { endpoints: [{ name: "game", host: "play.example.net", serviceAddress: "10.96.0.12", port: 31742 }] },
+      });
+      renderWithQuery(<NetworkingSection draft={draft} onChange={() => {}} />);
+      expect(screen.getByText("play.example.net:31742")).toBeInTheDocument();
+    });
+
     it("preserves addressPool when editing hostname (round-trip test T047)", () => {
       const draft = {
         ...baseDraft,

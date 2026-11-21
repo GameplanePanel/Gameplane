@@ -7,6 +7,7 @@ import {
 } from "@heroui/react";
 import { ShieldCheck, Copy, Check } from "lucide-react";
 import { APIError, Shares } from "@/lib/api";
+import { connectionAddress } from "@/lib/connectionAddress";
 import { enforceUnauthenticatedTheme } from "@/lib/enforceUnauthenticatedTheme";
 import type { ShareLinkPublic } from "@/types";
 import type { AppearanceMode } from "@/components/ui/AppearanceToggle";
@@ -248,14 +249,15 @@ function ShareView({ token }: { token: string }) {
     }
   };
 
-  const handleCopyAddress = () => {
-    if (data?.address) {
-      const addr = `${data.address.host}:${data.address.port}`;
-      navigator.clipboard.writeText(addr).catch(() => {
-        // Silently fail if copy doesn't work
-      });
+  const address = connectionAddress(data?.address);
+  const handleCopyAddress = async () => {
+    if (!address || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(address);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // The address stays selectable when clipboard access is denied.
     }
   };
 
@@ -294,15 +296,15 @@ function ShareView({ token }: { token: string }) {
           <div className="space-y-4">
             <div>
               <div className="text-xs text-muted mb-1">{intl.formatMessage({ id: "web.routes.share.connect_at", defaultMessage: "CONNECT AT", description: "Share: small label above the server address on the share page; keep it short" })}</div>
-              {data.address ? (
+              {address ? (
                 <div className="flex items-center gap-2 rounded-lg bg-surface p-3">
                   <code className="flex-1 text-sm font-mono">
-                    {intl.formatMessage({ id: "web.routes.share.host_port", defaultMessage: "{host}:{port}", description: "Share: connect address shown as host:port; {host} is the server host name and {port} is its port number" }, { host: data.address.host, port: String(data.address.port) })}
+                    {address}
                   </code>
                   <button
                     type="button"
                     className="p-1 text-muted hover:text-fg transition-colors"
-                    onClick={handleCopyAddress}
+                    onClick={() => void handleCopyAddress()}
                     title={intl.formatMessage({ id: "web.routes.share.copy_address", defaultMessage: "Copy address", description: "Share: tooltip of the icon button that copies the server address to the clipboard; keep it short" })}
                   >
                     {copied ? (

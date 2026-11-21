@@ -1,6 +1,6 @@
 # test/e2e — Specification
 
-**Status:** pre-v1 (v0.4.1)
+**Status:** pre-v1 (v0.4.3)
 **Module / package:** `github.com/GameplanePanel/gameplane/test/e2e`
 **Go version:** 1.27.0
 

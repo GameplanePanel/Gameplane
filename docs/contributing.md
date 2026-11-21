@@ -148,7 +148,7 @@ Every job in every workflow must have:
 - An explicit `permissions` block granting only what that job needs (top-level default is `contents: read`; anything more is granted only to the specific job that needs it)
 - An explicit `timeout-minutes` (default budget is ≤30 minutes; anything above it requires an inline justification comment)
 
-Documented exceptions with longer timeouts are the e2e jobs that set 45 to 75 minutes (the multicluster, upgrade, web live and game bot jobs at 60 minutes each, the PostgreSQL job at 75, the capture overhead job at 45, and the matrix-driven `e2e-go` jobs) and the image build in `publish-edge.yaml` (35 minutes).
+Documented exceptions with longer timeouts are the e2e jobs that set 45 to 105 minutes (the multicluster, web live and game bot jobs at 60 minutes each, the upgrade amd64 job at 85 and arm64 at 60, the PostgreSQL job at 105, the capture overhead job at 45, and the matrix-driven `e2e-go` jobs) and the image build in `publish-edge.yaml` (35 minutes).
 
 ### Security and drift gates
 
@@ -239,8 +239,8 @@ The e2e suite runs against a real kind cluster. CI splits it into parallel
 buckets defined in `test/e2e/buckets.sh` — the `e2e bucket coverage` job fails on
 any test that isn't in one, so add new tests to a bucket.
 
-The two game-bot tests (`TestGameServer_MinecraftBotConnects`,
-`TestGameServer_TerrariaBotConnects`) boot a real game server and run a
+The two game-bot tests (`TestGameServer_MinecraftJavaBot_Joined`,
+`TestGameServer_TerrariaBot_Joined`) boot a real game server and run a
 headless protocol bot as a **Job inside the cluster**, dialing the game
 Service's DNS name — the same network path a real in-cluster client uses —
 rather than tunnelling through `kubectl port-forward`.

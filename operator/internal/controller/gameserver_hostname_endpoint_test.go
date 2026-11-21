@@ -7,6 +7,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
@@ -26,9 +27,109 @@ func udpLBService(ingress ...corev1.LoadBalancerIngress) *corev1.Service {
 	}
 }
 
-func TestWithAdvertisedHostname_ReplacesTheLoadBalancerAddress(t *testing.T) {
+func TestReconcileStatus_NodePortPlayerAddress(t *testing.T) {
+	const clusterIP = "10.43.178.205"
+	for _, tc := range []struct {
+		name, hostname, selectedApp, nodeIP, wantHost string
+		svcType                                       corev1.ServiceType
+	}{
+		{"configured hostname wins", "mc.example.org", "gameplane-game", "192.0.2.10", "mc.example.org", corev1.ServiceTypeNodePort},
+		{"scheduled game node", "", "gameplane-game", "192.0.2.10", "192.0.2.10", corev1.ServiceTypeNodePort},
+		{"sleeping service selects the waker", "", sentinelValue, "192.0.2.10", "192.0.2.20", corev1.ServiceTypeNodePort},
+		{"no external IP", "", "gameplane-game", "", "", corev1.ServiceTypeNodePort},
+		{"external IP in a different address family", "", "gameplane-game", "2001:db8::10", "", corev1.ServiceTypeNodePort},
+		{"no selected pod", "", "unmatched", "192.0.2.10", "", corev1.ServiceTypeNodePort},
+		{"selected node lost contact", "", "lost", "192.0.2.10", "", corev1.ServiceTypeNodePort},
+		{"missing service clears previous ports", "mc.example.org", "", "", "", ""},
+		{"old cluster service clears previous ports", "mc.example.org", "", "", "", corev1.ServiceTypeClusterIP},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			gs := &gameplanev1alpha1.GameServer{
+				ObjectMeta: metav1.ObjectMeta{Name: "minecraft", Namespace: "games"},
+				Spec: gameplanev1alpha1.GameServerSpec{Networking: gameplanev1alpha1.GameServerNetworking{
+					Expose: "NodePort", Hostname: tc.hostname, Tunnel: &gameplanev1alpha1.GameServerTunnel{Provider: "frp"},
+				}},
+				Status: gameplanev1alpha1.GameServerStatus{Endpoints: []gameplanev1alpha1.GameServerEndpoint{
+					{Name: "java", Host: clusterIP, Port: 25565},
+				}},
+			}
+			labels := func(role string) map[string]string {
+				return map[string]string{"app.kubernetes.io/name": role, "app.kubernetes.io/instance": gs.Name}
+			}
+			pod := func(name, role, node string) *corev1.Pod {
+				return &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: gs.Namespace, Labels: labels(role)},
+					Spec:       corev1.PodSpec{NodeName: node},
+					Status:     corev1.PodStatus{Phase: corev1.PodRunning, HostIP: "10.0.0.8"},
+				}
+			}
+			node := func(name, addr string, ready corev1.ConditionStatus) *corev1.Node {
+				return &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{Name: name},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: ready}},
+						Addresses: []corev1.NodeAddress{
+							{Type: corev1.NodeInternalIP, Address: "10.0.0.8"}, {Type: corev1.NodeExternalIP, Address: addr},
+						},
+					},
+				}
+			}
+			scheme := testScheme(t)
+			waker := pod("minecraft-waker-new", sentinelValue, "worker-waker")
+			waker.Status.Conditions = []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue}}
+			builder := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(gs).WithObjects(gs,
+				pod("minecraft-0", "gameplane-game", "worker-game"), waker, pod("lost-pod", "lost", "worker-lost"),
+				pod("minecraft-waker-earlier", sentinelValue, "worker-game"))
+			nodeReader := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+				node("worker-game", tc.nodeIP, corev1.ConditionTrue), node("worker-waker", "192.0.2.20", corev1.ConditionTrue),
+				node("worker-lost", "192.0.2.30", corev1.ConditionUnknown)).Build()
+			if tc.svcType != "" {
+				builder.WithObjects(&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{Name: gs.Name, Namespace: gs.Namespace},
+					Spec: corev1.ServiceSpec{
+						Type: tc.svcType, ClusterIP: clusterIP, IPFamilies: []corev1.IPFamily{corev1.IPv4Protocol},
+						Selector: labels(tc.selectedApp), Ports: []corev1.ServicePort{
+							{Name: "java", Protocol: corev1.ProtocolTCP, Port: 25565, NodePort: 31493},
+							{Name: "query", Protocol: corev1.ProtocolUDP, Port: 25566},
+						},
+					},
+				})
+			}
+			cl := builder.Build()
+			r := &GameServerReconciler{Client: cl, APIReader: nodeReader, Scheme: scheme}
+			if err := cl.Get(ctx, client.ObjectKeyFromObject(gs), gs); err != nil {
+				t.Fatal(err)
+			}
+			relay := gameplanev1alpha1.GameServerEndpoint{Name: "java", Host: "relay.example.org", Port: 31000, TunnelProvider: "frp"}
+			tunnel := tunnelPlan{wantTunnel: true, endpoints: []gameplanev1alpha1.GameServerEndpoint{relay}}
+			if _, err := r.reconcileStatus(ctx, gs, idleAwake, nil, nil, tunnel, nil, nil, ""); err != nil {
+				t.Fatal(err)
+			}
+			if err := cl.Get(ctx, client.ObjectKeyFromObject(gs), gs); err != nil {
+				t.Fatal(err)
+			}
+			got := gs.Status.Endpoints
+			if len(got) == 0 || got[0] != relay {
+				t.Fatalf("expected tunnel first, got %+v", got)
+			}
+			if tc.svcType != corev1.ServiceTypeNodePort {
+				if len(got) != 1 {
+					t.Errorf("expected only tunnel before NodePort Service exists, got %+v", got)
+				}
+				return
+			}
+			want := gameplanev1alpha1.GameServerEndpoint{Name: "java", Host: tc.wantHost, Port: 31493, Protocol: corev1.ProtocolTCP, ServiceAddress: clusterIP}
+			if len(got) != 2 || got[1] != want {
+				t.Errorf("expected allocated NodePort %+v after tunnel, got %+v", want, got)
+			}
+		})
+	}
+}
+
+func TestEndpointsFromService_AdvertisedHostnameReplacesTheLoadBalancerAddress(t *testing.T) {
 	svc := udpLBService(corev1.LoadBalancerIngress{IP: "192.0.2.10"})
-	got := withAdvertisedHostname(endpointsFromService(svc, addressPlan{}), svc, "valheim.example.com")
+	got := endpointsFromService(svc, addressPlan{}, "valheim.example.com")
 	if len(got) != 2 {
 		t.Fatalf("got %d endpoints, want 2", len(got))
 	}
@@ -47,36 +148,34 @@ func TestWithAdvertisedHostname_ReplacesTheLoadBalancerAddress(t *testing.T) {
 	}
 }
 
-func TestWithAdvertisedHostname_WaitsForAnAddress(t *testing.T) {
+func TestEndpointsFromService_AdvertisedHostnameWaitsForLoadBalancerAddress(t *testing.T) {
 	svc := udpLBService()
-	got := withAdvertisedHostname(endpointsFromService(svc, addressPlan{}), svc, "valheim.example.com")
+	got := endpointsFromService(svc, addressPlan{}, "valheim.example.com")
 	if got[0].Host != "10.0.0.5" {
 		t.Errorf("host %q, want the cluster IP while no address is published", got[0].Host)
 	}
 }
 
-func TestWithAdvertisedHostname_LeavesOtherServicesAlone(t *testing.T) {
-	for _, svcType := range []corev1.ServiceType{corev1.ServiceTypeClusterIP, corev1.ServiceTypeNodePort} {
-		svc := udpLBService(corev1.LoadBalancerIngress{IP: "192.0.2.10"})
-		svc.Spec.Type = svcType
-		got := withAdvertisedHostname(endpointsFromService(svc, addressPlan{}), svc, "valheim.example.com")
-		if got[0].Host == "valheim.example.com" {
-			t.Errorf("%s: hostname reported, want the Service's own address", svcType)
-		}
+func TestEndpointsFromService_ClusterIPIgnoresHostname(t *testing.T) {
+	svc := udpLBService(corev1.LoadBalancerIngress{IP: "192.0.2.10"})
+	svc.Spec.Type = corev1.ServiceTypeClusterIP
+	got := endpointsFromService(svc, addressPlan{}, "valheim.example.com")
+	if got[0].Host != svc.Spec.ClusterIP {
+		t.Errorf("host %q, want the Service's cluster IP", got[0].Host)
 	}
 }
 
-func TestWithAdvertisedHostname_NoHostnameIsUnchanged(t *testing.T) {
+func TestEndpointsFromService_LoadBalancerWithoutAdvertisedHostname(t *testing.T) {
 	svc := udpLBService(corev1.LoadBalancerIngress{IP: "192.0.2.10"})
-	got := withAdvertisedHostname(endpointsFromService(svc, addressPlan{}), svc, "")
+	got := endpointsFromService(svc, addressPlan{}, "")
 	if got[0].Host != "192.0.2.10" {
 		t.Errorf("host %q, want the load balancer IP", got[0].Host)
 	}
 }
 
 // advertisingHolder is a LoadBalancer server holding addr, with the
-// endpoints reconcileStatus writes for it: built by endpointsFromService
-// and withAdvertisedHostname, so Host is its hostname, not addr.
+// endpoints reconcileStatus writes for it: its advertised Host and assigned
+// ServiceAddress differ.
 func advertisingHolder(name, addr, requested string, created metav1.Time) *gameplanev1alpha1.GameServer {
 	svc := udpLBService(corev1.LoadBalancerIngress{IP: addr})
 	return &gameplanev1alpha1.GameServer{
@@ -85,7 +184,7 @@ func advertisingHolder(name, addr, requested string, created metav1.Time) *gamep
 			Expose: "LoadBalancer", Address: requested, Hostname: name + ".example.com",
 		}},
 		Status: gameplanev1alpha1.GameServerStatus{
-			Endpoints: withAdvertisedHostname(endpointsFromService(svc, addressPlan{}), svc, name+".example.com"),
+			Endpoints: endpointsFromService(svc, addressPlan{}, name+".example.com"),
 		},
 	}
 }

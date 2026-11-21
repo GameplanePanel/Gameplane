@@ -92,11 +92,11 @@ makes.
 | Module | Kind | Target | Gap today |
 | --- | --- | --- | --- |
 | `agent` | Service | `cmd/main.go` + `internal/<concern>/` | matches |
-| `api` | Service | `cmd/main.go` + `internal/<concern>/` | `cmd/` holds 9 non-test files (bootstrap, gateway, health, main, management, memlimit, metrics, panel_key, workers) → keep wiring in `cmd/`, move behavior to `internal/<concern>/`; second binary `cmd/messages-export/` matches; `internal/handlers/` is one flat package of 160 `.go` files, 51 of them non-test (spec 028 splits it) |
+| `api` | Service | `cmd/main.go` + `internal/<concern>/` | `cmd/` holds 9 non-test files (bootstrap, gateway, health, main, management, memlimit, metrics, panel_key, workers) → keep wiring in `cmd/`, move behavior to `internal/<concern>/`; second binary `cmd/messages-export/` matches; `internal/handlers/` is one flat package of 163 `.go` files, 52 of them non-test (spec 028 splits it) |
 | `audit-syslog-bridge` | Service | `cmd/main.go` + `internal/<concern>/` | 3 files in root `package main` (`main.go` 460 lines) → `cmd/main.go` + `internal/<concern>/`. Lives in the `GameplanePanel/audit-syslog-bridge` submodule. |
 | `capture-sidecar` | Service | `cmd/main.go` + `internal/<concern>/` | matches. Lives in the `GameplanePanel/capture-sidecar` submodule. |
 | `mcp-server` | Service | `cmd/main.go` + `internal/<concern>/` | root `package main` (`main.go`, `tools.go`, `fixadvice.go`) → `cmd/main.go` + `internal/<concern>/`; `internal/kube/` matches. Lives in the `GameplanePanel/mcp` submodule; the layout is tracked there. |
-| `operator` | Service | `cmd/main.go` + `internal/<concern>/` | matches; `internal/controller/` is one flat package of 222 `.go` files, 65 of them non-test (spec 028 splits it); `api/v1alpha1/` see §3 |
+| `operator` | Service | `cmd/main.go` + `internal/<concern>/` | matches; `internal/controller/` is one flat package of 227 `.go` files, 66 of them non-test (spec 028 splits it); `api/v1alpha1/` see §3 |
 | `sentinel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 1,068 lines at root → `cmd/main.go` + `internal/<concern>/` |
 | `telemetry-receiver` | Service | `cmd/main.go` + `internal/<concern>/` | 12 source files in root `package main` → `cmd/main.go` + `internal/<concern>/`; `web/` and `design-export/` assets stay |
 | `tunnel` | Service | `cmd/main.go` + `internal/<concern>/` | `main.go` 619 and `playit_reporter.go` 525 lines at root → `cmd/main.go` + `internal/<concern>/`; `frpc/` (separate build module, not in `go.work`) stays. Lives in the `GameplanePanel/tunnel` submodule. |
@@ -107,7 +107,7 @@ makes.
 | `netguard` | Library | flat root package | matches |
 | `telemetryschema` | Library | flat root package | matches |
 | `test/e2e` | Test suite | root package + `internal/<game>/` | matches (see §3) |
-| `web` | Web app | `src/pages/` + route definitions in `src/routes/` | `src/pages/` has started (`ClusterDetail.tsx`, `Nodes.tsx`); most screens still live in `src/routes/` → move each to `src/pages/<Screen>.tsx`; screens over 500 lines to split: `AdminSettings.tsx` 2,290, `CreateServer.tsx` 1,448, `tabs/Mods.tsx` 1,291, `tabs/settings/Networking.tsx` 1,045, `ThemeSettings.tsx` 886, `Users.tsx` 825, `Servers.tsx` 680, `tabs/settings/ShareLinks.tsx` 658, `tabs/Files.tsx` 657, `Backups.tsx` 642, `Dashboard.tsx` 599 |
+| `web` | Web app | `src/pages/` + route definitions in `src/routes/` | `src/pages/` has started (`ClusterDetail.tsx`, `Nodes.tsx`); most screens still live in `src/routes/` → move each to `src/pages/<Screen>.tsx`; screens over 500 lines to split: `AdminSettings.tsx` 2,290, `CreateServer.tsx` 1,448, `tabs/Mods.tsx` 1,291, `tabs/settings/Networking.tsx` 1,055, `ThemeSettings.tsx` 886, `Users.tsx` 825, `Servers.tsx` 674, `tabs/settings/ShareLinks.tsx` 658, `tabs/Files.tsx` 657, `Backups.tsx` 642, `Dashboard.tsx` 599 |
 
 ## 3. Exceptions
 

@@ -18,7 +18,7 @@ For an offline Helm renderer, see the [Argo CD delivery guide](argocd.md).
 
 The chart and its images are published to the GitHub Container Registry (GHCR)
 as OCI artifacts — no `helm repo add` needed. Install a tagged release straight
-from the registry (replace `<version>` with a release, e.g. `0.4.1`):
+from the registry (replace `<version>` with a release, e.g. `0.4.3`):
 
 ```sh
 helm upgrade --install gameplane oci://ghcr.io/gameplanepanel/charts/gameplane \
@@ -369,7 +369,7 @@ Top-level knobs (see `values.yaml` for the full list):
   - `defaultModuleSource.type` — source type: `oci` (default, pulls pre-built bundles from a registry) or `git` (index the public `GameplanePanel/module` repo)
   - `defaultModuleSource.git.*` — git configuration (when `type: git`)
     - `git.url` — repository URL (default `https://github.com/GameplanePanel/module.git`)
-    - `git.ref` — git branch/tag (default `main`)
+    - `git.ref` — git branch/tag (defaults to a pinned module-repo release tag, see `defaultModuleSource.git.ref` in `values.yaml`; set `main` to track the bleeding edge, but then a module bump on `main` can stop serving the version installed Modules pin, which leaves them `Failed`/`VersionUnavailable`)
     - `git.subPath` — module subdirectory within the repository (default `""`, empty means root)
   - `defaultModuleSource.oci.*` — OCI registry configuration (when `type: oci`)
     - `oci.url` — OCI registry URL (e.g., `ghcr.io/gameplanepanel/gameplane-modules`)

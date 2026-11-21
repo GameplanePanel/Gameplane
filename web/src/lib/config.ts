@@ -186,7 +186,12 @@ export function useUpdateConfigSection<K extends keyof AllConfig>(section: K) {
   return useMutation({
     mutationFn: (body: AllConfig[K]) =>
       api(`/admin/config/${section}`, { method: "PUT", body }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: KEY }),
+        ...(section === "general" ? [qc.invalidateQueries({ queryKey: ["installation"] })] : []),
+      ]);
+    },
   });
 }
 
