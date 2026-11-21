@@ -1333,7 +1333,14 @@ To audit what is actually configured, consult the dashboard's `/admin/config` vi
 (`installTimeSettings.oidcHelmProvider` shows the Helm seed, `auth.helmOverride`
 shows any database overrides) rather than relying on Helm values alone.
 
-### Most-Privileged-Match Rule Across Sources
+### Most-Privileged-Match Rule Across Sources (Per-Role Form Only)
+
+This section applies only to the old per-role form (`roleMappings` with admin,
+operator and viewer lists, seeded by Helm and overridden per role). A provider that
+uses the ordered `roleRules` list takes the role of the **first matching rule**
+instead, whatever its privilege (see "Re-evaluation on Every Login" below), and a
+dashboard `helmOverride.roleRules` replaces the whole Helm rule list rather than
+merging per role.
 
 When resolving a user's role, Gameplane matches the user's groups against every
 role's effective mapping (seed + overrides merged) and assigns the **highest
@@ -1353,26 +1360,58 @@ On each OIDC login, Gameplane:
 
 1. Extracts the user's group membership from the OIDC token's group claim (configured
    via `api.oidc.groupsClaim`; defaults to `"groups"`).
-2. Reads the effective role mappings: the Helm-seeded values, merged with any
-   database overrides for each role independently.
-3. Matches the user's groups against the effective mappings to compute their role.
-4. If no role matches, assigns the default role (configured via `api.oidc.defaultRole`;
-   defaults to `viewer`; can be set to `deny` to reject login).
+2. Reads the provider's ordered role rules (`roleRules`, from the dashboard provider
+   or the Helm provider; the old `roleMappings` keys are read as rules in the order
+   admin, operator, viewer).
+3. Takes the role of the first rule whose group the user is in. Any role may be named,
+   built-in or custom. Groups are matched exactly and case-sensitively.
+4. If no rule matches, uses the provider's fallback `defaultRole` (`""` for viewer,
+   `deny` to refuse the sign-in, or any role name).
+5. Looks up the user's stored role source (`sso`, `sso_pending` or `manual`) and applies
+   the result as described below.
 
-This re-evaluation runs whenever the effective role mappings exist: Helm-seeded
-`api.oidc.roleMappings` (at least one non-empty role array), a dashboard
-`helmOverride.roleMappings` overlay (which counts even when the Helm values set
-no mappings), or the mappings of a dashboard-managed provider. If none is
-configured, new OIDC users receive the fixed `viewer` role and existing users'
-roles are never re-evaluated.
+Role source decides whether sign-in may change the stored role:
+
+- **`manual` (set by hand):** an admin set this role on the Users page or through the
+  users API. Sign-in keeps the stored role and never changes it. When the rule result
+  differs from it, or would have refused the sign-in, it is written to the audit log as
+  not applied.
+- **`sso` or `sso_pending`:** the rule result is applied, including demotion when the
+  user has left the mapped groups. `sso_pending` (returned to SSO control, not signed in
+  since) becomes `sso` at this sign-in.
+- **New user:** created with the rule result as its role and source `sso`.
+
+A refused result (fallback `deny`, or a matched rule or fallback that names a role that
+no longer exists) refuses a new or SSO-managed user. The refusal is the same generic
+403 as any other refused sign-in, so the response does not reveal the group, the rule
+or the role. A `manual` user is always let in with their stored role, even when the
+result is a refusal, so a fallback of `deny` cannot lock out a hand-set admin.
+
+An SSO sign-in with mapping on writes one audit event when it changes, keeps or refuses
+a role. The reason has the form:
+
+```
+oidc role decision: provider=<name> rule=<n|default|none> group=<group|-> role=<role|deny> source=<source> result=<result>
+```
+
+`result` is one of `applied`, `unchanged`, `kept_manual`, `admitted_manual`,
+`guard_last_manager`, `refused_deny` or `refused_missing_role`. Refusals are recorded
+with status 403; the others with 200. The event is part of the audit hash chain (see
+"Audit log integrity"). A sign-in whose rule result equals the stored role writes no
+event, as before, except when it moves an `sso_pending` user to `sso`
+(`result=unchanged`).
+
+If no rule and no old-form mapping is configured for a provider, new OIDC users receive
+the fixed `viewer` role and existing users' roles are never re-evaluated.
 
 Two guards prevent lockout during re-evaluation:
 
 - **No lockout rule at login**: If re-evaluating a user's role would remove the
   last user able to manage users (hold the `users:manage` permission), the
   re-evaluation is **not applied** — that user retains their old role and can
-  still manage other users. This prevents an operator from accidentally creating
-  an unrecoverable lockout via an override change.
+  still manage other users. The decision is recorded as `guard_last_manager`. This
+  prevents an operator from accidentally creating an unrecoverable lockout via a rule
+  change.
 - **Break-glass mechanism**: If role mappings are misconfigured such that nobody
   can reach admin, an operator can run the `bootstrap-admin` break-glass command
   to create a local admin account and fix the mappings. Bootstrap-admin and
@@ -1405,14 +1444,16 @@ is recorded in `audit_events` with the matched group name and role transition:
   - Which OIDC provider performed the assignment (`"helm"` for the Helm-seeded provider, otherwise the dashboard-managed provider's name)
   - Which group matched a mapping rule (or `"none"` if no mapping matched)
   - The user's old role (`"new_user"` on first login, or the previous role)
-  - The assigned role (`"viewer"`, `"operator"`, `"admin"`, or `"denied"` if rejected)
+  - The assigned role (any role name, or `"deny"` if rejected)
+  - The user's role source and the result (applied, kept because set by hand,
+    refused, ...); the reason format is given under "Re-evaluation on Every Login"
 
 Examples of what gets logged:
 - First login, matched admin group: user created with admin role from group membership
 - Re-evaluation, no mapping match: role re-evaluated to default role on next login
 - Subsequent login, role upgraded: user's role changed from viewer to operator based on new group membership
 
-Every dashboard change to a role's override — writing a new group list via
+Every dashboard change to a role's old-form override — writing a new group list via
 `PUT /admin/config/auth` or resetting it via `DELETE /admin/config/auth/role-mappings/{role}`
 — is also audited as a configuration change:
 
@@ -1422,23 +1463,35 @@ Every dashboard change to a role's override — writing a new group list via
   - Which admin made the change (from session)
   - The new or reset value (the group list, if changed)
 
+Changes to `roleRules`, `defaultRole` and `helmOverride.roleRules` have no per-role
+event; like every other config write, the `PUT /admin/config/auth` request itself is
+recorded by the API's audit middleware with actor and status. Setting a user's role
+by hand and returning a user to SSO control are `PATCH /users/{id}` requests,
+recorded the same way.
+
 This allows operators to track who changed what mappings and when, and to
 correlate unexpected role assignments with dashboard configuration changes.
 
-### `groupsClaim` and `defaultRole` Are Helm-Only
+### `groupsClaim` Is Helm-Only for the Helm Provider
 
 `api.oidc.groupsClaim` (the claim name from the OIDC token that holds group
-information) and `api.oidc.defaultRole` (the fallback role when no group matches)
-are configured via Helm values only — there is no dashboard write path for either
-in v1.
+information) for the Helm provider is configured via Helm values only — the
+dashboard has no write path for it.
+
+The Helm provider's fallback `api.oidc.defaultRole` can be overridden from the
+dashboard (`helmOverride.defaultRole`, spec 034), together with the rule list
+(`helmOverride.roleRules`). Dashboard-managed providers set their own `groupsClaim`,
+`roleRules` and `defaultRole` in the dashboard.
 
 **Why this matters for security**: An attacker with dashboard admin access can
-override individual role mappings but **cannot** repoint the group claim to a
-different OIDC token field (e.g., changing from `"groups"` to a field they control),
-nor can they change the default role fallback to `"deny"` to lock everyone out. These
-two settings remain under the operator's full control, via Helm values only, and
-require a `helm upgrade` to change — an out-of-band action that can be audited and
-gated by access controls on the cluster itself (e.g., who can run Helm in production).
+change the Helm provider's rules and fallback but **cannot** repoint its group claim
+to a different OIDC token field (e.g., changing from `"groups"` to a field they
+control); that requires a `helm upgrade`, an out-of-band action that can be audited
+and gated by access controls on the cluster itself. Setting the fallback to `"deny"`
+refuses new and SSO-managed users that match no rule, but cannot lock out users whose
+role was set by hand (they are always admitted with their stored role), and
+`bootstrap-admin` remains the break-glass path. Every such change is a
+`PUT /admin/config/auth` recorded in the audit log.
 
 ## Pre-auth screens
 

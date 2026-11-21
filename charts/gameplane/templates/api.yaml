@@ -308,6 +308,13 @@ spec:
             {{- if .Values.api.oidc.defaultRole }}
             - {{ printf "--oidc-default-role=%s" .Values.api.oidc.defaultRole | quote }}
             {{- end }}
+            {{- $oidcOldMappings := and .Values.api.oidc.roleMappings (or .Values.api.oidc.roleMappings.admin .Values.api.oidc.roleMappings.operator .Values.api.oidc.roleMappings.viewer) }}
+            {{- if and .Values.api.oidc.roleRules $oidcOldMappings }}
+            {{- fail "api.oidc.roleRules and api.oidc.roleMappings (admin, operator, viewer) cannot both be set; use only one of them" }}
+            {{- end }}
+            {{- with .Values.api.oidc.roleRules }}
+            - {{ printf "--oidc-role-rules=%s" (toJson .) | quote }}
+            {{- end }}
             {{- if and .Values.api.oidc.roleMappings .Values.api.oidc.roleMappings.admin }}
             - {{ printf "--oidc-role-mapping-admin=%s" (join "," .Values.api.oidc.roleMappings.admin) | quote }}
             {{- end }}

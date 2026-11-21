@@ -789,6 +789,30 @@ eslint.config.js            # JavaScript, React Hooks and FormatJS rules
 package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for build/test/lint
 ```
 
+## SSO Role Rules and Role Source (spec 034) — pending dashboard build
+
+**Status:** pending the dashboard build. The API and Helm parts are in place. The screens below are not built yet, and the design in `design.pen` is not done. Per core rule 1, the design comes first: the rule editor, the role-source badge and the "Return to SSO control" action are designed through the Pencil MCP (on the maintainer's machine, via a local-agent prompt), then exported to `assets/design-export/`, then built. This section will be revised when those screens land.
+
+**Already in place:**
+- `web/src/types.ts`: `UserRoleSource = "sso" | "sso_pending" | "manual"` and `roleSource?: UserRoleSource` on `User` (the API always sends it; optional only for older typed payloads).
+- `web/src/lib/endpoints.ts`: `roleSource?: "sso"` on the `UserUpdate` body type (the "Return to SSO control" request body; the API refuses it together with `role`).
+
+**Rule editor (Authentication, planned):**
+- Replaces the per-role override card (`RoleMappingOverridesCard` in `AdminSettings.tsx`) for dashboard providers and for the Helm provider's override. Rules are one ordered list: each row is a group (exact, case-sensitive text) and a role picked from the existing roles, with add, remove and reorder.
+- The first rule whose group matches wins. The list states this in its helper text, and a later row with a group already used above shows a warning that it can never match.
+- The fallback control offers "viewer" (empty), "deny", and every existing role.
+- Save is refused for a role that does not exist. Deleting a role that a rule or fallback uses shows the API's `server.roles.in_use_by_sso` message, which names the provider.
+- The Helm provider: the override replaces the whole Helm rule list and fallback. "Reset to Helm default" removes the override and is shown only when one exists.
+- The admin-role confirmation (FR-015, `AdminMappingConfirmDialog`) applies to any rule whose role is `admin` and is added or changed.
+- A provider with both old `roleMappings` and `roleRules` cannot be saved; the form saves old-form providers in the rule form.
+
+**Users page (planned):**
+- For SSO-linked users (`provider` is `oidc` in `GET /users`), show a role-source badge: "From SSO" for `sso`, "From SSO (applies at next sign-in)" for `sso_pending`, "Set by hand" for `manual`. Local users show no badge and no action.
+- "Return to SSO control" is offered on hand-set SSO users, gated by the existing `users:manage` check, and sends `PATCH /users/{id}` with `{ roleSource: "sso" }`. The result shows the `sso_pending` badge at once.
+- Changing a role on this page marks the user "Set by hand" (the API does this on every role change).
+
+**Tests (when built):** component tests for the rule list (add, remove, reorder, duplicate-group warning, missing-role refusal, Helm reset) and for the badge states, following the existing Vitest patterns in `web/src/routes/`. Test count rules and coverage floors from `CLAUDE.md` apply. Verification is by CI only.
+
 ## Routing & Pages
 
 **Router:** TanStack Router v1.170 in `src/router/tree.tsx` defines a two-level structure:
