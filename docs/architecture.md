@@ -73,7 +73,7 @@ The dashboard (`web/`) builds its UI on **HeroUI** (`@heroui/react`, `@heroui/st
   - *Dialogs, menus & overlays*: `ConfirmDialog`, `ConfirmAdminMappingDialog`, `RoleEditorModal`, `DropdownMenu`, `FilterPopover`, `PageHeader`, `RemovableGroupChip`
   - *Admin dialogs* (`admin/`): `InviteUserDialog`, `EditUserDialog`, `ResetPasswordDialog`
 
-Brand tokens (orange accent, dark-default with light mode supported) map onto HeroUI's semantic token layer — see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md` for the mapping and `web/specs.md`'s "HeroUI Component Layer" section for the full component inventory. Design changes still originate in `design.pen` (CLAUDE.md rule 1) before either layer is touched in code.
+Brand tokens (orange accent, dark-default with light mode supported) map onto HeroUI's semantic token layer — see `specs/done_014-heroui-web-rebuild/contracts/theme-tokens.md` for the mapping and `web/specs.md`'s "HeroUI Component Layer" section for the full component inventory. Design changes still originate in `design.fig` (CLAUDE.md rule 1) before either layer is touched in code.
 
 ## Why two control planes?
 

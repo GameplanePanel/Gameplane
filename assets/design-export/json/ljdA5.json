@@ -1,39 +1,110 @@
 {
-  "type": "frame",
-  "id": "ljdA5",
+  "file": "ljdA5",
+  "id": "1:130",
+  "name": "Screen/Login — SSO only",
+  "type": "FRAME",
   "x": 4920,
   "y": 10222,
-  "name": "Screen/Login — SSO only",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "KFMwT",
-      "type": "ref",
-      "ref": "fjQjb",
+      "id": "1:131",
       "name": "loginL",
-      "width": "fill_container",
-      "height": "fill_container",
-      "descendants": {
-        "KkNQA": {
-          "id": "bwHis",
-          "type": "ref",
-          "ref": "vp8BJ"
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [80, 80, 80, 80],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:132",
+          "name": "loginCardSso",
+          "type": "INSTANCE",
+          "x": 150,
+          "y": 268,
+          "width": 420,
+          "height": 364,
+          "component": "loginCardSso",
+          "componentId": "1:133",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [40, 40, 40, 40],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+          "texts": [
+            "gameplane",
+            "game server control panel",
+            "Sign in",
+            "Welcome to Gameplane.",
+            "Continue with Keycloak",
+            "Continue with Google",
+            "AGPL-3.0 licensed",
+            "English"
+          ]
         }
-      }
+      ]
     },
     {
-      "id": "B7L9d9",
-      "type": "ref",
-      "ref": "T8Hug",
+      "id": "1:150",
       "name": "loginR",
-      "width": "fill_container",
-      "height": "fill_container"
+      "type": "INSTANCE",
+      "x": 720,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "component": "Gameplane/Login Hero Panel",
+      "componentId": "1:53",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [48, 224, 48, 48],
+        "primary": "CENTER",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary"},
+      "texts": [
+        "AGPL-3.0",
+        "Kubernetes-native\ngame server\nhosting.",
+        "An open-source alternative to proprietary game panels — CRDs, Operators, and StatefulSets all the way down.",
+        "Deploy any game. Minecraft, Valheim, Factorio, Palworld, ARK, CS2, Terraria, and more.",
+        "Scale from single-node k3s to multi-node bare metal or cloud.",
+        "Backups, auto-restart, rolling upgrades, RBAC. Production-grade defaults.",
+        "GitOps-friendly. kubectl get gameservers just works."
+      ]
     }
   ]
 }

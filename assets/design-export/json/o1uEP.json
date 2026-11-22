@@ -1,85 +1,222 @@
 {
-  "id": "o1uEP",
-  "type": "ref",
-  "reusable": true,
-  "ref": "x3beP",
+  "file": "o1uEP",
+  "id": "1:11311",
   "name": "Gameplane/Dialog/Create ZIP",
-  "width": 448,
+  "type": "FRAME",
   "x": 4240,
   "y": 6274,
-  "descendants": {
-    "E7Whx": {
-      "content": "Create ZIP"
+  "width": 448,
+  "height": 196,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 80,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Create ZIP",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
-    "ABbjS": {
-      "enabled": false,
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
       "width": 1,
-      "height": 0
-    },
-    "qzcst": {
-      "enabled": false,
-      "width": 1
-    },
-    "Nht52": {
-      "type": "frame",
-      "id": "USuhP",
-      "name": "Archive name",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 8,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+      "height": 0,
+      "visible": false,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
       "children": [
         {
-          "type": "text",
-          "id": "KcxUD",
-          "fill": "$muted",
-          "content": "Archive filename (.zip)",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 777,
+          "visible": false,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "text": "Run a one-off snapshot outside any schedule.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+        }
+      ]
+    },
+    {
+      "id": "1:11312",
+      "name": "Archive name",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 408,
+      "height": 76,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 8,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:11313",
+          "name": "text",
+          "type": "TEXT",
+          "x": 0,
+          "y": 16,
+          "width": 120,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "text": "Archive filename (.zip)",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "id": "M5ATf5",
-          "type": "ref",
-          "ref": "D0cDM",
+          "id": "1:11314",
           "name": "Archive filename",
-          "width": "fill_container",
-          "stroke": "$accent/accent",
-          "strokeWidth": 2,
-          "effect": [],
-          "descendants": {
-            "PJERm": {
-              "content": ""
-            }
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 40,
+          "width": 408,
+          "height": 36,
+          "component": "Gameplane/Input",
+          "componentId": "1:706",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#DB2777"}],
+          "strokeWeight": 2,
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [8, 12, 8, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/xl",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "accent/accent"
           }
         }
       ]
     },
-    "SBdeH": {
-      "height": 36,
-      "padding": [
-        0,
-        16
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 120,
+      "width": 408,
+      "height": 56,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 246,
+          "y": 20,
+          "width": 78,
+          "height": 36,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 16, 0, 16],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 9,
+              "width": 46,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 332,
+          "y": 20,
+          "width": 76,
+          "height": 36,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 16, 0, 16],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 16,
+              "y": 9,
+              "width": 44,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Create",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
       ]
-    },
-    "REcmP": {
-      "fontSize": 14
-    },
-    "V7HYp": {
-      "height": 36,
-      "padding": [
-        0,
-        16
-      ]
-    },
-    "TZ7Ef": {
-      "content": "Create",
-      "fontSize": 14
     }
-  }
+  ]
 }

@@ -34,7 +34,7 @@ E2E_AMD64_ONLY = {"wake-hostport", "network-isolation", "management-placement", 
 SUITES_FILE = "test/e2e/suite-components.json"
 # Paths no Go e2e test reads. Their own jobs keep their paths-filter gates.
 NO_E2E_FILES = {
-    "design.pen", "LICENSE", ".claudeignore", ".coderabbit.yaml", ".editorconfig", ".golangci.yml",
+    "design.fig", "LICENSE", ".claudeignore", ".coderabbit.yaml", ".editorconfig", ".golangci.yml",
     ".gitattributes", ".gitignore", ".gitmodules", ".hadolint.yaml",
     "deploy/kind/up.sh", "deploy/kind/down.sh",
     "test/e2e/joincoverage.sh", "test/e2e/joincoverage_test.sh",

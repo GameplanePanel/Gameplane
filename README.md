@@ -313,8 +313,8 @@ bundle format and how to author additional modules.
 
 ## Contributing
 
-Design changes go through `design.pen` (Pencil) before any UI code is
-written. New contributors start with
+Design changes go through `design.fig` (OpenPencil or Figma) before any UI
+code is written. New contributors start with
 [Your first PR](docs/contributing.md#your-first-pr) (owning folder, local
 check and CI time per change type); [`docs/contributing.md`](docs/contributing.md)
 has the full guide: code style, test tiers, and the PR process.

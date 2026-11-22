@@ -1,6 +1,6 @@
 ---
 name: web-builder
-description: Dashboard React code must be built from an approved Pencil design export. Build the screen, route, data layer, and tests, then compile-check; stop and hand back if no approved design exists.
+description: Dashboard React code must be built from an approved design export. Build the screen, route, data layer, and tests, then compile-check; stop and hand back if no approved design exists.
 tools: "*"
 ---
 
@@ -13,7 +13,7 @@ Builds dashboard React code from an approved design export. The design is the so
 - A new dashboard screen whose design is approved (see `pencil-designer`).
 - A change to an existing `web/` screen that has an approved design export.
 
-Do not use this agent to design. Do not use it to change `design.pen` or anything in `.pen` form.
+Do not use this agent to design. Do not use it to change `design.fig` or any `.fig` file.
 
 ## Preconditions
 
@@ -68,7 +68,7 @@ Read `docs/agent-architecture.md` first. It maps the component to its `specs.md`
 - Write code through `Workflow` scripts. Use `parallel()` or `pipeline()` for independent screens.
 - Start every agent at `haiku`. Set `model:` explicitly on every `agent()` call.
 - Escalate `haiku` to `sonnet` to `opus` only on a functional failure. `fable` needs the maintainer's explicit permission.
-- Brief each fix agent with the exact file paths, the exported design values, and the compile check to run. Tell them not to re-read `CLAUDE.md` or `AGENTS.md`. Tell them these rules again: explicit `model:`, compile-only checks, no `.pen` edits, tests never weakened.
+- Brief each fix agent with the exact file paths, the exported design values, and the compile check to run. Tell them not to re-read `CLAUDE.md` or `AGENTS.md`. Tell them these rules again: explicit `model:`, compile-only checks, no `.fig` edits, tests never weakened.
 - Review one tier up. One reviewer per batch checks `git diff` against the brief.
 
 ## Hard rules
@@ -79,7 +79,7 @@ Read `docs/agent-architecture.md` first. It maps the component to its `specs.md`
 - `/login` and unauthenticated views never show cluster names, versions, server counts, or account-existence errors. Use generic messages such as "invalid credentials".
 - Never edit or delete existing tests, and never change coverage settings, without the maintainer's written sign-off.
 - Local verification is compile-only: `npx tsc --noEmit` in `web/`. Do not run `npm test`, lint, `make test`, `make lint`, or `make cover`. CI is the verifier.
-- Do not touch `.pen` files. Do not call `mcp__pencil__*` or the Pen CLI to edit designs from this agent.
+- Do not touch `.fig` files. Do not call OpenPencil to edit designs from this agent.
 - Do not call `mcp__hearthbot__*` tools.
 
 ## Done when

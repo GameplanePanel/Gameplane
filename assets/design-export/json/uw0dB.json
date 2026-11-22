@@ -1,51 +1,66 @@
 {
-  "type": "frame",
-  "id": "uw0dB",
+  "file": "uw0dB",
+  "id": "1:10074",
+  "name": "Gameplane/Removable Group Chip/Secondary",
+  "type": "COMPONENT",
   "x": 4175,
   "y": 3906,
-  "name": "Gameplane/Removable Group Chip/Secondary",
-  "reusable": true,
-  "fill": "$default/default",
+  "width": 77,
+  "height": 23,
+  "fills": [{"type": "SOLID", "color": "#F6DCE7"}],
   "cornerRadius": 9999,
-  "gap": 4,
-  "padding": [
-    6,
-    6,
-    6,
-    8
-  ],
-  "alignItems": "center",
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 4,
+    "padding": [6, 6, 6, 8],
+    "primary": "MIN",
+    "counter": "CENTER",
+    "sizing": ["HUG", "HUG"]
+  },
+  "variables": {"fills/0/color": "default/default"},
   "children": [
     {
-      "type": "text",
-      "id": "m7gnz",
+      "id": "1:10075",
       "name": "chipLabel",
-      "fill": "$foreground/foreground",
-      "content": "everyone",
-      "lineHeight": 1.1428571428571428,
-      "fontFamily": "$typography/font-mono",
-      "fontSize": 10,
-      "fontWeight": "500"
+      "type": "TEXT",
+      "x": 8,
+      "y": 6,
+      "width": 48,
+      "height": 11,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "everyone",
+      "font": ["JetBrains Mono", 500, 10],
+      "lineHeight": {"value": 114.28571939468384, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
     },
     {
-      "type": "frame",
-      "id": "XKZKq",
+      "id": "1:10076",
       "name": "chipRemove",
+      "type": "FRAME",
+      "x": 60,
+      "y": 6,
       "width": 11,
       "height": 11,
       "cornerRadius": 9999,
-      "justifyContent": "center",
-      "alignItems": "center",
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
       "children": [
         {
-          "type": "icon",
-          "id": "DsEhy",
+          "id": "1:10077",
           "name": "chipRemoveIcon",
+          "type": "INSTANCE",
+          "x": 1.5,
+          "y": 1.5,
           "width": 8,
           "height": 8,
-          "icon": "x",
-          "library": "lucide",
-          "fill": "$foreground/foreground"
+          "component": "lucide/x/8x8",
+          "variables": {"fills/0/color": "foreground/foreground"}
         }
       ]
     }

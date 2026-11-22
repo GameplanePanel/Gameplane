@@ -42,7 +42,7 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 
 ## Non-goals / Boundaries
 
-**Design-first rule:** Any change to the dashboard's visual surface (new page, new form field, layout shift, color/icon change) originates in `design.pen` (Pencil MCP server), not in React code. The Pencil file is the source of truth for all UI design; code-led redesigns are reverted. See docs/architecture.md and CLAUDE.md rule 1.
+**Design-first rule:** Any change to the dashboard's visual surface (new page, new form field, layout shift, color/icon change) originates in `design.fig` (OpenPencil or Figma), not in React code. The design file is the source of truth for all UI design; code-led redesigns are reverted. See docs/architecture.md and CLAUDE.md rule 1.
 
 **API-only:** The dashboard never speaks directly to the operator or agent. All reads/writes flow through the Kubernetes API server and the REST/WebSocket API gateway (`api/`).
 
@@ -56,7 +56,7 @@ These are CRD/API contracts; no new rollout controls or visual flow are defined.
 
 The [unified dashboard](../docs/unified-dashboard.md) combines authorized
 resources across clusters. [Cluster administration](../docs/multicluster-ui.md)
-retains a separate inventory selection. `design.pen` and the
+retains a separate inventory selection. `design.fig` and the
 [design exports](../assets/design-export/MANIFEST.md) define the visual surface.
 
 - Dashboard, Servers, Backups and global Search consume `/fleet/*` envelopes. Exact cluster/namespace filters request narrower backend results so they can recover resources omitted by the combined result limit. Authorized scope metadata keeps filter options available for empty or unavailable clusters.
@@ -791,7 +791,7 @@ package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for 
 
 ## SSO Role Rules and Role Source (spec 034) — pending dashboard build
 
-**Status:** pending the dashboard build. The API and Helm parts are in place. The screens below are not built yet, and the design in `design.pen` is not done. Per core rule 1, the design comes first: the rule editor, the role-source badge and the "Return to SSO control" action are designed through the Pencil MCP (on the maintainer's machine, via a local-agent prompt), then exported to `assets/design-export/`, then built. This section will be revised when those screens land.
+**Status:** pending the dashboard build. The API and Helm parts are in place. The screens below are not built yet, and the design in `design.fig` is not done. Per core rule 1, the design comes first: the rule editor, the role-source badge and the "Return to SSO control" action are designed through the Pencil MCP (on the maintainer's machine, via a local-agent prompt), then exported to `assets/design-export/`, then built. This section will be revised when those screens land.
 
 **Already in place:**
 - `web/src/types.ts`: `UserRoleSource = "sso" | "sso_pending" | "manual"` and `roleSource?: UserRoleSource` on `User` (the API always sends it; optional only for older typed payloads).
@@ -1233,7 +1233,7 @@ openEventStream(opts: EventStreamOptions)
 1. **TypeScript strict mode** — `tsconfig.json` sets `strict: true`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`
 2. **No unjustified `any`** — `typescript/no-explicit-any` is an error. Explain any unavoidable `any` in a comment.
 3. **No floating promises** — `typescript/no-floating-promises` is an error. Await each promise or mark it explicitly with `void`.
-4. **Design-first for visuals** — all UI/layout changes start in `design.pen`, not React code
+4. **Design-first for visuals** — all UI/layout changes start in `design.fig`, not React code
 5. **Pre-auth privacy** — login page and unauthenticated screens leak no internal state (rule 3, CLAUDE.md)
 6. **Fix, not silence** — ESLint / TypeScript flags are fixed at source, never suppressed inline (rule 4, CLAUDE.md)
 7. **Operator is authoritative** — business logic lives in the operator; the dashboard is a pure view layer
@@ -1341,9 +1341,9 @@ for routing, identity and integration coverage.
 - **docs/architecture.md** — component overview, data flow, security boundaries, "operator is authoritative" rationale
 - **docs/security.md** — auth model, RBAC, threat model, pod security, pre-auth privacy rule
 - **docs/install.md** — Helm values, K8s prerequisites, OIDC setup (for deployment contexts)
-- **CLAUDE.md rule 1** — Design-first: visual changes originate in design.pen, not code
+- **CLAUDE.md rule 1** — Design-first: visual changes originate in design.fig, not code
 - **CLAUDE.md rule 3** — Pre-auth privacy: login page must not leak internal metrics/hostnames/versions
 - **CLAUDE.md rule 4** — Fix, don't silence: linter/type flags are fixed at source
 - **CLAUDE.md rule 5** — TS strict; no unjustified `any`; no floating promises
-- **design.pen** — Source of truth for all UI/layout (Pencil MCP server; do not edit as text)
+- **design.fig** — Source of truth for all UI/layout (OpenPencil or Figma; read it through assets/design-export/, never as a file)
 - **README.md** — Project pitch, quickstart, architecture overview

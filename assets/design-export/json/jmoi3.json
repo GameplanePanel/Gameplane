@@ -1,1 +1,118 @@
-{"type":"frame","id":"jmoi3","x":3280,"y":10222,"name":"Screen/Login — Invalid credentials","theme":{"semantic":"dark"},"clip":true,"width":1440,"height":900,"fill":"$background/background","children":[{"id":"pTyIl","type":"ref","ref":"fjQjb","name":"loginL","width":"fill_container","height":"fill_container","children":[{"id":"i12U8","type":"ref","ref":"g2HLxz","name":"loginCardError"}]},{"id":"YOAyf","type":"ref","ref":"T8Hug","name":"loginR","width":"fill_container","height":"fill_container"}]}
+{
+  "file": "jmoi3",
+  "id": "1:77",
+  "name": "Screen/Login — Invalid credentials",
+  "type": "FRAME",
+  "x": 3280,
+  "y": 10222,
+  "width": 1440,
+  "height": 900,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "id": "1:78",
+      "name": "loginL",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [80, 80, 80, 80],
+        "primary": "CENTER",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:79",
+          "name": "loginCardError",
+          "type": "INSTANCE",
+          "x": 150,
+          "y": 108,
+          "width": 420,
+          "height": 684,
+          "component": "loginCardError",
+          "componentId": "1:80",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [40, 40, 40, 40],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+          "texts": [
+            "gameplane",
+            "game server control panel",
+            "Sign in",
+            "Welcome to Gameplane.",
+            "Email or username",
+            "valgul",
+            "Password",
+            "Forgot?",
+            "••••••••••••",
+            "Invalid credentials",
+            "Sign in →",
+            "or",
+            "Continue with Keycloak",
+            "Sign in with safe mode (custom styling disabled)",
+            "AGPL-3.0 licensed",
+            "English"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:129",
+      "name": "loginR",
+      "type": "INSTANCE",
+      "x": 720,
+      "y": 0,
+      "width": 720,
+      "height": 900,
+      "component": "Gameplane/Login Hero Panel",
+      "componentId": "1:53",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [48, 224, 48, 48],
+        "primary": "CENTER",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary"},
+      "texts": [
+        "AGPL-3.0",
+        "Kubernetes-native\ngame server\nhosting.",
+        "An open-source alternative to proprietary game panels — CRDs, Operators, and StatefulSets all the way down.",
+        "Deploy any game. Minecraft, Valheim, Factorio, Palworld, ARK, CS2, Terraria, and more.",
+        "Scale from single-node k3s to multi-node bare metal or cloud.",
+        "Backups, auto-restart, rolling upgrades, RBAC. Production-grade defaults.",
+        "GitOps-friendly. kubectl get gameservers just works."
+      ]
+    }
+  ]
+}

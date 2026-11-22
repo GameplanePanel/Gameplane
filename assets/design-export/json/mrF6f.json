@@ -1,484 +1,803 @@
 {
-  "type": "frame",
-  "id": "mrF6f",
+  "file": "mrF6f",
+  "id": "1:11502",
   "name": "Screen/Admin Settings — Authentication (Role rules empty, not overridden)",
-  "theme": {
-    "semantic": "dark"
-  },
+  "type": "FRAME",
+  "x": 8200,
+  "y": 78522,
   "width": 888,
-  "fill": "$background/background",
-  "layout": "vertical",
-  "gap": 24,
-  "padding": 24,
+  "height": 649,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 24,
+    "padding": [24, 24, 24, 24],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "type": "frame",
-      "id": "QonVU",
+      "id": "1:11503",
       "name": "Provider Role Rules (empty)",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 12,
-      "padding": 24,
-      "fill": "$surface/surface",
-      "cornerRadius": "$radius/3xl",
+      "type": "FRAME",
+      "x": 24,
+      "y": 24,
+      "width": 840,
+      "height": 274,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 12,
+        "padding": [24, 24, 24, 24],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
       "children": [
         {
-          "type": "text",
-          "id": "kBaDp",
-          "fill": "$foreground/foreground",
-          "content": "Role rules",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 14,
-          "fontWeight": "500"
+          "id": "1:11504",
+          "name": "text",
+          "type": "TEXT",
+          "x": 24,
+          "y": 24,
+          "width": 66,
+          "height": 18,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "Role rules",
+          "font": ["Geist", 500, 14],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         },
         {
-          "type": "text",
-          "id": "wMEQn",
-          "fill": "$muted",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "Rules are checked top to bottom. The first group the user belongs to decides their role.",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "normal"
+          "id": "1:11505",
+          "name": "text",
+          "type": "TEXT",
+          "x": 24,
+          "y": 54,
+          "width": 792,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+          "layoutAlignSelf": "STRETCH",
+          "text": "Rules are checked top to bottom. The first group the user belongs to decides their role.",
+          "font": ["Geist", 400, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         },
         {
-          "type": "frame",
-          "id": "FQ6m6",
+          "id": "1:11506",
           "name": "rulesEmpty",
-          "width": "fill_container",
-          "gap": 8,
-          "alignItems": "center",
-          "padding": [
-            8,
-            12
-          ],
+          "type": "FRAME",
+          "x": 24,
+          "y": 82,
+          "width": 792,
+          "height": 32,
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
           "cornerRadius": 8,
-          "stroke": "$border/border",
-          "strokeWidth": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [8, 12, 8, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"strokes/0/color": "border/border"},
           "children": [
             {
-              "type": "icon",
-              "id": "tQSmd",
+              "id": "1:11507",
               "name": "list-x",
+              "type": "FRAME",
+              "x": 12,
+              "y": 9,
               "width": 14,
               "height": 14,
-              "icon": "list-x",
-              "library": "lucide",
-              "fill": "$muted"
+              "variables": {"fills/0/color": "muted"},
+              "children": [
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 1.75,
+                  "y": 2.92,
+                  "width": 10.21,
+                  "height": 8.17,
+                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                  "strokeWeight": 1.17
+                }
+              ]
             },
             {
-              "type": "text",
-              "id": "eLJWd",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "No rules. SSO users get viewer and their role is never changed at sign-in.",
-              "fontStyle": "italic",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:11508",
+              "name": "text",
+              "type": "TEXT",
+              "x": 34,
+              "y": 8,
+              "width": 746,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutGrow": 1,
+              "text": "No rules. SSO users get viewer and their role is never changed at sign-in.",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "id": "uLuIE",
-          "type": "ref",
-          "ref": "d5N3W3",
+          "id": "1:11509",
           "name": "btnAddRule",
-          "descendants": {
-            "X3iEI": {
-              "icon": "plus"
-            },
-            "i3zB62/zMNkR": {
-              "content": "Add rule"
-            }
-          }
+          "type": "INSTANCE",
+          "x": 24,
+          "y": 126,
+          "width": 95,
+          "height": 32,
+          "component": "Gameplane/Button/Small/Outline",
+          "componentId": "1:740",
+          "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "variables": {"strokes/0/color": "border/border"},
+          "texts": ["Add rule"]
         },
         {
-          "type": "frame",
-          "id": "s5dK5",
+          "id": "1:11510",
           "name": "field_fallback",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 6,
+          "type": "FRAME",
+          "x": 24,
+          "y": 170,
+          "width": 792,
+          "height": 80,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 6,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "WYj5S",
-              "fill": "$foreground/foreground",
-              "content": "Fallback role",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "500"
+              "id": "1:11511",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 73,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Fallback role",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "id": "6olBC",
-              "type": "ref",
-              "ref": "AT7ya",
+              "id": "1:11512",
               "name": "fallbackRole",
-              "width": "fill_container",
-              "descendants": {
-                "cFsFk": {
-                  "content": "viewer",
-                  "fill": "$field/foreground"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 0,
+              "y": 22,
+              "width": 792,
+              "height": 36,
+              "component": "Gameplane/Select",
+              "componentId": "1:311",
+              "fills": [{"type": "SOLID", "color": "#17151A"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [8, 12, 8, 12],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "fills/0/color": "field/background",
+                "strokes/0/color": "field/border"
+              },
+              "texts": ["viewer"]
             },
             {
-              "type": "text",
-              "id": "segwk",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Used when no rule matches. Users whose role was set by hand are always let in.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "id": "1:11513",
+              "name": "text",
+              "type": "TEXT",
+              "x": 0,
+              "y": 64,
+              "width": 792,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Used when no rule matches. Users whose role was set by hand are always let in.",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         }
       ]
     },
     {
-      "type": "frame",
-      "id": "Cn5r1",
+      "id": "1:11514",
       "name": "Role Rule Override Card (not overridden)",
-      "width": "fill_container",
-      "fill": "$surface/surface",
-      "cornerRadius": "$radius/3xl",
-      "effect": {
-        "type": "shadow",
-        "shadowType": "outer",
-        "color": "#0000000A",
-        "offset": {
-          "x": 0,
-          "y": 2
-        },
-        "blur": 4
+      "type": "FRAME",
+      "x": 24,
+      "y": 322,
+      "width": 840,
+      "height": 303,
+      "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+      "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+      "cornerRadius": 24,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 12,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
       },
-      "layout": "vertical",
-      "gap": 12,
-      "padding": 16,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
       "children": [
         {
-          "type": "frame",
-          "id": "M7EXk",
+          "id": "1:11515",
           "name": "Card Header",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 4,
-          "padding": [
-            20,
-            20,
-            16,
-            20
-          ],
+          "type": "FRAME",
+          "x": 16,
+          "y": 16,
+          "width": 808,
+          "height": 77,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 4,
+            "padding": [20, 20, 16, 20],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "oyHXH",
+              "id": "1:11516",
               "name": "cardTitle",
-              "fill": "$foreground/foreground",
-              "content": "Role rule override",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 16,
-              "fontWeight": "500"
+              "type": "TEXT",
+              "x": 20,
+              "y": 20,
+              "width": 132,
+              "height": 21,
+              "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+              "text": "Role rule override",
+              "font": ["Geist", 500, 16],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
             },
             {
-              "type": "text",
-              "id": "7PjYP",
+              "id": "1:11517",
               "name": "cardSubtitle",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Overrides the whole Helm rule list and fallback. Until you override, sign-in uses the Helm values shown here.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 12,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 20,
+              "y": 45,
+              "width": 768,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutAlignSelf": "STRETCH",
+              "text": "Overrides the whole Helm rule list and fallback. Until you override, sign-in uses the Helm values shown here.",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             }
           ]
         },
         {
-          "type": "frame",
-          "id": "uBlil",
+          "id": "1:11518",
           "name": "Card Content",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 14,
-          "padding": [
-            0,
-            20,
-            20,
-            20
-          ],
+          "type": "FRAME",
+          "x": 16,
+          "y": 105,
+          "width": 808,
+          "height": 182,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 14,
+            "padding": [0, 20, 20, 20],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "frame",
-              "id": "z2b7I",
+              "id": "1:11519",
               "name": "overrideHeader",
-              "width": "fill_container",
-              "justifyContent": "space_between",
-              "alignItems": "center",
+              "type": "FRAME",
+              "x": 20,
+              "y": 0,
+              "width": 768,
+              "height": 32,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "HZZQQ",
-                  "type": "ref",
-                  "ref": "Rwnu3",
-                  "name": "provenance_helm"
+                  "id": "1:11520",
+                  "name": "provenance_helm",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 7.5,
+                  "width": 127,
+                  "height": 17,
+                  "component": "Gameplane/Provenance Badge/From Helm",
+                  "componentId": "1:3569",
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932", "visible": false}],
+                  "strokeWeight": 1,
+                  "cornerRadius": 9999,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 5,
+                    "padding": [2, 8, 2, 8],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
+                  "texts": ["From Helm values"]
                 },
                 {
-                  "id": "zVbX4",
-                  "type": "ref",
-                  "ref": "d5N3W3",
+                  "id": "1:11521",
                   "name": "btnOverride",
-                  "descendants": {
-                    "X3iEI": {
-                      "icon": "pencil"
-                    },
-                    "i3zB62/zMNkR": {
-                      "content": "Override"
-                    }
-                  }
+                  "type": "INSTANCE",
+                  "x": 673,
+                  "y": 0,
+                  "width": 95,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Outline",
+                  "componentId": "1:740",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+                  "strokeWeight": 1,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"strokes/0/color": "border/border"},
+                  "texts": ["Override"]
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "2UhGF",
+              "id": "1:11522",
               "name": "helmRulesGreyed",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 8,
+              "type": "FRAME",
+              "x": 20,
+              "y": 46,
+              "width": 768,
+              "height": 116,
               "opacity": 0.5,
+              "layout": {
+                "mode": "VERTICAL",
+                "gap": 8,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["HUG", "FIXED"]
+              },
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "type": "frame",
-                  "id": "0IBpv",
+                  "id": "1:11523",
                   "name": "helmRule_1",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 768,
+                  "height": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "XiK1y",
+                      "id": "1:11524",
                       "name": "priority",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
                       "width": 24,
                       "height": 24,
-                      "fill": "$default/default",
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 9999,
-                      "justifyContent": "center",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "default/default"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "WQ4FX",
-                          "fill": "$foreground/foreground",
-                          "content": "1",
-                          "fontFamily": "$typography/font-mono",
-                          "fontSize": 12,
-                          "fontWeight": "600"
+                          "id": "1:11525",
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 8,
+                          "y": 4,
+                          "width": 8,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "1",
+                          "font": ["JetBrains Mono", 600, 12],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "5fKf7",
+                      "id": "1:11526",
                       "name": "ruleGroup",
-                      "fill": "$foreground/foreground",
-                      "textGrowth": "fixed-width",
+                      "type": "TEXT",
+                      "x": 36,
+                      "y": 4,
                       "width": 260,
-                      "content": "gameplane-admins",
-                      "fontFamily": "$typography/font-mono",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "gameplane-admins",
+                      "font": ["JetBrains Mono", 400, 12],
+                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "icon",
-                      "id": "RoCB1",
+                      "id": "1:11527",
                       "name": "arrow-right",
+                      "type": "FRAME",
+                      "x": 308,
+                      "y": 6,
                       "width": 12,
                       "height": 12,
-                      "icon": "arrow-right",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 2.5,
+                          "width": 7,
+                          "height": 7,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
                     },
                     {
-                      "id": "WLkJk",
-                      "type": "ref",
-                      "ref": "Qou47",
+                      "id": "1:11528",
                       "name": "ruleRole",
-                      "descendants": {
-                        "z0QlNZ": {
-                          "content": "admin",
-                          "fontFamily": "$typography/font-mono"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 332,
+                      "y": 2,
+                      "width": 53,
+                      "height": 20,
+                      "component": "Chip/Soft/Warning/MD",
+                      "componentId": "1:3907",
+                      "fills": [{"type": "SOLID", "color": "#F7B75026", "opacity": 0.15}],
+                      "cornerRadius": 16,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 2,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "warning/soft"},
+                      "texts": ["admin"]
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "IL157",
+                  "id": "1:11529",
                   "name": "helmRule_2",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 32,
+                  "width": 768,
+                  "height": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "P8QzF",
+                      "id": "1:11530",
                       "name": "priority",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
                       "width": 24,
                       "height": 24,
-                      "fill": "$default/default",
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 9999,
-                      "justifyContent": "center",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "default/default"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "0gUG7",
-                          "fill": "$foreground/foreground",
-                          "content": "2",
-                          "fontFamily": "$typography/font-mono",
-                          "fontSize": 12,
-                          "fontWeight": "600"
+                          "id": "1:11531",
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 8,
+                          "y": 4,
+                          "width": 8,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "2",
+                          "font": ["JetBrains Mono", 600, 12],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "WnZQ5",
+                      "id": "1:11532",
                       "name": "ruleGroup",
-                      "fill": "$foreground/foreground",
-                      "textGrowth": "fixed-width",
+                      "type": "TEXT",
+                      "x": 36,
+                      "y": 4,
                       "width": 260,
-                      "content": "gameplane-ops",
-                      "fontFamily": "$typography/font-mono",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "gameplane-ops",
+                      "font": ["JetBrains Mono", 400, 12],
+                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "icon",
-                      "id": "pHCLb",
+                      "id": "1:11533",
                       "name": "arrow-right",
+                      "type": "FRAME",
+                      "x": 308,
+                      "y": 6,
                       "width": 12,
                       "height": 12,
-                      "icon": "arrow-right",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 2.5,
+                          "width": 7,
+                          "height": 7,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
                     },
                     {
-                      "id": "xwxGe",
-                      "type": "ref",
-                      "ref": "WIvfi",
+                      "id": "1:11534",
                       "name": "ruleRole",
-                      "descendants": {
-                        "aklYV": {
-                          "content": "operator",
-                          "fontFamily": "$typography/font-mono"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 332,
+                      "y": 2,
+                      "width": 74,
+                      "height": 20,
+                      "component": "Chip/Soft/Default/MD",
+                      "componentId": "1:5676",
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 16,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 2,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                      "texts": ["operator"]
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "GaP3Z",
+                  "id": "1:11535",
                   "name": "helmRule_3",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 64,
+                  "width": 768,
+                  "height": 24,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 12,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "frame",
-                      "id": "1K47I",
+                      "id": "1:11536",
                       "name": "priority",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
                       "width": 24,
                       "height": 24,
-                      "fill": "$default/default",
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
                       "cornerRadius": 9999,
-                      "justifyContent": "center",
-                      "alignItems": "center",
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 0,
+                        "padding": [0, 0, 0, 0],
+                        "primary": "CENTER",
+                        "counter": "CENTER",
+                        "sizing": ["FIXED", "FIXED"]
+                      },
+                      "variables": {"fills/0/color": "default/default"},
                       "children": [
                         {
-                          "type": "text",
-                          "id": "ecVBJ",
-                          "fill": "$foreground/foreground",
-                          "content": "3",
-                          "fontFamily": "$typography/font-mono",
-                          "fontSize": 12,
-                          "fontWeight": "600"
+                          "id": "1:11537",
+                          "name": "text",
+                          "type": "TEXT",
+                          "x": 8,
+                          "y": 4,
+                          "width": 8,
+                          "height": 16,
+                          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                          "text": "3",
+                          "font": ["JetBrains Mono", 600, 12],
+                          "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "Hoxzc",
+                      "id": "1:11538",
                       "name": "ruleGroup",
-                      "fill": "$foreground/foreground",
-                      "textGrowth": "fixed-width",
+                      "type": "TEXT",
+                      "x": 36,
+                      "y": 4,
                       "width": 260,
-                      "content": "gameplane-members",
-                      "fontFamily": "$typography/font-mono",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "text": "gameplane-members",
+                      "font": ["JetBrains Mono", 400, 12],
+                      "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                     },
                     {
-                      "type": "icon",
-                      "id": "B1ln1",
+                      "id": "1:11539",
                       "name": "arrow-right",
+                      "type": "FRAME",
+                      "x": 308,
+                      "y": 6,
                       "width": 12,
                       "height": 12,
-                      "icon": "arrow-right",
-                      "library": "lucide",
-                      "fill": "$muted"
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 2.5,
+                          "width": 7,
+                          "height": 7,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1
+                        }
+                      ]
                     },
                     {
-                      "id": "njvFp",
-                      "type": "ref",
-                      "ref": "WIvfi",
+                      "id": "1:11540",
                       "name": "ruleRole",
-                      "descendants": {
-                        "aklYV": {
-                          "content": "viewer",
-                          "fontFamily": "$typography/font-mono"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 332,
+                      "y": 2,
+                      "width": 60,
+                      "height": 20,
+                      "component": "Chip/Soft/Default/MD",
+                      "componentId": "1:5676",
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 16,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 2,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                      "texts": ["viewer"]
                     }
                   ]
                 },
                 {
-                  "type": "frame",
-                  "id": "RmAtj",
+                  "id": "1:11541",
                   "name": "helmFallbackRow",
-                  "width": "fill_container",
-                  "alignItems": "center",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 96,
+                  "width": 768,
+                  "height": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "HUG"]
+                  },
+                  "layoutAlignSelf": "STRETCH",
                   "children": [
                     {
-                      "type": "text",
-                      "id": "yfGOJ",
-                      "fill": "$muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Fallback role",
-                      "fontFamily": "$typography/font-sans",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "id": "1:11542",
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 2,
+                      "width": 708,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutGrow": 1,
+                      "text": "Fallback role",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                     },
                     {
-                      "id": "88OjT",
-                      "type": "ref",
-                      "ref": "WIvfi",
+                      "id": "1:11543",
                       "name": "fallbackPill",
-                      "descendants": {
-                        "aklYV": {
-                          "content": "viewer",
-                          "fontFamily": "$typography/font-mono"
-                        }
-                      }
+                      "type": "INSTANCE",
+                      "x": 708,
+                      "y": 0,
+                      "width": 60,
+                      "height": 20,
+                      "component": "Chip/Soft/Default/MD",
+                      "componentId": "1:5676",
+                      "fills": [{"type": "SOLID", "color": "#232128"}],
+                      "cornerRadius": 16,
+                      "layout": {
+                        "mode": "HORIZONTAL",
+                        "gap": 2,
+                        "padding": [2, 8, 2, 8],
+                        "primary": "MIN",
+                        "counter": "CENTER",
+                        "sizing": ["HUG", "HUG"]
+                      },
+                      "variables": {"cornerRadius": "radius/2xl", "fills/0/color": "default/default"},
+                      "texts": ["viewer"]
                     }
                   ]
                 }
@@ -487,52 +806,64 @@
           ]
         },
         {
-          "type": "frame",
-          "id": "GWNAs",
+          "id": "1:11544",
           "name": "Card Actions",
-          "width": "fill_container",
-          "gap": 12,
-          "padding": [
-            8,
-            20,
-            20,
-            20
-          ],
-          "justifyContent": "space_between",
-          "alignItems": "center",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 100,
+          "height": 1078,
+          "visible": false,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 12,
+            "padding": [8, 20, 20, 20],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "HUG"]
+          },
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "type": "text",
-              "id": "AbIzL",
+              "id": "1:11545",
               "name": "saveHelper",
-              "fill": "$muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Saved changes take effect on next login for affected users — no restart or reinstall needed.",
-              "fontFamily": "$typography/font-sans",
-              "fontSize": 11,
-              "fontWeight": "normal"
+              "type": "TEXT",
+              "x": 20,
+              "y": 8,
+              "width": 0,
+              "height": 1050,
+              "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+              "layoutGrow": 1,
+              "text": "Saved changes take effect on next login for affected users — no restart or reinstall needed.",
+              "font": ["Geist", 400, 11],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
             },
             {
-              "id": "p2eoc",
-              "type": "ref",
-              "ref": "rNhll",
+              "id": "1:11546",
               "name": "Btn Save Role Mappings",
-              "descendants": {
-                "wDXFJ/K8d1zg": {
-                  "enabled": false
-                },
-                "wDXFJ/zMNkR": {
-                  "content": "Save role mappings"
-                }
-              }
+              "type": "INSTANCE",
+              "x": 20,
+              "y": 517,
+              "width": 144,
+              "height": 32,
+              "component": "Gameplane/Button/Outline",
+              "componentId": "1:770",
+              "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+              "strokes": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+              "strokeWeight": 1,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "CENTER",
+                "counter": "CENTER",
+                "sizing": ["HUG", "HUG"]
+              },
+              "texts": ["Save role mappings"]
             }
-          ],
-          "enabled": false
+          ]
         }
       ]
     }
-  ],
-  "x": 8200,
-  "y": 78522
+  ]
 }

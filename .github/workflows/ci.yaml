@@ -19,7 +19,7 @@ on:
       - "**"
       - "!**.md"
       - "!docs/**"
-      - "!design.pen"
+      - "!design.fig"
       - "!website"
       - "!website/**"
       - "!LICENSE"

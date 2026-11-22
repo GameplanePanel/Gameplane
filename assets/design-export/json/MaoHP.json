@@ -1,67 +1,224 @@
 {
-  "id": "MaoHP",
-  "type": "ref",
-  "reusable": true,
-  "ref": "x3beP",
+  "file": "MaoHP",
+  "id": "1:10326",
   "name": "Gameplane/Dialog/Reset Password",
+  "type": "FRAME",
   "x": 688,
   "y": 6274,
-  "effect": {
-    "type": "shadow",
-    "shadowType": "outer",
-    "color": "#00000000"
+  "width": 480,
+  "height": 215,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 0, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
   },
-  "theme": {},
-  "descendants": {
-    "E7Whx": {
-      "content": "Reset password for operator-01"
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "name": "mTitle",
+      "type": "TEXT",
+      "x": 20,
+      "y": 20,
+      "width": 243,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+      "text": "Reset password for operator-01",
+      "font": ["Geist", 600, 16],
+      "lineHeight": {"value": 150, "unit": "PERCENT"},
+      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
     },
-    "qzcst": {
-      "enabled": true,
-      "content": "They will need to sign in again with the new password."
-    },
-    "Nht52": {
-      "type": "frame",
-      "id": "vOz2K",
-      "name": "mBody",
-      "width": "fill_container",
-      "layout": "vertical",
-      "gap": 6,
-      "padding": [
-        16,
-        0,
-        0,
-        0
-      ],
+    {
+      "name": "mDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 44,
+      "width": 440,
+      "height": 25,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [4, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "text",
-          "id": "OeHkP",
-          "fill": "$foreground/foreground",
-          "content": "New password",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 12,
-          "fontWeight": "500"
-        },
-        {
-          "id": "YgQBa",
-          "type": "ref",
-          "ref": "D0cDM",
-          "name": "Input",
-          "width": "fill_container",
-          "stroke": "$accent/accent",
-          "strokeWidth": 2,
-          "descendants": {
-            "PJERm": {
-              "content": "At least 12 characters",
-              "fill": "$field/placeholder"
-            }
-          }
+          "name": "mDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 4,
+          "width": 440,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "They will need to sign in again with the new password.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
         }
       ]
     },
-    "TZ7Ef": {
-      "content": "Set new password"
+    {
+      "id": "1:10327",
+      "name": "mBody",
+      "type": "FRAME",
+      "x": 20,
+      "y": 69,
+      "width": 440,
+      "height": 74,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 6,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "id": "1:10328",
+          "name": "text",
+          "type": "TEXT",
+          "x": 0,
+          "y": 16,
+          "width": 83,
+          "height": 16,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "text": "New password",
+          "font": ["Geist", 500, 12],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+        },
+        {
+          "id": "1:10329",
+          "name": "Input",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 38,
+          "width": 440,
+          "height": 36,
+          "component": "Gameplane/Input",
+          "componentId": "1:706",
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#DB2777"}],
+          "strokeWeight": 2,
+          "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [8, 12, 8, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/xl",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "accent/accent"
+          },
+          "texts": ["At least 12 characters"]
+        }
+      ]
+    },
+    {
+      "name": "mFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 143,
+      "width": 440,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 240,
+          "y": 20,
+          "width": 64,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 40,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnPrimary",
+          "type": "FRAME",
+          "x": 312,
+          "y": 20,
+          "width": 128,
+          "height": 32,
+          "opacity": 0.5,
+          "fills": [{"type": "SOLID", "color": "#DB2777"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "accent/accent"},
+          "children": [
+            {
+              "name": "text",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8,
+              "width": 104,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+              "text": "Set new password",
+              "font": ["Geist", 500, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "accent/foreground"}
+            }
+          ]
+        }
+      ]
     }
-  }
+  ]
 }

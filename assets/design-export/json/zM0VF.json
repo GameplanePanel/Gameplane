@@ -1,262 +1,421 @@
 {
-  "type": "frame",
-  "id": "zM0VF",
+  "file": "zM0VF",
+  "id": "1:3740",
+  "name": "Screen/Admin Settings — About",
+  "type": "FRAME",
   "x": 0,
   "y": 90228,
-  "name": "Screen/Admin Settings — About",
-  "theme": {
-    "semantic": "dark"
-  },
-  "clip": true,
   "width": 1440,
   "height": 900,
-  "fill": "$background/background",
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
   "children": [
     {
-      "id": "VlxFI",
-      "type": "ref",
-      "ref": "kKFX9",
-      "height": "fill_container",
-      "descendants": {
-        "iTbd8": {
-          "fill": "#00000000"
-        },
-        "iTbd8/ghUsw": {
-          "fill": "$foreground/foreground"
-        },
-        "iTbd8/bpSQ7": {
-          "fill": "$foreground/foreground"
-        },
-        "ya5KB": {
-          "fill": "$accent/soft"
-        },
-        "ya5KB/Sr2Q5": {
-          "fill": "$accent/soft-foreground"
-        },
-        "ya5KB/Ra9NK": {
-          "fill": "$accent/soft-foreground"
-        }
-      }
+      "id": "1:3741",
+      "name": "Gameplane/App Sidebar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 260,
+      "height": 900,
+      "component": "Gameplane/App Sidebar",
+      "componentId": "1:234",
+      "fills": [{"type": "SOLID", "color": "#17151A"}],
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "surface/secondary", "strokes/0/color": "border/border"},
+      "texts": [
+        "gameplane",
+        "homelab-01",
+        "GENERAL",
+        "Dashboard",
+        "Servers",
+        "Modules",
+        "Backups",
+        "ADMIN",
+        "Clusters",
+        "Nodes",
+        "Users & RBAC",
+        "Audit log",
+        "System logs",
+        "Settings",
+        "AD",
+        "admin",
+        "admin"
+      ]
     },
     {
-      "type": "frame",
-      "id": "RaiqN",
+      "id": "1:3742",
       "name": "Main",
-      "width": "fill_container",
-      "height": "fill_container",
-      "fill": "$background/background",
-      "layout": "vertical",
+      "type": "FRAME",
+      "x": 260,
+      "y": 0,
+      "width": 1180,
+      "height": 900,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
       "children": [
         {
-          "id": "cf6Sq",
-          "type": "ref",
-          "ref": "gu5WY",
-          "width": "fill_container",
-          "descendants": {
-            "Gl7AY": {
-              "content": "Settings"
-            }
-          }
+          "id": "1:3743",
+          "name": "Gameplane/Top Bar",
+          "type": "INSTANCE",
+          "x": 0,
+          "y": 0,
+          "width": 1180,
+          "height": 64,
+          "component": "Gameplane/Top Bar",
+          "componentId": "1:281",
+          "fills": [{"type": "SOLID", "color": "#121114"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 32, 0, 32],
+            "primary": "SPACE_BETWEEN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "background/background", "strokes/0/color": "border/border"},
+          "texts": ["gameplane", "Settings", "Search servers…", "AD"]
         },
         {
-          "type": "frame",
-          "id": "g4KBwi",
+          "id": "1:3744",
           "name": "Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": 24,
+          "type": "FRAME",
+          "x": 0,
+          "y": 64,
+          "width": 1180,
+          "height": 836,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 24,
+            "padding": [24, 24, 24, 24],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutGrow": 1,
+          "layoutAlignSelf": "STRETCH",
           "children": [
             {
-              "id": "LGIwN",
-              "type": "ref",
-              "ref": "xCDF7",
-              "width": "fill_container",
-              "descendants": {
-                "spCmk": {
-                  "content": "Admin settings"
-                },
-                "VbHwU": {
-                  "content": "Platform-wide configuration for this Gameplane instance."
-                },
-                "TgdLz": {
-                  "enabled": false
-                }
-              }
+              "id": "1:3745",
+              "name": "Gameplane/Page Header",
+              "type": "INSTANCE",
+              "x": 24,
+              "y": 24,
+              "width": 1132,
+              "height": 53,
+              "component": "Gameplane/Page Header",
+              "componentId": "1:3282",
+              "fills": [{"type": "SOLID", "color": "#121114"}],
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 0,
+                "padding": [0, 0, 0, 0],
+                "primary": "SPACE_BETWEEN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "HUG"]
+              },
+              "layoutAlignSelf": "STRETCH",
+              "variables": {"fills/0/color": "background/background"},
+              "texts": ["Admin settings", "Platform-wide configuration for this Gameplane instance."]
             },
             {
-              "type": "frame",
-              "id": "K03G1G",
+              "id": "1:3746",
               "name": "Settings Layout",
-              "width": "fill_container",
-              "height": "fill_container",
-              "gap": 24,
+              "type": "FRAME",
+              "x": 24,
+              "y": 101,
+              "width": 1132,
+              "height": 711,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 24,
+                "padding": [0, 0, 0, 0],
+                "primary": "MIN",
+                "counter": "MIN",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "t3vAi0",
-                  "type": "ref",
-                  "ref": "Mp7Ep",
+                  "id": "1:3747",
                   "name": "Settings Nav",
+                  "type": "INSTANCE",
+                  "x": 0,
+                  "y": 0,
                   "width": 220,
-                  "descendants": {
-                    "eIjoV": {
-                      "fill": "#00000000"
-                    },
-                    "XuGUZ": {
-                      "fill": "$muted"
-                    },
-                    "DpMnt": {
-                      "fill": "$muted"
-                    },
-                    "WlxKs": {
-                      "fill": "$surface/secondary"
-                    },
-                    "HsxmI": {
-                      "fill": "$foreground/foreground"
-                    },
-                    "jY7mM": {
-                      "fill": "$foreground/foreground"
-                    }
-                  }
+                  "height": 356,
+                  "component": "Gameplane/Admin Settings Nav",
+                  "componentId": "1:3419",
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 2,
+                    "padding": [8, 0, 8, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "texts": [
+                    "General",
+                    "Theme",
+                    "Authentication",
+                    "Module sources",
+                    "Mod registries",
+                    "Notifications",
+                    "Telemetry",
+                    "Updates",
+                    "About"
+                  ]
                 },
                 {
-                  "id": "YkZ94",
-                  "type": "ref",
-                  "ref": "XDZ0E",
+                  "id": "1:3748",
                   "name": "Settings Panel",
-                  "width": "fill_container",
+                  "type": "FRAME",
+                  "x": 244,
+                  "y": 0,
+                  "width": 888,
+                  "height": 226,
+                  "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+                  "effects": [{"type": "DROP_SHADOW", "radius": 4, "visible": true}],
+                  "cornerRadius": 24,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 12,
+                    "padding": [16, 16, 16, 16],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "variables": {"cornerRadius": "radius/3xl", "fills/0/color": "surface/surface"},
                   "children": [
                     {
-                      "id": "kN7Lh",
-                      "type": "ref",
-                      "ref": "FRpsu",
-                      "gap": 4,
-                      "padding": [
-                        20,
-                        20,
-                        16,
-                        20
-                      ],
-                      "descendants": {
-                        "fuZHB": {
-                          "content": "About"
-                        },
-                        "BZG9o": {
-                          "content": "This Gameplane build."
-                        }
-                      }
+                      "id": "1:3749",
+                      "name": "Card Header",
+                      "type": "INSTANCE",
+                      "x": 16,
+                      "y": 16,
+                      "width": 856,
+                      "height": 84,
+                      "component": "Card Header",
+                      "componentId": "1:2935",
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 4,
+                        "padding": [20, 20, 16, 20],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "texts": ["About", "This Gameplane build."]
                     },
                     {
-                      "id": "qMOFY",
-                      "type": "ref",
-                      "ref": "I9ZPb",
-                      "gap": 12,
-                      "padding": [
-                        0,
-                        20,
-                        20,
-                        20
-                      ],
-                      "descendants": {
-                        "t2PSxY": {
-                          "type": "frame",
-                          "id": "F8txB",
+                      "id": "1:3750",
+                      "name": "Card Content",
+                      "type": "FRAME",
+                      "x": 16,
+                      "y": 112,
+                      "width": 856,
+                      "height": 98,
+                      "layout": {
+                        "mode": "VERTICAL",
+                        "gap": 12,
+                        "padding": [0, 20, 20, 20],
+                        "primary": "MIN",
+                        "counter": "MIN",
+                        "sizing": ["HUG", "FIXED"]
+                      },
+                      "layoutAlignSelf": "STRETCH",
+                      "children": [
+                        {
+                          "id": "1:3751",
                           "name": "Card Content",
-                          "width": "fill_container",
-                          "layout": "vertical",
-                          "gap": 12,
+                          "type": "FRAME",
+                          "x": 20,
+                          "y": 0,
+                          "width": 816,
+                          "height": 78,
+                          "layout": {
+                            "mode": "VERTICAL",
+                            "gap": 12,
+                            "padding": [0, 0, 0, 0],
+                            "primary": "MIN",
+                            "counter": "MIN",
+                            "sizing": ["HUG", "FIXED"]
+                          },
+                          "layoutAlignSelf": "STRETCH",
                           "children": [
                             {
-                              "type": "frame",
-                              "id": "p4So0",
+                              "id": "1:3752",
                               "name": "rowGameplane",
-                              "gap": 24,
-                              "alignItems": "center",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 0,
+                              "width": 502,
+                              "height": 18,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 24,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "CiuXL",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
+                                  "id": "1:3753",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
                                   "width": 100,
-                                  "content": "Gameplane",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Gameplane",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "bfIZJ",
-                                  "fill": "$foreground/foreground",
-                                  "content": "edge-da9312546e4ce17fa11bbd212d4d08f8b7246bfb",
-                                  "fontFamily": "$typography/font-mono",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "id": "1:3754",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 124,
+                                  "y": 0,
+                                  "width": 378,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "edge-da9312546e4ce17fa11bbd212d4d08f8b7246bfb",
+                                  "font": ["JetBrains Mono", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "bFFBW",
+                              "id": "1:3755",
                               "name": "rowK8s",
-                              "gap": 24,
-                              "alignItems": "center",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 30,
+                              "width": 225,
+                              "height": 18,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 24,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "y4YAEB",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
+                                  "id": "1:3756",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
                                   "width": 100,
-                                  "content": "Kubernetes",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "Kubernetes",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "z7YxR",
-                                  "fill": "$foreground/foreground",
-                                  "content": "v1.35.5+k3s1",
-                                  "fontFamily": "$typography/font-mono",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "id": "1:3757",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 124,
+                                  "y": 0,
+                                  "width": 101,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "v1.35.5+k3s1",
+                                  "font": ["JetBrains Mono", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
                                 }
                               ]
                             },
                             {
-                              "type": "frame",
-                              "id": "LfMWQ",
+                              "id": "1:3758",
                               "name": "rowLicense",
-                              "gap": 24,
-                              "alignItems": "center",
+                              "type": "FRAME",
+                              "x": 0,
+                              "y": 60,
+                              "width": 187,
+                              "height": 18,
+                              "layout": {
+                                "mode": "HORIZONTAL",
+                                "gap": 24,
+                                "padding": [0, 0, 0, 0],
+                                "primary": "MIN",
+                                "counter": "CENTER",
+                                "sizing": ["HUG", "HUG"]
+                              },
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "SFbzu",
-                                  "fill": "$muted",
-                                  "textGrowth": "fixed-width",
+                                  "id": "1:3759",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 0,
+                                  "y": 0,
                                   "width": 100,
-                                  "content": "License",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "text": "License",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "RMWXI",
-                                  "fill": "$foreground/foreground",
-                                  "content": "AGPL-3.0",
-                                  "fontFamily": "$typography/font-sans",
-                                  "fontSize": 14,
-                                  "fontWeight": "normal"
+                                  "id": "1:3760",
+                                  "name": "text",
+                                  "type": "TEXT",
+                                  "x": 124,
+                                  "y": 0,
+                                  "width": 63,
+                                  "height": 18,
+                                  "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                                  "text": "AGPL-3.0",
+                                  "font": ["Geist", 400, 14],
+                                  "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
                                 }
                               ]
                             }
                           ]
                         }
-                      }
+                      ]
                     }
                   ]
                 }

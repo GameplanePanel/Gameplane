@@ -1,81 +1,347 @@
 {
-  "id": "S7SCDc",
-  "type": "ref",
-  "reusable": true,
-  "ref": "WwNlX",
+  "file": "S7SCDc",
+  "id": "1:10364",
   "name": "Gameplane/Dialog/Revoke Share Link",
+  "type": "FRAME",
   "x": 3248,
   "y": 6274,
-  "theme": {},
-  "descendants": {
-    "QARhG": {
-      "type": "frame",
-      "id": "YZtJb",
+  "width": 440,
+  "height": 190,
+  "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+  "strokeWeight": 1,
+  "effects": [{"type": "DROP_SHADOW", "radius": 32, "visible": true}],
+  "cornerRadius": 12,
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [20, 20, 20, 20],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["HUG", "FIXED"]
+  },
+  "variables": {
+    "cornerRadius": "radius/xl",
+    "fills/0/color": "surface/surface",
+    "strokes/0/color": "border/border"
+  },
+  "children": [
+    {
+      "id": "1:10365",
       "name": "cdTitleRow",
-      "width": "fill_container",
-      "gap": 12,
-      "alignItems": "center",
+      "type": "FRAME",
+      "x": 20,
+      "y": 20,
+      "width": 400,
+      "height": 40,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12,
+        "padding": [0, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
       "children": [
         {
-          "type": "frame",
-          "id": "o5sOUZ",
+          "id": "1:10366",
           "name": "icon",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
           "width": 40,
           "height": 40,
-          "fill": "$danger/soft",
+          "fills": [{"type": "SOLID", "color": "#FEE2E2"}],
           "cornerRadius": 9999,
-          "justifyContent": "center",
-          "alignItems": "center",
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 0, 0, 0],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "variables": {"fills/0/color": "danger/soft"},
           "children": [
             {
-              "type": "icon",
-              "id": "k2iD7M",
+              "id": "1:10367",
               "name": "icon",
+              "type": "FRAME",
+              "x": 10,
+              "y": 10,
               "width": 20,
               "height": 20,
-              "icon": "circle-alert",
-              "library": "lucide",
-              "fill": "$danger/soft-foreground"
+              "variables": {"fills/0/color": "danger/soft-foreground"},
+              "children": [
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 1.67,
+                  "y": 1.67,
+                  "width": 16.67,
+                  "height": 16.67,
+                  "strokes": [{"type": "SOLID", "color": "#EF4444"}],
+                  "strokeWeight": 1.67
+                },
+                {
+                  "name": "path",
+                  "type": "VECTOR",
+                  "x": 10,
+                  "y": 6.67,
+                  "width": 0.01,
+                  "height": 6.67,
+                  "strokes": [{"type": "SOLID", "color": "#EF4444"}],
+                  "strokeWeight": 1.67
+                }
+              ]
             }
           ]
         },
         {
-          "type": "text",
-          "id": "j25yK",
+          "id": "1:10368",
           "name": "cdTitle",
-          "fill": "$foreground/foreground",
-          "content": "Revoke this share link?",
-          "fontFamily": "$typography/font-sans",
-          "fontSize": 16,
-          "fontWeight": "600"
+          "type": "TEXT",
+          "x": 52,
+          "y": 9.5,
+          "width": 178,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+          "text": "Revoke this share link?",
+          "font": ["Geist", 600, 16],
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
         }
       ]
     },
-    "aZP2h": {
-      "padding": [
-        16,
-        0,
-        0,
-        0
+    {
+      "name": "cdDescWrap",
+      "type": "FRAME",
+      "x": 20,
+      "y": 60,
+      "width": 400,
+      "height": 58,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "cdDesc",
+          "type": "TEXT",
+          "x": 0,
+          "y": 16,
+          "width": 400,
+          "height": 42,
+          "fills": [{"type": "SOLID", "color": "#6E5262"}],
+          "layoutGrow": 1,
+          "text": "Anyone using this link will immediately lose access to mc-survival's status page. This action cannot be undone.",
+          "font": ["Geist", 400, 14],
+          "lineHeight": {"value": 150, "unit": "PERCENT"},
+          "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
+        }
       ]
     },
-    "WKy74": {
-      "content": "Anyone using this link will immediately lose access to mc-survival's status page. This action cannot be undone."
+    {
+      "name": "cdPhrase",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 100,
+      "height": 72,
+      "visible": false,
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 4,
+        "padding": [16, 0, 0, 0],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["HUG", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "cdPhraseRow",
+          "type": "FRAME",
+          "x": 0,
+          "y": 16,
+          "width": 170,
+          "height": 16,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 4,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "children": [
+            {
+              "name": "cdPhraseType",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 26,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Type",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
+            },
+            {
+              "name": "cdPhraseValue",
+              "type": "TEXT",
+              "x": 30,
+              "y": 0,
+              "width": 80,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "mc-survival",
+              "font": ["JetBrains Mono", 400, 12],
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+            },
+            {
+              "name": "cdPhraseConfirm",
+              "type": "TEXT",
+              "x": 114,
+              "y": 0,
+              "width": 56,
+              "height": 16,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "to confirm",
+              "font": ["Geist", 400, 12],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/muted"}
+            }
+          ]
+        },
+        {
+          "name": "cdInput",
+          "type": "FRAME",
+          "x": 0,
+          "y": 36,
+          "width": 100,
+          "height": 36,
+          "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
+          "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
+          "strokeWeight": 1,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/md",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "field/border"
+          },
+          "children": [
+            {
+              "name": "cdInputValue",
+              "type": "TEXT",
+              "x": 12,
+              "y": 8.5,
+              "width": 0,
+              "height": 19,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "",
+              "font": ["Geist", 400, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "field/foreground"}
+            }
+          ]
+        }
+      ]
     },
-    "Wa0YZ": {
-      "enabled": false
-    },
-    "HPQTc": {
-      "cornerRadius": 6
-    },
-    "uSic3": {
-      "content": "Cancel"
-    },
-    "aEe0m": {
-      "cornerRadius": 6
-    },
-    "tvH6d": {
-      "content": "Revoke link"
+    {
+      "name": "cdFooter",
+      "type": "FRAME",
+      "x": 20,
+      "y": 118,
+      "width": 400,
+      "height": 52,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 8,
+        "padding": [20, 0, 0, 0],
+        "primary": "MAX",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "HUG"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "children": [
+        {
+          "name": "btnCancel",
+          "type": "FRAME",
+          "x": 222,
+          "y": 20,
+          "width": 70,
+          "height": 32,
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "children": [
+            {
+              "name": "cdCancelLabel",
+              "type": "TEXT",
+              "x": 12,
+              "y": 7,
+              "width": 46,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "Cancel",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+            }
+          ]
+        },
+        {
+          "name": "btnConfirm",
+          "type": "FRAME",
+          "x": 300,
+          "y": 20,
+          "width": 100,
+          "height": 32,
+          "fills": [{"type": "SOLID", "color": "#DC2828"}],
+          "cornerRadius": 6,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [0, 12, 0, 12],
+            "primary": "CENTER",
+            "counter": "CENTER",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "variables": {"fills/0/color": "danger/danger"},
+          "children": [
+            {
+              "name": "cdConfirmLabel",
+              "type": "TEXT",
+              "x": 12,
+              "y": 7,
+              "width": 76,
+              "height": 18,
+              "fills": [{"type": "SOLID", "color": "#FCFCFC"}],
+              "text": "Revoke link",
+              "font": ["Geist", 500, 14],
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "danger/foreground"}
+            }
+          ]
+        }
+      ]
     }
-  }
+  ]
 }

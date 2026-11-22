@@ -25,7 +25,7 @@ Servers keeps Cluster inside its existing right-hand Filter popover, alongside G
 All popovers stage selections until Apply. Clear resets the draft, Apply commits it, and closing without applying discards changes. The trigger counts applied filters, including Cluster. Search stays visible, and the layout wraps at mobile widths. Route-driven cluster state remains the authority so sidebar navigation and Back/Forward restore the correct applied cluster.
 
 The interface uses the existing Gameplane/HeroUI components and theme tokens.
-`design.pen` is the canonical design source; the
+`design.fig` is the canonical design source; the
 [design manifest](../assets/design-export/MANIFEST.md) records node IDs and export scope.
 
 ## Data and authorization contract

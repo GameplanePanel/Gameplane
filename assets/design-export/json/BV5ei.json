@@ -1,45 +1,48 @@
 {
-  "type": "frame",
-  "id": "BV5ei",
+  "file": "BV5ei",
+  "id": "1:5086",
+  "name": "Gameplane/Provenance Badge/Not configured",
+  "type": "COMPONENT",
   "x": 4012,
   "y": 3906,
-  "name": "Gameplane/Provenance Badge/Not configured",
-  "reusable": true,
-  "fill": "$default/default",
+  "width": 115,
+  "height": 17,
+  "fills": [{"type": "SOLID", "color": "#F6DCE7"}],
+  "strokes": [{"type": "SOLID", "color": "#EFC3D6", "visible": false}],
+  "strokeWeight": 1,
   "cornerRadius": 9999,
-  "stroke": {
-    "type": "color",
-    "color": "$border/border",
-    "enabled": false
+  "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 5,
+    "padding": [2, 8, 2, 8],
+    "primary": "MIN",
+    "counter": "CENTER",
+    "sizing": ["HUG", "HUG"]
   },
-  "strokeWidth": 1,
-  "strokeAlignment": "inner",
-  "gap": 5,
-  "padding": [
-    2,
-    8
-  ],
-  "alignItems": "center",
+  "variables": {"fills/0/color": "default/default", "strokes/0/color": "border/border"},
   "children": [
     {
-      "type": "icon",
-      "id": "n9DCGF",
+      "id": "1:5088",
       "name": "pbIcon",
+      "type": "INSTANCE",
+      "x": 8,
+      "y": 3.5,
       "width": 10,
       "height": 10,
-      "icon": "minus",
-      "library": "lucide",
-      "fill": "#9D3A63"
+      "component": "lucide/minus/10x10"
     },
     {
-      "type": "text",
-      "id": "zXhnc",
+      "id": "1:5087",
       "name": "pbLabel",
-      "fill": "#9D3A63",
-      "content": "Not configured",
-      "fontFamily": "$typography/font-mono",
-      "fontSize": 10,
-      "fontWeight": "500"
+      "type": "TEXT",
+      "x": 23,
+      "y": 2,
+      "width": 84,
+      "height": 13,
+      "fills": [{"type": "SOLID", "color": "#9D3A63"}],
+      "text": "Not configured",
+      "font": ["JetBrains Mono", 500, 10],
+      "variables": {"fontFamily": "typography/font-mono"}
     }
   ]
 }
