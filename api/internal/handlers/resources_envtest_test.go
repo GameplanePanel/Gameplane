@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	"github.com/GameplanePanel/gameplane/api/internal/kube"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
 
@@ -123,7 +124,12 @@ func TestScheduleDeletePreconditions(t *testing.T) {
 		return "?" + url.Values{"expectedUID": {uid}, "expectedResourceVersion": {version}}.Encode()
 	}
 	first := create()
-	t.Cleanup(func() { doJSON(t, http.MethodDelete, path, nil).Body.Close() })
+	t.Cleanup(func() {
+		if err := kubeC.Dynamic.Resource(kube.GVRs["schedules"]).Namespace(scope.DefaultNamespace).
+			Delete(context.Background(), name, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
+			t.Errorf("clean up schedule %s: %v", name, err)
+		}
+	})
 	uid, version := string(first.GetUID()), first.GetResourceVersion()
 	first.SetLabels(map[string]string{"changed": "true"})
 	resp := doJSON(t, http.MethodPut, path, first.Object)
