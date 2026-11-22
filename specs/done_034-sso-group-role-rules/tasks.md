@@ -1,6 +1,6 @@
 # Tasks: Map SSO groups to any role, and keep roles set by hand
 
-**Input**: Design documents from `/specs/034-sso-group-role-rules/`
+**Input**: Design documents from `/specs/done_034-sso-group-role-rules/`
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
 (all merged: spec in #929, plan/research/quickstart in #950).
@@ -157,9 +157,9 @@ per batch.
 - [X] T050 [P] Update `api/specs.md` (auth: rules, role source, sign-in table, new refusals) and `web/specs.md` (rule editor, role-source badge) in the same PR (Principle IV).
 - [X] T051 (Written as `changelog/unreleased/1040-sso-group-role-rules.md`, the per-PR changelog convention valgul accepted on 2026-11-11.) [P] Add a `CHANGELOG.md` entry: custom-role mapping, hand-set roles kept, new Helm `api.oidc.roleRules`, and that old keys still work.
 - [X] T052 Browser smoke test of Admin Settings and Users against the T003 screenshots (CLAUDE.md core rule 13, sonnet), in parallel with the diff review.
-- [ ] T053 Open a `GameplanePanel/website` PR updating `src/content/docs/users-auth-rbac.mdx`, `helm-values-reference.mdx` and `user-administration.mdx`; after it merges, bump the `website` submodule pointer in the main repo.
-- [ ] T054 Push, open the PR with `type: feature` and `area: api`, `area: web`, `area: chart`, `area: e2e` labels, and drive CI green with every review comment fixed. Run the quickstart.md scenarios through the E2E and envtest results, not locally.
-- [ ] T055 After merge, archive with `git mv specs/034-sso-group-role-rules specs/done_034-sso-group-role-rules` and update references (the `spec-archive` skill).
+- [X] T053 Open a `GameplanePanel/website` PR updating `src/content/docs/users-auth-rbac.mdx`, `helm-values-reference.mdx` and `user-administration.mdx`; after it merges, bump the `website` submodule pointer in the main repo. (Done: website #35, pointer bump 96676a6.)
+- [X] T054 Push, open the PR with `type: feature` and `area: api`, `area: web`, `area: chart`, `area: e2e` labels, and drive CI green with every review comment fixed. Run the quickstart.md scenarios through the E2E and envtest results, not locally. (Done: #1040 merged.)
+- [X] T055 After merge, archive with `git mv specs/034-sso-group-role-rules specs/done_034-sso-group-role-rules` and update references (the `spec-archive` skill). (Done: this archive commit.)
 
 ---
 
