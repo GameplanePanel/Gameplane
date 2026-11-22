@@ -115,7 +115,7 @@
           "componentId": "1:706",
           "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
           "strokes": [{"type": "SOLID", "color": "#DB2777"}],
-          "strokeWeight": 1,
+          "strokeWeight": 2,
           "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
           "cornerRadius": 12,
           "layout": {

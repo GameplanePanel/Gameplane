@@ -1837,7 +1837,6 @@
                                       "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                                       "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                       "strokeWeight": 1,
-                                      "cornerRadius": 24,
                                       "layout": {
                                         "mode": "HORIZONTAL",
                                         "gap": 0,
@@ -2935,7 +2934,6 @@
                                   "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                   "strokeWeight": 1,
-                                  "cornerRadius": 24,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,
@@ -3663,7 +3661,6 @@
                                   "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                                   "strokeWeight": 1,
-                                  "cornerRadius": 24,
                                   "layout": {
                                     "mode": "HORIZONTAL",
                                     "gap": 0,

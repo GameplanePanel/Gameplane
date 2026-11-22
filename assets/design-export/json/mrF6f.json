@@ -139,7 +139,6 @@
           "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
           "strokes": [{"type": "SOLID", "color": "#2C2932"}],
           "strokeWeight": 1,
-          "cornerRadius": 24,
           "layout": {
             "mode": "HORIZONTAL",
             "gap": 0,
@@ -374,7 +373,6 @@
                   "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                   "strokes": [{"type": "SOLID", "color": "#2C2932"}],
                   "strokeWeight": 1,
-                  "cornerRadius": 24,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
@@ -832,7 +830,7 @@
               "type": "TEXT",
               "x": 20,
               "y": 8,
-              "width": 455,
+              "width": 0,
               "height": 1050,
               "fills": [{"type": "SOLID", "color": "#9E98A6"}],
               "layoutGrow": 1,
