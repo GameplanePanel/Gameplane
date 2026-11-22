@@ -69,9 +69,9 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [X] T022 [P] [US1] Add the new API message ids (`server.modpack.*`, `server.registry.share_needs_managed_key`) to i18n/locales/en/app.json
 - [x] T023 [US1] Add `Servers.modpack`, `Servers.installModpack` (new body), `Admin.curseforgeShare` and the new types to web/src/lib/api.ts and web/src/types.ts
 - [x] T024 [US1] Filter the Mods tab to `modsBrowse` providers and the Modpacks switch to unblocked modpack providers in web/src/components/registry-browser.tsx
-- [ ] T025 [US1] Build the install flow from the approved design (registry switch with CurseForge, version picker defaulting to newest, confirmation) in web/src/routes/tabs/Modpacks.tsx and new web/src/components/modpack-version-picker.tsx, web/src/components/modpack-confirm-dialog.tsx
+- [x] T025 [US1] Build the install flow from the approved design (registry switch with CurseForge, version picker defaulting to newest, confirmation) in web/src/routes/tabs/Modpacks.tsx and new web/src/components/modpack-version-picker.tsx, web/src/components/modpack-confirm-dialog.tsx
 - [x] T026 [US1] Build the "Share the CurseForge key with game servers" switch from the approved design in web/src/routes/AdminSettings.tsx
-- [ ] T027 [P] [US1] vitest for the install flow and the share switch in web/src/routes/tabs/Modpacks.test.tsx and web/src/routes/AdminSettings.test.tsx
+- [x] T027 [P] [US1] vitest for the install flow and the share switch in web/src/routes/tabs/Modpacks.test.tsx and web/src/routes/AdminSettings.test.tsx
 
 **Checkpoint**: US1 deliverable on its own: CurseForge packs install and boot; Modrinth install keeps working through `spec.modpack`.
 
@@ -163,7 +163,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 - [X] T053 [US5] Implement the keyless FTB engine (research R8) in new api/internal/registry/ftb.go
 - [X] T054 [US5] Register `ftb` in the engine set and `For()` in api/internal/registry/registry.go
-- [ ] T055 [US5] Show FTB in the Modpacks switch (no new screens; uses the US1 flow) and add its label to i18n/locales/en/app.json and web/src/routes/tabs/Modpacks.tsx
+- [x] T055 [US5] Show FTB in the Modpacks switch (no new screens; uses the US1 flow) and add its label to i18n/locales/en/app.json and web/src/routes/tabs/Modpacks.tsx
 
 **Checkpoint**: all three registries install pinned packs.
 

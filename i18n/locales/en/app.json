@@ -8799,6 +8799,10 @@
     "defaultMessage": "Tech",
     "description": "Modpacks: category filter chip for technology modpacks"
   },
+  "web.routes.tabs.modpacks.continue": {
+    "defaultMessage": "Continue",
+    "description": "Modpacks: button that continues from the version picker to the confirmation step"
+  },
   "web.routes.tabs.modpacks.dismiss": {
     "defaultMessage": "dismiss",
     "description": "Modpacks tab: icon-only button that closes the result banner; read by screen readers; keep it short"
@@ -8819,6 +8823,10 @@
     "defaultMessage": "Install",
     "description": "Modpacks: label of the button that installs a modpack"
   },
+  "web.routes.tabs.modpacks.install_ellipsis": {
+    "defaultMessage": "Install…",
+    "description": "Modpacks: label of the button that opens the version picker to install a modpack; the ellipsis means more steps follow"
+  },
   "web.routes.tabs.modpacks.installing": {
     "defaultMessage": "Installing…",
     "description": "Modpacks: label of the install button while this modpack is installing"
@@ -8826,6 +8834,14 @@
   "web.routes.tabs.modpacks.installing_a_modpack_either_pins_it_on": {
     "defaultMessage": "Installing a modpack either pins it on the server (and restarts) or adds all of its mods, depending on the registry.",
     "description": "Modpacks tab: hint under the modpacks heading saying an install either pins the modpack and restarts the server, or adds all its mods, depending on the registry"
+  },
+  "web.routes.tabs.modpacks.minecraft_version": {
+    "defaultMessage": "Minecraft {version}",
+    "description": "Modpacks: label for the server's Minecraft version in the active modpack card; {version} is the version number"
+  },
+  "web.routes.tabs.modpacks.pick_a_pack_and_a_version": {
+    "defaultMessage": "Pick a pack and a version. The server pins that version and restarts to install it; a restart never upgrades it.",
+    "description": "Modpacks tab: hint under the modpacks heading for registries that pin one version of a pack; the server restarts to install it and a restart never upgrades it"
   },
   "web.routes.tabs.modpacks.requires_operator_role": {
     "defaultMessage": "Requires operator role",
