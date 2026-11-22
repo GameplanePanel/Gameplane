@@ -61,7 +61,7 @@ export function ModpacksTab({
 
   const installEnv = useMutation({
     mutationFn: (v: { p: RegistryProject; provider: string }) =>
-      Servers.installModpack(name, { ref: v.p.slug || v.p.id }, v.provider, ns),
+      Servers.installModpackLegacy(name, { ref: v.p.slug || v.p.id }, v.provider, ns),
     onMutate: (v) => setBusy(v.p.id),
     onSuccess: (_r, v) => {
       void qc.invalidateQueries({ queryKey: ["fleet"] });

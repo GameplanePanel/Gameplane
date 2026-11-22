@@ -122,6 +122,53 @@ export interface RegistryProviderInfo {
   provider: string;
   available: boolean;
   modpacks: boolean;
+  modsBrowse?: boolean; // false => hide from Mods tab; undefined treated as true (old fixtures)
+  modpacksBlockedReason?: string; // "curseforge_key_not_shared" => hide from Modpacks switch
+}
+
+export type ModpackPhase = "" | "Pending" | "BackingUp" | "Applying" | "Applied" | "BackupFailed";
+
+export interface ModpackActive {
+  provider: string;
+  project: string;
+  version: string;
+  title: string;
+  versionName: string;
+  pinned: boolean;
+  pendingRemoval?: boolean;
+}
+
+export interface ModpackMissingFile {
+  mod: string;
+  versionName: string;
+  filename: string;
+  downloadPage: string;
+}
+
+export interface ModpackView {
+  active: ModpackActive | null;
+  phase: ModpackPhase;
+  message: string;
+  backupName: string;
+  keyShared: boolean;
+  missingFiles: ModpackMissingFile[];
+  missingFilesUnknown: boolean;
+  downloadsPath: string;
+  backupAvailable: boolean;
+}
+
+export interface ModpackInstallBody {
+  provider: string;
+  project: string;
+  version: string;
+  title?: string;
+  versionName?: string;
+  backupFirst?: boolean;
+}
+
+export interface CurseForgeShare {
+  share: boolean;
+  managedKey: boolean;
 }
 
 // spec.capabilities.mods.idList — declares that this game's server

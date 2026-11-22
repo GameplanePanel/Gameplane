@@ -45,6 +45,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   hangar: "Hangar",
   factorio: "Factorio Mod Portal",
   steam: "Steam Workshop",
+  ftb: "FTB",
   spigot: "SpigotMC",
   github: "GitHub Releases",
   umod: "uMod",
@@ -109,8 +110,17 @@ export function RegistryBrowser({
     queryFn: ({ signal }) => client.withSignal(signal).Servers.registryProviders(name, ns),
   });
   const available = (providersQ.data ?? []).filter(
-    (p) => p.available && (type !== "modpack" || p.modpacks),
+    (p) =>
+      p.available &&
+      (type === "modpack" ? p.modpacks && !p.modpacksBlockedReason : p.modsBrowse !== false),
   );
+  // CurseForge is hidden from the Modpacks switch until an admin shares the key.
+  const curseForgeNeedsSharedKey =
+    type === "modpack" &&
+    (providersQ.data ?? []).some(
+      (p) =>
+        p.available && p.modpacks && p.modpacksBlockedReason === "curseforge_key_not_shared",
+    );
   // Fall back to the first available provider until one is picked (or if a
   // stale pick is no longer offered).
   const provider = picked && available.some((p) => p.provider === picked) ? picked : available[0]?.provider;
@@ -167,6 +177,9 @@ export function RegistryBrowser({
             ))}
           </Tabs.List>
         </Tabs>
+      )}
+      {curseForgeNeedsSharedKey && (
+        <p className="text-xs text-muted">{intl.formatMessage({ id: "web.components.registry_browser.curseforge_needs_shared_key", defaultMessage: "CurseForge packs for Minecraft 1.16.5 need the shared CurseForge key. An admin can turn on “Share the CurseForge key with game servers” in Settings → Mod registries.", description: "Registry browser: muted hint under the modpack switch explaining CurseForge is hidden until an admin shares the CurseForge key with game servers" })}</p>
       )}
 
       <div className="flex items-center gap-2">

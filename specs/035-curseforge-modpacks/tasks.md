@@ -67,10 +67,10 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [X] T020 [US1] Add `PUT/GET /admin/registries/curseforge/share` (annotation on the managed key Secret; 409 `server.registry.share_needs_managed_key` when only the startup flag holds a key) in api/internal/handlers/registry_secret.go and mount it with admin RBAC in api/cmd/main.go
 - [X] T021 [US1] Implement key sharing (read the managed key Secret in the control namespace (uncached, 60s requeue), maintain the server-owned copy, set the `apiKeyEnv` env via `valueFrom.secretKeyRef` (no mount), `status.modpack.keyShared`, kept out of the config hash) per contracts/operator-modpack.md item 5 in operator/internal/controller/gameserver_modpack_key.go, with the resourceNames-scoped `<release>-operator-modreg-key` Role/RoleBinding in charts/gameplane/templates/operator.yaml (no kubebuilder markers, no manifests regen)
 - [X] T022 [P] [US1] Add the new API message ids (`server.modpack.*`, `server.registry.share_needs_managed_key`) to i18n/locales/en/app.json
-- [ ] T023 [US1] Add `Servers.modpack`, `Servers.installModpack` (new body), `Admin.curseforgeShare` and the new types to web/src/lib/api.ts and web/src/types.ts
-- [ ] T024 [US1] Filter the Mods tab to `modsBrowse` providers and the Modpacks switch to unblocked modpack providers in web/src/components/registry-browser.tsx
+- [x] T023 [US1] Add `Servers.modpack`, `Servers.installModpack` (new body), `Admin.curseforgeShare` and the new types to web/src/lib/api.ts and web/src/types.ts
+- [x] T024 [US1] Filter the Mods tab to `modsBrowse` providers and the Modpacks switch to unblocked modpack providers in web/src/components/registry-browser.tsx
 - [ ] T025 [US1] Build the install flow from the approved design (registry switch with CurseForge, version picker defaulting to newest, confirmation) in web/src/routes/tabs/Modpacks.tsx and new web/src/components/modpack-version-picker.tsx, web/src/components/modpack-confirm-dialog.tsx
-- [ ] T026 [US1] Build the "Share the CurseForge key with game servers" switch from the approved design in web/src/routes/AdminSettings.tsx
+- [x] T026 [US1] Build the "Share the CurseForge key with game servers" switch from the approved design in web/src/routes/AdminSettings.tsx
 - [ ] T027 [P] [US1] vitest for the install flow and the share switch in web/src/routes/tabs/Modpacks.test.tsx and web/src/routes/AdminSettings.test.tsx
 
 **Checkpoint**: US1 deliverable on its own: CurseForge packs install and boot; Modrinth install keeps working through `spec.modpack`.

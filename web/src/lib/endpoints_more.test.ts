@@ -232,13 +232,13 @@ describe("Servers mods endpoints (uncovered branches)", () => {
   });
 
   it("installModpack with provider includes provider query param", async () => {
-    await Servers.installModpack("s1", { ref: "1.0" }, "modrinth");
+    await Servers.installModpackLegacy("s1", { ref: "1.0" }, "modrinth");
     expect(last().url).toBe("/servers/s1/modpack?provider=modrinth");
     expect(last().init.method).toBe("POST");
   });
 
   it("installModpack without provider omits provider query param", async () => {
-    await Servers.installModpack("s1", { ref: "1.0" });
+    await Servers.installModpackLegacy("s1", { ref: "1.0" });
     expect(last().url).toBe("/servers/s1/modpack");
     expect(last().init.method).toBe("POST");
   });

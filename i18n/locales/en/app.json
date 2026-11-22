@@ -3231,6 +3231,10 @@
     "defaultMessage": "Category filtering isn't available for {provider}.",
     "description": "Registry browser: tooltip when a provider has no category filter; {provider} is the provider label"
   },
+  "web.components.registry_browser.curseforge_needs_shared_key": {
+    "defaultMessage": "CurseForge packs for Minecraft 1.16.5 need the shared CurseForge key. An admin can turn on “Share the CurseForge key with game servers” in Settings → Mod registries.",
+    "description": "Registry browser: muted hint under the modpack switch explaining CurseForge is hidden until an admin shares the CurseForge key with game servers"
+  },
   "web.components.registry_browser.in_app_browse_isn_t_available_for_this": {
     "defaultMessage": "In-app browse isn’t available for this server.",
     "description": "Registry browser: message shown instead of the results when no usable registry provider exists for this server, so in-app browsing is unavailable"
@@ -5834,6 +5838,30 @@
   "web.routes.admin_settings.set_verb": {
     "defaultMessage": "Set",
     "description": "Admin settings: verb on the button that sets an API key for the first time"
+  },
+  "web.routes.admin_settings.share_curseforge_key": {
+    "defaultMessage": "Share the CurseForge key with game servers",
+    "description": "Admin settings: title of the switch that lets game servers use the managed CurseForge key"
+  },
+  "web.routes.admin_settings.share_curseforge_key_apply": {
+    "defaultMessage": "Changes apply to a server when it has 0 players, so nobody is kicked by a restart.",
+    "description": "Admin settings: note under the CurseForge key share switch when it is on; changes only apply to servers with 0 players"
+  },
+  "web.routes.admin_settings.share_curseforge_key_aria": {
+    "defaultMessage": "Share the CurseForge key with game servers",
+    "description": "Admin settings: aria-label of the CurseForge key share switch"
+  },
+  "web.routes.admin_settings.share_curseforge_key_flag": {
+    "defaultMessage": "Store the key here to share it. A key from the startup flag stays inside the API.",
+    "description": "Admin settings: reason shown under the disabled CurseForge key share switch when the key comes from the startup flag, not from this page"
+  },
+  "web.routes.admin_settings.share_curseforge_key_help": {
+    "defaultMessage": "Lets servers on images without a built-in key (Minecraft 1.16.5 and older) install CurseForge packs.",
+    "description": "Admin settings: first description line under the CurseForge key share switch"
+  },
+  "web.routes.admin_settings.share_curseforge_key_risk": {
+    "defaultMessage": "Mods running on those servers can read the key.",
+    "description": "Admin settings: second description line under the CurseForge key share switch; it warns that mods can read the shared key"
   },
   "web.routes.admin_settings.sink_kind": {
     "defaultMessage": "Sink kind",

@@ -5,6 +5,9 @@ import type {
   AuditVerifyResult,
   AppearanceMode,
   Backup,
+  CurseForgeShare,
+  ModpackInstallBody,
+  ModpackView,
   BackupDestination,
   BackupSchedule,
   BannedPlayer,
@@ -406,6 +409,11 @@ export const ModRegistries = {
     api<void>(`/admin/registries/${encodeURIComponent(provider)}/secret`, {
       method: "DELETE",
     }),
+  // Whether game servers may use the managed CurseForge key (409
+  // server.registry.share_needs_managed_key when no managed key is stored).
+  getShare: () => api<CurseForgeShare>("/admin/registries/curseforge/share"),
+  putShare: (share: boolean) =>
+    api<CurseForgeShare>("/admin/registries/curseforge/share", { method: "PUT", body: { share } }),
 };
 
 // FileEntry mirrors the agent's response shape (agent/openapi.yaml). The
@@ -800,10 +808,28 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       ),
     // Apply an env-mode modpack (e.g. Minecraft/itzg): pins the pack on the
     // server and restarts it.
-    installModpack: (name: string, body: { ref: string }, provider?: string, ns?: string) =>
+    // Legacy env-mode install; slice 3 stops using it and deletes it.
+    installModpackLegacy: (name: string, body: { ref: string }, provider?: string, ns?: string) =>
       api<{ ok: boolean }>(
         withNS(`/servers/${name}/modpack` + (provider ? `?provider=${encodeURIComponent(provider)}` : ""), ns),
         { method: "POST", body },
+      ),
+    // Modpack state for the server (active pack, phase, missing CurseForge files).
+    modpack: (name: string, ns?: string) => api<ModpackView>(withNS(`/servers/${name}/modpack`, ns)),
+    // Install or change the server's modpack (202 + the new view).
+    installModpack: (name: string, body: ModpackInstallBody, ns?: string) =>
+      api<ModpackView>(withNS(`/servers/${name}/modpack`, ns), { method: "POST", body }),
+    // Remove the active modpack; backupFirst takes a backup before deleting mods (202).
+    removeModpack: (name: string, backupFirst: boolean, ns?: string) =>
+      api<ModpackView>(withNS(`/servers/${name}/modpack?backupFirst=${backupFirst}`, ns), { method: "DELETE" }),
+    // Versions of a modpack, pre-filtered server-side to the MC version and loader (newest first).
+    modpackVersions: (name: string, project: string, provider: string, ns?: string) =>
+      api<RegistryVersion[]>(
+        withNS(
+          `/servers/${name}/mods/registry/projects/${encodeURIComponent(project)}/versions` +
+            `?provider=${encodeURIComponent(provider)}&type=modpack`,
+          ns,
+        ),
       ),
     // Mods-by-id (spec.capabilities.mods.idList): games whose server
     // downloads its own mods given a list of ids (ARK CurseForge ids,
