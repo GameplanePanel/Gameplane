@@ -54,7 +54,7 @@ describe("ModpackMissingFiles", () => {
 
   it("lists each mod and file name in the table", () => {
     render(<ModpackMissingFiles view={view()} onOpenFiles={vi.fn()} />);
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByRole("grid")).toBeInTheDocument();
     expect(screen.getByText("Jei")).toBeInTheDocument();
     expect(screen.getByText("jei-1.0.jar")).toBeInTheDocument();
     expect(screen.getByText("Sodium")).toBeInTheDocument();

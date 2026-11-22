@@ -35,7 +35,7 @@ beforeEach(() => {
   searchParams = {};
   navigate.mockClear();
   server.use(
-    http.get("/servers/alpha/access", ({ request, params }) => {
+    http.get("/servers/:name/access", ({ request, params }) => {
       const url = new URL(request.url);
       return HttpResponse.json({
         target: { cluster: url.searchParams.get("cluster") ?? "local", namespace: url.searchParams.get("namespace") ?? "gameplane-games", name: params.name },
@@ -67,7 +67,7 @@ describe("ServerDetailPage modpack Open Files", () => {
           }),
         ),
       ),
-      http.get("/mods/registry/providers", () =>
+      http.get("/servers/alpha/mods/registry/providers", () =>
         HttpResponse.json([{ provider: "curseforge", available: true, modpacks: true }]),
       ),
       http.get("/servers/alpha/modpack", () =>

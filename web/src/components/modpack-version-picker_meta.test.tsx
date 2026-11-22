@@ -46,7 +46,8 @@ describe("ModpackVersionPicker release metadata", () => {
     mount();
     expect(await screen.findByText("Release")).toBeInTheDocument();
     expect(screen.getByText("Beta")).toBeInTheDocument();
-    expect(screen.getByText(/Published .*2026/, { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByText(/Published Nov 14, 2026/, { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByText(/Published Oct 24, 2026/, { selector: "span" })).toBeInTheDocument();
   });
 
   it("renders neither chip nor a publish line without metadata", async () => {
