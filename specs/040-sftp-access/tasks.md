@@ -2,81 +2,243 @@
 
 **Input**: Design documents from `/specs/040-sftp-access/`
 
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md, quickstart.md. OD-1 to OD-6 settled by valgul on 2026-11-22. OD-7 settled A (new repository `GameplanePanel/sftp`) the same day. No decision is open. No implementation starts while any decision is open.
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md, quickstart.md. OD-1 to OD-7 settled by valgul on 2026-11-22; no decision is open.
 
-**Tests**: Required (Constitution I and coverage gates: agent 90, api 80, operator 72, web 92/76/82/92, new component `.testcoverage.yml`). Every test task adds **new** test functions or files. Changing an **existing** test needs valgul's written sign-off from T002 first (CLAUDE.md override 1). Tests run in CI only; locally only `go build ./...` (`GOWORK=off` in the component) and `npx tsc --noEmit`.
+**Tests**: Required. Constitution Principle I needs E2E coverage, and the coverage gates (agent 90, api 80, operator 72, web 92/76/82/92, the sftp repo's `.testcoverage.yml`) need unit, envtest and Vitest tests. Every test task adds **new** test functions or files. Changing an **existing** test needs valgul's written sign-off from T002 first (CLAUDE.md override 1). Tests run in CI only (Principle VI); locally only `go build ./...` (`GOWORK=off` inside `sftp/`) and `npx tsc --noEmit`.
 
-**Organization**: by user story in spec priority order: US1, US2 (P1), US3, US4, US5 (P2).
+**Organization**: by user story in spec priority order: US1, US2 (P1), then US3, US4, US5 (P2).
 
-**Delivery** (plan.md): stacked PRs: agent `feat/040-sftp-agent`, operator `feat/040-sftp-files-pod`, API `feat/040-sftp-api`, component repo `GameplanePanel/sftp` `feat/initial-server`, design `design/040-sftp`, web `feat/040-sftp-ui`, chart/docs/E2E `feat/040-sftp-chart`. Implementation through `Workflow` scripts with explicit models (haiku first), one diff review per batch one tier up.
+**Delivery** (plan.md): stacked PRs from this thread, each green before the next merges: agent `feat/040-sftp-agent`, operator `feat/040-sftp-files-pod`, API `feat/040-sftp-api`, `GameplanePanel/sftp` `feat/initial-server`, design `design/040-sftp`, web `feat/040-sftp-ui`, chart/docs/E2E `feat/040-sftp-chart`. Implementation runs through `Workflow` scripts (Principle V): haiku agents with an explicit `model:`, then one diff review per batch one tier up.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: can run in parallel (different files, no dependency on an unfinished task).
-- Paths starting `sftp/` are in the GameplanePanel/sftp repository (OD-7 A).
+- **[Story]**: US1 to US5 from spec.md. Setup, Foundational and Polish tasks carry none.
+- Paths starting `sftp/` are in the `GameplanePanel/sftp` repository (OD-7), checked out in Gameplane as the `sftp/` submodule. All other paths are in Gameplane.
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the spec docs PR is merged to `master`; create the branches in **Delivery** from fresh `master`; record base SHAs in each PR description.
-- [ ] T002 List every existing test that encodes behaviour this spec changes (file, test, assertion, needed change) and get valgul's written sign-off before editing any, in `specs/040-sftp-access/T002-test-signoff.md`. Candidates: `agent/internal/files/*_test.go` (route table, upload caps), `operator/internal/controller/*agent*_test.go` and envtests asserting the `<name>-agent` Service selector, `api/internal/gateway/*_test.go` (operation allow-list), `api/internal/audit/*_test.go` (row shape, webhook/S3 payload), `api/internal/rbac/*_test.go` (route rules), `charts` template checks, `test/e2e/optional_components_e2e_test.go`.
-- [ ] T003 (OD-7 A) Once valgul has created `GameplanePanel/sftp`: scaffold it like `GameplanePanel/mcp` (`go.mod`, `.github/workflows/ci.yaml` calling `go-component.yaml` pinned by SHA, `.testcoverage.yml`, `CLAUDE.md`, `AGENTS.md`, `specs.md`, `Dockerfile` copying `sftp/…` from the Gameplane build context).
+**Purpose**: branches, test sign-off, the new repository, and the one design pass every UI task depends on.
+
+- [ ] T001 Confirm PR #1066 (spec 040 quickstart) is merged to `master`; create the branches named in **Delivery** from fresh `master` (Gameplane) and `main` (sftp); record base SHAs in each PR description.
+- [ ] T002 List every existing test that encodes behaviour this spec changes (file, test name, assertion, needed change) and get valgul's written sign-off before editing any, in `specs/040-sftp-access/T002-test-signoff.md`. Candidates: `agent/internal/files/*_test.go` (route table, upload caps), operator envtests asserting the `<name>-agent` Service selector in `operator/internal/controller/`, `api/internal/gateway/*_test.go` (operation allow-list), `api/internal/audit/*_test.go` (row shape, webhook/S3 payload), `api/internal/rbac/*_test.go` (route rules), `web/src/routes/tabs/Files*.test.tsx` (multipart upload), `test/e2e/optional_components_e2e_test.go`. Write "none needed" with the reason for each file that needs no change.
+- [ ] T003 Scaffold `GameplanePanel/sftp` like `GameplanePanel/mcp`: `sftp/go.mod` (module `github.com/GameplanePanel/sftp`), `sftp/.github/workflows/ci.yaml` calling Gameplane's `go-component.yaml` pinned by SHA, `sftp/.testcoverage.yml`, `sftp/CLAUDE.md`, `sftp/AGENTS.md`, `sftp/specs.md` (empty sections), `sftp/Dockerfile` copying `sftp/...` from the Gameplane build context, `sftp/cmd/main.go` stub that builds.
+- [ ] T004 Design in `design.fig` through OpenPencil (never edit the file directly): profile SFTP section (address, port, `<user>` and `<user>+<server>` username forms, host key fingerprint, keys list, add-key dialog, generate-password dialog with a 20–40 length picker and one-time display, regenerate and revoke confirms), admin SFTP panel on Users, Clusters SFTP token dialog and endpoint fields, Files tab per-file upload progress with cancel (OD-6), Files tab "files are starting" state (OD-4). Run `hack/design/fig-export.ts`, commit `assets/design-export/` with `design.fig` on `design/040-sftp`, and get valgul's sign-off before any React task (T029, T034, T035, T041, T049).
+
+---
 
 ## Phase 2: Foundational (blocks every story)
 
-- [ ] T004 [P] Agent `GET /files/stat` in `agent/internal/files/stat.go`, rooted like `list`, dotfiles refused, returns `Entry`; mount in `files.go` bounded group.
-- [ ] T005 [P] Agent `PUT /files/stream` in `agent/internal/files/stream_linux.go`: raw body, `offset` query (0 or ≤ existing size, copy prefix), temp file in the target dir, free-space check (`statfs`) before writing, limit from flag `--max-upload-bytes` (OD-6, Helm `files.maxUploadSize`, default 20 GiB, wired by the operator), fsync + rename commit on success, temp removed on any failure (FR-016); long-running group.
-- [ ] T006 [P] Agent `POST /files/rename` in `agent/internal/files/rename_linux.go` using `renameat` on directory fds opened by the rooted walker; refuses root, dotfiles, `overwrite=false` onto an existing name.
-- [ ] T007 Tests for T004–T006 in new files `stat_test.go`, `stream_linux_test.go`, `rename_linux_test.go`: escapes via `..` and symlink swaps (use `beforeOpen` seam), resume prefix copy, cancel mid-stream leaves old file intact, free-space refusal, size limit.
-- [ ] T008 Update `agent/specs.md` with the three routes and their invariants.
-- [ ] T009 Migration `api/internal/db/migrations/common/024_sftp_credentials.sql` per data-model.md (four tables, `audit_events.source`), portable SQL; `DeleteUserTx` deletes the user's SFTP rows.
-- [ ] T010 API store and auth in `api/internal/auth/sftp.go`: key parse/normalize/fingerprint (allowed types per data-model), password generate (crypto/rand, uniform over the 94 printable ASCII chars, length 20–40) and argon2id hash, service tokens (`gpsftps_`), session tokens (`gpsftp_`, 15 min sliding), `session_epoch` binding, revoke on key delete/password regenerate/user disable.
-- [ ] T011 Session-token guard (like `MCPTokenGuard`) allowing only the routes in contracts/api.md and forcing `cluster` to the token's cluster; audit middleware sets `source=sftp`; webhook/S3 payload gains `source`.
-- [ ] T012 API mounts `files/stat`, `files/rename`, `files/stream` in `api/internal/ws/dialer.go` with the read/write RBAC of `read`/`write`; body-limit exemption for `stream` in `api/cmd/main.go`; gateway protocol allows the three operations, `stream` long-running with the OD-6 limit (`api/internal/gatewayprotocol`, `api/internal/gateway/server.go`).
-- [ ] T013 Tests for T009–T012 (new files): migration on SQLite and PostgreSQL, password alphabet/length distribution, key types refused/accepted, guard allow-list, cluster forcing, audit `source`.
+**Purpose**: agent primitives, storage, API auth and the minimal deployable SFTP server that every story builds on.
 
-## Phase 3: US1 Browse and download (P1)
+**⚠️ CRITICAL**: no user story work starts until this phase is complete.
 
-- [ ] T014 [US1] `POST /sftp/v1/login` and `POST /sftp/v1/sessions/check` in `api/internal/handlers/sftp_login.go`: username split at last `+`, target `servers:read` check, generic 401, shared login rate limiter, audit rows.
-- [ ] T015 [US1] Envtest `api/internal/handlers/sftp_login_envtest_test.go`: permission matrix (read-only, write, owner, collaborator, none, other namespace, remote cluster service token), target login refusal identical to wrong password.
-- [ ] T016 [P] [US1] `sftp/internal/apiclient`: login, session check, server list, list/stat/download (Range) calls with the session token; errors mapped to SFTP status codes.
-- [ ] T017 [US1] `sftp/internal/vfs`: `pkg/sftp` `Handlers` for the tree (`/<server>`, `/_namespaces/<ns>/<server>`) and the per-server login root; root and server folders read-only (FR-012); download with offset.
-- [ ] T018 [US1] `sftp/internal/sshserver` and `sftp/cmd/main.go`: host key from Secret file, password and public-key auth via the API, SFTP subsystem only (no shell/exec/forwarding, FR-004), per-user session cap, idle timeout, 30 s session check closing revoked sessions, metrics (FR-022).
-- [ ] T019 [US1] Component tests against an `httptest` API: tree listing, per-server login, refused shell/exec, revoked session closed, resume download.
+- [ ] T005 [P] Agent `GET /files/stat?path=` in `agent/internal/files/stat.go`: rooted walk like `list`, dotfiles refused (`errDotfile`), returns one `Entry`, 404 when missing; mount in the bounded group in `agent/internal/files/files.go`.
+- [ ] T006 [P] Agent `POST /files/rename` `{from, to, overwrite}` in `agent/internal/files/rename_linux.go`: `renameat` on directory fds from the rooted walker, refuses the root, dotfiles and `overwrite=false` onto an existing name; mount in the bounded group.
+- [ ] T007 [P] Agent `PUT /files/stream?path=&offset=N` in `agent/internal/files/stream_linux.go`: raw body; `offset=0` writes a new temp file in the target directory, `offset=N` (N ≤ existing size) copies the first N bytes first; `statfs` free-space check before writing; limit from new flag `--max-upload-bytes` in `agent/cmd/main.go`; fsync and `renameat` commit on success; temp removed on any error or cancel (FR-016); mount next to `upload` (no 30 s timeout).
+- [ ] T008 Agent tests in new files `agent/internal/files/stat_test.go`, `agent/internal/files/rename_linux_test.go`, `agent/internal/files/stream_linux_test.go`: `..` and symlink-swap escapes via the `beforeOpen` seam, dotfile refusal, resume prefix copy, cancel mid-stream keeps the old file, free-space refusal, size limit, overwrite rules.
+- [ ] T009 Document the three routes and their invariants in `agent/specs.md`.
+- [ ] T010 Migration `api/internal/db/migrations/common/024_sftp_credentials.sql` per data-model.md: `sftp_ssh_keys`, `sftp_passwords`, `sftp_service_tokens`, `sftp_sessions`, `audit_events.source`; portable SQL, ids and timestamps bound from Go; `DeleteUserTx` in `api/internal/db/` deletes a user's SFTP rows.
+- [ ] T011 Credential store in `api/internal/auth/sftp.go`: SSH key parse and normalize (ed25519, ecdsa-sha2-nistp256/384/521, RSA ≥ 3072 bits), SHA256 fingerprint, 20 keys per user; password generate from `crypto/rand` uniform over the 94 printable ASCII characters (space excluded), length 20–40, argon2id hash via `api/internal/auth/password.go`; one password per user, regenerate replaces in one transaction.
+- [ ] T012 Service and session tokens in `api/internal/auth/sftp_tokens.go`: service tokens `gpsftps_` (SHA-256 digest, bound to one cluster, 2 active per cluster), session tokens `gpsftp_` (15 min sliding, `last_used_at` at most once a minute, `session_epoch` copied from `users.session_epoch`), revocation on key delete, password regenerate/revoke, user disable or delete; sweeper next to the MCP token sweeper.
+- [ ] T013 Session-token guard in `api/internal/auth/sftp_guard.go` (pattern of `MCPTokenGuard` in `api/internal/auth/mcptokens.go`): only the routes listed in contracts/api.md, `cluster` forced to the token's cluster; wire into the auth chain in `api/cmd/main.go`.
+- [ ] T014 Audit source: `api/internal/audit/audit.go` writes `source=sftp` for requests authenticated by a session token and adds `source` to the webhook and S3 payloads (`api/internal/audit/s3.go`) as an additive field.
+- [ ] T015 API file routes in `api/internal/ws/dialer.go`: mount `files/stat` (read RBAC), `files/rename` and `files/stream` (write RBAC like `files/write`); exempt `files/stream` from the body limit in `api/cmd/main.go` and apply `files.maxUploadSize`; add the three to the gateway allow-list and mark `stream` long-running in `api/internal/gatewayprotocol/` and `api/internal/gateway/server.go`.
+- [ ] T016 `POST /sftp/v1/login` and `POST /sftp/v1/sessions/check` in `api/internal/handlers/sftp_login.go` per contracts/api.md: service-token auth, split at the last `+`, target `servers:read` check, generic 401 (`server.sftp.login_failed`), shared login rate limiter from `api/internal/auth/ratelimit.go`, audit rows for success and failure.
+- [ ] T017 Self-service credential routes `GET /users/me/sftp`, `POST|DELETE /users/me/sftp/keys[/{id}]`, `POST|DELETE /users/me/sftp/password` in `api/internal/handlers/sftp.go`, mounted from `MountUsers`; refused for session-token and MCP-token requests.
+- [ ] T018 API tests in new files: `api/internal/auth/sftp_test.go` (key types, password alphabet and length distribution, hash, token digests, epoch), `api/internal/auth/sftp_guard_test.go` (allow-list, cluster forcing), `api/internal/audit/audit_source_test.go`, `api/internal/handlers/sftp_login_envtest_test.go` (login matrix, rate limit, generic refusals), migration test on SQLite and PostgreSQL.
+- [ ] T019 [P] API client in `sftp/internal/apiclient/client.go`: login, session check, `GET /servers?cluster=`, `files/list`, `files/stat`, `files/download` with `Range`, `files/stream`, `files/rename`, `files/mkdir`, `files/delete`; API errors mapped to SFTP status codes; optional CA bundle.
+- [ ] T020 SSH server in `sftp/internal/sshserver/server.go` and `sftp/cmd/main.go`: host key from a mounted Secret file, password and public-key callbacks that call `/sftp/v1/login`, SFTP subsystem only (no shell, exec, port forwarding or SCP, FR-004), idle timeout, per-user session cap, 30 s `sessions/check` loop closing revoked sessions, Prometheus metrics (sessions, logins by result, bytes) (FR-022).
+- [ ] T021 Minimal chart template `charts/gameplane/templates/sftp.yaml` and `values.yaml` keys `sftp.enabled` (false), `sftp.port` (2222), `sftp.image`: Deployment, ClusterIP Service, host key Secret generated once (`lookup`, `helm.sh/resource-policy: keep`), local service token Secret shared with the API; NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` for SFTP ingress and egress to the API only.
+- [ ] T022 Add the `sftp` submodule: `.gitmodules` entry with `component = true`, path filters for `hack/submodules.sh check`, `IMAGES += sftp` and `image-sftp` in `Makefile`, release image list and cosign signing.
 
-## Phase 4: US2 Upload, edit, rename, delete (P1)
+**Checkpoint**: an SFTP server deploys, logs a seeded user in, and can call the API; user story phases can start.
 
-- [ ] T020 [US2] `sftp/internal/vfs` writes: one `stream` call per open handle; first write at offset N > 0 resumes; out-of-order write → `SSH_FX_OP_UNSUPPORTED`; rename, mkdir, remove, rmdir; `SETSTAT` mode/times no-op, owner refused (FR-017); per-user transfer cap.
-- [ ] T021 [US2] Component tests: WinSCP-style temp-and-rename, interrupted upload resume, write refused on read-only server, top-level folder changes refused.
+---
 
-## Phase 5: US3 Personal SFTP credentials (P2)
+## Phase 3: User Story 1 - Browse and download server files (Priority: P1) 🎯 MVP
 
-- [ ] T022 [US3] Routes in `api/internal/handlers/sftp.go` per contracts/api.md (self and admin), mounted with RBAC; session-token requests refused.
-- [ ] T023 [US3] Envtest `api/internal/handlers/sftp_envtest_test.go`: add/remove keys, duplicate fingerprint refused, password shown once and regenerate invalidates old, admin revoke, user disable ends sessions.
-- [ ] T024 [US3] Design in `design.fig`: profile SFTP section (address, port, username forms, host key fingerprint, keys list, add key dialog, generate password dialog with length 20–40 and one-time display), admin SFTP panel on Users, cluster SFTP token dialog, Files tab upload progress and cancel for large files (OD-6), Files tab "files are starting" state; run `hack/design/fig-export.ts`; get valgul's sign-off.
-- [ ] T025 [US3] Web after T024 sign-off: profile section, Users admin panel, `web/src/lib/api.ts` methods, i18n strings, Vitest tests.
+**Goal**: a user connects to one cluster address and browses and downloads the files of every server they can read.
 
-## Phase 6: US4 Admin enables SFTP (P2)
+**Independent Test**: give a user `servers:read` on server A only; add a key through `POST /users/me/sftp/keys`; connect: the root lists only A; download a 1 GiB file from A, interrupt and resume, checksums match (quickstart §4, §5).
 
-- [ ] T026 [US4] Chart `charts/gameplane/templates/sftp.yaml`: Deployment, Service (type/port values), host key Secret generated once (lookup, `helm.sh/resource-policy: keep`), local service token Secret, values `sftp.*` (enabled false, port 2222, serviceType, publicAddress, apiURL, apiCASecret, serviceTokenSecret, limits) and `files.maxUploadSize` (default 20Gi, used by operator, API and gateway); NetworkPolicy allowing SFTP ingress and egress to the API.
-- [ ] T027 [US4] `POST /clusters/{name}/sftp-token`, `PUT /clusters/{name}/sftp` and the Clusters page dialog (design from T024).
-- [ ] T028 [US4] Submodule `sftp` (`.gitmodules` `component = true`, `hack/submodules.sh` path filters), `Makefile` `IMAGES += sftp`, release image list and signing.
-- [ ] T029 [US4] E2E bucket `sftp` in `test/e2e/sftp_test.go` registered in `test/e2e/buckets.sh`: chart off renders nothing; on: connect, list, 2 GiB upload/download with resume, permission matrix, audit `source`, revoke within 60 s; `multicluster` addition for a remote endpoint.
+### Tests for User Story 1
 
-## Phase 7: US5 Stopped or sleeping servers (P2)
+- [ ] T023 [P] [US1] Component tests in `sftp/internal/vfs/read_test.go` against an `httptest` API: tree `/<server>` and `/_namespaces/<ns>/<server>`, per-server login root, dotfiles absent, root and server folders read-only, download from an offset.
+- [ ] T024 [P] [US1] Component tests in `sftp/internal/sshserver/server_test.go`: shell, exec and forwarding refused; revoked session closed after the check loop; session cap.
 
-- [ ] T030 [US5] Operator `operator/internal/controller/gameserver_files.go`: file-only pod (labels `gameplane-files`, server volumes, agent container in files-only mode, no game container, no host ports, owned by the GameServer) while replicas are 0 and `files-requested-at` is younger than `--files-idle-timeout`; Service selector switch; deletion on idle or server delete.
-- [ ] T031 [US5] Start ordering in `desiredReplicas`: delete the file-only pod and wait for it to be gone before scaling up; never wake on file access.
-- [ ] T032 [US5] Agent files-only mode flag (only `/files/*` and `/healthz` mounted).
-- [ ] T033 [US5] API ensure-files in the file routes for stopped/asleep servers: patch the annotation (at most once a minute), wait up to 60 s, `503 server.files.starting`.
-- [ ] T034 [US5] NetworkPolicy for `gameplane-files` pods (API, operator, gateway → 8090 only).
-- [ ] T035 [US5] Operator envtest `gameserver_files_envtest_test.go`: create/teardown, selector switch both ways, start while active, asleep server not woken, delete server; Files tab "files are starting" state (design from T024) and Vitest.
+### Implementation for User Story 1
 
-- [ ] T035a Files tab streaming upload (OD-6, FR-018b): `web/src/routes/tabs/Files.tsx` uploads each file with `PUT files/stream` and shows progress and cancel per the T024 design; `web/src/lib/api.ts` method; Vitest tests. Multipart route kept for one release.
+- [ ] T025 [US1] Read-side VFS in `sftp/internal/vfs/vfs.go` implementing `pkg/sftp` `FileLister` and `FileReader`: root from `GET /servers?cluster=` (default games namespace at the top, others under `/_namespaces/`), per-server login rooted at one server, `Stat`/`Lstat` via `files/stat`, `ReadAt` via ranged `files/download`; mkdir/rename/remove at the root or a server folder return permission denied (FR-012).
 
-## Phase 8: Polish
+**Checkpoint**: US1 works on its own against a running server.
 
-- [ ] T036 [P] Docs: `docs/sftp.md` (enable, connect with FileZilla/WinSCP/`sftp`, host key check, credentials, remote clusters), `docs/security.md` threat model entry, `docs/architecture.md`, `sftp/specs.md`; website docs page via the website repo if the docs list needs it.
-- [ ] T037 Changelog `changelog/unreleased/<PR>-sftp-access.md` in the chart PR.
-- [ ] T038 Run the scenarios in `quickstart.md` on a dev cluster and record results in the chart PR.
+---
+
+## Phase 4: User Story 2 - Upload, edit, rename and delete (Priority: P1)
+
+**Goal**: users with write access change files over SFTP and from the dashboard with large, resumable uploads (OD-6).
+
+**Independent Test**: as a user with `servers:write` on A and `servers:read` on B: upload 2 GiB to A with an interrupt and resume, WinSCP-style temp-and-rename, mkdir, rename, delete all succeed and show in the Files tab and audit log with source `sftp`; the same on B is refused and B is unchanged (quickstart §6, §7).
+
+### Tests for User Story 2
+
+- [ ] T026 [P] [US2] Component tests in `sftp/internal/vfs/write_test.go`: sequential write streams once, first write at offset N resumes, out-of-order write returns `SSH_FX_OP_UNSUPPORTED`, temp-and-rename, `SETSTAT` mode/time no-op and owner refused, write on a read-only server refused, transfer cap.
+- [ ] T027 [P] [US2] Envtest `api/internal/handlers/files_stream_envtest_test.go`: stream, rename and stat through the API with read-only, write, owner and collaborator users; body limit; audit `source`.
+
+### Implementation for User Story 2
+
+- [ ] T028 [US2] Write-side VFS in `sftp/internal/vfs/write.go` implementing `FileWriter` and `FileCmder`: one `files/stream` call per open handle fed by a pipe, resume on a first write at offset N > 0, rename (incl. `posix-rename@openssh.com`), mkdir, remove, rmdir, `SETSTAT` per FR-017, per-user transfer cap.
+- [ ] T029 [US2] Dashboard streaming upload (FR-018b) after T004 sign-off: `web/src/routes/tabs/Files.tsx` uploads each file with `PUT files/stream` using `XMLHttpRequest` upload progress, per-file progress and cancel per the design; `uploadStream` in `web/src/lib/api.ts`; i18n strings in the web pack.
+- [ ] T030 [US2] Vitest `web/src/routes/tabs/Files_stream.test.tsx`: progress, cancel, error states, size-limit message.
+- [ ] T031 [US2] Helm `files.maxUploadSize` (default `20Gi`) in `charts/gameplane/values.yaml`, passed to the operator (agent flag `--max-upload-bytes`, built in `buildAgentContainer` in `operator/internal/controller/gameserver_controller.go`), the API and the gateway; keep the multipart `files/upload` route for one release.
+
+**Checkpoint**: US1 and US2 both work; P1 scope is shippable.
+
+---
+
+## Phase 5: User Story 3 - Manage personal SFTP credentials (Priority: P2)
+
+**Goal**: every user, SSO included, manages their own SSH keys and SFTP password in the dashboard; admins can revoke.
+
+**Independent Test**: as an SSO user, add a key and generate a password in the profile, connect with each; revoke both: an open session closes within 60 s and new logins fail; an admin removes another user's key (quickstart §3, §9).
+
+### Tests for User Story 3
+
+- [ ] T032 [P] [US3] Envtest `api/internal/handlers/sftp_envtest_test.go`: add/remove keys, duplicate fingerprint across users refused, password shown once, regenerate invalidates the old one, admin list and revoke, user disable and password reset revoke sessions, session-token and MCP-token requests refused.
+
+### Implementation for User Story 3
+
+- [ ] T033 [US3] Admin routes `GET /users/{id}/sftp`, `DELETE /users/{id}/sftp/keys/{keyId}`, `DELETE /users/{id}/sftp/password` in `api/internal/handlers/sftp.go`, mounted with `users:manage` RBAC in `api/internal/rbac/`.
+- [ ] T034 [US3] Personal SFTP page after T004 sign-off: new `web/src/routes/ProfileSftp.tsx` at `/settings/sftp` (next to `/settings/theme`), registered in `web/src/router/tree.tsx` and linked where the design places it; API methods in `web/src/lib/api.ts`; i18n strings.
+- [ ] T035 [US3] Admin SFTP panel on `web/src/routes/Users.tsx` per the design.
+- [ ] T036 [US3] Vitest `web/src/routes/ProfileSftp.test.tsx` and `web/src/routes/Users_sftp.test.tsx`: add/remove key, generate with length picker, one-time display, regenerate and revoke confirms, admin revoke.
+
+**Checkpoint**: US3 works with US1/US2 credentials replaced by real dashboard-managed ones.
+
+---
+
+## Phase 6: User Story 4 - Admin turns SFTP on and exposes it (Priority: P2)
+
+**Goal**: one Helm switch per cluster, configurable exposure, a stable host key, and remote clusters served through the central API (OD-3, OD-5).
+
+**Independent Test**: default install renders no SFTP objects; enabling with a LoadBalancer on 2222 lets a client connect; on a registered remote cluster, a second endpoint lists only that cluster's servers with the same credentials (quickstart §1, §2, §10).
+
+### Tests for User Story 4
+
+- [ ] T037 [P] [US4] Chart checks in new `charts/gameplane/tests/sftp.sh` (pattern of `charts/gameplane/tests/mcp-server-rbac.sh`): off renders nothing; on renders Deployment, Service (ClusterIP, NodePort, LoadBalancer variants), host key Secret with keep policy, NetworkPolicy.
+- [ ] T038 [P] [US4] Envtest `api/internal/handlers/sftp_cluster_envtest_test.go`: create/revoke service tokens with `cluster:manage`, endpoint address and fingerprint per cluster, a remote service token cannot list another cluster.
+
+### Implementation for User Story 4
+
+- [ ] T039 [US4] Chart exposure and remote mode in `charts/gameplane/templates/sftp.yaml` and `values.yaml`: `sftp.serviceType`, `sftp.nodePort`, `sftp.loadBalancerIP`, `sftp.publicAddress`, `sftp.apiURL`, `sftp.apiCASecret`, `sftp.serviceTokenSecret`, `sftp.maxSessionsPerUser` (4), `sftp.maxTransfersPerUser` (8); render on a gateway-only install.
+- [ ] T040 [US4] `POST /clusters/{name}/sftp-token`, `DELETE /clusters/{name}/sftp-token/{id}` and `PUT /clusters/{name}/sftp` in `api/internal/handlers/sftp_cluster.go`; local endpoint address and fingerprint read from Helm values and the host key Secret.
+- [ ] T041 [US4] Clusters SFTP dialog after T004 sign-off in `web/src/routes/Clusters.tsx`, API methods in `web/src/lib/api.ts`, Vitest `web/src/routes/Clusters_sftp.test.tsx`.
+
+**Checkpoint**: admins can roll SFTP out to every cluster.
+
+---
+
+## Phase 7: User Story 5 - Edit files of a stopped or sleeping server (Priority: P2)
+
+**Goal**: files of a stopped or asleep server are reachable through a short-lived file-only pod, over SFTP and in the Files tab, without waking the game (OD-4).
+
+**Independent Test**: stop A, list it over SFTP: a `gameplane-files` pod serves it, A stays stopped, no player port opens; idle past the timeout removes the pod; start A while files are open: SFTP gets "server is starting" and A starts after the pod is gone; an asleep server is not woken (quickstart §8).
+
+### Tests for User Story 5
+
+- [ ] T042 [P] [US5] Operator envtest `operator/internal/controller/gameserver_files_envtest_test.go`: pod created only while replicas are 0 and the annotation is fresh, `<name>-agent` selector switched both ways, idle teardown, start while active waits for deletion, asleep server not woken, server delete removes the pod, no host ports.
+- [ ] T043 [P] [US5] API test `api/internal/ws/ensure_files_test.go`: annotation patched at most once a minute, 60 s wait, `503 server.files.starting`.
+
+### Implementation for User Story 5
+
+- [ ] T044 [US5] Agent files-only mode flag `--files-only` in `agent/cmd/main.go`: mount only `/files/*`, `/healthz` and metrics.
+- [ ] T045 [US5] Reconciler `operator/internal/controller/gameserver_files.go`: file-only Pod (labels `app.kubernetes.io/name: gameplane-files`, `app.kubernetes.io/instance: <name>`, server volumes, agent container from `buildAgentContainer` with `--files-only`, owned by the GameServer, no host ports) while replicas are 0 and `gameplane.local/files-requested-at` is younger than `--files-idle-timeout`; switch the `<name>-agent` Service selector in `reconcileAgentService`; delete on idle or server delete; flag in `operator/cmd/main.go`, Helm `operator.filesIdleTimeout` (`10m`).
+- [ ] T046 [US5] Start ordering in `desiredReplicas` in `operator/internal/controller/gameserver_controller.go`: delete the file-only pod and requeue until it is gone before scaling up; file access never sets a wake.
+- [ ] T047 [US5] NetworkPolicy in `charts/gameplane/templates/networkpolicies.yaml` allowing API, operator and gateway ingress to `gameplane-files` pods on 8090 only.
+- [ ] T048 [US5] Ensure-files in the API file routes in `api/internal/ws/dialer.go` (new helper `api/internal/ws/ensure_files.go`): when the server is stopped or asleep, patch the annotation, wait up to 60 s for the agent Service, otherwise `503 server.files.starting`; works for remote clusters through the registry client.
+- [ ] T049 [US5] Files tab "files are starting" state after T004 sign-off in `web/src/routes/tabs/Files.tsx`, Vitest `web/src/routes/tabs/Files_starting.test.tsx`.
+
+**Checkpoint**: all five stories work independently.
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
+
+- [ ] T050 [P] E2E bucket `sftp` in new `test/e2e/sftp_e2e_test.go`, registered in `test/e2e/buckets.sh`: chart off, connect, tree and per-server login, 2 GiB upload/download with resume, permission matrix, audit `source`, revoke within 60 s, stopped server; `t.Parallel()`, unique names, at most 3 admin logins.
+- [ ] T051 [P] Remote endpoint E2E in new `test/e2e/multicluster_sftp_e2e_test.go` (bucket `multicluster`).
+- [ ] T052 [P] Docs: new `docs/sftp.md` (enable, connect with FileZilla/WinSCP/`sftp`, host key check, credentials, per-server login, remote clusters, stopped servers), threat-model entry in `docs/security.md`, component in `docs/architecture.md`, `sftp/specs.md` and `sftp/README.md`, `operator` and `api` docs for the annotation and routes.
+- [ ] T053 Changelog `changelog/unreleased/<PR>-sftp-access.md` in the chart PR per `changelog/unreleased/README.md` (new Helm values `sftp.*`, `files.maxUploadSize`, `operator.filesIdleTimeout`).
+- [ ] T054 Run every scenario in `specs/040-sftp-access/quickstart.md` on a dev cluster and record results in the chart PR.
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: T001 first; T002, T003, T004 then run in parallel. T004 sign-off gates every web task (T029, T034, T035, T041, T049).
+- **Foundational (Phase 2)**: needs T001–T003. Agent tasks T005–T009 → API tasks T010–T018 → sftp repo T019–T020 → chart and submodule T021–T022. Blocks every story.
+- **US1 (Phase 3)** and **US2 (Phase 4)**: after Phase 2. US2's VFS (T028) extends US1's (T025).
+- **US3 (Phase 5)**: after Phase 2; independent of US1/US2 except for manual testing.
+- **US4 (Phase 6)**: after Phase 2.
+- **US5 (Phase 7)**: after Phase 2; T048 builds on T015.
+- **Polish (Phase 8)**: after the stories it covers.
+
+### User Story Dependencies
+
+- US1 (P1): none beyond Foundational.
+- US2 (P1): T028 builds on T025's VFS type.
+- US3, US4, US5 (P2): none on other stories.
+
+### Within Each User Story
+
+- Tests are written alongside implementation in the same PR; CI must be green before the next stacked PR merges.
+- API before web; design sign-off before web.
+
+### Parallel Opportunities
+
+- Phase 2: T005, T006, T007 (agent files) in parallel; T019 parallel to API work once contracts are fixed.
+- Test tasks marked [P] inside each story.
+- After Phase 2, US3, US4 and US5 can proceed in parallel with US1/US2 (different packages: `api/internal/handlers/sftp*.go`, `charts/`, `operator/`).
+
+---
+
+## Parallel Example: Phase 2 agent work
+
+```text
+Task: "Agent GET /files/stat in agent/internal/files/stat.go"            (T005)
+Task: "Agent POST /files/rename in agent/internal/files/rename_linux.go" (T006)
+Task: "Agent PUT /files/stream in agent/internal/files/stream_linux.go"  (T007)
+```
+
+## Parallel Example: User Story 5
+
+```text
+Task: "Operator envtest gameserver_files_envtest_test.go" (T042)
+Task: "API test ensure_files_test.go"                     (T043)
+```
+
+---
+
+## Implementation Strategy
+
+### MVP first (User Story 1)
+
+1. Phase 1 and Phase 2.
+2. Phase 3 (US1): read-only SFTP for running servers.
+3. Stop and validate with quickstart §4 and §5.
+
+### Incremental delivery
+
+1. Setup + Foundational → deployable server.
+2. US1 → read-only browsing (MVP).
+3. US2 → writes and large uploads for SFTP and the dashboard.
+4. US3 → self-service credentials UI.
+5. US4 → exposure and remote clusters.
+6. US5 → stopped and sleeping servers.
+7. Polish → E2E, docs, changelog, quickstart run.
+
+Each step maps onto the stacked PRs in **Delivery**; no step breaks the previous ones.
