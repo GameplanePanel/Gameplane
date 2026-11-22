@@ -120,3 +120,64 @@ place:
   runs only on pull requests. No job was skipped by selection, so FR-006 and SC-006 are
   met.
 - The jobs took about 386 runner-minutes in total.
+
+## T052: runner-minutes and selection misses after the rollout (2026-11-22)
+
+### SC-002: median runner-minutes per PR
+
+Method: for each merged PR, the job durations of the `pull_request` runs on its final head
+SHA are summed. The baseline is the 30 PRs merged right before PR 2 (#778, `3e9f50f`).
+The maintainer asked on 2026-11-07 for a second window, PRs 31–60, after the first one
+missed the target.
+
+| Set | PRs | Median runner-minutes |
+|---|---|---|
+| 30 PRs merged before #778 | 30 | 238 |
+| PRs 1–30 merged after #778 | 30 | 314 |
+| PRs 31–60 merged after #778 | 30 | 422 |
+
+**SC-002 is not met.** The median rose by 32% in the first window and by 77% in the second.
+
+- PRs 1–30: 9 PRs changed CI or selection files and ran every job by design (median 379).
+  Most were this spec's own rollout and spec 026. The 21 PRs that used selection had a
+  median of 186, 22% below the baseline.
+- PRs 31–60: 13 PRs ran every job (median 497). 7 of them were Dependabot Go bumps that
+  touch `go.work.sum`, which OD-3 keeps in the force-full list (median 553). The 17 PRs
+  that used selection had a median of 332.
+- A full run grew from about 101 jobs and 330–380 minutes in October to about 109 jobs and
+  550 minutes in November, as specs 026 and 028 added jobs.
+- A change to one small Go module (`tunnel/`, `sentinel/`, `telemetry-receiver/`,
+  `capture-sidecar/`) still ran 94–101 of about 110 jobs. Web-only PRs ran 13 jobs, and
+  docs-only PRs ran 0–7.
+- The baseline was already low: 5 of its 30 PRs were docs-only and cost almost nothing.
+
+The largest remaining saving would be to drop `go.work.sum` from the force-full list,
+because a Dependabot Go bump also changes the module's own `go.mod`. That would change
+OD-3 and is left to a later spec.
+
+### SC-004: red `master` runs reviewed for a selection miss
+
+Every red `ci` push run on `master` from the rollout (`3093f03`, 2026-10-22) to
+2026-11-22 was reviewed: 31 of the 60 days. For each failing job, the merged PR's own last
+`ci` run was checked.
+
+| Run | Merge | Failing jobs | On the PR | Cause |
+|---|---|---|---|---|
+| [40373576834](https://github.com/GameplanePanel/Gameplane/actions/runs/40373576834) | #808 | workflow lint, lint (telemetryschema) | not run (README only) | HTTP 504 while downloading |
+| [40572114959](https://github.com/GameplanePanel/Gameplane/actions/runs/40572114959) | #765 | e2e multicluster / amd64 | passed | `TestMultiCluster_ClusterDispatchAndScopedRBAC` |
+| [40751095752](https://github.com/GameplanePanel/Gameplane/actions/runs/40751095752) | #760 | lint (operator), vuln (images) | passed | SA1019 `Requeue` deprecation; image CVE scan |
+| [40869672773](https://github.com/GameplanePanel/Gameplane/actions/runs/40869672773) | #809 | lint (operator), vuln (images) | passed | same as above, still red |
+| [40973995663](https://github.com/GameplanePanel/Gameplane/actions/runs/40973995663) | #813 | lint (operator), vuln (images) | not run (docs only) | same as above, still red |
+| [41213394469](https://github.com/GameplanePanel/Gameplane/actions/runs/41213394469) | #758 | go (operator / arm64) | passed | `TestBackupForget_WaitsForInFlightRestore` |
+| [42408787654](https://github.com/GameplanePanel/Gameplane/actions/runs/42408787654) | #838 | e2e api-agent / amd64 | passed | `TestAPI_LifecycleRestart` |
+| [42671405053](https://github.com/GameplanePanel/Gameplane/actions/runs/42671405053) | #823 | none: all 21 jobs were skipped and the run was marked failed | n/a | the run never started its jobs, not a test failure |
+| [43036763528](https://github.com/GameplanePanel/Gameplane/actions/runs/43036763528) | #866 | web e2e (mock), e2e web live | passed | web e2e |
+| [43257359904](https://github.com/GameplanePanel/Gameplane/actions/runs/43257359904) | #908 | build e2e images (arm64) | passed | `go mod download` failed in the image build |
+| [44181598002](https://github.com/GameplanePanel/Gameplane/actions/runs/44181598002) | #991 | e2e upgrade, e2e recovery / amd64 | passed | `TestUpgrade_FromPreviousRelease/ArgoCD` |
+| [44805436607](https://github.com/GameplanePanel/Gameplane/actions/runs/44805436607) | #1027 | build e2e images, web | passed | `go mod download`; web test "Hide history" |
+| [44826631563](https://github.com/GameplanePanel/Gameplane/actions/runs/44826631563) | #1036 | e2e operator / arm64 | not run (one web test file) | `TestRestore_RoundTrip` |
+| [44963381217](https://github.com/GameplanePanel/Gameplane/actions/runs/44963381217) | #1040 | e2e multicluster / amd64 | passed | `TestMultiCluster_ClusterDispatchAndScopedRBAC` |
+| [44977231440](https://github.com/GameplanePanel/Gameplane/actions/runs/44977231440) | #1043 | e2e upgrade / amd64 | not run (specs only) | `TestUpgrade_FromPreviousRelease/ArgoCD`, already red at #991 |
+
+**0 selection misses in 15 red runs.** Where a failing job did not run on its PR, that PR
+changed only a README, docs, specs or one web test file, which cannot break that job.
