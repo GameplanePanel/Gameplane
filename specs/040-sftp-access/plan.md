@@ -8,7 +8,7 @@
 
 ## Summary
 
-Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a generated SFTP password (OD-2), and sends every login and file operation to the central Gameplane API (OD-1, OD-5), which applies the Files tab's permissions, writes the audit log and reaches the server's agent through its existing local proxy or remote gateway. A login as `<user>` shows a tree of the cluster's servers; `<user>+<server>` opens one server. The agent gains stat, rename and a streaming upload with resume, which the dashboard Files tab also switches to, under one Helm upload limit (OD-6). For a stopped or asleep server the operator runs a short-lived file-only pod with the server's volumes and points the `<name>-agent` Service at it, so the API and gateway reach it unchanged (OD-4); the Files tab uses it too. Details: [research.md](research.md), [data-model.md](data-model.md), [contracts/api.md](contracts/api.md).
+Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a generated SFTP password (OD-2), and sends every login and file operation to the central Gameplane API (OD-1, OD-5), which applies the Files tab's permissions, writes the audit log and reaches the server's agent through its existing local proxy or remote gateway. A login as `<user>` shows a tree of the cluster's servers; `<user>+<server>` opens one server. The agent gains stat, rename and a streaming upload with resume, which the dashboard Files tab also switches to, under one Helm upload limit (OD-6). For a stopped or asleep server the operator runs a short-lived file-only pod with the server's volumes and points the `<name>-agent` Service at it, so the API and gateway reach it unchanged (OD-4); the Files tab uses it too. Details: [research.md](research.md), [data-model.md](data-model.md), [contracts/api.md](contracts/api.md); manual validation: [quickstart.md](quickstart.md).
 
 ## Technical Context
 
@@ -55,6 +55,7 @@ specs/040-sftp-access/
 ├── research.md
 ├── data-model.md
 ├── contracts/api.md
+├── quickstart.md
 ├── tasks.md
 └── checklists/requirements.md
 ```
