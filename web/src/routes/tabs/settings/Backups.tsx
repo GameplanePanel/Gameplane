@@ -24,7 +24,7 @@ export function BackupsSection({ draft, onChange }: SectionProps) {
   const intl = useOptionalIntl();
   const policy = draft.spec.backupPolicy;
   const target = useResourceTarget(draft.metadata);
-  const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations();
+  const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations(target);
   const [destPopoverOpen, setDestPopoverOpen] = useState(false);
 
   const setPolicy = (next: InlineBackupPolicy | undefined) => {
@@ -96,7 +96,7 @@ export function BackupsSection({ draft, onChange }: SectionProps) {
         {!policy && destinationsLoaded && destinations.length === 0 && (
           <div className="pt-1 text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.backups.configure_a_backup_destination_first", defaultMessage: "Configure a backup destination first.", description: "Settings backups section: note shown when no backup destination exists yet, so scheduled backups cannot be set up" })}</div>
         )}
-        <ManageDestinationsLink cluster={target.cluster} />
+        <ManageDestinationsLink cluster={target.cluster} namespace={target.namespace} />
       </Field>
 
       {policy && (

@@ -1079,6 +1079,10 @@
         "defaultMessage": "Gérer les destinations",
         "description": "Link from backups to the selected cluster's destination configuration"
     },
+    "web.cluster_configuration.scoped_backup_destinations": {
+        "defaultMessage": "Dépôts Restic pour les instantanés. Les identifiants sont stockés dans l’espace de noms {namespace}.",
+        "description": "Backup destinations: identifies the Kubernetes namespace selected by a server link"
+    },
     "web.components.app_layout.admin": {
         "defaultMessage": "Administration",
         "description": "Sidebar: heading of the admin navigation group"

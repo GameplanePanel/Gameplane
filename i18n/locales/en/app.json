@@ -1371,6 +1371,10 @@
     "defaultMessage": "Remove registration",
     "description": "Cluster removal section title"
   },
+  "web.cluster_configuration.scoped_backup_destinations": {
+    "defaultMessage": "Restic repositories for snapshots. Credentials are stored in the {namespace} namespace.",
+    "description": "Backup destinations: identifies the Kubernetes namespace selected by a server link"
+  },
   "web.cluster_configuration.storage_error": {
     "defaultMessage": "Couldn't load storage settings.",
     "description": "Cluster storage read failure"

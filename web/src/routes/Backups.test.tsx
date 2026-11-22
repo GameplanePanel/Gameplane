@@ -11,8 +11,8 @@ import { makeBackup, makeSchedule, makeRestore } from "@/test/factories";
 vi.mock("@tanstack/react-router", () => ({
   useLocation: () => useTestLocation(),
   useNavigate: () => navigateTestSearch,
-  Link: ({ children, to, params, search }: { children: ReactNode; to: string; params?: { clusterId: string }; search?: { tab: string } }) => (
-    <a href={params && search ? to.replace("$clusterId", params.clusterId) + "?tab=" + search.tab : to}>{children}</a>
+  Link: ({ children, to, params, search }: { children: ReactNode; to: string; params?: { clusterId: string }; search?: Record<string, string> }) => (
+    <a href={params && search ? to.replace("$clusterId", params.clusterId) + "?" + new URLSearchParams(search) : to}>{children}</a>
   ),
 }));
 
@@ -270,7 +270,7 @@ describe("BackupsPage", () => {
     await userEvent.click(await screen.findByRole("option", { name: /^alpha · local \/ gameplane-games$/ }));
     expect(await within(dialog).findByText(/No backup destinations configured/)).toBeInTheDocument();
     const link = await within(dialog).findByRole("link", { name: "Manage destinations" });
-    expect(link).toHaveAttribute("href", "/clusters/local?tab=configuration");
+    expect(link).toHaveAttribute("href", "/clusters/local?tab=configuration&ns=gameplane-games");
   });
 
   it("toggles schedule suspend status", async () => {

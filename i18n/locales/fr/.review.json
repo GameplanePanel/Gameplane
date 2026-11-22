@@ -267,6 +267,7 @@
   "web.admin_settings.sink.language_select": "b2fb5dcaa181",
   "web.admin_settings.sink.language_text": "a4fe65264ef7",
   "web.backups.manage_destinations": "a8ca1f09c99d",
+  "web.cluster_configuration.scoped_backup_destinations": "9eb490946ae3",
   "web.common.close_glyph": "8db71ed28b0f",
   "web.common.empty_value": "bda050585a00",
   "web.common.required_marker": "684888c0ebb1",

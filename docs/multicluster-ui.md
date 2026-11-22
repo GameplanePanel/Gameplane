@@ -50,14 +50,14 @@ Changing targets discards pending join results and commands.
 `/clusters/<id>?tab=configuration` owns kubeconfig access, read-only installation
 storage, backup destinations and remote registration removal. Kubeconfig issuance
 and installation storage remain local-only. Remote access and storage are managed
-in that cluster's installation. Backup destination requests and drafts bind to
-the explicit cluster and `gameplane-games` namespace, with that scope's destination
-permissions. Removal requires confirmation and never applies to Local.
+in that cluster's installation. Backup destination requests, drafts and permissions
+use the selected cluster and namespace. Opening cluster configuration directly
+defaults to `gameplane-games`. Removal requires confirmation and never applies to Local.
 
 From a server’s **Settings → Scheduled backups**, **Manage destinations** opens
-that server’s cluster configuration. The **Back up now** dialog offers the same
-link when the selected server has no destinations. Both links are shown to users
-who can manage destinations in the cluster configuration.
+that server’s cluster configuration with its namespace selected. The **Back up now**
+dialog offers the same link when the server has no destinations. Both links require
+permission to read and manage destinations in that cluster and namespace.
 
 Panel settings retain central authentication, telemetry, registries and
 notifications. Old `/admin?section=backups` links lead users to the owning cluster
