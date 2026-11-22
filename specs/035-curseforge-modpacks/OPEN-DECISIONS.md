@@ -1,6 +1,6 @@
 # Open decisions: spec 035 CurseForge modpacks
 
-OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. None are open.
+OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. OD-9 was raised by T001 and answered by valgul on 2026-11-19. OD-10 was raised during implementation and answered by valgul on 2026-11-19. OD-11 was raised during implementation and answered by valgul on 2026-11-22.
 
 ## OD-1: How do game servers get a CurseForge key? (SETTLED: C, valgul 2026-11-11)
 
@@ -93,3 +93,50 @@ a newer pack version came out in that window).
   when it has no players online (or right away if it is stopped or asleep).
   (Recommended: closes the window within hours without kicking players.)
 - C. Restart every adopted server once right after the upgrade.
+
+## OD-9: How does the shared CurseForge key reach java8 servers? (SETTLED: A, valgul 2026-11-19)
+
+**Ruling: option A** (valgul, 2026-11-19). Where an option below says "Recommended", that was the recommendation before the ruling, not the ruling.
+
+Raised by T001 on 2026-11-19.
+
+T001 found that the `java8` / `java8-multiarch` images pin mc-image-helper `1.51.7-java8`, which has
+`--api-key` (`CF_API_KEY`) but no `--api-key-file`; `CF_API_KEY_FILE` arrived in a later helper.
+Those images are the only ones that need the shared key (Java 17+ images ship one), so the file
+mount in OD-1 C / research R2 would never be read.
+
+- A. Keep OD-1 C's server-owned Secret copy, but pass it as `CF_API_KEY` with `valueFrom.secretKeyRef`
+  instead of a file. The value stays out of the pod spec and `kubectl describe` (only the Secret
+  name shows); the module field becomes `apiKeyEnv: CF_API_KEY`. A rotated key applies at the next
+  restart, which is also when the image reads it today. (Recommended: works on every image tag.)
+- B. Keep the file mount and also set `LOAD_ENV_FROM_FILE` to a mounted env file holding
+  `CF_API_KEY=…`; relies on the image's start scripts supporting that variable in the pinned digest.
+- C. Drop key sharing: CurseForge packs only on Java 17+ images (Minecraft 1.17+).
+
+## OD-10: When does a server pick up a CurseForge key-sharing toggle? (SETTLED: A, valgul 2026-11-19)
+
+**Ruling: option A** (valgul, 2026-11-19). Where an option below says "Recommended", that was the recommendation before the ruling, not the ruling.
+
+Raised during implementation on 2026-11-19.
+
+Turning key sharing on or off adds or removes the key env var (OD-9 A) in the pod template, which rolls the
+pod of every server with an applied CurseForge pack. Doing that for all servers at once would kick every player.
+
+- A. Wait until 0 players: each server picks up the change at its next quiet moment, like OD-8 B (right away if
+  the server is stopped or asleep, and never while the player count is unknown). Key rotation needs no restart and
+  is unaffected. (Recommended: no player is kicked and no manual step is needed.)
+- B. Restart right away: every affected server rolls within about a minute of the toggle.
+- C. Next manual restart: no operator restart; the change applies at the server's next stop/start, sleep/wake or crash restart.
+
+## OD-11: Should the backup taken before a modpack change survive deleting the server? (SETTLED: A, valgul 2026-11-22)
+
+**Ruling: option A** (valgul, 2026-11-22).
+
+Raised during implementation on 2026-11-22.
+
+The operator creates a Backup before a modpack change (`<gs>-modpack-<generation>`). Owning it by the GameServer
+would garbage-collect it, and the restic snapshot, when the server is deleted; scheduled backups have no owner.
+
+- A. Keep (no owner): the Backup carries no ownerReference, only the `gameplane.local/modpack-change` label and
+  `spec.serverRef`, so it and its restic snapshot survive deleting the server, like scheduled backups.
+- B. Delete with the server: the Backup is controller-owned by the GameServer and is garbage-collected with it.

@@ -1,0 +1,113 @@
+{
+  "files": [
+    {
+      "clientonly": false,
+      "hashes": {
+        "cfMurmur": 171778091,
+        "murmur": 3861719366,
+        "sha1": "4110547c387c96f481e3d2dd840ec51917952534",
+        "sha256": "50f8a5bee199a9f544ad1c87441e424ad768195b3fa95eb1d8372de18c7da346",
+        "sha512": "c59c916a4e1204eef90e8e5b609ea4e01ea11d91fe32ab97de4c6c19894eb1590859fd40a86336444799877d78511ae49ae4c8b4b3190f4f04db98837be5a91e"
+      },
+      "id": 3362178186,
+      "mirrors": [],
+      "name": "EnderStorage.cfg",
+      "optional": false,
+      "path": "./config",
+      "serveronly": false,
+      "sha1": "4110547c387c96f481e3d2dd840ec51917952534",
+      "size": 522,
+      "tags": [],
+      "type": "config",
+      "updated": 1792621714,
+      "url": "https://files.feed-the-beast.com/blob/b5/b531647b7f129799124b4594fffb05567cfde3ad884e3309557d45555a218e61.cfg",
+      "version": "0"
+    },
+    {
+      "clientonly": false,
+      "hashes": {
+        "cfMurmur": 939992675,
+        "murmur": 3825858197,
+        "sha1": "0cfa7903413dfaec4cf49d03bfd0c9a4aef9653f",
+        "sha256": "60a758a55730a593a2e225989ab1123845bdccea73a7528c2ae3f445a9758e0e",
+        "sha512": "f253e1c02f5c40fd95f8a8df614ad25f1cd79e1d823c03e53d2ba1f4c5278183185ba88f9bfddbc3c4de700bba95da1aaefb01554d7643d11a662109139aeb31"
+      },
+      "id": 3362178185,
+      "mirrors": [],
+      "name": "framedblocks-server.toml",
+      "optional": false,
+      "path": "./config",
+      "serveronly": false,
+      "sha1": "0cfa7903413dfaec4cf49d03bfd0c9a4aef9653f",
+      "size": 1232,
+      "tags": [],
+      "type": "config",
+      "updated": 1792621714,
+      "url": "https://files.feed-the-beast.com/blob/80/8025ca3a5cb60dbe1ad47bc05a28f0e7272b07b29747e65a8cfee2ff158e2a26.toml",
+      "version": "0"
+    },
+    {
+      "clientonly": false,
+      "hashes": {
+        "cfMurmur": 182781453,
+        "murmur": 4002806722,
+        "sha1": "85692f6218cff312fc88ec3abf8bb0bedaa77ed8",
+        "sha256": "1c75d9e9980f590c76c5367661ab40ac66ecebf5b5dde166964a16b99a6c63c3",
+        "sha512": "312af19e233f6a42cd23b6b724536f84a2e6b1525ac06fe95fa373bac2ffe6804253504108db097d07f8c2e269e68910341fc5cbc5a8422d8ff107bb66f6b96a"
+      },
+      "id": 3362178236,
+      "mirrors": [],
+      "name": "rftoolsutility-client.toml",
+      "optional": false,
+      "path": "./config",
+      "serveronly": false,
+      "sha1": "85692f6218cff312fc88ec3abf8bb0bedaa77ed8",
+      "size": 518,
+      "tags": [],
+      "type": "config",
+      "updated": 1792621714,
+      "url": "https://files.feed-the-beast.com/blob/e0/e0bccc939fb8635a7b93a8a804fbf8ae154b7c16329807775c8e3a1004067b1e.toml",
+      "version": "0"
+    }
+  ],
+  "id": 100574,
+  "installs": 50957,
+  "links": [],
+  "name": "1.24.1",
+  "notification": "",
+  "parent": 130,
+  "plays": 261778,
+  "private": false,
+  "refreshed": 0,
+  "specs": {
+    "id": 0,
+    "minimum": 6144,
+    "recommended": 8192
+  },
+  "status": "success",
+  "targets": [
+    {
+      "id": -1,
+      "name": "minecraft",
+      "type": "game",
+      "updated": 0,
+      "version": "1.21.1"
+    },
+    {
+      "id": -1,
+      "name": "neoforge",
+      "type": "modloader",
+      "updated": 0,
+      "version": "21.1.262"
+    },
+    {
+      "id": -1,
+      "name": "java",
+      "type": "runtime",
+      "updated": 0,
+      "version": "21.0.4+7-LTS"
+    }
+  ],
+  "type": "release",
+  "updated": 1792622102
+}

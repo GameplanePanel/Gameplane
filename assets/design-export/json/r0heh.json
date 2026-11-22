@@ -4,7 +4,7 @@
   "name": "Screen/Admin Settings — Telemetry (custom)",
   "type": "FRAME",
   "x": 3280,
-  "y": 87496,
+  "y": 87754,
   "width": 1440,
   "height": 1032,
   "fills": [{"type": "SOLID", "color": "#121114"}],

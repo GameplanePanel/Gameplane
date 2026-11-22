@@ -115,12 +115,19 @@ test.describe("Slice 2b: Mods/Modpacks/Backups + Settings (Desktop — 1440x900)
   });
 
   test("pssCT: Server Detail — Backups", async ({ page }) => {
+    await page.addInitScript(() => { document.cookie = "e2e_server_schedule_actions=1; path=/"; });
     await page.goto("/servers/mc-survival");
     await clickTab(page, "Backups");
     await expect(page.getByRole("rowheader", { name: "mc-survival-nightly-0713" })).toBeVisible({ timeout: 10_000 });
     await page.waitForTimeout(200);
     await expect(page.getByText("14 KB added", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Edit", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Delete", exact: true })).toBeEnabled();
+    const settings = page.getByRole("button", { name: "Managed by server settings" });
+    await expect(settings).toBeEnabled();
     await capture(page, "pssCT");
+    await settings.click();
+    await expect(page.getByRole("tab", { name: "Scheduled backups" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("zhLZN: Backup detail drawer (open)", async ({ page }) => {

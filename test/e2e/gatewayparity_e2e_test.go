@@ -550,7 +550,8 @@ func (p *gatewayParity) operations(t *testing.T) {
 	if len(providers) != 1 || providers[0].Provider != "modrinth" || !providers[0].Available || !providers[0].Modpacks {
 		t.Fatalf("remote template provider: %+v", providers)
 	}
-	p.expect(t, p.client, http.MethodPost, p.route("/modpack?provider=modrinth"), map[string]string{"ref": "gateway-parity-pack"}, http.StatusOK)
+	p.expect(t, p.client, http.MethodPost, p.route("/modpack?provider=modrinth"),
+		map[string]string{"provider": "modrinth", "project": "gateway-parity-pack", "version": "v1"}, http.StatusAccepted)
 	p.expect(t, p.client, http.MethodPut, p.route("/mods/ids"), []map[string]string{{"id": "remote-parity-id", "name": "Remote parity"}}, http.StatusOK)
 	ids := p.expect(t, p.client, http.MethodGet, p.route("/mods/ids"), nil, http.StatusOK)
 	if !bytes.Contains(ids, []byte("remote-parity-id")) {
@@ -564,16 +565,9 @@ func (p *gatewayParity) operations(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		envs, _, _ := unstructured.NestedSlice(gs.Object, "spec", "env")
-		gotPack := false
-		for _, entry := range envs {
-			item := entry.(map[string]any)
-			if item["name"] == "E2E_MODPACK" && item["value"] == "gateway-parity-pack" {
-				gotPack = true
-			}
-		}
+		gotPack, _, _ := unstructured.NestedString(gs.Object, "spec", "modpack", "project")
 		modIDs, _, _ := unstructured.NestedSlice(gs.Object, "spec", "mods", "ids")
-		if gotPack != site.remote || (len(modIDs) == 1) != site.remote {
+		if (gotPack == "gateway-parity-pack") != site.remote || (len(modIDs) == 1) != site.remote {
 			t.Fatal("modpack/ID-list update reached the wrong Kubernetes cluster")
 		}
 	}

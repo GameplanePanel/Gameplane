@@ -25,22 +25,36 @@ implementation task re-checks every itzg fact below against the image digests th
 
 ## R2: CurseForge key for game servers (OD-1 C)
 
+- **T001 re-check (2026-11-19)**: env names in R1 match itzg `master` scripts
+  (`start-deployAutoCF`, `start-deployModrinth`, `start-deployFTBA`) and mc-image-helper 1.78.2
+  (`--slug`, `--file-id`, `--downloads-repo`, `--missing-mods-filename` default
+  `MODS_NEED_DOWNLOAD.txt`, `--api-key-file` = `CF_API_KEY_FILE`). The `java8` build matrix pins
+  mc-image-helper `1.51.7-java8`, which has `--api-key` (`CF_API_KEY`) but **no** `--api-key-file`.
+  A file mount would therefore not be read on the images that need the key. OD-9 A (valgul,
+  2026-11-19) replaces the file mount with an env var: see decision 3.
+
 - **Facts**: itzg Java 17+ tags include a CurseForge key in mc-image-helper; `java8`,
-  `java8-multiarch`, `java11`, `java16` do not (itzg `docs/versions/java.md`). The image reads
-  `CF_API_KEY_FILE`. The module uses `java8-multiarch` for Minecraft ≤1.16.5.
+  `java8-multiarch`, `java11`, `java16` do not (itzg `docs/versions/java.md`). Newer helpers read
+  `CF_API_KEY_FILE`; the pinned `java8` helper reads `CF_API_KEY`. The module uses
+  `java8-multiarch` for Minecraft ≤1.16.5.
 - **Decision**:
   1. Default: no key in the pod; the image's built-in key is used.
   2. Admin opt-in "Share the CurseForge key with game servers" is stored as an annotation on
      the managed key Secret `gameplane-modreg-curseforge` in the control namespace
      (`gameplane.local/share-with-game-servers: "true"`). The API sets/clears it from the
      admin registry settings; it is never readable or writable by server-scoped roles.
-  3. The operator watches that Secret. For each GameServer whose active pack is CurseForge,
-     while sharing is on, it reconciles a server-owned Secret `<gs>-curseforge-key` (key
-     `apiKey`), mounts it read-only at `/run/gameplane/curseforge/api-key` in the game
-     container only (not the agent, not init containers), and sets `CF_API_KEY_FILE` to that
-     path. Sharing off or admin key deleted: the operator deletes the copy and drops the mount.
-  4. The key copy is NOT part of the config hash: kubelet refreshes mounted Secret files in
-     place and the image reads the key only at boot, so a rotation never restarts servers.
+  3. The operator reads that Secret on each reconcile (60s requeue, no watch). For each GameServer whose active pack is CurseForge,
+     while sharing is on, it keeps a server-owned Secret `<gs>-curseforge-key` (key `apiKey`)
+     copied from the managed Secret `gameplane-modreg-curseforge`, and sets the game container
+     env named by the module's `providers.curseforge.apiKeyEnv` (`CF_API_KEY` for
+     minecraft-java) via `valueFrom.secretKeyRef` to that Secret. The env is set on the game
+     container only (not the agent, not init containers). Sharing off or admin key deleted: the
+     operator deletes the copy and drops the env.
+  4. The key value is NOT part of the config hash: the hash covers only the secretKeyRef
+     (Secret name and key), never the value. A rotated key changes only the copy Secret, not the
+     pod template, so it does not restart servers and applies at the next container start.
+     Toggling share on/off adds or removes the env var, which changes the pod template and rolls
+     that server's pod. OD-10 A (valgul, 2026-11-19): a share toggle rolls the pod only when the server has 0 players online (or is stopped or asleep), reusing the OD-8 B gate; rotation needs no restart.
   5. The module marks images without a built-in key (`needsKeyImageTags: [java8-multiarch,
      java8]`). While sharing is off, the API hides CurseForge in the Modpacks registry switch
      for servers whose selected version uses such an image, and refuses install with 409.
@@ -49,7 +63,8 @@ implementation task re-checks every itzg fact below against the image digests th
      reason in that case.
 - **Rationale**: the operator stays the only writer of pod specs (core rule 10) and the copy
   is a server-owned Secret, so `validateServerEnvSources`/the ownership rule holds unchanged.
-  File mount instead of env keeps the key out of `kubectl describe pod` and the pod spec.
+  The env `valueFrom` keeps the key value out of the pod spec and `kubectl describe pod`
+  (only the Secret name shows) and works on every image tag, including the pinned `java8` helper.
 - **Alternatives**: env `valueFrom` the control-namespace Secret (cross-namespace refs are
   impossible and the ownership rule forbids it); API writes the copy (bypasses the
   operator); a key-injecting HTTP proxy (mc-image-helper has `--api-base-url`, but running a
@@ -75,7 +90,7 @@ implementation task re-checks every itzg fact below against the image digests th
 
 - **Decision**: the operator runs a small state machine per pack change, keyed by
   `metadata.generation`:
-  `Pending → BackingUp (Backup CR created, owner = GameServer) → Applying → Applied`, or
+  `Pending → BackingUp (Backup CR created, no owner (OD-11 A)) → Applying → Applied`, or
   `BackupFailed` (nothing applied; message from the Backup's status). While not `Applied`, the
   pod keeps rendering `status.modpack.applied` (the previous pack). `backupFirst` is honoured
   only when the server has a backup destination; the API rejects `backupFirst: true` without

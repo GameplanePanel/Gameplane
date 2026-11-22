@@ -89,8 +89,12 @@ func TestClusterModWritesRetryOnlyUnchangedTarget(t *testing.T) {
 				if test.want == http.StatusOK {
 					wantUpdates = 2
 				}
-				if response.Code != test.want || updates != wantUpdates || kubeClientCalls(t, home) != 0 {
-					t.Fatalf("status=%d want=%d updates=%d want=%d home calls=%d body=%s", response.Code, test.want, updates, wantUpdates, kubeClientCalls(t, home), response.Body)
+				wantStatus := test.want
+				if test.want == http.StatusOK && route.method == http.MethodPost && route.path == "/servers/alpha/modpack" {
+					wantStatus = http.StatusAccepted
+				}
+				if response.Code != wantStatus || updates != wantUpdates || kubeClientCalls(t, home) != 0 {
+					t.Fatalf("status=%d want=%d updates=%d want=%d home calls=%d body=%s", response.Code, wantStatus, updates, wantUpdates, kubeClientCalls(t, home), response.Body)
 				}
 				stored, err := client.Tracker().Get(kube.GVRs["servers"], scope.DefaultNamespace, "alpha")
 				if err != nil {

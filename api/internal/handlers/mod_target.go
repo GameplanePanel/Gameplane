@@ -23,6 +23,7 @@ import (
 // Registry provider credentials are deliberately not part of this target: those
 // remain centrally configured by the API administrator.
 type modTarget struct {
+	cluster   string
 	k         *kube.Client
 	namespace string
 	server    *unstructured.Unstructured
@@ -119,7 +120,7 @@ func loadModTarget(w http.ResponseWriter, req *http.Request, clients *kube.Regis
 		http.NotFound(w, req)
 		return nil, false
 	}
-	target := &modTarget{k: k, namespace: ns, server: gs}
+	target := &modTarget{cluster: cluster, k: k, namespace: ns, server: gs}
 	templateName, _, _ := unstructured.NestedString(gs.Object, "spec", "templateRef", "name")
 	if templateName != "" {
 		target.template, err = k.Dynamic.Resource(kube.GVRs["templates"]).Get(req.Context(), templateName, metav1.GetOptions{})

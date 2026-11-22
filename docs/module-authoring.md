@@ -1763,6 +1763,40 @@ modes, chosen by `refEnv`:
   dependency mods, which install one-by-one through the normal install
   path (Thunderstore/BepInEx packs).
 
+Env-mode providers can also declare these `modpacks` fields (all optional):
+
+| Field | Meaning |
+|---|---|
+| `versionEnv` | Env the operator sets to the pinned pack version id (`MODRINTH_VERSION`, `CF_FILE_ID`, `FTB_MODPACK_VERSION_ID`). Without it the registry is not offered for pinned install. Max 64 characters, env-name pattern. |
+| `apiKeyEnv` | Env that receives the admin-shared CurseForge API key (for example `CF_API_KEY`) through a `secretKeyRef` to a server-owned Secret, only while the admin has "Share the CurseForge key with game servers" on. Valid only when `provider: curseforge`. This replaces the earlier draft name `apiKeyFileEnv` (file mount): the `java8` images' mc-image-helper cannot read a key file. Delivery is pending open decision OD-9 (`specs/035-curseforge-modpacks/OPEN-DECISIONS.md`), so the field is declared and its env name is reserved, but nothing sets it yet. |
+| `needsKeyImageTags` | Image tags (the part after `:` and before `@`) with no built-in CurseForge key, for example `[java8-multiarch, java8]`. Servers on these images get the provider only while key sharing is on (max 8). |
+| `missingFilesPath` | File relative to the data mount where the image lists files that need a manual download (`MODS_NEED_DOWNLOAD.txt`). The Modpacks tab shows its rows and tells the operator to upload the files to `downloads/`. No absolute path, no `..`. |
+| `adoptVersionFile` | `{ path, field }`: JSON file and top-level field where the image records the installed pack version (`.modrinth-modpack-manifest.json`, `versionId`). Lets Gameplane adopt servers that already run an unpinned pack and pin them to that version. |
+
+Provider-level `modpacksOnly: true` hides the provider from the Mods tab and offers it only in Modpacks (FTB has packs but no single-mod listing). `provider: ftb` is a keyless, modpack-only registry; pair it with `modpacksOnly: true`, `refEnv: FTB_MODPACK_ID`, `versionEnv: FTB_MODPACK_VERSION_ID` and `env: [{ name: TYPE, value: FTBA }]` on the itzg image.
+
+The operator strips every env name declared in any provider's `modpacks` block (`refEnv`, `versionEnv`, `apiKeyEnv`, `env[].name`) from the merged env and renders only the active pack's set, so a module never needs to guard against two packs. The active pack lives in `GameServer.spec.modpack`, not `spec.env`.
+
+```yaml
+- provider: curseforge
+  curseforgeGameID: 432
+  modpacks:
+    refEnv: CF_SLUG
+    versionEnv: CF_FILE_ID
+    apiKeyEnv: CF_API_KEY
+    needsKeyImageTags: [java8-multiarch, java8]
+    missingFilesPath: MODS_NEED_DOWNLOAD.txt
+    env:
+      - { name: TYPE, value: AUTO_CURSEFORGE }
+      - { name: CF_DOWNLOADS_REPO, value: /data/downloads }
+- provider: ftb
+  modpacksOnly: true
+  modpacks:
+    refEnv: FTB_MODPACK_ID
+    versionEnv: FTB_MODPACK_VERSION_ID
+    env: [{ name: TYPE, value: FTBA }]
+```
+
 ### Probes
 
 ```yaml

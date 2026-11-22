@@ -270,8 +270,18 @@ TestGameServer_WakeOnConnect_PingDoesNotWake
 TestGameServer_WakeOnConnect_LoginWakes
 TestColdWakeFleet_ConcurrentJoins
 TestGameServer_WakeOnConnect_UnarmedNoSentinel
+TestGameServer_Modpack_CurseForgeThenModrinth
+TestGameServer_Modpack_PinSurvivesRestarts
+TestGameServer_Modpack_RemoveKeepsWorld
 EOF
 }
+
+# The three TestGameServer_Modpack_* tests (spec 035: T017, T031, T040) boot a
+# real itzg Minecraft server with a CurseForge or Modrinth pack, so they sit
+# here with the other real-Minecraft tests. Every bot-fast test runs on its own
+# runner (hack/ci_scope.py bots), so each one's single admin login spends a
+# fresh login budget; none of the api buckets has headroom. They need public
+# egress to CurseForge and Modrinth and the module 2.13.0 providers block.
 
 # Games with heavy resource requirements, excluded from default CI execution.
 # This bucket is DELIBERATELY never run in CI — not on PRs, not nightly, not
@@ -489,7 +499,18 @@ TestBackup_PreparationAndSameNodeCopy
 EOF
 }
 
-unbucketed() { :; }
+# TestGameServer_Modpack_BlockedModManualDownload (spec 035, T046) is excluded
+# from every CI bucket: its last step needs a jar the operator downloads by
+# hand in a browser (CurseForge serves a blocked mod only to a browser
+# session), and it skips unless GAMEPLANE_E2E_CF_BLOCKED_* is set.
+# TestGameServer_Modpack_FTBInstall (spec 035, T052) is excluded because even
+# the smallest modern FTB pack is ~170 MB of mods plus a heavy first boot,
+# which exceeds the CI runner budget. Both are hand runs only.
+unbucketed() { cat <<'EOF'
+TestGameServer_Modpack_BlockedModManualDownload
+TestGameServer_Modpack_FTBInstall
+EOF
+}
 
 bucket_monitoring() { cat <<'EOF'
 TestMonitoring_DiscoveryPerformanceAndPolicy

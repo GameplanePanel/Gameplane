@@ -154,7 +154,7 @@
                 "MI",
                 "test-server-02",
                 "Running",
-                "minecraft-modded · ns: default · up 13d 4h",
+                "minecraft-java · fabric 1.21.1 · ns: default · up 13d 4h",
                 "Restart",
                 "Stop",
                 "Open console"
@@ -238,7 +238,7 @@
                   "height": 14,
                   "fills": [{"type": "SOLID", "color": "#9E98A6"}],
                   "layoutAlignSelf": "STRETCH",
-                  "text": "Installing a modpack either pins it on the server (and restarts) or adds all of its mods, depending on the registry.",
+                  "text": "Pick a pack and a version. The server pins that version and restarts to install it; a restart never upgrades it.",
                   "font": ["Geist", 400, 11],
                   "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
                 }
@@ -251,7 +251,7 @@
               "x": 24,
               "y": 224,
               "width": 1132,
-              "height": 36,
+              "height": 40,
               "layout": {
                 "mode": "HORIZONTAL",
                 "gap": 8,
@@ -263,12 +263,33 @@
               "layoutAlignSelf": "STRETCH",
               "children": [
                 {
-                  "id": "1:1137",
-                  "name": "Search",
+                  "name": "Provider Switch",
                   "type": "INSTANCE",
                   "x": 0,
                   "y": 0,
-                  "width": 904,
+                  "width": 266,
+                  "height": 40,
+                  "component": "Gameplane/Provider Switch",
+                  "fills": [{"type": "SOLID", "color": "#232128"}],
+                  "cornerRadius": 20,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [4, 4, 4, 4],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "variables": {"fills/0/color": "default/default"},
+                  "texts": ["Modrinth", "CurseForge", "FTB"]
+                },
+                {
+                  "id": "1:1137",
+                  "name": "Search",
+                  "type": "INSTANCE",
+                  "x": 274,
+                  "y": 2,
+                  "width": 630,
                   "height": 36,
                   "component": "Gameplane/Search Input",
                   "componentId": "1:975",
@@ -298,7 +319,7 @@
                   "name": "Select",
                   "type": "INSTANCE",
                   "x": 912,
-                  "y": 0,
+                  "y": 2,
                   "width": 220,
                   "height": 36,
                   "component": "Gameplane/Select",
@@ -330,7 +351,7 @@
               "name": "Category Chips",
               "type": "FRAME",
               "x": 24,
-              "y": 276,
+              "y": 280,
               "width": 1132,
               "height": 24,
               "layout": {
@@ -493,7 +514,7 @@
               "name": "Modpacks Grid",
               "type": "FRAME",
               "x": 24,
-              "y": 316,
+              "y": 320,
               "width": 1132,
               "height": 220,
               "layout": {
@@ -614,7 +635,7 @@
                           "type": "FRAME",
                           "x": 64,
                           "y": 17,
-                          "width": 412,
+                          "width": 404,
                           "height": 34,
                           "layout": {
                             "mode": "VERTICAL",
@@ -658,9 +679,9 @@
                           "id": "1:1156",
                           "name": "Btn Install",
                           "type": "INSTANCE",
-                          "x": 488,
+                          "x": 480,
                           "y": 18,
-                          "width": 58,
+                          "width": 66,
                           "height": 32,
                           "component": "Gameplane/Button/Small/Default",
                           "componentId": "1:709",
@@ -673,7 +694,7 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "texts": ["Install"]
+                          "texts": ["Install…"]
                         }
                       ]
                     },
@@ -767,7 +788,7 @@
                           "type": "FRAME",
                           "x": 64,
                           "y": 17,
-                          "width": 412,
+                          "width": 404,
                           "height": 34,
                           "layout": {
                             "mode": "VERTICAL",
@@ -811,9 +832,9 @@
                           "id": "1:1163",
                           "name": "Btn Install",
                           "type": "INSTANCE",
-                          "x": 488,
+                          "x": 480,
                           "y": 18,
-                          "width": 58,
+                          "width": 66,
                           "height": 32,
                           "component": "Gameplane/Button/Small/Default",
                           "componentId": "1:709",
@@ -826,7 +847,7 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "texts": ["Install"]
+                          "texts": ["Install…"]
                         }
                       ]
                     }
@@ -940,7 +961,7 @@
                           "type": "FRAME",
                           "x": 64,
                           "y": 17,
-                          "width": 412,
+                          "width": 404,
                           "height": 34,
                           "layout": {
                             "mode": "VERTICAL",
@@ -984,9 +1005,9 @@
                           "id": "1:1171",
                           "name": "Btn Install",
                           "type": "INSTANCE",
-                          "x": 488,
+                          "x": 480,
                           "y": 18,
-                          "width": 58,
+                          "width": 66,
                           "height": 32,
                           "component": "Gameplane/Button/Small/Default",
                           "componentId": "1:709",
@@ -999,7 +1020,7 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "texts": ["Install"]
+                          "texts": ["Install…"]
                         }
                       ]
                     },
@@ -1093,7 +1114,7 @@
                           "type": "FRAME",
                           "x": 64,
                           "y": 17,
-                          "width": 412,
+                          "width": 404,
                           "height": 34,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1137,9 +1158,9 @@
                           "id": "1:1178",
                           "name": "Btn Install",
                           "type": "INSTANCE",
-                          "x": 488,
+                          "x": 480,
                           "y": 18,
-                          "width": 58,
+                          "width": 66,
                           "height": 32,
                           "component": "Gameplane/Button/Small/Default",
                           "componentId": "1:709",
@@ -1152,7 +1173,7 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "texts": ["Install"]
+                          "texts": ["Install…"]
                         }
                       ]
                     }
@@ -1266,7 +1287,7 @@
                           "type": "FRAME",
                           "x": 64,
                           "y": 17,
-                          "width": 412,
+                          "width": 404,
                           "height": 34,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1310,9 +1331,9 @@
                           "id": "1:1186",
                           "name": "Btn Install",
                           "type": "INSTANCE",
-                          "x": 488,
+                          "x": 480,
                           "y": 18,
-                          "width": 58,
+                          "width": 66,
                           "height": 32,
                           "component": "Gameplane/Button/Small/Default",
                           "componentId": "1:709",
@@ -1325,7 +1346,7 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "texts": ["Install"]
+                          "texts": ["Install…"]
                         }
                       ]
                     },
@@ -1419,7 +1440,7 @@
                           "type": "FRAME",
                           "x": 64,
                           "y": 17,
-                          "width": 412,
+                          "width": 404,
                           "height": 34,
                           "layout": {
                             "mode": "VERTICAL",
@@ -1463,9 +1484,9 @@
                           "id": "1:1193",
                           "name": "Btn Install",
                           "type": "INSTANCE",
-                          "x": 488,
+                          "x": 480,
                           "y": 18,
-                          "width": 58,
+                          "width": 66,
                           "height": 32,
                           "component": "Gameplane/Button/Small/Default",
                           "componentId": "1:709",
@@ -1478,7 +1499,7 @@
                             "counter": "CENTER",
                             "sizing": ["HUG", "HUG"]
                           },
-                          "texts": ["Install"]
+                          "texts": ["Install…"]
                         }
                       ]
                     }
@@ -1491,7 +1512,7 @@
               "name": "Load More Row",
               "type": "FRAME",
               "x": 24,
-              "y": 552,
+              "y": 556,
               "width": 1132,
               "height": 32,
               "layout": {

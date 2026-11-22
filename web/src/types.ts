@@ -122,6 +122,57 @@ export interface RegistryProviderInfo {
   provider: string;
   available: boolean;
   modpacks: boolean;
+  modsBrowse?: boolean; // false => hide from Mods tab; undefined treated as true (old fixtures)
+  modpacksBlockedReason?: string; // "curseforge_key_not_shared" => hide from Modpacks switch
+}
+
+export type ModpackPhase = "" | "Pending" | "BackingUp" | "Applying" | "Applied" | "BackupFailed";
+
+export interface ModpackActive {
+  provider: string;
+  project: string;
+  version: string;
+  title: string;
+  versionName: string;
+  pinned: boolean;
+  pendingRemoval?: boolean;
+}
+
+export interface ModpackMissingFile {
+  mod: string;
+  versionName: string;
+  filename: string;
+  downloadPage: string;
+}
+
+export interface ModpackView {
+  active: ModpackActive | null;
+  phase: ModpackPhase;
+  message: string;
+  backupName: string;
+  keyShared: boolean;
+  missingFiles: ModpackMissingFile[];
+  missingFilesUnknown: boolean;
+  downloadsPath: string;
+  backupAvailable: boolean;
+  // Name of the backup destination the pre-change backup uses; absent when none.
+  backupDestination?: string;
+}
+
+export interface ModpackInstallBody {
+  provider: string;
+  project: string;
+  version: string;
+  title?: string;
+  versionName?: string;
+  backupFirst?: boolean;
+}
+
+export interface CurseForgeShare {
+  share: boolean;
+  managedKey: boolean;
+  // Where the effective CurseForge key comes from; "" when there is none.
+  keySource?: "admin" | "startup-flag" | "";
 }
 
 // spec.capabilities.mods.idList — declares that this game's server
@@ -298,6 +349,10 @@ export interface RegistryVersion {
   versionNumber?: string;
   gameVersions?: string[];
   loaders?: string[];
+  // Provider-reported release channel; absent when the provider does not say.
+  releaseType?: "release" | "beta" | "alpha";
+  // RFC 3339 publish time; absent when unknown.
+  publishedAt?: string;
   files: RegistryFile[];
 }
 
@@ -716,10 +771,15 @@ export interface Backup {
 }
 
 export interface BackupSchedule {
-  metadata: ObjectMeta;
+  metadata: ObjectMeta & {
+    resourceVersion?: string;
+    ownerReferences?: { kind: string; name: string; uid: string; controller?: boolean }[];
+  };
   spec: {
     serverRef: { name: string };
     schedule: string;
+    repoRef?: { name: string; key: string };
+    strategy?: "restic-snapshot" | "volume-snapshot";
     powerPolicy?: "preserve" | "stop-copy-restart";
     volumePolicy?: "primary-only" | "all-data";
     suspend?: boolean;

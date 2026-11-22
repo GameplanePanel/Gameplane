@@ -312,6 +312,8 @@ func main() {
 	flag.Var(&portPoolTemplateFlags, "port-pool-template",
 		"<template>=<pool>: the template's servers get Service ports from the pool, a contiguous block "+
 			"each. Repeatable; a template draws from at most one pool.")
+	templateHostnames := templateHostnameMap{}
+	flag.Func("template-hostname", "Default player-facing hostname for a game template (<template>=<hostname>). Repeatable.", templateHostnames.set)
 	flag.Var(&probeIngressFromCIDR, "probe-ingress-from-cidr",
 		"Kubelet source CIDR admitted by the probe NetworkPolicy. Repeatable. Defaults to "+
 			"10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 and 169.254.0.0/16 when not supplied.")
@@ -549,6 +551,7 @@ func main() {
 		AgentCASecretNamespace: agentCASecretNamespace,
 		WakeStartLimit:         wakeStartLimit,
 		WakeStartNamespace:     controlPlaneNamespaceDefault,
+		ControlPlaneNamespace:  controlPlaneNamespace,
 		AgentClient:            agentClient,
 		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{
@@ -557,6 +560,7 @@ func main() {
 		},
 		AddressManager:              addressManager,
 		PortPools:                   portPools,
+		TemplateHostnames:           templateHostnames,
 		MetalLBNamespace:            metalLBNamespace,
 		GameIngressPolicyEnabled:    gameIngressPolicy,
 		GameIngressFromCIDRs:        gameIngressFromCIDR,
