@@ -678,7 +678,7 @@ func TestGameServer_Modpack_PinSurvivesRestarts(t *testing.T) {
 				return false, err.Error()
 			}
 			if id != cfPackFileID {
-				t.Fatalf("restart %d: .curseforge-manifest.json fileId = %s, want %s", i, id, cfPackFileID)
+				return false, fmt.Sprintf("restart %d: .curseforge-manifest.json fileId = %s, want %s", i, id, cfPackFileID)
 			}
 			return true, ""
 		})
