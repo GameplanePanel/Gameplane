@@ -4,7 +4,7 @@
   "name": "Screen/Cluster Details — Configuration — Local",
   "type": "FRAME",
   "x": 16400,
-  "y": 63932,
+  "y": 64190,
   "width": 1440,
   "height": 1060,
   "fills": [{"type": "SOLID", "color": "#121114"}],

@@ -383,7 +383,7 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
           )}
           {tab === "files"    && <FilesTab name={name} ns={ns} path={file} onNavigate={navigateFile} />}
           {tab === "mods"     && <ModsTab    name={name} ns={ns} tmpl={tmpl} gs={gs} />}
-          {tab === "modpacks" && <ModpacksTab name={name} ns={ns} tmpl={tmpl} />}
+          {tab === "modpacks" && <ModpacksTab name={name} ns={ns} tmpl={tmpl} onOpenFiles={() => selectTab("files")} />}
           {tab === "players"  && <PlayersTab name={name} ns={ns} />}
           {tab === "backups"  && <BackupsTab name={name} ns={ns} onOpenBackupSettings={() => {
             setOpenScheduledBackups(true);

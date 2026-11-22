@@ -244,6 +244,38 @@ subjects:
     namespace: {{ $.Release.Namespace }}
 ---
 {{- end }}
+# Spec 035 key sharing: the operator reads exactly one managed Secret (the
+# CurseForge key the API stores) in the credentials namespace, uncached via the
+# API reader. resourceNames-scoped, get only, so no list/watch and no
+# namespace-wide Secret access (contrast {{ .Release.Name }}-operator-secrets,
+# which renders there only when nativeRBAC.remoteClusters is true).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-operator-modreg-key
+  namespace: {{ include "gameplane.operatorClusterCredentialsNamespace" . }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [gameplane-modreg-curseforge]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-operator-modreg-key
+  namespace: {{ include "gameplane.operatorClusterCredentialsNamespace" . }}
+  labels: {{- include "gameplane.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Release.Name }}-operator-modreg-key
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-operator
+    namespace: {{ .Release.Namespace }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

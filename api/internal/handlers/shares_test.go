@@ -183,6 +183,58 @@ func TestShareCreateReturnsTokenOnce(t *testing.T) {
 	}
 }
 
+func TestChangeShareWakePermission(t *testing.T) {
+	store := newTestStore(t)
+	ownerID := insertShareTestUser(t, store, "owner-edit")
+	owner := &auth.User{ID: ownerID}
+	reg := kube.NewRegistry("local")
+	server := newShareTestServer("srv-edit", ownerID)
+	server.SetUID("uid-edit")
+	reg.Set("local", fakeKubeClient(server))
+	h := mountSharesRouter(reg, store)
+	expiry := time.Now().UTC().Add(time.Hour).Truncate(time.Second)
+	token, link, err := store.CreateShareLinkForServer(t.Context(), "local", "gameplane-games", server.GetName(), "uid-edit", ownerID, false, &expiry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := "/servers/srv-edit/shares/" + link.ID
+	for _, tc := range []struct {
+		name string
+		user *auth.User
+		body any
+		want int
+	}{
+		{"anonymous", nil, map[string]bool{"canStart": true}, http.StatusUnauthorized},
+		{"other admin", &auth.User{ID: ownerID + 1, Role: "admin"}, map[string]bool{"canStart": true}, http.StatusForbidden},
+		{"missing flag", owner, map[string]any{}, http.StatusBadRequest},
+		{"null flag", owner, map[string]any{"canStart": nil}, http.StatusBadRequest},
+		{"wrong type", owner, map[string]any{"canStart": "true"}, http.StatusBadRequest},
+		{"extra field", owner, map[string]any{"canStart": true, "neverExpires": true}, http.StatusBadRequest},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if status, body := shareReq(t, h, "PATCH", path, tc.body, tc.user, ""); status != tc.want {
+				t.Fatalf("PATCH status = %d, want %d: %s", status, tc.want, body)
+			}
+		})
+	}
+	for _, enabled := range []bool{true, false} {
+		if status, body := shareReq(t, h, "PATCH", path, map[string]bool{"canStart": enabled}, owner, ""); status != http.StatusNoContent || len(body) != 0 {
+			t.Fatalf("PATCH status = %d, body = %s", status, body)
+		}
+		current, err := store.LookupShareLink(t.Context(), token)
+		if err != nil || current.CanStart != enabled || current.ID != link.ID || current.ExpiresAt == nil || !current.ExpiresAt.Equal(expiry) {
+			t.Fatalf("lookup after canStart=%v: %+v, %v", enabled, current, err)
+		}
+		want := http.StatusNotFound
+		if enabled {
+			want = http.StatusAccepted
+		}
+		if status, body := shareReq(t, h, "POST", "/shares/"+token+"/start", nil, nil, "share-edit:1"); status != want {
+			t.Fatalf("public start after canStart=%v: %d, %s", enabled, status, body)
+		}
+	}
+}
+
 // TestShareResolveValidToken verifies that a valid token resolves successfully
 // and returns the server's public view, going through the real handler and
 // cluster resolution (the path that a `reg.Get("")` bug would 404 on).
@@ -1233,6 +1285,62 @@ func TestShareLinkLegacyEmptyUIDUsesTimestamp(t *testing.T) {
 	newer := serverWithUID("srv-legacy-new", ownerID, time.Now().Add(time.Hour), "uid-live")
 	if got := shareStatusFor(t, store, ownerID, "srv-legacy-new", "", newer, "203.0.113.76:1"); got != http.StatusNotFound {
 		t.Fatalf("legacy link vs newer server: status=%d, want 404", got)
+	}
+}
+
+func TestShareManagementAfterServerRecreation(t *testing.T) {
+	store := newTestStore(t)
+	ownerID := insertShareTestUser(t, store, "owner-replacement")
+	owner := &auth.User{ID: ownerID}
+	const name = "srv-replacement"
+	links := make(map[string]string)
+	for _, uid := range []string{"uid-live", "uid-old", ""} {
+		_, link, err := store.CreateShareLinkForServer(t.Context(), "local", "gameplane-games", name, uid, ownerID, false, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		links[uid] = link.ID
+	}
+
+	for _, tc := range []struct {
+		name        string
+		created     time.Time
+		legacyValid bool
+	}{
+		{"legacy link created after server", time.Now().Add(-time.Hour), true},
+		{"legacy link predates server", time.Now().Add(time.Hour), false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := kube.NewRegistry("local")
+			reg.Set("local", fakeKubeClient(serverWithUID(name, ownerID, tc.created, "uid-live")))
+			h := mountSharesRouter(reg, store)
+			status, body := shareReq(t, h, "GET", "/servers/"+name+":shares", nil, owner, "")
+			if status != http.StatusOK {
+				t.Fatalf("list: status %d, body %s", status, body)
+			}
+			var listed []shareResp
+			if err := json.Unmarshal(body, &listed); err != nil {
+				t.Fatal(err)
+			}
+			visible := make(map[string]bool)
+			for _, link := range listed {
+				visible[link.ID] = true
+			}
+			for uid, id := range links {
+				wantVisible := uid == "uid-live" || (uid == "" && tc.legacyValid)
+				if visible[id] != wantVisible {
+					t.Errorf("uid %q listed = %v, want %v", uid, visible[id], wantVisible)
+				}
+				wantStatus := http.StatusNotFound
+				if wantVisible {
+					wantStatus = http.StatusNoContent
+				}
+				status, body := shareReq(t, h, "PATCH", "/servers/"+name+"/shares/"+id, map[string]bool{"canStart": true}, owner, "")
+				if status != wantStatus {
+					t.Errorf("uid %q edit: status %d, want %d, body %s", uid, status, wantStatus, body)
+				}
+			}
+		})
 	}
 }
 

@@ -9395,6 +9395,10 @@
         "defaultMessage": "Terminé",
         "description": "Button that closes the link-created dialog"
     },
+    "web.routes.tabs.settings.share_links.edit_wake_permission": {
+        "defaultMessage": "Autoriser toute personne disposant du lien {id} à réveiller le serveur",
+        "description": "Accessible name of the wake permission switch for the given share link ID"
+    },
     "web.routes.tabs.settings.share_links.expires": {
         "defaultMessage": "Expire",
         "description": "Table column header for the share link expiry date"
@@ -9438,6 +9442,10 @@
     "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account": {
         "defaultMessage": "Permettez aux personnes sans compte Gameplane de consulter l'état et l'adresse de connexion de ce serveur. Seul le propriétaire peut créer ou révoquer des liens.",
         "description": "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links"
+    },
+    "web.routes.tabs.settings.share_links.link_id": {
+        "defaultMessage": "Identifiant du lien",
+        "description": "Label for the non-secret share link identifier in the creation dialog and table"
     },
     "web.routes.tabs.settings.share_links.long_lived_link_it_stays_valid_for_over": {
         "defaultMessage": "Lien de longue durée : il reste valide plus d'un an sauf si vous le révoquez.",
@@ -9510,6 +9518,14 @@
     "web.routes.tabs.settings.share_links.view_only": {
         "defaultMessage": "Lecture seule",
         "description": "Share links: table cell for a link that only allows viewing the server status"
+    },
+    "web.routes.tabs.settings.share_links.wake_permission_failed": {
+        "defaultMessage": "Impossible de modifier l’autorisation de réveil associée au lien.",
+        "description": "Share links: error shown when updating the start permission fails"
+    },
+    "web.routes.tabs.settings.share_links.wake_permission_hint": {
+        "defaultMessage": "Les personnes sans compte Gameplane peuvent consulter l’état et l’adresse du serveur. Activez « Démarrage possible » pour permettre à toute personne disposant du lien de réveiller le serveur.",
+        "description": "Share links: explains the effect of the Can start switch on everyone with the existing URL"
     },
     "web.routes.tabs.settings.share_links.you_will_not_see_this_link_again": {
         "defaultMessage": "Vous ne reverrez pas ce lien",

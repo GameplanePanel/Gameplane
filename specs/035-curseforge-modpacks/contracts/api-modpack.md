@@ -22,6 +22,12 @@ Adds two fields per provider:
 `type=modpack` makes FTB and CurseForge return pack versions. Only versions matching the
 server's selected Minecraft version and loader are returned, newest first (Clarification Q5).
 
+Each versions entry also carries two optional fields (both omitted when the provider does not say):
+
+- `releaseType` (string): one of `"release"`, `"beta"`, `"alpha"`. CurseForge maps its numeric
+  release type (1, 2, 3) to these; FTB passes its type through only when it is one of the three.
+- `publishedAt` (string): RFC 3339, UTC (for example `"2026-11-02T14:03:09Z"`).
+
 ## GET /servers/{name}/modpack (new)
 
 ```json
@@ -38,7 +44,8 @@ server's selected Minecraft version and loader are returned, newest first (Clari
   ],
   "missingFilesUnknown": false,
   "downloadsPath": "downloads/",
-  "backupAvailable": true
+  "backupAvailable": true,
+  "backupDestination": "offsite"
 }
 ```
 
@@ -52,6 +59,10 @@ server's selected Minecraft version and loader are returned, newest first (Clari
 - `missingFilesUnknown` true when no pod exists (server stopped or asleep), so the file
   cannot be read; the tab then says to start the server to check for missing files.
 - `backupAvailable` true when the server has a backup destination.
+- `backupDestination` (string, omitted when there is none): the name of the backup destination
+  (a Secret labelled `gameplane.local/backup-destination=true` in the server's namespace) the
+  pre-change backup goes to; the alphabetically first name when several exist, matching the
+  operator's choice. `backupAvailable` is true exactly when it is non-empty.
 - Triggers the lazy legacy adoption (research R6) when needed.
 
 ## POST /servers/{name}/modpack (changed)
@@ -69,8 +80,11 @@ Request:
 - 409 `server.modpack.key_required` when the provider is blocked for this server (see
   `modpacksBlockedReason`).
 - 400 `server.modpack.backup_unavailable` when `backupFirst` and no destination.
-- 409 `server.modpack.change_in_progress` while `phase` is `BackingUp` or `Applying`.
-- 202 with the GET body. Writes `spec.modpack` only; the operator applies it.
+- 409 `server.modpack.change_in_progress` while `phase` is `Pending`, `BackingUp` or `Applying`
+  (a change the operator has not picked up yet reads `Pending`).
+- 202 with the GET body (built from the server object just written, without the agent read, so
+  `missingFiles` is `[]`). Its `phase` is `Pending` until the operator picks the change up.
+  Writes `spec.modpack` only; the operator applies it.
 
 ## DELETE /servers/{name}/modpack?backupFirst=true|false (new)
 
@@ -85,4 +99,16 @@ neither `spec.modpack` nor `status.modpack.applied` is set; same 400/409 rules a
 
 `{ "share": true }` sets/clears the share annotation on the managed key Secret. 409
 `server.registry.share_needs_managed_key` when no managed key exists (only the startup flag).
-GET on the same path returns `{ "share": bool, "managedKey": bool }`.
+GET on the same path returns the same shape, and so does a successful PUT:
+
+```json
+{ "share": false, "managedKey": true, "keySource": "admin" }
+```
+
+- `share` (bool): true only when a managed key exists and the share annotation is `"true"`.
+- `managedKey` (bool): true when the managed key Secret holds a non-empty `apiKey`.
+- `keySource` (string): where the CurseForge key comes from. `"admin"` when a managed key
+  exists, `"startup-flag"` when only the startup flag supplies one, `""` when there is no key.
+  Never the key itself.
+
+PUT `{ "share": false }` with no managed key answers 200 with `share` and `managedKey` false.

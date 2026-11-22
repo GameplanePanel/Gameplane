@@ -841,6 +841,7 @@ const wsOrigin = typeof window !== "undefined" ? window.location.origin.replace(
 
 export function buildScreenshotHandlers() {
   const data = getScreenshotData();
+  const shareWakePermissions = new Map<string, boolean>();
   const nightlyBackup = makeBackup({
     metadata: { name: "mc-survival-nightly-0713", namespace: "default" },
     spec: { serverRef: { name: "mc-survival" } },
@@ -1771,7 +1772,7 @@ export function buildScreenshotHandlers() {
         },
       }),
     ),
-    // Share links: list, create, revoke, resolve (public), start (public)
+    // Share links: list, create, edit, revoke, resolve (public), start (public)
     http.get(/\/servers\/[^/]+:shares$/, ({ request }) => {
       // Extract server name from URL
       const match = new URL(request.url).pathname.match(/\/servers\/([^/:]+):shares$/);
@@ -1788,7 +1789,7 @@ export function buildScreenshotHandlers() {
           id: "share-1",
           createdAt: "2026-07-28T00:00:00Z",
           expiresAt: null,
-          canStart: true,
+          canStart: shareWakePermissions.get(request.url) ?? true,
         },
         {
           id: "share-2",
@@ -1820,6 +1821,13 @@ export function buildScreenshotHandlers() {
         canStart: body?.canStart ?? false,
         token: `token_${Math.random().toString(36).slice(2)}`,
       });
+    }),
+    http.patch("/servers/:name/shares/share-1", async ({ request }) => {
+      const { canStart } = await request.json() as { canStart: boolean };
+      const listURL = new URL(request.url);
+      listURL.pathname = listURL.pathname.replace(/\/shares\/share-1$/, ":shares");
+      shareWakePermissions.set(listURL.href, canStart);
+      return new HttpResponse(null, { status: 204 });
     }),
     http.delete("/servers/:name/shares/:id", () =>
       new HttpResponse(null, { status: 204 }),

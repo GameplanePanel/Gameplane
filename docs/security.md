@@ -341,6 +341,8 @@ still sees the stored values; restrict that with cluster RBAC.
 
 ## Share links
 
+The server owner can change an active link's **Can start** permission under **Settings → Share links**. Use the **Link ID** shown at creation to identify its row later. Enabling wake access lets anyone who already has that URL wake the server from idle sleep. Disabling it removes that permission on the next request. The URL and expiry stay the same.
+
 Share links (`api/internal/db/shares.go`, schema in `api/internal/db/migrations/sqlite/006_share_links.sql`, Postgres twin in `migrations/postgres/`) grant unauthenticated, token-bearing access to a single GameServer's status and connection address, optionally with permission to wake it. Because they are unauthenticated, their security rests entirely on the token being both hard to guess and hard to recover if the database or a backup leaks.
 
 **Storage.** Only a SHA-256 hash of the token is persisted (`token_hash`, indexed for O(1) lookup); the raw 32-byte random token is generated at creation, returned exactly once in the create response, and never stored, logged, or recoverable afterwards.
@@ -710,6 +712,14 @@ guard and the operator's fetch guard above share their dial-time enforcement
 machinery in the `netguard/` module; its package doc explains why the two
 policies (`IsAllowed` vs `IsPublic`) stay separately selectable rather than
 being collapsed into one.
+
+## Sharing the CurseForge key with game servers
+
+CurseForge modpacks on Java 17+ images use a key built into the image, so by default no CurseForge key ever reaches a game server. Images without a built-in key (the `java8` tags, Minecraft 1.16.5 and older) need the admin's key. An admin can opt in through the API (`PUT /admin/registries/curseforge/share`, `config:manage`; the dashboard switch **Share the CurseForge key with game servers** is planned and not yet built), which sets annotation `gameplane.local/share-with-game-servers` on the managed Secret `gameplane-modreg-curseforge`. Only a key stored through admin config can be shared; a key supplied only by the `--curseforge-api-key` flag cannot, and the planned dashboard switch will be disabled in that case. Server-scoped roles can neither read nor change the setting, and the key is never returned by the API or written to the audit log.
+
+**Residual risk.** While sharing is on, anything that runs inside the game container can read the key: every mod and plugin on a CurseForge server, and any console user who can run commands there. This is the reason sharing is off by default. Treat the shared key as exposed to all server owners and mod authors on the cluster: use a key dedicated to Gameplane, scoped and rate-limited by CurseForge, and rotate it if a server runs an untrusted mod. Turning sharing off (or deleting the admin key) removes the per-server copies, but only once each server has 0 players online (or is stopped or asleep). Until then the copy Secret and the `CF_API_KEY` env stay on every server with players online, so the key remains readable there. To revoke it at once, stop the server.
+
+**Delivery.** The operator keeps a server-owned copy Secret `<gs>-curseforge-key` for each game server that has sharing applied, and passes it to the game container as an env var (`apiKeyEnv`, for example `CF_API_KEY`) using `valueFrom.secretKeyRef`. The value stays out of the pod spec and `kubectl describe`, but is visible in the container's process environment, which widens the risk above to anything that can read `/proc/<pid>/environ` in the container. The operator reads only the managed Secret `gameplane-modreg-curseforge`, through a get-only Role scoped by `resourceNames` to that Secret. A rotated admin key reaches the copies within about a minute. Turning sharing on or off is applied to a server when it next has 0 players online (or is stopped or asleep), and turning sharing off then removes the copy. Because the image reads the key only at start, a rotated key applies at the next restart. The earlier file-mount design (`CF_API_KEY_FILE`) is not used because the `java8` images cannot read it.
 
 ## Notifications
 

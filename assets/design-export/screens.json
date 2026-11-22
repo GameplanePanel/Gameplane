@@ -1321,5 +1321,103 @@
     "name": "Users & RBAC — Return to SSO control dialogs",
     "width": 1040,
     "height": 721
+  },
+  {
+    "file": "1274632774-130",
+    "figId": "1274632774:130",
+    "name": "Screen/Server Detail — Modpacks (Active pack)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-470",
+    "figId": "1274632774:470",
+    "name": "Screen/Server Detail — Modpacks — Choose version",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-907",
+    "figId": "1274632774:907",
+    "name": "Screen/Server Detail — Modpacks — Confirm install",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-1258",
+    "figId": "1274632774:1258",
+    "name": "Screen/Server Detail — Modpacks — Change version",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-1722",
+    "figId": "1274632774:1722",
+    "name": "Screen/Server Detail — Modpacks — Confirm downgrade",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-2112",
+    "figId": "1274632774:2112",
+    "name": "Screen/Server Detail — Modpacks — Remove",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-2492",
+    "figId": "1274632774:2492",
+    "name": "Screen/Server Detail — Modpacks (Missing files)",
+    "width": 1440,
+    "height": 1080
+  },
+  {
+    "file": "1274632774-2877",
+    "figId": "1274632774:2877",
+    "name": "Screen/Server Detail — Modpacks (Active pack, Light)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-3217",
+    "figId": "1274632774:3217",
+    "name": "Screen/Server Detail — Modpacks (Read-only)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-3559",
+    "figId": "1274632774:3559",
+    "name": "States/Modpacks — Active card and tab states (reference)",
+    "width": 2280,
+    "height": 1158
+  },
+  {
+    "file": "1274632774-3890",
+    "figId": "1274632774:3890",
+    "name": "Screen/Mobile — Server Detail — Modpacks",
+    "width": 390,
+    "height": 1100
+  },
+  {
+    "file": "1274632774-4001",
+    "figId": "1274632774:4001",
+    "name": "Screen/Admin Settings — Mod registries (Share CurseForge key)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1274632774-4260",
+    "figId": "1274632774:4260",
+    "name": "Screen/Admin Settings — Mod registries (Key from startup flag)",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "1494270493-26",
+    "figId": "1494270493:26",
+    "name": "States/Backup schedule — Edit with restricted snapshot strategy",
+    "width": 1524,
+    "height": 582
   }
 ]

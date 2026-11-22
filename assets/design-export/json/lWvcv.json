@@ -4,7 +4,7 @@
   "name": "Screen/Theme Settings",
   "type": "FRAME",
   "x": 0,
-  "y": 75632,
+  "y": 75890,
   "width": 1440,
   "height": 2344,
   "fills": [{"type": "SOLID", "color": "#121114"}],

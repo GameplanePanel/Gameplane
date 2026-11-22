@@ -4,7 +4,7 @@
   "name": "Screen/Server Detail — Players (Nuclear Option)",
   "type": "FRAME",
   "x": 1640,
-  "y": 34270,
+  "y": 34528,
   "width": 1440,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

@@ -1,18 +1,36 @@
 import { useResourceClient, useResourceTarget, resourceKey, useResourceAccess } from "@/lib/resourceTarget";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, X } from "lucide-react";
 import { Button, Card, Alert } from "@heroui/react";
 
-import type { GameTemplate, RegistryProject } from "@/types";
+import type { GameTemplate, ModpackInstallBody, ModpackView, RegistryProject, RegistryVersion } from "@/types";
 
 import { APIError } from "@/lib/api";
 import { errorTextIntl } from "@/lib/errors";
-import { RegistryBrowser, RegistryIcon, compactNum } from "@/components/registry-browser";
+import { activeVersion } from "@/lib/capabilities";
+import { RegistryBrowser, RegistryIcon, compactNum, providerLabel } from "@/components/registry-browser";
+import { ModpackActiveCard } from "@/components/modpack-active-card";
+import { ModpackMissingFiles } from "@/components/modpack-missing-files";
+import { ModpackVersionPicker } from "@/components/modpack-version-picker";
+import { ModpackConfirmDialog } from "@/components/modpack-confirm-dialog";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
 
 type Banner = { kind: "ok" | "err"; text: string };
+
+// A modpack chosen in the registry browser, waiting for a version pick.
+// change is true when the picker switches the pack already on the server.
+type PickerState = { provider: string; project: string; title: string; pinnedVersionId?: string; change?: boolean };
+
+// A chosen version waiting for confirmation. mode is decided by the caller.
+type ConfirmState = {
+  mode: "install" | "change" | "downgrade";
+  provider: string;
+  project: string;
+  title: string;
+  version: RegistryVersion;
+};
 
 // Curated Modrinth modpack categories for the filter chips (shown only when
 // the active provider is Modrinth).
@@ -32,18 +50,32 @@ const MODPACK_CATEGORIES: { value: string; label: MessageDescriptor }[] = [
   { value: "multiplayer", label: MODPACK_CATEGORY_LABELS.multiplayer },
 ];
 
-// ModpacksTab browses whole modpacks and installs one. Install differs by
-// the active provider: env-mode (e.g. Modrinth/itzg) pins the pack via the
-// server's env and restarts (one active pack); deps-mode (e.g.
-// Thunderstore) resolves the pack's dependencies and installs each.
+// Phases (and pending removals) during which the view is polled.
+function modpackInFlight(v: ModpackView | undefined): boolean {
+  if (!v) return false;
+  return v.phase === "Pending" || v.phase === "BackingUp" || v.phase === "Applying" || v.active?.pendingRemoval === true;
+}
+
+function versionNameOf(v: RegistryVersion): string {
+  return v.name || v.versionNumber || v.id;
+}
+
+// ModpacksTab browses whole modpacks and installs one. Env-mode providers
+// (e.g. CurseForge/Modrinth via itzg) pin one version of a pack on the server
+// and restart it; the active pack is shown in a card above the browser.
+// Deps-mode providers (e.g. Thunderstore) resolve the pack's dependencies and
+// install each mod.
 export function ModpacksTab({
   name,
   tmpl,
   ns,
+  onOpenFiles,
 }: {
   name: string;
   tmpl?: GameTemplate;
   ns?: string;
+  // Switches to the Files tab; the missing-files notice hides its button without it.
+  onOpenFiles?: () => void;
 }) {
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
@@ -55,21 +87,56 @@ export function ModpacksTab({
 
   const providers = tmpl?.spec.capabilities?.mods?.registry?.providers ?? [];
   const declFor = (p: string) => providers.find((x) => x.provider === p);
+  const hasEnvMode = providers.some((p) => !!p.modpacks?.refEnv);
 
   const [banner, setBanner] = useState<Banner | null>(null);
-  const [busy, setBusy] = useState<string | null>(null); // project id being installed
+  const [busy, setBusy] = useState<string | null>(null); // project id being installed (deps mode)
+  const [picker, setPicker] = useState<PickerState | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const installEnv = useMutation({
-    mutationFn: (v: { p: RegistryProject; provider: string }) =>
-      Servers.installModpack(name, { ref: v.p.slug || v.p.id }, v.provider, ns),
-    onMutate: (v) => setBusy(v.p.id),
-    onSuccess: (_r, v) => {
+  const modpackKey = resourceKey(resourceTarget, "modpack", name, ns);
+  const serverKey = resourceKey(resourceTarget, "server", name, ns);
+
+  // Same key ServerDetail uses, so the Minecraft version and loader come from cache.
+  const { data: server } = useQuery({
+    queryKey: serverKey,
+    queryFn: ({ signal }) => resourceClient.withSignal(signal).Servers.get(name, ns),
+  });
+
+  const { data: view, error: viewError } = useQuery({
+    queryKey: modpackKey,
+    queryFn: ({ signal }) => resourceClient.withSignal(signal).Servers.modpack(name, ns),
+    enabled: hasEnvMode,
+    refetchInterval: (q) => (modpackInFlight(q.state.data) ? 3000 : false),
+  });
+
+  const gv = activeVersion(tmpl, server);
+  const loaderLabel = gv?.loader ? gv.loader.charAt(0).toUpperCase() + gv.loader.slice(1) : "";
+  const mcVersionLabel = gv?.gameVersion
+    ? intl.formatMessage({ id: "web.routes.tabs.modpacks.minecraft_version", defaultMessage: "Minecraft {version}", description: "Modpacks: label for the server's Minecraft version in the active modpack card; {version} is the version number" }, { version: gv.gameVersion })
+    : "";
+  const mcLabel = [mcVersionLabel, loaderLabel].filter(Boolean).join(" · ");
+
+  const installMut = useMutation({
+    mutationFn: (body: ModpackInstallBody) => Servers.installModpack(name, body, ns),
+    onSuccess: (nv, body) => {
+      qc.setQueryData(modpackKey, nv);
       void qc.invalidateQueries({ queryKey: ["fleet"] });
-      setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.modpacks.banner_set", defaultMessage: "Set modpack {title}. The server is restarting to install it.", description: "Modpacks: banner shown after a modpack is set on the server; {title} is the modpack title" }, { title: v.p.title }) });
-      return qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "server", name, ns) });
+      setConfirm(null);
+      setBanner({ kind: "ok", text: intl.formatMessage({ id: "web.routes.tabs.modpacks.banner_set", defaultMessage: "Set modpack {title}. The server is restarting to install it.", description: "Modpacks: banner shown after a modpack is set on the server; {title} is the modpack title" }, { title: body.title ?? body.project }) });
+      return qc.invalidateQueries({ queryKey: serverKey });
     },
-    onError: (err) => setBanner({ kind: "err", text: errMsg(err, intl) }),
-    onSettled: () => setBusy(null),
+  });
+
+  const removeMut = useMutation({
+    mutationFn: (backupFirst: boolean) => Servers.removeModpack(name, backupFirst, ns),
+    onSuccess: (nv) => {
+      qc.setQueryData(modpackKey, nv);
+      void qc.invalidateQueries({ queryKey: ["fleet"] });
+      setConfirmRemove(false);
+      return qc.invalidateQueries({ queryKey: serverKey });
+    },
   });
 
   const installDeps = useMutation({
@@ -90,19 +157,83 @@ export function ModpacksTab({
     onSettled: () => setBusy(null),
   });
 
+  const activePack = view?.active ?? null;
+
+  // The active pack's version is only a valid "older than" reference for the
+  // same project, and only when it could be read.
+  const pinnedFor = (provider: string, project: string): string | undefined =>
+    activePack && activePack.provider === provider && activePack.project === project && activePack.pinned
+      ? activePack.version
+      : undefined;
+
   const install = (p: RegistryProject, provider: string) => {
-    const v = { p, provider };
-    if (declFor(provider)?.modpacks?.refEnv) installEnv.mutate(v);
-    else installDeps.mutate(v);
+    if (declFor(provider)?.modpacks?.refEnv) {
+      const project = p.slug || p.id;
+      setPicker({ provider, project, title: p.title, pinnedVersionId: pinnedFor(provider, project) });
+      return;
+    }
+    installDeps.mutate({ p, provider });
   };
+
+  const onPicked = (pk: PickerState, v: RegistryVersion, isOlder: boolean) => {
+    const sameProject = activePack !== null && activePack.provider === pk.provider && activePack.project === pk.project;
+    const mode = sameProject ? (isOlder ? "downgrade" : "change") : "install";
+    setPicker(null);
+    installMut.reset();
+    setConfirm({ mode, provider: pk.provider, project: pk.project, title: pk.title, version: v });
+  };
+
+  const openChangeVersion = () => {
+    if (!activePack) return;
+    setPicker({
+      provider: activePack.provider,
+      project: activePack.project,
+      title: activePack.title,
+      pinnedVersionId: activePack.pinned ? activePack.version : undefined,
+      change: true,
+    });
+  };
+
+  const openRemove = () => {
+    removeMut.reset();
+    setConfirmRemove(true);
+  };
+
+  const confirmErrorText = (err: unknown): string | undefined =>
+    err ? errorTextIntl(intl, err, intl.formatMessage({ id: "web.routes.tabs.modpacks.error_request_failed", defaultMessage: "request failed", description: "Modpacks: fallback error text when the error has no message" })) : undefined;
+
+  const showSubtitleNew = hasEnvMode;
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
+      {view?.active && (
+        <ModpackActiveCard
+          view={view}
+          mcLabel={mcLabel}
+          canManage={canManage}
+          onChangeVersion={openChangeVersion}
+          onRemove={openRemove}
+        />
+      )}
+
+      {viewError && (
+        <Alert status="danger">
+          <Alert.Content>
+            <Alert.Description className="text-sm">{errMsg(viewError, intl)}</Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
+
+      {view && <ModpackMissingFiles view={view} onOpenFiles={onOpenFiles} />}
+
       <header className="space-y-0.5">
         <h2 className="text-sm text-muted">{intl.formatMessage({ id: "web.routes.tabs.modpacks.browse_modpacks", defaultMessage: "Browse modpacks", description: "Modpacks tab: heading of the section where modpacks are browsed from a registry" })}</h2>
-        <p className="text-[11px] text-muted">{intl.formatMessage({ id: "web.routes.tabs.modpacks.installing_a_modpack_either_pins_it_on", defaultMessage: "Installing a modpack either pins it on the server (and restarts) or adds all of its mods, depending on the registry.", description: "Modpacks tab: hint under the modpacks heading saying an install either pins the modpack and restarts the server, or adds all its mods, depending on the registry" })}</p>
+        <p className="text-[11px] text-muted">
+          {showSubtitleNew
+            ? intl.formatMessage({ id: "web.routes.tabs.modpacks.pick_a_pack_and_a_version", defaultMessage: "Pick a pack and a version. The server pins that version and restarts to install it; a restart never upgrades it.", description: "Modpacks tab: hint under the modpacks heading for registries that pin one version of a pack; the server restarts to install it and a restart never upgrades it" })
+            : intl.formatMessage({ id: "web.routes.tabs.modpacks.installing_a_modpack_either_pins_it_on", defaultMessage: "Installing a modpack either pins it on the server (and restarts) or adds all of its mods, depending on the registry.", description: "Modpacks tab: hint under the modpacks heading saying an install either pins the modpack and restarts the server, or adds all its mods, depending on the registry" })}
+        </p>
       </header>
-
 
       {banner && (
         <Alert status={banner.kind === "ok" ? "success" : "danger"} className="flex items-start justify-between gap-3">
@@ -122,40 +253,109 @@ export function ModpacksTab({
           type="modpack"
           categories={MODPACK_CATEGORIES.map((c) => ({ value: c.value, label: intl.formatMessage(c.label) }))}
           pillButtons={true}
-          renderItem={(p, provider) => (
-            <Card className="flex flex-row items-center gap-3 p-4">
-              <div className="shrink-0">
-                <RegistryIcon url={p.iconUrl} fallback={<Package className="h-9 w-9 rounded p-2 text-muted" />} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{p.title}</div>
-                <div className="truncate text-xs text-muted">
-                  {[p.author, p.downloads != null ? `${compactNum(p.downloads)} downloads` : null]
-                    .filter(Boolean)
-                    .join(" · ")}
+          renderItem={(p, provider) => {
+            const envMode = !!declFor(provider)?.modpacks?.refEnv;
+            return (
+              <Card className="flex flex-row items-center gap-3 p-4">
+                <div className="shrink-0">
+                  <RegistryIcon url={p.iconUrl} fallback={<Package className="h-9 w-9 rounded p-2 text-muted" />} />
                 </div>
-              </div>
-              {/* The disabled reason lives on a wrapping element's title
-                  (not the Button's aria-label) so the button's accessible
-                  name stays its visible text ("Install"/"Installing…") for
-                  role queries and assistive tech alike. */}
-              <span title={canManage ? undefined : intl.formatMessage({ id: "web.routes.tabs.modpacks.requires_operator_role", defaultMessage: "Requires operator role", description: "Modpacks: tooltip on a disabled install control for users without the operator role" })} tabIndex={0}>
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="rounded-full"
-                  isDisabled={!canManage || busy !== null}
-                  onPress={() => install(p, provider)}
-                >
-                  {busy === p.id
-                    ? intl.formatMessage({ id: "web.routes.tabs.modpacks.installing", defaultMessage: "Installing…", description: "Modpacks: label of the install button while this modpack is installing" })
-                    : intl.formatMessage({ id: "web.routes.tabs.modpacks.install", defaultMessage: "Install", description: "Modpacks: label of the button that installs a modpack" })}
-                </Button>
-              </span>
-            </Card>
-          )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{p.title}</div>
+                  <div className="truncate text-xs text-muted">
+                    {[p.author, p.downloads != null ? `${compactNum(p.downloads)} downloads` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </div>
+                </div>
+                {/* The disabled reason lives on a wrapping element's title
+                    (not the Button's aria-label) so the button's accessible
+                    name stays its visible text for role queries and assistive tech alike. */}
+                <span title={canManage ? undefined : intl.formatMessage({ id: "web.routes.tabs.modpacks.requires_operator_role", defaultMessage: "Requires operator role", description: "Modpacks: tooltip on a disabled install control for users without the operator role" })} tabIndex={0}>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="rounded-full"
+                    isDisabled={!canManage || (!envMode && busy !== null)}
+                    onPress={() => install(p, provider)}
+                  >
+                    {envMode
+                      ? intl.formatMessage({ id: "web.routes.tabs.modpacks.install_ellipsis", defaultMessage: "Install…", description: "Modpacks: label of the button that opens the version picker to install a modpack; the ellipsis means more steps follow" })
+                      : busy === p.id
+                        ? intl.formatMessage({ id: "web.routes.tabs.modpacks.installing", defaultMessage: "Installing…", description: "Modpacks: label of the install button while this modpack is installing" })
+                        : intl.formatMessage({ id: "web.routes.tabs.modpacks.install", defaultMessage: "Install", description: "Modpacks: label of the button that installs a modpack" })}
+                  </Button>
+                </span>
+              </Card>
+            );
+          }}
         />
       </div>
+
+      {picker && (
+        <ModpackVersionPicker
+          open
+          onOpenChange={(o) => {
+            if (!o) setPicker(null);
+          }}
+          name={name}
+          ns={ns}
+          provider={picker.provider}
+          project={picker.project}
+          title={picker.title}
+          mcLabel={mcLabel}
+          pinnedVersionId={picker.pinnedVersionId}
+          confirmLabel={picker.change ? intl.formatMessage({ id: "web.routes.tabs.modpacks.continue", defaultMessage: "Continue", description: "Modpacks: button that continues from the version picker to the confirmation step" }) : undefined}
+          onContinue={(v, isOlder) => onPicked(picker, v, isOlder)}
+        />
+      )}
+
+      {confirm && (
+        <ModpackConfirmDialog
+          open
+          onOpenChange={(o) => {
+            if (!o && !installMut.isPending) setConfirm(null);
+          }}
+          mode={confirm.mode}
+          packTitle={confirm.title}
+          providerLabel={providerLabel(confirm.provider)}
+          versionName={versionNameOf(confirm.version)}
+          fromVersionName={confirm.mode === "install" ? undefined : activePack?.versionName}
+          serverName={name}
+          backupAvailable={view?.backupAvailable === true}
+          backupDestination={view?.backupDestination}
+          pending={installMut.isPending}
+          error={installMut.error ? errMsg(installMut.error, intl) : undefined}
+          onConfirm={({ backupFirst }) =>
+            installMut.mutate({
+              provider: confirm.provider,
+              project: confirm.project,
+              version: confirm.version.id,
+              title: confirm.title,
+              versionName: versionNameOf(confirm.version),
+              backupFirst,
+            })
+          }
+        />
+      )}
+
+      {confirmRemove && activePack && (
+        <ModpackConfirmDialog
+          open
+          onOpenChange={(o) => {
+            if (!o && !removeMut.isPending) setConfirmRemove(false);
+          }}
+          mode="remove"
+          packTitle={activePack.title}
+          providerLabel={providerLabel(activePack.provider)}
+          serverName={name}
+          backupAvailable={view?.backupAvailable === true}
+          backupDestination={view?.backupDestination}
+          pending={removeMut.isPending}
+          error={confirmErrorText(removeMut.error)}
+          onConfirm={({ backupFirst }) => removeMut.mutate(backupFirst)}
+        />
+      )}
     </div>
   );
 }

@@ -332,7 +332,7 @@ func TestRegistry_UnknownServer_404(t *testing.T) {
 	}
 }
 
-func TestInstallModpack_SetsEnv(t *testing.T) {
+func TestInstallModpack_WritesSpecModpack(t *testing.T) {
 	versions := []any{map[string]any{"id": "1.21.4-fabric", "loader": "fabric", "gameVersion": "1.21.4", "default": true}}
 	reg := map[string]any{
 		"provider": "modrinth",
@@ -347,8 +347,9 @@ func TestInstallModpack_SetsEnv(t *testing.T) {
 	)
 	r := mountRegistryRouter(k, fakeSet{p: &fakeProvider{}})
 
-	rr := do(t, r, "POST", "/servers/alpha/modpack", map[string]any{"ref": "cobblemon"})
-	if rr.Code != 200 {
+	rr := do(t, r, "POST", "/servers/alpha/modpack",
+		map[string]any{"provider": "modrinth", "project": "cobblemon", "version": "v1", "title": "Cobblemon", "versionName": "1.0"})
+	if rr.Code != http.StatusAccepted {
 		t.Fatalf("got %d %s", rr.Code, rr.Body)
 	}
 	gs, err := k.Dynamic.Resource(kube.GVRs["servers"]).Namespace("gameplane-games").
@@ -356,14 +357,12 @@ func TestInstallModpack_SetsEnv(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	env, _, _ := unstructured.NestedSlice(gs.Object, "spec", "env")
-	got := map[string]string{}
-	for _, e := range env {
-		m := e.(map[string]any)
-		got[m["name"].(string)], _ = m["value"].(string)
+	mp, _, _ := unstructured.NestedMap(gs.Object, "spec", "modpack")
+	if mp["provider"] != "modrinth" || mp["project"] != "cobblemon" || mp["version"] != "v1" {
+		t.Errorf("spec.modpack = %v", mp)
 	}
-	if got["MODRINTH_MODPACK"] != "cobblemon" || got["TYPE"] != "MODRINTH" {
-		t.Errorf("env = %v, want MODRINTH_MODPACK=cobblemon TYPE=MODRINTH", got)
+	if env, _, _ := unstructured.NestedSlice(gs.Object, "spec", "env"); len(env) != 0 {
+		t.Errorf("spec.env must stay untouched, got %v", env)
 	}
 }
 

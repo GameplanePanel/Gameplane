@@ -599,6 +599,29 @@ paths:
         '200':
           description: OK
   '/servers/{name}/shares/{id}':
+    patch:
+      summary: Change an active share link's wake permission
+      description: Only the server owner can edit a link. Changes apply to everyone with its existing URL.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [canStart]
+              properties:
+                canStart:
+                  type: boolean
+      responses:
+        '204':
+          description: Wake permission updated
+        '400':
+          description: Expected a boolean canStart field
+        '403':
+          description: Caller does not own this server
+        '404':
+          description: No active link for this server matches the ID
     delete:
       responses:
         '200':
@@ -669,6 +692,8 @@ paths:
           description: OK
   '/servers/{name}:shares':
     get:
+      summary: List share links for the current GameServer
+      description: Returns the owner's view of active, expired, and revoked links for this server incarnation. The ID identifies a link in the dashboard. The secret token is returned only at creation.
       responses:
         '200':
           description: OK

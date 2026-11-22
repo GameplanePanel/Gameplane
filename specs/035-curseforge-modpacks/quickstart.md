@@ -23,7 +23,7 @@ prove and how to repeat a scenario by hand on a dev cluster (`make dev-up`).
 | 6 | Downgrade | Pick an older version | Confirmation shows the downgrade warning; server boots on the older file | Q4 |
 | 7 | Blocked files | Install a pack known to contain a no-third-party-download mod | Card lists the files with download links; upload to `downloads/`, restart → Applied | US4, FR-008 |
 | 8 | FTB | Modpacks → FTB → small pack → Install | `TYPE=FTBA`, `FTB_MODPACK_ID`, `FTB_MODPACK_VERSION_ID`; server Running | US5, FR-012 |
-| 9 | Key sharing | Admin → share key on; Minecraft 1.16.5 Forge server → CurseForge pack | `<gs>-curseforge-key` Secret owned by the server; mount at `/run/gameplane/curseforge/api-key`; `kubectl get pod -o yaml` shows no key value; sharing off → copy deleted | FR-005, SC-003 |
+| 9 | Key sharing | Admin → share key on; Minecraft 1.16.5 Forge server → CurseForge pack | `<gs>-curseforge-key` Secret owned by the server; game container env `CF_API_KEY` from `valueFrom.secretKeyRef` on that Secret; `kubectl get pod -o yaml` shows the secretKeyRef name only, no key value; sharing off → copy deleted and env removed | FR-005, SC-003 |
 | 10 | Legacy adoption | Server created with `MODRINTH_MODPACK` in `spec.env` by the old API → upgrade panel | `spec.modpack.version` = installed `versionId`, pod not restarted, pin env appears after the next restart | Q2 |
 | 11 | Picker filter | Open versions on a 1.20.1 Forge server | only 1.20.1 + Forge versions listed | Q5 |
 

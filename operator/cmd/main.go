@@ -549,6 +549,7 @@ func main() {
 		AgentCASecretNamespace: agentCASecretNamespace,
 		WakeStartLimit:         wakeStartLimit,
 		WakeStartNamespace:     controlPlaneNamespaceDefault,
+		ControlPlaneNamespace:  controlPlaneNamespace,
 		AgentClient:            agentClient,
 		OperationQuiescer:      agentClient,
 		PodAttacher: &controller.StopAttachClient{

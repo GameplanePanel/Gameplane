@@ -11,7 +11,7 @@ No database tables change. All state lives on Kubernetes objects.
 | Field | Type | Rules | Meaning |
 |---|---|---|---|
 | `versionEnv` | string | max 64, env-name pattern | Env the operator sets to the pinned version id (`MODRINTH_VERSION`, `CF_FILE_ID`, `FTB_MODPACK_VERSION_ID`). Required for env-mode packs that support pinning; when empty the registry is not offered for pinned install. |
-| `apiKeyFileEnv` | string | max 64, env-name pattern, only valid when `provider: curseforge` | Env that receives the mounted key path when key sharing is on (`CF_API_KEY_FILE`). |
+| `apiKeyEnv` | string | max 64, env-name pattern, only valid when `provider: curseforge` | Env the operator sets on the game container, via `valueFrom.secretKeyRef` to the server-owned key Secret, when key sharing is on (`CF_API_KEY` for minecraft-java). |
 | `needsKeyImageTags` | []string | max 8 items, each max 64 | Image tags (the part after `:` and before `@`) that have no built-in key. Servers on these images get the provider only while key sharing is on. |
 | `missingFilesPath` | string | max 128, relative path, no `..` | File (relative to the data mount) where the image lists files needing a manual download (`MODS_NEED_DOWNLOAD.txt`). |
 | `adoptVersionFile` | object {`path`, `field`} | path relative, no `..`; field max 64 | Where the image records the installed version, used to adopt legacy unpinned packs (`.modrinth-modpack-manifest.json` / `versionId`). |
@@ -28,6 +28,7 @@ No database tables change. All state lives on Kubernetes objects.
 | `title` | string | 0–128, display only |
 | `versionName` | string | 0–128, display only |
 | `backupFirst` | bool | honoured only when a backup destination exists |
+| `requestId` | string | set by the API on every install request, so a retry of the same choice (for example after BackupFailed) is a new change |
 
 Absent `spec.modpack` = no pack. Remove deletes `spec.modpack` and sets the annotation
 `gameplane.local/modpack-remove` (below), which tells the operator whether to back up first.
@@ -47,7 +48,7 @@ Annotations:
 | `applied` | object (same shape as `spec.modpack` without `backupFirst`) or null | what the pod renders now |
 | `backupName` | string | Backup CR created for this change |
 | `message` | string, max 512 | human-readable reason for `BackupFailed` |
-| `keyShared` | bool | the pod currently mounts a shared CurseForge key |
+| `keyShared` | bool | the game container currently gets a shared CurseForge key from the server-owned Secret via the `apiKeyEnv` env |
 
 Missing-download files are NOT stored in status (the API reads them live, research R7).
 
@@ -68,8 +69,10 @@ BackupFailed + new spec change → starts again from the top
 - `gameplane-modreg-curseforge` (existing, control namespace): gains annotation
   `gameplane.local/share-with-game-servers: "true"` when the admin opts in.
 - `<gs>-curseforge-key` (new, server namespace, owned by the GameServer, label
-  `gameplane.local/curseforge-key-copy: "true"`): key `apiKey`. Exists only while sharing is
-  on and the applied pack is CurseForge.
+  `gameplane.local/curseforge-key-copy: "true"`): key `apiKey`, copied from the managed Secret
+  `gameplane-modreg-curseforge`. The game container reads it through an env
+  `valueFrom.secretKeyRef` (no volume or mount). Exists only while sharing is on and the
+  applied pack is CurseForge. The value never enters the config hash.
 
 ## Module (`GameplanePanel/module`, `minecraft-java/template.yaml`)
 
@@ -86,7 +89,7 @@ providers:
     modpacks:
       refEnv: CF_SLUG
       versionEnv: CF_FILE_ID
-      apiKeyFileEnv: CF_API_KEY_FILE
+      apiKeyEnv: CF_API_KEY
       needsKeyImageTags: [java8-multiarch, java8]
       missingFilesPath: MODS_NEED_DOWNLOAD.txt
       env:
