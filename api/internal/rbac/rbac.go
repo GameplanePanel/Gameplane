@@ -150,6 +150,12 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 						}
 					}
 				}
+				// FR-021 (spec 037): a token caller with no grant at all on the
+				// cluster gets the same answer as for an unknown cluster ID.
+				if _, isToken := auth.MCPTokenFromContext(req.Context()); isToken && !u.CanDiscoverCluster(cl) {
+					httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+					return
+				}
 				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 				return
 			}

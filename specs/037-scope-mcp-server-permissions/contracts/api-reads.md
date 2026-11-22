@@ -1,6 +1,6 @@
 # Contract: new API read routes (spec 037)
 
-All are GET, JSON unless noted, take the usual `?cluster=` selector (absent = local cluster; unknown or not permitted = the same `403 server.forbidden` as today's `scope.ErrForbiddenCluster`), and strip `metadata.managedFields`.
+All are GET, JSON unless noted, take the usual `?cluster=` selector (absent = local cluster; unknown, or a cluster the token's user has no grant on at all = the same `server.cluster_forbidden` refusal, so a caller cannot probe which cluster IDs exist (FR-021)), and strip `metadata.managedFields`.
 
 ## `GET /pods?namespace&labelSelector`
 
