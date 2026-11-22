@@ -37,6 +37,36 @@ type Entry struct {
 // message the API has always returned.
 var entries = []Entry{
 	{
+		ID:          "server.mcp_tokens.invalid_name",
+		English:     "name must be 1 to 64 characters",
+		Description: "API error when a personal MCP token name is empty or longer than 64 characters (mcp_tokens.go:writeMCPTokenErr).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.mcp_tokens.invalid_lifetime",
+		English:     "lifetime must be 7, 30, 90 or 365 days",
+		Description: "API error when a personal MCP token is created with an expiry other than 7, 30, 90 or 365 days (mcp_tokens.go:writeMCPTokenErr).",
+		Status:      http.StatusBadRequest,
+	},
+	{
+		ID:          "server.mcp_tokens.duplicate_name",
+		English:     "a token with this name already exists",
+		Description: "API error when the user already has an active personal MCP token with the same name (mcp_tokens.go:writeMCPTokenErr).",
+		Status:      http.StatusConflict,
+	},
+	{
+		ID:          "server.mcp_tokens.limit_reached",
+		English:     "you already have 10 active tokens; revoke one before creating another",
+		Description: "API error when a user already holds the maximum of 10 active personal MCP tokens (mcp_tokens.go:writeMCPTokenErr).",
+		Status:      http.StatusUnprocessableEntity,
+	},
+	{
+		ID:          "server.mcp_tokens.not_found",
+		English:     "token not found",
+		Description: "API error when a personal MCP token to revoke does not exist, is already revoked, or belongs to another user (mcp_tokens.go:writeMCPTokenErr).",
+		Status:      http.StatusNotFound,
+	},
+	{
 		ID:          httperr.IDNamespaceForbidden,
 		English:     "namespace not permitted",
 		Description: "API error when the user's role does not cover the requested namespace.",

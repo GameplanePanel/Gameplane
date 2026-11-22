@@ -1023,6 +1023,26 @@
     "defaultMessage": "newName required",
     "description": "API error from the server lifecycle API (lifecycle.go:cloneHandler)."
   },
+  "server.mcp_tokens.duplicate_name": {
+    "defaultMessage": "a token with this name already exists",
+    "description": "API error when the user already has an active personal MCP token with the same name (mcp_tokens.go:writeMCPTokenErr)."
+  },
+  "server.mcp_tokens.invalid_lifetime": {
+    "defaultMessage": "lifetime must be 7, 30, 90 or 365 days",
+    "description": "API error when a personal MCP token is created with an expiry other than 7, 30, 90 or 365 days (mcp_tokens.go:writeMCPTokenErr)."
+  },
+  "server.mcp_tokens.invalid_name": {
+    "defaultMessage": "name must be 1 to 64 characters",
+    "description": "API error when a personal MCP token name is empty or longer than 64 characters (mcp_tokens.go:writeMCPTokenErr)."
+  },
+  "server.mcp_tokens.limit_reached": {
+    "defaultMessage": "you already have 10 active tokens; revoke one before creating another",
+    "description": "API error when a user already holds the maximum of 10 active personal MCP tokens (mcp_tokens.go:writeMCPTokenErr)."
+  },
+  "server.mcp_tokens.not_found": {
+    "defaultMessage": "token not found",
+    "description": "API error when a personal MCP token to revoke does not exist, is already revoked, or belongs to another user (mcp_tokens.go:writeMCPTokenErr)."
+  },
   "server.namespace_forbidden": {
     "defaultMessage": "namespace not permitted",
     "description": "API error when the user's role does not cover the requested namespace."

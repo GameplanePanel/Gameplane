@@ -92,6 +92,17 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, req)
 				return
 			}
+			// The control-plane namespace is not a game namespace, so
+			// scope.Resolve would refuse it. Pods and events there need the
+			// admin wildcard on the local cluster instead.
+			if isControlPlaneRead(req) {
+				if scope.RequestedCluster(req) != scope.DefaultCluster || !u.Can("*", true, scope.DefaultCluster, scope.ControlPlaneNamespace) {
+					httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
+					return
+				}
+				next.ServeHTTP(w, req)
+				return
+			}
 			ns := ""
 			cl := scope.DefaultCluster
 			if clusterInventoryRead(req.Method, req.URL.Path) || strings.HasPrefix(req.URL.Path, "/modules") || strings.HasPrefix(req.URL.Path, "/templates") {
@@ -138,6 +149,12 @@ func Middleware(fetch ServerFetcher) func(http.Handler) http.Handler {
 							return
 						}
 					}
+				}
+				// FR-021 (spec 037): a token caller with no grant at all on the
+				// cluster gets the same answer as for an unknown cluster ID.
+				if _, isToken := auth.MCPTokenFromContext(req.Context()); isToken && !u.CanDiscoverCluster(cl) {
+					httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+					return
 				}
 				httperr.WriteMessage(w, req, messages.New("server.forbidden", nil))
 				return
@@ -195,6 +212,12 @@ var rules = []rule{
 	{method: "PUT", segment: "users", suffix: "/users/me/preferences", perm: ""},
 	{method: "POST", segment: "users", suffix: "/users/me/preferences/reset", perm: ""},
 	{method: "PUT", segment: "users", suffix: "/users/me/language", perm: ""},
+	// Personal MCP tokens (spec 037): a user manages only their own
+	// tokens. Admin reads and revokes of another user's tokens fall to
+	// the users:read and users:manage rules below.
+	{method: "GET", segment: "users", suffix: "/users/me/mcp-tokens", perm: ""},
+	{method: "POST", segment: "users", suffix: "/users/me/mcp-tokens", perm: ""},
+	{method: "DELETE", segment: "users", prefix: "/users/me/mcp-tokens/", perm: ""},
 	{method: "GET", segment: "users", perm: "users:read"},
 	{segment: "users", perm: "users:manage"},
 
@@ -277,6 +300,13 @@ var rules = []rule{
 	{method: "GET", segment: "cluster", perm: "cluster:read"},
 	{segment: "cluster", perm: "cluster:manage"},
 
+	// Read-only pod and Kubernetes event routes (spec 037). The
+	// control-plane namespace has its own check in Middleware. Server pods
+	// (/servers/{name}/pods, /servers/{name}/logs/pod/tail) are covered by
+	// the servers read rule above.
+	{method: "GET", segment: "pods", perm: "servers:read"},
+	{method: "GET", segment: "kube-events", perm: "servers:read"},
+
 	// Cluster registration (multi-cluster): list/create/delete remote clusters
 	// (plural /clusters endpoint).
 	// Discovery filters each registration by the caller's grants. Namespace
@@ -308,6 +338,18 @@ func firstSegment(path string) string {
 		return trimmed[:i]
 	}
 	return trimmed
+}
+
+// isControlPlaneRead reports whether a pod or Kubernetes event read targets
+// the operator's own namespace (scope.ControlPlaneNamespace).
+func isControlPlaneRead(req *http.Request) bool {
+	if scope.ControlPlaneNamespace == "" {
+		return false
+	}
+	if seg := firstSegment(req.URL.Path); seg != "pods" && seg != "kube-events" {
+		return false
+	}
+	return strings.TrimSpace(req.URL.Query().Get("namespace")) == scope.ControlPlaneNamespace
 }
 
 // match returns the first rule that applies to (method, path).

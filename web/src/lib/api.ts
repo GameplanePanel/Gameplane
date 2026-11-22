@@ -489,3 +489,49 @@ export function createRequestClient(input: ResourceScope, signal?: AbortSignal) 
   };
   return { scope, api: request, url, raw, Captures: makeCaptures(request, url, raw), Shares: makeShares(request) };
 }
+
+// ---------------------------------------------------------------------
+// Personal MCP tokens (spec 037). Shapes mirror the JSON written by
+// api/internal/auth/mcptokens.go (MCPToken) and the POST response of
+// api/internal/handlers/mcp_tokens.go. The raw token is returned only by
+// createMcpToken, once; it is never listed again.
+// ---------------------------------------------------------------------
+
+export interface McpToken {
+  id: number;
+  name: string;
+  prefix: string;
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+}
+
+export type CreatedMcpToken = McpToken & { token: string };
+
+export type McpTokenLifetimeDays = 7 | 30 | 90 | 365;
+
+// GET /users/me/mcp-tokens — the caller's tokens, newest first.
+export const listMcpTokens = () => api<{ items: McpToken[] }>("/users/me/mcp-tokens");
+
+// POST /users/me/mcp-tokens — the only response that carries the secret.
+export const createMcpToken = (name: string, expiresInDays: McpTokenLifetimeDays) =>
+  api<CreatedMcpToken>("/users/me/mcp-tokens", {
+    method: "POST",
+    body: { name, expiresInDays },
+  });
+
+// DELETE /users/me/mcp-tokens/{id} — 204.
+export const revokeMcpToken = (id: number) =>
+  api<void>(`/users/me/mcp-tokens/${encodeURIComponent(String(id))}`, { method: "DELETE" });
+
+// GET /users/{id}/mcp-tokens (users:read) — another user's tokens.
+export const listUserMcpTokens = (userId: number) =>
+  api<{ items: McpToken[] }>(`/users/${encodeURIComponent(String(userId))}/mcp-tokens`);
+
+// DELETE /users/{id}/mcp-tokens/{tokenId} (users:manage) — 204.
+export const revokeUserMcpToken = (userId: number, tokenId: number) =>
+  api<void>(
+    `/users/${encodeURIComponent(String(userId))}/mcp-tokens/${encodeURIComponent(String(tokenId))}`,
+    { method: "DELETE" },
+  );

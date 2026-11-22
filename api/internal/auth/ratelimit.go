@@ -136,6 +136,14 @@ var OIDCCallbackLimiter = namedBucket("oidc", 10.0/60.0, 10)
 // while setting things up, not enough to use the API as a POST cannon.
 var NotifyTestLimiter = namedBucket("notify_test", 12.0/60.0, 3)
 
+// MCPTokenFailLimiter caps failed MCP bearer-token lookups per client IP.
+// It is checked only after a failed lookup, so valid tokens are never throttled by it.
+var MCPTokenFailLimiter = namedBucket("mcp_token_fail_ip", 5.0/60.0, 10)
+
+// MCPTokenReadLimiter caps requests per MCP token, keyed by token ID. It is
+// checked on every token-authenticated request.
+var MCPTokenReadLimiter = namedBucket("mcp_token_read", 5.0, 50)
+
 // MutationLimiter caps authenticated writes per IP. The login bucket is
 // narrow (argon2 is expensive); this one is broad — 60/min with 60
 // burst — and only exists to keep a single client from pegging the

@@ -22,6 +22,18 @@ import (
 // DefaultNamespace is the primary namespace the API will operate in.
 const DefaultNamespace = "gameplane-games"
 
+// ControlPlaneNamespace is the namespace the operator runs in. Pods and
+// Kubernetes events there are readable only by cluster administrators on the
+// local cluster (see rbac.Middleware and handlers.MountPods). It is set once
+// at startup by SetControlPlaneNamespace and is empty in tests that do not set it.
+var ControlPlaneNamespace string
+
+// SetControlPlaneNamespace records the operator's namespace. Call it once at
+// startup, before the router serves requests.
+func SetControlPlaneNamespace(ns string) {
+	ControlPlaneNamespace = strings.TrimSpace(ns)
+}
+
 // AllowedNamespaces returns the list of namespaces the API will act in.
 // Computed once from env; small enough that a linear scan is fine.
 var AllowedNamespaces = func() []string {

@@ -8,6 +8,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/auth"
 	"github.com/GameplanePanel/gameplane/api/internal/httperr"
 	"github.com/GameplanePanel/gameplane/api/internal/kube"
+	"github.com/GameplanePanel/gameplane/api/internal/messages"
 	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 	"github.com/GameplanePanel/gameplane/api/internal/scope"
 )
@@ -39,6 +40,12 @@ func listNamespacesHandler(reg *kube.Registry) http.HandlerFunc {
 			return
 		}
 		u := auth.UserFromContext(req.Context())
+		// FR-021 (spec 037): a token caller with no grant on the cluster gets
+		// the same answer as for an unknown cluster ID.
+		if _, isToken := auth.MCPTokenFromContext(req.Context()); isToken && !u.CanDiscoverCluster(cl) {
+			httperr.WriteMessage(w, req, messages.New("server.cluster_forbidden", nil))
+			return
+		}
 		perm, ok := rbac.ReadPermission("servers")
 		if !ok {
 			// No rule covers GET /servers: nothing is readable anywhere.

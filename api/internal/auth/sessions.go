@@ -59,6 +59,9 @@ type User struct {
 // SessionStore manages session lifecycle for authenticated users.
 type SessionStore struct {
 	db *db.Store
+
+	// mcpAuditFn records MCP token events; nil until AttachMCPAudit runs.
+	mcpAuditFn func(ctx context.Context, method, path, target, reason string, status int) error
 }
 
 // NewSessionStore returns a new SessionStore.
@@ -149,7 +152,8 @@ func (s *SessionStore) DeleteForUserWith(ctx context.Context, ex db.Execer, user
 }
 
 func (s *SessionStore) gcOnce(ctx context.Context) {
-	cutoff := time.Now().UTC().Format(time.RFC3339)
+	now := time.Now().UTC()
+	cutoff := now.Format(time.RFC3339)
 	res, err := s.db.DB.ExecContext(ctx,
 		`DELETE FROM sessions WHERE expires_at < ?`, cutoff)
 	if err != nil {
@@ -160,6 +164,13 @@ func (s *SessionStore) gcOnce(ctx context.Context) {
 	if n > 0 {
 		slog.Info("session gc", "deleted", n)
 	}
+	// MCP tokens: drop expired rows, and revoked rows once they have been
+	// kept for the 30-day list window.
+	mcpCutoff := now.Add(-mcpRevokedKeep).Format(time.RFC3339)
+	if _, err := s.db.DB.ExecContext(ctx,
+		`DELETE FROM mcp_tokens WHERE expires_at < ? OR revoked_at < ?`, mcpCutoff, mcpCutoff); err != nil {
+		slog.Warn("mcp token gc", "err", err)
+	}
 }
 
 // Authenticate is the middleware wrapping all protected routes.
@@ -167,6 +178,12 @@ func (s *SessionStore) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		cookie, err := req.Cookie(sessionCookie)
 		if err != nil {
+			// No session cookie: a bearer MCP token may authenticate instead.
+			// A request with a cookie never looks at the Authorization header.
+			if raw, ok := bearerMCPToken(req); ok {
+				s.serveMCPToken(w, req, raw, next)
+				return
+			}
 			httperr.WriteMessage(w, req, messages.New("server.common.unauthenticated", nil))
 			return
 		}
