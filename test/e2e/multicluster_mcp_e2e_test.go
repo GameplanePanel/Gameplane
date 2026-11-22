@@ -95,6 +95,13 @@ func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
 		t.Errorf("GET /pods unknown cluster with token: status=%d body=%s; want identical to ungranted status=%d body=%s",
 			unknownStatus, unknownBody, localStatus, localBody)
 	}
+	// The same holds for /namespaces, which has no permission of its own.
+	nsLocalStatus, nsLocalBody := mcpTokenReadsCall(t, user.BaseURL, token, http.MethodGet, "/namespaces?cluster=local")
+	nsUnknownStatus, nsUnknownBody := mcpTokenReadsCall(t, user.BaseURL, token, http.MethodGet, "/namespaces?cluster="+unknownCluster)
+	if nsLocalStatus == http.StatusOK || nsLocalStatus != nsUnknownStatus || !bytes.Equal(nsLocalBody, nsUnknownBody) {
+		t.Errorf("GET /namespaces with token: ungranted status=%d body=%s, unknown status=%d body=%s; want the same refusal",
+			nsLocalStatus, nsLocalBody, nsUnknownStatus, nsUnknownBody)
+	}
 
 	// --- Namespace-only grant: other namespaces on the remote cluster are refused ---
 	status, b = mcpTokenReadsCall(t, user.BaseURL, token, http.MethodGet,

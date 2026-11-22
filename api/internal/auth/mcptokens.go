@@ -35,7 +35,6 @@ const (
 	mcpRevokedKeep      = 30 * 24 * time.Hour
 	mcpSessionTTL       = 24 * time.Hour
 	mcpSessionHeader    = "X-Gameplane-MCP-Session"
-	maxMCPSessionIDLen  = 64
 	lastUsedInterval    = time.Minute
 )
 
@@ -78,6 +77,16 @@ func MCPTokenFromContext(ctx context.Context) (int64, bool) {
 
 // mcpLastTouch records the last last_used_at write per token ID.
 var mcpLastTouch sync.Map
+
+// mcpSessionIDRe bounds the session IDs the guard records. The MCP server
+// sends 16 random bytes as unpadded base64url (22 characters); other values
+// are not audited as sessions.
+var mcpSessionIDRe = regexp.MustCompile(`^[A-Za-z0-9_-]{8,64}$`)
+
+// maxMCPSessionsPerToken caps the session IDs recorded per token within
+// mcpSessionTTL, so a client that sends a fresh ID on every request cannot
+// flood the audit log or grow the sighting map without bound.
+const maxMCPSessionsPerToken = 20
 
 // mcpSessions records first sightings of X-Gameplane-MCP-Session values, keyed tokenID+"/"+session.
 var mcpSessions = struct {
@@ -183,7 +192,8 @@ func (s *SessionStore) CreateMCPToken(ctx context.Context, userID int64, name st
 
 	var one int
 	err = tx.QueryRowContext(ctx,
-		`SELECT 1 FROM mcp_tokens WHERE user_id = ? AND name = ?`, userID, name,
+		`SELECT 1 FROM mcp_tokens WHERE user_id = ? AND name = ? AND revoked_at IS NULL AND expires_at > ?`,
+		userID, name, now.Format(time.RFC3339),
 	).Scan(&one)
 	switch {
 	case err == nil:
@@ -198,14 +208,6 @@ func (s *SessionStore) CreateMCPToken(ctx context.Context, userID int64, name st
 		tok.ID, userID, name, sessionDigest(token), tok.Prefix, userID,
 		now.Format(time.RFC3339), expires.Format(time.RFC3339),
 	); err != nil {
-		// A concurrent create with the same name passes the pre-check and
-		// then hits UNIQUE (user_id, name); report it as a duplicate.
-		var dup int
-		if qerr := s.db.DB.QueryRowContext(ctx,
-			`SELECT 1 FROM mcp_tokens WHERE user_id = ? AND name = ?`, userID, name,
-		).Scan(&dup); qerr == nil {
-			return MCPToken{}, "", ErrMCPTokenDuplicate
-		}
 		return MCPToken{}, "", fmt.Errorf("insert mcp token: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
@@ -463,19 +465,40 @@ func (r *statusRecorder) Write(b []byte) (int, error) {
 // Unwrap lets http.ResponseController reach the underlying writer.
 func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
 
+// Flush forwards to the wrapped writer so streaming handlers (system logs)
+// that assert http.Flusher keep working behind the guard.
+func (r *statusRecorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		if r.status == 0 {
+			r.status = http.StatusOK
+		}
+		f.Flush()
+	}
+}
+
 // firstMCPSession reports whether this token and session ID have not been
-// seen in the last 24 hours, and records the sighting. Expired entries are pruned on insert.
+// seen in the last 24 hours, and records the sighting. Expired entries are
+// pruned on insert; a token past maxMCPSessionsPerToken records no more.
 func firstMCPSession(tokenID int64, session string, now time.Time) bool {
-	key := fmt.Sprintf("%d/%s", tokenID, session)
+	tokenPrefix := fmt.Sprintf("%d/", tokenID)
+	key := tokenPrefix + session
 	mcpSessions.mu.Lock()
 	defer mcpSessions.mu.Unlock()
 	if seen, ok := mcpSessions.seen[key]; ok && now.Sub(seen) < mcpSessionTTL {
 		return false
 	}
+	perToken := 0
 	for k, t := range mcpSessions.seen {
 		if now.Sub(t) >= mcpSessionTTL {
 			delete(mcpSessions.seen, k)
+			continue
 		}
+		if strings.HasPrefix(k, tokenPrefix) {
+			perToken++
+		}
+	}
+	if perToken >= maxMCPSessionsPerToken {
+		return false
 	}
 	mcpSessions.seen[key] = now
 	return true
@@ -507,7 +530,7 @@ func (s *SessionStore) MCPTokenGuard(next http.Handler) http.Handler {
 		if status == http.StatusUnauthorized || status == http.StatusForbidden {
 			s.mcpAudit(ctx, req, "mcp-refused", status)
 		}
-		if sess := req.Header.Get(mcpSessionHeader); sess != "" && len(sess) <= maxMCPSessionIDLen {
+		if sess := req.Header.Get(mcpSessionHeader); mcpSessionIDRe.MatchString(sess) {
 			if firstMCPSession(id, sess, time.Now()) {
 				s.mcpAudit(ctx, req, "mcp-session", status)
 			}

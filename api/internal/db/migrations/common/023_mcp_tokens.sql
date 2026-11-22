@@ -9,6 +9,8 @@
 -- statement works on SQLite and PostgreSQL. Timestamps are bound from Go.
 -- No foreign key: SQLite does not enforce them, so DeleteUserTx deletes a
 -- user's tokens in Go (migrations README rule 3).
+-- Names are unique among a user's active tokens only (checked in Go), so a
+-- revoked or expired token's name can be reused at once.
 -- Portable SQL: runs unchanged on SQLite and PostgreSQL.
 CREATE TABLE mcp_tokens (
     id BIGINT PRIMARY KEY,
@@ -20,7 +22,6 @@ CREATE TABLE mcp_tokens (
     created_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,
     last_used_at TEXT,
-    revoked_at TEXT,
-    UNIQUE (user_id, name)
+    revoked_at TEXT
 );
 CREATE INDEX mcp_tokens_user_id ON mcp_tokens(user_id);
