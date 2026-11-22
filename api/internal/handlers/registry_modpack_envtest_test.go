@@ -155,12 +155,6 @@ func auditReasons(t *testing.T, a *audit.Auditor, method, path string) []string 
 	return out
 }
 
-func nestedStr(t *testing.T, obj *unstructured.Unstructured, fields ...string) string {
-	t.Helper()
-	s, _, _ := unstructured.NestedString(obj.Object, fields...)
-	return s
-}
-
 // ----- T015 -----
 
 func TestModpackInstall_WritesSpecAuditsWithoutKey(t *testing.T) {

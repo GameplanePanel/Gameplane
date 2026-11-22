@@ -32,7 +32,7 @@ func shareKeySourceRouter(t *testing.T, secret *corev1.Secret, opts RegistryShar
 func getShareKeySource(t *testing.T, h http.Handler) string {
 	t.Helper()
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/registries/curseforge/share", nil))
+	h.ServeHTTP(rec, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/registries/curseforge/share", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, body %s", rec.Code, rec.Body.String())
 	}

@@ -173,8 +173,9 @@ func (h registrySecretHandler) putShare(w http.ResponseWriter, req *http.Request
 	want := *body.Share
 	store := h.k.Secrets(h.ns)
 	name := registry.DefaultKeySecretName("curseforge")
+	ctx := req.Context()
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		sec, err := store.Get(req.Context(), name, metav1.GetOptions{})
+		sec, err := store.Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -189,7 +190,7 @@ func (h registrySecretHandler) putShare(w http.ResponseWriter, req *http.Request
 		} else {
 			delete(sec.Annotations, curseforgeShareAnnotation)
 		}
-		_, err = store.Update(req.Context(), sec, metav1.UpdateOptions{})
+		_, err = store.Update(ctx, sec, metav1.UpdateOptions{})
 		return err
 	})
 	switch {

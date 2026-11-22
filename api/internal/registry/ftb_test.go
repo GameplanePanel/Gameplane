@@ -112,7 +112,7 @@ func ftbFixture(t *testing.T, name string) []byte {
 
 // ftbFixturePacks serves the recorded pack-<id>.json files (ids 130, 100, 4)
 // and 404 for anything else.
-func ftbFixturePacks(t *testing.T) func(id int) ([]byte, int) {
+func ftbFixturePacks() func(id int) ([]byte, int) {
 	return func(id int) ([]byte, int) {
 		b, err := os.ReadFile(fmt.Sprintf("testdata/ftb/pack-%d.json", id))
 		if err != nil {
@@ -157,7 +157,7 @@ func projectIDs(ps []Project) []string {
 }
 
 func TestFTBSearchFixtures(t *testing.T) {
-	srv := newFTBServer(t, nil, ftbFixturePacks(t))
+	srv := newFTBServer(t, nil, ftbFixturePacks())
 	srv.searchBody = ftbFixture(t, "search.json")
 
 	cases := []struct {
@@ -208,7 +208,7 @@ func TestFTBSearchFixtures(t *testing.T) {
 }
 
 func TestFTBSearchPopularWithoutTerm(t *testing.T) {
-	srv := newFTBServer(t, []int{130}, ftbFixturePacks(t))
+	srv := newFTBServer(t, []int{130}, ftbFixturePacks())
 	got, err := testFTB(srv.URL).Search(context.Background(), SearchQuery{ProjectType: "modpack"})
 	if err != nil || len(got) != 1 {
 		t.Fatalf("Search: %v, %v", got, err)
@@ -289,7 +289,7 @@ func TestFTBSearchStopsAt100Details(t *testing.T) {
 }
 
 func TestFTBDetailCache(t *testing.T) {
-	srv := newFTBServer(t, []int{130}, ftbFixturePacks(t))
+	srv := newFTBServer(t, []int{130}, ftbFixturePacks())
 	f := testFTB(srv.URL)
 	clock := time.Date(2026, 11, 19, 12, 0, 0, 0, time.UTC)
 	f.now = func() time.Time { return clock }
@@ -352,7 +352,7 @@ func TestFTBUpstreamErrors(t *testing.T) {
 	q := SearchQuery{Term: "x", ProjectType: "modpack"}
 
 	t.Run("search failure", func(t *testing.T) {
-		srv := newFTBServer(t, nil, ftbFixturePacks(t))
+		srv := newFTBServer(t, nil, ftbFixturePacks())
 		srv.listStatus = http.StatusInternalServerError
 		if _, err := testFTB(srv.URL).Search(ctx, q); err == nil {
 			t.Error("Search succeeded, want upstream error")
@@ -365,7 +365,7 @@ func TestFTBUpstreamErrors(t *testing.T) {
 		}
 	})
 	t.Run("unknown pack is skipped", func(t *testing.T) {
-		srv := newFTBServer(t, []int{999, 130}, ftbFixturePacks(t))
+		srv := newFTBServer(t, []int{999, 130}, ftbFixturePacks())
 		got, err := testFTB(srv.URL).Search(ctx, q)
 		if err != nil {
 			t.Fatalf("Search: %v", err)
@@ -375,13 +375,13 @@ func TestFTBUpstreamErrors(t *testing.T) {
 		}
 	})
 	t.Run("versions of unknown pack", func(t *testing.T) {
-		srv := newFTBServer(t, nil, ftbFixturePacks(t))
+		srv := newFTBServer(t, nil, ftbFixturePacks())
 		if _, err := testFTB(srv.URL).Versions(ctx, "999", Filter{}); err == nil {
 			t.Error("Versions succeeded, want error")
 		}
 	})
 	t.Run("invalid pack id", func(t *testing.T) {
-		srv := newFTBServer(t, nil, ftbFixturePacks(t))
+		srv := newFTBServer(t, nil, ftbFixturePacks())
 		if _, err := testFTB(srv.URL).Versions(ctx, "../130", Filter{}); err == nil {
 			t.Error("Versions succeeded, want error")
 		}
@@ -399,7 +399,7 @@ func TestFTBModsSearchReturnsNothing(t *testing.T) {
 }
 
 func TestFTBVersions(t *testing.T) {
-	srv := newFTBServer(t, nil, ftbFixturePacks(t))
+	srv := newFTBServer(t, nil, ftbFixturePacks())
 	ctx := context.Background()
 
 	got, err := testFTB(srv.URL).Versions(ctx, "130", Filter{Loader: "neoforge", GameVersion: "1.21.1", ProjectType: "modpack"})

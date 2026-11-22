@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -31,7 +32,7 @@ func TestBackupDestinationNameFirstByName(t *testing.T) {
 	)
 	h := &registryHandler{}
 	target := &modTarget{k: &kube.Client{Typed: cs}, namespace: ns}
-	req := httptest.NewRequest("GET", "/", nil).WithContext(context.Background())
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 	if got := h.backupDestinationName(req, target); got != "a-dest" {
 		t.Errorf("backupDestinationName = %q, want a-dest", got)
 	}
@@ -42,7 +43,7 @@ func TestBackupDestinationNameNone(t *testing.T) {
 	cs := k8sfake.NewSimpleClientset(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "unlabelled", Namespace: ns}})
 	h := &registryHandler{}
 	target := &modTarget{k: &kube.Client{Typed: cs}, namespace: ns}
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 	if got := h.backupDestinationName(req, target); got != "" {
 		t.Errorf("backupDestinationName = %q, want empty", got)
 	}
