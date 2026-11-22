@@ -40,6 +40,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create reader role: %v", err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("create reader role: status=%d body=%s", resp.StatusCode, body)
 	}
@@ -58,6 +59,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create empty role: %v", err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("create empty role: status=%d body=%s", resp.StatusCode, body)
 	}
@@ -83,6 +85,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("add namespace binding: %v", err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("add namespace binding: status=%d body=%s", resp.StatusCode, body)
 	}
@@ -144,6 +147,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("revoke token: %v", err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("revoke token: status=%d want 204 body=%s", resp.StatusCode, body)
 	}
@@ -157,6 +161,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("remove binding: %v", err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("remove binding: status=%d want 204 body=%s", resp.StatusCode, body)
 	}
@@ -173,6 +178,7 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reset-password: %v", err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("reset-password: status=%d want 204 body=%s", resp.StatusCode, body)
 	}
@@ -193,6 +199,7 @@ func mcpTokenReadsCreate(t *testing.T, cli *APIClient, name string) (int64, stri
 	if err != nil {
 		t.Fatalf("create MCP token %s: %v", name, err)
 	}
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("create MCP token %s: status=%d body=%s", name, resp.StatusCode, body)
 	}
