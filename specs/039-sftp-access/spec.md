@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-22
 
-**Status**: Draft (OD-1 to OD-4 settled; OD-5 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (all open decisions settled, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1051](https://github.com/GameplanePanel/Gameplane/issues/1051) "Add SFTP server for file access", and valgul's design idea on it: "Give the sidecar a new internal API to list, stat, download and upload files. Then run one global SFTP server that uses this API. You connect to {sftp-cluster-ip} and see one folder per game server your account can access. Each folder is backed by that server pod's sidecar API."
 
@@ -81,7 +81,7 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 1. **Given** a default install, **When** the chart renders, **Then** no SFTP workload, Service, credential screen or network allowance exists.
 2. **Given** SFTP is enabled, **When** the SFTP pod restarts or is upgraded, **Then** its host key is unchanged, so clients do not warn about a changed key.
-3. **Given** SFTP is enabled on two clusters of a multicluster panel, **When** a user connects to each cluster's address, **Then** each shows only that cluster's servers the user can read, with the same credentials (remote path per OD-5).
+3. **Given** SFTP is enabled on two clusters of a multicluster panel, **When** a user connects to each cluster's address, **Then** each shows only that cluster's servers the user can read, with the same credentials; the remote endpoint reaches files through the central API (OD-5).
 
 ---
 
@@ -124,6 +124,7 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 **Endpoint and exposure**
 
 - **FR-001**: Gameplane MUST offer one SFTP endpoint per cluster (OD-3), off by default and enabled with one Helm value; when off, nothing SFTP-related is deployed or shown.
+- **FR-001a**: On every cluster, the SFTP endpoint MUST send logins and file operations to the central Gameplane API, which reaches the files through its existing path to that cluster (OD-1, OD-5). An endpoint on a remote cluster MUST be configured with the central API's address and trust, and MUST refuse logins with a clear log line when it cannot reach it.
 - **FR-002**: The endpoint's port and Service type MUST be configurable in Helm. Per-server ports and port pools are out of scope.
 - **FR-003**: The endpoint MUST present a stable host key that survives restarts and upgrades, and the dashboard MUST show its fingerprint.
 - **FR-004**: The endpoint MUST speak SFTP only: no shell, no command execution, no port forwarding, no SCP.
@@ -205,5 +206,6 @@ A user stops a server, or it falls asleep when idle, and then opens its folder o
 - Shell or command access to the game container.
 - Per-server ports, port pools and per-server hostnames.
 - One endpoint that spans several clusters.
+- Keeping remote-cluster file data inside that cluster (OD-5 chose a round trip through the central API).
 - Access to files outside a server's data root, other volumes, backups or snapshots.
 - Changing file ownership or modes inside the volume.

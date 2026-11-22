@@ -1,6 +1,6 @@
 # Open decisions: spec 039 SFTP access to game servers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-4 are settled; OD-5 is open. Planning starts once they are settled.
+Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. All five are settled; no decision is open. Planning starts once they are settled.
 
 ## OD-1: Where does the SFTP server run, and how does it reach the sidecars? (SETTLED: A, valgul 2026-11-22)
 
@@ -47,7 +47,7 @@ Its sidecar is not running, so its files cannot be reached the way FR-015 descri
 
 **Settled:** C, by decision card. The spec's FR-013 and FR-013a to FR-013e record the defaults planning chose around it (no wake, start ends file access, idle teardown, the Files tab uses the same pod); valgul can change any of them at review.
 
-## OD-5: How does a remote cluster's SFTP endpoint reach permissions and files? (OPEN)
+## OD-5: How does a remote cluster's SFTP endpoint reach permissions and files? (SETTLED: A, valgul 2026-11-22)
 
 OD-1 routes every SFTP operation through the Gameplane API, and OD-3 puts one SFTP endpoint in each cluster. On a registered remote cluster only the gateway runs; users, roles and the audit log live in the central API, which today reaches the remote cluster and never the other way round.
 
