@@ -327,8 +327,10 @@ func (s *SessionStore) lookupMCPToken(ctx context.Context, raw string) (*User, i
 // Errors are logged and ignored: a failed touch must not fail the request.
 func (s *SessionStore) touchMCPToken(ctx context.Context, tokenID int64) {
 	now := time.Now()
-	if v, ok := mcpLastTouch.Load(tokenID); ok && now.Sub(v.(time.Time)) < lastUsedInterval {
-		return
+	if v, ok := mcpLastTouch.Load(tokenID); ok {
+		if last, isTime := v.(time.Time); isTime && now.Sub(last) < lastUsedInterval {
+			return
+		}
 	}
 	mcpLastTouch.Store(tokenID, now)
 	if _, err := s.db.DB.ExecContext(ctx,
