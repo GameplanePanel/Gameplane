@@ -47,6 +47,8 @@ func MountUsers(r chi.Router, store *db.Store, sessions *auth.SessionStore, clus
 		r.Get("/{id}/bindings", h.listBindings)
 		r.Post("/{id}/bindings", h.addBinding)
 		r.Delete("/{id}/bindings/{role}/{namespace}", h.deleteBinding)
+		// Personal MCP tokens: /me/* for the caller, /{id}/* for admins.
+		mountMCPTokenRoutes(r, sessions)
 	})
 }
 

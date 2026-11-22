@@ -29,6 +29,7 @@ import (
 	"github.com/GameplanePanel/gameplane/api/internal/notify"
 	"github.com/GameplanePanel/gameplane/api/internal/rbac"
 	"github.com/GameplanePanel/gameplane/api/internal/registry"
+	"github.com/GameplanePanel/gameplane/api/internal/scope"
 	"github.com/GameplanePanel/gameplane/api/internal/steam"
 	"github.com/GameplanePanel/gameplane/api/internal/telemetry"
 	"github.com/GameplanePanel/gameplane/api/internal/ws"
@@ -280,6 +281,7 @@ func main() {
 		oidcAuth.SetProviderName(auth.HelmProviderName)
 	}
 	authRegistry.AttachAuditWriteSyncFunc(auditor.WriteSync)
+	sessions.AttachMCPAudit(auditor.WriteSync)
 
 	// Notification delivery: watch CRD status transitions (server health,
 	// backup/restore outcomes) and push matching events to the sinks
@@ -384,9 +386,14 @@ func main() {
 		},
 	}
 
+	// The control-plane namespace is outside the game-namespace allow-list.
+	// rbac.Middleware and handlers.MountPods read it to gate pod and event reads.
+	scope.SetControlPlaneNamespace(cfg.namespace)
+
 	// Protected API
 	r.Group(func(p chi.Router) {
 		p.Use(sessions.Authenticate)
+		p.Use(sessions.MCPTokenGuard)
 		// A broad per-IP cap on writes keeps one authenticated client from
 		// pegging the DB or k8s API. Reads go through unlimited (the main
 		// bottleneck there is the dashboard's own polling).
@@ -400,6 +407,7 @@ func main() {
 		handlers.MountFleet(p, reg, store)
 		handlers.MountNamespaces(p, reg)
 		handlers.MountPodEvents(p, reg)
+		handlers.MountPods(p, reg, cfg.namespace)
 		handlers.MountLifecycle(p, reg)
 		handlers.MountShareLinks(p, reg, store)
 		handlers.MountOwnership(p, reg, store)
