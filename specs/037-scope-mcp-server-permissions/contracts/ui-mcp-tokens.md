@@ -2,7 +2,7 @@
 
 ## Personal page `/settings/mcp-tokens` ("MCP tokens")
 
-- Reached from the user menu, next to Theme settings. Visible to every signed-in user allowed to create tokens (OD-5).
+- Reached from the user menu, next to Theme settings. Visible to every signed-in user (OD-5); no admin switch or extra permission.
 - Table: Name, Token (prefix + "…"), Created, Expires, Last used, Revoke. Expired and revoked rows are shown greyed with their state for 30 days. Empty state explains what a token is for and links the MCP server README.
 - "Create token" dialog: Name (required), Expires in (7, 30, 90 or 365 days; default 30, OD-4), Create.
 - After create: one-time reveal panel with the full token, Copy button, a warning that it will not be shown again, and a copyable MCP client config snippet using the panel URL.

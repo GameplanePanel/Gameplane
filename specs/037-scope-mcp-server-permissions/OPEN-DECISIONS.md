@@ -1,6 +1,6 @@
 # Open decisions: spec 037 Scope MCP server permissions
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-3 were asked as decision cards and settled on 2026-11-17. OD-4 and OD-5 were raised by planning on 2026-11-22: OD-4 is settled, OD-5 is OPEN.
+Only a decision valgul answers is written here as settled. OD-1 to OD-3 were asked as decision cards and settled on 2026-11-17. OD-4 and OD-5 were raised by planning on 2026-11-22: both are settled. No decision is open.
 
 ## OD-1: How does an MCP session prove which Gameplane user it acts for? (SETTLED: A, valgul 2026-11-17)
 
@@ -32,7 +32,7 @@ Every token expires (spec FR-016); this sets the choices in the Create token dia
 - B. 7, 30, 90 or 365 days, default 30. Fewer renewals for long-lived assistant setups, but a leaked token can work for a year.
 - C. A custom date up to an admin-set maximum (Admin Settings, default 90 days). Most flexible; adds an admin setting and its design.
 
-## OD-5: Who may create personal MCP tokens? (OPEN)
+## OD-5: Who may create personal MCP tokens? (SETTLED: A, valgul 2026-11-22)
 
 The per-user MCP mode needs no Helm switch, because it runs on the user's machine and talks to the API.
 
