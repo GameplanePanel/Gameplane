@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -73,6 +74,7 @@ const (
 
 	modpackBootTimeout  = 12 * time.Minute
 	modpackApplyTimeout = 4 * time.Minute
+	clearModsTimeout    = 5 * time.Minute
 )
 
 // requireModuleProviders skips the test when the checked-out minecraft-java
@@ -468,14 +470,35 @@ func readDataFile(cli *APIClient, gs, path string) (string, error) {
 func clearModsFolder(t *testing.T, cli *APIClient, gs string) {
 	t.Helper()
 	for _, name := range visibleEntries(listFiles(t, cli, gs, "/mods")) {
+		deleteModsEntry(t, cli, gs, name)
+	}
+}
+
+// deleteModsEntry deletes one entry of the mods folder. A CurseForge pack
+// can hold more than a hundred jars, more than the API's mutation bucket
+// (60 burst, 1/s refill) allows at once, so a 429 waits for Retry-After and
+// tries again, for at most clearModsTimeout in all.
+func deleteModsEntry(t *testing.T, cli *APIClient, gs, name string) {
+	t.Helper()
+	deadline := time.Now().Add(clearModsTimeout)
+	for {
 		resp, body, err := cli.Delete("/servers/" + gs + "/files/delete?recursive=true&path=" + url.QueryEscape("/mods/"+name))
 		if err != nil {
 			t.Fatalf("delete /mods/%s: %v", name, err)
 		}
 		_ = resp.Body.Close()
+		if resp.StatusCode == http.StatusTooManyRequests && time.Now().Before(deadline) {
+			wait := 2 * time.Second
+			if secs, convErr := strconv.Atoi(resp.Header.Get("Retry-After")); convErr == nil && secs > 0 {
+				wait = time.Duration(secs) * time.Second
+			}
+			time.Sleep(wait)
+			continue
+		}
 		if resp.StatusCode/100 != 2 {
 			t.Fatalf("delete /mods/%s expected 2xx, got %d body=%q", name, resp.StatusCode, string(body))
 		}
+		return
 	}
 }
 
