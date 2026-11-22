@@ -9,6 +9,35 @@ import { ScheduleForm } from "./ScheduleForm";
 
 describe("ScheduleForm", () => {
   it.each([
+    { powerPolicy: "stop-copy-restart" as const },
+    { volumePolicy: "all-data" as const },
+  ])("explains why CSI is unavailable with %o", async (policy) => {
+    const schedule = makeSchedule();
+    schedule.spec = { ...schedule.spec, ...policy, repoRef: { name: "default", key: "repo" } };
+    renderWithQuery(<ScheduleForm existing={schedule} serverName="alpha" permissions={["*"]} onClose={() => {}} />);
+    expect(screen.getByText(/Volume snapshots require preserving server power/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Backup type/i }));
+    expect(await screen.findByRole("option", { name: /Volume snapshot \(CSI\)/i })).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("preserves a restic-only policy added while a switch to CSI is pending", async () => {
+    const schedule = makeSchedule();
+    schedule.spec.repoRef = { name: "default", key: "repo" };
+    const latest = { ...schedule, spec: { ...schedule.spec, volumePolicy: "all-data" } };
+    const writes = vi.fn();
+    server.use(
+      http.get("/schedules/alpha-daily", () => HttpResponse.json(latest)),
+      http.put("/schedules/alpha-daily", () => { writes(); return HttpResponse.json(latest); }),
+    );
+    renderWithQuery(<ScheduleForm existing={schedule} serverName="alpha" permissions={["*"]} onClose={() => {}} />);
+    await userEvent.click(screen.getByRole("button", { name: /Backup type/i }));
+    await userEvent.click(await screen.findByRole("option", { name: /Volume snapshot \(CSI\)/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText(/This schedule changed/)).toBeInTheDocument();
+    expect(writes).not.toHaveBeenCalled();
+  });
+
+  it.each([
     ["replacement", "after", "0 3 * * *"],
     ["concurrent cron change", "before", "0 6 * * *"],
   ])("keeps the editor open after a %s", async (_case, uid, schedule) => {

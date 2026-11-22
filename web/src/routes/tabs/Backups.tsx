@@ -19,6 +19,10 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Backup, BackupSchedule } from "@/types";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
+function scheduleMissingOrChanged(error: unknown): boolean {
+  return error instanceof APIError && (error.status === 404 || error.status === 409);
+}
+
 export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; ns?: string; onOpenBackupSettings?: () => void }) {
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
@@ -68,7 +72,13 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
   const restores = restoresDenied ? undefined : restoresData;
   const canManageSchedules = !schedulesDenied && resourceCan(permissions, "schedules:write");
   const removeSchedule = useMutation({
-    mutationFn: (schedule: BackupSchedule) => resourceClient.Schedules.remove(schedule.metadata.name, ns),
+    mutationFn: (schedule: BackupSchedule) => resourceClient.Schedules.remove(schedule.metadata.name, ns, schedule.metadata),
+    onError: async error => {
+      if (scheduleMissingOrChanged(error)) {
+        await qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "schedules") });
+        setDeleting(null);
+      }
+    },
     onSuccess: () => {
       setDeleting(null);
       void qc.invalidateQueries({ queryKey: resourceKey(resourceTarget, "schedules") });
@@ -202,7 +212,7 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
                       <Button size="sm" variant="outline" isDisabled={!canManageSchedules || scheduleEditor !== null} onPress={() => setScheduleEditor(s)}>
                         {intl.formatMessage({ id: "web.routes.tabs.backups.edit", defaultMessage: "Edit", description: "Server Backups tab: opens the selected backup schedule for editing" })}
                       </Button>
-                      <Button size="sm" variant="outline" isDisabled={!canManageSchedules || scheduleEditor !== null} onPress={() => {
+                      <Button size="sm" variant="outline" isDisabled={!canManageSchedules || scheduleEditor !== null || !s.metadata.uid || !s.metadata.resourceVersion} onPress={() => {
                         removeSchedule.reset();
                         setDeleting(s);
                       }}>
@@ -218,6 +228,9 @@ export function BackupsTab({ name, ns, onOpenBackupSettings }: { name: string; n
             <p className="text-sm text-foreground/60">{intl.formatMessage({ id: "web.routes.tabs.backups.no_schedules_yet", defaultMessage: "No schedules yet.", description: "Backups tab: empty-state text in the schedules section, shown when the server has no backup schedules" })}</p>
           )}
         </div>
+        {!deleting && scheduleMissingOrChanged(removeSchedule.error) && (
+          <ErrorBanner err={intl.formatMessage({ id: "web.routes.tabs.backups.delete_schedule_changed", defaultMessage: "The schedule changed or was removed. Review the current schedule before deleting.", description: "Server Backups tab: the schedule changed after the user opened the delete confirmation" })} />
+        )}
         {deleting && canManageSchedules && (
           <ConfirmDialog
             open

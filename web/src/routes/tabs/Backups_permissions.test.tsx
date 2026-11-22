@@ -70,7 +70,7 @@ describe("BackupsTab scoped read access", () => {
     let removed = false;
     let deleted: URL | undefined;
     server.use(
-      http.get("/schedules", () => HttpResponse.json({ items: removed ? [] : [makeSchedule({ metadata: { name: "alpha-daily", namespace: "games" } })] })),
+      http.get("/schedules", () => HttpResponse.json({ items: removed ? [] : [makeSchedule({ metadata: { name: "alpha-daily", namespace: "games", uid: "schedule-1", resourceVersion: "27" } })] })),
       http.delete("/schedules/alpha-daily", ({ request }) => {
         deleted = new URL(request.url);
         removed = true;
@@ -89,6 +89,37 @@ describe("BackupsTab scoped read access", () => {
     expect(await screen.findByText("No schedules yet.")).toBeInTheDocument();
     expect(deleted?.searchParams.get("cluster")).toBe("east");
     expect(deleted?.searchParams.get("namespace")).toBe("games");
+    expect(deleted?.searchParams.get("expectedUID")).toBe("schedule-1");
+    expect(deleted?.searchParams.get("expectedResourceVersion")).toBe("27");
+  });
+
+  it("requires a new confirmation after another writer changes the schedule", async () => {
+    let version = "10";
+    const versions: (string | null)[] = [];
+    server.use(
+      http.get("/schedules", () => HttpResponse.json({ items: [
+        makeSchedule({ metadata: { name: "alpha-daily", uid: "schedule-1", resourceVersion: version } }),
+      ] })),
+      http.delete("/schedules/alpha-daily", ({ request }) => {
+        const confirmed = new URL(request.url).searchParams.get("expectedResourceVersion");
+        versions.push(confirmed);
+        return confirmed === version ? new HttpResponse(null, { status: 204 }) : HttpResponse.text("conflict, retry", { status: 409 });
+      }),
+    );
+    renderWithQuery(view(["schedules:read", "schedules:write"]));
+    await userEvent.click(await screen.findByRole("button", { name: /^delete$/i }));
+    const dialog = within(await screen.findByRole("alertdialog"));
+    await userEvent.type(dialog.getByRole("textbox"), "alpha-daily");
+    version = "11";
+    await userEvent.click(dialog.getByRole("button", { name: /^delete$/i }));
+    expect(await screen.findByText(/Review the current schedule before deleting/)).toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const fresh = within(await screen.findByRole("alertdialog"));
+    expect(fresh.getByRole("button", { name: /^delete$/i })).toBeDisabled();
+    await userEvent.type(fresh.getByRole("textbox"), "alpha-daily");
+    await userEvent.click(fresh.getByRole("button", { name: /^delete$/i }));
+    await waitFor(() => expect(versions).toEqual(["10", "11"]));
   });
 
   it("does not request any protected lists without their permissions", async () => {

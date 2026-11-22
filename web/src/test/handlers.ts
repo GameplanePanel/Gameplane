@@ -1365,7 +1365,7 @@ export function buildScreenshotHandlers() {
       const nextRun = (hours: number) => new Date(Date.now() + (hours * 60 + 1) * 60_000).toISOString();
       const daily = data.schedules[0];
       return HttpResponse.json({ items: [
-        { ...daily, status: { ...daily.status, nextScheduleTime: nextRun(8) } },
+        { ...daily, metadata: { ...daily.metadata, uid: "daily-schedule", resourceVersion: "1" }, status: { ...daily.status, nextScheduleTime: nextRun(8) } },
         makeSchedule({
           metadata: { name: "mc-survival-auto", namespace: daily.metadata.namespace, ownerReferences: [
             { kind: "GameServer", name: "mc-survival", uid: data.servers.find(s => s.metadata.name === "mc-survival")?.metadata.uid ?? "mc-survival", controller: true },

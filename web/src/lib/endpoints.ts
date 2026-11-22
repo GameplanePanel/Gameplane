@@ -894,8 +894,13 @@ function makeResourceEndpoints(request: RequestClient, expectedUID?: string) {
       const next = { ...current, spec: typeof patch === "function" ? patch(current) : { ...current.spec, ...patch } };
       return api<BackupSchedule>(withNS(`/schedules/${name}`, ns), { method: "PUT", body: next });
     },
-    remove: (name: string, ns?: string) =>
-      api<void>(withNS(`/schedules/${name}`, ns), { method: "DELETE" }),
+    remove: (name: string, ns?: string, confirmed?: Pick<BackupSchedule["metadata"], "uid" | "resourceVersion">) => {
+      const query = confirmed && new URLSearchParams({
+        expectedUID: confirmed.uid ?? "",
+        expectedResourceVersion: confirmed.resourceVersion ?? "",
+      });
+      return api<void>(withNS(`/schedules/${name}${query ? "?" + query : ""}`, ns), { method: "DELETE" });
+    },
   };
 
   const Restores = {

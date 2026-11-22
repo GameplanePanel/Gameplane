@@ -717,6 +717,7 @@ export interface Backup {
 
 export interface BackupSchedule {
   metadata: ObjectMeta & {
+    resourceVersion?: string;
     ownerReferences?: { kind: string; name: string; uid: string; controller?: boolean }[];
   };
   spec: {

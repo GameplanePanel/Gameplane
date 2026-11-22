@@ -30,6 +30,10 @@ interface Props {
   onClose: () => void;
 }
 
+function requiresRestic(spec?: BackupSchedule["spec"]): boolean {
+  return spec?.powerPolicy === "stop-copy-restart" || spec?.volumePolicy === "all-data";
+}
+
 export function ScheduleForm({ existing, serverName, ns, onClose, target: explicitTarget, permissions: explicitPermissions }: Props) {
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name: serverName, namespace: ns }, explicitTarget);
@@ -74,7 +78,9 @@ export function ScheduleForm({ existing, serverName, ns, onClose, target: explic
               current.metadata.ownerReferences?.some(ref => ref.controller && ref.kind === "GameServer")) {
             throw new SettingsConflictError();
           }
-          return mergeValue(existing.spec, draft, current.spec) as BackupSchedule["spec"];
+          const merged = mergeValue(existing.spec, draft, current.spec) as BackupSchedule["spec"];
+          if (merged.strategy === "volume-snapshot" && requiresRestic(merged)) throw new SettingsConflictError();
+          return merged;
         } catch (error) {
           if (!(error instanceof SettingsConflictError)) throw error;
           throw new APIError(409, intl.formatMessage({ id: "web.components.backups.schedule_form.changed", defaultMessage: "This schedule changed. Reopen it to edit the latest version.", description: "Schedule editor: conflict while saving a changed or replaced schedule" }));
@@ -110,6 +116,7 @@ export function ScheduleForm({ existing, serverName, ns, onClose, target: explic
         <div className="space-y-2">
           <Select
             value={form.strategy}
+            disabledKeys={requiresRestic(existing?.spec) ? ["volume-snapshot"] : undefined}
             onChange={(v) =>
               setForm({ ...form, strategy: v as typeof form.strategy })
             }
@@ -125,6 +132,9 @@ export function ScheduleForm({ existing, serverName, ns, onClose, target: explic
                 <ListBoxItem id="volume-snapshot">{intl.formatMessage({ id: "web.components.backups.schedule_form.volume_snapshot_csi", defaultMessage: "Volume snapshot (CSI)", description: "Schedule form: option in the backup type dropdown for a cluster volume snapshot that needs no repository; CSI is a technical term, usually left untranslated; keep it short" })}</ListBoxItem>
               </ListBox>
             </Select.Popover>
+            {requiresRestic(existing?.spec) && (
+              <Description className="text-xs">{intl.formatMessage({ id: "web.components.backups.schedule_form.csi_policy_hint", defaultMessage: "Volume snapshots require preserving server power and backing up only the primary volume.", description: "Schedule editor: explains why the current restic backup policies prevent switching to CSI" })}</Description>
+            )}
           </Select>
         </div>
 

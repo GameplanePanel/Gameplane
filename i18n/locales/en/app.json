@@ -1823,6 +1823,10 @@
     "defaultMessage": "Cron-based recurring CSI volume snapshot. No restic repository needed.",
     "description": "Schedule form: hint for the CSI snapshot schedule type"
   },
+  "web.components.backups.schedule_form.csi_policy_hint": {
+    "defaultMessage": "Volume snapshots require preserving server power and backing up only the primary volume.",
+    "description": "Schedule editor: explains why the current restic backup policies prevent switching to CSI"
+  },
   "web.components.backups.schedule_form.destination": {
     "defaultMessage": "Destination",
     "description": "Schedule form: label above the dropdown that picks the backup destination"
@@ -8070,6 +8074,10 @@
   "web.routes.tabs.backups.completed": {
     "defaultMessage": "Completed",
     "description": "Backups tab: column heading for when each backup finished in the backups table; keep it short"
+  },
+  "web.routes.tabs.backups.delete_schedule_changed": {
+    "defaultMessage": "The schedule changed or was removed. Review the current schedule before deleting.",
+    "description": "Server Backups tab: the schedule changed after the user opened the delete confirmation"
   },
   "web.routes.tabs.backups.delete_schedule_hint": {
     "defaultMessage": "Deleting this schedule stops future runs. Backups already taken are kept.",
