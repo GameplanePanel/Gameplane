@@ -200,9 +200,15 @@ func TestRegistry_ServesHomeClusterOnly(t *testing.T) {
 			}
 
 			for _, q := range []string{"", "?cluster=local"} {
-				rr := do(t, r, rt.method, rt.path+q, rt.body)
-				if rr.Code != http.StatusOK {
-					t.Errorf("query=%q: got %d, want 200: %s", q, rr.Code, rr.Body)
+				lk := registryHomeClient()
+				lr := mountRegistryRouter(lk, fakeSet{p: &fakeProvider{}})
+				rr := do(t, lr, rt.method, rt.path+q, rt.body)
+				want := http.StatusOK
+				if rt.path == "/servers/alpha/modpack" && rt.method == http.MethodPost {
+					want = http.StatusAccepted
+				}
+				if rr.Code != want {
+					t.Errorf("query=%q: got %d, want %d: %s", q, rr.Code, want, rr.Body)
 				}
 			}
 		})
@@ -275,6 +281,7 @@ func mountHomeClientRoutes(t *testing.T, r chi.Router, home *kube.Client, reg *k
 	MountClusters(r, reg, home, controlNS)
 	MountSystemLogs(r, home, controlNS)
 	MountRegistrySecrets(r, home, controlNS)
+	MountRegistryShareWithOptions(r, home, controlNS, RegistryShareOptions{})
 }
 
 // TestHomeClientMounts_ServeHomeClusterOnly calls every route of the

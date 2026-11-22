@@ -115,8 +115,21 @@ func TestRegistryRemoteUsesSelectedTemplateAndWritesOnlySelectedServer(t *testin
 			if n := kubeClientCalls(t, home); n != 0 {
 				t.Fatalf("home client saw %d calls", n)
 			}
-			if n := len(remote.Typed.(*kubefake.Clientset).Actions()); n != 0 {
-				t.Fatalf("remote typed client saw %d calls; provider credentials must stay central", n)
+			remoteTyped := remote.Typed.(*kubefake.Clientset).Actions()
+			wantTyped := 0
+			isModpackPost := route.path == "/servers/alpha/modpack" && route.method == http.MethodPost
+			if isModpackPost {
+				wantTyped = 1
+			}
+			if n := len(remoteTyped); n != wantTyped {
+				t.Fatalf("remote typed client saw %d calls, want %d; provider credentials must stay central", n, wantTyped)
+			}
+			if isModpackPost {
+				list, ok := remoteTyped[0].(ktesting.ListAction)
+				if !ok || list.GetVerb() != "list" || list.GetResource().Resource != "secrets" ||
+					list.GetListRestrictions().Labels.String() != "gameplane.local/backup-destination=true" {
+					t.Fatalf("remote typed call = %s %s, want list secrets with label gameplane.local/backup-destination=true", remoteTyped[0].GetVerb(), remoteTyped[0].GetResource().Resource)
+				}
 			}
 			switch route.path {
 			case "/servers/alpha/mods/registry/providers":
@@ -215,6 +228,9 @@ func TestClusterModRoutesEnforceScopedPermissionsAndOwnership(t *testing.T) {
 				want := test.want
 				if test.name == "remote read grant" && route.method != http.MethodGet {
 					want = http.StatusForbidden
+				}
+				if want == http.StatusOK && route.method == http.MethodPost && route.path == "/servers/alpha/modpack" {
+					want = http.StatusAccepted
 				}
 				response := do(t, router, route.method, route.path+"?cluster=remote", route.body)
 				if response.Code != want {
