@@ -45,6 +45,24 @@ func hasDotComponent(rel string) bool {
 	return strings.HasPrefix(rel, ".") || strings.Contains(rel, "/.")
 }
 
+// readableDotfiles are the only dotfiles /files/read serves: the pack
+// manifests the itzg image writes at the data root, which the API reads to
+// adopt a legacy modpack (spec 035, research R6). Exact root-level names; no
+// other operation, directory or dotfile is affected.
+var readableDotfiles = map[string]struct{}{
+	".modrinth-modpack-manifest.json": {},
+	".curseforge-manifest.json":       {},
+}
+
+// readComponents is components() for /files/read: it additionally admits the
+// readableDotfiles names, matched exactly after the leading slash is trimmed.
+func (h *handler) readComponents(rel string) ([]string, error) {
+	if _, ok := readableDotfiles[strings.TrimPrefix(rel, "/")]; ok {
+		return []string{strings.TrimPrefix(rel, "/")}, nil
+	}
+	return h.components(rel)
+}
+
 type handler struct {
 	archiveLock sync.Mutex
 	root        string
@@ -161,7 +179,7 @@ func (h *handler) list(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *handler) read(w http.ResponseWriter, req *http.Request) {
-	comps, err := h.components(req.URL.Query().Get("path"))
+	comps, err := h.readComponents(req.URL.Query().Get("path"))
 	if err != nil {
 		h.fail(w, err)
 		return

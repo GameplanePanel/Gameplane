@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { renderWithQuery as baseRenderWithQuery } from "@/test/render";
 import { ModpacksTab } from "./Modpacks";
-import type { GameTemplate, RegistryProject } from "@/types";
+import type { GameTemplate, ModpackInstallBody, ModpackView, RegistryProject, RegistryVersion } from "@/types";
 
 const fetchMock = vi.fn();
 beforeEach(() => { scopedControl = true; vi.stubGlobal("fetch", fetchMock); });
@@ -30,8 +30,9 @@ interface Routes {
   packs?: RegistryProject[];
   deps?: { filename: string; downloadUrl: string }[];
   providers?: { provider: string; available: boolean; modpacks: boolean }[];
-  onModpack?: (body: { ref: string }, provider: string | null) => void;
+  onModpack?: (body: ModpackInstallBody, provider: string | null) => void;
   onInstallMod?: (body: { url: string; name?: string }) => void;
+  versions?: RegistryVersion[];
 }
 
 function route(r: Routes) {
@@ -42,13 +43,16 @@ function route(r: Routes) {
     if (url.includes("/mods/registry/providers"))
       return Promise.resolve(jsonRes(r.providers ?? [{ provider: "modrinth", available: true, modpacks: true }]));
     if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes(r.packs ?? []));
+    if (url.includes("/versions?")) return Promise.resolve(jsonRes(r.versions ?? []));
     if (url.includes("/mods/registry/projects/") && url.includes("/modpack"))
       return Promise.resolve(jsonRes(r.deps ?? []));
+    if (url.endsWith("/servers/s1")) return Promise.resolve(jsonRes({ metadata: { name: "s1" }, spec: {} }));
     if (url.includes("/modpack") && method === "POST") {
       const provider = new URL("http://x" + url.slice(url.indexOf("/"))).searchParams.get("provider");
       r.onModpack?.(JSON.parse(opts?.body ?? "{}"), provider);
-      return Promise.resolve(jsonRes({ ok: true }));
+      return Promise.resolve(jsonRes(modpackView({ phase: "BackingUp" }), 202));
     }
+    if (url.includes("/servers/s1/modpack")) return Promise.resolve(jsonRes(modpackView()));
     if (url.includes("/mods/install")) {
       const body = JSON.parse(opts?.body ?? "{}");
       r.onInstallMod?.(body);
@@ -77,17 +81,38 @@ const pack: RegistryProject = {
   downloads: 9_100_000, provider: "modrinth",
 };
 
+const mrVersions: RegistryVersion[] = [
+  { id: "v2", name: "2.0", versionNumber: "2.0", gameVersions: ["1.21.1"], loaders: ["fabric"], files: [] },
+  { id: "v1", name: "1.0", versionNumber: "1.0", gameVersions: ["1.21.1"], loaders: ["fabric"], files: [] },
+];
+function modpackView(over: Partial<ModpackView> = {}): ModpackView {
+  return { active: null, phase: "", message: "", backupName: "", keyShared: false, missingFiles: [],
+    missingFilesUnknown: false, downloadsPath: "downloads/", backupAvailable: true, ...over };
+}
+// Install… -> pick newest version -> Continue -> confirm.
+async function installNewest() {
+  fireEvent.click(await screen.findByRole("button", { name: "Install…" }));
+  await screen.findByText("2.0");
+  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Install and restart" }));
+}
+
 describe("ModpacksTab", () => {
-  it("env-mode: installs by setting the modpack ref", async () => {
-    const calls: { ref: string }[] = [];
-    route({ packs: [pack], onModpack: (b) => calls.push(b) });
+  it("env-mode: installs by pinning the chosen version", async () => {
+    const calls: ModpackInstallBody[] = [];
+    const providers: (string | null)[] = [];
+    route({ packs: [pack], versions: mrVersions, onModpack: (b, p) => { calls.push(b); providers.push(p); } });
     renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
 
     await screen.findByText("Cobblemon");
-    const install = await screen.findByRole("button", { name: /install/i });
-    fireEvent.click(install);
-    await waitFor(() => expect(calls).toEqual([{ ref: "cobblemon" }]));
-    expect(await screen.findByText(/Set modpack Cobblemon/)).toBeInTheDocument();
+    await installNewest();
+    await waitFor(() =>
+      expect(calls).toEqual([
+        { provider: "modrinth", project: "cobblemon", version: "v2", title: "Cobblemon", versionName: "2.0", backupFirst: true },
+      ]),
+    );
+    expect(providers).toEqual([null]); // provider moved from the query string into the body
+    expect(await screen.findByText("Set modpack Cobblemon. The server is restarting to install it.")).toBeInTheDocument();
   });
 
   it("env-mode: does not show active modpack", async () => {
@@ -225,6 +250,7 @@ describe("ModpacksTab", () => {
       if (url.includes("/mods/registry/providers"))
         return Promise.resolve(jsonRes(providersOf("modrinth")));
       if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([pack]));
+      if (url.includes("/versions?")) return Promise.resolve(jsonRes(mrVersions));
       if (url.includes("/modpack") && opts?.method === "POST")
         return Promise.resolve(jsonRes({ error: "failed to restart server" }, 500));
       return Promise.resolve(jsonRes({}));
@@ -232,8 +258,9 @@ describe("ModpacksTab", () => {
     renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
 
     await screen.findByText("Cobblemon");
-    fireEvent.click(await screen.findByRole("button", { name: /install/i }));
+    await installNewest();
     expect(await screen.findByText("failed to restart server")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Install and restart" })).toBeInTheDocument(); // dialog stays open
   });
 
   it("deps-mode: surfaces install error for first mod", async () => {
@@ -261,18 +288,18 @@ describe("ModpacksTab", () => {
   });
 
   it("dismisses the error banner when dismiss is clicked", async () => {
-    fetchMock.mockImplementation((url: string, opts?: { method?: string }) => {
+    fetchMock.mockImplementation((url: string) => {
       if (url.endsWith("/users/me")) return Promise.resolve(jsonRes(operator));
-      if (url.includes("/mods/registry/providers"))
-        return Promise.resolve(jsonRes(providersOf("modrinth")));
-      if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([pack]));
-      if (url.includes("/modpack") && opts?.method === "POST")
-        return Promise.resolve(jsonRes({ error: "install failed" }, 500));
+      if (url.includes("/mods/registry/providers")) return Promise.resolve(jsonRes(providersOf("thunderstore")));
+      if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([{ ...pack, id: "packer-Mega", title: "MegaPack" }]));
+      if (url.includes("/mods/registry/projects"))
+        return Promise.resolve(jsonRes([{ filename: "a.zip", downloadUrl: "https://cdn/a.zip" }]));
+      if (url.includes("/mods/install")) return Promise.resolve(jsonRes({ error: "install failed" }, 500));
       return Promise.resolve(jsonRes({}));
     });
-    renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
+    renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({}, "thunderstore")} />);
 
-    await screen.findByText("Cobblemon");
+    await screen.findByText("MegaPack");
     fireEvent.click(await screen.findByRole("button", { name: /install/i }));
     expect(await screen.findByText("install failed")).toBeInTheDocument();
 
@@ -282,33 +309,40 @@ describe("ModpacksTab", () => {
 
   it("install button stays disabled while one is being installed", async () => {
     let delayResolve: () => void;
-    const delayedPromise = new Promise<void>((resolve) => {
-      delayResolve = resolve;
-    });
-
-    fetchMock.mockImplementation((url: string, opts?: { method?: string }) => {
+    const delayed = new Promise<void>((resolve) => { delayResolve = resolve; });
+    fetchMock.mockImplementation((url: string) => {
       if (url.endsWith("/users/me")) return Promise.resolve(jsonRes(operator));
-      if (url.includes("/mods/registry/providers"))
-        return Promise.resolve(jsonRes(providersOf("modrinth")));
+      if (url.includes("/mods/registry/providers")) return Promise.resolve(jsonRes(providersOf("thunderstore")));
       if (url.includes("/mods/registry/search"))
         return Promise.resolve(jsonRes([pack, { ...pack, id: "pack2", title: "Pack 2" }]));
-      if (url.includes("/modpack") && opts?.method === "POST")
-        return delayedPromise.then(() => jsonRes({ ok: true }));
+      if (url.includes("/mods/registry/projects")) return delayed.then(() => jsonRes([]));
       return Promise.resolve(jsonRes({}));
     });
-    renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
+    renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({}, "thunderstore")} />);
 
     await screen.findByText("Cobblemon");
     const buttons = screen.getAllByRole("button", { name: /install/i });
     expect(buttons).toHaveLength(2);
-
-    // Click first install
     fireEvent.click(buttons[0]);
     await waitFor(() => expect(buttons[0]).toHaveTextContent("Installing…"));
-
-    // Second button should also be disabled
     expect(buttons[1]).toBeDisabled();
+    delayResolve!();
+  });
 
+  it("env-mode: the confirm button is disabled while the install is submitted", async () => {
+    let delayResolve: () => void;
+    const delayed = new Promise<void>((resolve) => { delayResolve = resolve; });
+    route({ packs: [pack], versions: mrVersions });
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation((url: string, opts?: { method?: string }) =>
+      url.includes("/servers/s1/modpack") && opts?.method === "POST"
+        ? delayed.then(() => jsonRes(modpackView({ phase: "BackingUp" }), 202))
+        : base(url, opts));
+    renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
+
+    await screen.findByText("Cobblemon");
+    await installNewest();
+    expect(await screen.findByRole("button", { name: "Working…" })).toBeDisabled();
     delayResolve!();
   });
 
@@ -326,6 +360,7 @@ describe("ModpacksTab", () => {
       if (url.includes("/mods/registry/providers"))
         return Promise.resolve(jsonRes(providersOf("modrinth")));
       if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([pack]));
+      if (url.includes("/versions?")) return Promise.resolve(jsonRes(mrVersions));
       if (url.includes("/modpack") && opts?.method === "POST")
         return Promise.resolve(jsonRes({ error: "specific error from API" }, 500));
       return Promise.resolve(jsonRes({}));
@@ -333,16 +368,33 @@ describe("ModpacksTab", () => {
     renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
 
     await screen.findByText("Cobblemon");
-    fireEvent.click(await screen.findByRole("button", { name: /install/i }));
+    await installNewest();
     expect(await screen.findByText("specific error from API")).toBeInTheDocument();
   });
 
-  it("handles 403 error with role message", async () => {
+  it("deps-mode: handles 403 error with role message", async () => {
+    fetchMock.mockImplementation((url: string) => {
+      if (url.endsWith("/users/me")) return Promise.resolve(jsonRes(operator));
+      if (url.includes("/mods/registry/providers")) return Promise.resolve(jsonRes(providersOf("thunderstore")));
+      if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([pack]));
+      if (url.includes("/mods/registry/projects"))
+        return Promise.resolve(jsonRes([{ filename: "a.zip", downloadUrl: "https://cdn/a.zip" }]));
+      if (url.includes("/mods/install")) return Promise.resolve(new Response("forbidden", { status: 403 }));
+      return Promise.resolve(jsonRes({}));
+    });
+    renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({}, "thunderstore")} />);
+    await screen.findByText("Cobblemon");
+    fireEvent.click(await screen.findByRole("button", { name: /install/i }));
+    expect(await screen.findByText("Your role does not allow managing this server.")).toBeInTheDocument();
+  });
+
+  it("env-mode: handles 403 error with role message", async () => {
     fetchMock.mockImplementation((url: string, opts?: { method?: string }) => {
       if (url.endsWith("/users/me")) return Promise.resolve(jsonRes(operator));
       if (url.includes("/mods/registry/providers"))
         return Promise.resolve(jsonRes(providersOf("modrinth")));
       if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([pack]));
+      if (url.includes("/versions?")) return Promise.resolve(jsonRes(mrVersions));
       if (url.includes("/modpack") && opts?.method === "POST")
         return Promise.resolve(new Response("forbidden", { status: 403 }));
       return Promise.resolve(jsonRes({}));
@@ -350,17 +402,19 @@ describe("ModpacksTab", () => {
     renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
 
     await screen.findByText("Cobblemon");
-    fireEvent.click(await screen.findByRole("button", { name: /install/i }));
+    await installNewest();
     expect(await screen.findByText("Your role does not allow managing this server.")).toBeInTheDocument();
   });
 
   it("shows success banner for env-mode install", async () => {
-    route({ packs: [pack] });
+    route({ packs: [pack], versions: mrVersions });
     renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
 
     await screen.findByText("Cobblemon");
-    fireEvent.click(await screen.findByRole("button", { name: /install/i }));
+    await installNewest();
     expect(await screen.findByText(/Set modpack Cobblemon/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "dismiss" }));
+    await waitFor(() => expect(screen.queryByText(/Set modpack Cobblemon/)).not.toBeInTheDocument());
   });
 
   it("shows success banner with mod count for deps-mode install", async () => {
@@ -391,27 +445,20 @@ describe("ModpacksTab", () => {
     expect(await screen.findByText(/Installed Multi — 3 mods\./)).toBeInTheDocument();
   });
 
-  it("shows installing state with project id match", async () => {
+  it("env-mode: shows the working state while submitting", async () => {
     let delayResolve: () => void;
-    const delayedPromise = new Promise<void>((resolve) => {
-      delayResolve = resolve;
-    });
-
-    fetchMock.mockImplementation((url: string, opts?: { method?: string }) => {
-      if (url.endsWith("/users/me")) return Promise.resolve(jsonRes(operator));
-      if (url.includes("/mods/registry/providers"))
-        return Promise.resolve(jsonRes(providersOf("modrinth")));
-      if (url.includes("/mods/registry/search")) return Promise.resolve(jsonRes([pack]));
-      if (url.includes("/modpack") && opts?.method === "POST")
-        return delayedPromise.then(() => jsonRes({ ok: true }));
-      return Promise.resolve(jsonRes({}));
-    });
+    const delayed = new Promise<void>((resolve) => { delayResolve = resolve; });
+    route({ packs: [pack], versions: mrVersions });
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation((url: string, opts?: { method?: string }) =>
+      url.includes("/servers/s1/modpack") && opts?.method === "POST"
+        ? delayed.then(() => jsonRes(modpackView({ phase: "BackingUp" }), 202))
+        : base(url, opts));
     renderWithQuery(<ModpacksTab name="s1" tmpl={tmpl({ refEnv: "MODRINTH_MODPACK" })} />);
 
-    const button = await screen.findByRole("button", { name: /install/i });
-    fireEvent.click(button);
-
-    expect(await screen.findByRole("button", { name: "Installing…" })).toBeInTheDocument();
+    await screen.findByText("Cobblemon");
+    await installNewest();
+    expect(await screen.findByRole("button", { name: "Working…" })).toBeInTheDocument();
     delayResolve!();
   });
 });

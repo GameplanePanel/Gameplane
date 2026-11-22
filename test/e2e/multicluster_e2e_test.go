@@ -622,6 +622,9 @@ func checkMissingRemoteTargetsDoNotReachHome(t *testing.T, admin *APIClient, clu
 			t.Errorf("home gameserver %s/%s spec.env gained %s: %v", ns, homeGS, modpackEnv, env)
 		}
 	}
+	if mp, found, _ := unstructured.NestedMap(live.Object, "spec", "modpack"); found {
+		t.Errorf("home gameserver %s/%s gained spec.modpack: %v", ns, homeGS, mp)
+	}
 
 	// The capture download outcome is audited with its reason.
 	resp, body, err = admin.Get("/admin/audit?limit=500")

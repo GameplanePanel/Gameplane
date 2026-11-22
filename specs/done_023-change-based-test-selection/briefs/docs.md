@@ -45,7 +45,7 @@ add the test name pattern under `suites` with the components and paths it exerci
 list the component under `unexercised` with a reason. The `e2e bucket coverage` job
 (`ci_scope.py verify-suites`) fails when a registered test matches no entry or a
 component is missing. The full rules are in
-`specs/023-change-based-test-selection/contracts/suite-components.md`.
+`specs/done_023-change-based-test-selection/contracts/suite-components.md`.
 ```
 
 ## 2. `docs/agent-architecture.md`: task map row (T049)
@@ -56,10 +56,10 @@ old:
 ```
 Keep that whole row unchanged and add this row directly below it:
 ```markdown
-| CI test selection: which jobs, packages and tests a PR runs (`hack/ci_scope.py`, `hack/check_changed_coverage.py`, `test/e2e/suite-components.json`, the `changes` job in `.github/workflows/ci.yaml`) | `docs/contributing.md` ("How CI picks tests"), `specs/023-change-based-test-selection/contracts/` (`ci-scope-cli.md`, `suite-components.md`, `changed-coverage.md`) |
+| CI test selection: which jobs, packages and tests a PR runs (`hack/ci_scope.py`, `hack/check_changed_coverage.py`, `test/e2e/suite-components.json`, the `changes` job in `.github/workflows/ci.yaml`) | `docs/contributing.md` ("How CI picks tests"), `specs/done_023-change-based-test-selection/contracts/` (`ci-scope-cli.md`, `suite-components.md`, `changed-coverage.md`) |
 ```
 
-## 3. `specs/023-change-based-test-selection/tasks.md`
+## 3. `specs/done_023-change-based-test-selection/tasks.md`
 
 Change `- [ ] T048`, `- [ ] T049` and `- [ ] T050` to `- [X]`.
 

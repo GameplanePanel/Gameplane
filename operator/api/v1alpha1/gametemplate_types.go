@@ -454,6 +454,7 @@ type ModRegistrySpec struct {
 // +kubebuilder:validation:XValidation:rule="self.provider != 'steam' || (has(self.steamAppID) && self.steamAppID > 0)",message="steamAppID is required when provider is steam"
 // +kubebuilder:validation:XValidation:rule="self.provider != 'github' || has(self.github)",message="github is required when provider is github"
 // +kubebuilder:validation:XValidation:rule="self.provider != 'curseforge' || (has(self.curseforgeGameID) && self.curseforgeGameID > 0)",message="curseforgeGameID is required when provider is curseforge"
+// +kubebuilder:validation:XValidation:rule="!has(self.modpacks) || !has(self.modpacks.apiKeyEnv) || self.provider == 'curseforge'",message="modpacks.apiKeyEnv is only valid when provider is curseforge"
 type ModProvider struct {
 	// Provider names the built-in registry engine: "modrinth" (Minecraft
 	// mods/plugins, keyless), "thunderstore" (BepInEx games, keyless,
@@ -470,8 +471,9 @@ type ModProvider struct {
 	// "spigot" (SpigotMC plugins via the Spiget API, keyless), "github"
 	// (one repository's Releases stand in for versions, keyless but
 	// rate-limited — see GitHub), or "umod" (Rust/Hurtworld/7 Days to
-	// Die's Oxide/uMod plugin ecosystem, keyless).
-	// +kubebuilder:validation:Enum=modrinth;thunderstore;curseforge;hangar;factorio;steam;spigot;github;umod;nexus
+	// Die's Oxide/uMod plugin ecosystem, keyless), or "ftb" (Feed The Beast
+	// modpacks, keyless, modpack-only: it has no single-mod browse).
+	// +kubebuilder:validation:Enum=modrinth;thunderstore;curseforge;hangar;factorio;steam;spigot;github;umod;nexus;ftb
 	Provider string `json:"provider"`
 
 	// Community is the Thunderstore community slug whose package index to
@@ -523,6 +525,12 @@ type ModProvider struct {
 	// steamcmd resolves a collection's members itself inside the container.
 	// +optional
 	Modpacks *ModpackSpec `json:"modpacks,omitempty"`
+
+	// ModpacksOnly hides this provider from the Mods tab: it is offered only
+	// in the Modpacks tab (e.g. "ftb", whose registry has packs but no
+	// single-mod listing). Requires Modpacks to be set to be useful.
+	// +optional
+	ModpacksOnly bool `json:"modpacksOnly,omitempty"`
 }
 
 // GitHubRepoSpec identifies the single GitHub repository the "github" mod
@@ -561,6 +569,61 @@ type ModpackSpec struct {
 	// +kubebuilder:validation:MaxItems=16
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
+
+	// VersionEnv is the game-image env the operator sets to the pinned pack
+	// version id (e.g. "MODRINTH_VERSION", "CF_FILE_ID",
+	// "FTB_MODPACK_VERSION_ID"). Required for env-mode packs that support
+	// pinning; when empty the registry is not offered for pinned install.
+	// +kubebuilder:validation:MaxLength=64
+	// +kubebuilder:validation:Pattern=`^[A-Za-z_][A-Za-z0-9_]*$`
+	// +optional
+	VersionEnv string `json:"versionEnv,omitempty"`
+
+	// APIKeyEnv is the game-image env that receives the shared CurseForge
+	// API key (e.g. "CF_API_KEY") through a secretKeyRef to a server-owned
+	// Secret, while the admin has key sharing on. Only valid when the
+	// provider is curseforge.
+	// +kubebuilder:validation:MaxLength=64
+	// +kubebuilder:validation:Pattern=`^[A-Za-z_][A-Za-z0-9_]*$`
+	// +optional
+	APIKeyEnv string `json:"apiKeyEnv,omitempty"`
+
+	// NeedsKeyImageTags lists image tags (the part after ":" and before "@")
+	// that have no built-in CurseForge key. Servers on these images get this
+	// provider only while key sharing is on.
+	// +kubebuilder:validation:MaxItems=8
+	// +kubebuilder:validation:items:MaxLength=64
+	// +optional
+	NeedsKeyImageTags []string `json:"needsKeyImageTags,omitempty"`
+
+	// MissingFilesPath is the file, relative to the data mount, where the
+	// image lists files that need a manual download
+	// (e.g. "MODS_NEED_DOWNLOAD.txt").
+	// +kubebuilder:validation:MaxLength=128
+	// +kubebuilder:validation:XValidation:rule="!self.startsWith('/') && !self.contains('..')",message="missingFilesPath must be relative to the data mount and must not contain '..'"
+	// +optional
+	MissingFilesPath string `json:"missingFilesPath,omitempty"`
+
+	// AdoptVersionFile says where the image records the installed pack
+	// version, so legacy unpinned packs can be adopted with their version.
+	// +optional
+	AdoptVersionFile *AdoptVersionFileSpec `json:"adoptVersionFile,omitempty"`
+}
+
+// AdoptVersionFileSpec locates the installed pack version recorded by the
+// game image: a JSON file under the data mount and the field holding it.
+type AdoptVersionFileSpec struct {
+	// Path is the JSON file, relative to the data mount
+	// (e.g. ".modrinth-modpack-manifest.json").
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=128
+	// +kubebuilder:validation:XValidation:rule="!self.startsWith('/') && !self.contains('..')",message="path must be relative to the data mount and must not contain '..'"
+	Path string `json:"path"`
+
+	// Field is the top-level JSON field holding the version (e.g. "versionId").
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=64
+	Field string `json:"field"`
 }
 
 // ModLoaderSpec is the mods directory for one loader / server-type,

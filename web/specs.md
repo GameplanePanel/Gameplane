@@ -415,6 +415,14 @@ CloneServerDialog, TransferServerDialog and WipeServerDialog do not route throug
    - Layout: left sidebar with section buttons, right panel for section content
    - Each section maintains independent form state, save/discard flow, per-field validation
 
+### Modpacks tab (spec 035, planned)
+
+Status: the API and CRD side has landed; the web work (specs/035-curseforge-modpacks tasks, not yet implemented) has not. Contracts: `specs/035-curseforge-modpacks/contracts/ui-modpacks-tab.md` and `api-modpack.md`; designs are in `design.pen`.
+
+- **Types and client (planned):** `web/src/types.ts` gains `ModpackDecl` fields `versionEnv`, `apiKeyEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, the provider fields `modpacksOnly` and `ftb`, and the `GET /servers/{name}/modpack` view (`active`, `phase`, `message`, `backupName`, `keyShared`, `missingFiles`, `missingFilesUnknown`, `downloadsPath`, `backupAvailable`). `Servers.installModpack` moves from `{ ref }` to `{ provider, project, version, title, versionName, backupFirst }`; new `Servers.modpack`, `Servers.removeModpack(name, backupFirst)` and an admin `Registries.curseforgeShare` get/put. The install call returns 202; the tab polls the GET view until `phase` is `Applied`.
+- **Surfaces (planned):** registry switch (Modrinth, CurseForge, FTB; CurseForge hidden when `modpacksBlockedReason` is set); version picker for the server's Minecraft version and loader with newest preselected and release/beta badges; confirmation dialog with "Back up first" and a downgrade warning; Active modpack card (title, registry, version or "Not pinned", phase, Change version, Remove, "Retry remove" after a failed removal backup); missing-files notice with links and the `downloads/` upload instructions, or a start-the-server note when `missingFilesUnknown`; admin Mod registries "Share the CurseForge key with game servers" switch, disabled with a reason when only the startup flag supplies the key.
+- Mods tab hides providers with `modsBrowse=false`. Until these land, the existing Modpacks tab (`Modpacks.tsx`) is unchanged.
+
 ### Settings Sub-Sections (T101–T111)
 
 All 11 sections render form controls from HeroUI (TextField, Select, Slider, Switch, Checkbox) with independent state management:

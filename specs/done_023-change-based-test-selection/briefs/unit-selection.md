@@ -1065,7 +1065,7 @@ new:
 
 ## 7. Specs
 
-7a. `specs/023-change-based-test-selection/contracts/ci-scope-cli.md`, old:
+7a. `specs/done_023-change-based-test-selection/contracts/ci-scope-cli.md`, old:
 ```markdown
 | `go-packages` | JSON object: module → list of package patterns | `["./..."]` on full scope or when a module's own `go.mod`/`go.sum` changed |
 | `web-tests` | JSON: `"all"` or list of `web/src/...` source paths for `vitest related` | |
@@ -1100,7 +1100,7 @@ a deleted `web/src` file and any other `web/` file outside `src` and `e2e` give 
 
 ```
 
-7c. `specs/023-change-based-test-selection/contracts/changed-coverage.md`, append at the
+7c. `specs/done_023-change-based-test-selection/contracts/changed-coverage.md`, append at the
 end of the `## Behaviour` list (after item 5, before `## Not changed`):
 ```markdown
 6. A profile block marks every line from its start to its end line; a line counts as
@@ -1109,7 +1109,7 @@ end of the `## Behaviour` list (after item 5, before `## Not changed`):
    full `npm run test:cover` run instead of calling this script.
 ```
 
-7d. `specs/023-change-based-test-selection/tasks.md`: change `- [ ] T031` … `- [ ] T040`
+7d. `specs/done_023-change-based-test-selection/tasks.md`: change `- [ ] T031` … `- [ ] T040`
 (ten lines) to `- [X]`. In the T033 line, replace
 `extend the \`test-ci-scope\` target in \`Makefile\` to discover \`test_*.py\` in \`hack/\``
 with
