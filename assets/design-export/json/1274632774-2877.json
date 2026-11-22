@@ -619,7 +619,7 @@
                                   "y": 1.67,
                                   "width": 15,
                                   "height": 16.67,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 },
                                 {
@@ -629,7 +629,7 @@
                                   "y": 3.56,
                                   "width": 14.52,
                                   "height": 6.44,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 }
                               ]
@@ -765,7 +765,7 @@
                                   "y": 1.67,
                                   "width": 15,
                                   "height": 16.67,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 },
                                 {
@@ -775,7 +775,7 @@
                                   "y": 3.56,
                                   "width": 14.52,
                                   "height": 6.44,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 }
                               ]
@@ -930,7 +930,7 @@
                                   "y": 1.67,
                                   "width": 15,
                                   "height": 16.67,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 },
                                 {
@@ -940,7 +940,7 @@
                                   "y": 3.56,
                                   "width": 14.52,
                                   "height": 6.44,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 }
                               ]
@@ -1076,7 +1076,7 @@
                                   "y": 1.67,
                                   "width": 15,
                                   "height": 16.67,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 },
                                 {
@@ -1086,7 +1086,7 @@
                                   "y": 3.56,
                                   "width": 14.52,
                                   "height": 6.44,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 }
                               ]
@@ -1241,7 +1241,7 @@
                                   "y": 1.67,
                                   "width": 15,
                                   "height": 16.67,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 },
                                 {
@@ -1251,7 +1251,7 @@
                                   "y": 3.56,
                                   "width": 14.52,
                                   "height": 6.44,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 }
                               ]
@@ -1387,7 +1387,7 @@
                                   "y": 1.67,
                                   "width": 15,
                                   "height": 16.67,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 },
                                 {
@@ -1397,7 +1397,7 @@
                                   "y": 3.56,
                                   "width": 14.52,
                                   "height": 6.44,
-                                  "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                                  "strokes": [{"type": "SOLID", "color": "#6E5262"}],
                                   "strokeWeight": 1.67
                                 }
                               ]
@@ -1502,6 +1502,7 @@
                   "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
                   "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
                   "strokeWeight": 1,
+                  "cornerRadius": 24,
                   "layout": {
                     "mode": "HORIZONTAL",
                     "gap": 0,
