@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { createResourceClient } from "@/lib/endpoints";
 import { useFleetLocation, Fleet, located, targetKey, targetLabel, type Located } from "@/lib/fleet";
@@ -28,6 +28,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { formatRelative, formatRelativeFuture } from "@/lib/utils";
 import { PhaseChip } from "@/components/ui/PhaseChip";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
+import { ManageDestinationsLink } from "@/components/backups/ManageDestinationsLink";
 import { ScheduleForm } from "@/components/backups/ScheduleForm";
 import { RestoreDialog } from "@/components/backups/RestoreDialog";
 import { BackupDetailDrawer } from "@/components/backups/BackupDetailDrawer";
@@ -238,7 +239,7 @@ function BackupNowDialog({ onClose }: { onClose: () => void }) {
   });
   const serversList = { items: (serversFleet?.items ?? []).map(located) };
   const selectedServer = serversList.items.find((item) => targetKey(item.fleetTarget) === createServer);
-  const { data: destinationData } = useQuery({
+  const { data: destinationData, isSuccess: destinationsLoaded, error: destinationError } = useQuery({
     queryKey: ["backup-destinations", selectedServer?.fleetTarget.cluster, selectedServer?.fleetTarget.namespace],
     queryFn: () => createResourceClient(selectedServer!.fleetTarget).BackupDestinations.list(),
     enabled: !!selectedServer,
@@ -326,8 +327,12 @@ function BackupNowDialog({ onClose }: { onClose: () => void }) {
                     </Select>
                   </div>
                 )}
-                {noDestinations && (
-                  <p className="text-xs text-foreground/60">{intl.formatMessage({ id: "web.routes.backups.no_backup_destinations_configured_add", defaultMessage: "No backup destinations configured. Add one in", description: "Backups: opening words of the note in the back-up-now dialog shown when no destination exists; the link and closing words follow it" })} <Link to="/admin" className="text-primary hover:underline">{intl.formatMessage({ id: "web.routes.backups.admin_settings", defaultMessage: "admin settings", description: "Backups: link text inside the no-destination note that opens the admin settings screen; keep it short" })}</Link> {intl.formatMessage({ id: "web.routes.backups.to_enable_snapshots", defaultMessage: "to enable snapshots.", description: "Backups: closing words of the no-destination note after the admin settings link, ending the sentence about enabling snapshots" })}</p>
+                {destinationError && <ErrorBanner err={destinationError} />}
+                {selectedServer && destinationsLoaded && noDestinations && (
+                  <div>
+                    <p className="text-xs text-foreground/60">{intl.formatMessage({ id: "web.routes.backups.no_backup_destinations_configured_add", defaultMessage: "No backup destinations configured.", description: "Back up now dialog: the selected server has no backup destinations" })}</p>
+                    <ManageDestinationsLink cluster={selectedServer.fleetTarget.cluster} />
+                  </div>
                 )}
                 {createNow.error && <ErrorBanner err={createNow.error} />}
               </div>

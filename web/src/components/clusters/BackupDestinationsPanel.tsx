@@ -9,12 +9,10 @@ import { ErrorBanner } from "@/components/backups/ErrorBanner";
 import { createResourceClient } from "@/lib/endpoints";
 import { APIError } from "@/lib/api";
 import { useMe, can } from "@/lib/auth";
+import { DESTINATION_NAMESPACE } from "@/lib/destinations";
 import { formatRelative } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { ClusterSection, ClusterField } from "./ClusterSection";
-
-// Existing destination requests use the API's default workload namespace.
-const DESTINATION_NAMESPACE = "gameplane-games";
 
 export function BackupDestinationsPanel({ clusterId }: { clusterId: string }) {
   const intl = useOptionalIntl();

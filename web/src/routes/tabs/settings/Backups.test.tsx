@@ -3,11 +3,16 @@ import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
-import { type ReactElement } from "react";
+import { type ReactElement, type ReactNode } from "react";
 import { renderWithQuery as renderWithQueryClient } from "@/test/render";
 import { ResourceTargetProvider } from "@/lib/resourceTarget";
 import { BackupsSection } from "./Backups";
-import { makeServer, makeDestination } from "@/test/factories";
+import { makeServer, makeDestination, makeUser } from "@/test/factories";
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ to, params, search, children }: { to: string; params: { clusterId: string }; search: { tab: string }; children: ReactNode }) =>
+    <a href={to.replace("$clusterId", params.clusterId) + "?tab=" + search.tab}>{children}</a>,
+}));
 
 const baseDraft = makeServer();
 
@@ -20,6 +25,23 @@ function renderWithQuery(ui: ReactElement, permissions = ["destinations:read"]) 
 }
 
 describe("BackupsSection", () => {
+  it("links destination managers to this server's cluster configuration even with an existing destination", async () => {
+    server.use(
+      http.get("/users/me", () => HttpResponse.json(makeUser({ permissionsByCluster: { east: { "gameplane-games": ["destinations:read", "destinations:manage"] } } }))),
+      http.get("/backup-destinations", () => HttpResponse.json({ items: [makeDestination()] })),
+    );
+    renderWithQuery(<BackupsSection draft={baseDraft} onChange={() => {}} />);
+    expect(await screen.findByRole("link", { name: "Manage destinations" })).toHaveAttribute("href", "/clusters/east?tab=configuration");
+  });
+  it("omits the management link when access belongs only to a different cluster", async () => {
+    server.use(
+      http.get("/users/me", () => HttpResponse.json(makeUser({ permissionsByCluster: { west: { "*": ["*"] } } }))),
+      http.get("/backup-destinations", () => HttpResponse.json({ items: [] })),
+    );
+    const { client } = renderWithQuery(<BackupsSection draft={baseDraft} onChange={() => {}} />);
+    await waitFor(() => expect(client.getQueryState(["me"])?.status).toBe("success"));
+    expect(screen.queryByRole("link", { name: "Manage destinations" })).not.toBeInTheDocument();
+  });
   it("shows denied access without fetching destinations or claiming they are unconfigured", async () => {
     let requests = 0;
     server.use(http.get("/backup-destinations", () => {

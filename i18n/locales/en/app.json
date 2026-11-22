@@ -1307,6 +1307,10 @@
     "defaultMessage": "{size} added",
     "description": "Packed data added to the backup repository by this run. The size includes its unit."
   },
+  "web.backups.manage_destinations": {
+    "defaultMessage": "Manage destinations",
+    "description": "Link from backups to the selected cluster's destination configuration"
+  },
   "web.cluster_configuration.access": {
     "defaultMessage": "Access",
     "description": "Cluster configuration access section"
@@ -6103,10 +6107,6 @@
     "defaultMessage": "Active",
     "description": "Backups: column heading for the switch that turns a schedule on or off; keep it short"
   },
-  "web.routes.backups.admin_settings": {
-    "defaultMessage": "admin settings",
-    "description": "Backups: link text inside the no-destination note that opens the admin settings screen; keep it short"
-  },
   "web.routes.backups.back_up_now": {
     "defaultMessage": "Back up now",
     "description": "Backups: button that opens the dialog for a one-off snapshot, and the heading of that dialog; keep it short"
@@ -6184,8 +6184,8 @@
     "description": "Backups: empty state when the backup list could not be loaded"
   },
   "web.routes.backups.no_backup_destinations_configured_add": {
-    "defaultMessage": "No backup destinations configured. Add one in",
-    "description": "Backups: opening words of the note in the back-up-now dialog shown when no destination exists; the link and closing words follow it"
+    "defaultMessage": "No backup destinations configured.",
+    "description": "Back up now dialog: the selected server has no backup destinations"
   },
   "web.routes.backups.no_backups_match_the_current_filters": {
     "defaultMessage": "No backups match the current filters.",
@@ -6302,10 +6302,6 @@
   "web.routes.backups.the_cron_schedule_will_be_removed": {
     "defaultMessage": "The cron schedule will be removed. Existing backups remain intact; new snapshots on this schedule will stop running until it's recreated.",
     "description": "Backups: text in the delete schedule dialog: the schedule is removed, existing backups stay, and new snapshots stop until it is recreated"
-  },
-  "web.routes.backups.to_enable_snapshots": {
-    "defaultMessage": "to enable snapshots.",
-    "description": "Backups: closing words of the no-destination note after the admin settings link, ending the sentence about enabling snapshots"
   },
   "web.routes.backups.trailing_backups": {
     "defaultMessage": "{shown} of {total} {total, plural, one {backup} other {backups}}",
@@ -8040,8 +8036,8 @@
     "description": "Backups tab: hint under the Back up now button when several backup destinations exist; points to the dashboard Backups page to choose one"
   },
   "web.routes.tabs.backups.backup_now_hint_no_destination": {
-    "defaultMessage": "No backup destination configured. Add one in admin settings.",
-    "description": "Backups tab: hint under the Back up now button when no backup destination exists; points to admin settings"
+    "defaultMessage": "No backup destination configured. See this server’s Settings → Scheduled backups.",
+    "description": "Backups tab: directs the user to the server settings section with the destination management link"
   },
   "web.routes.tabs.backups.backups": {
     "defaultMessage": "Backups",

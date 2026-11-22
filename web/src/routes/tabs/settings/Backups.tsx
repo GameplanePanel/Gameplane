@@ -11,6 +11,8 @@ import {
 } from "@heroui/react";
 import { RetentionFields, buildRetention, type RetentionForm } from "@/components/backups/RetentionFields";
 import { ErrorBanner } from "@/components/backups/ErrorBanner";
+import { ManageDestinationsLink } from "@/components/backups/ManageDestinationsLink";
+import { useResourceTarget } from "@/lib/resourceTarget";
 import { useBackupDestinations } from "@/lib/destinations";
 import type { InlineBackupPolicy } from "@/types";
 import { cn } from "@/lib/utils";
@@ -21,6 +23,7 @@ import { useOptionalIntl } from "@/lib/i18n/format";
 export function BackupsSection({ draft, onChange }: SectionProps) {
   const intl = useOptionalIntl();
   const policy = draft.spec.backupPolicy;
+  const target = useResourceTarget(draft.metadata);
   const { data: destinations = [], error: destinationError, isSuccess: destinationsLoaded } = useBackupDestinations();
   const [destPopoverOpen, setDestPopoverOpen] = useState(false);
 
@@ -93,6 +96,7 @@ export function BackupsSection({ draft, onChange }: SectionProps) {
         {!policy && destinationsLoaded && destinations.length === 0 && (
           <div className="pt-1 text-xs text-muted">{intl.formatMessage({ id: "web.routes.tabs.settings.backups.configure_a_backup_destination_first", defaultMessage: "Configure a backup destination first.", description: "Settings backups section: note shown when no backup destination exists yet, so scheduled backups cannot be set up" })}</div>
         )}
+        <ManageDestinationsLink cluster={target.cluster} />
       </Field>
 
       {policy && (

@@ -5,6 +5,9 @@ import { backupReadOptions, isAuthorizationError, useBackupAccessKey } from "./b
 import { useOptionalIntl } from "./i18n/format";
 import type { BackupDestination } from "@/types";
 
+// Cluster Configuration manages destination Secrets in the default workload namespace.
+export const DESTINATION_NAMESPACE = "gameplane-games";
+
 export function useBackupDestinations(scope?: ResourceScope, explicitPermissions?: readonly string[]) {
   const intl = useOptionalIntl();
   const target = useResourceTarget({ name: "" }, scope ? { ...scope, name: "" } : undefined);

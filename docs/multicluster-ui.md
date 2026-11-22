@@ -54,6 +54,11 @@ in that cluster's installation. Backup destination requests and drafts bind to
 the explicit cluster and `gameplane-games` namespace, with that scope's destination
 permissions. Removal requires confirmation and never applies to Local.
 
+From a server’s **Settings → Scheduled backups**, **Manage destinations** opens
+that server’s cluster configuration. The **Back up now** dialog offers the same
+link when the selected server has no destinations. Both links are shown to users
+who can manage destinations in the cluster configuration.
+
 Panel settings retain central authentication, telemetry, registries and
 notifications. Old `/admin?section=backups` links lead users to the owning cluster
 configuration without issuing an ambient destination request. Discovering a
