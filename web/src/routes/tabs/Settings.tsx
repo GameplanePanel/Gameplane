@@ -1,4 +1,4 @@
-import { useResourceClient, useResourceAccess, useResourceTarget, resourceKey } from "@/lib/resourceTarget";
+import { useResourceClient, useResourceAccess, useResourcePermissions, useResourceTarget, resourceCan, resourceKey } from "@/lib/resourceTarget";
 import { useEffect, useMemo, useRef, useState, Suspense, lazy } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Tabs } from "@heroui/react";
@@ -8,6 +8,7 @@ import {
   HardDrive,
   Layers,
   Link2,
+  Lock,
   MapPin,
   Network,
   RadioTower,
@@ -38,6 +39,8 @@ import { NetworkCaptureSection } from "./settings/NetworkCapture";
 import { AccessSection } from "./settings/Access";
 import { ShareLinksSection } from "./settings/ShareLinks";
 import { DangerSection } from "./settings/Danger";
+import { SecuritySection, needsFileAccessWarning } from "./settings/Security";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useOptionalIntl } from "@/lib/i18n/format";
 import { useModuleText } from "@/lib/i18n/moduleText";
 import { defineMessages, type IntlShape, type MessageDescriptor } from "react-intl";
@@ -56,6 +59,7 @@ type SectionKey =
   | "backups"
   | "capture"
   | "placement"
+  | "security"
   | "access"
   | "sharelinks"
   | "danger";
@@ -71,6 +75,7 @@ const SECTION_LABELS = defineMessages({
   backups: { id: "web.routes.tabs.settings.section_scheduled_backups", defaultMessage: "Scheduled backups", description: "Settings: name of the Scheduled backups section in the settings tab list" },
   capture: { id: "web.routes.tabs.settings.section_network_capture", defaultMessage: "Network capture", description: "Settings: name of the Network capture section in the settings tab list" },
   placement: { id: "web.routes.tabs.settings.section_placement", defaultMessage: "Placement", description: "Settings: name of the Placement section in the settings tab list" },
+  security: { id: "web.routes.tabs.settings.section_security", defaultMessage: "Security", description: "Settings: name of the Security section in the settings tab list" },
   access: { id: "web.routes.tabs.settings.section_rbac_access", defaultMessage: "RBAC & access", description: "Settings: name of the RBAC and access section in the settings tab list" },
   sharelinks: { id: "web.routes.tabs.settings.section_share_links", defaultMessage: "Share links", description: "Settings: name of the Share links section in the settings tab list" },
   danger: { id: "web.routes.tabs.settings.section_danger_zone", defaultMessage: "Danger zone", description: "Settings: name of the Danger zone section in the settings tab list" },
@@ -87,6 +92,7 @@ const SECTIONS: { key: SectionKey; label: MessageDescriptor; icon: typeof Settin
   { key: "backups",    label: SECTION_LABELS.backups,    icon: CalendarClock },
   { key: "capture",    label: SECTION_LABELS.capture,    icon: RadioTower },
   { key: "placement",  label: SECTION_LABELS.placement,  icon: MapPin },
+  { key: "security",   label: SECTION_LABELS.security,   icon: Lock },
   { key: "access",     label: SECTION_LABELS.access,     icon: ShieldCheck },
   { key: "sharelinks", label: SECTION_LABELS.sharelinks, icon: Link2 },
   { key: "danger",     label: SECTION_LABELS.danger,     icon: AlertTriangle },
@@ -104,6 +110,8 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   const intl = useOptionalIntl();
   const resourceTarget = useResourceTarget({ name, namespace: ns });
   const access = useResourceAccess();
+  const permissions = useResourcePermissions();
+  const canSecurity = access?.permissions !== undefined && resourceCan(permissions, "servers:security");
   const resourceClient = useResourceClient(resourceTarget);
   const { Servers } = resourceClient;
   const qc = useQueryClient();
@@ -114,13 +122,14 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [sectionValidity, setSectionValidity] = useState<Partial<Record<SectionKey, boolean>>>({});
   const [draftRevision, setDraftRevision] = useState(0);
+  const [fileWarnOpen, setFileWarnOpen] = useState(false);
   const savingRef = useRef(false);
   const validityCallbacks = useMemo(() => {
     const report = (key: SectionKey) => (valid: boolean) => {
       if (savingRef.current) return;
       setSectionValidity((previous) => previous[key] === valid ? previous : { ...previous, [key]: valid });
     };
-    return { config: report("config"), networking: report("networking"), capture: report("capture"), placement: report("placement") };
+    return { config: report("config"), networking: report("networking"), capture: report("capture"), placement: report("placement"), security: report("security") };
   }, []);
   // `dirty` (does draft differ from the last known-good server snapshot) is
   // read directly in JSX, so it's tracked as its own piece of state,
@@ -278,7 +287,17 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
   });
   // Without servers:write the Game configuration section is view-only and the
   // footer shows a note instead of Discard/Save.
-  const readOnlyConfig = section === "config" && !access?.canWrite;
+  const readOnlyConfig = (section === "config" && !access?.canWrite) || (section === "security" && !canSecurity);
+
+  // Saving a changed run-as user or group on a server that already started
+  // needs confirmation: existing files keep their old owner.
+  const requestSave = () => {
+    if (needsFileAccessWarning(baselineRef.current ?? undefined, draft)) {
+      setFileWarnOpen(true);
+      return;
+    }
+    save.mutate(draft);
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row md:p-6">
@@ -323,6 +342,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
               />
             </Suspense>
           )}
+          {section === "security"   && <SecuritySection   draft={draft} onChange={onChangeDraft} template={template} onValidityChange={validityCallbacks.security} />}
           {section === "access"     && <AccessSection     gs={gs} />}
           {section === "sharelinks" && <ShareLinksSection name={name} ns={ns} />}
           {section === "danger"     && <DangerSection     name={name} ns={ns} />}
@@ -363,7 +383,7 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
               >{intl.formatMessage({ id: "web.routes.tabs.settings.discard", defaultMessage: "Discard", description: "Settings tab: footer button that throws away unsaved settings edits; disabled when nothing changed; keep it short" })}</Button>
               <Button
                 size="sm"
-                onPress={() => save.mutate(draft)}
+                onPress={requestSave}
                 isDisabled={!access?.canWrite || !dirty || !draftValid || save.isPending}
               >
                 {save.isPending
@@ -374,6 +394,17 @@ export function SettingsTab({ gs, name, ns, onDirtyChange }: SettingsTabProps) {
             )}
           </footer>
         )}
+        <ConfirmDialog
+          open={fileWarnOpen}
+          onOpenChange={setFileWarnOpen}
+          title={intl.formatMessage({ id: "web.routes.server_settings.security_file_warning_title", defaultMessage: "Change who the game runs as?", description: "Settings: title of the confirmation shown before saving a new run-as user or group on a server that already has data" })}
+          description={intl.formatMessage({ id: "web.routes.server_settings.security_file_warning_body", defaultMessage: "This server already has data. After the next restart the game runs with the new user or group. Files written before keep their old owner; if the game cannot read or change them, set a filesystem group or clear the override. Saving does not restart the server.", description: "Settings: body of the confirmation shown before saving a new run-as user or group on a server that already has data; explains files keep their old owner and saving does not restart" })}
+          confirmLabel={intl.formatMessage({ id: "web.routes.server_settings.security_file_warning_confirm", defaultMessage: "Save anyway", description: "Settings: confirm button label in the run-as user or group warning, saving the change despite the existing files" })}
+          onConfirm={() => {
+            setFileWarnOpen(false);
+            save.mutate(draft);
+          }}
+        />
       </div>
     </div>
   );

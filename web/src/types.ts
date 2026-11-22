@@ -353,6 +353,7 @@ export interface GameTemplate {
       minLength?: number;
       maxLength?: number;
     }>;
+    security?: GameTemplateSecurity;
   };
   status?: {
     inUseCount?: number;
@@ -564,6 +565,20 @@ export interface GameServerEndpoint {
   pool?: string;
 }
 
+// Spec 030: per-server security overrides and module defaults.
+export type SecuritySetting = "runAsUser" | "runAsGroup" | "fsGroup" | "volumeOwnershipCheck";
+export type VolumeOwnershipCheck = "EveryStart" | "OnlyWhenWrong";
+export type SecuritySource = "ModuleDefault" | "Override" | "ImageDefaultOverride" | "ImageDefault" | "BuiltInDefault";
+export interface SecurityIDOverride { value?: number; useImageDefault?: true }
+export interface GameServerSecuritySpec { runAsUser?: SecurityIDOverride; runAsGroup?: SecurityIDOverride; fsGroup?: SecurityIDOverride; volumeOwnershipCheck?: VolumeOwnershipCheck }
+export interface SecurityIDStatus { value?: number; source: SecuritySource }
+export interface SecurityCheckStatus { value: VolumeOwnershipCheck; source: SecuritySource }
+export interface SecuritySettings { runAsUser?: SecurityIDStatus; runAsGroup?: SecurityIDStatus; fsGroup?: SecurityIDStatus; volumeOwnershipCheck?: SecurityCheckStatus }
+export interface GameServerSecurityStatus { desired?: SecuritySettings; applied?: SecuritySettings; pending?: boolean }
+export interface SecurityRiskNote { reason?: string }
+export interface GameTemplateSecurity { runAsUser?: number; runAsGroup?: number; fsGroup?: number; volumeOwnershipCheck?: VolumeOwnershipCheck; risky?: Partial<Record<SecuritySetting, SecurityRiskNote>> }
+export interface SecuritySettingsResponse { cluster: string; allowRootOverrides: boolean; present: boolean }
+
 export interface GameServer {
   metadata: ObjectMeta & { resourceVersion?: string };
   spec: {
@@ -601,6 +616,7 @@ export interface GameServer {
     // for the enable/disable asymmetry (disable does not remove a running
     // ephemeral container).
     capture?: CaptureConfiguration;
+    security?: GameServerSecuritySpec;
   };
   status?: {
     phase?: GameServerPhase;
@@ -657,6 +673,7 @@ export interface GameServer {
     startedAt?: string;
     // Observed state of the capture sidecar for this server.
     capture?: CaptureStatus;
+    security?: GameServerSecurityStatus;
   };
 }
 
@@ -939,6 +956,7 @@ export interface NodeJoinInfo {
 export interface ClusterRegistry {
   name: string;
   displayName: string;
+  controlPlaneNamespace?: string;
   phase: "Healthy" | "Unhealthy" | "Unknown" | "";
   message?: string;
   serverVersion?: string;
