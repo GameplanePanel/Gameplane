@@ -40,7 +40,7 @@ gh api repos/GameplanePanel/Gameplane/issues/<n>/labels -q '[.[].name]|join(", "
 ## Core rules to check
 
 - **Design first (rule 1):** a UI change in `web/` or `website/` has a design change and `assets/design-export/` (or `website/website-export/`) update in the same PR.
-- **Design file and export together (rules 1 and 2):** a diff that changes `design.fig` (or `telemetry-dashboard.fig`) without the regenerated `assets/design-export/` (or `telemetry-receiver/design-export/`) is a blocking finding. Inspect `.fig` and `.pen` files only with `git diff --stat`.
+- **Design file and export together (rules 1 and 2):** a diff that changes `design.fig` (or `telemetry-dashboard.fig`) without the regenerated `assets/design-export/` (or `telemetry-receiver/design-export/`) is a blocking finding. Inspect `.fig` files only with `git diff --stat`.
 - **Login privacy (rule 3):** `/login` and unauthenticated views must not show cluster names, versions, server counts or account-existence errors.
 - **No suppressions (rule 4):** no `//nolint`, `eslint-disable`, `@ts-ignore`, or loosened `.golangci.yml` / `web/eslint.config.js`.
 - **Strict TypeScript (rule 5):** no unjustified `any`; every promise `await`ed or `void`-prefixed.

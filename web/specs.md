@@ -791,7 +791,7 @@ package.json                # @gameplane/web v0.4.3; dev: vite, npm scripts for 
 
 ## SSO Role Rules and Role Source (spec 034) — pending dashboard build
 
-**Status:** pending the dashboard build. The API and Helm parts are in place. The screens below are not built yet, and the design in `design.pen` is not done. Per core rule 1, the design comes first: the rule editor, the role-source badge and the "Return to SSO control" action are designed through the Pencil MCP (on the maintainer's machine, via a local-agent prompt), then exported to `assets/design-export/`, then built. This section will be revised when those screens land.
+**Status:** pending the dashboard build. The API and Helm parts are in place. The screens below are not built yet, and the design in `design.fig` is not done. Per core rule 1, the design comes first: the rule editor, the role-source badge and the "Return to SSO control" action are designed through the Pencil MCP (on the maintainer's machine, via a local-agent prompt), then exported to `assets/design-export/`, then built. This section will be revised when those screens land.
 
 **Already in place:**
 - `web/src/types.ts`: `UserRoleSource = "sso" | "sso_pending" | "manual"` and `roleSource?: UserRoleSource` on `User` (the API always sends it; optional only for older typed payloads).

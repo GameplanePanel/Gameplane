@@ -50,11 +50,9 @@ reviews:
     ignore_usernames: []
 
   # Path filters: exclude design-source files from review
-  # .fig (binary) and .pen (multi-megabyte machine-generated JSON) are design sources
-  # (CLAUDE.md rule 2). Review them through their exports (assets/design-export/json and
-  # screenshots), not textually.
+  # .fig files are binary design sources (CLAUDE.md rule 2). Review them through their
+  # exports (assets/design-export/json and screenshots), not textually.
   path_filters:
-    - "!**/*.pen"
     - "!**/*.fig"
 
   # Path-specific review instructions encoding project rules
@@ -126,8 +124,7 @@ reviews:
         Flag if:
         - The route file (*.tsx) shows visual changes but no matching design.fig update in the PR
         - design.fig was touched but assets/design-export/ was not regenerated with
-          hack/design/fig-export.ts (per-screen .fig, JSON and screenshots), or website.pen was
-          touched but website-export/ was not updated
+          hack/design/fig-export.ts (per-screen .fig, JSON and screenshots)
 
         Visual change means: added/changed components, layout shifts, color/style updates, new pages.
         Backend-only logic changes do not require a design pass.

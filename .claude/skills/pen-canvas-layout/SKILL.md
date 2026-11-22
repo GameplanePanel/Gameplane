@@ -1,22 +1,19 @@
 ---
 name: pen-canvas-layout
-description: "How design.fig (and the other design files) is organised on the canvas: components on boards at the top, one row per page below in app navigation order, variants left to right. Use whenever you add, move or rename a screen, component or note in design.fig, telemetry-dashboard.fig or website.pen, or when the canvas looks disorganised."
+description: "How design.fig (and the other design files) is organised on the canvas: components on boards at the top, one row per page below in app navigation order, variants left to right. Use whenever you add, move or rename a screen, component or note in design.fig, telemetry-dashboard.fig or website.fig, or when the canvas looks disorganised."
 ---
 
 ## Scope
 
-- Binding for `design.fig` (dashboard, page `Dashboard`). `website/website.pen` and
+- Binding for `design.fig` (dashboard, page `Dashboard`). `website/website.fig` and
   `telemetry-receiver/telemetry-dashboard.fig` follow the same two-zone principle (components on top, one row
   per page, variants to the right), with their own page order (site navigation / dashboard views). The canonical
   row list below is for `design.fig` only.
-- `.fig` files: apply the layout through OpenPencil (app, `openpencil-mcp`, or `openpencil eval -w` with the
-  Figma plugin API: `figma.currentPage.children`, `node.x`/`node.y`, `node.parent`) or Figma. The `execute`
-  snippets and `check-layout.js` below run on `.pen` files only (the website); for `.fig`, check the same
-  rules with an `openpencil eval` script that reads the page's top-level nodes.
-- `.pen` files: all access through Pencil, the Pencil MCP (`mcp__pencil__execute`) or the Pen CLI
-  (`execute({ input })` in `pen interactive`; see the `design-export` skill). With the MCP ask the user to save in
-  the Pencil UI before committing; with the CLI, end the run with `save()`.
-- Never Read, grep or edit `.fig` or `.pen` files (CLAUDE.md core rule 2).
+- All access through OpenPencil (desktop app, `openpencil-mcp`, or `openpencil eval` with the Figma plugin API:
+  `figma.currentPage.children`, `node.x`/`node.y`, `node.appendChild`) or Figma. Never Read, grep or edit a `.fig`
+  file directly (CLAUDE.md core rule 2).
+- Row labels and notes are frames named `Row NN · <label>` and `Note — <text>`; components are `COMPONENT` (or
+  `COMPONENT_SET`) nodes.
 
 ## Two zones
 
@@ -28,9 +25,9 @@ description: "How design.fig (and the other design files) is organised on the ca
 
 ## Component boards
 
-- Every reusable node (`reusable: true`) lives on a board. Never leave a component loose at the document root.
+- Every component lives on a board. Never leave a component loose at the document root.
 - Boards hold only components and their label text nodes. A board's name must end in `Components`
-  (`check-layout.js` and the componentize audit find boards by that suffix). The imported HeroUI board also keeps the library's own example frames (`ex1`, `tableEx`, `Modal Example`, …); `check-layout.js` skips that rule for boards whose name starts with `HeroUI`.
+  (`check-layout.fig.js` and the componentize audit find boards by that suffix). The imported HeroUI board also keeps the library's own example frames (`ex1`, `tableEx`, `Modal Example`, …); `check-layout.fig.js` skips that rule for boards whose name starts with `HeroUI`.
 - Gameplane board sections, in this order: Shell & navigation; Login & public pages; Buttons & form controls;
   Cards, rows & stats; Status rows, badges & chips; Banners; Menus, popovers & panels; Modals & dialogs;
   Page blocks (larger page sections reused across screens, such as dashboard cards, module cards and wizard panels).
@@ -40,14 +37,14 @@ description: "How design.fig (and the other design files) is organised on the ca
 - The Gameplane board's fill is transparent (`#00000000`) so components show against the canvas.
 - Board title text `Gameplane App Components` (Inter 20/600, `$foreground/foreground`) at (160, 87), with a
   subtitle at (160, 117).
-- To add a component: build it, `Move(id, boardId)`, then `Update(id, {x, y})` into its section. If the
-  section grows, move the sections below it down and grow the board with `Update(boardId, {height})`.
+- To add a component: build it, `board.appendChild(component)`, then set its `x`/`y` into its section. If the
+  section grows, move the sections below it down and grow the board with `board.resize(width, height)`.
 
 ## Screen rows
 
 - One row per page or surface: a page, a server-detail tab, a server-settings section, an admin-settings
   section, a wizard step, or a multi-step dialog flow.
-- Row label: a `note` at x = -1400, same y as the row, 1000 x 240, fontSize 48, named `Row NN · <label>`,
+- Row label: a frame at x = -1400, same y as the row, 1000 x 240, fontSize 48, named `Row NN · <label>`,
   with content `NN · <label>` (two-digit number). Rows are numbered 01.. top to bottom with no gaps.
 - Items start at x = 0, top-aligned to the row's y, with a 200 px horizontal gap. The next row starts 400 px
   below the bottom of the tallest item of the row above, including notes under screens.
@@ -91,37 +88,32 @@ The live canvas row label notes are the authoritative list of row ids. Do not co
 
 ## Procedures
 
-Each procedure runs as an `execute` snippet (`mcp__pencil__execute`, or `execute({ input })` in the Pen CLI). Include the snippets verbatim.
-
-**List root nodes safely.** The visitor form of `Get` crashes inside some subtrees (see
-`docs/design/pencil-visitor-crash-report.md`), so always call `c.skipChildren()` at the root:
-
-```js
-Get(document,(n,c)=>{if(!c.parentCtx&&n.id!==document){Print(n.id,n.type,n.name,Math.round(c.bounds.x),Math.round(c.bounds.y),Math.round(c.bounds.width),Math.round(c.bounds.height));c.skipChildren()}})
-```
+Each procedure is a short `openpencil eval -w <file.fig> --stdin` script (Figma plugin API). Read-only checks
+use `eval` without `-w`.
 
 **A. Add a variant to an existing row.** Set x = rightmost item's x + width + 200 and y = the row's y. If the new
-frame is taller than the row's tallest item, shift everything below down by the difference:
+frame is taller than the row's tallest item, shift every top-level node below the row down by the difference:
 
 ```js
-const BELOW_Y=<row y>,DY=<pixels>;
-const ids=[];Get(document,(n,c)=>{if(!c.parentCtx&&n.id!==document){if(c.bounds.y>BELOW_Y)ids.push([n.id,c.bounds.x,c.bounds.y]);c.skipChildren()}});
-ids.forEach(([id,x,y])=>Update(id,{x,y:y+DY}))
+const BELOW_Y = 0 /* row y */, DY = 0 /* pixels */
+for (const n of figma.currentPage.children) if (n.y > BELOW_Y) n.y += DY
 ```
 
 **B. Add a new page row.** Pick its position from the navigation order. Shift everything below it down by
-(new row height + 400) with the snippet above. Insert the label note, then renumber all row labels:
+(new row height + 400) with the snippet above. Add the label frame, then renumber all row labels:
 
 ```js
-const L=[];Get(document,(n,c)=>{if(!c.parentCtx&&n.id!==document){if(n.type==="note"&&/^Row \d\d · /.test(n.name||""))L.push({id:n.id,y:c.bounds.y,rest:n.name.replace(/^Row \d\d · /,"")});c.skipChildren()}});
-L.sort((a,b)=>a.y-b.y).forEach((l,i)=>{const k=String(i+1).padStart(2,"0")+" · "+l.rest;Update(l.id,{name:"Row "+k,content:k})})
+const ROW = /^Row \d\d · /
+figma.currentPage.children.filter((n) => ROW.test(n.name)).sort((a, b) => a.y - b.y)
+  .forEach((l, i) => { const k = `${String(i + 1).padStart(2, '0')} · ${l.name.replace(ROW, '')}`; l.name = `Row ${k}`
+    const t = l.findOne((c) => c.type === 'TEXT'); if (t) t.characters = k })
 ```
 
 **C. Add a component.** See "Component boards" above.
 
-**D. Verify.** Pass the full content of `check-layout.js` (next to this file) as the `input` of
-`mcp__pencil__execute` with `filePath` set to the `.pen` file (Pen CLI: `pen interactive -i <file.pen> -o /tmp/check.pen`, no `save()`). It is read-only and must end with
-`NO ISSUES`. It checks:
+**D. Verify.** Run `check-layout.fig.js` (next to this file) read-only:
+`openpencil eval <file.fig> --stdin < .claude/skills/pen-canvas-layout/check-layout.fig.js | jq -r .`
+It must print `NO ISSUES`. It checks:
 - no loose components at the root
 - boards hold only components and labels (HeroUI library examples excepted)
 - no overlapping root nodes
@@ -130,14 +122,12 @@ L.sort((a,b)=>a.y-b.y).forEach((l,i)=>{const k=String(i+1).padStart(2,"0")+" · 
 - items are top-aligned at x = 0 with 200 px gaps
 - at least 400 px between rows
 
-**E. Exports.** `design.fig`: re-run `hack/design/fig-export.ts` (design-export skill); a move changes only
-`x`/`y` in the JSON. Website: moving a node changes `x`/`y` in its `website/website-export/json/<id>.json`;
-patch only those two values, in the same commit as the `.pen` change. Screenshots do not change when a node
-only moves.
+**E. Exports.** Re-run `hack/design/fig-export.ts` (design-export skill); a move changes only `x`/`y` in the
+JSON, and screenshots do not change.
 
 ## When the canvas is disorganised
 
-1. Re-run `check-layout.js`.
+1. Re-run `check-layout.fig.js`.
 2. Fix each reported issue with the procedures above.
 3. Re-run until the output is `NO ISSUES`.
 

@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
-- 2.2.1 → 2.3.0 (MINOR). Principle II moves the dashboard and telemetry designs from
-  Pencil `.pen` files to `.fig` files (`design.fig`, `telemetry-dashboard.fig`) edited
-  through OpenPencil or Figma, and the snapshot becomes a full per-screen export
-  (standalone `.fig`, JSON, screenshot) written by `hack/design/fig-export.ts`. The
-  website keeps `website.pen` and Pencil MCP. CLAUDE.md rules 1, 2 and 17 changed to match.
+- 2.2.1 → 2.3.0 (MINOR). Principle II moves every design (dashboard, telemetry, website)
+  from Pencil `.pen` files to `.fig` files (`design.fig`, `telemetry-dashboard.fig`,
+  `website.fig`) edited through OpenPencil or Figma, and the snapshot becomes a full
+  per-screen export (standalone `.fig`, JSON, screenshot) written by
+  `hack/design/fig-export.ts`. CLAUDE.md rules 1, 2 and 17 changed to match.
 
 Previous report (2.2.0 → 2.2.1)
 - 2.2.0 → 2.2.1 (PATCH). Principle III names the Oxlint rules that enforce the existing
@@ -97,21 +97,20 @@ is deferred execution, never deferred authorship.
 Any change to the web dashboard's visual surface, and any change to the public website's
 screens, MUST be designed first in the relevant design source (`design.fig` for the
 dashboard, `telemetry-receiver/telemetry-dashboard.fig` for the telemetry dashboard,
-`website.pen` for the public website's screens) and translated to React only after the
+`website/website.fig` for the public website's screens) and translated to React only after the
 design is committed. Backend-only, API-only, and operator-only changes are exempt.
 Design sources MUST NOT be read, hand-edited, or deleted with generic file tools
 (`Read`, `Grep`, `sed`, `cat`, `rm`): a `.fig` file is binary and is changed only through
-OpenPencil (desktop app, its MCP server, or its CLI) or Figma; a `.pen` file is a
-multi-megabyte machine-generated JSON document changed only through the `pencil` MCP
-server. Hand-editing either risks corruption the tools cannot recover, and reading one
-reveals nothing useful about the design.
+OpenPencil (desktop app, its MCP server, or its CLI) or Figma. Hand-editing risks
+corruption the tools cannot recover, and reading one reveals nothing useful about the
+design.
 Every design edit — a new screen or a change to an existing one — MUST be followed, in
 the same change, by regenerating the matching plain-file snapshot:
-`assets/design-export/{fig,json,screenshots}/` and `screens.json` for `design.fig`
-(and `telemetry-receiver/design-export/` for the telemetry design), written by
-`hack/design/fig-export.ts`; `website/website-export/{json,screenshots}/` for
-`website.pen`, exported through the `pencil` MCP server. A design change without a
-matching export update is incomplete.
+`assets/design-export/` for `design.fig`, `telemetry-receiver/design-export/` for the
+telemetry design and `website/website-export/` for the website (one standalone `.fig`,
+one JSON dump and one screenshot per screen, with `screens.json`), written by
+`hack/design/fig-export.ts`. A design change without a matching export update is
+incomplete.
 Rationale: the design files are the source of truth for the product's designed screens.
 Code-led redesigns bypass that source of truth, drift from it silently, and have been
 reverted before. The export snapshot exists because the design files cannot be read
@@ -295,7 +294,7 @@ per-module coverage gates defined in each module's `.testcoverage.yml` (and
 ## Development Workflow
 
 1. Constitution and spec artifacts govern before implementation begins (Principle IV).
-2. UI/design work is designed in its design source (`design.fig`, or `website.pen` for
+2. UI/design work is designed in its design source (`design.fig`, or `website.fig` for
    the website) before code is written (Principle II).
 3. Implementation is delegated and fanned out to subagents per Principle V, with
    tier-appropriate model escalation and mandatory tier-up review before acceptance.

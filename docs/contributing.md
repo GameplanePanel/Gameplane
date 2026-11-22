@@ -41,7 +41,7 @@ Gates a first PR trips on:
 - Local test or lint runs: only compile checks locally; CI is the verifier.
 - UI without design: dashboard changes start in `design.fig`, see
   [Design first for UI changes](#design-first-for-ui-changes). Never hand-edit
-  `.fig` or `.pen` files.
+  `.fig` files.
 - Submodule work in the wrong repo: `modules/`, `website/` and the component submodules
   (`mcp-server/`, `audit-syslog-bridge/`, `tunnel/`, `capture-sidecar/`) changes go to
   their own repos first, then a pointer bump PR here.
