@@ -255,7 +255,7 @@ func (h *registryHandler) installModpack(w http.ResponseWriter, req *http.Reques
 		httperr.WriteMessage(w, req, messages.New("server.modpack.version_required", nil))
 		return
 	}
-	if body.BackupFirst && !h.hasBackupDestination(req, target) {
+	if body.BackupFirst && h.backupDestinationName(req, target) == "" {
 		httperr.WriteMessage(w, req, messages.New("server.modpack.backup_unavailable", nil))
 		return
 	}

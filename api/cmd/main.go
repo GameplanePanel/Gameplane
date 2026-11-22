@@ -437,7 +437,9 @@ func main() {
 		handlers.MountSystemLogs(p, k8s, cfg.namespace)
 		handlers.MountModulesWithRegistry(p, reg, moduleConfigMapNS)
 		handlers.MountRegistrySecrets(p, k8s, credentialsNS)
-		handlers.MountRegistryShare(p, k8s, credentialsNS)
+		handlers.MountRegistryShareWithOptions(p, k8s, credentialsNS, handlers.RegistryShareOptions{
+			StartupKeySet: cfg.curseforgeAPIKey != "",
+		})
 		// Precedence: a runtime, admin-configured key (DB row + labelled
 		// Secret, resolved lazily per registry.DBKeyFunc) always wins over
 		// the startup --curseforge-api-key flag, so adding/rotating a key

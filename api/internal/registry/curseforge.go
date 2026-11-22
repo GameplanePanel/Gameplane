@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Curseforge searches the CurseForge v1 API (api.curseforge.com), which
@@ -221,11 +222,17 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 		if f.modpack() && !cfFileMatches(fl.GameVersions, f) {
 			continue
 		}
+		published := ""
+		if t, err := time.Parse(time.RFC3339Nano, fl.FileDate); err == nil {
+			published = t.UTC().Format(time.RFC3339)
+		}
 		out = append(out, Version{
 			ID:            strconv.Itoa(fl.ID),
 			Name:          fl.DisplayName,
 			VersionNumber: fl.DisplayName,
 			GameVersions:  fl.GameVersions,
+			ReleaseType:   cfReleaseType(fl.ReleaseType),
+			PublishedAt:   published,
 			Files: []File{{
 				Filename:    fl.FileName,
 				DownloadURL: fl.DownloadURL,
@@ -244,6 +251,23 @@ type cfFile struct {
 	DownloadURL  string   `json:"downloadUrl"`
 	FileLength   int64    `json:"fileLength"`
 	GameVersions []string `json:"gameVersions"`
+	ReleaseType  int      `json:"releaseType"`
+	FileDate     string   `json:"fileDate"`
+}
+
+// cfReleaseType maps CurseForge's numeric releaseType (1 release, 2 beta,
+// 3 alpha) to the Version.ReleaseType vocabulary; "" for anything else.
+func cfReleaseType(n int) string {
+	switch n {
+	case 1:
+		return "release"
+	case 2:
+		return "beta"
+	case 3:
+		return "alpha"
+	default:
+		return ""
+	}
 }
 
 // cfLoaderTags maps a Gameplane loader id to the loader tag CurseForge puts

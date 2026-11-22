@@ -311,6 +311,13 @@ func (f *FTB) Versions(ctx context.Context, projectID string, flt Filter) ([]Ver
 			VersionNumber: v.Name,
 			Files:         []File{},
 		}
+		switch v.Type {
+		case "release", "beta", "alpha":
+			ver.ReleaseType = v.Type
+		}
+		if v.Updated > 0 {
+			ver.PublishedAt = time.Unix(v.Updated, 0).UTC().Format(time.RFC3339)
+		}
 		if v.Game != "" {
 			ver.GameVersions = []string{v.Game}
 		}

@@ -77,7 +77,12 @@ type Version struct {
 	VersionNumber string   `json:"versionNumber,omitempty"`
 	GameVersions  []string `json:"gameVersions,omitempty"`
 	Loaders       []string `json:"loaders,omitempty"`
-	Files         []File   `json:"files"`
+	// ReleaseType is "release", "beta" or "alpha"; empty when the provider
+	// does not say.
+	ReleaseType string `json:"releaseType,omitempty"`
+	// PublishedAt is RFC 3339 UTC; empty when unknown.
+	PublishedAt string `json:"publishedAt,omitempty"`
+	Files       []File `json:"files"`
 }
 
 // SearchQuery is a normalized search request. Loader and GameVersion are

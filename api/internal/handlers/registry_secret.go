@@ -34,6 +34,9 @@ func MountRegistrySecrets(r chi.Router, k *kube.Client, controlNS string) {
 type registrySecretHandler struct {
 	k  *kube.Client
 	ns string
+	// startupKey is true when the --curseforge-api-key startup flag is set.
+	// Only this bool reaches the share view; the key itself never does.
+	startupKey bool
 }
 
 // secretName validates provider against the closed set of keyed
@@ -100,14 +103,41 @@ var errNoManagedKey = errors.New("no managed CurseForge key")
 // MountRegistryShare exposes the admin "share the CurseForge key with game
 // servers" setting. RBAC: /admin/registries is config:manage in rbac.go.
 func MountRegistryShare(r chi.Router, k *kube.Client, controlNS string) {
-	h := registrySecretHandler{k: k, ns: controlNS}
+	MountRegistryShareWithOptions(r, k, controlNS, RegistryShareOptions{})
+}
+
+// RegistryShareOptions carries what the share view needs to name the key
+// source. It holds facts only (never the key value).
+type RegistryShareOptions struct {
+	// StartupKeySet is true when the --curseforge-api-key startup flag is set.
+	StartupKeySet bool
+}
+
+// MountRegistryShareWithOptions is MountRegistryShare with the startup-flag
+// fact, so the GET view can report where the effective key comes from.
+func MountRegistryShareWithOptions(r chi.Router, k *kube.Client, controlNS string, opts RegistryShareOptions) {
+	h := registrySecretHandler{k: k, ns: controlNS, startupKey: opts.StartupKeySet}
 	r.Get("/admin/registries/curseforge/share", h.getShare)
 	r.Put("/admin/registries/curseforge/share", h.putShare)
 }
 
 type shareView struct {
-	Share      bool `json:"share"`
-	ManagedKey bool `json:"managedKey"`
+	Share      bool   `json:"share"`
+	ManagedKey bool   `json:"managedKey"`
+	KeySource  string `json:"keySource"`
+}
+
+// keySourceFor names where the CurseForge key comes from: "admin" for a
+// managed Secret key, "startup-flag" when only the flag is set, else "".
+func (h registrySecretHandler) keySourceFor(managed bool) string {
+	switch {
+	case managed:
+		return "admin"
+	case h.startupKey:
+		return "startup-flag"
+	default:
+		return ""
+	}
 }
 
 // curseforgeShareState reads the managed key Secret of the control namespace:
@@ -129,7 +159,7 @@ func curseforgeShareState(ctx context.Context, k *kube.Client, ns string) (share
 
 func (h registrySecretHandler) getShare(w http.ResponseWriter, req *http.Request) {
 	share, managed := curseforgeShareState(req.Context(), h.k, h.ns)
-	writeJSON(w, shareView{Share: share, ManagedKey: managed})
+	writeJSON(w, shareView{Share: share, ManagedKey: managed, KeySource: h.keySourceFor(managed)})
 }
 
 func (h registrySecretHandler) putShare(w http.ResponseWriter, req *http.Request) {
@@ -164,10 +194,10 @@ func (h registrySecretHandler) putShare(w http.ResponseWriter, req *http.Request
 	})
 	switch {
 	case err == nil:
-		writeJSON(w, shareView{Share: want, ManagedKey: true})
+		writeJSON(w, shareView{Share: want, ManagedKey: true, KeySource: h.keySourceFor(true)})
 	case errors.Is(err, errNoManagedKey) || apierrors.IsNotFound(err):
 		if !want {
-			writeJSON(w, shareView{})
+			writeJSON(w, shareView{KeySource: h.keySourceFor(false)})
 			return
 		}
 		httperr.WriteMessage(w, req, messages.New("server.registry.share_needs_managed_key", nil))

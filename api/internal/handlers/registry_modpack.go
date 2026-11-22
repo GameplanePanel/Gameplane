@@ -98,6 +98,9 @@ type modpackView struct {
 	MissingFilesUnknown bool                 `json:"missingFilesUnknown"`
 	DownloadsPath       string               `json:"downloadsPath"`
 	BackupAvailable     bool                 `json:"backupAvailable"`
+	// BackupDestination is the name of the backup destination the pre-change
+	// backup goes to (alphabetically first when several exist); empty when none.
+	BackupDestination string `json:"backupDestination,omitempty"`
 }
 
 // getModpack serves GET /servers/{name}/modpack. A legacy server (pack env in
@@ -131,7 +134,8 @@ func (h *registryHandler) modpackViewFor(req *http.Request, target *modTarget, g
 	view.Message, _, _ = unstructured.NestedString(st, "message")
 	view.BackupName, _, _ = unstructured.NestedString(st, "backupName")
 	view.KeyShared, _, _ = unstructured.NestedBool(st, "keyShared")
-	view.BackupAvailable = h.hasBackupDestination(req, target)
+	view.BackupDestination = h.backupDestinationName(req, target)
+	view.BackupAvailable = view.BackupDestination != ""
 	if withMissing {
 		h.fillMissingFiles(req, target, gs, &view)
 	}
@@ -209,18 +213,27 @@ func samePack(spec, applied map[string]any, hasApplied bool) bool {
 	return true
 }
 
-// hasBackupDestination reports whether the server's namespace holds a backup
-// destination (a Secret labelled gameplane.local/backup-destination=true, the
-// same discovery the /backup-destinations routes use, destinations.go).
-func (h *registryHandler) hasBackupDestination(req *http.Request, target *modTarget) bool {
+// backupDestinationName returns the name of the backup destination in the
+// server's namespace (a Secret labelled gameplane.local/backup-destination=true,
+// the same discovery the /backup-destinations routes use, destinations.go),
+// or "" when there is none. When several exist the alphabetically first name
+// wins, matching the operator's choice (gameserver_modpack.go).
+func (h *registryHandler) backupDestinationName(req *http.Request, target *modTarget) string {
 	if target.k == nil || target.k.Typed == nil {
-		return false
+		return ""
 	}
 	list, err := target.k.Typed.CoreV1().Secrets(target.namespace).List(req.Context(), metav1.ListOptions{
 		LabelSelector: destinationLabel + "=true",
-		Limit:         1,
 	})
-	return err == nil && len(list.Items) > 0
+	if err != nil || len(list.Items) == 0 {
+		return ""
+	}
+	names := make([]string, 0, len(list.Items))
+	for _, s := range list.Items {
+		names = append(names, s.Name)
+	}
+	slices.Sort(names)
+	return names[0]
 }
 
 // modpacksBlockedReason is providerInfo.modpacksBlockedReason: non-empty when
@@ -295,7 +308,7 @@ func (h *registryHandler) removeModpack(w http.ResponseWriter, req *http.Request
 		httperr.WriteMessage(w, req, messages.New("server.modpack.not_found", nil))
 		return
 	}
-	if backupFirst && !h.hasBackupDestination(req, target) {
+	if backupFirst && h.backupDestinationName(req, target) == "" {
 		httperr.WriteMessage(w, req, messages.New("server.modpack.backup_unavailable", nil))
 		return
 	}
