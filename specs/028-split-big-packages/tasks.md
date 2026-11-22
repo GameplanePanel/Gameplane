@@ -18,7 +18,7 @@ description: "Task list for 028 split big packages and files"
 - **Not started:** every move PR (T008–T056, T058–T061). The build thread paused moves on 2026-10-22 (valgul's card) until Baylem's audit PRs #756–#772 were in. That condition is now met: all of them are closed, and audit issues #712–#731 are all closed too, including the tunnel and sentinel gates #721, #722, #723 and #729.
 - **Files grew since T003:** for example `web/src/types.ts` 1,194 lines, `CreateServer.tsx` 1,448, `api/cmd/main.go` 974, `operator/internal/controller/gameserver_controller.go` 3,125. Re-measure (repeat T003) before T008 starts.
 - **`web/src/pages/` already exists:** spec 031 (PR #859) added `pages/ClusterDetail.tsx` and `pages/Nodes.tsx`. T009 creates nothing new there; it moves the remaining screens.
-- **Components leaving this repo:** `mcp-server/` moves to GameplanePanel/mcp (PR #993, open, not merged), and `audit-syslog-bridge/`, `tunnel/` and `capture-sidecar/` are being split into their own repos with full history (stacked on #993, not merged), with `svcutil/` deleted as unused. That affects T044, T050, T051 and T053. Settled as OD-12 (valgul, 2026-11-17): these tasks are carried into the new repos. The same layout and 500-line work happens as PRs in each component's own repo, tracked from this spec.
+- **Components leaving this repo:** `mcp-server/` moved to GameplanePanel/mcp (PR #993, merged 2026-11-17), and `audit-syslog-bridge/`, `tunnel/` and `capture-sidecar/` moved to their own repos with full history (PR #995, merged), with `svcutil/` deleted as unused. They are now submodules of this repo. That affects T044, T050, T051 and T053. Settled as OD-12 (valgul, 2026-11-17): these tasks are carried into the new repos. The same layout and 500-line work happens as PRs in each component's own repo, tracked from this spec.
 
 ## Phase 1: Setup
 
@@ -89,7 +89,7 @@ description: "Task list for 028 split big packages and files"
 
 ## Phase 6: Other modules over the ceiling (FR-018)
 
-- [ ] T044 [P] PR: `capture-sidecar/internal/httpserver/handlers.go` (975) split in place *Note 2026-11-17: capture-sidecar is moving to its own repo (split stacked on PR #993, not merged); carried into that repo per OD-12; the PR opens there.*
+- [ ] T044 [P] PR: `capture-sidecar/internal/httpserver/handlers.go` (975) split in place *Note 2026-11-17: capture-sidecar moved to its own repo (PR #995, merged); carried into that repo per OD-12; the PR opens there.*
 - [ ] T045 [P] PR: `agent/internal/mods/mods.go` (932) split in place; the `.golangci.yml` path rules for `internal/mods/mods\.go$` and `internal/(mods/mods|files/files)\.go$` follow the code with the same scope
 - [ ] T046 [P] PR: `agent/internal/rcon/battleye.go` (703) split in place
 - [ ] T047 [P] PR: `agent/internal/files/rooted_linux.go` (603) split in place
@@ -98,10 +98,10 @@ description: "Task list for 028 split big packages and files"
 
 ## Phase 7: User Story 1 — Small services match the service layout (Priority: P1 for layout, last by OD-1)
 
-- [ ] T050 [US1] PR: `audit-syslog-bridge` → `cmd/main.go` + `internal/<concern>/`; Dockerfile and Makefile `image-audit-syslog` build path; `specs.md` *Note 2026-11-17: audit-syslog-bridge is moving to its own repo (split stacked on PR #993, not merged); carried into that repo per OD-12; the PR opens there.*
-- [ ] T051 [US1] PR: `mcp-server` → `cmd/main.go` + `internal/{tools,fixadvice}/`; Dockerfile; `specs.md`, `README.md` *Note 2026-11-17: mcp-server moves to GameplanePanel/mcp in PR #993 (open, not merged); carried into that repo per OD-12; the PR opens there.*
+- [ ] T050 [US1] PR: `audit-syslog-bridge` → `cmd/main.go` + `internal/<concern>/`; Dockerfile and Makefile `image-audit-syslog` build path; `specs.md` *Note 2026-11-17: audit-syslog-bridge moved to its own repo (PR #995, merged); carried into that repo per OD-12; the PR opens there.*
+- [ ] T051 [US1] PR: `mcp-server` → `cmd/main.go` + `internal/{tools,fixadvice}/`; Dockerfile; `specs.md`, `README.md` *Note 2026-11-17: mcp-server moved to GameplanePanel/mcp (PR #993, merged); carried into that repo per OD-12; the PR opens there.*
 - [ ] T052 [US1] PR: `telemetry-receiver` → `cmd/main.go` + `internal/<concern>/`, `views.go` (733) split; `design-export/`, `web/`, `telemetry-dashboard.pen` stay; Dockerfile, Makefile e2e image target (line 190); `specs.md`
-- [ ] T053 [US1] PR: `tunnel` → `cmd/main.go` + `internal/<concern>/`, `playit_reporter.go` (525) split; `main_test.go` moves with the code it tests, unsplit, with only the FR-005/OD-6 mechanical edits; the three Dockerfiles; only after #721, #722, #723 merge *Note 2026-11-17: #721, #722, #723 are closed. tunnel is moving to its own repo (split stacked on PR #993, not merged); carried into that repo per OD-12; the PR opens there.*
+- [ ] T053 [US1] PR: `tunnel` → `cmd/main.go` + `internal/<concern>/`, `playit_reporter.go` (525) split; `main_test.go` moves with the code it tests, unsplit, with only the FR-005/OD-6 mechanical edits; the three Dockerfiles; only after #721, #722, #723 merge *Note 2026-11-17: #721, #722, #723 are closed. tunnel moved to its own repo (PR #995, merged); carried into that repo per OD-12; the PR opens there.*
 - [ ] T054 [US1] PR: `sentinel` → `cmd/main.go` + `internal/<concern>/`; `main_test.go` moves with the code it tests, unsplit, with only the FR-005/OD-6 mechanical edits; Dockerfile; only after #729 merges *Note 2026-11-17: #729 is closed, so this gate is met.*
 
 **Checkpoint**: every service in 027 OD-3 has a thin `cmd/main.go` and nothing at its root.
