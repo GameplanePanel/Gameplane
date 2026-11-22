@@ -164,7 +164,8 @@ export function McpTokensPage() {
 
   const list = useQuery({ queryKey: ["mcp-tokens"], queryFn: listMcpTokens });
   const tokens = list.data?.items ?? [];
-  const now = Date.now();
+  // Fixed at mount: render must stay pure (react-hooks/purity).
+  const [now] = useState(() => Date.now());
 
   const create = useMutation({
     mutationFn: () => createMcpToken(name.trim(), days),
@@ -250,10 +251,11 @@ export function McpTokensPage() {
                       {tokens.map((t) => {
                         const state = tokenState(t, now);
                         const dim = state === "active" ? undefined : "text-foreground/50";
+                        const shownPrefix = `${t.prefix}…`;
                         return (
                           <Table.Row key={t.id}>
                             <Table.Cell className={cn("font-medium", dim)}>{t.name}</Table.Cell>
-                            <Table.Cell className={cn("font-mono text-xs text-muted", dim)}>{`${t.prefix}…`}</Table.Cell>
+                            <Table.Cell className={cn("font-mono text-xs text-muted", dim)}>{shownPrefix}</Table.Cell>
                             <Table.Cell className={cn("hidden md:table-cell", dim)}>{fmt.date(new Date(t.createdAt), DATE_OPTIONS)}</Table.Cell>
                             <Table.Cell className={dim}>{fmt.date(new Date(t.expiresAt), DATE_OPTIONS)}</Table.Cell>
                             <Table.Cell className={cn("hidden md:table-cell", dim)}>

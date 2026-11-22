@@ -555,7 +555,8 @@ function UserMcpTokensDialog({ user, canRevoke, onClose }: { user: ExtendedUser;
     },
   });
   const tokens = data?.items ?? [];
-  const now = Date.now();
+  // Fixed at mount: render must stay pure (react-hooks/purity).
+  const [now] = useState(() => Date.now());
 
   return (
     <Modal isOpen onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -574,11 +575,12 @@ function UserMcpTokensDialog({ user, canRevoke, onClose }: { user: ExtendedUser;
                 const revoked = t.revokedAt !== null;
                 const expired = !revoked && Date.parse(t.expiresAt) < now;
                 const active = !revoked && !expired;
+                const shownPrefix = `${t.prefix}…`;
                 return (
                   <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-2 last:border-0">
                     <div className={active ? "min-w-0" : "min-w-0 text-foreground/50"}>
                       <div className="text-sm font-medium">{t.name}</div>
-                      <div className="font-mono text-xs text-muted">{`${t.prefix}…`}</div>
+                      <div className="font-mono text-xs text-muted">{shownPrefix}</div>
                     </div>
                     <div className="text-right text-xs text-muted">
                       <div>{intl.formatMessage({ id: "web.routes.users.mcp_tokens_expires_on", defaultMessage: "Expires {date}", description: "Users: MCP tokens dialog, expiry line of a token; {date} is a formatted date" }, { date: fmt.date(new Date(t.expiresAt), MCP_DATE_OPTIONS) })}</div>
