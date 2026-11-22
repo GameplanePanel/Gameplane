@@ -972,4 +972,4 @@ The version cap also applies behind API path prefixes. SPDY TLS/header negotiati
 
 Standalone `/modules/*` requests require one explicit registered remote `cluster` selector and cluster-wide module permission on that target. The selected remote operator owns module reconciliation; upload ConfigMaps use the configured operator namespace. Combined installs retain local module ownership and reject remote selectors on this surface. Local node credential minting is incompatible with standalone startup; Kubernetes system-log endpoints return 501 and the dashboard directs administrators to container logs.
 
-See [standalone installation](../docs/standalone-panel.md) and [design](../specs/025-standalone-panel/spec.md).
+See [standalone installation](../docs/standalone-panel.md) and [design](../specs/done_025-standalone-panel/spec.md).

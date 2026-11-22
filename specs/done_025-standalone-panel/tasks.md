@@ -4,7 +4,7 @@ description: "Task list for Feature 025: Standalone panel and API (retroactive, 
 
 # Tasks: Standalone Panel and API
 
-**Input**: `specs/025-standalone-panel/` (spec.md, plan.md, research.md, data-model.md, contracts/, quickstart.md, OPEN-DECISIONS.md)
+**Input**: `specs/done_025-standalone-panel/` (spec.md, plan.md, research.md, data-model.md, contracts/, quickstart.md, OPEN-DECISIONS.md)
 
 **Retroactive**: Tasks T001 to T049 were done by PR #630 (contributor Baylem, merge commit `6ed25c1`, 2026-10-14). Each names the files and the PR commits that did it (`git log 6ed25c1^1..6ed25c1^2`). T050 and T051 are bookkeeping: T050 records the merge, T051 is the follow-up documentation change on branch `claude/project-thread-gzh0dk`. No new work is listed; requirements the code does not fully meet are in [spec.md Known gaps](spec.md#known-gaps).
 
@@ -127,8 +127,8 @@ description: "Task list for Feature 025: Standalone panel and API (retroactive, 
 - [X] T053 Register bucket `standalone` in `test/e2e/buckets.sh` and the test's components in `test/e2e/suite-components.json`
 - [X] T054 Add `standalone` to `E2E_BUCKETS` and `E2E_AMD64_ONLY` in `hack/ci_scope.py`, and to the `e2e-go` matrix, its failure dump namespaces and the report regexes in `.github/workflows/ci.yaml` (OD-7)
 - [X] T055 [P] Document the bucket in `test/e2e/specs.md` and the bucket list in `AGENTS.md`
-- [ ] T056 CI green on the PR, human approval, merge into `master`
-- [ ] T057 After T056, archive this folder as `specs/done_025-standalone-panel/` and update in-repo references (OD-5, CLAUDE.md rule 16)
+- [X] T056 CI green on the PR, human approval, merge into `master` — PR #1052, merged 2026-11-22 as `66146ff1`
+- [X] T057 After T056, archive this folder as `specs/done_025-standalone-panel/` and update in-repo references (OD-5, CLAUDE.md rule 16) (this change)
 
 ## Requirement Coverage
 
@@ -180,5 +180,5 @@ As delivered: one large PR. The first commit `0182e16` built the MVP across US1,
 
 ## Notes
 
-- valgul decided to keep the `025-` name until a standalone E2E test exists (OD-5). Phase 9 adds it (OD-6, OD-7); T057 archives the folder once T056 has merged.
+- valgul decided to keep the `025-` name until a standalone E2E test exists (OD-5). Phase 9 added it (OD-6, OD-7, PR #1052); T057 archived the folder.
 - Follow-ups outside this feature: telemetry marker for standalone installs (OD-2); `--skip-crds` issue (OD-3).
