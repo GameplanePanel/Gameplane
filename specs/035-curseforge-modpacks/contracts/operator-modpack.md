@@ -19,8 +19,9 @@ Owner: `operator/internal/controller/` (new file `gameserver_modpack.go`).
    is stopped or asleep (OD-8 B); never while players are online. Remove the
    annotation, and render rule 1, at the next pod start the operator drives.
 3. **Change state machine** (R4): see data-model.md. A removal whose backup fails keeps
-   `status.modpack.applied` and the remove annotation, so the API can accept a retry. Backup CRs created here are owned by
-   the GameServer and named `<gs>-modpack-<generation>`.
+   `status.modpack.applied` and the remove annotation, so the API can accept a retry. Backup CRs created here have no owner (OD-11 A), so
+   they survive deleting the server, like scheduled backups. They are named `<gs>-modpack-<generation>` and carry the
+   `gameplane.local/modpack-change` label and `spec.serverRef`; the GameServer reconciler watches them through that label.
 4. **Mods wipe** (R5): on a removal only (OD-7 B), add the one-shot
    init step for the active loader's mods mount, guarded by the marker file.
 5. **Key sharing** (R2, OD-9 A, OD-10 A): read the managed key Secret `gameplane-modreg-curseforge`

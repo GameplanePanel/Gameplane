@@ -90,7 +90,7 @@ implementation task re-checks every itzg fact below against the image digests th
 
 - **Decision**: the operator runs a small state machine per pack change, keyed by
   `metadata.generation`:
-  `Pending → BackingUp (Backup CR created, owner = GameServer) → Applying → Applied`, or
+  `Pending → BackingUp (Backup CR created, no owner (OD-11 A)) → Applying → Applied`, or
   `BackupFailed` (nothing applied; message from the Backup's status). While not `Applied`, the
   pod keeps rendering `status.modpack.applied` (the previous pack). `backupFirst` is honoured
   only when the server has a backup destination; the API rejects `backupFirst: true` without

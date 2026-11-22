@@ -1,6 +1,6 @@
 # Open decisions: spec 035 CurseForge modpacks
 
-OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. OD-9 was raised by T001 and answered by valgul on 2026-11-19. OD-10 was raised during implementation and answered by valgul on 2026-11-19.
+OD-1 to OD-6 were answered by valgul on 2026-11-11 (decision cards). OD-7 was raised by planning and answered by valgul on 2026-11-16. OD-8 was raised by PR review and answered by valgul on 2026-11-17. OD-9 was raised by T001 and answered by valgul on 2026-11-19. OD-10 was raised during implementation and answered by valgul on 2026-11-19. OD-11 was raised during implementation and answered by valgul on 2026-11-22.
 
 ## OD-1: How do game servers get a CurseForge key? (SETTLED: C, valgul 2026-11-11)
 
@@ -127,3 +127,16 @@ pod of every server with an applied CurseForge pack. Doing that for all servers 
   is unaffected. (Recommended: no player is kicked and no manual step is needed.)
 - B. Restart right away: every affected server rolls within about a minute of the toggle.
 - C. Next manual restart: no operator restart; the change applies at the server's next stop/start, sleep/wake or crash restart.
+
+## OD-11: Should the backup taken before a modpack change survive deleting the server? (SETTLED: A, valgul 2026-11-22)
+
+**Ruling: option A** (valgul, 2026-11-22).
+
+Raised during implementation on 2026-11-22.
+
+The operator creates a Backup before a modpack change (`<gs>-modpack-<generation>`). Owning it by the GameServer
+would garbage-collect it, and the restic snapshot, when the server is deleted; scheduled backups have no owner.
+
+- A. Keep (no owner): the Backup carries no ownerReference, only the `gameplane.local/modpack-change` label and
+  `spec.serverRef`, so it and its restic snapshot survive deleting the server, like scheduled backups.
+- B. Delete with the server: the Backup is controller-owned by the GameServer and is garbage-collected with it.
