@@ -699,9 +699,23 @@ func (r *GameServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&rbacv1.Role{}).
 		Owns(&rbacv1.RoleBinding{}).
 		Watches(&corev1.Pod{}, handler.EnqueueRequestsFromMapFunc(r.mapPodToGameServer)).
+		// Modpack backups carry no owner reference (they outlive the server), so
+		// Owns(&Backup{}) never fires for them; map them to spec.serverRef instead.
+		Watches(&gameplanev1alpha1.Backup{}, handler.EnqueueRequestsFromMapFunc(mapModpackBackupToGameServer)).
 		Watches(&gameplanev1alpha1.GameTemplate{}, handler.EnqueueRequestsFromMapFunc(r.mapTemplateToGameServers),
 			builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Complete(r)
+}
+
+// mapModpackBackupToGameServer maps a Backup carrying the modpack-change label
+// to the server named by spec.serverRef in the same namespace. Other Backups
+// map to nothing: their GameServer is woken through Owns(&Backup{}) as before.
+func mapModpackBackupToGameServer(_ context.Context, obj client.Object) []reconcile.Request {
+	b, ok := obj.(*gameplanev1alpha1.Backup)
+	if !ok || b.Labels[modpackBackupLabel] == "" || b.Spec.ServerRef.Name == "" {
+		return nil
+	}
+	return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: b.Namespace, Name: b.Spec.ServerRef.Name}}}
 }
 
 // Template creation and spec changes must wake servers that failed before any

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -161,8 +160,8 @@ func TestGameServer_ModpackRemovalBackupFailureKeepsPackAndRetries(t *testing.T)
 	if st.BackupName != firstName || st.Applied == nil || st.Applied.Project != "all-the-mods-10" {
 		t.Fatalf("status.modpack = %+v, want BackingUp, backup %s, applied pack kept", st, firstName)
 	}
-	if owner := metav1.GetControllerOf(getBackup(t, ns, firstName)); owner == nil || owner.Name != "pack" {
-		t.Fatalf("backup owner = %+v, want the GameServer", owner)
+	if refs := getBackup(t, ns, firstName).OwnerReferences; len(refs) != 0 {
+		t.Fatalf("backup ownerReferences = %+v, want none", refs)
 	}
 	consistently(t, time.Second, func() (bool, string) {
 		env, why := gameEnvOf(ns, "pack")

@@ -97,7 +97,7 @@ func readyCondition(ns, name string, t *testing.T) *metav1.Condition {
 }
 
 // TestGameServer_ModpackBackupFirstThenApply covers spec 035 T028: backupFirst
-// creates Backup <gs>-modpack-<generation> owned by the GameServer and the env
+// creates Backup <gs>-modpack-<generation> with no owner (it outlives the server) and the env
 // stays on the old version until it succeeds; a failed backup parks the change
 // in BackupFailed with the message and applied unchanged; a new change after
 // BackupFailed restarts the flow.
@@ -135,8 +135,11 @@ func TestGameServer_ModpackBackupFirstThenApply(t *testing.T) {
 		t.Fatalf("observedGeneration = %d, want %d", st.ObservedGeneration, gen)
 	}
 	b := getBackup(t, ns, firstName)
-	if owner := metav1.GetControllerOf(b); owner == nil || owner.Kind != "GameServer" || owner.Name != "pack" {
-		t.Fatalf("backup controller owner = %+v, want GameServer/pack", owner)
+	if len(b.OwnerReferences) != 0 {
+		t.Fatalf("backup ownerReferences = %+v, want none (survives deleting the server)", b.OwnerReferences)
+	}
+	if b.Labels[modpackBackupLabel] != "true" {
+		t.Fatalf("backup labels = %v, want %s=true", b.Labels, modpackBackupLabel)
 	}
 	if b.Spec.ServerRef.Name != "pack" || b.Spec.RepoRef == nil || b.Spec.RepoRef.Name != "dest" || b.Spec.RepoRef.Key != "repo" {
 		t.Fatalf("backup spec = %+v, want serverRef pack, repoRef dest/repo", b.Spec)

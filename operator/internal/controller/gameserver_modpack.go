@@ -16,7 +16,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	gameplanev1alpha1 "github.com/GameplanePanel/gameplane/operator/api/v1alpha1"
 )
@@ -550,9 +549,9 @@ func (r *GameServerReconciler) createModpackBackup(
 	if requestID != "" {
 		b.Annotations = map[string]string{modpackRequestAnnotation: requestID}
 	}
-	if err := controllerutil.SetControllerReference(gs, b, r.Scheme); err != nil {
-		return "", fmt.Errorf("own modpack backup %s: %w", name, err)
-	}
+	// Deliberately no owner reference (valgul, OD-11 A): like scheduled backups,
+	// the Backup and its restic snapshot survive deleting the server. The modpack
+	// label and serverRef tie it to the server.
 	if err := r.Create(ctx, b); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			return name, nil // an earlier pass created it before its status patch landed
