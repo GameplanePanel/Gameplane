@@ -34,14 +34,17 @@ import (
 // Pack choice (the suite never pushes the real module, so each test builds a
 // template that mirrors the minecraft-java 2.13.0 providers block):
 //
-//   - CurseForge: "Fabulously Optimized" (slug fabulously-optimized), file
-//     9127669 = "13.6.0 for 26.1.2", Fabric. Chosen on its public files page
-//     (https://www.curseforge.com/minecraft/modpacks/fabulously-optimized/files)
-//     because it is the smallest popular Fabric pack: the pack file is about
-//     158 KB and the mods it lists are small client-side optimisers, so the
-//     server starts fast. No key is needed in CI: the itzg image (Java 17+
-//     tags) ships a built-in CurseForge key, and the API install route never
-//     calls CurseForge (it only records spec.modpack).
+//   - CurseForge: "Essentials Mods [FABRIC]" (slug essentials-mods-fabric,
+//     project 446581), file 8021547 = "Essentials Mods [FABRIC] - MC 26.1.2 -
+//     1.0.0", Fabric (https://www.curseforge.com/minecraft/modpacks/
+//     essentials-mods-fabric/files). It boots as a dedicated server on
+//     modpackImage with only TYPE, CF_SLUG, CF_FILE_ID and VERSION set (itzg
+//     drops its client-only mods; checked with docker run, "Done" in about a
+//     minute). A client pack such as Fabulously Optimized does not: itzg
+//     excludes YACL as client-only but keeps Controlify and Zoomify, which
+//     need it, so Fabric refuses to start. No key is needed in CI: the itzg
+//     image (Java 17+ tags) ships a built-in CurseForge key, and the API
+//     install route never calls CurseForge (it only records spec.modpack).
 //   - Modrinth: "FPS Modpack" (slug fps, project nJ2Rn3SV), version kedIKix5 =
 //     3.2 for 26.1.2, Fabric, a 5 KB .mrpack. Found with the keyless search
 //     https://api.modrinth.com/v2/search?facets=[["project_type:modpack"],
@@ -58,10 +61,10 @@ const (
 	modpackVersionID   = "e2e-fabric"
 	modpackGameVersion = "26.1.2"
 
-	cfPackSlug     = "fabulously-optimized"
-	cfPackFileID   = "9127669"
-	cfPackFileName = "13.6.0 for 26.1.2"
-	cfPackTitle    = "Fabulously Optimized"
+	cfPackSlug     = "essentials-mods-fabric"
+	cfPackFileID   = "8021547"
+	cfPackFileName = "Essentials Mods [FABRIC] - MC 26.1.2 - 1.0.0"
+	cfPackTitle    = "Essentials Mods [FABRIC]"
 
 	mrPackSlug    = "fps"
 	mrPackVersion = "kedIKix5"

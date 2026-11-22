@@ -50,7 +50,7 @@ It was one of three `go.work` modules without CI lint coverage until this featur
 
 `TestGameServer_Modpack_CurseForgeThenModrinth`, `TestGameServer_Modpack_PinSurvivesRestarts` and
 `TestGameServer_Modpack_RemoveKeepsWorld` run in `bot-fast` (one runner per test, one admin login each, game-bot gate:
-`GAMEPLANE_E2E_GAME_BOT=1`). They install a small CurseForge Fabric pack (Fabulously Optimized, file 9127669) and a
+`GAMEPLANE_E2E_GAME_BOT=1`). They install a small CurseForge Fabric pack (Essentials Mods [FABRIC], file 8021547) and a
 Modrinth pack (FPS Modpack, `kedIKix5`) through `POST /servers/{name}/modpack` with the itzg image's built-in CurseForge
 key, and assert the operator's `Applied` phase, a Ready game pod and the rendered env (no `CF_*` after switching to
 Modrinth), a pinned `CF_FILE_ID` and `.curseforge-manifest.json` `fileId` across three restarts, and an empty mods
