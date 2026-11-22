@@ -158,7 +158,8 @@ OD-3 and is left to a later spec.
 ### SC-004: red `master` runs reviewed for a selection miss
 
 Every red `ci` push run on `master` from the rollout (`3093f03`, 2026-10-22) to
-2026-11-22 was reviewed: 31 of the 60 days. For each failing job, the merged PR's own last
+2026-11-22 was reviewed: 31 of the 60 days. The maintainer chose on 2026-11-22 to close
+the review there instead of waiting for the full window. For each failing job, the merged PR's own last
 `ci` run was checked.
 
 | Run | Merge | Failing jobs | On the PR | Cause |

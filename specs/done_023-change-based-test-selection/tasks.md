@@ -161,7 +161,7 @@ Repository root of `GameplanePanel/Gameplane`. Main files: `hack/ci_scope.py`, `
 - [X] T049 [P] Add the new selection files to the task map in `docs/agent-architecture.md`
 - [X] T050 Compile and link checks only; open PR 5 with labels `type: docs`, `area: shared`
 - [X] T051 After the first `master` push following PR 5's merge, confirm every job ran (FR-006, SC-006) and record it in `validation.md`
-- [X] T052 After 30 merged PRs, measure median runner-minutes against the 30 before PR 2 via the Actions API and record SC-002 in `validation.md`; for 60 days review each red `master` run for a selection miss (SC-004)
+- [X] T052 After 30 merged PRs, measure median runner-minutes against the 30 before PR 2 via the Actions API and record SC-002 in `validation.md`; for 60 days review each red `master` run for a selection miss (SC-004). Done 2026-11-22: SC-004 covered 31 of the 60 days (15 red runs, 0 misses); the maintainer closed it early on 2026-11-22. Results in `validation.md`
 
 ---
 
