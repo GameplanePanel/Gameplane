@@ -2,7 +2,7 @@
 
 **Input**: Design documents from `/specs/039-sftp-access/`
 
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md. OD-1 to OD-6 settled by valgul on 2026-11-22. OD-7 is open; tasks below follow its recommended option and are re-checked when it is settled. No implementation starts while any decision is open.
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/api.md. OD-1 to OD-6 settled by valgul on 2026-11-22. OD-7 settled A (new repository `GameplanePanel/sftp`) the same day. No decision is open. No implementation starts while any decision is open.
 
 **Tests**: Required (Constitution I and coverage gates: agent 90, api 80, operator 72, web 92/76/82/92, new component `.testcoverage.yml`). Every test task adds **new** test functions or files. Changing an **existing** test needs valgul's written sign-off from T002 first (CLAUDE.md override 1). Tests run in CI only; locally only `go build ./...` (`GOWORK=off` in the component) and `npx tsc --noEmit`.
 

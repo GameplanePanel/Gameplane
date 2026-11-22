@@ -1,6 +1,6 @@
 # Open decisions: spec 039 SFTP access to game servers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-5 are settled. Planning raised OD-6 and OD-7 on 2026-11-22: OD-6 is settled, OD-7 is open. Planning starts once they are settled.
+Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-5 are settled. Planning raised OD-6 and OD-7 on 2026-11-22: both are settled. No decision is open. Planning starts once they are settled.
 
 ## OD-1: Where does the SFTP server run, and how does it reach the sidecars? (SETTLED: A, valgul 2026-11-22)
 
@@ -65,7 +65,7 @@ Raised by planning. The dashboard and the agent cap one upload at 64 MiB today (
 
 **Settled:** B, by decision card. The limit is one Helm value shared by SFTP and the dashboard (`files.maxUploadSize`, default 20 GiB). The dashboard upload moves to the streaming route and shows progress for large files (designed first). The multipart `files/upload` route stays mounted for one release for API clients and is then removed in a later change.
 
-## OD-7: Where does the SFTP server's code live? (OPEN)
+## OD-7: Where does the SFTP server's code live? (SETTLED: A, valgul 2026-11-22)
 
 Raised by planning. The other optional components (MCP server, tunnel, audit syslog bridge, capture sidecar) live in their own repositories, checked out here as submodules, with images still built from this repository.
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-22
 
-**Status**: Draft (OD-1 to OD-6 settled; OD-7 raised by planning is open, see `OPEN-DECISIONS.md`)
+**Status**: Draft (all open decisions settled, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1051](https://github.com/GameplanePanel/Gameplane/issues/1051) "Add SFTP server for file access", and valgul's design idea on it: "Give the sidecar a new internal API to list, stat, download and upload files. Then run one global SFTP server that uses this API. You connect to {sftp-cluster-ip} and see one folder per game server your account can access. Each folder is backed by that server pod's sidecar API."
 

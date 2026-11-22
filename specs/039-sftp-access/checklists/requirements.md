@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (no markers; OD-1 to OD-4 in `OPEN-DECISIONS.md` are open)
+- [x] No [NEEDS CLARIFICATION] markers remain (OD-1 to OD-7 in `OPEN-DECISIONS.md` all settled)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - Background names existing code paths so planning can start from them; requirements themselves stay behaviour-level.
-- Planning waits until OD-1 to OD-4 are settled.
+- All open decisions settled 2026-11-22; plan and tasks written.

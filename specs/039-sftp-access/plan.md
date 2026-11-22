@@ -4,7 +4,7 @@
 
 **Input**: Feature specification from `specs/039-sftp-access/spec.md`
 
-**Open decisions**: OD-1 to OD-6 are settled (OD-6 B: one streaming upload path and limit for SFTP and the dashboard). OD-7 (where the SFTP server's code lives) is open; this plan uses its recommended option A and is final once it is settled. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
+**Open decisions**: OD-1 to OD-6 are settled (OD-6 B: one streaming upload path and limit for SFTP and the dashboard). OD-7 A: the SFTP server lives in a new split repository `GameplanePanel/sftp`, submodule `sftp/`. No decision is open. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
 
 ## Summary
 
