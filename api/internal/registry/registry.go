@@ -1,7 +1,7 @@
 // Package registry implements read-only browse/search of external game-mod
 // registries (Modrinth, Thunderstore, CurseForge, Hangar, the Factorio mod
 // portal, the Steam Workshop, Nexus Mods, SpigotMC via Spiget, GitHub
-// Releases, uMod) for the dashboard's mod manager.
+// Releases, uMod, FTB modpacks) for the dashboard's mod manager.
 //
 // The engines here are generic: a GameTemplate's capabilities.mods.registry
 // block picks a provider and supplies its parameters, and the handler in
@@ -11,7 +11,8 @@
 // agent install path, which re-checks the host allowlist and SSRF guard.
 // Search itself only ever GETs fixed provider hostnames
 // (api.modrinth.com, thunderstore.io, api.steampowered.com,
-// api.nexusmods.com, api.spiget.org, api.github.com, umod.org). Every
+// api.nexusmods.com, api.spiget.org, api.github.com, umod.org,
+// api.feed-the-beast.com). Every
 // engine shares one HTTP client that dials through netguard.IsPublic, so a
 // fetch, redirects included, only ever connects to a globally routable
 // address and never goes through a proxy from the pod environment.
@@ -76,7 +77,12 @@ type Version struct {
 	VersionNumber string   `json:"versionNumber,omitempty"`
 	GameVersions  []string `json:"gameVersions,omitempty"`
 	Loaders       []string `json:"loaders,omitempty"`
-	Files         []File   `json:"files"`
+	// ReleaseType is "release", "beta" or "alpha"; empty when the provider
+	// does not say.
+	ReleaseType string `json:"releaseType,omitempty"`
+	// PublishedAt is RFC 3339 UTC; empty when unknown.
+	PublishedAt string `json:"publishedAt,omitempty"`
+	Files       []File `json:"files"`
 }
 
 // SearchQuery is a normalized search request. Loader and GameVersion are
@@ -105,10 +111,16 @@ type SearchQuery struct {
 func (q SearchQuery) modpack() bool { return q.ProjectType == "modpack" }
 
 // Filter narrows a Versions lookup to the active loader + game version.
+// ProjectType is "modpack" when the caller lists pack versions (the
+// handler forwards ?type=modpack); empty (or "mod") lists mod versions.
 type Filter struct {
 	Loader      string
 	GameVersion string
+	ProjectType string
 }
+
+// modpack reports whether this lookup targets modpack versions.
+func (f Filter) modpack() bool { return f.ProjectType == "modpack" }
 
 // KeyFunc returns the API key for a provider, or "" if unconfigured.
 type KeyFunc func(ctx context.Context, provider string) string
@@ -177,7 +189,7 @@ type builtEntry struct {
 }
 
 // Set holds the constructed engines, sharing one HTTP client. Keyless engines
-// (modrinth, thunderstore, hangar, factorio, spigot, github, umod) are built
+// (modrinth, thunderstore, hangar, factorio, spigot, github, umod, ftb) are built
 // once and reused; the Thunderstore engine caches its community package
 // lists internally. Keyed engines (curseforge, steam, nexus) are built
 // lazily behind a TTL + key-hash cache so a key can be changed at runtime
@@ -192,6 +204,7 @@ type Set struct {
 	spigot       *Spigot
 	github       *GitHub
 	umod         *Umod
+	ftb          *FTB
 
 	// keyed engine cache, one entry per provider name
 	mu       sync.Mutex
@@ -224,6 +237,7 @@ func NewSet(version string, keyFunc KeyFunc) *Set {
 		spigot:       newSpigot(client, ua),
 		github:       newGitHub(client, ua),
 		umod:         newUmod(client, ua),
+		ftb:          newFTB(client, ua),
 		keyFunc:      keyFunc,
 		client:       client,
 		ua:           ua,
@@ -269,6 +283,8 @@ func (s *Set) For(ctx context.Context, cfg Config) (Provider, bool) {
 		return &githubRepo{gh: s.github, owner: cfg.GitHubOwner, repo: cfg.GitHubRepo}, true
 	case "umod":
 		return s.umod, true
+	case "ftb":
+		return s.ftb, true
 	case "steam":
 		if cfg.SteamAppID <= 0 {
 			return nil, false
@@ -299,7 +315,7 @@ func (s *Set) For(ctx context.Context, cfg Config) (Provider, bool) {
 // (SteamAppID/CurseForgeGameID/Community), which For validates.
 func (s *Set) Available(ctx context.Context, provider string) bool {
 	switch provider {
-	case "modrinth", "thunderstore", "hangar", "factorio", "spigot", "github", "umod":
+	case "modrinth", "thunderstore", "hangar", "factorio", "spigot", "github", "umod", "ftb":
 		return true
 	case "curseforge":
 		cf, err := s.curseforgeLazy(ctx)

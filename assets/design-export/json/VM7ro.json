@@ -6,7 +6,7 @@
   "x": 2720,
   "y": 6274,
   "width": 480,
-  "height": 344,
+  "height": 380,
   "fills": [{"type": "SOLID", "color": "#FFF7FB"}],
   "strokes": [{"type": "SOLID", "color": "#EFC3D6"}],
   "strokeWeight": 1,
@@ -79,7 +79,7 @@
       "x": 20,
       "y": 68,
       "width": 440,
-      "height": 204,
+      "height": 240,
       "layout": {
         "mode": "VERTICAL",
         "gap": 16,
@@ -267,6 +267,51 @@
               ]
             }
           ]
+        },
+        {
+          "name": "Created link identity",
+          "type": "FRAME",
+          "x": 0,
+          "y": 220,
+          "width": 177,
+          "height": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["HUG", "HUG"]
+          },
+          "clips": true,
+          "children": [
+            {
+              "name": "Link ID label",
+              "type": "TEXT",
+              "x": 0,
+              "y": 0,
+              "width": 44,
+              "height": 20,
+              "fills": [{"type": "SOLID", "color": "#6E5262"}],
+              "text": "Link ID",
+              "font": ["Geist", 400, 14],
+              "lineHeight": {"value": 142.85999536514282, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+            },
+            {
+              "name": "Created link ID",
+              "type": "TEXT",
+              "x": 52,
+              "y": 0.5,
+              "width": 125,
+              "height": 19,
+              "fills": [{"type": "SOLID", "color": "#2A0F1E"}],
+              "text": "BK7ms94p1JvE2tQx",
+              "font": ["JetBrains Mono", 400, 13],
+              "lineHeight": {"value": 146.150004863739, "unit": "PERCENT"},
+              "variables": {"fontFamily": "typography/font-mono", "fills/0/color": "foreground/foreground"}
+            }
+          ]
         }
       ]
     },
@@ -275,7 +320,7 @@
       "name": "mFooter",
       "type": "FRAME",
       "x": 20,
-      "y": 272,
+      "y": 308,
       "width": 440,
       "height": 52,
       "layout": {

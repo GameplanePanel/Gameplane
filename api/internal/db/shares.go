@@ -311,6 +311,42 @@ func (s *Store) ListShareLinks(ctx context.Context, cluster, ns, serverName stri
 	return links, nil
 }
 
+// SetShareLinkCanStart changes the wake permission on an active link for this
+// incarnation of the server. Legacy links use the same creation-time fallback
+// as public share resolution. The token, expiry and revocation are untouched.
+func (s *Store) SetShareLinkCanStart(ctx context.Context, cluster, ns, serverName, id, serverUID string, serverCreatedAt time.Time, canStart bool) error {
+	if cluster == "" {
+		cluster = "local"
+	}
+	value := 0
+	if canStart {
+		value = 1
+	}
+	// expires_at is RFC3339 text and can carry an offset. Compare instants,
+	// not strings, in the same statement that rejects a concurrent revoke.
+	const update = `UPDATE share_links SET can_start = ?
+		WHERE cluster = ? AND namespace = ? AND server_name = ? AND id = ? AND revoked_at IS NULL
+		AND ((server_uid <> '' AND server_uid = ?) OR (server_uid = '' AND created_at >= ?))
+		AND (expires_at IS NULL OR `
+	query := update + `julianday(expires_at) > julianday(?))`
+	if s.Driver == "postgres" {
+		query = update + `expires_at::timestamptz > CAST(? AS text)::timestamptz)`
+	}
+	result, err := s.DB.ExecContext(ctx, query, value, cluster, ns, serverName, id, serverUID,
+		serverCreatedAt.UTC().Format(time.RFC3339), time.Now().UTC().Format(time.RFC3339))
+	if err != nil {
+		return fmt.Errorf("update share link wake permission: %w", err)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("updated share link count: %w", err)
+	}
+	if n == 0 {
+		return ErrShareLinkNotFound
+	}
+	return nil
+}
+
 // RevokeShareLink marks a share link as revoked by setting revoked_at to the
 // current timestamp. The link must belong to the given cluster, namespace and
 // server; an empty cluster means "local", as in CreateShareLink. Revocation is

@@ -411,6 +411,18 @@ func deleteHandler(reg *kube.Registry, store *db.Store, gvr schema.GroupVersionR
 				return
 			}
 			options := metav1.DeleteOptions{}
+			if gvr == kube.GVRs["schedules"] {
+				query := req.URL.Query()
+				if query.Has("expectedUID") || query.Has("expectedResourceVersion") {
+					uid := types.UID(query.Get("expectedUID"))
+					version := query.Get("expectedResourceVersion")
+					if uid == "" || version == "" || len(query["expectedUID"]) != 1 || len(query["expectedResourceVersion"]) != 1 {
+						httperr.Write(w, req, apierrors.NewBadRequest("expectedUID and expectedResourceVersion must each be provided once"))
+						return
+					}
+					options.Preconditions = &metav1.Preconditions{UID: &uid, ResourceVersion: &version}
+				}
+			}
 			if gvr == kube.GVRs["servers"] {
 				obj, ok := authorizedServer(w, req, k, ns, name)
 				if !ok {

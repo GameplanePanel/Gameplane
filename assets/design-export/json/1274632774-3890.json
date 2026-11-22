@@ -1,0 +1,777 @@
+{
+  "file": "1274632774-3890",
+  "name": "Screen/Mobile — Server Detail — Modpacks",
+  "type": "FRAME",
+  "x": 18880,
+  "y": 32970,
+  "width": 390,
+  "height": 1100,
+  "fills": [{"type": "SOLID", "color": "#121114"}],
+  "layout": {
+    "mode": "VERTICAL",
+    "gap": 0,
+    "padding": [0, 0, 0, 0],
+    "primary": "MIN",
+    "counter": "MIN",
+    "sizing": ["FIXED", "FIXED"]
+  },
+  "clips": true,
+  "variables": {"fills/0/color": "background/background"},
+  "children": [
+    {
+      "name": "Mobile TopBar",
+      "type": "INSTANCE",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64,
+      "component": "Gameplane/Mobile TopBar",
+      "componentId": "1:1782",
+      "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+      "strokeWeight": 1,
+      "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "padding": [0, 16, 0, 16],
+        "primary": "SPACE_BETWEEN",
+        "counter": "CENTER",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"strokes/0/color": "border/border"},
+      "texts": ["mc-modded", "AD"]
+    },
+    {
+      "name": "Body",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 390,
+      "height": 1036,
+      "fills": [{"type": "SOLID", "color": "#121114"}],
+      "layout": {
+        "mode": "VERTICAL",
+        "gap": 16,
+        "padding": [16, 16, 16, 16],
+        "primary": "MIN",
+        "counter": "MIN",
+        "sizing": ["FIXED", "FIXED"]
+      },
+      "layoutGrow": 1,
+      "layoutAlignSelf": "STRETCH",
+      "variables": {"fills/0/color": "background/background"},
+      "children": [
+        {
+          "name": "Text",
+          "type": "TEXT",
+          "x": 16,
+          "y": 16,
+          "width": 80,
+          "height": 21,
+          "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+          "text": "Modpacks",
+          "font": ["Geist", 600, 16],
+          "variables": {"fills/0/color": "foreground/foreground"}
+        },
+        {
+          "name": "Active Modpack Card",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 53,
+          "width": 358,
+          "height": 224,
+          "component": "Gameplane/Active Modpack Card/Mobile",
+          "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 12,
+            "padding": [16, 16, 16, 16],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {"fills/0/color": "surface/surface", "strokes/0/color": "border/border"},
+          "texts": [
+            "Active modpack",
+            "Fabulously Optimized",
+            "Modrinth",
+            "Applied",
+            "Version 6.4.0 · pinned · Minecraft 1.21.1 · Fabric",
+            "Change version",
+            "Remove"
+          ]
+        },
+        {
+          "name": "Provider Switch",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 293,
+          "width": 266,
+          "height": 40,
+          "component": "Gameplane/Provider Switch",
+          "fills": [{"type": "SOLID", "color": "#232128"}],
+          "cornerRadius": 20,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 0,
+            "padding": [4, 4, 4, 4],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "HUG"]
+          },
+          "variables": {"fills/0/color": "default/default"},
+          "texts": ["Modrinth", "CurseForge", "FTB"]
+        },
+        {
+          "name": "Search",
+          "type": "INSTANCE",
+          "x": 16,
+          "y": 349,
+          "width": 358,
+          "height": 36,
+          "component": "Gameplane/Search Input",
+          "componentId": "1:975",
+          "fills": [{"type": "SOLID", "color": "#17151A"}],
+          "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+          "strokeWeight": 1,
+          "effects": [{"type": "DROP_SHADOW", "radius": 2, "visible": true}],
+          "cornerRadius": 12,
+          "layout": {
+            "mode": "HORIZONTAL",
+            "gap": 6,
+            "padding": [0, 12, 0, 12],
+            "primary": "MIN",
+            "counter": "CENTER",
+            "sizing": ["FIXED", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "variables": {
+            "cornerRadius": "radius/xl",
+            "fills/0/color": "field/background",
+            "strokes/0/color": "field/border"
+          },
+          "texts": ["Search modpacks…"]
+        },
+        {
+          "name": "Modpacks List",
+          "type": "FRAME",
+          "x": 16,
+          "y": 401,
+          "width": 358,
+          "height": 296,
+          "layout": {
+            "mode": "VERTICAL",
+            "gap": 8,
+            "padding": [0, 0, 0, 0],
+            "primary": "MIN",
+            "counter": "MIN",
+            "sizing": ["HUG", "FIXED"]
+          },
+          "layoutAlignSelf": "STRETCH",
+          "children": [
+            {
+              "name": "Card All the Mods 10",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 358,
+              "height": 68,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "paddingTop": "spacing/4",
+                "paddingRight": "spacing/4",
+                "paddingBottom": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Cover",
+                  "type": "FRAME",
+                  "x": 16,
+                  "y": 16,
+                  "width": 36,
+                  "height": 36,
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "Icon",
+                      "type": "FRAME",
+                      "x": 8,
+                      "y": 8,
+                      "width": 20,
+                      "height": 20,
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 1.67,
+                          "width": 15,
+                          "height": 16.67,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.74,
+                          "y": 3.56,
+                          "width": 14.52,
+                          "height": 6.44,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Info",
+                  "type": "FRAME",
+                  "x": 64,
+                  "y": 17,
+                  "width": 200,
+                  "height": 34,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 200,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "All the Mods 10",
+                      "font": ["Geist", 500, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 18,
+                      "width": 200,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "ATMTeam · 18.9M downloads",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Btn Install",
+                  "type": "INSTANCE",
+                  "x": 276,
+                  "y": 18,
+                  "width": 66,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Default",
+                  "componentId": "1:709",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Install…"]
+                }
+              ]
+            },
+            {
+              "name": "Card Prominence II",
+              "type": "FRAME",
+              "x": 0,
+              "y": 76,
+              "width": 358,
+              "height": 68,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "paddingTop": "spacing/4",
+                "paddingRight": "spacing/4",
+                "paddingBottom": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Cover",
+                  "type": "FRAME",
+                  "x": 16,
+                  "y": 16,
+                  "width": 36,
+                  "height": 36,
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "Icon",
+                      "type": "FRAME",
+                      "x": 8,
+                      "y": 8,
+                      "width": 20,
+                      "height": 20,
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 1.67,
+                          "width": 15,
+                          "height": 16.67,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.74,
+                          "y": 3.56,
+                          "width": 14.52,
+                          "height": 6.44,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Info",
+                  "type": "FRAME",
+                  "x": 64,
+                  "y": 17,
+                  "width": 200,
+                  "height": 34,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 200,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Prominence II",
+                      "font": ["Geist", 500, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 18,
+                      "width": 200,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Elocindev · 4.1M downloads",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Btn Install",
+                  "type": "INSTANCE",
+                  "x": 276,
+                  "y": 18,
+                  "width": 66,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Default",
+                  "componentId": "1:709",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Install…"]
+                }
+              ]
+            },
+            {
+              "name": "Card Better MC [FABRIC]",
+              "type": "FRAME",
+              "x": 0,
+              "y": 152,
+              "width": 358,
+              "height": 68,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "paddingTop": "spacing/4",
+                "paddingRight": "spacing/4",
+                "paddingBottom": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Cover",
+                  "type": "FRAME",
+                  "x": 16,
+                  "y": 16,
+                  "width": 36,
+                  "height": 36,
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "Icon",
+                      "type": "FRAME",
+                      "x": 8,
+                      "y": 8,
+                      "width": 20,
+                      "height": 20,
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 1.67,
+                          "width": 15,
+                          "height": 16.67,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.74,
+                          "y": 3.56,
+                          "width": 14.52,
+                          "height": 6.44,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Info",
+                  "type": "FRAME",
+                  "x": 64,
+                  "y": 17,
+                  "width": 200,
+                  "height": 34,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 200,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Better MC [FABRIC]",
+                      "font": ["Geist", 500, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 18,
+                      "width": 200,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "LunaPixelStudios · 9.7M downloads",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Btn Install",
+                  "type": "INSTANCE",
+                  "x": 276,
+                  "y": 18,
+                  "width": 66,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Default",
+                  "componentId": "1:709",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Install…"]
+                }
+              ]
+            },
+            {
+              "name": "Card Cobblemon Official Modpack",
+              "type": "FRAME",
+              "x": 0,
+              "y": 228,
+              "width": 358,
+              "height": 68,
+              "fills": [{"type": "SOLID", "color": "#1C1A20"}],
+              "strokes": [{"type": "SOLID", "color": "#2C2932"}],
+              "strokeWeight": 1,
+              "cornerRadius": 12,
+              "layout": {
+                "mode": "HORIZONTAL",
+                "gap": 12,
+                "padding": [16, 16, 16, 16],
+                "primary": "MIN",
+                "counter": "CENTER",
+                "sizing": ["FIXED", "FIXED"]
+              },
+              "layoutGrow": 1,
+              "layoutAlignSelf": "STRETCH",
+              "variables": {
+                "cornerRadius": "radius/xl",
+                "paddingTop": "spacing/4",
+                "paddingRight": "spacing/4",
+                "paddingBottom": "spacing/4",
+                "paddingLeft": "spacing/4",
+                "fills/0/color": "surface/surface",
+                "strokes/0/color": "border/border"
+              },
+              "children": [
+                {
+                  "name": "Cover",
+                  "type": "FRAME",
+                  "x": 16,
+                  "y": 16,
+                  "width": 36,
+                  "height": 36,
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "cornerRadius": 4,
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["FIXED", "FIXED"]
+                  },
+                  "children": [
+                    {
+                      "name": "Icon",
+                      "type": "FRAME",
+                      "x": 8,
+                      "y": 8,
+                      "width": 20,
+                      "height": 20,
+                      "variables": {"fills/0/color": "muted"},
+                      "children": [
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.5,
+                          "y": 1.67,
+                          "width": 15,
+                          "height": 16.67,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        },
+                        {
+                          "name": "path",
+                          "type": "VECTOR",
+                          "x": 2.74,
+                          "y": 3.56,
+                          "width": 14.52,
+                          "height": 6.44,
+                          "strokes": [{"type": "SOLID", "color": "#9E98A6"}],
+                          "strokeWeight": 1.67
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Info",
+                  "type": "FRAME",
+                  "x": 64,
+                  "y": 17,
+                  "width": 200,
+                  "height": 34,
+                  "layout": {
+                    "mode": "VERTICAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "MIN",
+                    "counter": "MIN",
+                    "sizing": ["HUG", "FIXED"]
+                  },
+                  "layoutGrow": 1,
+                  "children": [
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 0,
+                      "width": 200,
+                      "height": 18,
+                      "fills": [{"type": "SOLID", "color": "#F5F3F7"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "Cobblemon Official Modpack",
+                      "font": ["Geist", 500, 14],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "foreground/foreground"}
+                    },
+                    {
+                      "name": "text",
+                      "type": "TEXT",
+                      "x": 0,
+                      "y": 18,
+                      "width": 200,
+                      "height": 16,
+                      "fills": [{"type": "SOLID", "color": "#9E98A6"}],
+                      "layoutAlignSelf": "STRETCH",
+                      "text": "The Cobblemon Team · 3.3M downloads",
+                      "font": ["Geist", 400, 12],
+                      "variables": {"fontFamily": "typography/font-sans", "fills/0/color": "muted"}
+                    }
+                  ]
+                },
+                {
+                  "name": "Btn Install",
+                  "type": "INSTANCE",
+                  "x": 276,
+                  "y": 18,
+                  "width": 66,
+                  "height": 32,
+                  "component": "Gameplane/Button/Small/Default",
+                  "componentId": "1:709",
+                  "fills": [{"type": "SOLID", "color": "#00000000", "opacity": 0}],
+                  "layout": {
+                    "mode": "HORIZONTAL",
+                    "gap": 0,
+                    "padding": [0, 0, 0, 0],
+                    "primary": "CENTER",
+                    "counter": "CENTER",
+                    "sizing": ["HUG", "HUG"]
+                  },
+                  "texts": ["Install…"]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

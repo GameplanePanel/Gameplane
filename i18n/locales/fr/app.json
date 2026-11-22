@@ -1367,6 +1367,10 @@
         "defaultMessage": "Annuler",
         "description": "Schedule form: button that closes the form without creating a schedule; keep it short"
     },
+    "web.components.backups.schedule_form.changed": {
+        "defaultMessage": "Cette planification a changé. Rouvrez-la pour modifier sa dernière version.",
+        "description": "Schedule editor: conflict while saving a changed or replaced schedule"
+    },
     "web.components.backups.schedule_form.create_schedule": {
         "defaultMessage": "Créer la planification",
         "description": "Schedule form: submit button label"
@@ -1383,9 +1387,17 @@
         "defaultMessage": "Snapshot de volume CSI récurrent selon une expression cron. Aucun dépôt restic requis.",
         "description": "Schedule form: hint for the CSI snapshot schedule type"
     },
+    "web.components.backups.schedule_form.csi_policy_hint": {
+        "defaultMessage": "Les instantanés de volume nécessitent de conserver l’état d’alimentation du serveur et de sauvegarder uniquement le volume principal.",
+        "description": "Schedule editor: explains why the current restic backup policies prevent switching to CSI"
+    },
     "web.components.backups.schedule_form.destination": {
         "defaultMessage": "Destination",
         "description": "Schedule form: label above the dropdown that picks the backup destination"
+    },
+    "web.components.backups.schedule_form.edit_schedule": {
+        "defaultMessage": "Modifier {name}",
+        "description": "Schedule editor heading, where {name} is the existing backup schedule"
     },
     "web.components.backups.schedule_form.new_backup_schedule": {
         "defaultMessage": "Nouvelle planification de sauvegarde",
@@ -1410,6 +1422,10 @@
     "web.components.backups.schedule_form.retention_policy": {
         "defaultMessage": "Politique de rétention",
         "description": "Schedule form: label above the retention settings that decide how many old backups are kept"
+    },
+    "web.components.backups.schedule_form.save_changes": {
+        "defaultMessage": "Enregistrer les modifications",
+        "description": "Schedule editor: save changes to the existing schedule"
     },
     "web.components.backups.schedule_form.schedule_cron": {
         "defaultMessage": "Planification (cron)",
@@ -7055,13 +7071,25 @@
         "defaultMessage": "Terminé",
         "description": "Backups tab: column heading for when each backup finished in the backups table; keep it short"
     },
+    "web.routes.tabs.backups.delete_schedule_changed": {
+        "defaultMessage": "La planification a été modifiée ou supprimée. Vérifiez la planification actuelle avant de la supprimer.",
+        "description": "Server Backups tab: the schedule changed after the user opened the delete confirmation"
+    },
+    "web.routes.tabs.backups.delete_schedule_hint": {
+        "defaultMessage": "Supprimer cette planification arrête les prochaines exécutions. Les sauvegardes déjà effectuées sont conservées.",
+        "description": "Server Backups tab: explains the effect of deleting a schedule"
+    },
+    "web.routes.tabs.backups.edit": {
+        "defaultMessage": "Modifier",
+        "description": "Server Backups tab: opens the selected backup schedule for editing"
+    },
     "web.routes.tabs.backups.last_backup": {
         "defaultMessage": "Dernier backup",
         "description": "Backups tab: stat card label for the time of the most recent backup; the value shows that time relative to now, or Unavailable"
     },
     "web.routes.tabs.backups.managed_by_server_settings": {
         "defaultMessage": "Géré par les paramètres du serveur",
-        "description": "Backups tab: small badge on a schedule row meaning the schedule is set by the server settings and not edited here; keep it short"
+        "description": "Backups tab: opens the server settings that control this schedule"
     },
     "web.routes.tabs.backups.name": {
         "defaultMessage": "Nom",
@@ -9371,6 +9399,10 @@
         "defaultMessage": "Terminé",
         "description": "Button that closes the link-created dialog"
     },
+    "web.routes.tabs.settings.share_links.edit_wake_permission": {
+        "defaultMessage": "Autoriser toute personne disposant du lien {id} à réveiller le serveur",
+        "description": "Accessible name of the wake permission switch for the given share link ID"
+    },
     "web.routes.tabs.settings.share_links.expires": {
         "defaultMessage": "Expire",
         "description": "Table column header for the share link expiry date"
@@ -9414,6 +9446,10 @@
     "web.routes.tabs.settings.share_links.let_people_without_a_gameplane_account": {
         "defaultMessage": "Permettez aux personnes sans compte Gameplane de consulter l'état et l'adresse de connexion de ce serveur. Seul le propriétaire peut créer ou révoquer des liens.",
         "description": "Share links: hint under the Share links heading saying people without an account can check the status and address, and only the owner can create or revoke links"
+    },
+    "web.routes.tabs.settings.share_links.link_id": {
+        "defaultMessage": "Identifiant du lien",
+        "description": "Label for the non-secret share link identifier in the creation dialog and table"
     },
     "web.routes.tabs.settings.share_links.long_lived_link_it_stays_valid_for_over": {
         "defaultMessage": "Lien de longue durée : il reste valide plus d'un an sauf si vous le révoquez.",
@@ -9486,6 +9522,14 @@
     "web.routes.tabs.settings.share_links.view_only": {
         "defaultMessage": "Lecture seule",
         "description": "Share links: table cell for a link that only allows viewing the server status"
+    },
+    "web.routes.tabs.settings.share_links.wake_permission_failed": {
+        "defaultMessage": "Impossible de modifier l’autorisation de réveil associée au lien.",
+        "description": "Share links: error shown when updating the start permission fails"
+    },
+    "web.routes.tabs.settings.share_links.wake_permission_hint": {
+        "defaultMessage": "Les personnes sans compte Gameplane peuvent consulter l’état et l’adresse du serveur. Activez « Démarrage possible » pour permettre à toute personne disposant du lien de réveiller le serveur.",
+        "description": "Share links: explains the effect of the Can start switch on everyone with the existing URL"
     },
     "web.routes.tabs.settings.share_links.you_will_not_see_this_link_again": {
         "defaultMessage": "Vous ne reverrez pas ce lien",

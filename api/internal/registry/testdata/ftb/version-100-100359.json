@@ -1,0 +1,113 @@
+{
+  "files": [
+    {
+      "clientonly": false,
+      "hashes": {
+        "cfMurmur": 171778091,
+        "murmur": 3861719366,
+        "sha1": "4110547c387c96f481e3d2dd840ec51917952534",
+        "sha256": "50f8a5bee199a9f544ad1c87441e424ad768195b3fa95eb1d8372de18c7da346",
+        "sha512": "c59c916a4e1204eef90e8e5b609ea4e01ea11d91fe32ab97de4c6c19894eb1590859fd40a86336444799877d78511ae49ae4c8b4b3190f4f04db98837be5a91e"
+      },
+      "id": 4254609718,
+      "mirrors": [],
+      "name": "EnderStorage.cfg",
+      "optional": false,
+      "path": "./config",
+      "serveronly": false,
+      "sha1": "4110547c387c96f481e3d2dd840ec51917952534",
+      "size": 522,
+      "tags": [],
+      "type": "config",
+      "updated": 1781197685,
+      "url": "https://files.feed-the-beast.com/blob/b5/b531647b7f129799124b4594fffb05567cfde3ad884e3309557d45555a218e61.cfg",
+      "version": "0"
+    },
+    {
+      "clientonly": false,
+      "hashes": {
+        "cfMurmur": 3995973784,
+        "murmur": 2132616502,
+        "sha1": "f3339fdddcd8ff831ba7c5b3d9a4f87d68eb3ea8",
+        "sha256": "a9c6ee5c60e634126d5b5b462f088a943beb73f6a0afc62570c59499b98a9a0f",
+        "sha512": "9f67d5090bc78e08058183098c5051bc188f51b20963acf4602eab327764be3eaad87c81ef597e4e7a7850af10f987674ccea5a2e68a7548d4e9c917e774b588"
+      },
+      "id": 4254609717,
+      "mirrors": [],
+      "name": "cofh_core-common.toml",
+      "optional": false,
+      "path": "./config",
+      "serveronly": false,
+      "sha1": "f3339fdddcd8ff831ba7c5b3d9a4f87d68eb3ea8",
+      "size": 637,
+      "tags": [],
+      "type": "config",
+      "updated": 1781197685,
+      "url": "https://files.feed-the-beast.com/blob/83/8378511327c6f44df73ede6e44c0a40ee35acf638090434e0b72145bda66a02f.toml",
+      "version": "0"
+    },
+    {
+      "clientonly": false,
+      "hashes": {
+        "cfMurmur": 3255768285,
+        "murmur": 1609467815,
+        "sha1": "826d09f65c5bfd3071b10119bc4a5e78198de523",
+        "sha256": "0a70d58a4a562c2aa2945a3883d35fa3a8e90d80eab9d6b2db3be6103f71b9b2",
+        "sha512": "73cc14e116e5c0bda101a3c5f98e1ff38fe5faa1ef6be3770727e285b6141eb2a118e0add3ec3b05fe5474d9df0aa6884eadd56fcfa0aedbf2801750e8668c26"
+      },
+      "id": 4254609716,
+      "mirrors": [],
+      "name": "flywheel-client.toml",
+      "optional": false,
+      "path": "./config",
+      "serveronly": false,
+      "sha1": "826d09f65c5bfd3071b10119bc4a5e78198de523",
+      "size": 266,
+      "tags": [],
+      "type": "config",
+      "updated": 1781197685,
+      "url": "https://files.feed-the-beast.com/blob/a9/a9aae7a561bd18c894283b283b930bdc510b9b8f85a2d25a7e82f4de990bdd6b.toml",
+      "version": "0"
+    }
+  ],
+  "id": 100359,
+  "installs": 9643,
+  "links": [],
+  "name": "1.11.6",
+  "notification": "",
+  "parent": 100,
+  "plays": 51328,
+  "private": false,
+  "refreshed": 0,
+  "specs": {
+    "id": 0,
+    "minimum": 4096,
+    "recommended": 6144
+  },
+  "status": "success",
+  "targets": [
+    {
+      "id": -1,
+      "name": "minecraft",
+      "type": "game",
+      "updated": 0,
+      "version": "1.18.2"
+    },
+    {
+      "id": -1,
+      "name": "forge",
+      "type": "modloader",
+      "updated": 0,
+      "version": "40.2.34"
+    },
+    {
+      "id": -1,
+      "name": "java",
+      "type": "runtime",
+      "updated": 0,
+      "version": "17.0.2+8"
+    }
+  ],
+  "type": "release",
+  "updated": 1781198103
+}

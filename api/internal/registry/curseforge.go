@@ -7,7 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // Curseforge searches the CurseForge v1 API (api.curseforge.com), which
@@ -45,8 +48,9 @@ func (g *curseforgeGame) Versions(ctx context.Context, projectID string, f Filte
 	return g.cf.Versions(ctx, projectID, f)
 }
 
-// ModpackDeps is a no-op: the games wired to CurseForge install content as
-// single mods (or via idList), not via dependency resolution.
+// ModpackDeps is a no-op: a CurseForge modpack installs through the game
+// image's env (itzg AUTO_CURSEFORGE with the pack slug and file id the
+// operator renders from spec.modpack), never by resolving dependency mods.
 func (g *curseforgeGame) ModpackDeps(ctx context.Context, projectID string) ([]File, error) {
 	return g.cf.ModpackDeps(ctx, projectID)
 }
@@ -182,10 +186,14 @@ func (m cfMod) project() Project {
 	}
 }
 
-// Versions lists a mod's files filtered to the active loader + game version,
-// newest first (CurseForge returns files newest-first already). Files whose
-// author disabled third-party distribution carry no downloadUrl and are
-// skipped — the dashboard can't install them.
+// Versions lists a mod's (or, with f.ProjectType "modpack", a modpack's)
+// files filtered to the active loader + game version, newest first
+// (CurseForge returns files newest-first already). Modpacks use the same
+// /mods/{id}/files endpoint as mods (class 4471 only matters for search);
+// because their pinned file id is what the operator installs, the filter is
+// also applied client side for modpacks. Files whose author disabled
+// third-party distribution carry no downloadUrl and are skipped — neither
+// the dashboard nor the pack installer can fetch them.
 func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) ([]Version, error) {
 	params := url.Values{}
 	if f.GameVersion != "" {
@@ -211,11 +219,20 @@ func (c *Curseforge) Versions(ctx context.Context, projectID string, f Filter) (
 		if fl.DownloadURL == "" {
 			continue
 		}
+		if f.modpack() && !cfFileMatches(fl.GameVersions, f) {
+			continue
+		}
+		published := ""
+		if t, err := time.Parse(time.RFC3339Nano, fl.FileDate); err == nil {
+			published = t.UTC().Format(time.RFC3339)
+		}
 		out = append(out, Version{
 			ID:            strconv.Itoa(fl.ID),
 			Name:          fl.DisplayName,
 			VersionNumber: fl.DisplayName,
 			GameVersions:  fl.GameVersions,
+			ReleaseType:   cfReleaseType(fl.ReleaseType),
+			PublishedAt:   published,
 			Files: []File{{
 				Filename:    fl.FileName,
 				DownloadURL: fl.DownloadURL,
@@ -234,12 +251,64 @@ type cfFile struct {
 	DownloadURL  string   `json:"downloadUrl"`
 	FileLength   int64    `json:"fileLength"`
 	GameVersions []string `json:"gameVersions"`
+	ReleaseType  int      `json:"releaseType"`
+	FileDate     string   `json:"fileDate"`
 }
 
-// ModpackDeps is a no-op: the games wired to CurseForge install content as
-// single mods (or via idList), not via dependency resolution — see
-// curseforgeGame.ModpackDeps, the Provider surface that actually gets
-// called.
+// cfReleaseType maps CurseForge's numeric releaseType (1 release, 2 beta,
+// 3 alpha) to the Version.ReleaseType vocabulary; "" for anything else.
+func cfReleaseType(n int) string {
+	switch n {
+	case 1:
+		return "release"
+	case 2:
+		return "beta"
+	case 3:
+		return "alpha"
+	default:
+		return ""
+	}
+}
+
+// cfLoaderTags maps a Gameplane loader id to the loader tag CurseForge puts
+// in a file's gameVersions list next to the Minecraft version.
+var cfLoaderTags = map[string]string{
+	"forge":    "Forge",
+	"neoforge": "NeoForge",
+	"fabric":   "Fabric",
+	"quilt":    "Quilt",
+}
+
+// cfFileMatches reports whether a file's gameVersions tags fit the filter.
+// The game version must be listed exactly (when set). The loader (when set)
+// matches if the file lists it, or if the file lists no loader tag at all
+// (nothing to judge by); a file that lists only other loaders is rejected.
+func cfFileMatches(tags []string, f Filter) bool {
+	if f.GameVersion != "" && !slices.Contains(tags, f.GameVersion) {
+		return false
+	}
+	want, ok := cfLoaderTags[f.Loader]
+	if !ok {
+		return true
+	}
+	hasLoader := false
+	for _, tag := range tags {
+		for _, known := range cfLoaderTags {
+			if !strings.EqualFold(tag, known) {
+				continue
+			}
+			if strings.EqualFold(tag, want) {
+				return true
+			}
+			hasLoader = true
+		}
+	}
+	return !hasLoader
+}
+
+// ModpackDeps is a no-op: a CurseForge modpack installs through the game
+// image's env (see curseforgeGame.ModpackDeps, the Provider surface that
+// actually gets called), so there are no dependency files to resolve.
 func (c *Curseforge) ModpackDeps(_ context.Context, _ string) ([]File, error) {
 	return nil, nil
 }

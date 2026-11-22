@@ -12,7 +12,7 @@ every pack change, and a list of files that need a manual download. The game ima
 installing (itzg `AUTO_CURSEFORGE`, `FTBA`, `MODRINTH`). The API stops patching `spec.env`
 and writes a new `GameServer.spec.modpack`; the operator renders the pack env, runs the
 backup-then-apply state machine, empties the mods folder on removal, and, only when an admin
-opts in, mounts a server-owned copy of the CurseForge key as a file. A new keyless FTB
+opts in, gives the game container an env var (`CF_API_KEY`) from a server-owned copy of the CurseForge key via `valueFrom.secretKeyRef`. A new keyless FTB
 registry engine feeds search and versions. See [research.md](./research.md).
 
 ## Technical Context
@@ -78,7 +78,7 @@ operator/
 ├── api/v1alpha1/gameserver_types.go       # spec.modpack, status.modpack
 ├── internal/controller/gameserver_modpack.go          # new: env rendering, state machine, wipe, key copy
 ├── internal/controller/gameserver_modpack_envtest_test.go
-├── internal/controller/gameserver_controller.go       # call sites, watch on managed key Secret
+├── internal/controller/gameserver_controller.go       # call sites, 60s requeue for CurseForge servers (managed key Secret is read, not watched)
 └── config/{crd,rbac}/ + charts/gameplane/{charts/gameplane-crds/crds,crd-manifests}/  # generated
 api/
 ├── internal/registry/ftb.go (+ _test.go, testdata/)   # new keyless engine

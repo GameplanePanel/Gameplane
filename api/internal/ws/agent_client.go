@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -68,50 +69,11 @@ func (c *AgentClient) GetJSON(ctx context.Context, name, namespace, path string,
 // GetJSONForCluster resolves the same registered cluster as its caller's resource
 // lookup. The remote transport binds the operation to the live server UID.
 func (c *AgentClient) GetJSONForCluster(ctx context.Context, cluster, name, namespace, path string, out any) error {
-	target := agentTarget{name: name, namespace: namespace}
-	if err := target.validate(); err != nil {
+	resp, cancel, err := c.get(ctx, cluster, name, namespace, path, "", "application/json")
+	if err != nil {
 		return err
 	}
-	transport := c.transport
-	cluster = strings.TrimSpace(cluster)
-	if cluster != "" && cluster != scope.DefaultCluster {
-		if c.gateway == nil || c.gateway.registry == nil {
-			return errGatewayUnavailable
-		}
-		var err error
-		_, transport, err = c.gateway.resolve(ctx, cluster, target)
-		if err != nil {
-			return err
-		}
-	} else if c.gateway != nil && c.gateway.registry != nil {
-		var err error
-		target, err = localAgentTarget(ctx, c.gateway.registry.Default(), target)
-		if err != nil {
-			return err
-		}
-	} else if bound, ok := rbac.BoundServerIdentity(ctx); ok {
-		// Legacy clients lack a registry, but can still enforce the exact
-		// ownership grant at the receiving agent's UID route.
-		if err := rbac.ValidateServerIdentity(ctx, scope.DefaultCluster, namespace, name, bound.UID); err != nil {
-			return err
-		}
-		target.uid = bound.UID
-	}
-	if transport == nil {
-		return errors.New("agent mTLS not configured")
-	}
-	// Match the historical bound on internal one-shot reads for gateways too.
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-
-	resp, err := transport.Do(ctx, agentRequest{
-		target: target,
-		method: http.MethodGet, path: path,
-		header: http.Header{"Accept": {"application/json"}},
-	})
-	if err != nil {
-		return fmt.Errorf("agent GET %s: %w", path, err)
-	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("agent GET %s: status %d", path, resp.StatusCode)
@@ -120,6 +82,86 @@ func (c *AgentClient) GetJSONForCluster(ctx context.Context, cluster, name, name
 		return fmt.Errorf("agent GET %s: decode: %w", path, err)
 	}
 	return nil
+}
+
+// ErrAgentFileNotFound is returned by ReadFileForCluster when the agent
+// answers 404 for the requested path.
+var ErrAgentFileNotFound = errors.New("agent file not found")
+
+// ReadFileForCluster reads one small file below the server's data mount
+// through the agent's /files/read. At most limit bytes are returned (a longer
+// file is cut, not an error). A missing file is ErrAgentFileNotFound; any other
+// failure (no pod, agent unreachable, 4xx/5xx) is a wrapped error.
+func (c *AgentClient) ReadFileForCluster(ctx context.Context, cluster, name, namespace, path string, limit int64) ([]byte, error) {
+	query := url.Values{"path": {path}}.Encode()
+	resp, cancel, err := c.get(ctx, cluster, name, namespace, "/files/read", query, "*/*")
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+	defer func() { _ = resp.Body.Close() }()
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return nil, ErrAgentFileNotFound
+	default:
+		return nil, fmt.Errorf("agent GET /files/read: status %d", resp.StatusCode)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, limit))
+	if err != nil {
+		return nil, fmt.Errorf("agent GET /files/read: read: %w", err)
+	}
+	return data, nil
+}
+
+// get resolves the target and transport (the former body of GetJSONForCluster,
+// unchanged) and performs one GET. The caller must call the returned cancel
+// after it has finished with the response body.
+func (c *AgentClient) get(ctx context.Context, cluster, name, namespace, path, rawQuery, accept string) (*http.Response, context.CancelFunc, error) {
+	target := agentTarget{name: name, namespace: namespace}
+	if err := target.validate(); err != nil {
+		return nil, nil, err
+	}
+	transport := c.transport
+	cluster = strings.TrimSpace(cluster)
+	if cluster != "" && cluster != scope.DefaultCluster {
+		if c.gateway == nil || c.gateway.registry == nil {
+			return nil, nil, errGatewayUnavailable
+		}
+		var err error
+		_, transport, err = c.gateway.resolve(ctx, cluster, target)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else if c.gateway != nil && c.gateway.registry != nil {
+		var err error
+		target, err = localAgentTarget(ctx, c.gateway.registry.Default(), target)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else if bound, ok := rbac.BoundServerIdentity(ctx); ok {
+		// Legacy clients lack a registry, but can still enforce the exact
+		// ownership grant at the receiving agent's UID route.
+		if err := rbac.ValidateServerIdentity(ctx, scope.DefaultCluster, namespace, name, bound.UID); err != nil {
+			return nil, nil, err
+		}
+		target.uid = bound.UID
+	}
+	if transport == nil {
+		return nil, nil, errors.New("agent mTLS not configured")
+	}
+	// Match the historical bound on internal one-shot reads for gateways too.
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	resp, err := transport.Do(ctx, agentRequest{
+		target: target,
+		method: http.MethodGet, path: path, rawQuery: rawQuery,
+		header: http.Header{"Accept": {accept}},
+	})
+	if err != nil {
+		cancel()
+		return nil, nil, fmt.Errorf("agent GET %s: %w", path, err)
+	}
+	return resp, cancel, nil
 }
 
 // agentHostFor is the in-cluster DNS + port of a server's agent sidecar —

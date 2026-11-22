@@ -535,6 +535,56 @@ func TestLookupShareLink_DoesNotUpdateLastUsed(t *testing.T) {
 	}
 }
 
+func TestSetShareLinkCanStartScopeAndLiveness(t *testing.T) {
+	ctx := t.Context()
+	s := newShareLinksStore(t)
+	owner := insertTestUser(t, s, "edit-scope")
+	now := time.Now().UTC().Truncate(time.Second)
+	token, link, err := s.CreateShareLinkForServer(ctx, "remote", "games", "mc", "uid-a", owner, false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ cluster, namespace, server, id, uid string }{
+		{"other", "games", "mc", link.ID, "uid-a"}, {"remote", "other", "mc", link.ID, "uid-a"},
+		{"remote", "games", "other", link.ID, "uid-a"}, {"remote", "games", "mc", "unknown", "uid-a"},
+		{"remote", "games", "mc", link.ID, "uid-b"},
+	} {
+		if err := s.SetShareLinkCanStart(ctx, tc.cluster, tc.namespace, tc.server, tc.id, tc.uid, now, true); !errors.Is(err, ErrShareLinkNotFound) {
+			t.Fatalf("set for %+v: %v, want not found", tc, err)
+		}
+	}
+	if got, err := s.LookupShareLink(ctx, token); err != nil || got.CanStart {
+		t.Fatalf("after refused edits: canStart=%v, err=%v", got.CanStart, err)
+	}
+	if err := s.RevokeShareLink(ctx, "remote", "games", "mc", link.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetShareLinkCanStart(ctx, "remote", "games", "mc", link.ID, "uid-a", now, true); !errors.Is(err, ErrShareLinkNotFound) {
+		t.Fatalf("edit revoked link: %v, want not found", err)
+	}
+	_, legacy, err := s.CreateShareLink(ctx, "", "games", "mc", owner, false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	set := func(serverCreated time.Time) error {
+		return s.SetShareLinkCanStart(ctx, "", "games", "mc", legacy.ID, "uid-b", serverCreated, true)
+	}
+	if err := set(now.Add(time.Hour)); !errors.Is(err, ErrShareLinkNotFound) {
+		t.Fatalf("edit legacy link after recreation: %v, want not found", err)
+	}
+	if err := set(now); err != nil {
+		t.Fatalf("edit active legacy link: %v", err)
+	}
+	// An offset timestamp whose wall-clock time appears in the future is still expired.
+	past := now.Add(-time.Hour).In(time.FixedZone("UTC+10", 10*60*60))
+	if _, err := s.DB.ExecContext(ctx, "UPDATE share_links SET expires_at = ? WHERE id = ?", past.Format(time.RFC3339), legacy.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := set(now); !errors.Is(err, ErrShareLinkNotFound) {
+		t.Fatalf("edit expired link: %v, want not found", err)
+	}
+}
+
 func TestRevokeShareLink_Success(t *testing.T) {
 	s := newShareLinksStore(t)
 	ctx := context.Background()

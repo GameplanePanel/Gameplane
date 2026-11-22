@@ -4,7 +4,7 @@
   "name": "Screen/Mobile — Remote server Capture",
   "type": "FRAME",
   "x": 12840,
-  "y": 36870,
+  "y": 37128,
   "width": 375,
   "height": 900,
   "fills": [{"type": "SOLID", "color": "#121114"}],

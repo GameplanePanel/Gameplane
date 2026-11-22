@@ -128,6 +128,7 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
   const { Servers } = client;
   const access = useResourceAccess();
   const [localTab, setTab] = useState<TabKey>("overview");
+  const [openScheduledBackups, setOpenScheduledBackups] = useState(false);
   const tab = file !== undefined ? "files" : localTab;
   const [settingsDirty, setSettingsDirty] = useState(false);
   const qc = useQueryClient();
@@ -137,6 +138,7 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
     void nav({ ...link, search: { ...link.search, file: path } });
   }
   function selectTab(next: TabKey) {
+    setOpenScheduledBackups(false);
     setTab(next);
     if (next === "files" && file === undefined) navigateFile("/");
     else if (next !== "files" && file !== undefined) navigateFile();
@@ -381,12 +383,15 @@ function ServerDetailView({ lookupTarget, file }: { lookupTarget: ResourceTarget
           )}
           {tab === "files"    && <FilesTab name={name} ns={ns} path={file} onNavigate={navigateFile} />}
           {tab === "mods"     && <ModsTab    name={name} ns={ns} tmpl={tmpl} gs={gs} />}
-          {tab === "modpacks" && <ModpacksTab name={name} ns={ns} tmpl={tmpl} />}
+          {tab === "modpacks" && <ModpacksTab name={name} ns={ns} tmpl={tmpl} onOpenFiles={() => selectTab("files")} />}
           {tab === "players"  && <PlayersTab name={name} ns={ns} />}
-          {tab === "backups"  && <BackupsTab name={name} ns={ns} />}
+          {tab === "backups"  && <BackupsTab name={name} ns={ns} onOpenBackupSettings={() => {
+            setOpenScheduledBackups(true);
+            setTab("settings");
+          }} />}
           {tab === "capture"  && <CaptureWidget name={name} ns={ns} gs={gs} />}
           {tab === "settings" && (
-            <SettingsTab gs={gs} name={name} ns={ns} onDirtyChange={setSettingsDirty} />
+            <SettingsTab gs={gs} name={name} ns={ns} initialSection={openScheduledBackups ? "backups" : "general"} onDirtyChange={setSettingsDirty} />
           )}
         </Suspense>
       </div>
