@@ -12,12 +12,12 @@ import (
 	"time"
 )
 
-// TestAPIRBAC_MCPTokenReads proves that a personal MCP token carries exactly
+// TestAPI_RBAC_MCPTokenReads proves that a personal MCP token carries exactly
 // the caller's own RBAC: reads follow the user's namespace grant, writes are
 // refused by the token guard, and revocation, removing the grant, and an
 // admin password reset each cut the token off. Budget: two logins (the
 // e2e-admin fixture and the throwaway user).
-func TestAPIRBAC_MCPTokenReads(t *testing.T) {
+func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	t.Parallel()
 
 	envInstance.BootstrapAdmin(t, adminUsername, adminPassword)

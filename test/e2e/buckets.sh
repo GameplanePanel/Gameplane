@@ -121,7 +121,7 @@ TestAPI_I18n_LanguagePref
 TestAPI_I18n_NotifyLanguage
 TestAPI_I18n_NotifyTestSendRateLimit
 TestAPI_I18n_InstanceDefault
-TestAPIRBAC_MCPTokenReads
+TestAPI_RBAC_MCPTokenReads
 TestE2E_ResticRepoReady
 TestCISelection_AgentOnlyChange
 TestCISelection_SentinelOnlyChange
@@ -135,7 +135,7 @@ EOF
 # TestAPI_EventStreamAndRoleEdits_FollowCallerPermissions sits in operator for
 # the login budget, not by subject: api-roles is at its ceiling and api-rbac is
 # over it. It costs +1 e2e-admin login plus one login as its own user.
-# TestAPIRBAC_MCPTokenReads (spec 037, T023) sits here for the same reason:
+# TestAPI_RBAC_MCPTokenReads (spec 037, T023) sits here for the same reason:
 # +1 e2e-admin login plus one login as its own user (operator: 5 admin logins).
 
 bucket_api_auth() { cat <<'EOF'
@@ -385,7 +385,7 @@ EOF
 # that TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision signs in
 # through.
 #
-# TestMulticluster_MCPTokenRemoteGrant (spec 037, T039) costs +1 e2e-admin
+# TestMultiCluster_MCPTokenRemoteGrant (spec 037, T039) costs +1 e2e-admin
 # login plus one login as its own user, bringing this job to 7 admin logins,
 # the ceiling: do not add admin logins to this bucket.
 bucket_multicluster() { cat <<'EOF'
@@ -396,7 +396,7 @@ TestAPI_I18n_ModuleLocales
 TestAPI_SSORoleRules
 TestMultiCluster_ClusterDispatchAndScopedRBAC
 TestMultiCluster_GatewayParity
-TestMulticluster_MCPTokenRemoteGrant
+TestMultiCluster_MCPTokenRemoteGrant
 EOF
 }
 
