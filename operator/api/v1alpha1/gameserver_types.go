@@ -63,7 +63,6 @@ const (
 	// kept with status.modpack.applied when the removal's backup fails so a
 	// retry (new requestId) runs it again.
 	ModpackRemoveAnnotation = "gameplane.local/modpack-remove"
-
 )
 
 // GameServerSpec is the desired state of a single game server instance.
