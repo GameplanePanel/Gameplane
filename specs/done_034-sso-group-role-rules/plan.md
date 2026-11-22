@@ -2,7 +2,7 @@
 
 **Branch**: `feat/034-sso-group-role-rules` | **Date**: 2026-11-12 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/034-sso-group-role-rules/spec.md`
+**Input**: Feature specification from `/specs/done_034-sso-group-role-rules/spec.md`
 
 ## Summary
 
@@ -55,7 +55,7 @@ Pencil first), docs and E2E. No CRD, operator or agent change. Decisions are in
 ### Documentation (this feature)
 
 ```text
-specs/034-sso-group-role-rules/
+specs/done_034-sso-group-role-rules/
 ├── spec.md              # what and why (settled)
 ├── OPEN-DECISIONS.md    # OD-1..OD-7, all settled 2026-11-11
 ├── plan.md              # this file

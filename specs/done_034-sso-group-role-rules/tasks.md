@@ -1,6 +1,6 @@
 # Tasks: Map SSO groups to any role, and keep roles set by hand
 
-**Input**: Design documents from `/specs/034-sso-group-role-rules/`
+**Input**: Design documents from `/specs/done_034-sso-group-role-rules/`
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
 (all merged: spec in #929, plan/research/quickstart in #950).
