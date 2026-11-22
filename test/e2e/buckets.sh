@@ -387,7 +387,9 @@ EOF
 #
 # TestMultiCluster_MCPTokenRemoteGrant (spec 037, T039) costs +1 e2e-admin
 # login plus one login as its own user, bringing this job to 7 admin logins,
-# the ceiling: do not add admin logins to this bucket.
+# the ceiling: do not add admin logins to this bucket. Run in parallel, its two
+# logins made TestAPI_I18n_ProblemJSON's failed-login pair hit 429, so it runs
+# non-parallel (before the parallel batch) and waits for the limiter to refill.
 bucket_multicluster() { cat <<'EOF'
 TestAPI_AccountRemoval_RevokesSharesAndAllowsSSOReprovision
 TestAPI_ModuleUpload_ExtractionStaysWithinBudget
