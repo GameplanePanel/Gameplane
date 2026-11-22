@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-22
 
-**Status**: Draft (OD-1 and OD-2 settled; OD-3 and OD-4 pending, see `OPEN-DECISIONS.md`)
+**Status**: Draft (OD-1 to OD-3 settled; OD-4 and OD-5 pending, see `OPEN-DECISIONS.md`)
 
 **Input**: Issue [#1051](https://github.com/GameplanePanel/Gameplane/issues/1051) "Add SFTP server for file access", and valgul's design idea on it: "Give the sidecar a new internal API to list, stat, download and upload files. Then run one global SFTP server that uses this API. You connect to {sftp-cluster-ip} and see one folder per game server your account can access. Each folder is backed by that server pod's sidecar API."
 
@@ -81,14 +81,14 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 1. **Given** a default install, **When** the chart renders, **Then** no SFTP workload, Service, credential screen or network allowance exists.
 2. **Given** SFTP is enabled, **When** the SFTP pod restarts or is upgraded, **Then** its host key is unchanged, so clients do not warn about a changed key.
-3. **Given** SFTP is enabled on a multicluster panel, **When** a user can reach servers on a remote cluster, **Then** those servers appear in their tree too, through the same single address.
+3. **Given** SFTP is enabled on two clusters of a multicluster panel, **When** a user connects to each cluster's address, **Then** each shows only that cluster's servers the user can read, with the same credentials (remote path per OD-5).
 
 ---
 
 ### Edge Cases
 
 - A server is stopped or asleep, so its sidecar is not running (OD-4).
-- Two servers share a name in different namespaces or clusters (OD-3).
+- Two servers share a name in different namespaces: they appear under different `/_namespaces/` paths, or one of them as `/<server>` when it is in the default games namespace (OD-3).
 - A server is created, deleted or renamed while a user is connected: the root listing reflects it on the next listing; operations on a deleted server fail cleanly.
 - The server's pod restarts mid-transfer: the transfer fails with a clear error and can be resumed.
 - A volume fills up during an upload: the client gets an error and no half-written file replaces the old one.
@@ -104,7 +104,7 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 **Endpoint and exposure**
 
-- **FR-001**: Gameplane MUST offer one SFTP endpoint per panel, off by default and enabled with one Helm value; when off, nothing SFTP-related is deployed or shown.
+- **FR-001**: Gameplane MUST offer one SFTP endpoint per cluster (OD-3), off by default and enabled with one Helm value; when off, nothing SFTP-related is deployed or shown.
 - **FR-002**: The endpoint's port and Service type MUST be configurable in Helm. Per-server ports and port pools are out of scope.
 - **FR-003**: The endpoint MUST present a stable host key that survives restarts and upgrades, and the dashboard MUST show its fingerprint.
 - **FR-004**: The endpoint MUST speak SFTP only: no shell, no command execution, no port forwarding, no SCP.
@@ -120,7 +120,8 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 **Folder tree and permissions**
 
-- **FR-009**: After login, the root MUST list one folder per game server the user can read (`servers:read` in that server's cluster and namespace, or ownership/collaboration), across every cluster the panel manages, laid out per OD-3, and nothing else.
+- **FR-009**: After a login as `<user>`, the root MUST list one folder per game server on that endpoint's cluster that the user can read (`servers:read` in that cluster and namespace, or ownership/collaboration), and nothing else: `/<server>` for the cluster's default games namespace and `/_namespaces/<namespace>/<server>` for other namespaces (OD-3).
+- **FR-009a**: A login as `<user>+<server>` or `<user>+<namespace>/<server>` MUST open directly in that server's files, with the same credentials and permission checks as FR-009. If the user cannot read that server, or it does not exist, the login MUST fail with the same generic message as a wrong password.
 - **FR-010**: Inside a server folder, the user MUST see exactly what the dashboard Files tab shows for that server: the same data root, with dotfiles hidden and symlink escapes refused.
 - **FR-011**: Reads MUST require the same permission as the Files tab read routes, and every change (upload, overwrite, rename, mkdir, delete) MUST require the same permission as the Files tab write routes. Permissions MUST be checked on every operation, not only at login.
 - **FR-012**: The root and the server folders themselves MUST be read-only: users cannot create, rename or delete them.
@@ -167,7 +168,7 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 
 ## Assumptions
 
-- One address per panel matches what the reporter asked for in #1051; dedicated per-server ports or port pools are a possible later spec.
+- One address per cluster (OD-3) matches what the reporter asked for in #1051; dedicated per-server ports or port pools are a possible later spec.
 - File permissions reuse the existing catalog (`servers:read` to read, `servers:write` or ownership to change); no new permission is added.
 - The SFTP component is optional and off by default, like the MCP server and the audit syslog bridge.
 - The upload size limit and the dotfile, symlink and data-root rules are the same as the dashboard Files tab; SFTP gets no wider view of the volume than the dashboard.
@@ -179,5 +180,6 @@ A cluster admin enables SFTP with one Helm value, picks how it is exposed (port 
 - SCP, rsync, FTP/FTPS and WebDAV.
 - Shell or command access to the game container.
 - Per-server ports, port pools and per-server hostnames.
+- One endpoint that spans several clusters.
 - Access to files outside a server's data root, other volumes, backups or snapshots.
 - Changing file ownership or modes inside the volume.
