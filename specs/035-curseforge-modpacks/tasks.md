@@ -55,7 +55,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 ### Tests for US1
 
-- [X] T014 [P] [US1] Unit test CurseForge modpack versions filtered by game version and loader using the T002 fixture in api/internal/registry/curseforge_test.go
+- [X] T014 [P] [US1] Unit test CurseForge modpack versions filtered by game version and loader using the T002 fixture in api/internal/registry/curseforge_modpack_test.go
 - [X] T015 [P] [US1] envtest: POST install writes `spec.modpack`, needs manage permission, writes an audit entry without the key, returns 409 `server.modpack.key_required` on a java8-multiarch version while sharing is off, in api/internal/handlers/registry_modpack_envtest_test.go
 - [X] T016 [P] [US1] envtest: share on → `<gs>-curseforge-key` owned by the GameServer, game container only gets env `CF_API_KEY` (apiKeyEnv) via `valueFrom.secretKeyRef` to it, no key value in the pod spec, no config-hash change on key rotation; share off or key deleted → copy deleted and env removed, in operator/internal/controller/gameserver_modpack_key_envtest_test.go
 - [ ] T017 [US1] E2E: install a small CurseForge Fabric pack by slug + file id through the API (image built-in key, no browse key in CI), assert `Applied`, Running and the pack env; then install a Modrinth pack and assert no `CF_*` env remains (SC-004); one admin login; register in a bucket with login headroom per the comments in test/e2e/buckets.sh (not api-auth, api-roles, api-mods, api-rbac, api-agent) in test/e2e/modpack_e2e_test.go
@@ -71,7 +71,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 - [x] T024 [US1] Filter the Mods tab to `modsBrowse` providers and the Modpacks switch to unblocked modpack providers in web/src/components/registry-browser.tsx
 - [x] T025 [US1] Build the install flow from the approved design (registry switch with CurseForge, version picker defaulting to newest, confirmation) in web/src/routes/tabs/Modpacks.tsx and new web/src/components/modpack-version-picker.tsx, web/src/components/modpack-confirm-dialog.tsx
 - [x] T026 [US1] Build the "Share the CurseForge key with game servers" switch from the approved design in web/src/routes/AdminSettings.tsx
-- [x] T027 [P] [US1] vitest for the install flow and the share switch in web/src/routes/tabs/Modpacks.test.tsx and web/src/routes/AdminSettings.test.tsx
+- [x] T027 [P] [US1] vitest for the install flow and the share switch in web/src/routes/tabs/Modpacks.test.tsx and web/src/routes/AdminSettings_share.test.tsx
 
 **Checkpoint**: US1 deliverable on its own: CurseForge packs install and boot; Modrinth install keeps working through `spec.modpack`.
 
@@ -156,7 +156,7 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Tests for US5
 
 - [X] T050 [P] [US5] Unit test the FTB engine with the T002 fixtures (search resolves ids in batches, filters before the page limit so a match after the first 20 candidates is found, stops at 100 details, cache, bounded concurrency, upstream error) in api/internal/registry/ftb_test.go
-- [X] T051 [P] [US5] Add an FTB case to the dial-guard test in api/internal/registry/registry_dialguard_test.go
+- [X] T051 [P] [US5] Add an FTB case to the dial-guard test in api/internal/registry/registry_ftb_dialguard_test.go
 - [ ] T052 [US5] E2E (written, excluded from every CI bucket with a comment: FTB packs exceed CI runner budget) installing a small FTB pack in test/e2e/modpack_ftb_e2e_test.go and test/e2e/buckets.sh
 
 ### Implementation for US5
@@ -173,11 +173,11 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 - [X] T056 [P] Update operator/specs.md (spec.modpack rendering, state machine, wipe, key copies)
 - [X] T057 [P] Update api/specs.md (modpack routes, FTB engine, adoption sweep, share toggle)
-- [X] T058 [P] Update web/specs.md (Modpacks tab surfaces, admin share switch) (planned surfaces only; web code tasks pending)
+- [X] T058 [P] Update web/specs.md (Modpacks tab surfaces, admin share switch)
 - [X] T059 [P] Update modules/minecraft-java/specs.md and modules/minecraft-java/README.md (three registries, pinning, downloads folder, java8 key note) in the module repo
 - [X] T060 [P] Document `versionEnv`, `apiKeyEnv`, `needsKeyImageTags`, `missingFilesPath`, `adoptVersionFile`, `modpacksOnly` and `ftb` in docs/module-authoring.md
 - [X] T061 [P] Add the shared-key residual risk (research R2) to docs/security.md
-- [X] T062 [P] Add a CHANGELOG entry for CurseForge and FTB modpacks in CHANGELOG.md (changelog/unreleased/035-curseforge-ftb-modpacks.md, slug-only name, PR number added when the PR opens)
+- [X] T062 [P] Add a CHANGELOG entry for CurseForge and FTB modpacks in CHANGELOG.md (changelog/unreleased/1055-curseforge-ftb-modpacks.md)
 - [ ] T063 Bump the modules submodule pointer after the module PR merges (`submodule-bump` skill), in modules
 - [ ] T064 Walk quickstart.md scenarios 1–11 against the CI results and a dev cluster if valgul provides one; record results in specs/035-curseforge-modpacks/quickstart.md
 - [X] T065 Apply a CurseForge key-sharing toggle only when the server has 0 players online, is stopped or asleep, or a pack change is rolling it, reusing the OD-8 B gate (OD-10 A), in operator/internal/controller/gameserver_modpack_key.go, gameserver_modpack.go and gameserver_modpack_key_envtest_test.go
