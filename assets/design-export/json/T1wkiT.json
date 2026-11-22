@@ -4,7 +4,7 @@
   "name": "Screen/Theme Settings — Warnings",
   "type": "FRAME",
   "x": 1640,
-  "y": 75632,
+  "y": 75890,
   "width": 1440,
   "height": 2490,
   "fills": [{"type": "SOLID", "color": "#FFFFFF"}],
