@@ -1,6 +1,6 @@
 # Open decisions: spec 039 SFTP access to game servers
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. All five are settled; no decision is open. Planning starts once they are settled.
+Only a decision valgul answers is written here as settled. OD-1 to OD-4 were raised on 2026-11-22 and asked as decision cards; OD-5 followed from the OD-3 answer. OD-1 to OD-5 are settled. Planning raised OD-6 and OD-7 on 2026-11-22: both are open. Planning starts once they are settled.
 
 ## OD-1: Where does the SFTP server run, and how does it reach the sidecars? (SETTLED: A, valgul 2026-11-22)
 
@@ -54,3 +54,18 @@ OD-1 routes every SFTP operation through the Gameplane API, and OD-3 puts one SF
 - A. Every cluster's SFTP endpoint calls the central API, exactly as on the panel's own cluster; the API reaches the files through the remote gateway as it does for the Files tab. Each remote cluster must be able to reach the central API over HTTPS. File data travels remote → central → remote. (Recommended: one component and one code path everywhere, and OD-1's reasons hold on every cluster.)
 - B. A remote endpoint sends file data straight to its own cluster's gateway, and asks the central API only to log the user in, check each operation and write the audit entry. Data stays in the remote cluster, but permission handling splits across two paths and the gateway gains a new client.
 - C. SFTP runs only on the cluster that hosts the panel API for now; remote clusters get SFTP in a later spec.
+
+## OD-6: How large can one SFTP upload be? (OPEN)
+
+Raised by planning. The dashboard and the agent cap one upload at 64 MiB today (`agent/internal/files/files.go`, `maxUploadFileBytes`), and the gateway caps request bodies too. Worlds and modpacks are often bigger, which is the main reason #1051 asks for SFTP.
+
+- A. A new streaming upload route on the agent, API and gateway used by SFTP only, with its own Helm limit (`sftp.maxUploadSize`, default 20 GiB) and a free-space check before writing. The dashboard keeps 64 MiB. (Recommended: SFTP can move whole worlds, and the dashboard's tested upload path does not change.)
+- B. Same as A, and the dashboard upload also moves to the streaming route with the same limit. Bigger change, needs a design pass for progress on large uploads.
+- C. Keep 64 MiB everywhere. Smallest change, but worlds must be split or uploaded another way.
+
+## OD-7: Where does the SFTP server's code live? (OPEN)
+
+Raised by planning. The other optional components (MCP server, tunnel, audit syslog bridge, capture sidecar) live in their own repositories, checked out here as submodules, with images still built from this repository.
+
+- A. A new split repository `GameplanePanel/sftp`, submodule `sftp/`, set up like `GameplanePanel/mcp` (own `go.mod`, shared `go-component.yaml` CI, `specs.md`). valgul creates the empty repository; this session cannot. (Recommended: matches every other optional component, and the server only talks to the API over HTTPS, so it shares no Go code with this repository.)
+- B. A new Go module `sftp/` in this repository, added to `go.work`. No new repository and no submodule bump step, but goes against the component split done in #995.
