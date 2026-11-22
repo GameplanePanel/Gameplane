@@ -22,9 +22,13 @@ import (
 // package doc of multicluster_e2e_test.go (see ensureClusterB).
 //
 // Budget: one e2e-admin login (the admin fixture) and one throwaway user login.
+//
+// Not parallel, on purpose (login budget): the multicluster bucket is at the
+// per-IP login burst, and TestAPI_I18n_ProblemJSON's raw failed logins are not
+// retried on 429. Go runs non-parallel tests before the parallel ones resume,
+// so this test's two logins happen first, and it waits at the end until the
+// limiter has refilled them (IP limiter: 5 per minute).
 func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
-	t.Parallel()
-
 	_, clusterBName := ensureClusterB(t)
 
 	envInstance.BootstrapAdmin(t, adminUsername, adminPassword)
@@ -70,6 +74,13 @@ func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
 	// Log in after the binding: binding changes invalidate existing sessions.
 	user := envInstance.APIClient(t, userName, userPW)
 	defer user.Close()
+	lastLogin := time.Now()
+	t.Cleanup(func() {
+		// Hand the parallel tests a full login bucket: two logins refill in 24s.
+		if d := 25*time.Second - time.Since(lastLogin); d > 0 {
+			time.Sleep(d)
+		}
+	})
 
 	_, token := mcpTokenReadsCreate(t, user, fmt.Sprintf("e2e-mcp-mc-%d", suffix))
 
