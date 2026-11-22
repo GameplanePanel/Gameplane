@@ -63,6 +63,12 @@ const (
 	// kept with status.modpack.applied when the removal's backup fails so a
 	// retry (new requestId) runs it again.
 	ModpackRemoveAnnotation = "gameplane.local/modpack-remove"
+
+	// ModpackInstallAnnotation holds a fresh request id the API stamps on every
+	// install/change request. Annotation edits do not bump the generation, so
+	// this lets the operator tell a retry of the same choice (after
+	// BackupFailed) from the attempt that failed.
+	ModpackInstallAnnotation = "gameplane.local/modpack-install-request"
 )
 
 // GameServerSpec is the desired state of a single game server instance.
@@ -276,6 +282,18 @@ type GameServerModpackStatus struct {
 	// +kubebuilder:validation:MaxLength=512
 	// +optional
 	Message string `json:"message,omitempty"`
+
+	// Target is the spec.modpack the in-flight change (BackingUp or
+	// BackupFailed) started from; nil for a removal. A change is superseded
+	// when spec.modpack or the request id no longer match it, not when the
+	// generation moves.
+	// +optional
+	Target *ModpackRef `json:"target,omitempty"`
+
+	// RequestID is the install or removal request id the in-flight change
+	// started from.
+	// +optional
+	RequestID string `json:"requestId,omitempty"`
 
 	// KeyShared reports the game container currently gets a shared CurseForge
 	// key from the server-owned Secret through the template's apiKeyEnv

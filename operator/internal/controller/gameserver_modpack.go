@@ -65,7 +65,7 @@ func modpackDeclaredEnvNames(tmpl *gameplanev1alpha1.GameTemplate) map[string]st
 
 const (
 	// modpackRequestAnnotation is stamped on the Backup of a change with the
-	// removal request id (empty for installs), so a retry that only changes
+	// removal or install request id (empty when absent), so a retry that only changes
 	// the remove annotation is told apart from the attempt that failed.
 	modpackRequestAnnotation = "gameplane.local/modpack-request-id"
 	// modpackBackupLabel marks Backups created by a modpack change.
@@ -111,10 +111,14 @@ func modpackWantsBackup(gs *gameplanev1alpha1.GameServer) bool {
 	return ok && req.BackupFirst
 }
 
-// modpackRequestID is the removal request id ("" for an install).
+// modpackRequestID is the removal request id when a removal is requested,
+// otherwise the install request id the API stamps on each install ("" when
+// absent).
 func modpackRequestID(gs *gameplanev1alpha1.GameServer) string {
-	req, _ := modpackRemovalRequest(gs)
-	return req.RequestID
+	if req, ok := modpackRemovalRequest(gs); ok {
+		return req.RequestID
+	}
+	return gs.Annotations[gameplanev1alpha1.ModpackInstallAnnotation]
 }
 
 // modpackLegacyRender reports that the pod must keep rendering the pre-035 env
@@ -311,8 +315,12 @@ func modpackStart(
 		next.Applied = applied
 		next.Phase = gameplanev1alpha1.ModpackPhaseBackingUp
 		next.BackupName = backupName
+		next.Target = desired
+		next.RequestID = modpackRequestID(gs)
 		return next, true
 	}
+	next.Target = nil
+	next.RequestID = ""
 	next.Applied = desired
 	next.Phase = gameplanev1alpha1.ModpackPhaseApplying
 	next.BackupName = ""
@@ -422,14 +430,25 @@ func (r *GameServerReconciler) reconcileModpackChange(
 
 // driveModpackBackup advances a change parked in BackingUp or BackupFailed.
 // done is true when this pass must not start or apply anything else. It
-// returns done=false when the change was superseded (spec generation or
-// removal request id moved on, or the Backup is gone) so the caller restarts
-// the flow from the top.
+// returns done=false when the change was superseded (spec.modpack or the
+// request id moved on from the recorded target, or the Backup is gone) so the
+// caller restarts the flow from the top.
 func (r *GameServerReconciler) driveModpackBackup(
 	ctx context.Context, gs *gameplanev1alpha1.GameServer, tmpl *gameplanev1alpha1.GameTemplate,
 ) (done bool, err error) {
 	st := gs.Status.Modpack
-	if gs.Generation != st.ObservedGeneration || st.BackupName == "" {
+	if st.BackupName == "" || st.RequestID != modpackRequestID(gs) {
+		return false, nil
+	}
+	// Superseded only when the desired pack moved on from what this change
+	// started from; unrelated spec edits (env, resources, suspend) bump the
+	// generation without changing the change.
+	var desired *gameplanev1alpha1.ModpackRef
+	if gs.Spec.Modpack != nil {
+		ref := gs.Spec.Modpack.ModpackRef
+		desired = &ref
+	}
+	if !reflect.DeepEqual(desired, st.Target) {
 		return false, nil
 	}
 	var b gameplanev1alpha1.Backup

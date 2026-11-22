@@ -172,7 +172,8 @@ func (r *GameServerReconciler) reconcileModpackKey(
 // a pack change is already rolling it (phase Applying, the only phase in which
 // the new pack renders), or the server is quiet (OD-8 B gate, without the
 // version requirement). Pending, BackingUp and BackupFailed roll no pod, so
-// they do not release a held toggle.
+// they do not release a held toggle. A toggle landing during Applying after the
+// pod already rolled causes one extra restart; accepted under OD-10.
 func (r *GameServerReconciler) modpackKeyFlipReady(ctx context.Context, gs *gameplanev1alpha1.GameServer) (bool, error) {
 	if gs.Status.Modpack != nil && gs.Status.Modpack.Phase == gameplanev1alpha1.ModpackPhaseApplying {
 		return true, nil

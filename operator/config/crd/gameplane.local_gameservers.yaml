@@ -2828,6 +2828,55 @@ spec:
                     - Applied
                     - BackupFailed
                     type: string
+                  requestId:
+                    description: |-
+                      RequestID is the install or removal request id the in-flight change
+                      started from.
+                    type: string
+                  target:
+                    description: |-
+                      Target is the spec.modpack the in-flight change (BackingUp or
+                      BackupFailed) started from; nil for a removal. A change is superseded
+                      when spec.modpack or the request id no longer match it, not when the
+                      generation moves.
+                    properties:
+                      project:
+                        description: Project is the pack's slug (Modrinth, CurseForge)
+                          or numeric id (FTB).
+                        maxLength: 128
+                        minLength: 1
+                        pattern: ^[A-Za-z0-9._-]+$
+                        type: string
+                      provider:
+                        description: |-
+                          Provider names the registry (a provider of the template's registry
+                          list that declares modpacks), e.g. "modrinth", "curseforge", "ftb".
+                          The operator renders nothing for a provider the template does not
+                          declare with modpacks.
+                        maxLength: 32
+                        minLength: 1
+                        pattern: ^[a-z0-9-]+$
+                        type: string
+                      title:
+                        description: Title is the pack's display name; display only.
+                        maxLength: 128
+                        type: string
+                      version:
+                        description: |-
+                          Version is the pinned pack version id. Empty only for adopted packs
+                          whose installed version could not be read ("Not pinned").
+                        maxLength: 64
+                        pattern: ^[A-Za-z0-9._-]*$
+                        type: string
+                      versionName:
+                        description: VersionName is the version's display name; display
+                          only.
+                        maxLength: 128
+                        type: string
+                    required:
+                    - project
+                    - provider
+                    type: object
                 type: object
               observedGeneration:
                 format: int64
