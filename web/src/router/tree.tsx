@@ -16,6 +16,7 @@ import { ClustersPage } from "@/routes/Clusters";
 import { UsersPage } from "@/routes/Users";
 import { AdminSettingsPage } from "@/routes/AdminSettings";
 import { ThemeSettingsPage } from "@/routes/ThemeSettings";
+import { McpTokensPage } from "@/routes/McpTokens";
 import { CreateServerWizard } from "@/routes/CreateServer";
 import { BackupsPage } from "@/routes/Backups";
 import { AuditLogPage } from "@/routes/AuditLog";
@@ -158,6 +159,14 @@ const themeSettingsRoute = new Route({
   component: ThemeSettingsPage,
 });
 
+// Personal MCP tokens (spec 037): every signed-in user manages their own
+// tokens, so like Theme the route has no RequirePermission gate.
+const mcpTokensRoute = new Route({
+  getParentRoute: () => appLayoutRoute,
+  path: "/settings/mcp-tokens",
+  component: McpTokensPage,
+});
+
 const auditLogRoute = new Route({
   getParentRoute: () => appLayoutRoute,
   path: "/admin/audit",
@@ -216,6 +225,7 @@ export const routeTree = rootRoute.addChildren([
     usersRoute,
     adminRoute,
     themeSettingsRoute,
+    mcpTokensRoute,
     auditLogRoute,
     adminLogsRoute,
     backupsRoute,

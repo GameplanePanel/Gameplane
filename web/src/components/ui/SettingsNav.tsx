@@ -6,6 +6,7 @@ import {
   Cog,
   Info,
   Key,
+  Link as LinkIcon,
   Palette,
   RefreshCcw,
   ShieldCheck,
@@ -16,18 +17,20 @@ import { cn } from "@/lib/utils";
 import { useOptionalIntl } from "@/lib/i18n/format";
 
 // SettingsNav is the settings sub-navigation shared by the admin settings
-// page (/admin) and the per-user theme settings page (/settings/theme), per
+// page (/admin) and the per-user settings pages (/settings/theme and
+// /settings/mcp-tokens), per
 // the Screen/Theme Settings design (assets/design-export lWvcv): one item per
 // settings area, "Theme" sitting between "General" and "Authentication".
 // Admin settings sections are in-page state (not routes), so ordinary
-// entries report their key through onSelect; only "Theme" is a real route
-// and renders as a router Link. On /settings/theme the nav is rendered with
-// active="theme" and the remaining entries navigate back to /admin (whose
-// default section is General).
+// entries report their key through onSelect; "Theme" and "MCP tokens" are
+// real routes and render as router Links. On the personal pages the nav is
+// rendered with the page's own key active and the remaining entries navigate
+// back to /admin (whose default section is General).
 
 export type SettingsNavKey =
   | "general"
   | "theme"
+  | "mcp"
   | "auth"
   | "modules"
   | "modRegistries"
@@ -37,12 +40,21 @@ export type SettingsNavKey =
   | "about";
 
 // Section keys handled by the admin settings page itself (every key except
-// the theme page's own "theme").
-export type SettingsSectionKey = Exclude<SettingsNavKey, "theme">;
+// the routed pages "theme" and "mcp").
+export type SettingsSectionKey = Exclude<SettingsNavKey, "theme" | "mcp">;
+
+// Routed entries navigate to their own page instead of an admin section.
+type RoutedKey = "theme" | "mcp";
+const routeByKey: Record<RoutedKey, string> = {
+  theme: "/settings/theme",
+  mcp: "/settings/mcp-tokens",
+};
+const isRouted = (key: SettingsNavKey): key is RoutedKey => key === "theme" || key === "mcp";
 
 const navMessages = defineMessages({
   general: { id: "web.components.ui.settings_nav.general", defaultMessage: "General", description: "Settings nav: label of the General settings section" },
   theme: { id: "web.components.ui.settings_nav.theme", defaultMessage: "Theme", description: "Settings nav: label of the Theme settings page" },
+  mcp: { id: "web.components.ui.settings_nav.mcp_tokens", defaultMessage: "MCP tokens", description: "Settings nav: label of the MCP tokens settings page" },
   auth: { id: "web.components.ui.settings_nav.authentication", defaultMessage: "Authentication", description: "Settings nav: label of the Authentication settings section" },
   modules: { id: "web.components.ui.settings_nav.module_sources", defaultMessage: "Module sources", description: "Settings nav: label of the Module sources settings section" },
   modRegistries: { id: "web.components.ui.settings_nav.mod_registries", defaultMessage: "Mod registries", description: "Settings nav: label of the Mod registries settings section" },
@@ -55,6 +67,7 @@ const navMessages = defineMessages({
 const navItems: Array<{ key: SettingsNavKey; label: MessageDescriptor; icon: ComponentType<{ className?: string }> }> = [
   { key: "general",       label: navMessages.general,       icon: Cog },
   { key: "theme",         label: navMessages.theme,         icon: Palette },
+  { key: "mcp",           label: navMessages.mcp,           icon: LinkIcon },
   { key: "auth",          label: navMessages.auth,          icon: ShieldCheck },
   { key: "modules",       label: navMessages.modules,       icon: Boxes },
   { key: "modRegistries", label: navMessages.modRegistries, icon: Key },
@@ -82,12 +95,12 @@ export function SettingsNav({
   showAdminSections: boolean;
 }) {
   const intl = useOptionalIntl();
-  const items = showAdminSections ? navItems : navItems.filter((i) => i.key === "theme");
+  const items = showAdminSections ? navItems : navItems.filter((i) => isRouted(i.key));
   return (
     <nav className="space-y-0.5" aria-label={intl.formatMessage({ id: "web.components.ui.settings_nav.settings_sections", defaultMessage: "Settings sections", description: "Settings navigation: screen-reader name of the list of settings sections; not visible on screen" })}>
       {items.map(({ key, label, icon: Icon }) =>
-        key === "theme" ? (
-          <Link key={key} to="/settings/theme" className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
+        isRouted(key) ? (
+          <Link key={key} to={routeByKey[key]} className={itemClass(active === key)} aria-current={active === key ? "page" : undefined}>
             <Icon className="h-4 w-4" />
             <span>{intl.formatMessage(label)}</span>
           </Link>
