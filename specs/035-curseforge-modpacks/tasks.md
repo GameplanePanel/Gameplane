@@ -119,8 +119,8 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 
 - [X] T041 [US3] Add `DELETE /servers/{name}/modpack?backupFirst=` per contracts/api-modpack.md in api/internal/handlers/registry.go
 - [X] T042 [US3] Implement removal handling (annotation consume, optional backup, wipe init step with marker, annotation cleared once applied) in operator/internal/controller/gameserver_modpack.go
-- [ ] T043 [US3] Build the Active modpack card (title, registry, version or "Not pinned", phase and message, Change version, Remove with the "every mod is deleted, including ones added by hand" confirmation) from the approved design in new web/src/components/modpack-active-card.tsx and web/src/routes/tabs/Modpacks.tsx
-- [ ] T044 [P] [US3] vitest for card states (Applied, BackingUp, Applying, BackupFailed, Not pinned, read-only) in web/src/components/modpack-active-card.test.tsx
+- [x] T043 [US3] Build the Active modpack card (title, registry, version or "Not pinned", phase and message, Change version, Remove with the "every mod is deleted, including ones added by hand" confirmation) from the approved design in new web/src/components/modpack-active-card.tsx and web/src/routes/tabs/Modpacks.tsx
+- [x] T044 [P] [US3] vitest for card states (Applied, BackingUp, Applying, BackupFailed, Not pinned, read-only) in web/src/components/modpack-active-card.test.tsx
 
 **Checkpoint**: operators can see and remove packs from any registry.
 
@@ -140,8 +140,8 @@ description: "Task list for spec 035: CurseForge and FTB modpacks for Minecraft"
 ### Implementation for US4
 
 - [X] T047 [US4] Implement the parser and fill `missingFiles` + `downloadsPath` from `missingFilesPath` via the agent files API in new api/internal/handlers/modpack_missing.go and api/internal/handlers/registry.go
-- [ ] T048 [US4] Build the missing files notice from the approved design in new web/src/components/modpack-missing-files.tsx and web/src/routes/tabs/Modpacks.tsx
-- [ ] T049 [P] [US4] vitest for the notice in web/src/components/modpack-missing-files.test.tsx
+- [x] T048 [US4] Build the missing files notice from the approved design in new web/src/components/modpack-missing-files.tsx and web/src/routes/tabs/Modpacks.tsx
+- [x] T049 [P] [US4] vitest for the notice in web/src/components/modpack-missing-files.test.tsx
 
 **Checkpoint**: blocked-file packs are usable with the Files tab.
 
