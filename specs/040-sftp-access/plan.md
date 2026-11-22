@@ -1,14 +1,14 @@
 # Implementation Plan: SFTP access to game servers
 
-**Branch**: `spec-039/sftp-access` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
+**Branch**: `spec-040/sftp-access` | **Date**: 2026-11-22 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/039-sftp-access/spec.md`
+**Input**: Feature specification from `specs/040-sftp-access/spec.md`
 
 **Open decisions**: OD-1 to OD-6 are settled (OD-6 B: one streaming upload path and limit for SFTP and the dashboard). OD-7 A: the SFTP server lives in a new split repository `GameplanePanel/sftp`, submodule `sftp/`. No decision is open. See [OPEN-DECISIONS.md](OPEN-DECISIONS.md).
 
 ## Summary
 
-Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a generated SFTP password (OD-2), and sends every login and file operation to the central Gameplane API (OD-1, OD-5), which applies the Files tab's permissions, writes the audit log and reaches the server's agent through its existing local proxy or remote gateway. A login as `<user>` shows a tree of the cluster's servers; `<user>+<server>` opens one server. The agent gains stat, rename and a streaming upload with resume, which the dashboard Files tab also switches to, under one Helm upload limit (OD-6). For a stopped or asleep server the operator runs a short-lived file-only pod with the server's volumes and points the `<name>-agent` Service at it, so the API and gateway reach it unchanged (OD-4); the Files tab uses it too. Details: [research.md](research.md), [data-model.md](data-model.md), [contracts/api.md](contracts/api.md).
+Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a generated SFTP password (OD-2), and sends every login and file operation to the central Gameplane API (OD-1, OD-5), which applies the Files tab's permissions, writes the audit log and reaches the server's agent through its existing local proxy or remote gateway. A login as `<user>` shows a tree of the cluster's servers; `<user>+<server>` opens one server. The agent gains stat, rename and a streaming upload with resume, which the dashboard Files tab also switches to, under one Helm upload limit (OD-6). For a stopped or asleep server the operator runs a short-lived file-only pod with the server's volumes and points the `<name>-agent` Service at it, so the API and gateway reach it unchanged (OD-4); the Files tab uses it too. Details: [research.md](research.md), [data-model.md](data-model.md), [contracts/api.md](contracts/api.md); manual validation: [quickstart.md](quickstart.md).
 
 ## Technical Context
 
@@ -48,13 +48,14 @@ Each cluster can run an optional SFTP endpoint (OD-3). It accepts SSH keys or a 
 ### Documentation (this feature)
 
 ```
-specs/039-sftp-access/
+specs/040-sftp-access/
 ├── spec.md
 ├── OPEN-DECISIONS.md
 ├── plan.md
 ├── research.md
 ├── data-model.md
 ├── contracts/api.md
+├── quickstart.md
 ├── tasks.md
 └── checklists/requirements.md
 ```

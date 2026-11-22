@@ -1,6 +1,6 @@
 # Feature Specification: SFTP access to game servers
 
-**Feature Branch**: `spec-039/sftp-access`
+**Feature Branch**: `spec-040/sftp-access`
 
 **Created**: 2026-11-22
 
