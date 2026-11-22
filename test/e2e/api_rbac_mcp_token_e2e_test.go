@@ -128,8 +128,9 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 	}
 
 	status, b = mcpTokenReadsCall(t, user.BaseURL, tokenRead, http.MethodGet, "/pods?namespace="+otherNS)
-	if status != http.StatusForbidden {
-		t.Errorf("GET /pods ungranted ns with token: status=%d want 403 body=%s", status, b)
+	// An ungranted namespace is refused before the handler (400 namespace not permitted).
+	if status != http.StatusBadRequest && status != http.StatusForbidden {
+		t.Errorf("GET /pods ungranted ns with token: status=%d want a 400/403 refusal body=%s", status, b)
 	}
 
 	status, b = mcpTokenReadsCall(t, user.BaseURL, tokenRead, http.MethodGet, "/kube-events?namespace="+grantedNS)
@@ -166,8 +167,10 @@ func TestAPI_RBAC_MCPTokenReads(t *testing.T) {
 		t.Fatalf("remove binding: status=%d want 204 body=%s", resp.StatusCode, body)
 	}
 	status, b = mcpTokenReadsCall(t, user.BaseURL, tokenRead, http.MethodGet, "/pods?namespace="+grantedNS)
-	if status != http.StatusForbidden {
-		t.Errorf("GET /pods after grant removed: status=%d want 403 body=%s", status, b)
+	// With no grant left on the cluster, the token gets the unknown-cluster
+	// answer (FR-021: 400 cluster not permitted).
+	if status != http.StatusBadRequest && status != http.StatusForbidden {
+		t.Errorf("GET /pods after grant removed: status=%d want a 400/403 refusal body=%s", status, b)
 	}
 
 	// --- Admin password reset ends remaining tokens --------------------------

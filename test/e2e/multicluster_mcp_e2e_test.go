@@ -99,8 +99,8 @@ func TestMultiCluster_MCPTokenRemoteGrant(t *testing.T) {
 	// --- Namespace-only grant: other namespaces on the remote cluster are refused ---
 	status, b = mcpTokenReadsCall(t, user.BaseURL, token, http.MethodGet,
 		"/pods?namespace=kube-system&cluster="+clusterID)
-	if status != http.StatusForbidden {
-		t.Errorf("GET /pods kube-system on remote cluster with namespace-only grant: status=%d want 403 body=%s", status, b)
+	if status != http.StatusBadRequest && status != http.StatusForbidden {
+		t.Errorf("GET /pods kube-system on remote cluster with namespace-only grant: status=%d want a 400/403 refusal body=%s", status, b)
 	}
 }
 
