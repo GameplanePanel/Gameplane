@@ -1,6 +1,6 @@
 # Open decisions: spec 037 Scope MCP server permissions
 
-Only a decision valgul answers is written here as settled. OD-1 to OD-3 were asked as decision cards and settled on 2026-11-17. OD-4 and OD-5 were raised by planning on 2026-11-22 and are OPEN.
+Only a decision valgul answers is written here as settled. OD-1 to OD-3 were asked as decision cards and settled on 2026-11-17. OD-4 and OD-5 were raised by planning on 2026-11-22: OD-4 is settled, OD-5 is OPEN.
 
 ## OD-1: How does an MCP session prove which Gameplane user it acts for? (SETTLED: A, valgul 2026-11-17)
 
@@ -24,7 +24,7 @@ Today's way to start a session is `kubectl exec -i deploy/gameplane-mcp-server -
 - B. Remove it: the per-user mode is the only mode, the in-cluster Deployment and its role go away. Breaking change for anyone using `kubectl exec ... serve` today.
 - C. Keep it, but require a Gameplane credential in it too (break-glass is lost when the API is down).
 
-## OD-4: How long can a personal MCP token live? (OPEN)
+## OD-4: How long can a personal MCP token live? (SETTLED: B, valgul 2026-11-22)
 
 Every token expires (spec FR-016); this sets the choices in the Create token dialog. Planning also proposes at most 10 active tokens per user.
 

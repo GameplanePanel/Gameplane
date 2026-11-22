@@ -13,7 +13,7 @@ Portable SQL per `api/internal/db/migrations/README.md` (no dialect functions; t
 | `prefix` | text, not null | First 10 characters (`gpmcp_` + 4), shown in lists so a user can tell tokens apart. |
 | `session_epoch` | integer, not null | Copied from `users.session_epoch` at creation. A mismatch (password reset) makes the token invalid. |
 | `created_at` | text, not null | RFC 3339 UTC. |
-| `expires_at` | text, not null | RFC 3339 UTC. Allowed lifetimes: see OD-4 (pending). No non-expiring tokens. |
+| `expires_at` | text, not null | RFC 3339 UTC. Allowed lifetimes 7, 30, 90 or 365 days, default 30 (OD-4). No non-expiring tokens. |
 | `last_used_at` | text, null | Updated at most once a minute per token, so reads do not write on every call. |
 | `revoked_at` | text, null | Set by Revoke; a revoked row is kept for 30 days for the token list, then removed by the existing GC loop with expired rows. |
 

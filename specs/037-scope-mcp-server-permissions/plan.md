@@ -4,7 +4,7 @@
 
 **Input**: Feature specification from `specs/037-scope-mcp-server-permissions/spec.md`
 
-**Open decisions**: OD-4 (token lifetimes) and OD-5 (who may create tokens) were raised by planning and are pending in [OPEN-DECISIONS.md](OPEN-DECISIONS.md). Everything else in this plan follows the settled OD-1 to OD-3.
+**Open decisions**: planning raised OD-4 (token lifetimes, settled: 7, 30, 90 or 365 days) and OD-5 (who may create tokens, pending) in [OPEN-DECISIONS.md](OPEN-DECISIONS.md). Everything else in this plan follows the settled OD-1 to OD-3.
 
 ## Summary
 

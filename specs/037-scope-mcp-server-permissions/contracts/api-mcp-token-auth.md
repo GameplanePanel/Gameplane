@@ -5,7 +5,7 @@
 | Method and path | Permission | Body / result |
 |---|---|---|
 | `GET /users/me/mcp-tokens` | signed-in user | `[{id, name, prefix, createdAt, expiresAt, lastUsedAt, revokedAt}]`, newest first. |
-| `POST /users/me/mcp-tokens` | signed-in user (see OD-5) | `{name, expiresInDays}` → `201 {id, name, prefix, createdAt, expiresAt, token}`. `token` appears only in this response. `400` for a bad name or lifetime (OD-4), `409` for a duplicate name, `422` when the user already has 10 active tokens. |
+| `POST /users/me/mcp-tokens` | signed-in user (see OD-5) | `{name, expiresInDays}` → `201 {id, name, prefix, createdAt, expiresAt, token}`. `token` appears only in this response. `expiresInDays` must be 7, 30, 90 or 365 (OD-4). `400` for a bad name or lifetime, `409` for a duplicate name, `422` when the user already has 10 active tokens. |
 | `DELETE /users/me/mcp-tokens/{id}` | owner of the token | `204`. Unknown or someone else's ID → `404`. |
 | `GET /users/{id}/mcp-tokens` | `users:read` | Same list shape for that user. |
 | `DELETE /users/{id}/mcp-tokens/{tokenId}` | `users:manage` | `204`. |
